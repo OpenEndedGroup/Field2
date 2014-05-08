@@ -1,0 +1,11 @@
+*.log
+*.o
+*.a
+*.so
+*.dll
+*.jar
+*.class
+libs/
+target/
+bin/
+jglfw-*.zip
