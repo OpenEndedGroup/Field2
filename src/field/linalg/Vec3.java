@@ -347,4 +347,10 @@ public class Vec3 {
 	}
 
 
+	/**
+	 * returns Vec2(x, y);
+	 */
+	public Vec2 toVec2() {
+		return new Vec2(x, y);
+	}
 }

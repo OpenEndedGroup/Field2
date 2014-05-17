@@ -84,8 +84,11 @@ public class Compositor {
 				    "{\n" +
 				    "	vec4 ta = texelFetch(te, ivec2(gl_FragCoord.xy), 0);" +
 				    "	vec4 tb = texelFetch(blur, ivec2(gl_FragCoord.xy), 0);" +
-				    "	float mix = ta.w>0 ? 1 : 0;"+
-				    "	_output  = vec4((ta.xyz+(tb.xyz-vec3(0.5))*0.4), mix);\n" +
+				    "	float mix = pow(ta.w, 0.15);"+
+				    "	float m2 = pow(ta.w, 0.25);"+
+				    //"	_output  = vec4((ta.xyz+(tb.xyz-vec3(0.85))*0.4), mix);\n" +
+				    //"	_output  = vec4(ta.xyz*mix+(1-mix)*tb.xyz, mix);\n" +
+				    "_output = vec4(tb.xyz*(1-m2)+m2*ta.xyz, mix);"+
 				    "\n" +
 				    "}");
 
@@ -208,6 +211,7 @@ public class Compositor {
 
 	private FBO newFBO(int unit) {
 		return new FBO(FBO.FBOSpecification.rgbaMultisample(unit, window.getWidth(), window.getHeight()));
+//		return new FBO(FBO.FBOSpecification.(unit, window.getWidth(), window.getHeight()));
 	}
 
 	public Layer getMainLayer() {

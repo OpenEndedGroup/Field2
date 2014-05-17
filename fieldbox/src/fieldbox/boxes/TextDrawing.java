@@ -85,6 +85,10 @@ public class TextDrawing extends Box {
 			    "   vtc =tc;\n" +
 			    "}");
 
+
+
+		// smoothing needs to be around 1 for font scales of 4 and 0.02 for font scales of 0.2
+
 		layer.mainShader.addSource(Shader.Type.fragment, "#version 410\n" +
 			    "layout(location=0) out vec4 _output;\n" +
 			    "in vec4 vertexColor;\n" +

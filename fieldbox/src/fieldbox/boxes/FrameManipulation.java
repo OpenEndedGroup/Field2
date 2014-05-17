@@ -4,6 +4,7 @@ import com.badlogic.jglfw.Glfw;
 import field.graphics.FLine;
 import field.linalg.Vec2;
 import field.linalg.Vec4;
+import field.utility.Dict;
 import field.utility.Rect;
 import field.graphics.Window;
 
@@ -19,12 +20,22 @@ public class FrameManipulation extends Box implements Manipulation.OnMouseDown {
 		translate, left, top, right, bottom;
 	}
 
+	static public final Dict.Prop<Boolean> lockWidth = new Dict.Prop<>("lockWidth").type().toCannon();
+	static public final Dict.Prop<Boolean> lockHeight= new Dict.Prop<>("lockHeight").type().toCannon();
+	static public final Dict.Prop<Boolean> lockX= new Dict.Prop<>("lockX").type().toCannon();
+	static public final Dict.Prop<Boolean> lockY= new Dict.Prop<>("lockY").type().toCannon();
+
+
 	public FrameManipulation() {
 		this.properties.putToList(Manipulation.onMouseDown, this);
 	}
 
 	@Override
 	public Manipulation.Dragger onMouseDown(Window.Event<Window.MouseState> e, int button) {
+
+		System.out.println(" consumed in frame manipulation ? "+e.properties.isTrue(Window.consumed,false));
+
+		if (e.properties.isTrue(Window.consumed,false)) return null;
 		if (button == 0 || button == 1) return button0(e);
 		if (button == 2) return button2(e);
 		return null;
@@ -75,13 +86,12 @@ public class FrameManipulation extends Box implements Manipulation.OnMouseDown {
 
 			if (!shift) breadthFirst(both()).forEach(x -> x.properties.remove(Manipulation.isSelected));
 
-			System.out.println(" -- selecting :"+hitBox.properties.getMap());
 			hitBox.properties.put(Manipulation.isSelected, true);
 
 			if (hitBox.properties.isTrue(Manipulation.isSelected, false) && e.after.buttonsDown.contains(0)) {
 				// what kind of drag might this be?
 
-				List<DragTarget> targets = targetsFor(frame(hitBox), point, drawing.orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)")).getScale());
+				List<DragTarget> targets = targetsFor(frame(hitBox), point, drawing.orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)")).getScale(), hitBox.properties.isTrue(lockWidth, false), hitBox.properties.isTrue(lockHeight, false));
 
 				feedback(hitBox, originalFrame, originalFrame, -1);
 				Drawing.dirty(hitBox);
@@ -92,7 +102,7 @@ public class FrameManipulation extends Box implements Manipulation.OnMouseDown {
 
 					breadthFirst(both()).filter(x -> x.properties.isTrue(Manipulation.isSelected, false)).forEach(x -> {
 						Rect r0 = frame(x);
-						Rect r = transform(r0, targets, drawingDelta);
+						Rect r = transform(x, r0, targets, drawingDelta);
 						x.properties.put(Manipulation.frame, r);
 						feedback(hitBox, originalFrame, r, termination ? 60 : -1);
 						Drawing.dirty(hitBox);
@@ -159,8 +169,8 @@ public class FrameManipulation extends Box implements Manipulation.OnMouseDown {
 						m.lineTo(point.x, point.y);
 
 						m.attributes.put(FrameDrawer.thicken, new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-						m.attributes.put(FrameDrawer.strokeColor, new Vec4(0, 0, 0, 0.2f));
-						m.attributes.put(FrameDrawer.fillColor, new Vec4(0, 0, 0, 0.3f));
+						m.attributes.put(FrameDrawer.strokeColor, new Vec4(1, 1, 1,0.2f));
+						m.attributes.put(FrameDrawer.fillColor, new Vec4(1, 1, 1,0.3f));
 						m.attributes.put(FrameDrawer.stroked, true);
 						m.attributes.put(FrameDrawer.filled, true);
 						m.attributes.put(FrameDrawer.pointed, false);
@@ -179,8 +189,11 @@ public class FrameManipulation extends Box implements Manipulation.OnMouseDown {
 		return hitBox.properties.get(Manipulation.frame);
 	}
 
-	private Rect transform(Rect r, List<DragTarget> targets, Vec2 drawingDelta) {
+	private Rect transform(Box b, Rect r, List<DragTarget> targets, Vec2 drawingDelta) {
 		for (DragTarget d : targets) {
+
+			Rect was = r;
+
 			switch (d) {
 				case bottom:
 					r = new Rect(r.x, r.y, r.w, r.h + drawingDelta.y);
@@ -202,19 +215,27 @@ public class FrameManipulation extends Box implements Manipulation.OnMouseDown {
 			if (r.w < 20) r = new Rect(r.x, r.y, 20, r.h);
 			if (r.h < 20) r = new Rect(r.x, r.y, r.w, 20);
 
+			if (b.properties.isTrue(lockWidth, false))
+				r = new Rect(r.x, r.y, was.w, r.h);
+			if (b.properties.isTrue(lockHeight, false))
+				r = new Rect(r.x, r.y, r.w, was.h);
+			if (b.properties.isTrue(lockX, false))
+				r = new Rect(was.x, r.y, r.w, r.h);
+			if (b.properties.isTrue(lockY, false))
+				r = new Rect(r.x, was.y, r.w, r.h);
 		}
 		return r;
 
 	}
 
-	private List<DragTarget> targetsFor(Rect rect, Vec2 point, Vec2 scale) {
+	private List<DragTarget> targetsFor(Rect rect, Vec2 point, Vec2 scale, boolean lockWidth, boolean lockHeight) {
 		List<DragTarget> r = new ArrayList<>();
 
 		float inset = 10;
 		if (Math.abs(point.x - rect.x) < inset) r.add(DragTarget.left);
-		if (Math.abs(point.x - rect.x - rect.w) < inset) r.add(DragTarget.right);
+		if (Math.abs(point.x - rect.x - rect.w) < inset && !lockWidth) r.add(DragTarget.right);
 		if (Math.abs(point.y - rect.y) < inset) r.add(DragTarget.top);
-		if (Math.abs(point.y - rect.y - rect.h) < inset) r.add(DragTarget.bottom);
+		if (Math.abs(point.y - rect.y - rect.h) < inset && !lockHeight) r.add(DragTarget.bottom);
 		if (r.size() == 0) r.add(DragTarget.translate);
 
 		return r;
@@ -235,19 +256,19 @@ public class FrameManipulation extends Box implements Manipulation.OnMouseDown {
 
 
 				text.add(String.format("%.0f", r.x));
-				color.add(r.x == r0.x ? new Vec4(0, 0, 0, 0.5f) : new Vec4(0, 0, 0, 1));
+				color.add(r.x == r0.x ? new Vec4(1, 1, 1,0.5f) : new Vec4(1, 1, 1,1));
 				text.add(",");
-				color.add(new Vec4(0, 0, 0, 0.5f));
+				color.add(new Vec4(1, 1, 1,0.5f));
 				text.add(String.format("%.0f", r.y));
-				color.add(r.y == r0.y ? new Vec4(0, 0, 0, 0.5f) : new Vec4(0, 0, 0, 1));
+				color.add(r.y == r0.y ? new Vec4(1, 1, 1,0.5f) : new Vec4(1, 1, 1,1));
 				text.add(" ");
-				color.add(new Vec4(0, 0, 0, 0.5f));
+				color.add(new Vec4(1, 1, 1,0.5f));
 				text.add(String.format("%.0f", r.w));
-				color.add(r.w == r0.w ? new Vec4(0, 0, 0, 0.5f) : new Vec4(0, 0, 0, 1));
+				color.add(r.w == r0.w ? new Vec4(1, 1, 1,0.5f) : new Vec4(1, 1, 1,1));
 				text.add("x");
-				color.add(new Vec4(0, 0, 0, 0.5f));
+				color.add(new Vec4(1, 1, 1,0.5f));
 				text.add(String.format("%.0f", r.h));
-				color.add(r.h == r0.h ? new Vec4(0, 0, 0, 0.5f) : new Vec4(0, 0, 0, 1));
+				color.add(r.h == r0.h ? new Vec4(1, 1, 1,0.5f) : new Vec4(1, 1, 1,1));
 
 
 				f.nodes.get(f.nodes.size() - 1).attributes.put(FrameDrawer.textSpans, text);

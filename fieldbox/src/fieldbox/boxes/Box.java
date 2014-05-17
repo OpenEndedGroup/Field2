@@ -2,6 +2,7 @@ package fieldbox.boxes;
 
 import field.utility.Dict;
 import field.utility.Lazy;
+import fieldbox.io.IO;
 
 import java.util.*;
 import java.util.function.Function;
@@ -19,6 +20,11 @@ public class Box {
 	public Deque<Box> all = new ArrayDeque<>();
 
 	public final Dict properties = new Dict();
+
+	public Box()
+	{
+		properties.put(IO.id, UUID.randomUUID().toString());
+	}
 
 	public Box connect(Box b)
 	{
@@ -157,7 +163,7 @@ public class Box {
 	}
 
 	/**
-	 * returns breadth first Stream of all parents.
+	 * returns breadth first Stream given a direction function.
 	 */
 	public Stream<Box> breadthFirst(Function<Box, Collection<Box>> map)
 	{

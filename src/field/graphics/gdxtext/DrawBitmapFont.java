@@ -17,7 +17,6 @@ public class DrawBitmapFont {
 	private final int cacheSize;
 
 	public DrawBitmapFont(String fontName, MeshBuilder target, int unit, int cacheSize) {
-		System.out.println(" building drawbitmapfont from "+fontName);
 		this.data = new BitmapFontData(fontName, fontName+".jpg", unit);
 		this.target = target;
 		this.cacheSize = cacheSize;

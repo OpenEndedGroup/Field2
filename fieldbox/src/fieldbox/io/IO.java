@@ -2,6 +2,8 @@ package fieldbox.io;
 
 import field.utility.Dict;
 import fieldbox.boxes.Box;
+import fieldbox.boxes.Boxes;
+import fieldbox.boxes.FrameManipulation;
 import fieldbox.boxes.Manipulation;
 import fielded.Execution;
 
@@ -60,6 +62,8 @@ public class IO {
 		knownProperties.add(Box.name.getName());
 		knownProperties.add(Manipulation.frame.getName());
 
+		knownProperties.add(FrameManipulation.lockHeight.getName());
+		knownProperties.add(FrameManipulation.lockWidth.getName());
 	}
 
 	public Document compileDocument(Box documentRoot, Map<Box, String> specialBoxes) {
@@ -148,6 +152,8 @@ public class IO {
 
 	protected External toExternal(Box box, Map<Box, String> specialBoxes) {
 		if (specialBoxes.containsKey(box)) return null;
+
+		if (box.properties.isTrue(Boxes.dontSave, false)) return null;
 
 		External ex = new External();
 

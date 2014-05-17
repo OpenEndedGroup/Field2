@@ -1,6 +1,7 @@
 package fieldnashorn;
 
 import field.utility.Pair;
+import fieldbox.boxes.Box;
 import fielded.Execution;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 
@@ -46,6 +47,8 @@ public class TernSupport {
 			e.printStackTrace();
 		}
 
+		new Thread( () -> {
+
 		for (File ff : f) {
 			System.out.println(" file -- :" + ff);
 			try (FileReader fr = new FileReader(ff.getAbsolutePath())) {
@@ -68,7 +71,8 @@ public class TernSupport {
 		} catch (ScriptException e) {
 			e.printStackTrace();
 		}
-
+		}
+		).start();
 	}
 
 	public List<Execution.Completion> completion(String boxName, String allText, int line, int ch) {
@@ -138,11 +142,27 @@ public class TernSupport {
 				{
 
 					Object[] retae = (Object[])engine.eval("_v=[]; _p = {}; Object.bindProperties(_p, _e); for(var _k in _p) _v.push(_k); Java.to(_v)");
-					System.out.println(" auto eval completion got :"+Arrays.asList(retae));
+					System.out.println(" auto eval completion got :" + Arrays.asList(retae));
+				}
+				else if (e instanceof Box)
+				{
+					e = new UnderscoreBox((Box)e);
+					System.out.println(" wrapped in a box ");
+					List<Execution.Completion> fromJava = javaSupport.getCompletionsFor(e, right);
+					System.out.println(" completions are :"+fromJava);
+					for(Execution.Completion x : fromJava)
+					{
+						if (x.start==-1) x.start=c-right.length();
+						if (x.end==-1) x.end=c;
+					}
+
+					r.addAll(fromJava);
 				}
 				else
 				{
+					System.out.println(" asking java for completions for "+e);
 					List<Execution.Completion> fromJava = javaSupport.getCompletionsFor(e, right);
+					System.out.println(" got completions :"+fromJava);
 					for(Execution.Completion x : fromJava)
 					{
 						if (x.start==-1) x.start=c-right.length();

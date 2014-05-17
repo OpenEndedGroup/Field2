@@ -5,10 +5,9 @@ import field.utility.Dict;
 import field.graphics.RunLoop;
 import fieldbox.ui.FieldBoxWindow;
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Created by marc on 3/21/14.
@@ -18,6 +17,7 @@ public class Boxes {
 	static public final Dict.Prop<Box> root = new Dict.Prop<>("root");
 	static public final Dict.Prop<FieldBoxWindow> window = new Dict.Prop<>("window");
 	static public final Dict.Prop<Map<String, Supplier<Boolean>>> insideRunLoop = new Dict.Prop<>("_insideRunLoop");
+	static public final Dict.Prop<Boolean> dontSave= new Dict.Prop<>("dontSave").type().toCannon();
 
 	Box origin;
 
@@ -27,10 +27,13 @@ public class Boxes {
 		origin.properties.put(Box.name, "<<root>>");
 	}
 
+	protected Set<Box> population = Collections.emptySet();
+
 	protected Scene.Perform updateor = new Scene.Perform() {
 		@Override
 		public boolean perform(int pass) {
 			origin.find(insideRunLoop, origin.both()).forEach(x -> {
+
 				Iterator<Map.Entry<String, Supplier<Boolean>>> r = x.entrySet().iterator();
 				while (r.hasNext()) {
 					try {
@@ -48,6 +51,7 @@ public class Boxes {
 			return new int[]{10};
 		}
 	};
+
 
 	public void start() {
 		RunLoop.main.getLoop().connect(updateor);

@@ -7,12 +7,12 @@ import field.linalg.Vec2;
  */
 public class Rect {
 
-	final public float x;
-	final public float y;
-	final public float w;
-	final public float h;
+	public float x;
+	public float y;
+	public float w;
+	public float h;
 
-	public Rect(float x, float y, float w, float h) {
+	public Rect(float x,  float y, float w, float h) {
 		this.x = x;
 		this.y = y;
 		this.h = h;
@@ -88,5 +88,13 @@ public class Rect {
 
 	public Rect inset(float by) {
 		return new Rect(x+by, y+by, w-by*2, h-by*2);
+	}
+
+	public boolean intersectsX(float x) {
+		return (x>=this.x && x<this.x+this.w);
+	}
+
+	public boolean inside(float start, float end) {
+		return this.x>=start && this.x+this.w<end;
 	}
 }

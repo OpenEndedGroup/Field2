@@ -12,11 +12,9 @@ import us.bpsm.edn.printer.Printer;
 import us.bpsm.edn.printer.Printers;
 import us.bpsm.edn.protocols.Protocol;
 
-import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -35,17 +33,20 @@ public class EDN {
 			return (Unsafe) singleoneInstanceField.get(null);
 
 		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
-			e.printStackTrace();;
+			e.printStackTrace();
+			;
 		}
 		return null;
-	};
+	}
+
+	;
 
 	private final Parser.Config.Builder builder;
 
 	static public final Tag RECT = Tag.newTag("field", "rect");
 	static public final Tag DOCUMENT = Tag.newTag("field", "document");
 	static public final Tag EXTERNAL = Tag.newTag("field", "external");
-	static public final Tag FILESPEC= Tag.newTag("field", "filespec");
+	static public final Tag FILESPEC = Tag.newTag("field", "filespec");
 
 	private final Protocol.Builder<Printer.Fn<?>> printer;
 	private final Parser theParser;
@@ -64,11 +65,11 @@ public class EDN {
 	}
 
 	public String write(Object o) {
-		System.out.println(" writing :"+o);
+		System.out.println(" writing :" + o);
 		StringBuilder w = new StringBuilder();
 		Printers.newPrinter(thePrinter, w).printValue(o);
 
-		System.out.println(" value :"+w.toString());
+		System.out.println(" value :" + w.toString());
 		return w.toString();
 	}
 
@@ -96,17 +97,17 @@ public class EDN {
 					try {
 						Field f = c.getField(s);
 						f.setAccessible(true);
-						if (Modifier.isFinal(f.getModifiers()))
-						{
+						if (Modifier.isFinal(f.getModifiers())) {
 							long of = getUnsafe().objectFieldOffset(f);
-							if (f.getType()==Float.TYPE)
-								getUnsafe().putFloat(instance, of, ((Number)e.getValue()).floatValue());
+							if (f.getType() == Float.TYPE)
+								getUnsafe().putFloat(instance, of, ((Number) e.getValue()).floatValue());
 							else
-								throw new IllegalArgumentException("can't handle "+f.getType()+" / "+f+" / "+s+" "+instance);
-						}
-						else
-						{
-							f.set(instance, e.getValue());
+								throw new IllegalArgumentException("can't handle " + f.getType() + " / " + f + " / " + s + " " + instance);
+						} else {
+							if (f.getType() == Float.TYPE)
+								f.set(instance, ((Number) e.getValue()).floatValue());
+							else f.set(instance, e.getValue());
+
 						}
 					} catch (NoSuchFieldException e1) {
 						e1.printStackTrace();
@@ -122,14 +123,14 @@ public class EDN {
 			return null;
 		};
 	}
+
 	public us.bpsm.edn.printer.Printer.Fn<?> simpleSerializeToMap(Tag tag, Class c) {
 		return (o, writer) -> {
 			try {
 				Map<Object, Object> mm = new LinkedHashMap<>();
 
 				Field[] f = c.getFields();
-				for(Field ff : f)
-				{
+				for (Field ff : f) {
 					if (Modifier.isTransient(ff.getModifiers())) continue;
 					ff.setAccessible(true);
 					mm.put(Keyword.newKeyword(ff.getName()), ff.get(o));
@@ -137,7 +138,7 @@ public class EDN {
 
 				writer.printValue(tag).printValue(mm);
 
-			}  catch (IllegalAccessException e) {
+			} catch (IllegalAccessException e) {
 				e.printStackTrace();
 			}
 		};
