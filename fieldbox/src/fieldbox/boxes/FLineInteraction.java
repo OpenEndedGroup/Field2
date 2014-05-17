@@ -81,12 +81,13 @@ public class FLineInteraction extends Box implements Drawing.Drawer, Manipulatio
 
 		Vec2 point = convertCoordinateSystem(new Vec2(e.after.x, e.after.y));
 
-		Set<FLine> hit = new LinkedHashSet<FLine>();
+		Set<FLine> hit = new LinkedHashSet<>();
 
 		Window.Event<Window.MouseState> eMarked = e.copy();
 		eMarked.properties.put(interaction, this);
 
-		List<Manipulation.Dragger> draggers = all.stream().filter(f -> f.attributes.get(projectedArea).apply(f).contains(point.x, point.y))
+
+		List<Manipulation.Dragger> draggers = all.stream().filter(f -> f.attributes.get(projectedArea)!=null).filter(f -> f.attributes.get(projectedArea).apply(f).contains(point.x, point.y))
 			    .flatMap(f -> f.attributes.getOr(Manipulation.onMouseDown, Collections::emptyList).stream())
 			    .map(omd -> omd.onMouseDown(eMarked, button))
 			    .filter(x -> x != null)
