@@ -37,14 +37,14 @@ public class Compositor {
 			mb.nextElement_quad(0, 1, 2, 3);
 			Shader shader = new Shader();
 
-			shader.addSource(Shader.Type.vertex, "#version 430\n" +
+			shader.addSource(Shader.Type.vertex, "#version 410\n" +
 				    "layout(location=0) in vec3 position;\n" +
 				    "void main()\n" +
 				    "{\n" +
 				    "   gl_Position =  vec4(position.xy, 0.5, 1.0);\n" +
 				    "}");
 
-			shader.addSource(Shader.Type.fragment, "#version 430\n" +
+			shader.addSource(Shader.Type.fragment, "#version 410\n" +
 				    "layout(location=0) out vec4 _output;\n" +
 				    "uniform sampler2D te;\n" +
 				    "void main()\n" +
@@ -69,14 +69,14 @@ public class Compositor {
 			mb.nextElement_quad(0, 1, 2, 3);
 			Shader shader = new Shader();
 
-			shader.addSource(Shader.Type.vertex, "#version 430\n" +
+			shader.addSource(Shader.Type.vertex, "#version 410\n" +
 				    "layout(location=0) in vec3 position;\n" +
 				    "void main()\n" +
 				    "{\n" +
 				    "   gl_Position =  vec4(position.xy, 0.5, 1.0);\n" +
 				    "}");
 
-			shader.addSource(Shader.Type.fragment, "#version 430\n" +
+			shader.addSource(Shader.Type.fragment, "#version 410\n" +
 				    "layout(location=0) out vec4 _output;\n" +
 				    "uniform sampler2D te;\n" +
 				    "uniform sampler2D blur;\n" +
@@ -120,7 +120,7 @@ public class Compositor {
 			mb.nextElement_quad(0, 1, 2, 3);
 			Shader shader = new Shader();
 
-			shader.addSource(Shader.Type.vertex, "#version 430\n" +
+			shader.addSource(Shader.Type.vertex, "#version 410\n" +
 				    "layout(location=0) in vec3 position;\n" +
 				    "void main()\n" +
 				    "{\n" +
@@ -144,11 +144,10 @@ public class Compositor {
 
 			System.out.println(" weights are :"+we);
 
-			shader.addSource(Shader.Type.fragment, "#version 430\n" +
+			shader.addSource(Shader.Type.fragment, "#version 410\n" +
 				    "layout(location=0) out vec4 _output;\n" +
 				    "uniform sampler2D te;\n" +
 				    "uniform vec2 bounds;\n" +
-				    "const float[] we = {"+we+"};\n" +
 				    "ivec2 cl(ivec2 v)"+
 				    "{"+
 //				    "	return v;\n"+
@@ -157,6 +156,7 @@ public class Compositor {
 				    "void main()\n" +
 				    "{\n" +
 				    "	vec4 t = vec4(0);" +
+				    "	const float["+(taps*2+1)+"] we = float["+(taps*2+1)+"]("+we+");\n" +
 				    "	int n = "+taps+";" +
 				    "	for(int i=-n;i<n+1;i++) t+=we[i+n]*texelFetch(te, cl(ivec2(gl_FragCoord.xy)+"+access+"), 0);" +
 				    "	_output  = vec4(t.xyz,1);\n" +
