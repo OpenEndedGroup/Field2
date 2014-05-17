@@ -1,0 +1,513 @@
+:root {
+    var-bg: #2d3133;
+//    var-bg: #ccc;
+    var-fg: #aaa;
+    var-multi: #202020;
+    var-scrollbar: #666;
+}
+
+/**********************************************************
+* Shared
+***********************************************************/
+
+html {
+    background: var(bg);
+}
+
+body {
+    background: var(bg);
+    color: var(fg);
+}
+
+a {
+    text-decoration: none;
+    color: var(fg);
+}
+
+.button, button {
+    background: var(button-bg);
+    color: var(button-fg);
+}
+
+.button:hover, .button:focus, button:hover, button:focus, button.active {
+    background: var(button-active-bg) !important;
+    color: var(button-active-fg);
+}
+
+input {
+    color: var(highlight-fg);
+    background: var(highlight-bg);
+}
+
+::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
+
+::-webkit-scrollbar-track {
+    border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb {
+    border-radius: 2px;
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+::-webkit-input-placeholder {
+    color: var(placeholder-fg);
+}
+
+::-webkit-scrollbar {
+    background: transparent;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(scrollbar);
+    border: 1px solid var(scrollbar);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(medium-highlight-bg);
+    border: 1px solid var(medium-highlight-bg);
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+::selection {
+    background: var(placeholder-fg);
+}
+
+.CodeMirror pre {
+    padding: 0 0 0 5px;
+}
+
+.CodeMirror div.CodeMirror-cursor {
+    border-left: 1px solid white;
+}
+/* Shown when moving in bi-directional text */
+.CodeMirror div.CodeMirror-secondarycursor {
+    border-left: 1px solid silver;
+}
+
+.CodeMirror.cm-keymap-fat-cursor div.CodeMirror-cursor {
+    width: auto;
+    border: none !important;
+    background: rgba(0, 200, 200, .4);
+}
+
+.CodeMirror-gutters
+{
+    background: var(bg);
+}
+
+.CodeMirror-hints.empty {
+    display: none;
+}
+
+.CodeMirror-hints {
+    position: absolute;
+    z-index: 1000000000000000;
+    overflow: hidden;
+    list-style: none;
+    margin: 0;
+    padding: 2px;
+    border-radius: 2px;
+    border: 1px solid var(pane-bg);
+    background: var(pane-bg);
+    font-size: 90%;
+    font-family: inherit;
+    max-height: 20em;
+}
+
+.CodeMirror-hints ul {
+    overflow-y: auto;
+    max-height: 20em;
+}
+
+.CodeMirror-hints ul li {
+    margin: 0;
+    padding: 0 4px;
+    border-radius: 2px;
+    max-width: 60em;
+    overflow: hidden;
+    white-space: pre;
+    color: #ccc;
+    cursor: pointer;
+}
+
+.CodeMirror-hints input {
+    display: none;
+}
+
+.CodeMirror-hints .selected {
+    background: var(highlight-bg);
+    color: var(highlight-fg);
+}
+
+.CodeMirror-hints ul::-webkit-scrollbar-thumb {
+    background: var(scrollbar);
+    border-color: var(scrollbar);
+}
+
+.Field-gutter {
+    width: 28px;
+}
+
+.CodeMirror-linenumbers {
+    width: 48px;
+}
+
+.CodeMirror-linewidget {
+    margin-left: -25px;
+    z-index: 4;
+}
+
+.Field-remoteOutput {
+    background: #333;
+    border-radius: 3px;
+    padding: 3px;
+    padding-left: 8px;
+    margin-top: 2px;
+    margin-left: 25px;
+    display: block;
+    white-space: pre;
+    overflow: scroll;
+    font-size: 75%;
+    max-height: 60px;
+    min-height: 27px;
+    pointer-events: all;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+.Field-remoteOutput-error {
+    background: #833;
+    border-radius: 3px;
+    padding: 3px;
+    margin-top: 2px;
+    padding-top: 0px;
+    border-top: 3px solid #833;
+    padding-left: 10px;
+    margin-left: 25px;
+    display: block;
+    white-space: pre;
+    overflow: scroll;
+    font-size: 75%;
+    max-height: 150px;
+    min-height: 27px;
+    pointer-events: all;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+.Field-closeBox {
+    position: absolute;
+    border-radius: 3px;
+    border-bottom-right-radius: 0px;
+    border-bottom-left-radius: 0px;
+    top: 0px;
+    left: 9px;
+    background: #333;
+    margin-top: 2px;
+    width: 14px;
+    height: 14px;
+    text-align: center;
+    pointer-events: all;
+    cursor: pointer;
+    font-weight: 100;
+    border: 1px solid rgba(0,0,0,0.1);
+    background: rgba(0,0,0,0.1);
+}
+
+.Field-expandBox {
+    position: absolute;
+    border-radius: 3px;
+    border-top-right-radius: 0px;
+    border-top-left-radius: 0px;
+    top: 18px;
+    left: 9px;
+    margin-top: 0px;
+    background: #333;
+    width: 14px;
+    height: 14px;
+    text-align: center;
+    pointer-events: all;
+    cursor: pointer;
+    font-weight: 700;
+    border: 1px solid rgba(0,0,0,0.1);
+    background: rgba(0,0,0,0.1);
+}
+
+.Field-textBox {
+    padding: 5px;
+    border: none;
+    background-color: #222;
+    width: 50px;
+    max-width: 1300px;
+    transition: width 0.25s;
+    font-family: "Source Sans Pro";
+    font-size: 16px;
+}
+
+.Field-textBox:focus {
+    background-color: #333;
+    outline: none;
+}
+
+.Field-modal {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0,0,0,0.4);
+    border: 1px;
+}
+
+.Field-modal::backdrop {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.Field-modal-positioned {
+    position: fixed;
+    background-color: rgba(0,0,0,0.4);
+    border: 1px;
+    margin: 0px;
+}
+
+.Field-modal-positioned::backdrop {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0,0,0,0.4);
+}
+
+*::-webkit-input-placeholder {
+    color: rgba(255,255,255,0.3);
+    text-align: center;
+    font-style: italic;
+}
+
+input {
+    width: 90px;
+    min-width: 90px;
+    max-width: 300px;
+    transition: width 0.25s;
+}
+
+.Field-modal ol {
+    color: #bbb;
+    list-style-type: 1;
+    padding: 0px;
+    margin: 0px;
+    font-family: "Source Sans Pro";
+    font-size: 14px;
+    max-height: 80vh;
+    max-width: 80vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.Field-modal-positioned ol {
+    color: #bbb;
+    list-style-type: 1;
+    padding: 0px;
+    margin: 0px;
+    font-family: "Source Sans Pro";
+    font-size: 14px;
+    max-width: 46vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.Field-modal ol li {
+    padding: 5px;
+    width: 95%;
+    margin-right: auto;
+    margin-left: 0px;
+    margin-bottom: 3px;
+    margin-top: 1px;
+    background: #222;
+}
+
+.Field-modal-positioned ol li {
+    padding: 5px;
+    width: 95%;
+    margin-right: auto;
+    margin-left: 0px;
+    margin-bottom: 3px;
+    margin-top: 1px;
+    background: #222;
+}
+
+.Field-modal ol {
+    list-style-type: none;
+    margin-left: 0;
+    max-height: 80vh;
+}
+$
+.Field-modal-positioned ol {
+    list-style-type: none;
+    margin-left: 0;
+    max-height: 80vh;
+}
+
+.Field-modal-positioned {
+    width: 400px;
+}
+
+.Field-modal ol li .Field-number {
+    font-weight: bold;
+    float: left;
+    text-align: right;
+    margin-right: 5px;
+    padding-left: 3px;
+    padding-right: 3px;
+    width: 1em;
+    font-size: 100%;
+    background: black;
+    border-radius: 5px;
+}
+
+.Field-modal-positioned ol li .Field-number {
+    font-weight: bold;
+    float: left;
+    text-align: right;
+    margin-right: 5px;
+    padding-left: 3px;
+    padding-right: 3px;
+    width: 1em;
+    font-size: 100%;
+    background: black;
+    border-radius: 5px;
+}
+
+.Field-modal-positioned ol li .matched,
+.Field-modal ol li .matched {
+    text-decoration: underline;
+}
+
+.Field-modal-positioned ol li span.doc,
+.Field-modal ol li span.doc {
+    opacity: 0.5;
+    text-height: 120%;
+}
+
+.Field-modal-positioned ol li span.type,
+.Field-modal ol li span.type {
+    font-style: italic;
+    $
+    font-weight: light;
+    opacity: 0.5;
+    //    display: inline-block;
+    //float: left;
+    //text-align: right;
+    clear: left;
+}
+
+.Field-modal ol li:after {
+    content: ".";
+    display: block;
+    height: 0;
+    clear: both;
+    visibility: hidden;
+}
+
+.Field-modal ol li {
+    display: inline-block;
+}
+
+.Field-modal-positioned ol li:after {
+    content: ".";
+    display: block;
+    height: 0;
+    clear: both;
+    visibility: hidden;
+}
+
+.Field-modal-positioned ol li {
+    display: inline-block;
+}
+
+.Field-modal ol li .Field-number:empty {
+    font-weight: bold;
+    float: left;
+    text-align: right;
+    margin-right: 5px;
+    padding-left: 3px;
+    padding-right: 3px;
+    width: 1em;
+    font-size: 100%;
+    background: black;
+    border-radius: 5px;
+    border: none;
+    background: none;
+}
+
+.Field-modal-positioned ol li .Field-number:empty {
+    font-weight: bold;
+    float: left;
+    text-align: right;
+    margin-right: 5px;
+    padding-left: 3px;
+    padding-right: 3px;
+    width: 1em;
+    font-size: 100%;
+    background: black;
+    border-radius: 5px;
+    border: none;
+    background: none;
+}
+
+.Field-status {
+    //    width: 20vw;
+    max-width: 50vw;
+    position: fixed;
+    bottom: 15px;
+    right: 15px;
+    background: rgba(255,255,255,0.1);
+    padding: 5px;
+    border-radius: 5px;
+    transition: 1s opacity;
+    font-family: Source Sans Pro;
+}
+
+.Field-status .highlighted {
+    background: rgba(255,255,255,0.1);
+    padding: 2px;
+    padding-top: 0px;
+    border-radius: 5px;
+}
+
+.Field-status .error {
+    background: rgba(255,0,0,0.1);
+    padding: 2px;
+    padding-top: 0px;
+    border-radius: 5px;
+}
+
+.CodeMirror-scroll {
+    border-radius: 5px;
+}
+
+.CodeMirror-sizer {
+    border-radius: 5px;
+}
+
+.CodeMirror {
+    border-radius: 5px;
+}
