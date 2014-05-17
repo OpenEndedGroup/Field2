@@ -35,7 +35,7 @@ public class TernSupport {
 		this.engine = engine;
 		List<String> s = Arrays.asList(new String[]{"acorn.js", "acorn_loose.js", "walk.js", "defs.js", "signal.js", "infer.js", "tern.js", "comment.js", "condense.js"});
 
-		Collection<File> f = s.stream().map(x -> new File("/home/marc/fieldwork2/fielded/external/tern/" + x)).collect(Collectors.toList());
+		Collection<File> f = s.stream().map(x -> new File(fieldagent.Main.app+"/fielded/external/tern/" + x)).collect(Collectors.toList());
 
 		try {
 			engine.eval("self = {}");
@@ -62,7 +62,7 @@ public class TernSupport {
 		}
 
 		try {
-			engine.put("__ecma5json", readFile("/home/marc/fieldwork2/fielded/external/tern/ecma5.json"));
+			engine.put("__ecma5json", readFile(fieldagent.Main.app+"/fielded/external/tern/ecma5.json"));
 			engine.eval("self.ternServer=new self.tern.Server({defs: [JSON.parse(__ecma5json)]})");
 			engine.eval("delete __ecma5json");
 		} catch (ScriptException e) {
