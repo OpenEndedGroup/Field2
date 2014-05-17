@@ -59,7 +59,7 @@ public class Drawing extends Box {
 
 		layer.shader = new Shader();
 
-		layer.shader.addSource(Shader.Type.vertex, "#version 430\n" +
+		layer.shader.addSource(Shader.Type.vertex, "#version 410\n" +
 			    "layout(location=0) in vec3 position;\n" +
 			    "layout(location=1) in vec4 color;\n" +
 			    "out vec4 vcolor;\n" +
@@ -72,7 +72,7 @@ public class Drawing extends Box {
 			    "   gl_Position =  vec4(-1+at.x*2, 1-at.y*2, 0.5, 1.0);\n" +
 			    "   vcolor = color;\n" +
 			    "}");
-		layer.shader.addSource(Shader.Type.fragment, "#version 430\n" +
+		layer.shader.addSource(Shader.Type.fragment, "#version 410\n" +
 			    "layout(location=0) out vec4 _output;\n" +
 			    "in vec4 vcolor;\n" +
 			    "uniform float opacity; \n" +
