@@ -8,13 +8,15 @@ import java.util.Set;
 
 public class Main {
 
+	public static final String app = System.getProperty("appDir")+"/";
+
 //	static Set<String> whitelist_prefix = new LinkedHashSet<>(Arrays.asList("field/"));
 //	static Set<String> blacklist_prefix = new LinkedHashSet<>(Arrays.asList("--nothing--"));
 
 
 	public static void premain(String agentArgs, Instrumentation inst) {
 		Transform transform = new Transform();
-		System.err.println("MAIN");
+
 		if (false) inst.addTransformer((loader, className, classBeingRedefined, protectionDomain, classfileBuffer) -> {
 
 			if (className.contains("$$Lambda")) return classfileBuffer;
