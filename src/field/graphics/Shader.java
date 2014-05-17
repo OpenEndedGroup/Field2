@@ -219,6 +219,8 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform {
 				}
 				name.valid = false;
 			}
+
+
 			System.out.println(" validating .... ");
 			glValidateProgram(name.name);
 			int validateStatus = glGetProgrami(name.name, GL20.GL_VALIDATE_STATUS);
@@ -231,7 +233,8 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform {
 					onError.errorOnLine(-1, ret);
 					onError.endError();
 				}
-				name.valid = false;
+				// it didn't validate right now, but that doesn't mean that it wont in the future
+//				name.valid = false;
 			}
 		}
 
