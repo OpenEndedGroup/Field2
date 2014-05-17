@@ -66,7 +66,7 @@ public class TextDrawing extends Box {
 
 		layer.mainShader = new Shader();
 
-		layer.mainShader.addSource(Shader.Type.vertex, "#version 430\n" +
+		layer.mainShader.addSource(Shader.Type.vertex, "#version 410\n" +
 			    "layout(location=0) in vec3 position;\n" +
 			    "layout(location=1) in vec4 color;\n" +
 			    "layout(location=3) in vec4 tc;\n" +
@@ -85,7 +85,7 @@ public class TextDrawing extends Box {
 			    "   vtc =tc;\n" +
 			    "}");
 
-		layer.mainShader.addSource(Shader.Type.fragment, "#version 430\n" +
+		layer.mainShader.addSource(Shader.Type.fragment, "#version 410\n" +
 			    "layout(location=0) out vec4 _output;\n" +
 			    "in vec4 vertexColor;\n" +
 			    "in vec4 vtc;\n" +
