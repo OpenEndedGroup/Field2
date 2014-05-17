@@ -40,9 +40,9 @@ public class ServerSupport {
 			// todo: these need to be random, unallocated ports
 
 			Server s = new Server(8080, 8081);
-			s.setFixedResource("/init", readFile("/home/marc/fieldwork2/fielded/internal/init.html"));
-			s.addDocumentRoot("/home/marc/fieldwork2/fielded/internal/");
-			s.addDocumentRoot("/home/marc/fieldwork2/fielded/external/");
+			s.setFixedResource("/init", readFile(fieldagent.Main.app+"fielded/internal/init.html"));
+			s.addDocumentRoot(fieldagent.Main.app+"/fielded/internal/");
+			s.addDocumentRoot(fieldagent.Main.app+"/fielded/external/");
 
 			s.addHandlerLast(x -> x.equals("alive"), (server, socket, address, payload) -> {
 				System.out.println(" alive :" + payload);
