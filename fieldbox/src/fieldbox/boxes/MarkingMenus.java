@@ -123,6 +123,7 @@ public class MarkingMenus extends Box {
 
 			textLine.node().attributes.put(FrameDrawer.text, e.getValue().label);
 			textLine.attributes.put(FrameDrawer.layer, "glass");
+			textLine.attributes.put(FrameDrawer.color, new Vec4(0,0,0,0.75f));
 			maxHeight = Math.max(maxHeight, defaultFont.font.dimensions(e.getValue().label, 0.2f).y);
 		}
 

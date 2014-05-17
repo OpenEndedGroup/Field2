@@ -4,16 +4,16 @@ import field.graphics.MeshBuilder;
 import field.graphics.RunLoop;
 import field.graphics.Scene;
 import field.graphics.SimpleArrayBuffer;
-import field.utility.Dict;
-import field.utility.Pair;
 import field.utility.Rect;
 import fieldbox.boxes.*;
+import fieldbox.boxes.TimeSlider;
+import fieldbox.boxes.plugins.Delete;
+import fieldbox.boxes.plugins.Topology;
 import fieldbox.io.IO;
 import fieldbox.ui.Chorder;
 import fieldbox.ui.Compositor;
 import fieldbox.ui.FieldBoxWindow;
 import fielded.Execution;
-import fielded.RemoteEditor;
 import fielded.scratch.ServerSupport;
 import fielded.windowmanager.LinuxWindowTricks;
 import fieldnashorn.Nashorn;
@@ -22,7 +22,6 @@ import org.lwjgl.opengl.GL13;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.function.BiFunction;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL11.glEnable;
@@ -43,6 +42,7 @@ public class Open {
 
 	private final MarkingMenus markingMenus;
 	private final String filename;
+	private final Keyboard keyboard;
 	private Nashorn javascript;
 
 	public Open(String filename)  {
@@ -57,6 +57,9 @@ public class Open {
 
 		window.getCompositor().newLayer("glass");
 		window.getCompositor().getLayer("glass").getScene().connect(-5, this::defaultGLPreambleTransparent);
+
+		Watches watches = new Watches();
+		watches.connect(boxes.root());
 
 		drawing = new Drawing();
 		drawing.install(boxes.root());
@@ -77,6 +80,12 @@ public class Open {
 			return true;
 		});
 
+		keyboard = new Keyboard();
+		window.addKeyboardHandler(state -> {
+			keyboard.dispatch(boxes.root(), state);
+			return true;
+		});
+
 		interaction = new FLineInteraction();
 		interaction.connect(boxes.root());
 
@@ -87,11 +96,13 @@ public class Open {
 		frameManipulation = new FrameManipulation();
 		frameManipulation.connect(boxes.root());
 
+		new Delete(boxes.root()).connect(boxes.root());
+
+		new Topology(boxes.root()).connect(boxes.root());
+
 		new Chorder().connect(boxes.root());
 
-
 		new DefaultMenus(boxes.root(), filename).connect(boxes.root());
-
 
 		Compositor.Layer lx = window.getCompositor().newLayer("__main__blurx");
 		Compositor.Layer ly = window.getCompositor().newLayer("__main__blury", 1);
@@ -117,7 +128,7 @@ public class Open {
 				System.out.println(" uploaded " + SimpleArrayBuffer.uploadBytes + " bytes to OpenGL");
 				SimpleArrayBuffer.uploadBytes = 0;
 			}
-		}, 60));
+		}, 600));
 
 
 		new LinuxWindowTricks(boxes.root());
@@ -132,31 +143,8 @@ public class Open {
 			e.printStackTrace();
 		}
 
+		boxes.root().connect(new TimeSlider());
 
-		boxes.root().properties.put(RemoteEditor.commands, () -> {
-
-			Map<Pair<String,String>,Runnable> m = new LinkedHashMap<>();
-			for(int i=0;i<10;i++) {
-				m.put(new Pair<>("banana"+i, "wonderful info text here"), () -> {
-					System.out.println(" BANANANANANANANAN !!!! ");
-				});
-				m.put(new Pair<>("peach"+i, "more wonderful info text here"), () -> {
-					System.out.println(" peach !!!! ");
-				});
-			}
-
-			return m;
-		});
-
-		markingMenus.properties.put(RemoteEditor.commands, () -> {
-
-			Map<Pair<String,String>,Runnable> m = new LinkedHashMap<>();
-			m.put(new Pair<>("plum", "yet more wonderful info text here"), () -> { System.out.println(" plumplumplum !!!! ");});
-
-			return m;
-		});
-
-//		testFile();
 		doOpen();
 		boxes.start();
 
@@ -196,7 +184,7 @@ public class Open {
 
 	public boolean defaultGLPreamble(int pass) {
 		glViewport(0, 0, window.getWidth(), window.getHeight());
-		glClearColor(0.8f, 0.8f, 0.8f, 1);
+		glClearColor(0x2d / 255f, 0x31 / 255f, 0x33 / 255f, 1);
 		glClear(GL11.GL_COLOR_BUFFER_BIT);
 		glEnable(GL11.GL_BLEND);
 		glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
@@ -207,7 +195,7 @@ public class Open {
 
 	public boolean defaultGLPreambleTransparent(int pass) {
 		glViewport(0, 0, window.getWidth(), window.getHeight());
-		glClearColor(0.8f, 0.8f, 0.8f, 0);
+		glClearColor(2*0x2d/255f,2*0x31/255f,2*0x33/255f, 0);
 		glClear(GL11.GL_COLOR_BUFFER_BIT);
 		glEnable(GL11.GL_BLEND);
 		glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);

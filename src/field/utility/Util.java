@@ -56,5 +56,16 @@ public class Util {
 	}
 
 
-
+	/**
+	 * dynamic languages often have broad notions of what truth is, and we often don't have the opportunity to cast and box all of them to true
+	 */
+	public static boolean truthy(Object x) {
+		if (x instanceof Number)
+			return ((Number)x).doubleValue()!=0;
+		if (x instanceof String)
+			return ((String)x).length()>0;
+		if (x instanceof Boolean)
+			return ((Boolean)x).booleanValue();
+		return x!=null;
+	}
 }

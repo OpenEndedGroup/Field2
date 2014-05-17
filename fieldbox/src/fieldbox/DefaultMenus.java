@@ -49,7 +49,6 @@ public class DefaultMenus extends Box {
 		float w = 50;
 		b1.properties.put(Manipulation.frame, new Rect(at.x-w, at.y-w, w*2, w*2));
 		b1.properties.put(Box.name, "Untitled");
-		b1.properties.put(IO.id, UUID.randomUUID().toString());
 		Drawing.dirty(b1);
 
 	}

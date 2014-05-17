@@ -2,41 +2,78 @@ package fieldbox.boxes;
 
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;
+import field.graphics.RunLoop;
 import field.message.MessageQueue;
-import field.utility.Dict;
-import field.utility.Triple;
-import field.utility.Util;
+import field.utility.*;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * watches for properties being changed and then fires change events off to the message bus
  */
 public class Watches extends Box  {
 
-	private final MessageQueue<Triple<Dict.Prop, Object, Object>, String> messageQueue;
+	private final MessageQueue<Quad<Dict.Prop, Box,  Object, Object>, String> messageQueue;
+	static public final Dict.Prop<Watches> watches = new Dict.Prop<>("_watches").type().toCannon();
 
-	public Watches(MessageQueue<Triple<Dict.Prop, Object, Object>, String> messageQueue) {
+	public Watches(MessageQueue<Quad<Dict.Prop, Box,  Object, Object>, String> messageQueue) {
 		this.messageQueue = messageQueue;
 		this.properties.putToMap(Boxes.insideRunLoop, "__watch_updator__", this::update);
+		this.properties.put(watches, this);
+	}
+
+	public Watches()
+	{
+		this.messageQueue = new MessageQueue<Quad<Dict.Prop, Box,  Object, Object>, String>() {
+			@Override
+			protected Consumer<Boolean> makeQueueServiceThread(BiConsumer<String, Quad<Dict.Prop, Box,  Object, Object>> to) {
+
+				CompletableFuture<Boolean> stop = new CompletableFuture<Boolean>();
+
+				RunLoop.main.getLoop().connect(0, (x) -> {
+					try {
+						if (this.queue.size()>0)
+							System.out.println(" message queue :"+this.queue.size());
+
+						while (this.queue.peek()!=null)
+						{
+							Pair<String, Quad<Dict.Prop, Box,  Object, Object>> m = this.queue.poll(1, TimeUnit.SECONDS);
+							if (m != null && !stop.isDone()) to.accept(m.first, m.second);
+						}
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				});
+
+				return x -> {
+				};
+			}
+		};
+		this.properties.putToMap(Boxes.insideRunLoop, "__watch_updator__", this::update);
+		this.properties.put(watches, this);
 	}
 
 	static public final Dict.Prop<LinkedHashMap<Dict.Prop, Object>> watchedPrevious = new Dict.Prop<>("_watchedPrevious");
 
-	SetMultimap<Dict.Prop, String> watches = MultimapBuilder.linkedHashKeys().linkedHashSetValues().build();
+	SetMultimap<Dict.Prop, String> allWatches = MultimapBuilder.linkedHashKeys().linkedHashSetValues().build();
 
 	protected boolean update() {
 
 		breadthFirst(both()).forEach((x) -> {
 			LinkedHashMap<Dict.Prop, Object> previous = x.properties.computeIfAbsent(watchedPrevious, (k) -> new LinkedHashMap<>());
-			for (Dict.Prop p : watches.keySet()) {
+			for (Dict.Prop p : allWatches .keySet()) {
 				Object was = previous.get(p);
 				Object now = x.properties.get(p);
 
 				if (!Util.safeEq(was, now))
 				{
-					fire(p, was, now, watches.get(p));
+					fire(p, x, was, now, allWatches .get(p));
 					previous.put(p, now);
 				}
 			}
@@ -44,13 +81,26 @@ public class Watches extends Box  {
 		return true;
 	}
 
-	public void addWatch(Dict.Prop property, String address)
+	public String addWatch(Dict.Prop property, String address)
 	{
-		watches.put(property, address);
+		allWatches .put(property, address);
+		return address;
 	}
 
-	private void fire(Dict.Prop p, Object was, Object now, Collection<String> strings) {
-		strings.forEach((address) -> messageQueue.accept(address, new Triple<>(p, was, now)));
+	public String addWatch(Dict.Prop property, Consumer<Quad<Dict.Prop, Box,  Object, Object>> c)
+	{
+		String address = UUID.randomUUID().toString();
+		allWatches .put(property, address);
+		messageQueue.register(x -> x.equals(address), x -> c.accept(x));
+		return address;
 	}
 
+
+	private void fire(Dict.Prop p, Box b, Object was, Object now, Collection<String> strings) {
+		strings.forEach((address) -> messageQueue.accept(address, new Quad<>(p, b, was, now)));
+	}
+
+	public MessageQueue<Quad<Dict.Prop, Box,  Object, Object>, String> getQueue() {
+		return messageQueue;
+	}
 }

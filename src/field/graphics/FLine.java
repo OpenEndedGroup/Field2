@@ -10,6 +10,7 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static field.graphics.FLinesAndJavaShapes.flineToJavaShape;
 import static field.graphics.FLinesAndJavaShapes.javaShapeToFLine;
@@ -17,7 +18,7 @@ import static field.graphics.FLinesAndJavaShapes.javaShapeToFLine;
 /**
  * Created by marc on 3/19/14.
  */
-public class FLine {
+public class FLine implements Supplier<FLine> {
 
 	public FLine() {
 	}
@@ -85,7 +86,7 @@ public class FLine {
 
 	public FLine rect(Rect r)
 	{
-		return rect(r.x, r.y, r.w, r.h);
+		return rect((float)r.x, (float)r.y, (float)r.w, (float)r.h);
 	}
 
 	public FLine rect(float x, float y, float w, float h)
@@ -478,4 +479,8 @@ public class FLine {
 		return mod;
 	}
 
+	@Override
+	public FLine get() {
+		return this;
+	}
 }

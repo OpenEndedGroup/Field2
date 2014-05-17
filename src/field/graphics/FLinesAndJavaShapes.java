@@ -22,6 +22,20 @@ public class FLinesAndJavaShapes {
 		return p;
 	}
 
+	static public Vec2 evaluateCubicFrame(Vec2 a, Vec2 c1, Vec2 c2, Vec2 b, float alpha, Vec2 out) {
+		float oma = 1 - alpha;
+		float oma2 = oma * oma;
+		float oma3 = oma2 * oma;
+		float alpha2 = alpha * alpha;
+		float alpha3 = alpha2 * alpha;
+
+		out.x = a.x * oma3 + 3 * c1.x * alpha * oma2 + 3 * c2.x * alpha2 * oma + b.x * alpha3;
+		out.y = a.y * oma3 + 3 * c1.y * alpha * oma2 + 3 * c2.y * alpha2 * oma + b.y * alpha3;
+
+		return out;
+	}
+
+
 	static public FLine javaShapeToFLine(Shape f) {
 		PathIterator pi = f.getPathIterator(null);
 		float[] cc = new float[6];

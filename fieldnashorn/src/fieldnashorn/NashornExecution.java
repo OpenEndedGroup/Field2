@@ -10,6 +10,7 @@ import fieldbox.boxes.*;
 import fieldbox.io.IO;
 import fielded.Animatable;
 import fielded.Execution;
+import fielded.RemoteEditor;
 
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
@@ -19,6 +20,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -83,6 +85,9 @@ public class NashornExecution implements Execution.ExecutionSupport {
 			System.out.println("\n<<javascript out" + ret + " " + (ret != null ? ret.getClass() + "" : ""));
 			if (writer != null) writer.flush();
 			if (success != null) if (ret != null) success.accept("" + ret);
+
+			RemoteEditor.boxFeedback(Optional.of(box), new Vec4(0.3f, 0.7f, 0.3f, 0.5f));
+
 		} catch (ScriptException e) {
 			lineErrors.accept(new Pair<>(e.getLineNumber(), e.getMessage()));
 			e.printStackTrace();
@@ -136,7 +141,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 				FLine f = new FLine();
 				f.rect(rect.x, rect.y, rect.w, rect.h);
 				f.attributes.put(FrameDrawer.filled, true);
-				f.attributes.put(FrameDrawer.fillColor, new Vec4(0.2f, 0.5f, 0.3f, 0.2f));
+				f.attributes.put(FrameDrawer.fillColor, new Vec4(0.2f, 0.5f, 0.3f, -0.2f));
 				f.attributes.put(FrameDrawer.color, new Vec4(0.2f, 0.5f, 0.3f, 0.8f));
 
 				return f;

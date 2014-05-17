@@ -3,6 +3,7 @@ package fieldbox.boxes;
 import field.graphics.*;
 import field.linalg.Vec2;
 import field.utility.Dict;
+import field.utility.Rect;
 import fieldbox.ui.FieldBoxWindow;
 import field.graphics.Window;
 
@@ -11,7 +12,6 @@ import java.util.*;
 import static field.utility.Util.closeable;
 
 public class Drawing extends Box {
-
 
 	public interface Drawer {
 		public void draw(Drawing context);
@@ -41,6 +41,7 @@ public class Drawing extends Box {
 	List<Bracketable> bracketableList = new ArrayList<>();
 
 	public Drawing() {
+
 	}
 
 
@@ -68,7 +69,7 @@ public class Drawing extends Box {
 			    "uniform vec2 bounds;\n" +
 			    "void main()\n" +
 			    "{\n" +
-			    "	vec2 at = (scale.xy*position.xy+translation.xy)/bounds.xy;\n" +
+			    "	vec2 at = (scale.xy*(position.xy+vec2(0.5,0.5))+translation.xy)/bounds.xy;\n" +
 			    "   gl_Position =  vec4(-1+at.x*2, 1-at.y*2, 0.5, 1.0);\n" +
 			    "   vcolor = color;\n" +
 			    "}");
@@ -78,7 +79,11 @@ public class Drawing extends Box {
 			    "uniform float opacity; \n" +
 			    "void main()\n" +
 			    "{\n" +
-			    "	_output  = vec4(vcolor.xyzw);\n" +
+			    "	float f = mod(gl_FragCoord.x-gl_FragCoord.y,20)/20.0;\n"+
+			    "	f = (sin(f*3.14*2)+1)/2;"+
+			    "	f = (smoothstep(0.45, 0.55, f)+1)/2;"+
+			    "	_output  = vec4(abs(vcolor.xyzw));\n" +
+			    "	if (vcolor.w<0) _output.w *= f;"+
 			    "	_output.w *= opacity;\n" +
 			    "}");
 
@@ -89,10 +94,10 @@ public class Drawing extends Box {
 
 		window.getCompositor().getLayer(layerName).getScene().connect(layer.shader);
 
-		BaseMesh mesh = BaseMesh.triangleList(1, 1);
-		layer.shader.connect(mesh);
 		BaseMesh line = BaseMesh.lineList(1, 1);
 		layer.shader.connect(line);
+		BaseMesh mesh = BaseMesh.triangleList(1, 1);
+		layer.shader.connect(mesh);
 		BaseMesh point = BaseMesh.pointList(1);
 		layer.shader.connect(point);
 
@@ -222,5 +227,10 @@ public class Drawing extends Box {
 		return this.opacity;
 	}
 
+	public Rect getCurrentViewBounds(Box b)
+	{
+		FieldBoxWindow window = b.first(Boxes.window).get();
+		return new Rect(-translation.x, -translation.y, window.getWidth()*scale.x, window.getHeight()*scale.y);
+	}
 
 }

@@ -17,6 +17,9 @@ import static com.badlogic.jglfw.gl.GL.glViewport;
 
 public class Window {
 
+	static public final Dict.Prop<Boolean> consumed = new Dict.Prop<>("consumed").type().toCannon();
+
+
 	protected GraphicsContext graphicsContext;
 	protected long window;
 	protected int w;
@@ -34,6 +37,7 @@ public class Window {
 		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, 1);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+		glfwWindowHint(GLFW_SAMPLES, 8);
 
 		glfwWindowHint(GLFW_DECORATED, title == null ? 0 : 1);
 
@@ -266,13 +270,12 @@ public class Window {
 	}
 
 	static public class KeyboardState {
-		public final Set<Integer> keysDown = new LinkedHashSet<Integer>();
+		public final Set<Integer> keysDown = new LinkedHashSet<>();
 		public final Map<Integer, Character> charsDown = new LinkedHashMap<>();
 		public final long time;
 
 		// not final (but still immutable), not part of the transition framework, just along to reduce static access to Window
 		public MouseState mouseState;
-
 
 		public KeyboardState() {
 			time = 0;
@@ -285,8 +288,8 @@ public class Window {
 		}
 
 		public KeyboardState next(int key, char character, boolean state, long time) {
-			Set<Integer> keysDown = new LinkedHashSet<Integer>(this.keysDown);
-			Map<Integer, Character> charsDown = new LinkedHashMap<Integer, Character>(this.charsDown);
+			Set<Integer> keysDown = new LinkedHashSet<>(this.keysDown);
+			Map<Integer, Character> charsDown = new LinkedHashMap<>(this.charsDown);
 			if (state) {
 				keysDown.add(key);
 				charsDown.put(key, character);
@@ -299,8 +302,8 @@ public class Window {
 		}
 
 		public KeyboardState withKey(int key, boolean down) {
-			Set<Integer> keysDown = new LinkedHashSet<Integer>(this.keysDown);
-			Map<Integer, Character> charsDown = new LinkedHashMap<Integer, Character>(this.charsDown);
+			Set<Integer> keysDown = new LinkedHashSet<>(this.keysDown);
+			Map<Integer, Character> charsDown = new LinkedHashMap<>(this.charsDown);
 			if (down) {
 				keysDown.add(key);
 			} else {

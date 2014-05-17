@@ -137,12 +137,16 @@ public class Dict implements Serializable {
 
 			typeInformation = Conversions.linearize(f.getGenericType());
 
+			typeInformation.remove(0);
+
 			setCannon();
 
 			return (Prop<T>)this;
 		}
 
-
+		public List<Class> getTypeInformation() {
+			return typeInformation==null ? null : new ArrayList<Class>(typeInformation);
+		}
 	}
 
 	Map<Prop, Object> dictionary = new LinkedHashMap<Prop, Object>();

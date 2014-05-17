@@ -30,7 +30,6 @@ public class Chorder extends Box {
 
 			System.out.println(" on mouse down :" + e + " " + button + " " + e.after.keyboardState.keysDown + " " + e.after.keyboardState.isAltDown());
 
-
 			if (button != 0) return null;
 			if (!e.after.keyboardState.isAltDown()) return null;
 			if (e.after.keyboardState.isShiftDown()) return null;
@@ -100,7 +99,7 @@ public class Chorder extends Box {
 			FLine f = new FLine();
 			f.moveTo(start.x, start.y, 0);
 			f.lineTo(end.x, end.y, 0);
-			f.attributes.put(FrameDrawer.color, new Vec4(0, 0.25f, 0, 0.15f));
+			f.attributes.put(FrameDrawer.color, new Vec4(0.5f, 0.95f, 0.6f, 0.15f));
 			f.attributes.put(FrameDrawer.thicken, new BasicStroke(3.5f));
 
 
@@ -110,7 +109,7 @@ public class Chorder extends Box {
 			FLine f = new FLine();
 			f.moveTo(start.x, start.y, 0);
 			f.lineTo(end.x, end.y, 0);
-			f.attributes.put(FrameDrawer.color, new Vec4(0, 0.25f, 0, 0.5f));
+			f.attributes.put(FrameDrawer.color, new Vec4(0.5f, 0.95f, 0.6f, 0.5f));
 			f.attributes.put(FrameDrawer.thicken, new BasicStroke(1.5f));
 
 			return f;
@@ -130,7 +129,7 @@ public class Chorder extends Box {
 
 			});
 
-			f.attributes.put(FrameDrawer.color, new Vec4(0, 0.5f, 0, 0.5f));
+			f.attributes.put(FrameDrawer.strokeColor, new Vec4(0.5f, 0.75f, 0.5f, -0.5f));
 			f.attributes.put(FrameDrawer.thicken, new BasicStroke(10.5f));
 
 			return f;
@@ -149,7 +148,7 @@ public class Chorder extends Box {
 
 			});
 
-			f.attributes.put(FrameDrawer.color, new Vec4(0, 0.5f, 0, 0.5f));
+			f.attributes.put(FrameDrawer.color, new Vec4(0.5f, 0.75f, 0.5f, -0.75f));
 			f.attributes.put(FrameDrawer.filled, true);
 			f.attributes.put(FrameDrawer.stroked, false);
 			return f;
@@ -170,7 +169,7 @@ public class Chorder extends Box {
 				f.nodes.get(f.nodes.size()-1).attributes.put(FrameDrawer.text, " "+(count[0]++));
 			});
 
-			f.attributes.put(FrameDrawer.color, new Vec4(0, 0.25f, 0, 0.75f));
+			f.attributes.put(FrameDrawer.color, new Vec4(0.1f, 0.25f, 0.1f, 0.75f));
 			f.attributes.put(FrameDrawer.hasText, true);
 			return f;
 
