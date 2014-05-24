@@ -6,7 +6,7 @@ import fieldbox.io.IO;
 import java.awt.*;
 
 /**
- * Created by marc on 3/21/14.
+ * The main entry-point for Field2.
  */
 public class FieldBox {
 

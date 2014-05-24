@@ -8,9 +8,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Created by marc on 3/18/14.
+ * Entry-point from GLFW based Window.Event<Window.MouseState> into Field.
+ * <p>
+ * Boxes can add to properties "onMouseDown", "onMouseMove", "onMouseEnter" and "onMouseExit" to listen to these events. Optionally these can return
+ * Draggers that will continue to be notified until corresponding mouse up events.
  */
-public class Manipulation {
+public class Mouse {
 
 	public interface Dragger {
 		public boolean update(Window.Event<Window.MouseState> e, boolean termination);
@@ -31,9 +34,6 @@ public class Manipulation {
 	public interface OnMouseExit {
 		public void onMouseExit(Window.Event<Window.MouseState> e);
 	}
-
-
-	static public final Dict.Prop<Rect> frame = new Dict.Prop<>("frame").toCannon();
 
 	static public final Dict.Prop<Collection<OnMouseDown>> onMouseDown = new Dict.Prop<>("onMouseDown").type().toCannon();
 	static public final Dict.Prop<Collection<OnMouseMove>> onMouseMove = new Dict.Prop<>("onMouseMove").type().toCannon();
@@ -72,7 +72,8 @@ public class Manipulation {
 		}
 
 		if (event.before.x != event.after.x || event.before.y != event.after.y) {
-			Set<Dragger> draggers = root.find(onMouseMove, root.both()).flatMap(x -> x.stream()).map(x -> x.onMouseMove(event)).filter(x -> x != null).collect(Collectors.toSet());
+			Set<Dragger> draggers = root.find(onMouseMove, root.both()).flatMap(x -> x.stream()).map(x -> x.onMouseMove(event))
+				    .filter(x -> x != null).collect(Collectors.toSet());
 			ongoingDrags.computeIfAbsent(-1, (k) -> new LinkedHashSet<Dragger>()).addAll(draggers);
 		}
 
@@ -81,7 +82,8 @@ public class Manipulation {
 
 			// change map to handle errors on x
 
-			root.find(onMouseDown, root.both()).flatMap(x -> x.stream()).map(x -> x.onMouseDown(event, p)).filter(x -> x != null).collect(Collectors.toCollection(() -> dragger));
+			root.find(onMouseDown, root.both()).flatMap(x -> x.stream()).map(x -> x.onMouseDown(event, p)).filter(x -> x != null)
+				    .collect(Collectors.toCollection(() -> dragger));
 		});
 
 	}

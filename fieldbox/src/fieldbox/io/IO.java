@@ -4,20 +4,37 @@ import field.utility.Dict;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Boxes;
 import fieldbox.boxes.FrameManipulation;
-import fieldbox.boxes.Manipulation;
 import fielded.Execution;
 
 import java.io.*;
+import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * This class handles the persistence of Box graphs to disk. Key design challenge here is to allow individual properties of boxes to exist as separate
+ * files on disk if it makes sense to do so (for example disparate pieces of source code), and otherwise have properties associated with a box bound
+ * up in a single file the rides near these source code files. These boxes are free to float around the filesystem and to be shared between documents.
+ * This is in stark contrast to the Field1 design where a Field "sheet" was a directory that contained all of its boxes. Sharing boxes between
+ * documents was therefore completely impossible. This structure will give us the ability to drag and drop documents into the Field window and save
+ * side-car .fieldbox files next to them that contain the properties.
+ *
+ * .fieldbox (the properties) and .field2 (the master document) files are stored as EDN files (see EDN.java for specifics).
+ */
 public class IO {
 	static public final String WORKSPACE = "{{workspace}}";
-	static public final String EXECUTION= "{{execution}}";
+	static public final String EXECUTION = "{{execution}}";
+
+	/**
+	 * tag interface for boxes, method will be called after all boxes have been loaded (and all properties set)
+	 */
+	static public interface Loaded {
+		public void loaded();
+	}
 
 	private final String defaultDirectory;
-	Set<String> knownProperties = new LinkedHashSet<String>();
-	Map<String, Filespec> knownFiles = new HashMap<String, Filespec>();
+	static Set<String> knownProperties = new LinkedHashSet<String>();
+	static Map<String, Filespec> knownFiles = new HashMap<String, Filespec>();
 
 	public static final Dict.Prop<String> id = new Dict.Prop<>("__id__");
 
@@ -25,7 +42,7 @@ public class IO {
 		Filespec f = new Filespec();
 		f.name = name;
 		f.defaultSuffix = defaultSuffix;
-		f.language= language;
+		f.language = language;
 		knownFiles.put(f.name, f);
 	}
 
@@ -37,16 +54,19 @@ public class IO {
 		public String getDefaultSuffix(Box box) {
 
 			if (defaultSuffix.equals(EXECUTION)) {
-				Execution e = box.first(Execution.execution).orElseThrow(() -> new IllegalArgumentException(" no execution for box "+box));
+				Execution e = box.first(Execution.execution)
+					    .orElseThrow(() -> new IllegalArgumentException(" no execution for box " + box));
 				return e.support(e, new Dict.Prop<String>(name)).getDefaultFileExtension();
 			}
 
 			return defaultSuffix;
 		}
+
 		public String getLanguage(Box box) {
 
 			if (defaultSuffix.equals(EXECUTION)) {
-				Execution e = box.first(Execution.execution).orElseThrow(() -> new IllegalArgumentException(" no execution for box "+box));
+				Execution e = box.first(Execution.execution)
+					    .orElseThrow(() -> new IllegalArgumentException(" no execution for box " + box));
 				return e.support(e, new Dict.Prop<String>(name)).getDefaultFileExtension();
 			}
 
@@ -60,7 +80,7 @@ public class IO {
 		this.defaultDirectory = defaultDirectory;
 
 		knownProperties.add(Box.name.getName());
-		knownProperties.add(Manipulation.frame.getName());
+		knownProperties.add(Box.frame.getName());
 
 		knownProperties.add(FrameManipulation.lockHeight.getName());
 		knownProperties.add(FrameManipulation.lockWidth.getName());
@@ -68,7 +88,8 @@ public class IO {
 
 	public Document compileDocument(Box documentRoot, Map<Box, String> specialBoxes) {
 		Document d = new Document();
-		d.externalList = documentRoot.breadthFirst(documentRoot.downwards()).map(box -> toExternal(box, specialBoxes)).filter(x -> x != null).collect(Collectors.toList());
+		d.externalList = documentRoot.breadthFirst(documentRoot.downwards()).map(box -> toExternal(box, specialBoxes)).filter(x -> x != null)
+			    .collect(Collectors.toList());
 		d.knownFiles = new LinkedHashMap<>(knownFiles);
 		d.knownProperties = new LinkedHashSet<>(knownProperties);
 		return d;
@@ -81,8 +102,7 @@ public class IO {
 
 		lastWasNew = false;
 
-		if (!f.exists())
-		{
+		if (!f.exists()) {
 			// new file
 			lastWasNew = true;
 
@@ -99,8 +119,7 @@ public class IO {
 		Map<String, Box> loaded = new HashMap<String, Box>();
 		for (External e : d.externalList) {
 			fromExternal(e, specialBoxes);
-			if (e.box != null)
-			{
+			if (e.box != null) {
 				loaded.put(e.id, e.box);
 				e.box.properties.put(id, e.id);
 			}
@@ -110,21 +129,32 @@ public class IO {
 			for (String id : e.children) {
 				Box mc = specialBoxes.getOrDefault(id, loaded.get(id));
 
-				System.out.println(" connecting :"+e.box+" -> "+mc);
+				System.out.println(" connecting :" + e.box + " -> " + mc);
 
 				if (mc != null) e.box.connect(mc);
-				else System.err.println(" lost child ? " + id + " of " + e.box+" "+specialBoxes);
+				else System.err.println(" lost child ? " + id + " of " + e.box + " " + specialBoxes);
 			}
 			for (String id : e.parents) {
 				Box mc = specialBoxes.getOrDefault(id, loaded.get(id));
 
-				System.out.println(" connecting :"+e.box+" <- "+mc);
+				System.out.println(" connecting :" + e.box + " <- " + mc);
 
 				if (mc != null) mc.connect(e.box);
-				else System.err.println(" lost child ? " + id + " of " + e.box+" "+specialBoxes);
+				else System.err.println(" lost child ? " + id + " of " + e.box + " " + specialBoxes);
 			}
 		}
 		created.addAll(loaded.values());
+
+		loaded.values().stream().filter(b -> b instanceof Loaded).forEach(b -> {
+			try {
+				((Loaded) b).loaded();
+			} catch (Throwable t) {
+				System.out.println(" exception thrown while finishing loading for box " + b);
+				t.printStackTrace();
+				System.out.println(" continuing on...");
+			}
+		});
+
 		return d;
 
 
@@ -132,7 +162,18 @@ public class IO {
 
 	private void fromExternal(External ex, Map<String, Box> specialBoxes) {
 
-		ex.box = new Box();
+//		ex.box = new Box();
+		try {
+			Class c = this.getClass().getClassLoader().loadClass(ex.boxClass);
+			Constructor<Box> cc = c.getDeclaredConstructor();
+			cc.setAccessible(true);
+			ex.box = (Box) cc.newInstance();
+		} catch (Throwable e) {
+			System.out.println(" while looking for class <" + ex.boxClass + "> needed for <" + ex.id + " / " + ex.textFiles + "> an exception was thrown");
+			e.printStackTrace();
+			System.out.println(" will proceed with just a vanilla Box class, but custom behavior will be lost ");
+			ex.box = new Box();
+		}
 
 		for (Map.Entry<String, String> e : ex.textFiles.entrySet()) {
 			File filename = filenameFor(e.getValue());
@@ -144,7 +185,7 @@ public class IO {
 
 		Map<?, ?> m = (Map) (serializeFromString(readFromFile(dataFile)));
 		for (Map.Entry<?, ?> entry : m.entrySet()) {
-			ex.box.properties.put(new Dict.Prop((String)entry.getKey()), entry.getValue());
+			ex.box.properties.put(new Dict.Prop((String) entry.getKey()), entry.getValue());
 		}
 
 	}
@@ -163,7 +204,8 @@ public class IO {
 
 				String extantFilename = box.properties.get(new Dict.Prop<String>("__filename__" + e.getKey().getName()));
 				if (extantFilename == null) {
-					box.properties.put(new Dict.Prop<String>("__filename__" + e.getKey().getName()), extantFilename = makeFilenameFor(f, box));
+					box.properties.put(new Dict.Prop<String>("__filename__" + e.getKey()
+						    .getName()), extantFilename = makeFilenameFor(f, box));
 				}
 				knownProperties.add("__filename__" + e.getKey().getName());
 				ex.textFiles.put(e.getKey().getName(), extantFilename);
@@ -190,6 +232,8 @@ public class IO {
 			else ex.children.add(pp.properties.computeIfAbsent(id, (k) -> UUID.randomUUID().toString()));
 		}
 
+		ex.boxClass = box.getClass().getName();
+
 		return ex;
 	}
 
@@ -203,7 +247,7 @@ public class IO {
 	protected void writeOutExternal(External external) throws IOException {
 		for (Map.Entry<String, String> e : external.textFiles.entrySet()) {
 			String text = external.box.properties.get(new Dict.Prop<String>(e.getKey()));
-			if (text==null) continue;
+			if (text == null) continue;
 			File filename = filenameFor(e.getValue());
 			writeToFile(filename, text);
 		}
@@ -274,7 +318,7 @@ public class IO {
 		String name = box.properties.get(Box.name);
 		if (name == null) name = "untitled_box";
 
-		String suffix = "_"+defaultName+(defaultSuffix == null ? "" : defaultSuffix);
+		String suffix = "_" + defaultName + (defaultSuffix == null ? "" : defaultSuffix);
 		name = name + suffix;
 
 		int n = 0;
@@ -307,11 +351,17 @@ public class IO {
 		public Map<String, String> textFiles = new LinkedHashMap<String, String>();
 		public String dataFile;
 		public String id;
+		public String boxClass;
 
 		transient Box box;
 
 		public Set<String> parents;
 		public Set<String> children;
+	}
+
+
+	static public void persist(Dict.Prop prop) {
+		knownProperties.add(prop.getName());
 	}
 
 }

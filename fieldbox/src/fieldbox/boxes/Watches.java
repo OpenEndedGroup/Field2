@@ -15,7 +15,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
- * watches for properties being changed and then fires change events off to the message bus
+ * Plugin: Watches for properties being changed and then fires change events off to the message bus.
  */
 public class Watches extends Box  {
 
@@ -87,11 +87,16 @@ public class Watches extends Box  {
 		return address;
 	}
 
-	public String addWatch(Dict.Prop property, Consumer<Quad<Dict.Prop, Box,  Object, Object>> c)
+	public <T> String addWatch(Dict.Prop<T> property, Consumer<Quad<Dict.Prop<T>, Box,  T, T>> c)
 	{
+		// weakness in Java typing. We can't quite use 'c' below in the messageQueue callback, nor can we cast 'x'.
+		Consumer cc = c;
+
 		String address = UUID.randomUUID().toString();
 		allWatches .put(property, address);
-		messageQueue.register(x -> x.equals(address), x -> c.accept(x));
+		messageQueue.register(x -> x.equals(address), x -> {
+			cc.accept(x);
+		});
 		return address;
 	}
 

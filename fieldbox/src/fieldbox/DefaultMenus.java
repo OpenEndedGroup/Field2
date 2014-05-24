@@ -2,7 +2,6 @@ package fieldbox;
 
 import field.graphics.Window;
 import field.linalg.Vec2;
-import field.utility.Dict;
 import field.utility.Rect;
 import fieldbox.boxes.*;
 import fieldbox.io.IO;
@@ -11,11 +10,9 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
 /**
- * Standard Menus and Shortcuts too basic not to have (new box, save etc.)
- * Created by marc on 4/15/14.
+ * Plugin: Adds Standard Menus and Shortcuts too basic not to have (new box, save etc.)
  */
 public class DefaultMenus extends Box {
 
@@ -47,7 +44,7 @@ public class DefaultMenus extends Box {
 		Box b1 = new Box();
 		root.connect(b1);
 		float w = 50;
-		b1.properties.put(Manipulation.frame, new Rect(at.x-w, at.y-w, w*2, w*2));
+		b1.properties.put(frame, new Rect(at.x-w, at.y-w, w*2, w*2));
 		b1.properties.put(Box.name, "Untitled");
 		Drawing.dirty(b1);
 
@@ -65,18 +62,21 @@ public class DefaultMenus extends Box {
 
 		IO.Document doc = FieldBox.fieldBox.io.compileDocument(root, special);
 
+		boolean error = false;
 		try {
 			FieldBox.fieldBox.io.writeOutDocument(FieldBox.fieldBox.io.WORKSPACE + "/"+filename, doc);
 		} catch (IOException e) {
 			e.printStackTrace();
-			// todo: notify save error
+			Drawing.notify("Error saving " + e.getMessage(), this, 200);
+			error=true;
 		}
 
-		// todo: notify save status
+		if (!error)
+			Drawing.notify("Saved to " + filename, this, 200);
 	}
 
 	private boolean isNothingSelected() {
-		return !find(Manipulation.isSelected, both()).filter(x -> x.booleanValue()).findFirst().isPresent();
+		return !find(Mouse.isSelected, both()).filter(x -> x.booleanValue()).findFirst().isPresent();
 	}
 
 }
