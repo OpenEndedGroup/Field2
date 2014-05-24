@@ -8,32 +8,36 @@ import field.linalg.Vec4;
 import field.utility.Rect;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Drawing;
-import fieldbox.boxes.FrameDrawer;
-import fieldbox.boxes.Manipulation;
+import fieldbox.boxes.FLineDrawing;
+import fieldbox.boxes.Mouse;
 
 import java.awt.*;
 import java.util.Optional;
 
 /**
- * Hold down T to connect elements with other elements
+ * Adds: Hold down T to connect elements with other elements.
+ * <p>
+ * The elements added are TopologyBox, which are subclasses of Box that have a default drawer that draws arcs between
+ * endpoints. This is more proof of concept that anything else. The interpretation of this "topology" is completely up
+ * to the code in the boxes themselves.
  */
-public class Topology extends Box implements Manipulation.OnMouseDown {
+public class Topology extends Box implements Mouse.OnMouseDown {
 
 	private final Box root;
 	boolean on = false;
 
 	public Topology(Box root) {
 		this.root = root;
-		this.properties.putToList(Manipulation.onMouseDown, this);
+		this.properties.putToList(Mouse.onMouseDown, this);
 	}
 
 	@Override
-	public Manipulation.Dragger onMouseDown(Window.Event<Window.MouseState> e, int button) {
+	public Mouse.Dragger onMouseDown(Window.Event<Window.MouseState> e, int button) {
 		if (button == 0) return button0(e);
 		return null;
 	}
 
-	protected Manipulation.Dragger button0(Window.Event<Window.MouseState> e) {
+	protected Mouse.Dragger button0(Window.Event<Window.MouseState> e) {
 		if (!e.after.keyboardState.keysDown.contains(Glfw.GLFW_KEY_T)) return null;
 
 		Optional<Drawing> drawing = this.find(Drawing.drawing, both()).findFirst();
@@ -46,7 +50,7 @@ public class Topology extends Box implements Manipulation.OnMouseDown {
 
 			Box origin = hit.get();
 
-			return new Manipulation.Dragger() {
+			return new Mouse.Dragger() {
 				@Override
 				public boolean update(Window.Event<Window.MouseState> e, boolean termination) {
 
@@ -63,7 +67,7 @@ public class Topology extends Box implements Manipulation.OnMouseDown {
 					} else {
 						showIncompleteDrag(origin, point);
 						if (termination) {
-							Topology.this.properties.removeFromMap(FrameDrawer.frameDrawing, "__ongoingDrag__");
+							Topology.this.properties.removeFromMap(FLineDrawing.frameDrawing, "__ongoingDrag__");
 						}
 					}
 
@@ -79,7 +83,7 @@ public class Topology extends Box implements Manipulation.OnMouseDown {
 
 	protected void showIncompleteDrag(Box start, Vec2 to) {
 		System.out.println(" incomplete drag ");
-		this.properties.putToMap(FrameDrawer.frameDrawing, "__ongoingDrag__", (box) -> {
+		this.properties.putToMap(FLineDrawing.frameDrawing, "__ongoingDrag__", (box) -> {
 
 			Rect f1 = frame(start);
 
@@ -87,8 +91,8 @@ public class Topology extends Box implements Manipulation.OnMouseDown {
 			m.moveTo(f1.x, f1.y);
 			m.lineTo(to.x, to.y);
 
-			m.attributes.put(FrameDrawer.thicken, new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-			m.attributes.put(FrameDrawer.strokeColor, new Vec4(1, 0, 0, 1f));
+			m.attributes.put(FLineDrawing.thicken, new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+			m.attributes.put(FLineDrawing.strokeColor, new Vec4(1, 0, 0, 1f));
 
 			return m;
 		});
@@ -101,13 +105,13 @@ public class Topology extends Box implements Manipulation.OnMouseDown {
 
 	protected void completeDrag(Box start, Box box) {
 		System.out.println(" Drag completed ");
-		this.properties.removeFromMap(FrameDrawer.frameDrawing, "__ongoingDrag__");
+		this.properties.removeFromMap(FLineDrawing.frameDrawing, "__ongoingDrag__");
 		Drawing.dirty(this);
 	}
 
 	protected void showCompleteDrag(Box start, Box end) {
 		System.out.println(" complete drag ");
-		this.properties.putToMap(FrameDrawer.frameDrawing, "__ongoingDrag__", (box) -> {
+		this.properties.putToMap(FLineDrawing.frameDrawing, "__ongoingDrag__", (box) -> {
 
 			Rect f1 = frame(start);
 			Rect f2 = frame(end);
@@ -116,8 +120,8 @@ public class Topology extends Box implements Manipulation.OnMouseDown {
 			m.moveTo(f1.x, f1.y);
 			m.lineTo(f2.x, f2.y);
 
-			m.attributes.put(FrameDrawer.thicken, new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-			m.attributes.put(FrameDrawer.strokeColor, new Vec4(1, 0, 0, 1f));
+			m.attributes.put(FLineDrawing.thicken, new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+			m.attributes.put(FLineDrawing.strokeColor, new Vec4(1, 0, 0, 1f));
 
 			return m;
 		});
@@ -125,7 +129,7 @@ public class Topology extends Box implements Manipulation.OnMouseDown {
 	}
 
 	protected Rect frame(Box hitBox) {
-		return hitBox.properties.get(Manipulation.frame);
+		return hitBox.properties.get(frame);
 	}
 
 }

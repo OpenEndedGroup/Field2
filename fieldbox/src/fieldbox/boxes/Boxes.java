@@ -1,23 +1,26 @@
 package fieldbox.boxes;
 
+import field.graphics.RunLoop;
 import field.graphics.Scene;
 import field.utility.Dict;
-import field.graphics.RunLoop;
 import fieldbox.ui.FieldBoxWindow;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 /**
- * Created by marc on 3/21/14.
+ * Acts as a container for the root of the Box graph. Declares Dict.Prop that pertain to the graph as a whole. Provides
+ * an entry point for the Runloop into the graph for animation updates.
  */
 public class Boxes {
 
-	static public final Dict.Prop<Box> root = new Dict.Prop<>("root");
-	static public final Dict.Prop<FieldBoxWindow> window = new Dict.Prop<>("window");
+	static public final Dict.Prop<Box> root = new Dict.Prop<>("root").type().toCannon().doc("the root of the box graph");
+	static public final Dict.Prop<FieldBoxWindow> window = new Dict.Prop<>("window").doc("the FieldBoxWindow that this graph is currently in");
 	static public final Dict.Prop<Map<String, Supplier<Boolean>>> insideRunLoop = new Dict.Prop<>("_insideRunLoop");
-	static public final Dict.Prop<Boolean> dontSave= new Dict.Prop<>("dontSave").type().toCannon();
+	static public final Dict.Prop<Boolean> dontSave = new Dict.Prop<>("dontSave").type().toCannon().doc("set this to true to cause this box to not be saved with the box graph");
 
 	Box origin;
 
@@ -29,7 +32,7 @@ public class Boxes {
 
 	protected Set<Box> population = Collections.emptySet();
 
-	protected Scene.Perform updateor = new Scene.Perform() {
+	protected Scene.Perform updater = new Scene.Perform() {
 		@Override
 		public boolean perform(int pass) {
 			origin.find(insideRunLoop, origin.both()).forEach(x -> {
@@ -54,19 +57,15 @@ public class Boxes {
 
 
 	public void start() {
-		RunLoop.main.getLoop().connect(updateor);
+		RunLoop.main.getLoop().connect(updater);
 	}
 
 	public void stop() {
-		RunLoop.main.getLoop().disconnect(updateor);
+		RunLoop.main.getLoop().disconnect(updater);
 	}
 
 	public Box root() {
 		return origin;
 	}
 
-	static public Box root(Box from) {
-		Optional<Box> o = from.find(root, from.upwards()).findFirst();
-		return o.orElseThrow(() -> new IllegalArgumentException(" rootless box? "));
-	}
 }

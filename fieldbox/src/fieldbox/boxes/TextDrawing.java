@@ -5,34 +5,42 @@ import field.graphics.gdxtext.DrawBitmapFont;
 import field.linalg.Vec2;
 import field.utility.Dict;
 import fieldbox.ui.FieldBoxWindow;
-import field.graphics.Window;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Created by marc on 3/22/14.
+ * Text Drawing for Field
+ * <p>
+ * Text in OpenGL has always been difficult, even as text elsewhere in the OS has gotten much better. Here we have something that's close to a
+ * state-of-the-art compromise between speed, quality and flexibility: it's very, very fast; it looks ok (no subpixel hinting, but relatively ok
+ * Anti-Aliasing; no ligatures, but sub-pixel kerning); it doesn't handle unicode worth a damn. The technique is called (signed) Distance Field Text
+ * Rendering and it uses a a pre-computed single high-resolution "atlas" bitmap for the font that contains the distance to the edge of the text. For
+ * tedious reasons this bitmap is fast to anti-alias properly at a variety of scales, unlike actual bitmaps of text.
+ * <p>
+ * You wouldn't want to look at pages of small text rendered this way (i.e, don't go building a text editor this way), but for larger text or labels
+ * this is fast and smooth and comes with no runtime dependencies (on native libraries or Java windowing toolkits).
  */
 public class TextDrawing extends Box {
 
-	public class PerLayer
-	{
+	public class PerLayer {
 		protected Shader mainShader;
 		private FontSupport defaultFont;
 		protected Map<String, FontSupport> fontsLoaded = new LinkedHashMap<String, FontSupport>();
 	}
+
 	Map<String, PerLayer> layerLocal = new LinkedHashMap<>();
 
 
-	public class FontSupport
-	{
+	public class FontSupport {
 		public final MeshBuilder mesh;
 		public final DrawBitmapFont font;
 
 		public FontSupport(String name, String layer) {
-			BaseMesh mesh = BaseMesh.triangleList(4,4);
+			BaseMesh mesh = BaseMesh.triangleList(4, 4);
 			this.mesh = new MeshBuilder(mesh);
-			font = new DrawBitmapFont(Thread.currentThread().getContextClassLoader().getResource("fonts/"+name).getFile(), this.mesh, 0, 5000);
+			font = new DrawBitmapFont(Thread.currentThread().getContextClassLoader().getResource("fonts/" + name)
+				    .getFile(), this.mesh, 0, 5000);
 			mesh.connect(font.getTexture());
 
 			layerLocal.get(layer).mainShader.connect(new Guard(mesh, (p) -> mesh.getVertexLimit() > 0));
@@ -48,17 +56,18 @@ public class TextDrawing extends Box {
 	public float smoothing = 0.02f;
 	public float gamma = 1.9f;
 
-	public TextDrawing()
-	{}
+	public TextDrawing() {
+	}
 
-	public Box install(Box root)
-	{
+	public Box install(Box root) {
 		return install(root, "__main__");
 	}
-	public Box install(Box root, String layerName)
-	{
-		FieldBoxWindow window = root.first(Boxes.window).orElseThrow(() -> new IllegalArgumentException(" can't draw a box hierarchy with no window to draw it in !"));
-		Drawing drawing = root.first(Drawing.drawing).orElseThrow(() -> new IllegalArgumentException(" can't install textdrawing into something without drawing support"));
+
+	public Box install(Box root, String layerName) {
+		FieldBoxWindow window = root.first(Boxes.window)
+			    .orElseThrow(() -> new IllegalArgumentException(" can't draw a box hierarchy with no window to draw it in !"));
+		Drawing drawing = root.first(Drawing.drawing)
+			    .orElseThrow(() -> new IllegalArgumentException(" can't install textdrawing into something without drawing support"));
 
 		properties.put(textDrawing, this);
 
@@ -114,7 +123,7 @@ public class TextDrawing extends Box {
 		layer.mainShader.connect(new Uniform<Vec2>("bounds", () -> new Vec2(Window.getCurrentWidth(), Window.getCurrentHeight())));
 		layer.mainShader.connect(new Uniform<Float>("smoothing", () -> smoothing));
 		layer.mainShader.connect(new Uniform<Float>("gamma", () -> gamma));
-		layer.mainShader.connect(new Uniform<Float>("opacity", drawing::getOpacity));
+		layer.mainShader.connect(new Uniform<Float>("opacity", () -> 1.0f));
 
 		window.getCompositor().getLayer(layerName).getScene().connect(layer.mainShader);
 
@@ -125,16 +134,13 @@ public class TextDrawing extends Box {
 		return getFontSupport("source-sans-pro-regular.fnt");
 	}
 
-	public FontSupport getFontSupport(String filename)
-	{
+	public FontSupport getFontSupport(String filename) {
 		return getFontSupport(filename, "__main__");
 	}
-	
-	public FontSupport getFontSupport(String filename, String layer)
-	{
+
+	public FontSupport getFontSupport(String filename, String layer) {
 		return layerLocal.get(layer).fontsLoaded.computeIfAbsent(filename, (k) -> new FontSupport(filename, layer));
 	}
-
 
 
 }

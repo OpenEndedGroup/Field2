@@ -15,9 +15,11 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
- * A TimeSlider is a (thin) box that executes (that is calls .begin() and .end() on) other boxes that it passes over when dragged horizontally around.
+ * A TimeSlider is a (thin) box that executes (that is calls .begin() and .end() on) other boxes that it passes over when dragged horizontally
+ * around.
  * <p>
- * This has been built for subclassability.
+ * This has been built for "subclassability". Change the drawing by changing this::defaultdrawsLines, change the population of elements that can be
+ * executed by changing this::population, change the behavior by changing this::off, this::on, this::skipForward, this::skipBackward.
  */
 public class TimeSlider extends Box {
 
@@ -29,7 +31,7 @@ public class TimeSlider extends Box {
 		this.properties.putToMap(Boxes.insideRunLoop, "__swipe__", this::swiper);
 		this.properties.putToMap(Boxes.insideRunLoop, "__force_onscreen__", this::forceOnscreen);
 
-		properties.put(Manipulation.frame, new Rect(0, 0, width, 5000));
+		properties.put(frame, new Rect(0, 0, width, 5000));
 
 
 		this.properties.put(FrameManipulation.lockWidth, true);
@@ -37,16 +39,15 @@ public class TimeSlider extends Box {
 		this.properties.put(Boxes.dontSave, true);
 		this.properties.put(Box.name, "TimeSlider");
 
-		this.properties.computeIfAbsent(FrameDrawer.frameDrawing, this::defaultdrawsLines);
+		this.properties.computeIfAbsent(FLineDrawing.frameDrawing, this::defaultdrawsLines);
 	}
 
-	protected boolean swiper()
-	{
+	protected boolean swiper() {
 
 		if (was == null) {
-			was = this.properties.get(Manipulation.frame);
+			was = this.properties.get(frame);
 		} else {
-			Rect now = this.properties.get(Manipulation.frame);
+			Rect now = this.properties.get(frame);
 			if (now.x == was.w) {
 
 			} else {
@@ -58,9 +59,8 @@ public class TimeSlider extends Box {
 		return true;
 	}
 
-	protected boolean forceOnscreen()
-	{
-		Rect f = properties.get(Manipulation.frame);
+	protected boolean forceOnscreen() {
+		Rect f = properties.get(frame);
 
 		Rect w = f.inset(0);
 
@@ -74,14 +74,11 @@ public class TimeSlider extends Box {
 			w.w = width;
 		}
 
-		if (!w.equals(f))
-		{
+		if (!w.equals(f)) {
 //				System.out.println(" new frame is :"+w);
-			properties.put(Manipulation.frame, w);
+			properties.put(frame, w);
 			Drawing.dirty(TimeSlider.this);
-		}
-		else
-		{
+		} else {
 //				System.out.println(" no frame change :"+w+" "+f);
 		}
 
@@ -90,10 +87,12 @@ public class TimeSlider extends Box {
 
 	protected void perform(Rect was, Rect now) {
 
-		Stream<Box> off = population().filter(x -> x.properties.get(Manipulation.frame).intersectsX(was.x)).filter(x -> !x.properties.get(Manipulation.frame).intersectsX(now.x));
-		Stream<Box> on = population().filter(x -> !x.properties.get(Manipulation.frame).intersectsX(was.x)).filter(x -> x.properties.get(Manipulation.frame).intersectsX(now.x));
-		Stream<Box> skipForward = population().filter(x -> x.properties.get(Manipulation.frame).inside(was.x, now.x));
-		Stream<Box> skipBackward = population().filter(x -> x.properties.get(Manipulation.frame).inside(now.x, was.x));
+		Stream<Box> off = population().filter(x -> x.properties.get(frame).intersectsX(was.x))
+			    .filter(x -> !x.properties.get(frame).intersectsX(now.x));
+		Stream<Box> on = population().filter(x -> !x.properties.get(frame).intersectsX(was.x))
+			    .filter(x -> x.properties.get(frame).intersectsX(now.x));
+		Stream<Box> skipForward = population().filter(x -> x.properties.get(frame).inside(was.x, now.x));
+		Stream<Box> skipBackward = population().filter(x -> x.properties.get(frame).inside(now.x, was.x));
 
 		off(off);
 		on(on);
@@ -141,47 +140,45 @@ public class TimeSlider extends Box {
 	}
 
 	/**
-	 * returns a Stream of potential boxes that we can execute. Subclass to constrain further, but by default it's all of the children of this timeslider's first parent that have Manipulation.frames that aren't this box --- i.e. all the siblings of this box
+	 * returns a Stream of potential boxes that we can execute. Subclass to constrain further, but by default it's all of the children of this
+	 * timeslider's first parent that have Manipulation.frames that aren't this box --- i.e. all the siblings of this box
 	 */
 	protected Stream<Box> population() {
-		return parents().iterator().next().breadthFirst(this.downwards()).filter(x -> x.properties.has(Manipulation.frame)).filter(x -> x!=this);
+		return parents().iterator().next().breadthFirst(this.downwards()).filter(x -> x.properties.has(frame)).filter(x -> x != this);
 	}
 
 	protected Map<String, Function<Box, FLine>> defaultdrawsLines(Dict.Prop<Map<String, Function<Box, FLine>>> k) {
 		Map<String, Function<Box, FLine>> r = new LinkedHashMap<>();
 
 		r.put("__outline__", new Cached<Box, Object, FLine>((box, previously) -> {
-			Rect rect = box.properties.get(Manipulation.frame);
+			Rect rect = box.properties.get(frame);
 			if (rect == null) return null;
 
-			boolean selected = box.properties.isTrue(Manipulation.isSelected, false);
+			boolean selected = box.properties.isTrue(Mouse.isSelected, false);
 
 			FLine f = new FLine();
-				rect.inset(-0.5f);
+			rect.inset(-0.5f);
 
 			f.moveTo(rect.x, rect.y);
-//			f.lineTo(rect.x + rect.w, rect.y);
-//			f.lineTo(rect.x + rect.w, rect.y + rect.h);
 			f.lineTo(rect.x, rect.y + rect.h);
-//			f.lineTo(rect.x, rect.y);
 
-			f.attributes.put(FrameDrawer.strokeColor, selected ? new Vec4(1, 0, 0, -1.0f) : new Vec4(0.5f, 0, 0, 0.5f));
+			f.attributes.put(FLineDrawing.strokeColor, selected ? new Vec4(1, 0, 0, -1.0f) : new Vec4(0.5f, 0, 0, 0.5f));
 
-			f.attributes.put(FrameDrawer.thicken, new BasicStroke(selected ? 2.5f : 2.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
+			f.attributes.put(FLineDrawing.thicken, new BasicStroke(selected ? 2.5f : 2.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
 
-			f.attributes.put(FrameDrawer.stroked, true);
+			f.attributes.put(FLineDrawing.stroked, true);
 
 			return f;
-		}, (box) -> new Pair(box.properties.get(Manipulation.frame), box.properties.get(Manipulation.isSelected))));
+		}, (box) -> new Pair(box.properties.get(frame), box.properties.get(Mouse.isSelected))));
 
 		r.put("__outlineFill__", new Cached<Box, Object, FLine>((box, previously) -> {
-			Rect rect = box.properties.get(Manipulation.frame);
+			Rect rect = box.properties.get(frame);
 			if (rect == null) return null;
 
-			boolean selected = box.properties.isTrue(Manipulation.isSelected, false);
+			boolean selected = box.properties.isTrue(Mouse.isSelected, false);
 
-			float a = selected ? 0.9f/3 : 0.8f/3;
-			float b = selected ? 0.75f/3 : 0.75f/3;
+			float a = selected ? 0.9f / 3 : 0.8f / 3;
+			float b = selected ? 0.75f / 3 : 0.75f / 3;
 			float s = selected ? -0.25f : 0.06f;
 
 			a = 1;
@@ -189,17 +186,17 @@ public class TimeSlider extends Box {
 
 			FLine f = new FLine();
 			f.moveTo(rect.x, rect.y);
-			f.nodes.get(f.nodes.size() - 1).attributes.put(FrameDrawer.fillColor, new Vec4(a, 0, 0, s));
+			f.nodes.get(f.nodes.size() - 1).attributes.put(FLineDrawing.fillColor, new Vec4(a, 0, 0, s));
 			f.lineTo(rect.x + rect.w, rect.y);
-			f.nodes.get(f.nodes.size() - 1).attributes.put(FrameDrawer.fillColor, new Vec4(b, 0, 0, s));
+			f.nodes.get(f.nodes.size() - 1).attributes.put(FLineDrawing.fillColor, new Vec4(b, 0, 0, s));
 			f.lineTo(rect.x + rect.w, rect.y + rect.h);
-			f.nodes.get(f.nodes.size() - 1).attributes.put(FrameDrawer.fillColor, new Vec4(a, 0, 0, s));
+			f.nodes.get(f.nodes.size() - 1).attributes.put(FLineDrawing.fillColor, new Vec4(a, 0, 0, s));
 			f.lineTo(rect.x, rect.y + rect.h);
-			f.nodes.get(f.nodes.size() - 1).attributes.put(FrameDrawer.fillColor, new Vec4(a, 0, 0, s));
+			f.nodes.get(f.nodes.size() - 1).attributes.put(FLineDrawing.fillColor, new Vec4(a, 0, 0, s));
 			f.lineTo(rect.x, rect.y);
-			f.nodes.get(f.nodes.size() - 1).attributes.put(FrameDrawer.fillColor, new Vec4(a, 0, 0, s));
+			f.nodes.get(f.nodes.size() - 1).attributes.put(FLineDrawing.fillColor, new Vec4(a, 0, 0, s));
 
-			f.attributes.put(FrameDrawer.filled, true);
+			f.attributes.put(FLineDrawing.filled, true);
 
 			Map<Integer, String> customFill = new LinkedHashMap<Integer, String>();
 			customFill.put(1, "fillColor");
@@ -207,7 +204,7 @@ public class TimeSlider extends Box {
 
 
 			return f;
-		}, (box) -> new Pair(box.properties.get(Manipulation.frame), box.properties.get(Manipulation.isSelected))));
+		}, (box) -> new Pair(box.properties.get(frame), box.properties.get(Mouse.isSelected))));
 
 
 		return r;

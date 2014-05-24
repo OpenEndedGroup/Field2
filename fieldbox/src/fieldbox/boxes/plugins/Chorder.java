@@ -1,4 +1,4 @@
-package fieldbox.ui;
+package fieldbox.boxes.plugins;
 
 import field.graphics.FLine;
 import field.graphics.Window;
@@ -7,10 +7,8 @@ import field.linalg.Vec4;
 import field.utility.Pair;
 import field.utility.Rect;
 import field.utility.Triple;
-import fieldbox.boxes.Box;
-import fieldbox.boxes.Drawing;
-import fieldbox.boxes.FrameDrawer;
-import fieldbox.boxes.Manipulation;
+import fieldbox.boxes.*;
+import fieldbox.boxes.plugins.IsExecuting;
 import fielded.Execution;
 
 import java.awt.*;
@@ -24,9 +22,9 @@ import java.util.stream.Stream;
  */
 public class Chorder extends Box {
 
-	public Chorder() {
+	public Chorder(Box root_unused) {
 
-		properties.putToList(Manipulation.onMouseDown, (e, button) -> {
+		properties.putToList(Mouse.onMouseDown, (e, button) -> {
 
 			System.out.println(" on mouse down :" + e + " " + button + " " + e.after.keyboardState.keysDown + " " + e.after.keyboardState.isAltDown());
 
@@ -47,7 +45,7 @@ public class Chorder extends Box {
 
 			System.out.println(" chord hit :" + hit);
 
-			if (hit.isPresent()) return null;
+			if (hit.isPresent()) return executeNowAt(e, point, hit.get().first);
 
 			// we have an execution chord
 
@@ -56,7 +54,52 @@ public class Chorder extends Box {
 
 	}
 
-	private Manipulation.Dragger chordAt(List<Pair<Box, Rect>> frames, Vec2 start, Window.Event<Window.MouseState> initiation) {
+	private Mouse.Dragger executeNowAt(Window.Event<Window.MouseState> e, Vec2 point, Box box) {
+		e.properties.put(Window.consumed, true);
+
+		properties.putToMap(FLineDrawing.frameDrawing, "__feedback__chorderbox", FLineDrawing.expires(b -> {
+
+			FLine f = new FLine();
+			Rect fr = frame(box);
+			f.rect(fr.x, fr.y, fr.w, fr.h);
+
+			f.attributes.put(FLineDrawing.strokeColor, new Vec4(0.5f, 0.75f, 0.5f, -0.5f));
+			f.attributes.put(FLineDrawing.thicken, new BasicStroke(10.5f));
+
+			return f;
+
+		}, 50));
+
+		int count0 = box.properties.computeIfAbsent(IsExecuting.executionCount, (k) -> 0);
+
+		if (count0 == 0) {
+
+			box.first(Execution.execution).ifPresent(x -> x.support(box, Execution.code).begin(box));
+			// with remote back ends it's possible we'll have to defer this to the next update cycle....
+			int count1 = box.properties.computeIfAbsent(IsExecuting.executionCount, (k) -> 0);
+
+			if (count1 > count0) {
+				MarkingMenus.MenuSpecification menuSpec = new MarkingMenus.MenuSpecification();
+				menuSpec.items.put(MarkingMenus.Position.NH, new MarkingMenus.MenuItem("Continue", () -> {
+					System.out.println(" continue !");
+				}));
+				menuSpec.nothing = () -> {
+				    box.first(Execution.execution).ifPresent(x -> x.support(box, Execution.code).end(box));
+				};
+				return MarkingMenus.runMenu(box, point, menuSpec);
+			}
+		} else {
+			MarkingMenus.MenuSpecification menuSpec = new MarkingMenus.MenuSpecification();
+			menuSpec.items.put(MarkingMenus.Position.SH, new MarkingMenus.MenuItem("Stop", () -> {
+				box.first(Execution.execution).ifPresent(x -> x.support(box, Execution.code).end(box));
+			}));
+			return MarkingMenus.runMenu(box, point, menuSpec);
+		}
+
+		return null;
+	}
+
+	private Mouse.Dragger chordAt(List<Pair<Box, Rect>> frames, Vec2 start, Window.Event<Window.MouseState> initiation) {
 
 		boolean[] once = {false};
 
@@ -67,15 +110,13 @@ public class Chorder extends Box {
 
 			chordOver(frames, start, point, end);
 
-			if (end && !once[0])
-			{
+			if (end && !once[0]) {
 
 				List<Triple<Vec2, Float, Box>> intersections = intersectionsFor(frames, start, point);
 
 				once[0] = true;
-				for(int i=0;i<intersections.size();i++)
-				{
-					if (intersections.get(i)==null) continue;
+				for (int i = 0; i < intersections.size(); i++) {
+					if (intersections.get(i) == null) continue;
 
 					Box b = intersections.get(i).third;
 
@@ -95,32 +136,31 @@ public class Chorder extends Box {
 	private void chordOver(List<Pair<Box, Rect>> frames, Vec2 start, Vec2 end, boolean termination) {
 
 
-		properties.putToMap(FrameDrawer.frameDrawing, "__feedback__chorder", FrameDrawer.expires(box -> {
+		properties.putToMap(FLineDrawing.frameDrawing, "__feedback__chorder", FLineDrawing.expires(box -> {
 			FLine f = new FLine();
 			f.moveTo(start.x, start.y, 0);
 			f.lineTo(end.x, end.y, 0);
-			f.attributes.put(FrameDrawer.color, new Vec4(0.5f, 0.95f, 0.6f, 0.15f));
-			f.attributes.put(FrameDrawer.thicken, new BasicStroke(3.5f));
-
+			f.attributes.put(FLineDrawing.color, new Vec4(0.5f, 0.95f, 0.6f, 0.15f));
+			f.attributes.put(FLineDrawing.thicken, new BasicStroke(3.5f));
 
 			return f;
 		}, termination ? 50 : -1));
-		properties.putToMap(FrameDrawer.frameDrawing, "__feedback__chorderC", FrameDrawer.expires(box -> {
+		properties.putToMap(FLineDrawing.frameDrawing, "__feedback__chorderC", FLineDrawing.expires(box -> {
 			FLine f = new FLine();
 			f.moveTo(start.x, start.y, 0);
 			f.lineTo(end.x, end.y, 0);
-			f.attributes.put(FrameDrawer.color, new Vec4(0.5f, 0.95f, 0.6f, 0.5f));
-			f.attributes.put(FrameDrawer.thicken, new BasicStroke(1.5f));
+			f.attributes.put(FLineDrawing.color, new Vec4(0.5f, 0.95f, 0.6f, 0.5f));
+			f.attributes.put(FLineDrawing.thicken, new BasicStroke(1.5f));
 
 			return f;
 		}, termination ? 50 : -1));
 
 		List<Triple<Vec2, Float, Box>> i = intersectionsFor(frames, start, end);
-		properties.putToMap(FrameDrawer.frameDrawing, "__feedback__chorderbox", FrameDrawer.expires(box -> {
+		properties.putToMap(FLineDrawing.frameDrawing, "__feedback__chorderbox", FLineDrawing.expires(box -> {
 
 			FLine f = new FLine();
 
-			i.stream().filter(x -> x!=null).forEach( (x) -> {
+			i.stream().filter(x -> x != null).forEach((x) -> {
 
 				Rect fr = frame(x.third);
 
@@ -129,17 +169,17 @@ public class Chorder extends Box {
 
 			});
 
-			f.attributes.put(FrameDrawer.strokeColor, new Vec4(0.5f, 0.75f, 0.5f, -0.5f));
-			f.attributes.put(FrameDrawer.thicken, new BasicStroke(10.5f));
+			f.attributes.put(FLineDrawing.strokeColor, new Vec4(0.5f, 0.75f, 0.5f, -0.5f));
+			f.attributes.put(FLineDrawing.thicken, new BasicStroke(10.5f));
 
 			return f;
 
 		}, termination ? 50 : -1));
-		properties.putToMap(FrameDrawer.frameDrawing, "__feedback__chorderbox2", FrameDrawer.expires(box -> {
+		properties.putToMap(FLineDrawing.frameDrawing, "__feedback__chorderbox2", FLineDrawing.expires(box -> {
 
 			FLine f = new FLine();
 
-			i.stream().filter(x -> x!=null).forEach((x) -> {
+			i.stream().filter(x -> x != null).forEach((x) -> {
 
 				Rect fr = frame(x.third);
 
@@ -148,29 +188,29 @@ public class Chorder extends Box {
 
 			});
 
-			f.attributes.put(FrameDrawer.color, new Vec4(0.5f, 0.75f, 0.5f, -0.75f));
-			f.attributes.put(FrameDrawer.filled, true);
-			f.attributes.put(FrameDrawer.stroked, false);
+			f.attributes.put(FLineDrawing.color, new Vec4(0.5f, 0.75f, 0.5f, -0.75f));
+			f.attributes.put(FLineDrawing.filled, true);
+			f.attributes.put(FLineDrawing.stroked, false);
 			return f;
 
 		}, termination ? 50 : -1));
 
-		properties.putToMap(FrameDrawer.frameDrawing, "__feedback__chorderbox3", FrameDrawer.expires(box -> {
+		properties.putToMap(FLineDrawing.frameDrawing, "__feedback__chorderbox3", FLineDrawing.expires(box -> {
 
 			FLine f = new FLine();
 
 			int[] count = {1};
 
-			Vec2 delta = new Vec2(end.y-start.y, start.x-end.x);
+			Vec2 delta = new Vec2(end.y - start.y, start.x - end.x);
 			delta.normalise();
-			i.stream().filter(x -> x!=null).forEach( (x) -> {
+			i.stream().filter(x -> x != null).forEach((x) -> {
 
-				f.moveTo(x.first.x+delta.x*12, x.first.y+delta.y*12);
-				f.nodes.get(f.nodes.size()-1).attributes.put(FrameDrawer.text, " "+(count[0]++));
+				f.moveTo(x.first.x + delta.x * 12, x.first.y + delta.y * 12);
+				f.nodes.get(f.nodes.size() - 1).attributes.put(FLineDrawing.text, " " + (count[0]++));
 			});
 
-			f.attributes.put(FrameDrawer.color, new Vec4(0.1f, 0.25f, 0.1f, 0.75f));
-			f.attributes.put(FrameDrawer.hasText, true);
+			f.attributes.put(FLineDrawing.color, new Vec4(0.1f, 0.25f, 0.1f, 0.75f));
+			f.attributes.put(FLineDrawing.hasText, true);
 			return f;
 
 		}, termination ? 50 : -1));
@@ -181,7 +221,7 @@ public class Chorder extends Box {
 	}
 
 	protected Rect frame(Box hitBox) {
-		return hitBox.properties.get(Manipulation.frame);
+		return hitBox.properties.get(frame);
 	}
 
 
@@ -202,10 +242,9 @@ public class Chorder extends Box {
 				return Double.compare(a.distanceFrom(start), b.distanceFrom(start));
 			});
 
-			if (al.get(0)==null)
-			{
+			if (al.get(0) == null) {
 				ret.add(null);
-				    continue;
+				continue;
 			}
 
 			ret.add(new Triple<>(al.get(0), (float) al.get(0).distanceFrom(start), br.first));

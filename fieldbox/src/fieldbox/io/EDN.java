@@ -1,6 +1,7 @@
 package fieldbox.io;
 
 import field.utility.Rect;
+import fieldbox.boxes.plugins.BoxRef;
 import sun.misc.Unsafe;
 import us.bpsm.edn.Keyword;
 import us.bpsm.edn.Tag;
@@ -18,10 +19,18 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Created by marc on 3/24/14.
+ * Helper class to handle serialization of IO classes into EDN (the Extensible Data Notation).
+ * <p>
+ * EDN Happens to be a subset of the Clojure programming language. As a serialization format it offers a few speculative
+ * advantages --- it's human readable, it doesn't get all twisted up by the _potential_ of schema validation like XML
+ * does, but it's terser and more extensible than JSON. It also offers the potential (in the future) for us to bring the
+ * Datomic + Codeq machinery to bare on our internal file format (this will offer us a clean way of doing merges and
+ * diffs).
+ * <p>
+ * see https://github.com/edn-format/edn for more information (we're have a dependency here on
+ * https://github.com/bpsm/edn-java which is a pure java (i.e. no Clojure) EDN package)
  */
 public class EDN {
-
 
 	private final Protocol<Printer.Fn<?>> thePrinter;
 
@@ -47,6 +56,7 @@ public class EDN {
 	static public final Tag DOCUMENT = Tag.newTag("field", "document");
 	static public final Tag EXTERNAL = Tag.newTag("field", "external");
 	static public final Tag FILESPEC = Tag.newTag("field", "filespec");
+	static public final Tag BOXREF = Tag.newTag("field", "boxref");
 
 	private final Protocol.Builder<Printer.Fn<?>> printer;
 	private final Parser theParser;
@@ -56,11 +66,13 @@ public class EDN {
 		builder.putTagHandler(DOCUMENT, simpleDeserializeFromMap(IO.Document.class));
 		builder.putTagHandler(EXTERNAL, simpleDeserializeFromMap(IO.External.class));
 		builder.putTagHandler(FILESPEC, simpleDeserializeFromMap(IO.Filespec.class));
+		builder.putTagHandler(BOXREF, simpleDeserializeFromMap(BoxRef.class));
 		theParser = Parsers.newParser(builder.build());
 		printer = Printers.prettyProtocolBuilder().put(Rect.class, simpleSerializeToMap(RECT, Rect.class));
 		printer.put(IO.Document.class, simpleSerializeToMap(DOCUMENT, IO.Document.class));
 		printer.put(IO.External.class, simpleSerializeToMap(EXTERNAL, IO.External.class));
 		printer.put(IO.Filespec.class, simpleSerializeToMap(FILESPEC, IO.Filespec.class));
+		printer.put(BoxRef.class, simpleSerializeToMap(BOXREF, BoxRef.class));
 		thePrinter = printer.build();
 	}
 

@@ -4,7 +4,7 @@ import field.graphics.*;
 import fieldbox.io.IO;
 
 /**
- * Created by marc on 3/21/14.
+ * The main entry-point for Field2.
  */
 public class FieldBox {
 

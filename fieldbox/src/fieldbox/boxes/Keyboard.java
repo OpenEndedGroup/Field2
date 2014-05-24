@@ -7,7 +7,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Created by marc on 5/16/14.
+ * Entry-point from GLFW based Window.Event<Window.KeyboardState> into Field. Defines OnKeyDown and Hold interfaces for Boxes to implement if they
+ * want to listen to key presses (and holds and, thus, releases).
+ * <p>
+ * This operates in exactly the same manner as "Mouse" except there is no analogue of the OnMouseMove (no hovering of hands over the
+ * keyboard).
  */
 public class Keyboard {
 
@@ -28,9 +32,6 @@ public class Keyboard {
 		Set<Integer> pressed = Window.KeyboardState.keysPressed(event.before, event.after);
 		Set<Integer> released = Window.KeyboardState.keysReleased(event.before, event.after);
 		Set<Integer> down = event.after.keysDown;
-
-
-		System.out.println(" dispatching keyboard to tree :"+pressed+" "+released+" "+down);
 
 		released.stream().map(r -> ongoingDrags.remove(r)).filter(x -> x != null).forEach(drags -> {
 			drags.stream().forEach(Hold -> Hold.update(event, true));
@@ -58,7 +59,8 @@ public class Keyboard {
 
 			// change map to handle errors on x
 
-			root.find(onKeyDown, root.both()).flatMap(x -> x.stream()).map(x -> x.onKeyDown(event, p)).filter(x -> x != null).collect(Collectors.toCollection(() -> hold));
+			root.find(onKeyDown, root.both()).flatMap(x -> x.stream()).map(x -> x.onKeyDown(event, p)).filter(x -> x != null)
+				    .collect(Collectors.toCollection(() -> hold));
 		});
 	}
 }

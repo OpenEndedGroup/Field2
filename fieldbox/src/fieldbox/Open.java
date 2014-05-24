@@ -8,9 +8,11 @@ import field.utility.Rect;
 import fieldbox.boxes.*;
 import fieldbox.boxes.TimeSlider;
 import fieldbox.boxes.plugins.Delete;
+import fieldbox.boxes.plugins.IsExecuting;
+import fieldbox.boxes.plugins.Rename;
 import fieldbox.boxes.plugins.Topology;
 import fieldbox.io.IO;
-import fieldbox.ui.Chorder;
+import fieldbox.boxes.plugins.Chorder;
 import fieldbox.ui.Compositor;
 import fieldbox.ui.FieldBoxWindow;
 import fielded.Execution;
@@ -27,15 +29,17 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL11.glEnable;
 
 /**
- * Created by marc on 4/15/14.
+ * This Opens a document, loading a Window and a standard assortment of plugins into the top of a Box graph and the document into the "bottom" of the Box graph.
+ *
+ * The significant TODO: here is the open Plugin architecture
  */
 public class Open {
 
 	private final FieldBoxWindow window;
 	private final Boxes boxes;
 	private final Drawing drawing;
-	private final FrameDrawer frameDrawing;
-	private final Manipulation manipulation;
+	private final FLineDrawing frameDrawing;
+	private final Mouse mouse;
 	private final FrameManipulation frameManipulation;
 	private final TextDrawing textDrawing;
 	private final FLineInteraction interaction;
@@ -71,12 +75,12 @@ public class Open {
 		textDrawing.install(boxes.root(), "glass");
 		textDrawing.connect(boxes.root());
 
-		frameDrawing = new FrameDrawer();
+		frameDrawing = new FLineDrawing();
 		frameDrawing.connect(boxes.root());
 
-		manipulation = new Manipulation();
+		mouse = new Mouse();
 		window.addMouseHandler(state -> {
-			manipulation.dispatch(boxes.root(), state);
+			mouse.dispatch(boxes.root(), state);
 			return true;
 		});
 
@@ -90,7 +94,7 @@ public class Open {
 		interaction.connect(boxes.root());
 
 		// MarkingMenus must come before FrameManipulation, so FrameManipulation can handle selection state modification before MarkingMenus run
-		markingMenus = new MarkingMenus();
+		markingMenus = new MarkingMenus(boxes.root());
 		markingMenus.connect(boxes.root());
 
 		frameManipulation = new FrameManipulation();
@@ -100,9 +104,13 @@ public class Open {
 
 		new Topology(boxes.root()).connect(boxes.root());
 
-		new Chorder().connect(boxes.root());
+		new Chorder(boxes.root()).connect(boxes.root());
 
 		new DefaultMenus(boxes.root(), filename).connect(boxes.root());
+
+		new IsExecuting(boxes.root()).connect(boxes.root());
+
+		new Rename(boxes.root()).connect(boxes.root());
 
 		Compositor.Layer lx = window.getCompositor().newLayer("__main__blurx");
 		Compositor.Layer ly = window.getCompositor().newLayer("__main__blury", 1);
@@ -167,7 +175,7 @@ public class Open {
 	{
 		Box b1 = new Box();
 		boxes.root().connect(b1);
-		b1.properties.put(Manipulation.frame, new Rect(40, 70, 200f, 200f));
+		b1.properties.put(Box.frame, new Rect(40, 70, 200f, 200f));
 		b1.properties.put(Box.name, "Big Box - b1");
 		b1.properties.put(IO.id, UUID.randomUUID().toString());
 		Drawing.dirty(b1);
@@ -176,7 +184,7 @@ public class Open {
 		Box b2 = null;
 		b2 = new Box();
 		boxes.root().connect(b2);
-		b2.properties.put(Manipulation.frame, new Rect(300f, 50f, 50f, 75f));
+		b2.properties.put(Box.frame, new Rect(300f, 50f, 50f, 75f));
 		b2.properties.put(Box.name, "A_one day");
 		b2.properties.put(IO.id, UUID.randomUUID().toString());
 		Drawing.dirty(b2);

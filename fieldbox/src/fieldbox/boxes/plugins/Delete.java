@@ -1,32 +1,47 @@
 package fieldbox.boxes.plugins;
 
 import com.badlogic.jglfw.Glfw;
-import fieldbox.boxes.Box;
-import fieldbox.boxes.Drawing;
-import fieldbox.boxes.Keyboard;
-import fieldbox.boxes.Manipulation;
+import fieldbox.boxes.*;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
- * Press command/meta delete to delete selected boxes
+ * Adds: Press command/meta delete to delete selected boxes, swipe down to delete selection
  */
 public class Delete extends Box {
 
-	public Delete(Box root)
-	{
-		this.properties.putToList(Keyboard.onKeyDown, (event, key) ->
-		{
-			if(event.after.isSuperDown() && key==Glfw.GLFW_KEY_DELETE)
-			{
-				List<Box> all = root.breadthFirst(root.downwards()).filter(x -> x.properties.isTrue(Manipulation.isSelected, false)).collect(Collectors.toList());
-				for(Box bb : all)
-					bb.disconnectFromAll();
+	protected final Box root;
+
+	public Delete(Box root) {
+		this.root = root;
+		this.properties.putToList(Keyboard.onKeyDown, (event, key) -> {
+			if (event.after.isSuperDown() && key == Glfw.GLFW_KEY_DELETE) {
+				Stream<Box> all = selected();
+				all.forEach(bb -> bb.disconnectFromAll());
 				Drawing.dirty(Delete.this);
 			}
 			return null;
 		});
+
+
+		properties.put(MarkingMenus.menu, (event) -> {
+			if (selected().findAny().isPresent()) {
+				MarkingMenus.MenuSpecification spec = new MarkingMenus.MenuSpecification();
+				long count = selected().count();
+				spec.items.put(MarkingMenus.Position.S, new MarkingMenus.MenuItem("Delete "+count+" box"+(count==1 ? "" : "es"), () -> {
+					Stream<Box> all = selected();
+					all.forEach(bb -> bb.disconnectFromAll());
+					Drawing.dirty(Delete.this);
+				}));
+				return spec;
+			}
+			return null;
+		});
+
+	}
+
+	private Stream<Box> selected() {
+		return root.breadthFirst(root.downwards()).filter(x -> x.properties.isTrue(Mouse.isSelected, false));
 	}
 
 }
