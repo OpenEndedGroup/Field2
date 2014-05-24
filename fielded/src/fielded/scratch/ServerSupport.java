@@ -3,6 +3,7 @@ package fielded.scratch;
 import field.message.MessageQueue;
 import field.utility.Dict;
 import field.utility.Pair;
+import field.utility.Quad;
 import field.utility.Triple;
 import field.graphics.RunLoop;
 import fieldbox.boxes.Box;
@@ -35,6 +36,10 @@ public class ServerSupport {
 	public ServerSupport(Boxes boxes)
 	{
 
+		Watches watches = boxes.root().first(Watches.watches).orElseThrow(() -> new IllegalArgumentException(" need Watches for server support"));
+		MessageQueue<Quad<Dict.Prop, Box, Object, Object>, String> queue = watches.getQueue();
+
+
 		try {
 
 			// todo: these need to be random, unallocated ports
@@ -64,34 +69,6 @@ public class ServerSupport {
 			});
 
 
-			MessageQueue<Triple<Dict.Prop, Object, Object>, String> queue = new MessageQueue<Triple<Dict.Prop, Object, Object>, String>() {
-				@Override
-				protected Consumer<Boolean> makeQueueServiceThread(BiConsumer<String, Triple<Dict.Prop, Object, Object>> to) {
-
-					CompletableFuture<Boolean> stop = new CompletableFuture<Boolean>();
-
-					RunLoop.main.getLoop().connect(0, (x) -> {
-						try {
-							if (this.queue.size()>0)
-								System.out.println(" message queue :"+this.queue.size());
-
-							while (this.queue.peek()!=null)
-							{
-								Pair<String, Triple<Dict.Prop, Object, Object>> m = this.queue.poll(1, TimeUnit.SECONDS);
-								if (m != null && !stop.isDone()) to.accept(m.first, m.second);
-							}
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
-					});
-
-					return x -> {
-					};
-				}
-			};
-
-			Watches watches = new Watches(queue);
-			watches.connect(boxes.root());
 
 			s.addHandlerLast(x -> x.equals("initialize.finished"), (server, socket, address, payload) -> {
 

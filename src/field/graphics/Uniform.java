@@ -15,7 +15,11 @@ import java.util.function.Supplier;
 import static org.lwjgl.opengl.GL20.*;
 
 /**
- * Created by marc on 3/11/14.
+ * A Scene.Perform that allows you to set a uniform value on a shader at an element in the scene graph.
+ * <p>
+ * Obviously you can .connect these to Shader's to set the value of uniform variables inside shaders, but it's often more useful to .connect these to,
+ * say, BaseMeshes to set these values per-mesh rather than per shader. More likely yet is that you have a bunch of uniforms to set at a single point
+ * in the graph. See UniformBundle.
  * <p>
  * todo: uniform cache (store both locations (invalidate on reload) and current values (invalidate on shader change) per context per shader)
  */
@@ -34,8 +38,7 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 		this.value = () -> value;
 	}
 
-	public Uniform<T> setValue(Supplier<T> value)
-	{
+	public Uniform<T> setValue(Supplier<T> value) {
 		this.value = value;
 		return this;
 	}
@@ -62,7 +65,7 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 		return true;
 	}
 
-	//todo: arrays
+	//todo: array names
 	private boolean setUniformNow() {
 		Shader currentShader = GraphicsContext.get(Shader.currentShader);
 
@@ -79,8 +82,7 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 				else if (tf.length == 2) glUniform2f(location, tf[0], tf[1]);
 				else if (tf.length == 3) glUniform3f(location, tf[0], tf[1], tf[2]);
 				else if (tf.length == 4) glUniform4f(location, tf[0], tf[1], tf[2], tf[3]);
-				else
-					throw new IllegalArgumentException(" bad dimension after conversion to float array " + t + " -> " + tf.length);
+				else throw new IllegalArgumentException(" bad dimension after conversion to float array " + t + " -> " + tf.length);
 			} else {
 				int[] ti = rewriteToIntArray(t);
 				if (ti != null) {
@@ -116,9 +118,8 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 							glUniformMatrix2(location, transpose, matrix4);
 						} else
 							throw new IllegalArgumentException(" bad dimension after conversion to float matrix " + t + " -> " + tm.length);
-					}
-					else
-						throw new IllegalArgumentException(" cannot convert "+t+" to something that OpenGL can use as a uniform");
+					} else
+						throw new IllegalArgumentException(" cannot convert " + t + " to something that OpenGL can use as a uniform");
 
 				}
 			}
@@ -132,17 +133,15 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 		if (t instanceof Float) return new float[]{((Number) t).floatValue()};
 
 		if (t instanceof Vector1D) return new float[]{(float) ((Vector1D) t).getX()};
-		if (t instanceof Vector2D)
-			return new float[]{(float) ((Vector2D) t).getX(), (float) ((Vector2D) t).getY()};
+		if (t instanceof Vector2D) return new float[]{(float) ((Vector2D) t).getX(), (float) ((Vector2D) t).getY()};
 		if (t instanceof Vector3D)
 			return new float[]{(float) ((Vector3D) t).getX(), (float) ((Vector3D) t).getY(), (float) ((Vector3D) t).getZ()};
 
-		if (t instanceof Vec2)
-			return new float[]{(float) ((Vec2) t).getX(), (float) ((Vec2) t).getY()};
-		if (t instanceof Vec3)
-			return new float[]{(float) ((Vec3) t).getX(), (float) ((Vec3) t).getY(), (float) ((Vec3) t).getZ()};
+		if (t instanceof Vec2) return new float[]{(float) ((Vec2) t).getX(), (float) ((Vec2) t).getY()};
+		if (t instanceof Vec3) return new float[]{(float) ((Vec3) t).getX(), (float) ((Vec3) t).getY(), (float) ((Vec3) t).getZ()};
 		if (t instanceof Vec4)
-			return new float[]{(float) ((Vec4) t).getX(), (float) ((Vec4) t).getY(), (float) ((Vec4) t).getZ(), (float) ((Vec4) t).getW()};
+			return new float[]{(float) ((Vec4) t).getX(), (float) ((Vec4) t).getY(), (float) ((Vec4) t).getZ(), (float) ((Vec4) t)
+				    .getW()};
 
 		return null;
 	}
@@ -157,8 +156,7 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 
 	static public float[][] rewriteToFloatMatrix(Object t) {
 
-		if (t instanceof Mat2)
-			return new float[][]{{((Mat2) t).m00, ((Mat2) t).m10}, {((Mat2) t).m01, ((Mat2) t).m11}};
+		if (t instanceof Mat2) return new float[][]{{((Mat2) t).m00, ((Mat2) t).m10}, {((Mat2) t).m01, ((Mat2) t).m11}};
 		if (t instanceof Mat3)
 			return new float[][]{{((Mat3) t).m00, ((Mat3) t).m10, ((Mat3) t).m20}, {((Mat3) t).m01, ((Mat3) t).m11, ((Mat3) t).m21}, {((Mat3) t).m02, ((Mat3) t).m12, ((Mat3) t).m22}};
 		if (t instanceof Mat4)

@@ -7,19 +7,23 @@ import org.lwjgl.opengl.GL30;
 import java.nio.ByteBuffer;
 
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL11.glDeleteTextures;
 import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13.glActiveTexture;
-import static org.lwjgl.opengl.GL14.GL_GENERATE_MIPMAP;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL21.GL_PIXEL_UNPACK_BUFFER;
-import static org.lwjgl.opengl.GL30.glDeleteFramebuffers;
-import static org.lwjgl.opengl.GL30.glDeleteRenderbuffers;
 import static org.lwjgl.opengl.GL30.glGenerateMipmap;
 import static org.lwjgl.opengl.GL42.glTexStorage2D;
 
 
+/**
+ * An OpenGL texture.
+ * <p>
+ * Handles async double-buffered PBO texture upload by default.
+ * <p>
+ * Follows the same pattern as FBO --- create a texture by picking one of the growing number of static helpers in TextureSpecification that mask the complexity
+ * of OpenGL enums
+ */
 public class Texture extends BaseScene<Texture.State> implements Scene.Perform {
 
 	public class State extends BaseScene.Modifiable {
@@ -40,6 +44,10 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform {
 
 	int mod = 0;
 
+	/**
+	 * schedules an upload from this bytebuffer to this texture during the next drawn. Set stream to true to hint to OpenGL that you mean to keep
+	 * on doing this.
+	 */
 	public void upload(ByteBuffer upload, boolean stream) {
 		connect(new Transient(() -> {
 			State s = GraphicsContext.get(this, null);
@@ -95,10 +103,11 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform {
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, specification.width);
 
-		glTexStorage2D(specification.target, specification.highQuality ? (int)(Math.floor(Math.log(Math.max(specification.width,specification.height))/Math.log(2))+1) : 1, specification.internalFormat, specification.width, specification.height);
+		glTexStorage2D(specification.target, specification.highQuality ? (int) (Math
+			    .floor(Math.log(Math.max(specification.width, specification.height)) / Math
+					.log(2)) + 1) : 1, specification.internalFormat, specification.width, specification.height);
 		glTexSubImage2D(specification.target, 0, 0, 0, specification.width, specification.height, specification.format, specification.type, specification.pixels);
-		if (specification.highQuality)
-		{
+		if (specification.highQuality) {
 			glGenerateMipmap(specification.target);
 		}
 		return s;
@@ -135,7 +144,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform {
 
 		static public TextureSpecification fromJpeg(int unit, String filename, boolean mips) {
 			int[] wh = FastJPEG.j.dimensions(filename);
-			ByteBuffer data = ByteBuffer.allocateDirect(3*wh[0]*wh[1]);
+			ByteBuffer data = ByteBuffer.allocateDirect(3 * wh[0] * wh[1]);
 			FastJPEG.j.decompress(filename, data, wh[0], wh[1]);
 			return new TextureSpecification(unit, GL_TEXTURE_2D, GL_RGB8, wh[0], wh[1], GL_RGB, GL_UNSIGNED_BYTE, 3, data, mips);
 		}
@@ -162,8 +171,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform {
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, specification.width);
 		glTexSubImage2D(specification.target, 0, 0, 0, specification.width, specification.height, specification.format, specification.type, 0);
 		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-		if (specification.highQuality)
-		{
+		if (specification.highQuality) {
 			glGenerateMipmap(specification.target);
 		}
 		long b = System.currentTimeMillis();
@@ -181,8 +189,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform {
 	}
 
 
-	protected void deallocate(State s)
-	{
+	protected void deallocate(State s) {
 		glDeleteTextures(s.name);
 		glDeleteBuffers(s.pboA);
 		glDeleteBuffers(s.pboB);

@@ -16,7 +16,7 @@ function fuzzy(pat) {
     for (var i = 0; i < m.length; i++) {
         s += "(" + m[i] + ")(.*)"
     }
-    pattern = new RegExp(s)
+    pattern = new RegExp(s, "i")
     return pattern
 }
 
@@ -82,6 +82,63 @@ goCommands = function () {
         }
     );
 }
+
+_messageBus.subscribe("begin.commands", function (d, e) {
+
+             var completions = []
+            for (var i = 0; i < d.commands.length; i++) {
+                d.commands[i].callback = function () {
+                    _field.send("call.command", {
+                        command: this.call
+                    });
+                }.bind({
+                    "call": d.commands[i].call
+                })
+                d.commands[i].callback.remote = 1
+                completions.push(d.commands[i])
+            }
+            completions.sort(function (a, b) {
+                return a.name < b.name ? -1 : 1;
+            })
+
+            completionFunction = function (e) {
+                var m = []
+
+                var fuzzyPattern = fuzzy(e);
+
+                for (var i = 0; i < completions.length; i++) {
+                    if (completions[i].name.search(fuzzyPattern) != -1) {
+                        matched = completions[i].name.replace(fuzzyPattern, replacer);
+                        m.push({
+                            text: matched + " <span class=doc>" + completions[i].info + "</span>",
+                            callback: function () {
+                                completions[this.i].callback()
+                            }.bind({
+                                "i": i
+                            })
+                        })
+                    }
+                }
+                return m
+            }
+
+            console.log("alternative is "+d.alternative)
+
+            if (d.alternative)
+            {
+            console.log(" going with modal ");
+                runModal(d.prompt, completionFunction, "Field-Modal", "", function (t)
+                {
+                    _field.send("call.alternative", {command: this.call, "text":t})
+                }.bind({"call":d.alternative}))
+            }
+            else if (completions.length > 0)
+                runModal(d.prompt, completionFunction, "Field-Modal", "")
+
+});
+
+
+
 
 extraKeys = {
     "Ctrl-Enter": function (cm) {

@@ -3,7 +3,9 @@ package field.graphics;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
-
+/**
+ * This is a fast native jpeg loader. Well battle tested, thread-safe. We have versions for linux and os x.
+ */
 public class FastJPEG {
 
 	static {

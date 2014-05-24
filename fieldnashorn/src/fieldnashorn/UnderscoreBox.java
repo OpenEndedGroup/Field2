@@ -11,13 +11,30 @@ import jdk.nashorn.internal.objects.ScriptFunctionImpl;
 import jdk.nashorn.internal.runtime.ScriptObject;
 import jdk.nashorn.internal.runtime.linker.JavaAdapterFactory;
 
+import javax.script.ScriptContext;
 import java.lang.invoke.MethodHandles;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
- * Created by marc on 4/16/14.
+ * A Nashorn/Javascript specific shim object to refer to the current box. In Field1 this was called _self. Here let's call it "_"
+ * <p>
+ * So, _ to talk about "this", the current box and _(something) as a notation to wrap a box. _() will execute all of the code in this box (watch for
+ * loops!)
+ * <p>
+ * so: _.children()
+ * <p>
+ * property access:
+ * <p>
+ * _.name = "banana" _.children()[1].frame.x=20
+ * <p>
+ * type information is pulled out automatically, so conversions from lambdas to various SAM's are done automatically, see Conversions.java
+ * <p>
+ * completions and documentation is done based on the Dict.Prop framework
+ *
+ * Todo: similar shim class for FLine drawing class
  */
 public class UnderscoreBox extends AbstractJSObject implements JavaSupport.HandlesCompletion {
 
@@ -28,15 +45,55 @@ public class UnderscoreBox extends AbstractJSObject implements JavaSupport.Handl
 		this.at = at;
 	}
 
+	public List<UnderscoreBox> children() {
+		Set<Box> c = at.children();
+		return c.stream().map(x -> new UnderscoreBox(x)).collect(Collectors.toList());
+	}
+
+	public List<UnderscoreBox> parents() {
+		Set<Box> c = at.parents();
+		return c.stream().map(x -> new UnderscoreBox(x)).collect(Collectors.toList());
+	}
+
+	@Override
+	public Object call(Object thiz, Object... args) {
+
+		// TODO: allow array targets?
+		if (args.length == 0) {
+			ScriptContext sc = at.first(Nashorn.boxBindings).get();
+			Object was = sc.getAttribute("_");
+			try {
+				sc.setAttribute("_", thiz, ScriptContext.GLOBAL_SCOPE);
+				at.first(Execution.execution)
+					    .ifPresent(x -> x.support(at, Execution.code).executeAll(at.first(Execution.code).get(), at));
+			} finally {
+				sc.setAttribute("_", was, ScriptContext.GLOBAL_SCOPE);
+			}
+			return null;
+		} else if (args.length == 1) {
+			if (args[0] instanceof Box) {
+				return new UnderscoreBox((Box) args[0]);
+			}
+			throw new IllegalArgumentException();
+		}
+		throw new IllegalArgumentException(" can call _ with either 0 or 1 arguments. 0 executes all of the text in the box, 1 makes a new JavaScript wrapper for a box");
+	}
+
+	Set<String> exposed = new LinkedHashSet<>(Arrays.asList("children", "parents"));
+
 	@Override
 	public boolean hasMember(String m) {
-		return at.find(new Dict.Prop(m), at.upwards()).findFirst().isPresent();
+		if (exposed.contains(m)) return true;
+		if (at.find(new Dict.Prop(m), at.upwards()).findFirst().isPresent()) return true;
+		return false;
 	}
 
 	@Override
 	public Object getMember(String m) {
 
 		if (m.equals("at")) return at;
+		if (m.equals("children")) return (Supplier<List<UnderscoreBox>>) this::children;
+		if (m.equals("parents")) return (Supplier<List<UnderscoreBox>>) this::parents;
 
 		Dict.Prop cannon = new Dict.Prop(m).toCannon();
 		if (!cannon.isCannon()) {
@@ -59,9 +116,12 @@ public class UnderscoreBox extends AbstractJSObject implements JavaSupport.Handl
 		at.properties.put(cannon, converted);
 
 		System.out.println(" PROPERTIES NOW :");
-		for(Map.Entry<Dict.Prop, Object> q : at.properties.getMap().entrySet())
-		{
-			System.out.println("     "+q.getKey()+" = "+q.getValue());
+		for (Map.Entry<Dict.Prop, Object> q : at.properties.getMap().entrySet()) {
+			try {
+				System.out.println("     " + q.getKey() + " = " + q.getValue());
+			} catch (NullPointerException e) {
+				//JDK bug JDK-8035426 --- sometimes Nashorn lambdas throw NPE's when they are .toString'd
+			}
 		}
 
 
@@ -74,7 +134,8 @@ public class UnderscoreBox extends AbstractJSObject implements JavaSupport.Handl
 	@Override
 	public Set<String> keySet() {
 		// all non private properties
-		return at.breadthFirst(at.upwards()).map(x -> x.properties.getMap().keySet()).flatMap(x -> x.stream()).map(x -> x.getName()).filter(x -> !x.startsWith("_")).collect(Collectors.toSet());
+		return at.breadthFirst(at.upwards()).map(x -> x.properties.getMap().keySet()).flatMap(x -> x.stream()).map(x -> x.getName())
+			    .filter(x -> !x.startsWith("_")).collect(Collectors.toSet());
 	}
 
 	@Override
@@ -84,8 +145,11 @@ public class UnderscoreBox extends AbstractJSObject implements JavaSupport.Handl
 
 	@Override
 	public List<Execution.Completion> getCompletionsFor(String prefix) {
-		// todo: documentation and type information via canonicalization framework
-		return keySet().stream().filter(x -> x.startsWith(prefix)).sorted().map(x -> new Execution.Completion(-1, -1, x, "")).collect(Collectors.toList());
+		return keySet().stream().filter(x -> x.startsWith(prefix)).sorted().map(x -> {
+			Dict.Prop q = new Dict.Prop(x).findCannon();
+			if (q == null) return new Execution.Completion(-1, -1, x, "");
+			else return new Execution.Completion(-1, -1, x, q.getTypeInformation() + " " + q.getDocumentation());
+		}).collect(Collectors.toList());
 	}
 
 
@@ -103,7 +167,8 @@ public class UnderscoreBox extends AbstractJSObject implements JavaSupport.Handl
 		} else if (Map.class.isAssignableFrom(fit.get(0)) && String.class.isAssignableFrom(fit.get(1))) {
 			// promote non-Map<String, V> to Map<String, V>
 			if (!(value instanceof Map)) {
-				return Collections.singletonMap("" + value + ":" + System.identityHashCode(value), convert(value, fit.subList(2, fit.size())));
+				return Collections.singletonMap("" + value + ":" + System.identityHashCode(value), convert(value, fit
+					    .subList(2, fit.size())));
 			} else {
 				return value;
 			}
@@ -117,9 +182,9 @@ public class UnderscoreBox extends AbstractJSObject implements JavaSupport.Handl
 
 		}
 
-
 		if (value instanceof ScriptFunctionImpl) {
-			StaticClass adapterClassFor = JavaAdapterFactory.getAdapterClassFor(new Class[]{fit.get(0)}, (ScriptObject) value, MethodHandles.lookup());
+			StaticClass adapterClassFor = JavaAdapterFactory
+				    .getAdapterClassFor(new Class[]{fit.get(0)}, (ScriptObject) value, MethodHandles.lookup());
 			try {
 				return adapterClassFor.getRepresentedClass().newInstance();
 			} catch (InstantiationException e) {

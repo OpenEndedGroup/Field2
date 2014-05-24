@@ -7,7 +7,9 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 /**
- * Created by marc on 3/25/14.
+ * Maintains a group of Uniforms as a Map<Dict.Prop<T>, Uniform<T>>, without the overhead of maintaining them as separate Scene.Perform objects.
+ *
+ * The star method here is the static UniformBundle setUniform(Scene at) which will lazily initialize a UniformBundle child of any scene ready to accept uniforms.
  */
 public class UniformBundle implements Scene.Perform {
 

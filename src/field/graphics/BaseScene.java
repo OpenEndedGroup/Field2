@@ -1,13 +1,21 @@
 package field.graphics;
 
 
+/**
+ * this Base class codifies a general pattern for Scene.Perform classes:
+ * <p>
+ * 1. a setup() method called once and then 2. an upload() method called if and only if something has changed 3. a perform0() method called each
+ * update cycle 4. optionally a perform1() method called at a later point in the update cycle
+ * <p>
+ * there's a type parameter <t_state extends BaseScene.Modifiable> that keeps track of that "something" in "someting has changed". It's returned by
+ * the setup method and passed into upload().
+ */
 public abstract class BaseScene<t_state extends BaseScene.Modifiable> extends Scene implements Scene.Perform {
 	static public class Modifiable {
 		int mod = 0;
 	}
 
-	protected BaseScene()
-	{
+	protected BaseScene() {
 		// its generally important that things get initialized as early as possible (and, furthermore, not in some random spot in the Scene update)
 		GraphicsContext.preQueueInAllContexts(() -> GraphicsContext.put(this, setup()));
 	}
@@ -25,14 +33,12 @@ public abstract class BaseScene<t_state extends BaseScene.Modifiable> extends Sc
 			update(pass, this::perform0);
 		}
 
-		if (getPasses().length > 1)
-			if (pass == getPasses()[1]) this.perform1();
+		if (getPasses().length > 1) if (pass == getPasses()[1]) this.perform1();
 
 		return true;
 	}
 
-	protected int upload(t_state s)
-	{
+	protected int upload(t_state s) {
 		return mod;
 	}
 
@@ -42,6 +48,10 @@ public abstract class BaseScene<t_state extends BaseScene.Modifiable> extends Sc
 		return true;
 	}
 
+	/**
+	 * it is the caller's responisbility to ensure that this is called per context. To do so, you can wrap all calls to this in
+	 * GraphicsContext.preQueueInAllContexts(() -> ... and GraphicsContext.get(this, () -> ... )
+	 */
 	protected abstract t_state setup();
 
 	public void finalize() {

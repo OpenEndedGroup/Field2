@@ -19,7 +19,9 @@ import java.util.Set;
  */
 public class LinuxWindowTricks extends Box {
 
+	// TODO: there should be a discovery mechanism for this
 	static public final String wmctrl = "/usr/bin/wmctrl";
+	static public final String transset = "/usr/bin/transset";
 	static public final String field_editor_title = "Field Editor";
 	public static Dict.Prop<Integer> lostFocus = new Dict.Prop<>("lostFocus");
 
@@ -106,7 +108,7 @@ public class LinuxWindowTricks extends Box {
 		RunLoop.main.mainLoop.connect(i -> {
 
 			long b = System.currentTimeMillis();
-			if (b - a < 2000) return true;
+			if (b - a < 4000) return true;
 			String[] now = listWindows();
 
 			if (now == null) {
@@ -183,6 +185,11 @@ public class LinuxWindowTricks extends Box {
 		if (editors.size() == 0) return "No editor found";
 		for(String id : editors) {
 			ProcessBuilder pb = new ProcessBuilder(wmctrl, "-i", "-r", id, "-b", "add,above");
+			try {
+				pb.start();
+			} catch (IOException e) {
+			}
+			pb = new ProcessBuilder(transset, "-i", id, "0.8");
 			try {
 				pb.start();
 			} catch (IOException e) {

@@ -12,7 +12,7 @@ import static org.lwjgl.opengl.GL20.glEnableVertexAttribArray;
 import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
 
 /**
- * Created by marc on 3/10/14.
+ * An OpenGL Vertex Buffer backed by a ByteBuffer. Useful for VertexArrays and ElementArrays
  */
 public class SimpleArrayBuffer implements ArrayBuffer {
 
@@ -20,7 +20,6 @@ public class SimpleArrayBuffer implements ArrayBuffer {
 
 	private final FloatBuffer dataAsFloat;
 	private final IntBuffer dataAsInt;
-
 
 	public class State {
 		int name = -1;

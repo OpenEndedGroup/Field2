@@ -4,14 +4,24 @@ import field.utility.Pair;
 
 import java.util.*;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.Consumer;
 
 /**
- * Created by marc on 3/10/14.
+ * The principle class of the Field Graphics "Scene List" structure.
+ * <p>
+ * A Scene is a list of Perform instances that can run at various passes of their choosing. Passes are ordered numerically and created on demand. By
+ * convention geometry is drawn on pass 0.
+ * <p>
+ * For example a texture Perform might set OpenGL texture state at a pass "-1" and restore it at pass "1", thus it can be added as a sibling of a
+ * Geometry object or as a Parent or as a Child and still run in the right order with respect to that piece of Geometry. The topology of the tree is
+ * free to encoding a grouping thats useful to the application rather than something that's vital to reexpressing the semantics of OpenGL's decaying
+ * state-machine just right.
  */
 public class Scene {
 
+	/**
+	 * Although we can build the Scene structure out of (int, Consumer<int>) tuples, it's more along the grain of Java's type system to use an interface with both
+	 */
 	static public interface Perform extends Consumer<Integer> {
 		public boolean perform(int pass);
 
@@ -61,12 +71,26 @@ public class Scene {
 
 	TreeMap<Integer, Set<Consumer<Integer>>> scene = new TreeMap<>();
 
+	/**
+	 * A (int pass, Consumer<Integer>) tuple can be effectively cast as a Perform. The int says what pass the consumer should be run for, and the
+	 * consumer is called for that pass
+	 */
 	public boolean connect(int pass, Consumer<Integer> p) {
 		Set<Consumer<Integer>> c = scene.get(pass);
 		if (c == null) scene.put(pass, c = new LinkedHashSet<Consumer<Integer>>());
 		return c.add(p);
 	}
 
+	/**
+	 * Disconnects a Perform from this Scene. Care has been taken to ensure you can do this while the scene is being traversed.
+	 */
+	public void disconnect(Perform p) {
+		scene.values().stream().map(x -> x.remove(p));
+	}
+
+	/**
+	 * connects a Perform to this Scene. Care has been taken to ensure you can do this while the scene is being traversed.
+	 */
 	public boolean connect(Perform p) {
 		boolean m = false;
 		for (int i : p.getPasses())
@@ -74,20 +98,27 @@ public class Scene {
 		return m;
 	}
 
-	public void disconnect(Perform p) {
-		scene.values().stream().map(x -> x.remove(p));
-	}
 
+	/**
+	 * returns the current scene as a Map<Integer, Set<Consumer<Integer>>>
+	 */
 	public Map<Integer, Set<Consumer<Integer>>> getScene() {
 		return Collections.unmodifiableMap(scene);
 	}
 
+	/**
+	 * resets the scene to a particular Map<Integer, Set<Consumer<Integer>>>
+	 * @param scene
+	 */
 	public void setScene(Map<Integer, Set<Consumer<Integer>>> scene) {
 		this.scene.clear();
 		this.scene.putAll(scene);
 	}
 
 
+	/**
+	 * updates everything in the scene. This is the main entry point for performing a complete update cycle.
+	 */
 	public void updateAll() {
 		update(new ArrayDeque<Pair<Integer, Callable<Boolean>>>());
 	}
@@ -99,7 +130,8 @@ public class Scene {
 	}
 
 	protected boolean update(int apoint, Callable<Boolean> a, int bpoint, Callable<Boolean> b) {
-		return update(new ArrayDeque<>(Arrays.asList(new Pair<Integer, Callable<Boolean>>(apoint, a), new Pair<Integer, Callable<Boolean>>(bpoint, b))));
+		return update(new ArrayDeque<>(Arrays
+			    .asList(new Pair<Integer, Callable<Boolean>>(apoint, a), new Pair<Integer, Callable<Boolean>>(bpoint, b))));
 	}
 
 	protected boolean update(Queue<Pair<Integer, Callable<Boolean>>> a) {
@@ -114,7 +146,7 @@ public class Scene {
 			ArrayList<Consumer<Integer>> previously = new ArrayList<>(scene.get(i));
 
 			Iterator<Consumer<Integer>> ic = previously.iterator();
-			while(ic.hasNext()) {
+			while (ic.hasNext()) {
 				Consumer<Integer> n = ic.next();
 				if (!wrappedCall(n, i)) scene.get(i).remove(n);
 			}
@@ -162,6 +194,10 @@ public class Scene {
 		}
 	}
 
+	/**
+	 * returns a toString for everything in the scene.
+	 */
+
 	public String debugPrintScene() {
 		String ret = "" + this + "\n";
 		String prefix = "   ";
@@ -189,6 +225,10 @@ public class Scene {
 		return ret;
 	}
 
+
+	/**
+	 * utility, takes a consumer and returns a version that runs only once every "count" iterations
+	 */
 
 	static public <T> Consumer<T> strobe(Consumer<T> c, int count) {
 		return new Consumer<T>() {

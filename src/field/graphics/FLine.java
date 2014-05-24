@@ -7,8 +7,10 @@ import field.utility.Dict;
 import field.utility.Rect;
 
 import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -16,7 +18,29 @@ import static field.graphics.FLinesAndJavaShapes.flineToJavaShape;
 import static field.graphics.FLinesAndJavaShapes.javaShapeToFLine;
 
 /**
- * Created by marc on 3/19/14.
+ * FLine is our main high level geometry container for lines, meshes and lists of points.
+ * <p>
+ * FLines consist of a list of drawing instructions, or nodes: line.moveTo(...).lineTo(...).cubicTo(...).lineTo(...).moveTo(...).lineTo(...) .etc
+ * <p>
+ * This is essentially the common postscript / pdf / java2d drawing model with a few key differences and refinements.
+ * <p>
+ * 1. the drawing instructions are in 3d. 2d (the z=0 plane) is a special case 2. attributes can be associated with both the line itself and with
+ * individual nodes. 3. per-node attributes that are present in some places on the line and absent in others are interpolated 4. the structure is
+ * freely mutable, although changes to attributes are not automatically tracked (call line.modify() to cause an explicit un-caching of this line). 5.
+ * the caching of the flattening of this line into MeshBuilder data (ready for OpenGL) cascades into MeshBuilder's cache structure.
+ * <p>
+ * So, we have three levels of caching in total: FLine caches whether or not the geometry has changed at all, MeshBuilder caches whether or not
+ * there's any point sending anything to the OpenGL underlying Buffers or whether this piece of geometry can be skipped, and finally individual
+ * ArrayBuffers can elect to skip the upload to OpenGL. This means that static geometry is extremely cheap to draw, and dynamic geometry that has the
+ * same number of vertices is relatively cheap, hence we use a constant subdivision policy by default (rather than a textbook recursive subdivision
+ * strategy) for cubic splines.
+ * <p>
+ * We expect to have nicer interfaces to FLine and to utility classes supporting geometric operations in dynamic languages inside Field
+ * <p>
+ * For the code where properties inside attributes are given semantics look at FieldBox / FrameDrawer
+ * <p>
+ * TODO: port FrameDrawer's guts back out into something freestanding for the broader graphics system. It was a nice place to grow it, but it's more
+ * general than that, and we need to be able to attach FLines to MeshBuilders in general
  */
 public class FLine implements Supplier<FLine> {
 
@@ -30,7 +54,7 @@ public class FLine implements Supplier<FLine> {
 	long mod = 0;
 
 	public Node node() {
-		return nodes.get(nodes.size()-1);
+		return nodes.get(nodes.size() - 1);
 	}
 
 
@@ -84,15 +108,13 @@ public class FLine implements Supplier<FLine> {
 		return add(new CubicTo(c1x, c1y, c1z, c2x, c2y, c2z, x, y, z));
 	}
 
-	public FLine rect(Rect r)
-	{
-		return rect((float)r.x, (float)r.y, (float)r.w, (float)r.h);
+	public FLine rect(Rect r) {
+		return rect((float) r.x, (float) r.y, (float) r.w, (float) r.h);
 	}
 
-	public FLine rect(float x, float y, float w, float h)
-	{
+	public FLine rect(float x, float y, float w, float h) {
 		this.moveTo(x, y);
-		this.lineTo(x+w, y);
+		this.lineTo(x + w, y);
 		this.lineTo(x + w, y + h);
 		this.lineTo(x, y + h);
 		return this.lineTo(x, y);
@@ -362,9 +384,8 @@ public class FLine implements Supplier<FLine> {
 					int channel = from.flatAux[j];
 					float[] a = from.flatAuxData[j];
 					float[] b = to.flatAuxData[j];
-					if (a==null && b==null)
-						continue;
-					float[] r = interpolate(alpha, a, b, a==null ? b.length : a.length);
+					if (a == null && b == null) continue;
+					float[] r = interpolate(alpha, a, b, a == null ? b.length : a.length);
 					if (r != null && channel > 0) meshBuilder.aux(channel, r);
 				}
 
@@ -464,15 +485,13 @@ public class FLine implements Supplier<FLine> {
 
 		FLine f = new FLine();
 		f.attributes.putAll(attributes);
-		for(Node n : nodes)
-		{
-			if (n instanceof MoveTo)
-				f.add(new MoveTo(spaceTransform.apply(n.to)));
-			else if (n instanceof LineTo)
-				f.add(new LineTo(spaceTransform.apply(n.to)));
+		for (Node n : nodes) {
+			if (n instanceof MoveTo) f.add(new MoveTo(spaceTransform.apply(n.to)));
+			else if (n instanceof LineTo) f.add(new LineTo(spaceTransform.apply(n.to)));
 			else if (n instanceof MoveTo)
-				f.add(new CubicTo(spaceTransform.apply(((CubicTo)n).to),spaceTransform.apply(((CubicTo)n).c2),spaceTransform.apply(n.to)));
-			f.nodes.get(f.nodes.size()-1).attributes.putAll(n.attributes);
+				f.add(new CubicTo(spaceTransform.apply(((CubicTo) n).to), spaceTransform.apply(((CubicTo) n).c2), spaceTransform
+					    .apply(n.to)));
+			f.nodes.get(f.nodes.size() - 1).attributes.putAll(n.attributes);
 		}
 		return f;
 	}

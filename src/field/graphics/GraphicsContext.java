@@ -10,8 +10,27 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Supplier;
 
+/**
+ * Our main representation for an OpenGL graphics context.
+ * <p>
+ * The key complexity in doing graphics is that we wish to defer execution of drawing code to a particular time and place in the scene graph and that
+ * this scene graph drawing can only take place inside an OpenGL graphics context. Additionally we want to be able to share pieces of the scene graph
+ * between multiple OpenGL graphics context while scene graphs have all kinds of state (OpenGL names and configuration state back from OpenGL) that's
+ * per Graphics Context. This class contains all of the utilities to help.
+ * <p>
+ * Let's take a concrete example. Say you want to delete a mesh, because you are done with it. what could mesh.delete() do? Well, it could remove mesh
+ * from the scenegraph. But that's not enough. It also must conspire to deallocate any OpenGL resources that mesh allocated, and it must do that from
+ * all OpenGL contexts that there has ever been --- OpenGL contexts that we don't necessarily control the execution of. The calls
+ * postQueueInAllContexts help push code inside calls like delete into the running of OpenGL contexts.
+ * <p>
+ * Additionally there's code for the lazy one-time initialization of per-context state (get, put, computeIfAbset amd exists). Things that serve OpenGL
+ * contexts (like Window) handle newContext() and enterContext() and exitContext().
+ */
 public class GraphicsContext {
 
+	/**
+	 * set to true to enable much debug output about OpenGL execution to System.out
+	 */
 	static public boolean trace = false;
 
 	static protected GraphicsContext currentGraphicsContext;
@@ -37,8 +56,7 @@ public class GraphicsContext {
 	}
 
 	static public void enterContext(GraphicsContext c) {
-		if (trace)
-			System.out.println("\n\n -- graphics context begin -- ");
+		if (trace) System.out.println("\n\n -- graphics context begin -- ");
 		currentGraphicsContext = c;
 		for (Runnable r : currentGraphicsContext.preQueue)
 			r.run();
@@ -48,8 +66,7 @@ public class GraphicsContext {
 		for (Runnable r : currentGraphicsContext.postQueue)
 			r.run();
 		currentGraphicsContext = null;
-		if (trace)
-			System.out.println("\n\n -- graphics context end-- ");
+		if (trace) System.out.println("\n\n -- graphics context end-- ");
 	}
 
 	static public <T> T get(Object o) {
@@ -63,11 +80,11 @@ public class GraphicsContext {
 	}
 
 	static public <T> T get(Dict.Prop<T> o) {
-		return get(currentGraphicsContext,o);
+		return get(currentGraphicsContext, o);
 	}
 
 	static public <T> void put(Dict.Prop<T> o, T v) {
-		put(currentGraphicsContext,o, v);
+		put(currentGraphicsContext, o, v);
 	}
 
 	static public <T> T computeIfAbsent(Dict.Prop<T> o, Supplier<T> initializer) {
@@ -116,7 +133,7 @@ public class GraphicsContext {
 	}
 
 	public static <T> T remove(Object key) {
-		return (T)currentGraphicsContext.context.remove(key);
+		return (T) currentGraphicsContext.context.remove(key);
 	}
 
 	static public class Sticky implements Runnable {

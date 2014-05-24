@@ -7,6 +7,7 @@ import field.utility.Dict;
 import field.utility.Pair;
 import field.utility.Rect;
 import fieldbox.boxes.*;
+import fieldbox.boxes.plugins.IsExecuting;
 import fieldbox.io.IO;
 import fielded.Animatable;
 import fielded.Execution;
@@ -25,7 +26,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
- * Created by marc on 3/25/14.
+ * An implementation of Execution.ExecutionSupport for Nashorn/Javascript
  */
 public class NashornExecution implements Execution.ExecutionSupport {
 
@@ -126,29 +127,9 @@ public class NashornExecution implements Execution.ExecutionSupport {
 			end(lineErrors, success);
 			String name = "_animator_" + (uniq);
 			box.properties.putToMap(Boxes.insideRunLoop, name, r);
+			box.first(IsExecuting.isExecuting).ifPresent( x-> x.accept(box, name));
 
-			// feedback that we are executing...
-			// presumably something about context as well
-
-			box.properties.putToMap(FrameDrawer.frameDrawing, "_animationFeedback_", new Cached<Box, Object, FLine>((box, was) -> {
-				Rect rect = box.properties.get(Manipulation.frame);
-
-				if (rect == null) return null;
-
-				Supplier<Boolean> x = box.properties.getFromMap(Boxes.insideRunLoop, name);
-				if (x==null) return null;
-
-				FLine f = new FLine();
-				f.rect(rect.x, rect.y, rect.w, rect.h);
-				f.attributes.put(FrameDrawer.filled, true);
-				f.attributes.put(FrameDrawer.fillColor, new Vec4(0.2f, 0.5f, 0.3f, -0.2f));
-				f.attributes.put(FrameDrawer.color, new Vec4(0.2f, 0.5f, 0.3f, 0.8f));
-
-				return f;
-
-			}, (box) -> new Pair(box.properties.get(Manipulation.frame), box.properties.getFromMap(Boxes.insideRunLoop, name))));
-			Drawing.dirty(box);
-		    uniq++;
+			uniq++;
 		}
 	}
 

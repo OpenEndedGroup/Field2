@@ -12,6 +12,16 @@ import java.util.regex.Pattern;
 
 import static org.lwjgl.opengl.GL20.*;
 
+/**
+ * An OpenGL Shader written in GL Shader Language (GLSL)
+ * <p>
+ * Much of the complexity of this class stems from the fact that an OpenGL program is linked from a variety of (sometimes optional, sometimes
+ * reusable) parts. This class supports all of them. The rest of the complexity comes from the fact that both the compilation and the link stage can
+ * fail.
+ * <p>
+ * Assuming that all goes well shaders take three principle kinds of inputs: vertex attributes (make and set these with aux and nextVertex calls in
+ * MeshBuilders), uniforms (make and set these with calls to Uniform and UniformBundle classes here) and input from earlier shaders.
+ */
 public class Shader extends BaseScene<Shader.State> implements Scene.Perform {
 
 	static public final Dict.Prop<Shader> currentShader = new Dict.Prop<>("currentShader");
@@ -139,8 +149,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform {
 			return false;
 		}
 
-		public void finalize()
-		{
+		public void finalize() {
 			GraphicsContext.postQueueInAllContexts(this::destroy);
 		}
 
@@ -156,8 +165,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform {
 		return s;
 	}
 
-	public Source addSource(Type type, String source)
-	{
+	public Source addSource(Type type, String source) {
 		Source s = new Source(source, type);
 		this.source.put(type, s);
 		return s;
