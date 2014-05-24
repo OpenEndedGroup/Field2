@@ -10,6 +10,9 @@ import field.linalg.Vec2;
 import field.linalg.Vec3;
 import field.linalg.Vec4;
 
+/**
+ * Package class that talks to the OpenGL tesslator
+ */
 class MeshBuilder_tesselationSupport implements MeshAcceptor{
 
 	protected final MeshBuilder target;

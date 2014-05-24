@@ -1,4 +1,4 @@
-function runModal(placeholder, getcompletionsfunction, cssclass, initialText) {
+function runModal(placeholder, getcompletionsfunction, cssclass, initialText, allowAlternative) {
     "use strict";
     let modal = $("<dialog class='" + cssclass + "'><input spellcheck='false' data-autosize-input='{ \"space\": 10 }' autocomplete='off' placeholder='" + placeholder + "' class='Field-textBox' type='text' name='main'></input><ol></ol></dialog>")
 
@@ -54,13 +54,24 @@ function runModal(placeholder, getcompletionsfunction, cssclass, initialText) {
         updateCompletions()
     })
 
-    function highlightRunAndClose(value, index, event) {
+    function highlightRunAndClose(value, index, event, allowAlternative) {
         var cc = updateCompletions(value)
         if (cc.length > index) {
             cc[index].callback(value)
             $($(ol).children("li")[index]).css("background", "#555")
             event.preventDefault()
 
+            setTimeout(function () {
+                modal[0].close()
+                modal.detach()
+                cm.focus()
+            }, 25)
+        }
+        else if (allowAlternative)
+        {
+            console.log(" value is "+value);
+            allowAlternative(inputBox.val())
+            event.preventDefault()
             setTimeout(function () {
                 modal[0].close()
                 modal.detach()
@@ -75,10 +86,12 @@ function runModal(placeholder, getcompletionsfunction, cssclass, initialText) {
 
     }
 
+    console.log("allowAlternative = "+allowAlternative)
+
     inputBox.on("keydown", function (x) {
         console.log(x.keyCode)
         if (x.keyCode == 13) {
-            highlightRunAndClose(this.value, 0, x)
+            highlightRunAndClose(this.value, 0, x, this.allowAlternative)
         }
         if (x.keyCode == 27) {
             console.log("forcing focus?")
@@ -89,7 +102,7 @@ function runModal(placeholder, getcompletionsfunction, cssclass, initialText) {
         if (x.keyCode > 48 && x.keyCode < 48 + 10 && x.ctrlKey) {
             highlightRunAndClose(this.value, x.keyCode - 48, x)
         }
-    })
+    }.bind({"allowAlternative":allowAlternative}))
 
     modal[0].showModal()
 

@@ -4,14 +4,24 @@ import field.linalg.Mat4;
 import field.linalg.Quat;
 import field.linalg.Vec3;
 
+import java.io.Serializable;
 import java.util.function.Function;
 
 /**
- * Created by marc on 4/14/14.
+ * A (Perspective and stereo capable) Camera class for Field graphics.
+ * <p>
+ * The state of a camera is kept in a separate, serializable, immutable class called "state". In contemporary OpenGL all a camera is is something that
+ * can produce two Mat4's which were customarily multiplied together anyway. The ModelView matrix, which rotates the world into the camera's
+ * coordinate system and the projection matrix with projects that coordinate system into the screen's coordinate system. These are Mat4's not Mat3's,
+ * even though we are 3d space because we can express projection matrices using homogeneous coordinates.
+ *
+ * To tie this to OpenGL, conspire to load these matrices into shader uniforms.
  */
 public class Camera {
 
-	static public class State {
+	static public class State implements Serializable {
+
+
 		/**
 		 * the position of the camera
 		 */
@@ -114,15 +124,13 @@ public class Camera {
 			return s;
 		}
 
-		public State orbitLeft(float r)
-		{
+		public State orbitLeft(float r) {
 			State s = copy();
 			s.position = Vec3.add(target, new Quat().setFromAxisAngle(up, r).rotate(ray().scale(-1)), new Vec3());
 			return s;
 		}
 
-		public State orbitUp(float r)
-		{
+		public State orbitUp(float r) {
 			State s = copy();
 			Quat q = new Quat().setFromAxisAngle(left(), r);
 			s.position = Vec3.add(target, q.rotate(ray().scale(-1)), new Vec3());
@@ -130,15 +138,13 @@ public class Camera {
 			return s;
 		}
 
-		public State lookLeft(float r)
-		{
+		public State lookLeft(float r) {
 			State s = copy();
 			s.target = Vec3.add(position, new Quat().setFromAxisAngle(up, r).rotate(ray().scale(1)), new Vec3());
 			return s;
 		}
 
-		public State lookUp(float r)
-		{
+		public State lookUp(float r) {
 			State s = copy();
 			Quat q = new Quat().setFromAxisAngle(left(), r);
 			s.target = Vec3.add(position, q.rotate(ray().scale(1)), new Vec3());
@@ -147,60 +153,56 @@ public class Camera {
 		}
 
 
-		public State translateLeft(float r)
-		{
+		public State translateLeft(float r) {
 			State s = copy();
 			Vec3 left = left();
 			left = left.normalise();
 			left.scale((float) position.distanceFrom(target));
-			s.position.x += left.x*r;
-			s.position.y += left.y*r;
-			s.position.z += left.z*r;
-			s.target.x += left.x*r;
-			s.target.y += left.y*r;
-			s.target.z += left.z*r;
+			s.position.x += left.x * r;
+			s.position.y += left.y * r;
+			s.position.z += left.z * r;
+			s.target.x += left.x * r;
+			s.target.y += left.y * r;
+			s.target.z += left.z * r;
 			return s;
 		}
 
-		public State translateIn(float r)
-		{
+		public State translateIn(float r) {
 			State s = copy();
 			Vec3 left = ray();
 			left = left.normalise();
 			left.scale((float) position.distanceFrom(target));
-			s.position.x += left.x*r;
-			s.position.y += left.y*r;
-			s.position.z += left.z*r;
-			s.target.x += left.x*r;
-			s.target.y += left.y*r;
-			s.target.z += left.z*r;
+			s.position.x += left.x * r;
+			s.position.y += left.y * r;
+			s.position.z += left.z * r;
+			s.target.x += left.x * r;
+			s.target.y += left.y * r;
+			s.target.z += left.z * r;
 			return s;
 		}
 
-		public State dollyIn(float r)
-		{
+		public State dollyIn(float r) {
 			State s = copy();
 			Vec3 left = ray();
 			left = left.normalise();
 			left.scale((float) position.distanceFrom(target));
-			s.position.x += left.x*r;
-			s.position.y += left.y*r;
-			s.position.z += left.z*r;
+			s.position.x += left.x * r;
+			s.position.y += left.y * r;
+			s.position.z += left.z * r;
 			return s;
 		}
 
-		public State translateUp(float r)
-		{
+		public State translateUp(float r) {
 			State s = copy();
 			Vec3 left = up;
 			left = left.normalise();
 			left.scale((float) position.distanceFrom(target));
-			s.position.x += left.x*r;
-			s.position.y += left.y*r;
-			s.position.z += left.z*r;
-			s.target.x += left.x*r;
-			s.target.y += left.y*r;
-			s.target.z += left.z*r;
+			s.position.x += left.x * r;
+			s.position.y += left.y * r;
+			s.position.z += left.z * r;
+			s.target.x += left.x * r;
+			s.target.y += left.y * r;
+			s.target.z += left.z * r;
 			return s;
 		}
 
@@ -244,7 +246,7 @@ public class Camera {
 		m[6] = B;
 		m[11] = D;
 
-		System.out.println(" projection is :"+new Mat4(m));
+		System.out.println(" projection is :" + new Mat4(m));
 		return new Mat4(m);
 	}
 
@@ -286,22 +288,34 @@ public class Camera {
 
 		Mat4 q = new Mat4(ret);
 		q.transpose();
-		System.out.println(" model view is :"+new Mat4(q));
+		System.out.println(" model view is :" + new Mat4(q));
 		return q;
 	}
 
-	public void advanceState(Function<State, State> s)
+	public Mat4 modelViewLeft()
 	{
+		return modelView(-1);
+	}
+
+	public Mat4 modelViewRight()
+	{
+		return modelView(1);
+	}
+
+	public Mat4 modelViewCenter()
+	{
+		return modelView(0);
+	}
+
+	public void advanceState(Function<State, State> s) {
 		state = s.apply(state);
 	}
 
-	public void setState(State s)
-	{
+	public void setState(State s) {
 		this.state = state;
 	}
 
-	public State getState()
-	{
+	public State getState() {
 		return state;
 	}
 

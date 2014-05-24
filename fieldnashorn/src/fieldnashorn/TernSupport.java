@@ -18,7 +18,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
- * Created by marc on 3/28/14.
+ * Tern.js-based completion for Nashorn/Javascript that isn't afraid to drop down into Java/Reflection based completion when it can (see JavaSupport)
  */
 public class TernSupport {
 

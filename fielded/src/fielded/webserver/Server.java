@@ -190,7 +190,7 @@ public class Server {
 		fixedResources.put(uri, text);
 	}
 
-	BlockingQueue<Runnable> queue = new LinkedBlockingDeque<>();
+	BlockingQueue<Runnable> queue = new LinkedBlockingDeque<Runnable>();
 
 	protected void update() {
 		while (!queue.isEmpty()) {

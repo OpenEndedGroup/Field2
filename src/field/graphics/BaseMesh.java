@@ -12,22 +12,73 @@ import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_ELEMENT_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL20.glDisableVertexAttribArray;
 import static org.lwjgl.opengl.GL20.glEnableVertexAttribArray;
-import static org.lwjgl.opengl.GL30.glBindVertexArray;
-import static org.lwjgl.opengl.GL30.glDeleteVertexArrays;
-import static org.lwjgl.opengl.GL30.glGenVertexArrays;
+import static org.lwjgl.opengl.GL30.*;
 import static org.lwjgl.opengl.GL32.GL_LINES_ADJACENCY;
 
 /**
- * Created by marc on 3/10/14.
+ * This is the base class for geometry in the Field graphics system.
+ * <p>
+ * Geometry includes Triangle meshes, lines lists and point lists (which are all subclasses of this). Further customizations can be made by passing in
+ * an ArrayBufferFactory.
  */
 public class BaseMesh extends Scene implements Scene.Perform {
+
+
+	/**
+	 * return a view onto the vertex storage for this mesh. Write your vertex data into this FloatBuffer
+	 */
+	public FloatBuffer vertex(boolean readOnly) {
+		return buffer(0, 3).floats(false);
+	}
+
+	/**
+	 * equivalent to vertex(false)
+	 *
+	 * @return
+	 */
+	public FloatBuffer vertex() {
+		return vertex(false);
+	}
+
+	/**
+	 * return a view onto the element storage for this mesh. Write your element data into this IntBuffer
+	 */
+	public IntBuffer elements(boolean readOnly) {
+		return elements.ints(readOnly);
+	}
+
+
+	/**
+	 * equivalent to elements(false)
+	 */
+	public IntBuffer elements() {
+		return elements(false);
+	}
+
+	/**
+	 * return a view onto the aux storage for this mesh. Write your aux data into these FloatBuffer. This data appears in shaders, associated per
+	 * vertex.
+	 * <p>
+	 * For example, this statement in a vertex shader:
+	 * <p>
+	 * "layout(location=1) in vec4 color"
+	 * <p>
+	 * means that you can write
+	 * <p>
+	 * mesh.aux(1, 4).put([1,2,3,4])...
+	 * <p>
+	 * location=1 gives the attribute (=1) and vec4 gives the dimension. location=0 is taken by the vertex position itself; typically you can have
+	 * up to and including location=15.
+	 */
+	public FloatBuffer aux(int attribute, int dimension) {
+		return buffer(attribute, dimension).floats(false);
+	}
+
 
 	public interface ArrayBufferFactory {
 		public ArrayBuffer newArrayBuffer(int maxVertex, int binding, int attribute, int dimension, int divisor);
 	}
 
-	public BaseMesh() {
-	}
 
 	int maxVertex;
 	int limitVertex;
@@ -39,6 +90,9 @@ public class BaseMesh extends Scene implements Scene.Perform {
 	ArrayBuffer[] buffers = new ArrayBuffer[16];
 	ArrayBufferFactory arrayBufferFactory = SimpleArrayBuffer::newArrayBuffer;
 
+	/**
+	 * limit the number of vertices sent to OpenGL without truncating the declared size of the storage.
+	 */
 	public int setVertexLimit(int limit) {
 		for (int i = 0; i < buffers.length; i++) {
 			ArrayBuffer o = buffers[i];
@@ -52,6 +106,9 @@ public class BaseMesh extends Scene implements Scene.Perform {
 		return limitVertex;
 	}
 
+	/**
+	 * truncate or extend the size of this mesh's vertex storage (and aux storage)
+	 */
 	private int setVertexMax(int vertexMax) {
 		for (int i = 0; i < buffers.length; i++) {
 			ArrayBuffer o = buffers[i];
@@ -65,11 +122,13 @@ public class BaseMesh extends Scene implements Scene.Perform {
 		return maxVertex;
 	}
 
+	/**
+	 * limit the number of elements sent to OpenGL without truncating the declared size of the storage.
+	 */
 	public void setElementLimit(int limit) {
 		if (elements == null) return;
 
-		if (limit > elements.getSize())
-		{
+		if (limit > elements.getSize()) {
 			elements = elements.replaceWithSize(limit);
 		}
 
@@ -77,6 +136,9 @@ public class BaseMesh extends Scene implements Scene.Perform {
 		maxElement = Math.max(maxElement, limitElement);
 	}
 
+	/**
+	 * truncate or extend the size of the meshes element storage
+	 */
 	public void setElementMax(int limit) {
 		if (elements == null) return;
 
@@ -124,7 +186,9 @@ public class BaseMesh extends Scene implements Scene.Perform {
 			buffers[attribute] = arrayBufferFactory.newArrayBuffer(maxVertex, GL_ARRAY_BUFFER, attribute, dimension, 0);
 			return buffers[attribute];
 		}
-		if (buffers[attribute].getDimension() != dimension) throw new IllegalArgumentException(" dimension mismatch. Attribute "+attribute+" was previously declared to be of dimension "+dimension+" not "+buffers[attribute].getDimension());
+		if (buffers[attribute].getDimension() != dimension)
+			throw new IllegalArgumentException(" dimension mismatch. Attribute " + attribute + " was previously declared to be of dimension " + dimension + " not " + buffers[attribute]
+				    .getDimension());
 
 		return buffers[attribute];
 	}
@@ -136,28 +200,10 @@ public class BaseMesh extends Scene implements Scene.Perform {
 		return m;
 	}
 
-	public FloatBuffer aux(int attribute, int stride) {
-		return buffer(attribute, stride).floats(false);
-	}
-
-	public FloatBuffer vertex(boolean readOnly) {
-		return buffer(0, 3).floats(false);
-	}
-
-	public IntBuffer elements(boolean readOnly) {
-		return elements.ints(readOnly);
-	}
-
-	public IntBuffer elements() {
-		return elements(false);
-	}
-
-
 	@Override
 	public boolean perform(int pass) {
 
-		if (GraphicsContext.trace)
-		{
+		if (GraphicsContext.trace) {
 			System.out.println(" perform pass :" + this + " / " + pass);
 		}
 
@@ -215,12 +261,9 @@ public class BaseMesh extends Scene implements Scene.Perform {
 	static public BaseMesh standard(int numVertex, int numElements, int primitiveType, int primitiveSize) {
 		BaseMesh m = new BaseMesh() {
 			protected boolean performNow() {
-				if (primitiveSize == 0)
-				{
+				if (primitiveSize == 0) {
 					glDrawArrays(primitiveType, 0, limitVertex);
-				}
-				else
-				{
+				} else {
 					glDrawElements(primitiveType, limitElement * primitiveSize, GL_UNSIGNED_INT, 0);
 				}
 				return true;
@@ -234,22 +277,72 @@ public class BaseMesh extends Scene implements Scene.Perform {
 		return m;
 	}
 
+	/**
+	 * returns a new BaseMesh that draws up to numPoints.
+	 * <p>
+	 * call vertex() to get a FloatBuffer into which you can put vertex data, aux(...) to get FloatBuffers to put aux data.
+	 * <p>
+	 * for example:
+	 * <p>
+	 * list = pointList(2) list.vertex().put([0,0,0]).put([1,1,1])
+	 * <p>
+	 * will give you a point list that draws two points, one at the origin, one at 1,1,1
+	 */
 	static public BaseMesh pointList(int numPoints) {
 		return standard(numPoints, 0, GL_POINTS, 0);
 	}
 
+	/**
+	 * returns a new BaseMesh that draws up to numPoints vertices and numElement lines.
+	 * <p>
+	 * call vertex() to get a FloatBuffer into which you can put vertex data, aux(...) to get FloatBuffers to put aux data and call elements() to
+	 * connect vertices together with line segments
+	 * <p>
+	 * for example:
+	 * <p>
+	 * lines = lineList(3, 2) lines.vertex().put([0,0,0]).put([1,0,0]).put([1,1,0]) lines.elements().put([0,1]).put([1,2])
+	 * <p>
+	 * will give an L shaped, two line segment shape.
+	 */
 	static public BaseMesh lineList(int numPoints, int numElements) {
 		return standard(numPoints, numElements, GL_LINES, 2);
 	}
 
+	/**
+	 * returns a new BaseMesh that draws up to numPoints vertices and numElement lines with adjecency
+	 * <p>
+	 * call vertex() to get a FloatBuffer into which you can put vertex data, aux(...) to get FloatBuffers to put aux data and call elements() to
+	 * connect vertices together with line segments
+	 * <p>
+	 * for example:
+	 * <p>
+	 * lines = lineAdjecencyList(3, 2) lines.vertex().put([0,0,0]).put([1,0,0]).put([1,1,0]) lines.elements().put([0, 0, 1, 2]).put([0, 1,2, 2])
+	 * <p>
+	 * will give an L shaped, two line segment shape.
+	 */
 	static public BaseMesh lineAdjecencyList(int numPoints, int numElements) {
 		return standard(numPoints, numElements, GL_LINES_ADJACENCY, 4);
 	}
 
+	/**
+	 * returns a new BaseMesh that draws up to numPoints vertices and numElement lines with adjecency
+	 * <p>
+	 * call vertex() to get a FloatBuffer into which you can put vertex data, aux(...) to get FloatBuffers to put aux data and call elements() to
+	 * connect vertices together with line segments
+	 * <p>
+	 * for example:
+	 * <p>
+	 * lines = triangleList(3, 2) lines.vertex().put([0,0,0]).put([1,0,0]).put([1,1,0]) lines.elements().put([0, 1, 2])
+	 * <p>
+	 * will give an triangle.
+	 */
 	static public BaseMesh triangleList(int numPoints, int numElements) {
 		return standard(numPoints, numElements, GL_TRIANGLES, 3);
 	}
 
+	/**
+	 * destroy this mesh and all OpenGL resources associated with it.
+	 */
 	public void finalize() {
 		GraphicsContext.postQueueInAllContexts(this::destroy);
 	}
@@ -258,10 +351,9 @@ public class BaseMesh extends Scene implements Scene.Perform {
 		Integer s = GraphicsContext.remove(this);
 		if (s == null) return;
 		glDeleteVertexArrays(s);
-		for(ArrayBuffer b : buffers)
+		for (ArrayBuffer b : buffers)
 			b.destroy();
-		if (elements!=null)
-			elements.destroy();
+		if (elements != null) elements.destroy();
 	}
 
 }

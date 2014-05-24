@@ -5,24 +5,20 @@ import field.utility.Dict;
 import field.utility.Pair;
 import fieldbox.boxes.Box;
 import fielded.Animatable;
-import jdk.nashorn.api.scripting.NashornScriptEngine;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 
-import javax.script.*;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 /**
- * Created by marc on 3/25/14.
+ * Adds Nashorn-based JavaScript support to Field.
+ * <p>
+ * Todo: It's likely that this will have to be lightly refactored as a plugin now that a solid notion of a plugin has emerged as soon as we have
+ * another runtime / backend to support
  */
 public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecution> {
 
@@ -44,15 +40,13 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 		ternSupport = new TernSupport();
 		ternSupport.inject(engine);
 
+
 		Animatable.registerHandler((was, o) -> {
 
-			if (o instanceof ScriptObjectMirror)
-			{
-				ScriptObjectMirror som = ((ScriptObjectMirror)o);
-				if (som.isFunction())
-				{
-//					return Animatable.interpret( (Runnable) () -> som.call(som), was);
-					return Animatable.interpret( (Supplier) () -> som.call(som), was);
+			if (o instanceof ScriptObjectMirror) {
+				ScriptObjectMirror som = ((ScriptObjectMirror) o);
+				if (som.isFunction()) {
+					return Animatable.interpret((Supplier) () -> som.call(som), was);
 				}
 
 				Animatable.AnimationElement start = null;
@@ -60,20 +54,20 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 				Animatable.AnimationElement end = null;
 
 				if (som.hasSlot(0)) start = Animatable.interpret(som.getSlot(0), was);
-				if (som.hasSlot(1)) middle= Animatable.interpret(som.getSlot(1), was);
+				if (som.hasSlot(1)) middle = Animatable.interpret(som.getSlot(1), was);
 				if (som.hasSlot(2)) end = Animatable.interpret(som.getSlot(2), was);
 
 				if (som.hasMember("start")) start = Animatable.interpret(som.getMember("start"), was);
 				if (som.hasMember("middle")) middle = Animatable.interpret(som.getMember("middle"), was);
 				if (som.hasMember("end")) end = Animatable.interpret(som.getMember("end"), was);
 
-				if (start==null) start = noop();
-				if (middle==null) middle = noop();
-				if (end==null) end = noop();
+				if (start == null) start = noop();
+				if (middle == null) middle = noop();
+				if (end == null) end = noop();
 
 
 				Animatable.AnimationElement fstart = start;
-				Animatable.AnimationElement fmiddle= middle;
+				Animatable.AnimationElement fmiddle = middle;
 				Animatable.AnimationElement fend = end;
 
 				return new Animatable.AnimationElement() {
@@ -84,21 +78,19 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 
 					@Override
 					public Object beginning(boolean isEnding) {
-						targets[0]=interpretReturn(targets[0], targets[0].beginning(isEnding));
-						targets[0]=interpretReturn(targets[0], targets[0].middle(isEnding));
-						targets[0]=interpretReturn(targets[0], targets[0].end(isEnding));
-						targets[1]=interpretReturn(targets[1], targets[1].beginning(isEnding));
+						targets[0] = interpretReturn(targets[0], targets[0].beginning(isEnding));
+						targets[0] = interpretReturn(targets[0], targets[0].middle(isEnding));
+						targets[0] = interpretReturn(targets[0], targets[0].end(isEnding));
+						targets[1] = interpretReturn(targets[1], targets[1].beginning(isEnding));
 						return this;
 					}
 
-					public Object middle(boolean isEnding)
-					{
+					public Object middle(boolean isEnding) {
 						targets[1] = interpretReturn(targets[1], targets[1].middle(isEnding));
 						return this;
 					}
 
-					public Object end(boolean isEnding)
-					{
+					public Object end(boolean isEnding) {
 						targets[1] = interpretReturn(targets[1], targets[1].end(isEnding));
 						targets[2] = interpretReturn(targets[2], targets[2].beginning(isEnding));
 						targets[2] = interpretReturn(targets[2], targets[2].middle(isEnding));
@@ -112,13 +104,12 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 		});
 
 		Animatable.registerHandler((was, o) -> {
-			if (o instanceof Runnable)
-			{
+			if (o instanceof Runnable) {
 				return new Animatable.AnimationElement() {
 
 					@Override
 					public Object middle(boolean isEnding) {
-						((Runnable)o).run();
+						((Runnable) o).run();
 						return null;
 					}
 				};
@@ -127,13 +118,12 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 		});
 
 		Animatable.registerHandler((was, o) -> {
-			if (o instanceof Supplier)
-			{
+			if (o instanceof Supplier) {
 				return new Animatable.AnimationElement() {
 
 					@Override
 					public Object middle(boolean isEnding) {
-						return ((Supplier)o).get();
+						return ((Supplier) o).get();
 					}
 				};
 			}
@@ -152,10 +142,10 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 	}
 
 	private Animatable.AnimationElement interpretReturn(Animatable.AnimationElement was, Object next) {
-		if (next==null) return was;
-		if (next instanceof Animatable.AnimationElement) return (Animatable.AnimationElement)next;
+		if (next == null) return was;
+		if (next instanceof Animatable.AnimationElement) return (Animatable.AnimationElement) next;
 		Animatable.AnimationElement nextElement = Animatable.interpret(next, was);
-		if (nextElement!=null) return nextElement;
+		if (nextElement != null) return nextElement;
 		return was;
 	}
 
@@ -169,7 +159,7 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 	}, (x) -> x);
 
 	void setupInitialBindings(ScriptContext context, Box first) {
-		context.setAttribute("_box", new UnderscoreBox(first), ScriptContext.GLOBAL_SCOPE);
+		context.setAttribute("_", new UnderscoreBox(first), ScriptContext.GLOBAL_SCOPE);
 	}
 
 	@Override

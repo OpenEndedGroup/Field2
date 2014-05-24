@@ -5,7 +5,7 @@ import java.util.Optional;
 import java.util.function.*;
 
 /**
- * Created by marc on 3/18/14.
+ * Java8 takes a huge step towards accepting that a little bit of functional style goes a long way. Here's a little bit more.
  */
 public class Curry {
 

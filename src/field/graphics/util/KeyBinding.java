@@ -4,6 +4,9 @@ import field.graphics.Window;
 
 import javax.xml.crypto.dsig.keyinfo.KeyName;
 
+/**
+ * Helper class for containing a key binding. Currently used in the camera class.
+ */
 public class KeyBinding {
 
 	static public class KeyName

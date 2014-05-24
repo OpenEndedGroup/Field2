@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Created by marc on 3/19/14.
+ * Every project needs a Util class with statics in it. Here it is.
  */
 public class Util {
 	static public boolean safeEq(Object a, Object b) {

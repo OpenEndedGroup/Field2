@@ -7,6 +7,9 @@ import org.lwjgl.opengl.Display;
 
 import java.util.function.Supplier;
 
+/**
+ * Orthographic version of Camera
+ */
 public class OrthoCamera implements Supplier<Mat4> {
 
 	static public class State {

@@ -16,6 +16,13 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * When Nashorn/Javascript completion bumps up against something that's actually a Java object, we can use Java reflection based completion. Better
+ * yet, if we have the source code fore that Java we can get very good completion information with parameter names, generics and javadocs. We're using
+ * qdox to parse the Java sources.
+ *
+ * Todo: this is useful accross language runtimes, not just Nashorn/Javascript.
+ */
 public class JavaSupport {
 
 
@@ -88,12 +95,16 @@ public class JavaSupport {
 		List<Execution.Completion> r = new ArrayList<>();
 		for (JavaField m : j.getFields()) {
 			if (m.getName().startsWith(prefix) && m.getModifiers().contains("public")) {
-				r.add(new Execution.Completion(-1, -1, m.getName(), "<span class=type>" + compress(m.getName(), m.getDeclarationSignature(true)) + "</span>" + (m.getComment() != null ? "&mdash; <span class=doc>" + m.getComment() + "</span>" : "")));
+				r.add(new Execution.Completion(-1, -1, m.getName(), "<span class=type>" + compress(m.getName(), m
+					    .getDeclarationSignature(true)) + "</span>" + (m.getComment() != null ? "&mdash; <span class=doc>" + m
+					    .getComment() + "</span>" : "")));
 			}
 		}
 		for (JavaMethod m : j.getMethods()) {
 			if (m.getName().startsWith(prefix) && m.getModifiers().contains("public")) {
-				r.add(new Execution.Completion(-1, -1, m.getName(), "<span class=type>" + compress(m.getName(), m.getDeclarationSignature(true)) + "</span>" + (m.getComment() != null ? "&mdash; <span class=doc>" + m.getComment() + "</span>" : "")));
+				r.add(new Execution.Completion(-1, -1, m.getName(), "<span class=type>" + compress(m.getName(), m
+					    .getDeclarationSignature(true)) + "</span>" + (m.getComment() != null ? "&mdash; <span class=doc>" + m
+					    .getComment() + "</span>" : "")));
 			}
 		}
 
@@ -131,8 +142,8 @@ public class JavaSupport {
 		return signature.trim();
 	}
 
-	public List<Pair<String,String>> getPossibleJavaClassesFor(String left) {
-		List<Pair<String,String>> rr = new ArrayList<>();
+	public List<Pair<String, String>> getPossibleJavaClassesFor(String left) {
+		List<Pair<String, String>> rr = new ArrayList<>();
 		for (JavaClass c : builder.getClasses()) {
 			System.out.println(" javaclass :" + c.getFullyQualifiedName());
 			if (c.getName().contains(left)) {

@@ -11,7 +11,9 @@ import static com.badlogic.jglfw.Glfw.glfwInit;
 import static com.badlogic.jglfw.Glfw.glfwSetCallback;
 
 /**
- * Created by marc on 4/14/14.
+ * All Window instances must be registered with this singleton Windows
+ *
+ * GLFW multiplexes all of it's events through a singlecallback, this class demultiplexes them.
  */
 public class Windows {
 
@@ -34,7 +36,6 @@ public class Windows {
 	{
 		adaptors.put(window, adaptor);
 	}
-
 
 	protected GlfwCallback makeCallback() {
 		return new GlfwCallbackAdapter() {

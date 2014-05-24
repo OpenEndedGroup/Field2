@@ -4,21 +4,21 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * Created by marc on 3/23/14.
+ * Interpose this class between a Scene.Perform and it's Scene to only execute a Scene.Perform is a Function is true. Use this, for example, to
+ * implement View Frustum Culling or to skip the drawing of a Mesh that has no vertices (which is, in general, not a safe thing to do, because while a
+ * mesh might have no verities, it might have some children which have other side-effects)
  */
 public class Guard implements Scene.Perform {
 
 	private final Supplier<Scene.Perform> p;
 	private final Function<Integer, Boolean> guard;
 
-	public Guard(Scene.Perform p, Function<Integer, Boolean> guard)
-	{
+	public Guard(Scene.Perform p, Function<Integer, Boolean> guard) {
 		this.p = () -> p;
 		this.guard = guard;
 	}
 
-	public Guard(Supplier<Scene.Perform> p, Function<Integer, Boolean> guard)
-	{
+	public Guard(Supplier<Scene.Perform> p, Function<Integer, Boolean> guard) {
 		this.p = p;
 		this.guard = guard;
 	}

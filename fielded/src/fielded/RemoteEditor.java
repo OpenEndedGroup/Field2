@@ -6,7 +6,7 @@ import field.linalg.Vec4;
 import field.message.MessageQueue;
 import field.utility.Dict;
 import field.utility.Pair;
-import field.utility.Triple;
+import field.utility.Quad;
 import field.utility.Util;
 import fieldbox.boxes.*;
 import fieldbox.io.IO;
@@ -33,24 +33,35 @@ public class RemoteEditor extends Box {
 	static public final Dict.Prop<Function<Box, Consumer<String>>> outputFactory = new Dict.Prop<>("outputFactory");
 	static public final Dict.Prop<Function<Box, Consumer<Pair<Integer, String>>>> outputErrorFactory = new Dict.Prop<>("outputErrorFactory");
 
+	static public interface ExtendedCommand extends Runnable
+	{
+		public void begin(SupportsPrompt prompt, String alternativeChosen);
+	}
+
+	static public interface SupportsPrompt
+	{
+		public void prompt(String prompt, Map<Pair<String, String>, Runnable> options, ExtendedCommand alternative);
+	}
+
 	private final Server server;
 	private final String socketName;
-	private final MessageQueue<Triple<Dict.Prop, Object, Object>, String> queue;
+	private final MessageQueue<Quad<Dict.Prop, Box, Object, Object>, String> queue;
 	private final Watches watches;
 
 	LinkedHashMap<String, Runnable> callTable = new LinkedHashMap<>();
+	ExtendedCommand callTable_alternative = null;
 
-	public RemoteEditor(Server server, String socketName, Watches watches, MessageQueue<Triple<Dict.Prop, Object, Object>, String> queue) {
+	public RemoteEditor(Server server, String socketName, Watches watches, MessageQueue<Quad<Dict.Prop, Box, Object, Object>, String> queue) {
 		this.server = server;
 		this.socketName = socketName;
 		this.queue = queue;
 		this.watches = watches;
 		this.properties.putToMap(Boxes.insideRunLoop, "__watch_service__", (Supplier<Boolean>) this::update);
 
-		watches.addWatch(Manipulation.isSelected, "selection.changed");
+		watches.addWatch(Mouse.isSelected, "selection.changed");
 		watches.addWatch(LinuxWindowTricks.lostFocus, "focus.editor");
 
-		queue.register(Predicate.isEqual("selection.changed"), (change) -> {
+		queue.register(Predicate.isEqual("selection.changed"), (c) -> {
 			System.out.println(" selection changed message ");
 			selectionHasChanged = true;
 		});
@@ -67,8 +78,7 @@ public class RemoteEditor extends Box {
 
 		this.properties.put(outputFactory, x -> newOutput(x, "box.output", (m) -> new JSONStringer().object().key("type").value("success").key("message").value(m).endObject().toString()));
 
-		this.properties.put(outputErrorFactory, x->newOutput(x, "box.error",
-			    (Function<Pair<Integer, String>, String>) (lineerror) -> new JSONStringer().object().key("type").value("error").key("line").value((int) lineerror.first).key("message").value(lineerror.second).endObject().toString()));
+		this.properties.put(outputErrorFactory, x -> newOutput(x, "box.error", (Function<Pair<Integer, String>, String>) (lineerror) -> new JSONStringer().object().key("type").value("error").key("line").value((int) lineerror.first).key("message").value(lineerror.second).endObject().toString()));
 
 
 		server.addHandlerLast(Predicate.isEqual("text.updated"), () -> socketName, (s, socket, address, payload) -> {
@@ -357,7 +367,8 @@ public class RemoteEditor extends Box {
 
 			//todo: handle no box case
 
-			List<Map.Entry<Pair<String, String>, Runnable>> commands = (List<Map.Entry<Pair<String, String>, Runnable>>) box.get().find(RemoteEditor.commands, box.get().both()).flatMap(m -> m.get().entrySet().stream()).collect(Collectors.toList());
+			List<Map.Entry<Pair<String, String>, Runnable>> commands =
+				    (List<Map.Entry<Pair<String, String>, Runnable>>) box.get().find(RemoteEditor.commands, box.get().both()).flatMap(m -> m.get().entrySet().stream()).collect(Collectors.toList());
 
 
 			System.out.println(" commands are :" + commands);
@@ -385,22 +396,96 @@ public class RemoteEditor extends Box {
 			return payload;
 		});
 
+		server.addHandlerLast(Predicate.isEqual("call.command"), () -> socketName, (s, socket, address, payload) -> {
+
+			JSONObject p = (JSONObject) payload;
+			String command = p.getString("command");
+
+			Runnable r = callTable.get(command);
+
+			if (r!=null)
+			{
+				if (r instanceof ExtendedCommand) ((ExtendedCommand)r).begin(supportsPrompt(server, socketName), null);
+				r.run();
+			}
+
+			return payload;
+		});
+
+		server.addHandlerLast(Predicate.isEqual("call.alternative"), () -> socketName, (s, socket, address, payload) -> {
+
+			JSONObject p = (JSONObject) payload;
+			String command = p.getString("command");
+			String text = p.getString("text");
+
+			ExtendedCommand r = callTable_alternative;
+
+			if (r!=null)
+			{
+				if (r instanceof ExtendedCommand) ((ExtendedCommand)r).begin(supportsPrompt(server, socketName), text);
+				r.run();
+			}
+
+			return payload;
+		});
+
 		selectionHasChanged = true;
 
 
 	}
 
-	protected void boxFeedback(Optional<Box> box, Vec4 color) {
-		box.get().properties.putToMap(FrameDrawer.frameDrawing, "__edited__", FrameDrawer.expires(FrameDrawer.boxOrigin((bx) -> {
+	protected SupportsPrompt supportsPrompt(Server server, String socketName) {
+
+		return (prompt, commands1, alternative) -> {
+			JSONStringer stringer = new JSONStringer();
+			stringer.object();
+			stringer.key("prompt");
+			stringer.value(prompt);
+			stringer.key("commands");
+			stringer.array();
+			callTable.clear();
+			for (Map.Entry<Pair<String, String>, Runnable> r : commands1.entrySet()) {
+				String u = UUID.randomUUID().toString();
+				callTable.put(u, r.getValue());
+				stringer.object();
+				stringer.key("name").value(r.getKey().first);
+				stringer.key("info").value(r.getKey().second);
+				stringer.key("call").value(u);
+				stringer.endObject();
+			}
+			stringer.endArray();
+
+			if (alternative != null) {
+				stringer.key("alternative");
+				String u = UUID.randomUUID().toString();
+				callTable_alternative = alternative;
+				stringer.value(u);
+			} else {
+				callTable_alternative = null;
+				stringer.key("alternative");
+				String u = UUID.randomUUID().toString();
+				callTable_alternative = alternative;
+				stringer.value(null);
+			}
+			stringer.endObject();
+
+			server.send(socketName, "_messageBus.publish('begin.commands', " + stringer.toString() + ")");
+		};
+
+	}
+
+	static public void boxFeedback(Optional<Box> box, Vec4 color) {
+		box.get().properties.putToMap(FLineDrawing.frameDrawing, "__edited__", FLineDrawing.expires(FLineDrawing.boxOrigin((bx) -> {
 
 			FLine f = new FLine();
 			f.rect(-5, -5, 10, 10);
-			f.attributes.put(FrameDrawer.filled, true);
-			f.attributes.put(FrameDrawer.stroked, false);
-			f.attributes.put(FrameDrawer.color, color);
+			f.attributes.put(FLineDrawing.filled, true);
+			f.attributes.put(FLineDrawing.stroked, false);
+			f.attributes.put(FLineDrawing.color, color);
 			return f;
 
 		}, new Vec2(1, 1)), 60));
+		Drawing.dirty(box.get());
 	}
 
 	RateLimitingQueue<String, Pair<String, String>> rater = new RateLimitingQueue<String, Pair<String, String>>(20, 100) {
@@ -412,19 +497,18 @@ public class RemoteEditor extends Box {
 		@Override
 		protected void send(String key, Collection<Pair<String, String>> value) {
 
-			System.out.println(" >> "+key+" "+value.size());
+			System.out.println(" >> " + key + " " + value.size());
 
 			if (value.size() > 1) {
 
 
-				if (value.size()<10) {
+				if (value.size() < 10) {
 					String m = "";
 					for (Pair<String, String> v : value) {
 						m = m.concat((m.length() > 0 ? "," : "") + v.second);
 					}
 					server.send(socketName, "[" + m + "].forEach(function(q){ _messageBus.publish('" + key + "', q)})");
-				}
-				else
+				} else
 					//TODO: tell somebody we've dropped something
 					server.send(socketName, "_messageBus.publish('" + key + "', " + value.iterator().next().second + ")");
 
@@ -439,7 +523,7 @@ public class RemoteEditor extends Box {
 			String json = toJson.apply(x).trim();
 
 			if (json.endsWith("}"))
-				json = json.substring(0, json.length()-1)+",box:'"+inside.properties.get(IO.id)+"'}";
+				json = json.substring(0, json.length() - 1) + ",box:'" + inside.properties.get(IO.id) + "'}";
 
 			rater.add(new Pair<>(returnAddress, json));
 		};
@@ -506,7 +590,7 @@ public class RemoteEditor extends Box {
 	protected boolean update() {
 		if (selectionHasChanged) {
 			selectionHasChanged = false;
-			Set<Box> selection = this.breadthFirst(downwards()).filter(x -> x.properties.isTrue(Manipulation.isSelected, false)).collect(Collectors.toSet());
+			Set<Box> selection = this.breadthFirst(downwards()).filter(x -> x.properties.isTrue(Mouse.isSelected, false)).collect(Collectors.toSet());
 			if (selection.size() != 1) {
 				changeSelection(null, currentlyEditing);
 			} else {
@@ -518,6 +602,6 @@ public class RemoteEditor extends Box {
 
 
 	public Execution getExecution(Box box) {
-		return box.first(Execution.execution).orElseThrow(() -> new IllegalArgumentException("no execution found for box "+box));
+		return box.first(Execution.execution).orElseThrow(() -> new IllegalArgumentException("no execution found for box " + box));
 	}
 }

@@ -19,12 +19,10 @@ public class Window {
 
 	static public final Dict.Prop<Boolean> consumed = new Dict.Prop<>("consumed").type().toCannon();
 
-
 	protected GraphicsContext graphicsContext;
 	protected long window;
 	protected int w;
 	protected int h;
-
 
 	public Window(int x, int y, int w, int h, String title) {
 		Windows.windows.init();

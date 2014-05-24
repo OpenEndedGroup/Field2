@@ -5,11 +5,16 @@ import java.nio.ByteBuffer;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13.glActiveTexture;
-import static org.lwjgl.opengl.GL20.glDrawBuffers;
 import static org.lwjgl.opengl.GL30.*;
 
 /**
- * Created by marc on 3/12/14.
+ * FBO - OpenGL Frame Buffer Objects.
+ * <p>
+ * A Frame Buffer Object is a very general off-screen rendering spot for OpenGL. You can create an FBO from an FBOSpecification (there are helper
+ * static methods to help you avoid the mess of historic OpenGL enums, we'll grow these as necessary). They can have multiple layers, optional depth
+ * buffers, optional stencils, multisampling, a variety of components and bit-depths and dimensions.
+ *
+ * TODO: right now we're confined to the GL_TEXTURE2D case, although we know from experience that they layered case is very useful for stereo
  */
 public class FBO extends BaseScene<FBO.State> implements Scene.Perform {
 
@@ -49,18 +54,15 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform {
 			this.multisample = multisample;
 		}
 
-		static public FBOSpecification singleFloat(int unit, int width, int height)
-		{
+		static public FBOSpecification singleFloat(int unit, int width, int height) {
 			return new FBOSpecification(unit, GL_RGBA32F, width, height, GL_RGBA, GL_FLOAT, 32, false, 1, false);
 		}
 
-		static public FBOSpecification rgba(int unit, int width, int height)
-		{
+		static public FBOSpecification rgba(int unit, int width, int height) {
 			return new FBOSpecification(unit, GL_RGBA, width, height, GL_RGBA, GL_BYTE, 8, false, 1, false);
 		}
 
-		static public FBOSpecification rgbaMultisample(int unit, int width, int height)
-		{
+		static public FBOSpecification rgbaMultisample(int unit, int width, int height) {
 			return new FBOSpecification(unit, GL_RGBA, width, height, GL_RGBA, GL_BYTE, 8, false, 1, true);
 		}
 	}
@@ -75,30 +77,22 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform {
 
 
 	protected State setup() {
-
-		System.out.println(" setting up FBO ");
-
 		State s = new State();
-
 		s.name = glGenFramebuffers();
-
-		if (specification.multisample)
-		{
+		if (specification.multisample) {
 			s.multisample = glGenFramebuffers();
 			s.msRenderBuffers = new int[specification.num];
 			glBindFramebuffer(GL_FRAMEBUFFER, s.multisample);
-			for(int i=0;i<s.msRenderBuffers.length;i++)
-			{
+			for (int i = 0; i < s.msRenderBuffers.length; i++) {
 				s.msRenderBuffers[i] = glGenRenderbuffers();
 				int converageSamples = 4;
 
 				glBindRenderbuffer(GL_RENDERBUFFER, s.msRenderBuffers[i]);
 				glRenderbufferStorageMultisample(GL_RENDERBUFFER, converageSamples, specification.internalFormat, specification.width, specification.height);
-				glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+i, GL_RENDERBUFFER, s.msRenderBuffers[i]);
+				glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_RENDERBUFFER, s.msRenderBuffers[i]);
 			}
 
-			if (specification.depth)
-			{
+			if (specification.depth) {
 				s.msDepth = glGenRenderbuffers();
 				int depthSamples = 4;
 				glBindRenderbuffer(GL_RENDERBUFFER, s.msDepth);
@@ -107,8 +101,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform {
 			}
 
 			int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-			if (status != GL_FRAMEBUFFER_COMPLETE)
-				throw new IllegalArgumentException(" bad status, "+status);
+			if (status != GL_FRAMEBUFFER_COMPLETE) throw new IllegalArgumentException(" bad status, " + status);
 		}
 
 
@@ -142,26 +135,21 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform {
 		}
 
 		int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-		if (status!=GL_FRAMEBUFFER_COMPLETE)
-			throw new IllegalArgumentException(" bad status, "+status);
-		else
-			System.err.println(" status is good ");
+		if (status != GL_FRAMEBUFFER_COMPLETE) throw new IllegalArgumentException(" bad status, " + status);
+		else System.err.println(" status is good ");
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		return s;
 	}
 
-	public boolean draw()
-	{
+	public boolean draw() {
 		State s = GraphicsContext.get(this, this::setup);
 		glBindFramebuffer(GL_FRAMEBUFFER, specification.multisample ? s.multisample : s.name);
 		glViewport(0, 0, specification.width, specification.height);
 		display.updateAll();
-		if (specification.multisample)
-		{
+		if (specification.multisample) {
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, s.multisample);
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, s.name);
-			for(int i=0;i<s.text.length;i++)
-			{
+			for (int i = 0; i < s.text.length; i++) {
 				glDrawBuffer(GL_COLOR_ATTACHMENT0 + i);
 				glReadBuffer(GL_COLOR_ATTACHMENT0 + i);
 				glBlitFramebuffer(0, 0, specification.width, specification.height, 0, 0, specification.width, specification.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
@@ -172,8 +160,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform {
 		return true;
 	}
 
-	public Scene scene()
-	{
+	public Scene scene() {
 		return display;
 	}
 
@@ -193,21 +180,15 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform {
 		return new int[]{-1, 1};
 	}
 
-	public void deallocate(State s)
-	{
+	public void deallocate(State s) {
 		glDeleteFramebuffers(s.name);
-		if (s.multisample!=-1)
-			glDeleteFramebuffers(s.multisample);
+		if (s.multisample != -1) glDeleteFramebuffers(s.multisample);
 		glDeleteFramebuffers(s.name);
-		if (s.text!=null)
-			for(int i=0;i<s.text.length;i++)
-				glDeleteTextures(s.text[i]);
-		if (s.depth!=-1)
-			glDeleteRenderbuffers(s.depth);
-		if (s.msDepth!=-1)
-			glDeleteRenderbuffers(s.msDepth);
-		if (s.msRenderBuffers!=null)
-			for(int i=0;i<s.msRenderBuffers.length;i++)
-				glDeleteRenderbuffers(s.msRenderBuffers[i]);
+		if (s.text != null) for (int i = 0; i < s.text.length; i++)
+			glDeleteTextures(s.text[i]);
+		if (s.depth != -1) glDeleteRenderbuffers(s.depth);
+		if (s.msDepth != -1) glDeleteRenderbuffers(s.msDepth);
+		if (s.msRenderBuffers != null) for (int i = 0; i < s.msRenderBuffers.length; i++)
+			glDeleteRenderbuffers(s.msRenderBuffers[i]);
 	}
 }

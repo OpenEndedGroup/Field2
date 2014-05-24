@@ -10,6 +10,11 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 
+/**
+ * This is our typed map class (Dict) with typed map keys (Dict.Prop) with some brain surgery level code to get type information out of Java's
+ * generics. It's used throughout Field (the type information is important because it enables the Conversions class which in turn allows us to massage
+ * dynamic languages well while style exploiting Java's type system)
+ */
 public class Dict implements Serializable {
 	private static final long serialVersionUID = 4506062700963421662L;
 
@@ -22,30 +27,28 @@ public class Dict implements Serializable {
 			if (p.isCannon() && !prop.isCannon()) {
 				cannon.put(p.name, p);
 				prop = p;
-			}
-			else if (p.isCannon() && prop.isCannon() && p!=prop)
-			{
+			} else if (p.isCannon() && prop.isCannon() && p != prop) {
+				// should be an Error?
 				System.err.println(" WARNING: two competing canonical definitions of a Prop");
-				if (p.typeInformation!=null && prop.typeInformation==null)
-				{
+				if (p.typeInformation != null && prop.typeInformation == null) {
 					cannon.put(p.name, p);
 					prop = p;
-				}
-				else if (p.typeInformation==null && prop.typeInformation!=null)
-				{
+				} else if (p.typeInformation == null && prop.typeInformation != null) {
 
-				}
-				else if (p.typeInformation!=null && prop.typeInformation!=null)
-				{
-					if (!Conversions.typeInformationEquals(p.typeInformation, prop.typeInformation))
-					{
-						System.err.println(" ERROR: the two competing canonical definitions of "+p+" have different type information");
-						throw new IllegalArgumentException(p.typeInformation+" "+prop.typeInformation+" "+p+" "+prop);
+				} else if (p.typeInformation != null && prop.typeInformation != null) {
+					if (!Conversions.typeInformationEquals(p.typeInformation, prop.typeInformation)) {
+						System.err.println(" ERROR: the two competing canonical definitions of " + p + " have different type information");
+						throw new IllegalArgumentException(p.typeInformation + " " + prop.typeInformation + " " + p + " " + prop);
 					}
 				}
 			}
 			prop.setCannon();
 			return prop;
+		}
+
+		static public <T> Prop<T> findCannon(Prop<T> p)
+		{
+			return cannon.get(p.name);
 		}
 
 	}
@@ -57,6 +60,7 @@ public class Dict implements Serializable {
 		// optional type information
 		private List<Class> typeInformation;
 		private Class definedInClass;
+		private String documentation;
 
 		public Prop(String name) {
 			this.name = name;
@@ -98,7 +102,7 @@ public class Dict implements Serializable {
 
 		@Override
 		public String toString() {
-			return name + (typeInformation==null ? "" : ""+typeInformation);
+			return name + (typeInformation == null ? "" : "" + typeInformation);
 		}
 
 		protected void setCannon() {
@@ -111,6 +115,15 @@ public class Dict implements Serializable {
 
 		public <T> Prop<T> toCannon() {
 			return (Prop<T>) Canonical.cannonicalize(this);
+		}
+
+		public <T> Prop<T> doc(String doc) {
+			this.documentation = doc;
+			return (Prop<T>) this;
+		}
+
+		public String getDocumentation() {
+			return documentation;
 		}
 
 		@CallerSensitive
@@ -132,8 +145,8 @@ public class Dict implements Serializable {
 					}
 				}
 			}
-			if (f==null)
-				throw new IllegalStateException(" cannot type a Dict.Prop<T> that we can't find. Name is :"+name+" class is :"+c);
+			if (f == null)
+				throw new IllegalStateException(" cannot type a Dict.Prop<T> that we can't find. Name is :" + name + " class is :" + c);
 
 			typeInformation = Conversions.linearize(f.getGenericType());
 
@@ -141,11 +154,15 @@ public class Dict implements Serializable {
 
 			setCannon();
 
-			return (Prop<T>)this;
+			return (Prop<T>) this;
 		}
 
 		public List<Class> getTypeInformation() {
-			return typeInformation==null ? null : new ArrayList<Class>(typeInformation);
+			return typeInformation == null ? null : new ArrayList<Class>(typeInformation);
+		}
+
+		public Prop<T> findCannon() {
+			return Canonical.findCannon(this);
 		}
 	}
 
@@ -321,7 +338,8 @@ public class Dict implements Serializable {
 		Set<Entry<Prop, Object>> e = dictionary.entrySet();
 		for (Entry<Prop, Object> ee : e) {
 			if (!ex.contains(ee.getKey().name))
-				start = start * 31L + (long) (/*ee.getValue() instanceof PyObject ? System.identityHashCode(ee.getValue()) :*/ ee.hashCode());
+				start = start * 31L + (long) (/*ee.getValue() instanceof PyObject ? System.identityHashCode(ee.getValue()) :*/ ee
+					    .hashCode());
 		}
 		return start;
 	}
