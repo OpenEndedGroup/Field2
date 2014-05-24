@@ -17,6 +17,7 @@
     <orderEntry type="module" module-name="fieldwork2" />
     <orderEntry type="module" module-name="fieldnashorn" />
     <orderEntry type="library" name="jglfw" level="project" />
+    <orderEntry type="module" module-name="fieldagent" />
   </component>
 </module>
 
