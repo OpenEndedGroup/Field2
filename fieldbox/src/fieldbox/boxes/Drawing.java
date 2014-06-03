@@ -8,6 +8,7 @@ import field.utility.Rect;
 import fieldbox.ui.FieldBoxWindow;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static field.utility.Util.closeable;
 
@@ -200,7 +201,7 @@ public class Drawing extends Box {
 
 		try (AutoCloseable ignored = closeable(bracketableList)) {
 			insideDrawing = true;
-			root.find(drawers, root.both()).flatMap(x -> x.stream()).forEach(x -> x.draw(this));
+			root.find(drawers, root.both()).collect(Collectors.toList()).stream().flatMap(x -> x.stream()).collect(Collectors.toList()).stream().forEach(x -> x.draw(this));
 		} catch (Exception e) {
 			System.err.println(" exception thrown during drawing ");
 			e.printStackTrace();
