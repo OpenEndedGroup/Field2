@@ -8,7 +8,6 @@ import field.utility.Pair;
 import field.utility.Rect;
 import field.utility.Triple;
 import fieldbox.boxes.*;
-import fieldbox.boxes.plugins.IsExecuting;
 import fielded.Execution;
 
 import java.awt.*;
@@ -26,7 +25,8 @@ public class Chorder extends Box {
 
 		properties.putToList(Mouse.onMouseDown, (e, button) -> {
 
-			System.out.println(" on mouse down :" + e + " " + button + " " + e.after.keyboardState.keysDown + " " + e.after.keyboardState.isAltDown());
+			System.out.println(" on mouse down :" + e + " " + button + " " + e.after.keyboardState.keysDown + " " + e.after.keyboardState
+				    .isAltDown());
 
 			if (button != 0) return null;
 			if (!e.after.keyboardState.isAltDown()) return null;
@@ -35,13 +35,15 @@ public class Chorder extends Box {
 			if (e.after.keyboardState.isControlDown()) return null;
 
 			Optional<Drawing> drawing = this.find(Drawing.drawing, both()).findFirst();
-			Vec2 point = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e.after.x, e.after.y))).orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
+			Vec2 point = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e.after.x, e.after.y)))
+				    .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
 
 			Stream<Pair<Box, Rect>> fr = breadthFirst(both()).map(b -> new Pair<>(b, frame(b))).filter(b -> b.second != null);
 
 			List<Pair<Box, Rect>> frames = fr.collect(Collectors.toList());
 
-			Optional<Pair<Box, Rect>> hit = frames.stream().filter(b -> b.second.intersects(point)).sorted((a, b) -> Float.compare(order(a.second), order(b.second))).findFirst();
+			Optional<Pair<Box, Rect>> hit = frames.stream().filter(b -> b.second.intersects(point))
+				    .sorted((a, b) -> Float.compare(order(a.second), order(b.second))).findFirst();
 
 			System.out.println(" chord hit :" + hit);
 
@@ -75,7 +77,7 @@ public class Chorder extends Box {
 		if (count0 == 0) {
 
 			box.first(Execution.execution).ifPresent(x -> x.support(box, Execution.code).begin(box));
-			// with remote back ends it's possible we'll have to defer this to the next update cycle....
+			// with remote back ends it's possible we'll have to defer this to the next update cycle to give them a chance to acknowledge that were actually executing
 			int count1 = box.properties.computeIfAbsent(IsExecuting.executionCount, (k) -> 0);
 
 			if (count1 > count0) {
@@ -84,7 +86,7 @@ public class Chorder extends Box {
 					System.out.println(" continue !");
 				}));
 				menuSpec.nothing = () -> {
-				    box.first(Execution.execution).ifPresent(x -> x.support(box, Execution.code).end(box));
+					box.first(Execution.execution).ifPresent(x -> x.support(box, Execution.code).end(box));
 				};
 				return MarkingMenus.runMenu(box, point, menuSpec);
 			}
@@ -106,7 +108,8 @@ public class Chorder extends Box {
 		return (e, end) -> {
 
 			Optional<Drawing> drawing = this.find(Drawing.drawing, both()).findFirst();
-			Vec2 point = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e.after.x, e.after.y))).orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
+			Vec2 point = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e.after.x, e.after.y)))
+				    .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
 
 			chordOver(frames, start, point, end);
 
