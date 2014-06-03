@@ -2,9 +2,11 @@ package fieldbox;
 
 import field.graphics.Window;
 import field.linalg.Vec2;
+import field.utility.Pair;
 import field.utility.Rect;
 import fieldbox.boxes.*;
 import fieldbox.io.IO;
+import fielded.RemoteEditor;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -36,6 +38,15 @@ public class DefaultMenus extends Box {
 			}
 			return null;
 		});
+
+		properties.put(RemoteEditor.commands, () -> {
+
+			Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
+			m.put(new Pair<>("Save all", "Saves this document"), DefaultMenus.this::save);
+
+			return m;
+		});
+
 	}
 
 	private void newBox(Window.Event<Window.MouseState> event) {
@@ -57,6 +68,7 @@ public class DefaultMenus extends Box {
 
 	private void save() {
 
+		System.out.println(" saving .... ");
 		Map<Box, String> special = new LinkedHashMap<>();
 		special.put(root, ">>root<<");
 
@@ -71,8 +83,11 @@ public class DefaultMenus extends Box {
 			error=true;
 		}
 
-		if (!error)
+		if (!error) {
+			System.out.println(" going to notify ...");
 			Drawing.notify("Saved to " + filename, this, 200);
+			System.out.println(" ... notified ");
+		}
 	}
 
 	private boolean isNothingSelected() {
