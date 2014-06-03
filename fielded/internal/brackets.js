@@ -33,13 +33,14 @@ function pathStringForTwoLineHandles(lh1, lh2) {
     console.log("rect for line "+cm.getLineNumber(lh1)+" is "+r1.bottom+" "+r1.top)
     if (r1 && r2) {
         sz = (r2.bottom - r1.top) / 8
-        sz = 25;
+        sz = 15;
         r2.bottom -= 8
-        r1.top -= 5
+        r1.top -= 8
 
         w = 30 + sz - 10
         w2 = 48
         w3 = 10 + sz - 10
+        w3 = sz;
         return "M" + w2 + "," + r1.top + "L" + w + "," + r1.top + "C" + (-8 + w3) + "," + r1.top + "," + (20 + w3) + "," + ((r1.top + r2.bottom) / 2) + "," + w3 + "," + ((r1.top + r2.bottom) / 2) + "C" + (20 + w3) + "," + ((r1.top + r2.bottom) / 2) + "," + (-8 + w3) + "," + r2.bottom + "," + w + "," + r2.bottom + "L" + w2 + "," + r2.bottom;
     }
     return null;
