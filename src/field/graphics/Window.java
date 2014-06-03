@@ -381,6 +381,18 @@ public class Window {
 		}
 	}
 
+	static public class Drop {
+		public final String[] files;
+		public final MouseState mouseState;
+		public final KeyboardState keyboardState;
+
+		public Drop(String[] files, MouseState mouseState, KeyboardState keyboardState) {
+			this.files = files;
+			this.mouseState = mouseState;
+			this.keyboardState = keyboardState;
+		}
+	}
+
 	static public class Event<T> {
 		public final T before;
 		public final T after;
@@ -409,15 +421,35 @@ public class Window {
 
 	Queue<Function<Event<KeyboardState>, Boolean>> keyboardHandlers = new LinkedBlockingQueue<>();
 	Queue<Function<Event<MouseState>, Boolean>> mouseHandlers = new LinkedBlockingQueue<>();
+	Queue<Function<Event<Drop>, Boolean>> dropHandlers = new LinkedBlockingQueue<>();
 
 
+	/**
+	 * A keyboard handler is a Function<Event<KeyboardState>, Boolean>>, that is a function that takes a transition between two KeyboardStates and
+	 * returns a boolean, whether or not it ever wants to be called again
+	 */
 	public Window addKeyboardHandler(Function<Event<KeyboardState>, Boolean> h) {
 		keyboardHandlers.add(h);
 		return this;
 	}
 
+	/**
+	 * A keyboard handler is a Function<Event<MouseState>, Boolean>>, that is a function that takes a transition between two MouseStates and
+	 * returns a boolean, whether or not it ever wants to be called again
+	 */
 	public Window addMouseHandler(Function<Event<MouseState>, Boolean> h) {
 		mouseHandlers.add(h);
+		return this;
+	}
+
+	/**
+	 * A keyboard handler is a Function<Event<Drop>, Boolean>>, that is a function that takes a transition between null and a Drop and returns a
+	 * boolean, whether or not it ever wants to be called again
+	 * <p>
+	 * (we expect that as GLFW's notion of drop handling gets richer we'll have a use for Event.before)
+	 */
+	public Window addDropHandler(Function<Event<Drop>, Boolean> h) {
+		dropHandlers.add(h);
 		return this;
 	}
 
@@ -443,8 +475,14 @@ public class Window {
 		Iterator<Function<Event<KeyboardState>, Boolean>> i = keyboardHandlers.iterator();
 		Event<KeyboardState> event = new Event<>(before, after);
 		while (i.hasNext()) if (!i.next().apply(event)) i.remove();
-
 	}
+
+	private void fireDrop(Drop drop) {
+		Iterator<Function<Event<Drop>, Boolean>> i = dropHandlers.iterator();
+		Event<Drop> event = new Event<>(null, drop);
+		while (i.hasNext()) if (!i.next().apply(event)) i.remove();
+	}
+
 
 	static boolean debugKeyboardTransition(Event<KeyboardState> event) {
 		Set<Character> pressed = KeyboardState.charsPressed(event.before, event.after);
@@ -547,7 +585,15 @@ public class Window {
 					System.out.println(" char -- " + character);
 				}
 			}
+
+			@Override
+			public void drop(long window, String[] files) {
+				if (window == Window.this.window) {
+					fireDrop(new Drop(files, mouseState, keyboardState));
+				}
+			}
 		};
 	}
+
 
 }
