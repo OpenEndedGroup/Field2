@@ -316,4 +316,30 @@ public class Vec2 implements Serializable {
 	public double distanceFrom(Vec2 v) {
 		return Math.sqrt((v.x-x)*(v.x-x)+(v.y-y)*(v.y-y));
 	}
+
+	/**
+	 * blend two Vec2 to create a third. out can contain a pre-allocated return Vec2 or null
+	 */
+
+	static public Vec2 lerp(Vec2 a, Vec2 b, float alpha, Vec2 out)
+	{
+		if (out==null) out = new Vec2();
+
+		out.x = a.x*alpha+b.x*(1-alpha);
+		out.y = a.y*alpha+b.y*(1-alpha);
+
+		return out;
+	}
+
+
+	/**
+	 * set this Vec2 to the blend of two Vec2
+	 */
+	public Vec2 lerp(Vec2 a, Vec2 b, float alpha)
+	{
+		this.x = a.x*alpha+b.x*(1-alpha);
+		this.y = a.y*alpha+b.y*(1-alpha);
+
+		return this;
+	}
 }
