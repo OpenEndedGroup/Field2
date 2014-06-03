@@ -74,7 +74,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 		    .doc("a list of text spans for doing multi-color, multi-font runs of text");
 	static public final Dict.Prop<List<String>> fontSpans = new Dict.Prop<>("fontSpans").type().toCannon()
 		    .doc("a list of font spans for doing multi-color, multi-font runs of text");
-	static public final Dict.Prop<List<Vec4>> textColorSpans = new Dict.Prop<>("colorSpans").type().toCannon()
+	static public final Dict.Prop<List<Vec4>> textColorSpans = new Dict.Prop<>("textColorSpans").type().toCannon()
 		    .doc("a list of color spans for doing multi-color, multi-font runs of text");
 
 	static public final Dict.Prop<String> layer = new Dict.Prop<>("layer").type().toCannon()
