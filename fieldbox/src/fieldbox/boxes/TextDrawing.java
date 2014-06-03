@@ -13,13 +13,17 @@ import java.util.Map;
  * Text Drawing for Field
  * <p>
  * Text in OpenGL has always been difficult, even as text elsewhere in the OS has gotten much better. Here we have something that's close to a
- * state-of-the-art compromise between speed, quality and flexibility: it's very, very fast; it looks ok (no subpixel hinting, but relatively ok
- * Anti-Aliasing; no ligatures, but sub-pixel kerning); it doesn't handle unicode worth a damn. The technique is called (signed) Distance Field Text
+ * state-of-the-art mid-point between speed, quality and flexibility: it's very, very fast; it looks ok (no sub-pixel hinting, but relatively fine
+ * Anti-Aliasing; no ligatures, but sub-pixel kerning); and it doesn't handle unicode at all. The technique is called (signed) Distance Field Text
  * Rendering and it uses a a pre-computed single high-resolution "atlas" bitmap for the font that contains the distance to the edge of the text. For
  * tedious reasons this bitmap is fast to anti-alias properly at a variety of scales, unlike actual bitmaps of text.
  * <p>
- * You wouldn't want to look at pages of small text rendered this way (i.e, don't go building a text editor this way), but for larger text or labels
- * this is fast and smooth and comes with no runtime dependencies (on native libraries or Java windowing toolkits).
+ * You wouldn't want to look at pages of small text rendered this way (i.e, don't go building a text editor with this), but for larger text or labels
+ * this is very fast, smooth, stably anti-aliased and comes with no runtime native dependencies (either on native libraries directly or indirectly
+ * via Java windowing toolkits).
+ *
+ * Todo: more fonts, sub-pixel hinting?
+ * Todo: if we were really good, we'd autogenerate .fnt files on demand
  */
 public class TextDrawing extends Box {
 
