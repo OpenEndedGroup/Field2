@@ -15,9 +15,12 @@ import java.util.function.Function;
 import static com.badlogic.jglfw.Glfw.*;
 import static com.badlogic.jglfw.gl.GL.glViewport;
 
+/**
+ * An Window with an associated OpenGL draw context, and a base Field graphics Scene
+ */
 public class Window {
 
-	static public final Dict.Prop<Boolean> consumed = new Dict.Prop<>("consumed").type().toCannon();
+	static public final Dict.Prop<Boolean> consumed = new Dict.Prop<>("consumed").type().doc("marks an event as handled elsewhere").toCannon();
 
 	protected GraphicsContext graphicsContext;
 	protected long window;
@@ -44,7 +47,6 @@ public class Window {
 
 		window = glfwCreateWindow(w, h, title, 0, 0);
 		Windows.windows.register(window, makeCallback());
-		System.err.println(" window is :" + window);
 		glfwShowWindow(window);
 
 		glfwMakeContextCurrent(window);
@@ -63,7 +65,6 @@ public class Window {
 
 		addMouseHandler(Window::debugMouseTransition);
 		addKeyboardHandler(Window::debugKeyboardTransition);
-
 
 		RunLoop.main.getLoop().connect(0, (i) -> loop());
 
@@ -112,9 +113,8 @@ public class Window {
 	}
 
 	/**
-	 * By default, we are animated, and we draw every frame
-	 *
-	 * @return
+	 * By default, we are animated, and we draw every frame. Some subclasses (notibly FieldBoxWindow) will finesse this down a bit, but a standard
+	 * graphics window has a traditional "draw-every-frame" draw loop
 	 */
 	protected boolean needsRepainting() {
 		return true;
@@ -145,6 +145,11 @@ public class Window {
 		}
 	}
 
+	/**
+	 * returns the Scene associated with this window.
+	 *
+	 * This is the principle entry point into this window
+	 */
 	public Scene scene() {
 		return mainScene;
 	}
