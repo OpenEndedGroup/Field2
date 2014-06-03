@@ -13,6 +13,7 @@ import java.util.*;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Fundamental drawing support for Boxes
@@ -74,7 +75,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 		    .doc("a list of text spans for doing multi-color, multi-font runs of text");
 	static public final Dict.Prop<List<String>> fontSpans = new Dict.Prop<>("fontSpans").type().toCannon()
 		    .doc("a list of font spans for doing multi-color, multi-font runs of text");
-	static public final Dict.Prop<List<Vec4>> textColorSpans = new Dict.Prop<>("colorSpans").type().toCannon()
+	static public final Dict.Prop<List<Vec4>> textColorSpans = new Dict.Prop<>("textColorSpans").type().toCannon()
 		    .doc("a list of color spans for doing multi-color, multi-font runs of text");
 
 	static public final Dict.Prop<String> layer = new Dict.Prop<>("layer").type().toCannon()
@@ -110,7 +111,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 				else all.add(fl);
 			}
 
-			drawing.values().stream().map(c -> c.apply(x)).filter(fline -> fline != null).forEach(fline -> dispatchLine(fline, context));
+			drawing.values().stream().map(c -> c.apply(x)).filter(fline -> fline != null).collect(Collectors.toList()).forEach(fline -> dispatchLine(fline, context));
 
 
 			Map<String, Supplier<FLine>> ll = x.properties.computeIfAbsent(lines, (k) -> new LinkedHashMapAndArrayList<>());
