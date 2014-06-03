@@ -5,6 +5,7 @@ import field.utility.Dict;
 import field.utility.Pair;
 import fieldbox.boxes.Box;
 import fielded.Animatable;
+import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import javax.script.ScriptContext;
@@ -25,8 +26,8 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 	final public static Dict.Prop<ScriptContext> boxBindings = new Dict.Prop<ScriptContext>("_boxBindings");
 	private TernSupport ternSupport;
 
-	ScriptEngineManager factory = new ScriptEngineManager();
-	ScriptEngine engine = factory.getEngineByName("nashorn");
+	NashornScriptEngineFactory factory = new NashornScriptEngineFactory();
+	ScriptEngine engine = factory.getScriptEngine(new String[]{"-scripting"});
 
 	public Nashorn() {
 
