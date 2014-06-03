@@ -1,6 +1,7 @@
 package fieldbox;
 
 import field.graphics.*;
+import field.utility.Options;
 import fieldbox.io.IO;
 
 /**
@@ -26,6 +27,8 @@ public class FieldBox {
 
 
 	static public void main(String[] s) {
+
+		Options.parseCommandLine(s);
 
 		Open open = new Open("testFile.field2");
 
