@@ -1,4 +1,6 @@
-raph = Raphael($(".CodeMirror-linenumbers").get(0), "100%", "100%")
+var lineNumbers = $(".CodeMirror-linenumbers").get(0)
+
+raph = Raphael(lineNumbers, "100%", "100%")
 
 function rectForLineHandle(lh) {
     var y = cm.getLineNumber(lh);
@@ -16,6 +18,10 @@ function rectForLineHandle(lh) {
                 }
             }
         }
+
+        z.top -= $(lineNumbers).offset().top-8
+        z.bottom -= $(lineNumbers).offset().top-8
+
         return z;
     }
     return null;
@@ -24,9 +30,10 @@ function rectForLineHandle(lh) {
 function pathStringForTwoLineHandles(lh1, lh2) {
     r1 = rectForLineHandle(lh1)
     r2 = rectForLineHandle(lh2)
-    console.log(r1 + " " + r2)
+    console.log("rect for line "+cm.getLineNumber(lh1)+" is "+r1.bottom+" "+r1.top)
     if (r1 && r2) {
         sz = (r2.bottom - r1.top) / 8
+        sz = 25;
         r2.bottom -= 8
         r1.top -= 5
 
@@ -105,6 +112,19 @@ function serializeAllBrackets() {
     })
     return ret
 }
+
+function findPathForLines(h1, h2)
+{
+	var found;
+	raph.forEach(function (e) {
+        if ("isHandleDecorator" in e) {
+        	if (cm.getLineNumber(e.h1)==h1 && cm.getLineNumber(e.h2)==h2)
+	        	found = e
+        }
+    })
+	return found;
+}
+
 
 
 raph.clear()
