@@ -1,5 +1,8 @@
 package field.graphics;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 /**
  * Created by marc on 3/25/14.
  */
@@ -10,6 +13,7 @@ public class RunLoop {
 
 	public Scene mainLoop = new Scene();
 	Thread mainThread = null;
+	static public final ExecutorService workerPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 2);
 
 
 	public Scene getLoop()

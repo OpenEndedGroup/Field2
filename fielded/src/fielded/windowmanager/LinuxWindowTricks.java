@@ -15,7 +15,11 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * Created by marc on 4/15/14.
+ * Tracks the editor opened in the Chrome process.
+ *
+ * This allows us to programmatically switch focus to it (by double tapping shift) and close it on exit
+ *
+ * todo: figure out how to mimic this on OS X
  */
 public class LinuxWindowTricks extends Box {
 
@@ -32,9 +36,6 @@ public class LinuxWindowTricks extends Box {
 		connect(root);
 		first(Boxes.window, both()).ifPresent(x -> x.addKeyboardHandler(event -> {
 			Set<Integer> kpressed = Window.KeyboardState.keysPressed(event.before, event.after);
-
-			System.out.println(" keys pressed :" + kpressed);
-
 			if (kpressed.contains(Glfw.GLFW_KEY_LEFT_SHIFT) || kpressed.contains(Glfw.GLFW_KEY_RIGHT_SHIFT)) {
 				if (event.after.keysDown.size() == 1) trigger();
 			}

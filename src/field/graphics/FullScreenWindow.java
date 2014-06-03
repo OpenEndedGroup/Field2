@@ -1,7 +1,7 @@
 package field.graphics;
 
 /**
- * // will contain logic for going fullscreen automatically
+ * // will contain logic for going fullscreen automatically, right now, it doesn't
  */
 public class FullScreenWindow extends Window {
 

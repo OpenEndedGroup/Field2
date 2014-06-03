@@ -1,5 +1,7 @@
 package field.graphics;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import field.utility.Pair;
 
 import java.util.*;
@@ -20,7 +22,8 @@ import java.util.function.Consumer;
 public class Scene {
 
 	/**
-	 * Although we can build the Scene structure out of (int, Consumer<int>) tuples, it's more along the grain of Java's type system to use an interface with both
+	 * Although we can build the Scene structure out of (int, Consumer<int>) tuples, it's more along the grain of Java's type system to use an
+	 * interface with both
 	 */
 	static public interface Perform extends Consumer<Integer> {
 		public boolean perform(int pass);
@@ -71,6 +74,8 @@ public class Scene {
 
 	TreeMap<Integer, Set<Consumer<Integer>>> scene = new TreeMap<>();
 
+	BiMap<String, Consumer<Integer>> tagged = HashBiMap.create();
+
 	/**
 	 * A (int pass, Consumer<Integer>) tuple can be effectively cast as a Perform. The int says what pass the consumer should be run for, and the
 	 * consumer is called for that pass
@@ -82,10 +87,46 @@ public class Scene {
 	}
 
 	/**
+	 * A (int pass, String tag, Consumer<Integer>) tuple can be effectively cast as a Perform. The int says what pass the consumer should be run
+	 * for, and the consumer is called for that pass.
+	 * <p>
+	 * The additional "tag" gives this consumer a name, so that it can be referred to later. Note that at any given time there can only be one
+	 * Perform or Consumer with any particular tag associated with a Scene, anything previously tagged with this scene is automatically
+	 * disconnected. This allows you write code in "idempotent" style: specifically you can have connect(...) calls that can be safely (although
+	 * not particularlly efficiently) called over and over again. This is good for rapidly iterating on a problem without having to worry about
+	 * tearing down resources that you constructed.
+	 */
+	public boolean connect(int pass, String tag, Consumer<Integer> p) {
+		Consumer<Integer> was = tagged.remove(tag);
+		if (was != null) disconnect(was);
+
+		Set<Consumer<Integer>> c = scene.get(pass);
+		if (c == null) scene.put(pass, c = new LinkedHashSet<Consumer<Integer>>());
+
+		tagged.put(tag, p);
+
+		return c.add(p);
+	}
+
+	/**
 	 * Disconnects a Perform from this Scene. Care has been taken to ensure you can do this while the scene is being traversed.
 	 */
-	public void disconnect(Perform p) {
-		scene.values().stream().map(x -> x.remove(p));
+	public void disconnect(Consumer<Integer> p) {
+
+		scene.values().stream().map(x -> x.remove(p)).count();
+
+	}
+
+
+	/**
+	 * Disconnects a Perform from this Scene. Care has been taken to ensure you can do this while the scene is being traversed.
+	 * <p>
+	 * returns true if there was something tagged "tag";
+	 */
+	public boolean disconnect(String tag) {
+		Consumer<Integer> was = tagged.remove(tag);
+		if (was != null) disconnect(was);
+		return was != null;
 	}
 
 	/**
@@ -108,6 +149,7 @@ public class Scene {
 
 	/**
 	 * resets the scene to a particular Map<Integer, Set<Consumer<Integer>>>
+	 *
 	 * @param scene
 	 */
 	public void setScene(Map<Integer, Set<Consumer<Integer>>> scene) {
@@ -202,7 +244,8 @@ public class Scene {
 		String ret = "" + this + "\n";
 		String prefix = "   ";
 		for (Map.Entry<Integer, Set<Consumer<Integer>>> c : scene.entrySet()) {
-			ret = ret + prefix + "" + c.getKey() + ":\n";
+			String tag = tagged.inverse().get(c);
+			ret = ret + prefix + "" + c.getKey() + ":" + (tag == null ? "" : tag) + "\n";
 			prefix = prefix + " ";
 			for (Consumer<Integer> cc : c.getValue())
 				ret = ret + "\n" + debugPrintScene(cc, prefix);
@@ -215,7 +258,8 @@ public class Scene {
 		prefix += "   ";
 		if (cc instanceof Scene) {
 			for (Map.Entry<Integer, Set<Consumer<Integer>>> c : ((Scene) cc).scene.entrySet()) {
-				ret = ret + prefix + "" + c.getKey() + ":\n";
+				String tag = tagged.inverse().get(c);
+				ret = ret + prefix + "" + c.getKey() + ":" + (tag == null ? "" : tag) + "\n";
 				prefix = prefix + " ";
 				for (Consumer<Integer> ccc : c.getValue())
 					ret = ret + "\n" + debugPrintScene(ccc, prefix);

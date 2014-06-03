@@ -1,6 +1,8 @@
 package fieldbox;
 
 import field.graphics.*;
+import field.utility.Options;
+import fieldagent.Main;
 import fieldbox.io.IO;
 
 import java.awt.*;
@@ -31,9 +33,12 @@ public class FieldBox {
 
 	static public void main(String[] s) {
 
-		Toolkit.getDefaultToolkit();
+		if (Main.os== Main.OS.mac)
+			Toolkit.getDefaultToolkit();
 
 		// TODO --- get from command line / previous
+		Options.parseCommandLine(s);
+
 		Open open = new Open("testFile.field2");
 
 		// TODO --- save automatically on exit

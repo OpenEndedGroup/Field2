@@ -26,9 +26,12 @@
 		<include name="glfw-3.0/src/init.c"/>
 		<include name="glfw-3.0/src/input.c"/>
 		<include name="glfw-3.0/src/joystick.c"/>
+		<include name="glfw-3.0/src/iokit_joystick.m"/>
 		<include name="glfw-3.0/src/monitor.c"/>
 		<include name="glfw-3.0/src/time.c"/>
 		<include name="glfw-3.0/src/window.c"/>
+		<include name="glfw-3.0/src/posix_tls.c"/>
+		<include name="glfw-3.0/src/mach_time.c"/>
 		<include name="glfw-3.0/src/cocoa_clipboard.m"/>
 		<include name="glfw-3.0/src/cocoa_gamma.c"/>
 		<include name="glfw-3.0/src/cocoa_init.m"/>
@@ -55,7 +58,7 @@
 	<!-- define linker and options -->
 	<property name="linker" value="${compilerPrefix}g++${compilerSuffix}"/>
 	<property name="linker-opts" value="-shared -arch i386 -arch x86_64 -mmacosx-version-min=10.5"/>
-	<property name="libraries" value="-framework Cocoa -framework OpenGL -framework IOKit -lpthread"/>
+	<property name="libraries" value="-framework Cocoa -framework OpenGL -framework IOKit -framework Quartz -lpthread"/>
 	
 	<!-- cleans the build directory, removes all object files and shared libs -->
 	<target name="clean">

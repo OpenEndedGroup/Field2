@@ -3,6 +3,7 @@ package fieldnashorn;
 import field.utility.Pair;
 import fieldbox.boxes.Box;
 import fielded.Execution;
+import jdk.internal.dynalink.beans.StaticClass;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import javax.script.Bindings;
@@ -150,6 +151,21 @@ public class TernSupport {
 					System.out.println(" wrapped in a box ");
 					List<Execution.Completion> fromJava = javaSupport.getCompletionsFor(e, right);
 					System.out.println(" completions are :"+fromJava);
+					for(Execution.Completion x : fromJava)
+					{
+						if (x.start==-1) x.start=c-right.length();
+						if (x.end==-1) x.end=c;
+					}
+
+					r.addAll(fromJava);
+				}
+				else if (e instanceof StaticClass)
+				{
+					e = ((StaticClass)e).getRepresentedClass();
+
+					System.out.println(" asking java for completions for CLASS "+e);
+					List<Execution.Completion> fromJava = javaSupport.getCompletionsFor(e, right);
+					System.out.println(" got completions :"+fromJava);
 					for(Execution.Completion x : fromJava)
 					{
 						if (x.start==-1) x.start=c-right.length();

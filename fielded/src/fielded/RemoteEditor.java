@@ -77,8 +77,9 @@ public class RemoteEditor extends Box {
 		});
 
 		this.properties.put(outputFactory, x -> newOutput(x, "box.output", (m) -> new JSONStringer().object().key("type").value("success").key("message").value(m).endObject().toString()));
-
 		this.properties.put(outputErrorFactory, x -> newOutput(x, "box.error", (Function<Pair<Integer, String>, String>) (lineerror) -> new JSONStringer().object().key("type").value("error").key("line").value((int) lineerror.first).key("message").value(lineerror.second).endObject().toString()));
+
+		System.out.println(" set default factories ");
 
 
 		server.addHandlerLast(Predicate.isEqual("text.updated"), () -> socketName, (s, socket, address, payload) -> {

@@ -89,6 +89,7 @@ public class TextDrawing extends Box {
 			    "uniform vec2 translation;\n" +
 			    "uniform vec2 scale;\n" +
 			    "uniform vec2 bounds;\n" +
+			    "uniform float smoothing;\n" +
 
 			    "void main()\n" +
 			    "{\n" +
@@ -96,6 +97,7 @@ public class TextDrawing extends Box {
 			    "   gl_Position =  vec4(-1+at.x*2, 1-at.y*2, 0.5, 1.0);\n" +
 			    "   vertexColor = color;\n" +
 			    "   vtc =tc;\n" +
+			    "   vtc.z =smoothing;\n" +
 			    "}");
 
 
@@ -108,13 +110,12 @@ public class TextDrawing extends Box {
 			    "in vec4 vtc;\n" +
 			    "uniform sampler2D te;\n" +
 			    "\n" +
-			    "uniform float smoothing;\n" +
 			    "uniform float gamma;\n" +
 			    "uniform float opacity;\n" +
 			    "\n" +
 			    "void main()\n" +
 			    "{\n" +
-			    "\tfloat w = min(0.5, 0.5*0.5/smoothing);\n" +
+			    "\tfloat w = min(0.5, 0.5*0.5/vtc.z);\n" +
 			    "\n" +
 			    "\tvec4 current = texture(te, vtc.xy*(1/512.0),0);\n" +
 			    "\tfloat currenta = smoothstep(0.5-w, 0.5+w, current.r);\n" +
