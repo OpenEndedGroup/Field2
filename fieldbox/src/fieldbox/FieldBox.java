@@ -17,7 +17,7 @@ public class FieldBox {
 		io.addFilespec("code", io.EXECUTION, io.EXECUTION);
 
 		io.addFilespec("fragment", ".glslf", "glsl");
-		io.addFilespec("vertex", ".glslf", "glsl");
+		io.addFilespec("vertex", ".glslv", "glsl");
 		io.addFilespec("geometry", ".glslg", "glsl");
 	}
 
