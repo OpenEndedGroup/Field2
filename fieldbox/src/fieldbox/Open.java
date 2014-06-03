@@ -116,7 +116,6 @@ public class Open {
 		Compositor.Layer ly = window.getCompositor().newLayer("__main__blury", 1);
 		window.getCompositor().getMainLayer().blurYInto(5, lx.getScene());
 		lx.blurXInto(5, ly.getScene());
-//		ly.drawInto(window.scene());
 		window.getCompositor().getMainLayer().drawInto(window.scene());
 		window.getCompositor().getLayer("glass").compositeWith(ly, window.scene());
 
