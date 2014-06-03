@@ -28,7 +28,7 @@ public class FLineInteraction extends Box implements Drawing.Drawer, Mouse.OnMou
 	static public final Dict.Prop<Cached<FLine, Object, Area>> projectedArea = new Dict.Prop<>("_projectedArea");
 	static public final Dict.Prop<Map<String, Function<Box, FLine>>> interactiveLines = new Dict.Prop<>("interactiveLines").type().toCannon().doc("add lines to this property to make them interactive. OnMouseExit and OnMouseEnter attributes will be called appropriately");
 
-	public FLineInteraction() {
+	public FLineInteraction(Box root) {
 		properties.putToList(Drawing.drawers, this);
 		properties.put(interaction, this);
 		properties.putToList(Mouse.onMouseDown, this);

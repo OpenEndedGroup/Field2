@@ -5,6 +5,7 @@ import field.graphics.RunLoop;
 import field.graphics.Scene;
 import field.graphics.SimpleArrayBuffer;
 import field.utility.Rect;
+import fieldagent.Main;
 import fieldbox.boxes.*;
 import fieldbox.boxes.TimeSlider;
 import fieldbox.boxes.plugins.Delete;
@@ -29,9 +30,12 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL11.glEnable;
 
 /**
- * This Opens a document, loading a Window and a standard assortment of plugins into the top of a Box graph and the document into the "bottom" of the Box graph.
- *
+ * This Opens a document, loading a Window and a standard assortment of plugins into the top of a Box graph and the document into the "bottom" of the
+ * Box graph.
+ * <p>
  * The significant TODO: here is the open Plugin architecture
+ *
+ * A Plugin is simply something that's initialized: Constructor(boxes.root()).connect(boxes.root()) we can take these from a classname and can optionally initialize them connected to something else
  */
 public class Open {
 
@@ -49,7 +53,7 @@ public class Open {
 	private final Keyboard keyboard;
 	private Nashorn javascript;
 
-	public Open(String filename)  {
+	public Open(String filename) {
 		this.filename = filename;
 		window = new FieldBoxWindow(50, 50, 1500, 1000, filename);
 
@@ -66,17 +70,22 @@ public class Open {
 		watches.connect(boxes.root());
 
 		drawing = new Drawing();
+		// add the default layer to the box graph
 		drawing.install(boxes.root());
+		// add the glass layer to the box graph
 		drawing.install(boxes.root(), "glass");
+		// connect drawing to the box graph
 		drawing.connect(boxes.root());
 
 		textDrawing = new TextDrawing();
+		// add the text default layer to the box graph
 		textDrawing.install(boxes.root());
+		// add the text glass layer to the box graph
 		textDrawing.install(boxes.root(), "glass");
+		// connect text drawing to the box graph
 		textDrawing.connect(boxes.root());
 
-		frameDrawing = new FLineDrawing();
-		frameDrawing.connect(boxes.root());
+		frameDrawing = (FLineDrawing) new FLineDrawing().connect(boxes.root());
 
 		mouse = new Mouse();
 		window.addMouseHandler(state -> {
@@ -90,16 +99,14 @@ public class Open {
 			return true;
 		});
 
-		interaction = new FLineInteraction();
-		interaction.connect(boxes.root());
+		interaction = (FLineInteraction) new FLineInteraction(boxes.root()).connect(boxes.root());
 
 		// MarkingMenus must come before FrameManipulation, so FrameManipulation can handle selection state modification before MarkingMenus run
-		markingMenus = new MarkingMenus(boxes.root());
-		markingMenus.connect(boxes.root());
+		markingMenus = (MarkingMenus) new MarkingMenus(boxes.root()).connect(boxes.root());
 
-		frameManipulation = new FrameManipulation();
-		frameManipulation.connect(boxes.root());
+		frameManipulation = (FrameManipulation) new FrameManipulation(boxes.root()).connect(boxes.root());
 
+		// here are some examples of plugins
 		new Delete(boxes.root()).connect(boxes.root());
 
 		new Topology(boxes.root()).connect(boxes.root());
@@ -112,19 +119,18 @@ public class Open {
 
 		new Rename(boxes.root()).connect(boxes.root());
 
+		/* cascade two blurs, a vertical and a horizontal together from the glass layer onto the base layer */
 		Compositor.Layer lx = window.getCompositor().newLayer("__main__blurx");
 		Compositor.Layer ly = window.getCompositor().newLayer("__main__blury", 1);
 		window.getCompositor().getMainLayer().blurYInto(5, lx.getScene());
 		lx.blurXInto(5, ly.getScene());
-//		ly.drawInto(window.scene());
 		window.getCompositor().getMainLayer().drawInto(window.scene());
 		window.getCompositor().getLayer("glass").compositeWith(ly, window.scene());
 
-
 		System.err.println(" -- FieldBox finished initializing -- ");
 
+		/* reports on how much data we're sending to OpenGL and how much the MeshBuilder caching system is getting us. This is useful for noticing when we're repainting excessively or our cache is suddenly blown completely */
 		RunLoop.main.getLoop().connect(10, Scene.strobe((i) -> {
-
 			if (MeshBuilder.cacheHits + MeshBuilder.cacheMisses_internalHash + MeshBuilder.cacheMisses_cursor + MeshBuilder.cacheMisses_externalHash > 0) {
 				System.out.println(" meshbuilder cache " + MeshBuilder.cacheHits + " | " + MeshBuilder.cacheMisses_cursor + " / " + MeshBuilder.cacheMisses_externalHash + " / " + MeshBuilder.cacheMisses_internalHash);
 				MeshBuilder.cacheHits = 0;
@@ -139,8 +145,9 @@ public class Open {
 		}, 600));
 
 
-		new LinuxWindowTricks(boxes.root());
+		if (Main.os == Main.OS.linux) new LinuxWindowTricks(boxes.root());
 
+		// add Javascript runtime as base execution layer
 		javascript = new Nashorn();
 		Execution execution = new Execution(javascript);
 		execution.connect(boxes.root());
@@ -151,43 +158,27 @@ public class Open {
 			e.printStackTrace();
 		}
 
+		// add a red line time slider to the sheet (this isn't saved with the document, so we'll add it each time
 		boxes.root().connect(new TimeSlider());
 
+		// actually open the document that's stored on disk
 		doOpen();
+
+		// start the runloop
 		boxes.start();
 
 	}
 
-	protected void doOpen()
-	{
+	protected void doOpen() {
 		Map<String, Box> special = new LinkedHashMap<>();
 		special.put(">>root<<", boxes.root());
 
 		Set<Box> created = new LinkedHashSet<Box>();
-		IO.Document doc = FieldBox.fieldBox.io.readDocument(FieldBox.fieldBox.io.WORKSPACE + "/"+filename, special, created);
+		IO.Document doc = FieldBox.fieldBox.io.readDocument(FieldBox.fieldBox.io.WORKSPACE + "/" + filename, special, created);
 		System.out.println("created :" + created);
 
 		Drawing.dirty(boxes.root());
 
-	}
-
-	protected void testFile()
-	{
-		Box b1 = new Box();
-		boxes.root().connect(b1);
-		b1.properties.put(Box.frame, new Rect(40, 70, 200f, 200f));
-		b1.properties.put(Box.name, "Big Box - b1");
-		b1.properties.put(IO.id, UUID.randomUUID().toString());
-		Drawing.dirty(b1);
-
-
-		Box b2 = null;
-		b2 = new Box();
-		boxes.root().connect(b2);
-		b2.properties.put(Box.frame, new Rect(300f, 50f, 50f, 75f));
-		b2.properties.put(Box.name, "A_one day");
-		b2.properties.put(IO.id, UUID.randomUUID().toString());
-		Drawing.dirty(b2);
 	}
 
 	public boolean defaultGLPreamble(int pass) {
@@ -203,7 +194,7 @@ public class Open {
 
 	public boolean defaultGLPreambleTransparent(int pass) {
 		glViewport(0, 0, window.getWidth(), window.getHeight());
-		glClearColor(2*0x2d/255f,2*0x31/255f,2*0x33/255f, 0);
+		glClearColor(2 * 0x2d / 255f, 2 * 0x31 / 255f, 2 * 0x33 / 255f, 0);
 		glClear(GL11.GL_COLOR_BUFFER_BIT);
 		glEnable(GL11.GL_BLEND);
 		glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
