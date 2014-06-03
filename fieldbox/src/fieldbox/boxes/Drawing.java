@@ -248,10 +248,6 @@ public class Drawing extends Box {
 
 	/**
 	 * puts some text on the screen for a certain number of animation cycles. TODO --- really ought to be certain number of seconds, not cycles.
-	 *
-	 * @param text
-	 * @param from
-	 * @param dur
 	 */
 	static public void notify(String text, Box from, int dur) {
 		from.properties.putToMap(FLineDrawing.frameDrawing, "__notificationText__", FLineDrawing.expires(box -> {
@@ -281,5 +277,9 @@ public class Drawing extends Box {
 			f.attributes.put(FLineDrawing.filled, true);
 			return f;
 		}, dur, 0.05f));
+
+		if (from!=null)
+			Drawing.dirty(from);
+
 	}
 }
