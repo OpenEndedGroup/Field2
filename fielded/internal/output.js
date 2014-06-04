@@ -133,8 +133,8 @@ function clearOutputs(startLine, endLine) {
 }
 
 globalCommands.push({
-    "name": "clear outputs",
-    "info": "clear all output areas in this editor",
+    "name": "Clear Outputs",
+    "info": "Clear all output areas in this editor.",
     "callback": function () {
         clearOutputs(0, cm.lineCount())
     }
