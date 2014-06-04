@@ -27,7 +27,7 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 	private TernSupport ternSupport;
 
 	NashornScriptEngineFactory factory = new NashornScriptEngineFactory();
-	ScriptEngine engine = factory.getScriptEngine(new String[]{"-scripting"});
+	ScriptEngine engine = factory.getScriptEngine(new String[]{"-scripting", "--global-per-engine"});
 
 	public Nashorn() {
 
@@ -160,7 +160,7 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 	}, (x) -> x);
 
 	void setupInitialBindings(ScriptContext context, Box first) {
-		context.setAttribute("_", new UnderscoreBox(first), ScriptContext.GLOBAL_SCOPE);
+		context.setAttribute("_", new UnderscoreBox(first), ScriptContext.ENGINE_SCOPE);
 	}
 
 	@Override
