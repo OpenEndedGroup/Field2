@@ -165,6 +165,25 @@ public class Drawing extends Box {
 		return this;
 	}
 
+
+	static public boolean intersects(Window.Event<?> event, Box box)
+	{
+		Rect frame = (Rect) box.properties.get(Box.frame);
+		if (frame==null) return false;
+
+		Optional<Drawing> drawing = (Optional<Drawing>) box.find(Drawing.drawing, box.both()).findFirst();
+		if (!drawing.isPresent()) return false;
+
+		Object o = event.after;
+		if (o instanceof Window.HasPosition)
+		{
+			Optional<Vec2> o2 = ((Window.HasPosition) o).position();
+			if (!o2.isPresent()) return false;
+
+			return frame.intersects(drawing.get().windowSystemToDrawingSystem(o2.get()));
+		}
+	}
+
 	/**
 	 * to convert between event / mouse / pixel coordinates and OpenGL / Box / Drawing coordinates.
 	 */
