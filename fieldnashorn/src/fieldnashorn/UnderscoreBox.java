@@ -1,6 +1,7 @@
 package fieldnashorn;
 
 import field.graphics.RunLoop;
+import field.utility.Conversions;
 import field.utility.Dict;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Drawing;
@@ -13,9 +14,13 @@ import jdk.nashorn.internal.runtime.linker.JavaAdapterFactory;
 
 import javax.script.ScriptContext;
 import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Method;
+import java.lang.reflect.TypeVariable;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -33,7 +38,7 @@ import java.util.stream.Collectors;
  * type information is pulled out automatically, so conversions from lambdas to various SAM's are done automatically, see Conversions.java
  * <p>
  * completions and documentation is done based on the Dict.Prop framework
- *
+ * <p>
  * Todo: similar shim class for FLine drawing class
  */
 public class UnderscoreBox extends AbstractJSObject implements JavaSupport.HandlesCompletion {
@@ -101,7 +106,13 @@ public class UnderscoreBox extends AbstractJSObject implements JavaSupport.Handl
 		}
 
 		System.out.println(" type information for cannon property is " + cannon.getTypeInformation());
-		return at.find(cannon, at.upwards()).findFirst().orElse(null);
+		Object ret = at.find(cannon, at.upwards()).findFirst().orElse(null);
+
+		if (ret instanceof Box.FunctionOfBox) {
+			return (Supplier) (() -> ((Box.FunctionOfBox) ret).apply(at));
+		}
+
+		return ret;
 	}
 
 
@@ -124,7 +135,6 @@ public class UnderscoreBox extends AbstractJSObject implements JavaSupport.Handl
 			}
 		}
 
-
 		if (tick != RunLoop.tick) {
 			Drawing.dirty(at);
 			tick = RunLoop.tick;
@@ -134,8 +144,25 @@ public class UnderscoreBox extends AbstractJSObject implements JavaSupport.Handl
 	@Override
 	public Set<String> keySet() {
 		// all non private properties
-		return at.breadthFirst(at.upwards()).map(x -> x.properties.getMap().keySet()).flatMap(x -> x.stream()).map(x -> x.getName())
+		Set<String> s1 = at.breadthFirst(at.upwards()).map(x -> x.properties.getMap().keySet()).flatMap(x -> x.stream()).map(x -> x.getName())
 			    .filter(x -> !x.startsWith("_")).collect(Collectors.toSet());
+
+		// and all public methods
+		Set<String> m1 = getAllPublicMethods();
+
+		s1.addAll(m1);
+		return s1;
+	}
+
+	protected Set<String> getAllPublicMethods() {
+		Set<String> m1 = new LinkedHashSet<>();
+		Method[] m = at.getClass().getDeclaredMethods();
+		for (Method mm : m) {
+			if (mm.isAccessible()) {
+				m1.add(mm.getName());
+			}
+		}
+		return m1;
 	}
 
 	@Override
@@ -145,11 +172,44 @@ public class UnderscoreBox extends AbstractJSObject implements JavaSupport.Handl
 
 	@Override
 	public List<Execution.Completion> getCompletionsFor(String prefix) {
-		return keySet().stream().filter(x -> x.startsWith(prefix)).sorted().map(x -> {
+		Set<String> apm = getAllPublicMethods();
+		List<Execution.Completion> l1 = keySet().stream().filter(x -> x.startsWith(prefix)).sorted().map(x -> {
 			Dict.Prop q = new Dict.Prop(x).findCannon();
-			if (q == null) return new Execution.Completion(-1, -1, x, "");
-			else return new Execution.Completion(-1, -1, x, q.getTypeInformation() + " " + q.getDocumentation());
-		}).collect(Collectors.toList());
+			if (q == null) {
+				return null;
+			} else return new Execution.Completion(-1, -1, x, "<span class='type'>" + Conversions.fold(q.getTypeInformation(), t -> compress(t)) + "</span> <span class='doc'>" + q.getDocumentation()+"</span>");
+		}).filter(x -> x != null).collect(Collectors.toList());
+
+		List<Execution.Completion> l2 = JavaSupport.javaSupport.getCompletionsFor(at, prefix);
+
+		l1.addAll(l2.stream().filter(x ->{
+			for(Execution.Completion c : l1)
+				if (c.replacewith.equals(x.replacewith)) return false;
+			return true;
+		}).collect(Collectors.toList()));
+		return l1;
+	}
+
+
+
+	static public String compress(String signature) {
+		signature = " " + signature;
+
+		Pattern p = Pattern.compile("([A-Za-z]*?)[\\.\\$]([A-Za-z]*?)");
+		Matcher m = p.matcher(signature);
+
+		while (m.find()) {
+			signature = m.replaceAll("$2");
+			m = p.matcher(signature);
+		}
+
+		signature = signature.replace(" public ", " ");
+		signature = signature.replace(" final ", " ");
+		signature = signature.replace(" void ", " ");
+		signature = signature.replace("  ", " ");
+		signature = signature.replace("  ", " ");
+
+		return signature.trim();
 	}
 
 

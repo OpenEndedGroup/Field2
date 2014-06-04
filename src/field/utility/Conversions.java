@@ -6,6 +6,7 @@ import com.google.common.collect.SetMultimap;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.util.*;
 import java.util.function.Function;
 
@@ -14,8 +15,7 @@ public class Conversions {
 	/**
 	 * note: this doesn't do interfaces right now
 	 *
-	 * @param c
-	 * @return
+	 * take a type and expand it out recursively to a flat list of parameterized types. There's no ambiguity here --- type in Java take a fixed number of parameters
 	 */
 	static public List<Class> linearize(Type c) {
 		List<Class> r = new ArrayList<>();
@@ -29,6 +29,35 @@ public class Conversions {
 			r.add((Class) c);
 		}
 		return r;
+	}
+
+	/**
+	 * the opposite of linearize. Take a flat list of parameterized types and build up a human-readable String representation of them. Filters the names of classes through "cleaner"
+	 */
+	static public String fold(List<Class> typeInformation, Function<String, String> cleaner) {
+		return typeInformation==null ? "" : _fold(new ArrayList<>(typeInformation), cleaner);
+	}
+
+	static protected String _fold(List<Class> typeInformation, Function<String, String> cleaner)
+	{
+		if (typeInformation==null) return "";
+		if (typeInformation.size()==0) return "";
+		Class c = typeInformation.remove(0);
+		TypeVariable[] tp = c.getTypeParameters();
+		if (tp==null || tp.length==0)
+		{
+			return cleaner.apply(c.getName())+(typeInformation.size()==0 ? "" : (", "+_fold(typeInformation, cleaner)));
+		}
+
+		String inside = "&lt;";
+		for(int i=0;i<tp.length;i++)
+		{
+			if (typeInformation.size()==0) break;
+			inside += _fold(typeInformation, cleaner);
+		}
+		inside+="&gt;";
+
+		return cleaner.apply(c.getName())+inside+(typeInformation.size()==0 ? "" : (", "+_fold(typeInformation, cleaner)));
 	}
 
 	static public boolean typeInformationEquals(List<Class> c1, List<Class> c2) {

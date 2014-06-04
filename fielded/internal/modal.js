@@ -26,6 +26,8 @@ function runModal(placeholder, getcompletionsfunction, cssclass, initialText, al
                 num = "^" + i
             }
             var label = $("<li><span class='Field-number'>" + num + "</span>" + completions[i].text + "</li>")
+            if (num=="")
+	            label = $("<li><span class='Field-number-empty'>&nbsp;</span>" + completions[i].text + "</li>")
             let callback = completions[i].callback
             label.hover(function () {
                 $(this).css("background", "#444")
