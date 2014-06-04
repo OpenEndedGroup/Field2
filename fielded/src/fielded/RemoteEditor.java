@@ -28,8 +28,8 @@ import java.util.stream.Collectors;
  */
 public class RemoteEditor extends Box {
 
-	static public final Dict.Prop<Supplier<Map<Pair<String, String>, Runnable>>> commands = new Dict.Prop<>("commands");
-
+	static public final Dict.Prop<Supplier<Map<Pair<String, String>, Runnable>>> commands = new Dict.Prop<>("commands").type().doc("commands injected into the editor as ctrl-space menu").toCannon();
+	static public final Dict.Prop<RemoteEditor> editor = new Dict.Prop<>("editor").type().doc("the (remote) editor object").toCannon();
 	static public final Dict.Prop<Function<Box, Consumer<String>>> outputFactory = new Dict.Prop<>("outputFactory");
 	static public final Dict.Prop<Function<Box, Consumer<Pair<Integer, String>>>> outputErrorFactory = new Dict.Prop<>("outputErrorFactory");
 
@@ -56,6 +56,8 @@ public class RemoteEditor extends Box {
 		this.socketName = socketName;
 		this.queue = queue;
 		this.watches = watches;
+		this.properties.put(editor, this);
+
 		this.properties.putToMap(Boxes.insideRunLoop, "__watch_service__", (Supplier<Boolean>) this::update);
 
 		watches.addWatch(Mouse.isSelected, "selection.changed");
@@ -544,6 +546,14 @@ public class RemoteEditor extends Box {
 			this.currentlyEditing = ed;
 			changeSelection(currentSelection, currentlyEditing);
 		}
+	}
+
+	public Dict.Prop<String> getCurrentlyEditingProperty() {
+		return currentlyEditing;
+	}
+
+	public Box getCurrentlyEditing() {
+		return currentSelection;
 	}
 
 	private void changeSelection(Box currentSelection, Dict.Prop<String> editingProperty) {

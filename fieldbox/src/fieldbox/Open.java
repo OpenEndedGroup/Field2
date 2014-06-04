@@ -7,12 +7,8 @@ import field.graphics.SimpleArrayBuffer;
 import field.utility.Rect;
 import fieldbox.boxes.*;
 import fieldbox.boxes.TimeSlider;
-import fieldbox.boxes.plugins.Delete;
-import fieldbox.boxes.plugins.IsExecuting;
-import fieldbox.boxes.plugins.Rename;
-import fieldbox.boxes.plugins.Topology;
+import fieldbox.boxes.plugins.*;
 import fieldbox.io.IO;
-import fieldbox.boxes.plugins.Chorder;
 import fieldbox.ui.Compositor;
 import fieldbox.ui.FieldBoxWindow;
 import fielded.Execution;
@@ -111,6 +107,8 @@ public class Open {
 		new IsExecuting(boxes.root()).connect(boxes.root());
 
 		new Rename(boxes.root()).connect(boxes.root());
+
+		new GraphicsSupport(boxes.root()).connect(boxes.root());
 
 		Compositor.Layer lx = window.getCompositor().newLayer("__main__blurx");
 		Compositor.Layer ly = window.getCompositor().newLayer("__main__blury", 1);
