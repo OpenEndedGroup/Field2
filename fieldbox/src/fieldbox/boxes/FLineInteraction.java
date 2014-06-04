@@ -129,10 +129,10 @@ public class FLineInteraction extends Box implements Drawing.Drawer, Mouse.OnMou
 		Set<FLine> intersects = all.stream().filter(f -> f.attributes.has(projectedArea))
 			    .filter(f -> f.attributes.get(projectedArea).apply(f).contains(point.x, point.y)).collect(Collectors.toSet());
 
-		Set<FLine> enter = new LinkedHashSet<FLine>(intersects);
+		Set<FLine> enter = new LinkedHashSet<>(intersects);
 		enter.removeAll(previousIntersection);
 
-		Set<FLine> exit = new LinkedHashSet<FLine>(previousIntersection);
+		Set<FLine> exit = new LinkedHashSet<>(previousIntersection);
 		exit.removeAll(intersects);
 
 		previousIntersection = intersects;
