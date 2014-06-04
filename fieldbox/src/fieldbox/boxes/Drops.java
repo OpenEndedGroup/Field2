@@ -19,7 +19,7 @@ public class Drops {
 
 	public void dispatch(Box root, Window.Event<Window.Drop> drop)
 	{
-
+		root.find(onDrop, root.both()).flatMap( x-> x.stream()).forEach( x-> x.onDrop(drop));
 	}
 
 }
