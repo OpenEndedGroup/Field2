@@ -52,8 +52,27 @@ public class Windows {
 				if (a != null) a.windowRefresh(window);
 			}
 
+
+			boolean fakeButton1 = false;
+
 			@Override
 			public void mouseButton(long window, int button, boolean pressed, int mods) {
+
+//				System.out.println(" mouseButton :"+button+" "+pressed+" "+mods);
+
+				if (button==0 && mods==2 && pressed)
+				{
+					button=1;
+					mods = 0;
+					fakeButton1 = true;
+				}
+				else if (button==0 && !pressed && fakeButton1)
+				{
+					button = 1;
+					mods = 0;
+					fakeButton1 = false;
+				}
+
 				GlfwCallback a = adaptors.get(window);
 				if (a != null) a.mouseButton(window, button, pressed, mods);
 			}
@@ -64,6 +83,7 @@ public class Windows {
 				GlfwCallback a = adaptors.get(window);
 				if (a != null) a.scroll(window, scrollX, scrollY);
 			}
+
 
 			@Override
 			public void cursorPos(long window, double x, double y) {
@@ -82,6 +102,15 @@ public class Windows {
 				GlfwCallback a = adaptors.get(window);
 				if (a != null) a.character(window, character);
 			}
+
+			@Override
+			public void drop(long window, String[] files) {
+				// cursorPos is given just before drop to tell us where the drop has occured.
+				GlfwCallback a = adaptors.get(window);
+				if (a != null) a.drop(window, files);
+			}
+
+
 		};
 	}
 

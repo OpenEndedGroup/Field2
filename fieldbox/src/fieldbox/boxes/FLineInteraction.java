@@ -28,7 +28,7 @@ public class FLineInteraction extends Box implements Drawing.Drawer, Mouse.OnMou
 	static public final Dict.Prop<Cached<FLine, Object, Area>> projectedArea = new Dict.Prop<>("_projectedArea");
 	static public final Dict.Prop<Map<String, Function<Box, FLine>>> interactiveLines = new Dict.Prop<>("interactiveLines").type().toCannon().doc("add lines to this property to make them interactive. OnMouseExit and OnMouseEnter attributes will be called appropriately");
 
-	public FLineInteraction() {
+	public FLineInteraction(Box root) {
 		properties.putToList(Drawing.drawers, this);
 		properties.put(interaction, this);
 		properties.putToList(Mouse.onMouseDown, this);
@@ -87,14 +87,15 @@ public class FLineInteraction extends Box implements Drawing.Drawer, Mouse.OnMou
 
 		Vec2 point = convertCoordinateSystem(new Vec2(e.after.x, e.after.y));
 
-		Set<FLine> hit = new LinkedHashSet<FLine>();
+		Set<FLine> hit = new LinkedHashSet<>();
 
 		Window.Event<Window.MouseState> eMarked = e.copy();
 		eMarked.properties.put(interaction, this);
 
-		List<Mouse.Dragger> draggers = all.stream().filter(f -> f.attributes.get(projectedArea).apply(f).contains(point.x, point.y))
+	    List<Mouse.Dragger> draggers = all.stream().filter(f -> f.attributes.get(projectedArea)!=null).filter(f -> f.attributes.get(projectedArea).apply(f).contains(point.x, point.y))
 			    .flatMap(f -> f.attributes.getOr(Mouse.onMouseDown, Collections::emptyList).stream())
 			    .map(omd -> omd.onMouseDown(eMarked, button)).filter(x -> x != null).collect(Collectors.toList());
+
 
 		if (draggers.size() > 0) {
 			return (event, termination) -> {
@@ -128,10 +129,10 @@ public class FLineInteraction extends Box implements Drawing.Drawer, Mouse.OnMou
 		Set<FLine> intersects = all.stream().filter(f -> f.attributes.has(projectedArea))
 			    .filter(f -> f.attributes.get(projectedArea).apply(f).contains(point.x, point.y)).collect(Collectors.toSet());
 
-		Set<FLine> enter = new LinkedHashSet<FLine>(intersects);
+		Set<FLine> enter = new LinkedHashSet<>(intersects);
 		enter.removeAll(previousIntersection);
 
-		Set<FLine> exit = new LinkedHashSet<FLine>(previousIntersection);
+		Set<FLine> exit = new LinkedHashSet<>(previousIntersection);
 		exit.removeAll(intersects);
 
 		previousIntersection = intersects;

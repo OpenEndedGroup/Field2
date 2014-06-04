@@ -15,6 +15,7 @@
     <orderEntry type="library" name="guava-16.0.1" level="project" />
     <orderEntry type="module" module-name="fielded" />
     <orderEntry type="module" module-name="fieldnashorn" />
+    <orderEntry type="module" module-name="fieldagent" />
   </component>
 </module>
 

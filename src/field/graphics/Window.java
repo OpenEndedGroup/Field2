@@ -3,6 +3,7 @@ package field.graphics;
 import com.badlogic.jglfw.Glfw;
 import com.badlogic.jglfw.GlfwCallback;
 import com.badlogic.jglfw.GlfwCallbackAdapter;
+import field.linalg.Vec2;
 import field.utility.Dict;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.GL11;
@@ -159,8 +160,13 @@ public class Window {
 		return graphicsContext;
 	}
 
+	static public class HasPosition
+	{
+		public Optional<Vec2> position();
+	}
 
-	static public class MouseState {
+
+	static public class MouseState implements HasPosition {
 		public final Set<Integer> buttonsDown = new LinkedHashSet<Integer>();
 		public final long time;
 		public final double dx;
@@ -269,10 +275,13 @@ public class Window {
 				    '}';
 		}
 
-
+		@Override
+		public Optional<Vec2> position() {
+			return Optional.of(new Vec2(x,y));
+		}
 	}
 
-	static public class KeyboardState {
+	static public class KeyboardState implements HasPosition {
 		public final Set<Integer> keysDown = new LinkedHashSet<>();
 		public final Map<Integer, Character> charsDown = new LinkedHashMap<>();
 		public final long time;
@@ -384,6 +393,30 @@ public class Window {
 				    ", time=" + time +
 				    '}';
 		}
+
+		public Optional<Vec2> position()
+		{
+			if (mouseState==null) return Optional.empty();
+			return mouseState.position();
+		}
+	}
+
+	static public class Drop implements HasPosition {
+		public final String[] files;
+		public final MouseState mouseState;
+		public final KeyboardState keyboardState;
+
+		public Drop(String[] files, MouseState mouseState, KeyboardState keyboardState) {
+			this.files = files;
+			this.mouseState = mouseState;
+			this.keyboardState = keyboardState;
+		}
+
+		@Override
+		public Optional<Vec2> position() {
+			if (mouseState==null) return Optional.empty();
+			return mouseState.position();
+		}
 	}
 
 	static public class Event<T> {
@@ -414,15 +447,35 @@ public class Window {
 
 	Queue<Function<Event<KeyboardState>, Boolean>> keyboardHandlers = new LinkedBlockingQueue<>();
 	Queue<Function<Event<MouseState>, Boolean>> mouseHandlers = new LinkedBlockingQueue<>();
+	Queue<Function<Event<Drop>, Boolean>> dropHandlers = new LinkedBlockingQueue<>();
 
 
+	/**
+	 * A keyboard handler is a Function<Event<KeyboardState>, Boolean>>, that is a function that takes a transition between two KeyboardStates and
+	 * returns a boolean, whether or not it ever wants to be called again
+	 */
 	public Window addKeyboardHandler(Function<Event<KeyboardState>, Boolean> h) {
 		keyboardHandlers.add(h);
 		return this;
 	}
 
+	/**
+	 * A keyboard handler is a Function<Event<MouseState>, Boolean>>, that is a function that takes a transition between two MouseStates and
+	 * returns a boolean, whether or not it ever wants to be called again
+	 */
 	public Window addMouseHandler(Function<Event<MouseState>, Boolean> h) {
 		mouseHandlers.add(h);
+		return this;
+	}
+
+	/**
+	 * A keyboard handler is a Function<Event<Drop>, Boolean>>, that is a function that takes a transition between null and a Drop and returns a
+	 * boolean, whether or not it ever wants to be called again
+	 * <p>
+	 * (we expect that as GLFW's notion of drop handling gets richer we'll have a use for Event.before)
+	 */
+	public Window addDropHandler(Function<Event<Drop>, Boolean> h) {
+		dropHandlers.add(h);
 		return this;
 	}
 
@@ -448,8 +501,14 @@ public class Window {
 		Iterator<Function<Event<KeyboardState>, Boolean>> i = keyboardHandlers.iterator();
 		Event<KeyboardState> event = new Event<>(before, after);
 		while (i.hasNext()) if (!i.next().apply(event)) i.remove();
-
 	}
+
+	private void fireDrop(Drop drop) {
+		Iterator<Function<Event<Drop>, Boolean>> i = dropHandlers.iterator();
+		Event<Drop> event = new Event<>(null, drop);
+		while (i.hasNext()) if (!i.next().apply(event)) i.remove();
+	}
+
 
 	static boolean debugKeyboardTransition(Event<KeyboardState> event) {
 		Set<Character> pressed = KeyboardState.charsPressed(event.before, event.after);
@@ -552,7 +611,15 @@ public class Window {
 					System.out.println(" char -- " + character);
 				}
 			}
+
+			@Override
+			public void drop(long window, String[] files) {
+				if (window == Window.this.window) {
+					fireDrop(new Drop(files, mouseState, keyboardState));
+				}
+			}
 		};
 	}
+
 
 }

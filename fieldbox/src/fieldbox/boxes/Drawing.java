@@ -8,6 +8,7 @@ import field.utility.Rect;
 import fieldbox.ui.FieldBoxWindow;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static field.utility.Util.closeable;
 
@@ -74,7 +75,7 @@ public class Drawing extends Box {
 
 		layer.shader = new Shader();
 
-		layer.shader.addSource(Shader.Type.vertex, "#version 430\n" +
+		layer.shader.addSource(Shader.Type.vertex, "#version 410\n" +
 			    "layout(location=0) in vec3 position;\n" +
 			    "layout(location=1) in vec4 color;\n" +
 			    "out vec4 vcolor;\n" +
@@ -88,7 +89,7 @@ public class Drawing extends Box {
 			    "   vcolor = color;\n" +
 			    "}");
 
-		layer.shader.addSource(Shader.Type.fragment, "#version 430\n" +
+		layer.shader.addSource(Shader.Type.fragment, "#version 410\n" +
 			    "layout(location=0) out vec4 _output;\n" +
 			    "in vec4 vcolor;\n" +
 			    "uniform float opacity; \n" +
@@ -164,6 +165,25 @@ public class Drawing extends Box {
 		return this;
 	}
 
+
+	static public boolean intersects(Window.Event<?> event, Box box)
+	{
+		Rect frame = (Rect) box.properties.get(Box.frame);
+		if (frame==null) return false;
+
+		Optional<Drawing> drawing = (Optional<Drawing>) box.find(Drawing.drawing, box.both()).findFirst();
+		if (!drawing.isPresent()) return false;
+
+		Object o = event.after;
+		if (o instanceof Window.HasPosition)
+		{
+			Optional<Vec2> o2 = ((Window.HasPosition) o).position();
+			if (!o2.isPresent()) return false;
+
+			return frame.intersects(drawing.get().windowSystemToDrawingSystem(o2.get()));
+		}
+	}
+
 	/**
 	 * to convert between event / mouse / pixel coordinates and OpenGL / Box / Drawing coordinates.
 	 */
@@ -200,7 +220,7 @@ public class Drawing extends Box {
 
 		try (AutoCloseable ignored = closeable(bracketableList)) {
 			insideDrawing = true;
-			root.find(drawers, root.both()).flatMap(x -> x.stream()).forEach(x -> x.draw(this));
+			root.find(drawers, root.both()).collect(Collectors.toList()).stream().flatMap(x -> x.stream()).collect(Collectors.toList()).stream().forEach(x -> x.draw(this));
 		} catch (Exception e) {
 			System.err.println(" exception thrown during drawing ");
 			e.printStackTrace();

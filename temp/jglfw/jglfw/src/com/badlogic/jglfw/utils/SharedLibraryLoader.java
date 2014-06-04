@@ -92,9 +92,15 @@ public class SharedLibraryLoader {
 		// in case of iOS, things have been linked statically to the executable, bail out.
 		if (isIos) return;
 
+
+		System.out.println(" load 1: "+libraryName);
+
 		libraryName = mapLibraryName(libraryName);
+
+		System.out.println(" load 2: "+libraryName);
 		if (loadedLibraries.contains(libraryName)) return;
 
+		System.out.println(" load 3: "+libraryName);
 		try {
 			if (isAndroid)
 				System.loadLibrary(libraryName);
@@ -231,6 +237,9 @@ public class SharedLibraryLoader {
 	/** Extracts the source file and calls System.load. Attemps to extract and load from multiple locations. Throws runtime
 	 * exception if all fail. */
 	private void loadFile (String sourcePath) {
+
+	    System.out.println(" load 4: "+sourcePath);
+
 		String sourceCrc = crc(readFile(sourcePath));
 
 		String fileName = new File(sourcePath).getName();

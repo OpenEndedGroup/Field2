@@ -32,7 +32,7 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 	static public final Dict.Prop<Boolean> lockY = new Dict.Prop<>("lockY").type().toCannon()
 		    .doc("set to true to disable changes to the y-position of this box via the mouse");
 
-	public FrameManipulation() {
+	public FrameManipulation(Box root) {
 		this.properties.putToList(Mouse.onMouseDown, this);
 	}
 

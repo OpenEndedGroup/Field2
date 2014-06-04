@@ -7,6 +7,7 @@ import fieldbox.boxes.Box;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Interfaces for supporting code execution and runtimes in Field
@@ -70,8 +71,13 @@ public class Execution extends Box {
 		public String getDefaultFileExtension();
 
 		default public void begin(Box box) {
-			begin(box.first(RemoteEditor.outputErrorFactory).orElse(null).apply(box), box.first(RemoteEditor.outputFactory).orElse(null)
-				    .apply(box));
+
+			Function<Box, Consumer<Pair<Integer, String>>> ef = box.first(RemoteEditor.outputErrorFactory).orElse(null);
+			Function<Box, Consumer<String>> of = box.first(RemoteEditor.outputFactory).orElse(null);
+
+			System.out.println(" factories are :"+ef+" "+of);
+
+			begin(ef.apply(box), of.apply(box));
 		}
 
 		default public void executeTextFragment(String allText, Box box) {

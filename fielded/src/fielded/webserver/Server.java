@@ -67,7 +67,11 @@ public class Server {
 
 					for (String s : documentRoots) {
 						File ff = new File(s + "/" + e);
+
+						System.out.println(" checking :"+ff);
+
 						if (ff.exists()) {
+							System.out.println(" found :"+ff);
 							try {
 								return new Response(Response.Status.OK, null, new BufferedInputStream(new FileInputStream(ff)));
 							} catch (FileNotFoundException e1) {

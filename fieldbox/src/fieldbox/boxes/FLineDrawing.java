@@ -13,6 +13,7 @@ import java.util.*;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Fundamental drawing support for Boxes
@@ -110,7 +111,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 				else all.add(fl);
 			}
 
-			drawing.values().stream().map(c -> c.apply(x)).filter(fline -> fline != null).forEach(fline -> dispatchLine(fline, context));
+			drawing.values().stream().map(c -> c.apply(x)).filter(fline -> fline != null).collect(Collectors.toList()).forEach(fline -> dispatchLine(fline, context));
 
 
 			Map<String, Supplier<FLine>> ll = x.properties.computeIfAbsent(lines, (k) -> new LinkedHashMapAndArrayList<>());

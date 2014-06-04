@@ -353,4 +353,32 @@ public class Vec3 {
 	public Vec2 toVec2() {
 		return new Vec2(x, y);
 	}
+
+	/**
+	 * blend two Vec3 to create a third. out can contain a pre-allocated return Vec3 or null
+	 */
+
+	static public Vec3 lerp(Vec3 a, Vec3 b, float alpha, Vec3 out)
+	{
+		if (out==null) out = new Vec3();
+
+		out.x = a.x*alpha+b.x*(1-alpha);
+		out.y = a.y*alpha+b.y*(1-alpha);
+		out.z = a.z*alpha+b.z*(1-alpha);
+
+		return out;
+	}
+
+
+	/**
+	 * set this Vec3 to the blend of two Vec3
+	 */
+	public Vec3 lerp(Vec3 a, Vec3 b, float alpha)
+	{
+		this.x = a.x*alpha+b.x*(1-alpha);
+		this.y = a.y*alpha+b.y*(1-alpha);
+		this.z = a.z*alpha+b.z*(1-alpha);
+
+		return this;
+	}
 }

@@ -83,7 +83,8 @@ public class GlfwCallbackDelegate implements GlfwCallback {
 	}
 
 	@Override
-	public void drop(long l, String[] strings) {
+	public void drop(long l, String[] strings)
+	{
 		delegate.drop(l, strings);
 	}
 }

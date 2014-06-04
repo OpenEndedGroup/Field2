@@ -66,7 +66,7 @@ public class JavaSupport {
 
 		RunLoop.workerPool.submit(() -> {
 			try {
-				String root = "/home/marc/fieldwork2/";
+				String root = fieldagent.Main.app;
 				Files.walkFileTree(FileSystems.getDefault().getPath(root), new FileVisitor<Path>() {
 					@Override
 					public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
