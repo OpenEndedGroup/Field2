@@ -160,7 +160,7 @@ public class Window {
 		return graphicsContext;
 	}
 
-	static public class HasPosition
+	static public interface HasPosition
 	{
 		public Optional<Vec2> position();
 	}
