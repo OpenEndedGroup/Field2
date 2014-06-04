@@ -3,6 +3,7 @@ package field.graphics;
 import com.badlogic.jglfw.Glfw;
 import com.badlogic.jglfw.GlfwCallback;
 import com.badlogic.jglfw.GlfwCallbackAdapter;
+import field.linalg.Vec2;
 import field.utility.Dict;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.GL11;
@@ -159,8 +160,13 @@ public class Window {
 		return graphicsContext;
 	}
 
+	static public class HasPosition
+	{
+		public Optional<Vec2> position();
+	}
 
-	static public class MouseState {
+
+	static public class MouseState implements HasPosition {
 		public final Set<Integer> buttonsDown = new LinkedHashSet<Integer>();
 		public final long time;
 		public final double dx;
@@ -269,10 +275,13 @@ public class Window {
 				    '}';
 		}
 
-
+		@Override
+		public Optional<Vec2> position() {
+			return Optional.of(new Vec2(x,y));
+		}
 	}
 
-	static public class KeyboardState {
+	static public class KeyboardState implements HasPosition {
 		public final Set<Integer> keysDown = new LinkedHashSet<>();
 		public final Map<Integer, Character> charsDown = new LinkedHashMap<>();
 		public final long time;
@@ -384,9 +393,15 @@ public class Window {
 				    ", time=" + time +
 				    '}';
 		}
+
+		public Optional<Vec2> position()
+		{
+			if (mouseState==null) return Optional.empty();
+			return mouseState.position();
+		}
 	}
 
-	static public class Drop {
+	static public class Drop implements HasPosition {
 		public final String[] files;
 		public final MouseState mouseState;
 		public final KeyboardState keyboardState;
@@ -395,6 +410,12 @@ public class Window {
 			this.files = files;
 			this.mouseState = mouseState;
 			this.keyboardState = keyboardState;
+		}
+
+		@Override
+		public Optional<Vec2> position() {
+			if (mouseState==null) return Optional.empty();
+			return mouseState.position();
 		}
 	}
 
