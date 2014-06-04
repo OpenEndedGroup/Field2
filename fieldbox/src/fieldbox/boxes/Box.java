@@ -18,8 +18,8 @@ import java.util.stream.Stream;
  * Child relationships are ordered and the order is maintained. And the graph can have cycles (it's typically visited in breadth-first without
  * cycles).
  * <p>
- * Much of the time properties are looked up in the graph in breadth first fashion either "upwards" (towards parents) or less-often downwards (collecting over all children).
- *
+ * Much of the time properties are looked up in the graph in breadth first fashion either "upwards" (towards parents) or less-often downwards
+ * (collecting over all children).
  */
 public class Box {
 
@@ -193,4 +193,6 @@ public class Box {
 		if (name == null) return "bx<" + this.getClass().getSimpleName() + ">";
 		else return "bx<" + name + ">";
 	}
+
+
 }
