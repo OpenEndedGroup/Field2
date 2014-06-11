@@ -79,6 +79,8 @@ public class IO {
 	public IO(String defaultDirectory) {
 		this.defaultDirectory = defaultDirectory;
 
+		if (!new File(defaultDirectory).exists()) new File(defaultDirectory).mkdir();
+
 		knownProperties.add(Box.name.getName());
 		knownProperties.add(Box.frame.getName());
 

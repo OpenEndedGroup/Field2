@@ -14,9 +14,7 @@ public class FieldBox {
 
 	static public final FieldBox fieldBox = new FieldBox();
 
-
-	// TODO --- there needs to be mechanism to set this from someplace other than my home directory
-	public final IO io = new IO("/Users/marc/Documents/FirstNewFieldWorkspace/");
+	public final IO io = new IO(System.getProperty("user.home")+"/Documents/FirstNewFieldWorkspace/");
 
 	{
 		io.addFilespec("code", io.EXECUTION, io.EXECUTION);
