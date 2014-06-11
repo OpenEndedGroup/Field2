@@ -4,13 +4,13 @@ Welcome to the Field2 development repository.
 
 ## Prerequisites for building & running (on Linux)
 
-```git``` (distributed version control) installed via ```sudo apt-get install git```
+ * ```git``` (distributed version control) installed via ```sudo apt-get install git```
 
-```ant``` (a java build system) installed via ```sudo apt-get install ant```
+ * ```ant``` (a java build system) installed via ```sudo apt-get install ant```
 
-```Intellij IDEA``` (a java development environment) from http://www.jetbrains.com/idea/ (you can use the community addition until we can figure out an educational license.
+ * ```Intellij IDEA``` (a java development environment) from http://www.jetbrains.com/idea/ (you can use the community addition until we can figure out an educational license.
 
-```java``` itself. Either get a JDK 8 (not a JRE 8) from your Linux distribution or install one from Oracle.
+ * ```java``` itself. Either get a JDK 8 (not a JRE 8) from your Linux distribution or install one from Oracle. JDK 8u5 should be sufficient (the EA version 8u20 is good for running Field2 but, alas, JavaC crashes on compiling it).
 
 To build, either invest the time importing the code-base into Idea (very recommended), or edit fieldwork2.properties in the repository and and build using ```ant -f fieldwork2.xml```
 
@@ -18,9 +18,9 @@ Statically-linked built versions of native dependencies are included in the repo
 
 To run Field2 we have the following dependencies:
 
-```wmctrl``` (a window manager tool) installed via ```sudo apt-get install wmctrl```
+ * ```wmctrl``` (a window manager tool) installed via ```sudo apt-get install wmctrl```
 
-```chrome developer "channel"``` (a version of Chrome with leading-edge features), installed from [here](https://www.google.com/chrome/browser/?platform=linux&extra=devchannel). You'll need to turn "experimental web platform features" and "experimental javascript features" on at the chrome://flags configuration page.
+ * ```chrome developer "channel"``` (a version of Chrome with leading-edge features), installed from [here](https://www.google.com/chrome/browser/?platform=linux&extra=devchannel). You'll need to turn "experimental web platform features" and "experimental javascript features" on at the chrome://flags configuration page.
 
 Then, assuming an error-free build:
 
