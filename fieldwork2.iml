@@ -7,7 +7,7 @@
       <sourceFolder url="file://$MODULE_DIR$/lib" type="java-resource" />
       <excludeFolder url="file://$MODULE_DIR$/temp" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="1.8" jdkType="JavaSDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="lwjgl" level="project" />
     <orderEntry type="library" name="commons-math3-3.2" level="project" />
