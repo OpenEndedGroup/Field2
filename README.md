@@ -19,6 +19,7 @@ Statically-linked built versions of native dependencies are included in the repo
 To run Field2 we have the following dependencies:
 
 ```wmctrl``` (a window manager tool) installed via ```sudo apt-get install wmctrl```
+
 ```chrome developer "channel"``` (a version of Chrome with leading-edge features), installed from [here](https://www.google.com/chrome/browser/?platform=linux&extra=devchannel). You'll need to turn "experimental web platform features" and "experimental javascript features" on at the chrome://flags configuration page.
 
 Then, assuming an error-free build:
