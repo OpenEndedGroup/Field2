@@ -5,8 +5,11 @@ Welcome to the Field2 development repository.
 ## Prerequisites for building & running (on Linux)
 
 ```git``` (distributed version control) installed via ```sudo apt-get install git```
+
 ```ant``` (a java build system) installed via ```sudo apt-get install ant```
+
 ```Intellij IDEA``` (a java development environment) from http://www.jetbrains.com/idea/ (you can use the community addition until we can figure out an educational license.
+
 ```java``` itself. Either get a JDK 8 (not a JRE 8) from your Linux distribution or install one from Oracle.
 
 To build, either invest the time importing the code-base into Idea (very recommended), or edit fieldwork2.properties in the repository and and build using ```ant -f fieldwork2.xml```
