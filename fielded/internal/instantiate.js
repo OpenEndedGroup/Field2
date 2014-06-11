@@ -1,5 +1,5 @@
 var cm = CodeMirror(document.body)
-cm.setValue("var banana = 'peach'")
+cm.setValue("")
 cm.setOption("mode", "javascript")
 cm.setOption("theme", "default")
 cm.setOption("indentWithTabs", true)
@@ -85,55 +85,57 @@ goCommands = function () {
 
 _messageBus.subscribe("begin.commands", function (d, e) {
 
-             var completions = []
-            for (var i = 0; i < d.commands.length; i++) {
-                d.commands[i].callback = function () {
-                    _field.send("call.command", {
-                        command: this.call
-                    });
-                }.bind({
-                    "call": d.commands[i].call
+    var completions = []
+    for (var i = 0; i < d.commands.length; i++) {
+        d.commands[i].callback = function () {
+            _field.send("call.command", {
+                command: this.call
+            });
+        }.bind({
+            "call": d.commands[i].call
+        })
+        d.commands[i].callback.remote = 1
+        completions.push(d.commands[i])
+    }
+    completions.sort(function (a, b) {
+        return a.name < b.name ? -1 : 1;
+    })
+
+    completionFunction = function (e) {
+        var m = []
+
+        var fuzzyPattern = fuzzy(e);
+
+        for (var i = 0; i < completions.length; i++) {
+            if (completions[i].name.search(fuzzyPattern) != -1) {
+                matched = completions[i].name.replace(fuzzyPattern, replacer);
+                m.push({
+                    text: matched + " <span class=doc>" + completions[i].info + "</span>",
+                    callback: function () {
+                        completions[this.i].callback()
+                    }.bind({
+                        "i": i
+                    })
                 })
-                d.commands[i].callback.remote = 1
-                completions.push(d.commands[i])
             }
-            completions.sort(function (a, b) {
-                return a.name < b.name ? -1 : 1;
+        }
+        return m
+    }
+
+    console.log("alternative is " + d.alternative)
+
+    if (d.alternative) {
+        console.log(" going with modal ");
+        runModal(d.prompt, completionFunction, "Field-Modal", "", function (t) {
+            _field.send("call.alternative", {
+                command: this.call,
+                "text": t
             })
-
-            completionFunction = function (e) {
-                var m = []
-
-                var fuzzyPattern = fuzzy(e);
-
-                for (var i = 0; i < completions.length; i++) {
-                    if (completions[i].name.search(fuzzyPattern) != -1) {
-                        matched = completions[i].name.replace(fuzzyPattern, replacer);
-                        m.push({
-                            text: matched + " <span class=doc>" + completions[i].info + "</span>",
-                            callback: function () {
-                                completions[this.i].callback()
-                            }.bind({
-                                "i": i
-                            })
-                        })
-                    }
-                }
-                return m
-            }
-
-            console.log("alternative is "+d.alternative)
-
-            if (d.alternative)
-            {
-            console.log(" going with modal ");
-                runModal(d.prompt, completionFunction, "Field-Modal", "", function (t)
-                {
-                    _field.send("call.alternative", {command: this.call, "text":t})
-                }.bind({"call":d.alternative}))
-            }
-            else if (completions.length > 0)
-                runModal(d.prompt, completionFunction, "Field-Modal", "")
+        }.bind({
+            "call": d.alternative
+        }))
+    } else if (completions.length > 0)
+        runModal(d.prompt, completionFunction, "Field-Modal", "")
 
 });
 
@@ -141,6 +143,41 @@ _messageBus.subscribe("begin.commands", function (d, e) {
 
 
 extraKeys = {
+    "Ctrl-Left": function (cm) {
+        if (currentBracket != null) {
+
+            currentBracket.attr({
+                fill: "#afc"
+            }).animate({
+                fill: "#fff"
+            }, 500)
+
+            anchorLine = Math.max(cm.getLineNumber(currentBracket.h1), cm.getLineNumber(currentBracket.h2) + 1)
+
+            c = cm.getCursor()
+            cm.setSelection({
+                line: cm.getLineNumber(currentBracket.h1),
+                ch: 0
+            }, {
+                line: cm.getLineNumber(currentBracket.h2) + 1,
+                ch: 0
+            })
+
+            fragment = cm.getSelections()[0]
+
+            _field.sendWithReturn("execution.fragment", {
+                box: cm.currentbox,
+                property: cm.currentproperty,
+                text: fragment
+            }, function (d, e) {
+                if (d.type == 'error')
+                    appendRemoteOutputToLine(anchorLine, d.line + " : " + d.message, "Field-remoteOutput", "Field-remoteOutput-error", 1)
+                else
+                    appendRemoteOutputToLine(anchorLine, d.message, "Field-remoteOutput-error", "Field-remoteOutput", 1)
+            });
+        }
+        cm.setCursor(c);
+    },
     "Ctrl-Enter": function (cm) {
         _field.log(cm.getSelections())
         _field.log(cm.listSelections())
@@ -150,59 +187,49 @@ extraKeys = {
         if (cm.listSelections()[0].anchor.line == cm.listSelections()[0].head.line && cm.listSelections()[0].anchor.pos == cm.listSelections()[0].head.pos) {
             fragment = cm.getLine(cm.listSelections()[0].anchor.line)
 
-			lh1 = cm.listSelections()[0].head
-			lh2 = cm.listSelections()[0].anchor
-			var off = 0;
-            	if (lh1.line>lh2.line)
-            	{
-            		var t = lh2
-            		lh2 = lh1
-            		lh1 = t
-            	}
-
-            	if (lh2.ch==0 && lh2.line>0)
-            	{
-	            	off = -1;
-            	}
-
-
-            var path = findPathForLines(lh1.line, lh2.line+off)
-            if (!path)
-            {
-	            makePathForHandles(cm.getLineHandle(lh1.line), cm.getLineHandle(lh2.line+off))
+            lh1 = cm.listSelections()[0].head
+            lh2 = cm.listSelections()[0].anchor
+            var off = 0;
+            if (lh1.line > lh2.line) {
+                var t = lh2
+                lh2 = lh1
+                lh1 = t
             }
-            else
-            {
-            	// record an execution here?
+
+            if (lh2.ch == 0 && lh2.line > 0) {
+                off = -1;
+            }
+
+
+            var path = findPathForLines(lh1.line, lh2.line + off)
+            if (!path) {
+                makePathForHandles(cm.getLineHandle(lh1.line), cm.getLineHandle(lh2.line))
+            } else {
+                // record an execution here?
             }
 
         } else {
             fragment = cm.getSelections()[0]
 
-			lh1 = cm.listSelections()[0].head
-			lh2 = cm.listSelections()[0].anchor
-			var off = 0;
-            	if (lh1.line>lh2.line)
-            	{
-            		var t = lh2
-            		lh2 = lh1
-            		lh1 = t
-            	}
-
-            	if (lh2.ch==0 && lh2.line>0)
-            	{
-	            	off = -1;
-            	}
-
-
-            var path = findPathForLines(lh1.line, lh2.line+off)
-            if (!path)
-            {
-	            makePathForHandles(cm.getLineHandle(lh1.line), cm.getLineHandle(lh2.line+off))
+            lh1 = cm.listSelections()[0].head
+            lh2 = cm.listSelections()[0].anchor
+            var off = 0;
+            if (lh1.line > lh2.line) {
+                var t = lh2
+                lh2 = lh1
+                lh1 = t
             }
-            else
-            {
-            	// record an execution here?
+
+            if (lh2.ch == 0 && lh2.line > 0) {
+                off = -1;
+            }
+
+
+            var path = findPathForLines(lh1.line, lh2.line + off)
+            if (!path) {
+                makePathForHandles(cm.getLineHandle(lh1.line), cm.getLineHandle(lh2.line + off))
+            } else {
+                // record an execution here?
             }
             clearOutputs(Math.min(cm.listSelections()[0].head.line, cm.listSelections()[0].anchor.line), Math.max(cm.listSelections()[0].head.line, cm.listSelections()[0].anchor.line));
         }
