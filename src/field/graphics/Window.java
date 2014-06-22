@@ -501,6 +501,7 @@ public class Window {
 	}
 
 	private void fireKeyboardTransition(KeyboardState before, KeyboardState after) {
+		after.mouseState = mouseState;
 		Iterator<Function<Event<KeyboardState>, Boolean>> i = keyboardHandlers.iterator();
 		Event<KeyboardState> event = new Event<>(before, after);
 		while (i.hasNext()) if (!i.next().apply(event)) i.remove();
