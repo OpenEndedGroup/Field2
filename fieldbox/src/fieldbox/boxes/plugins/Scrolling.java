@@ -7,7 +7,7 @@ import fieldbox.boxes.Drawing;
 import fieldbox.boxes.Mouse;
 
 /**
- * Created by marc on 6/21/14.
+ * Adds mouse wheel (and, thus two-finger drag on OS X) pan support to the canvas
  */
 public class Scrolling extends Box {
 
