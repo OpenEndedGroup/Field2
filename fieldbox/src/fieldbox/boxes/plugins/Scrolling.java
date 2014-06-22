@@ -16,8 +16,8 @@ public class Scrolling extends Box {
 			if (e.after.dwheel != 0 || e.after.dwheely != 0) {
 				this.find(Drawing.drawing, this.both()).findFirst().ifPresent(x -> {
 					Vec2 t = x.getTranslation();
-					t.x += e.after.dwheel;
-					t.y += e.after.dwheely;
+					t.x += e.after.dwheel*4;
+					t.y += e.after.dwheely*4;
 					x.setTranslation(this, t);
 				});
 			}
