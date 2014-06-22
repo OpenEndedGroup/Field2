@@ -8,12 +8,8 @@ import field.utility.Rect;
 import fieldagent.Main;
 import fieldbox.boxes.*;
 import fieldbox.boxes.TimeSlider;
-import fieldbox.boxes.plugins.Delete;
-import fieldbox.boxes.plugins.IsExecuting;
-import fieldbox.boxes.plugins.Rename;
-import fieldbox.boxes.plugins.Topology;
+import fieldbox.boxes.plugins.*;
 import fieldbox.io.IO;
-import fieldbox.boxes.plugins.Chorder;
 import fieldbox.ui.Compositor;
 import fieldbox.ui.FieldBoxWindow;
 import fielded.Execution;
@@ -118,6 +114,8 @@ public class Open {
 		new IsExecuting(boxes.root()).connect(boxes.root());
 
 		new Rename(boxes.root()).connect(boxes.root());
+
+		new Scrolling(boxes.root()).connect(boxes.root());
 
 		/* cascade two blurs, a vertical and a horizontal together from the glass layer onto the base layer */
 		Compositor.Layer lx = window.getCompositor().newLayer("__main__blurx");

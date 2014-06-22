@@ -160,7 +160,7 @@ public class Window {
 		return graphicsContext;
 	}
 
-	static public class HasPosition
+	static public interface HasPosition
 	{
 		public Optional<Vec2> position();
 	}
@@ -174,6 +174,7 @@ public class Window {
 		public final double x;
 		public final double y;
 		public final float dwheel;
+		public final float dwheely;
 		public final int mods;
 
 		// not final (but still immutable), not part of the transition framework, just along to reduce static access to Window
@@ -186,13 +187,15 @@ public class Window {
 			x = 0;
 			y = 0;
 			dwheel = 0;
+			dwheely = 0;
 			mods = 0;
 		}
 
-		public MouseState(Set<Integer> buttonsDown, double x, double y, float dwheel, double dx, double dy, long time, int mods) {
+		public MouseState(Set<Integer> buttonsDown, double x, double y, float dwheel, float dwheely, double dx, double dy, long time, int mods) {
 			this.x = x;
 			this.y = y;
 			this.dwheel = dwheel;
+			this.dwheely = dwheely;
 			this.dx = dx;
 			this.dy = dy;
 			this.time = time;
@@ -205,24 +208,24 @@ public class Window {
 			if (bs && button != -1) buttonsDown.add(button);
 			else if (!bs && button != -1) buttonsDown.remove(button);
 
-			return new MouseState(buttonsDown, x, y, dwheel, dx, dy, time, mods);
+			return new MouseState(buttonsDown, x, y, dwheel, dwheely, dx, dy, time, mods);
 		}
 
 		public MouseState withButton(int button, boolean bs, int mods) {
 			Set<Integer> buttonsDown = new LinkedHashSet<Integer>(this.buttonsDown);
 			if (bs && button != -1) buttonsDown.add(button);
 			else if (!bs && button != -1) buttonsDown.remove(button);
-			MouseState m = new MouseState(buttonsDown, x, y, dwheel, 0, 0, time, mods);
+			MouseState m = new MouseState(buttonsDown, x, y, dwheel, dwheely, 0, 0, time, mods);
 			return m;
 		}
 
 		// currently we ignore sy
 		public MouseState withScroll(double sx, double sy) {
-			return new MouseState(buttonsDown, x, y, (float) sx, dx, dy, time, mods);
+			return new MouseState(buttonsDown, x, y, (float) sx, (float)sy, dx, dy, time, mods);
 		}
 
 		public MouseState withPosition(double x, double y) {
-			return new MouseState(buttonsDown, x, y, dwheel, x - this.x, y - this.y, time, mods);
+			return new MouseState(buttonsDown, x, y, dwheel, dwheely, x - this.x, y - this.y, time, mods);
 		}
 
 		static public Set<Integer> buttonsPressed(MouseState before, MouseState after) {
@@ -582,6 +585,7 @@ public class Window {
 				if (window == Window.this.window) {
 					MouseState next = mouseState.withScroll(scrollX, scrollY);
 					fireMouseTransition(mouseState, next);
+					next = mouseState.withScroll(0,0);
 					mouseState = next;
 				}
 			}
