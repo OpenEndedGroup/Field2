@@ -61,38 +61,32 @@
   <property name="jdk.bin.1.8" value="${jdk.home.1.8}/bin"/>
   <path id="jdk.classpath.1.8">
     <fileset dir="${jdk.home.1.8}">
-      <include name="lib/ant-javafx.jar"/>
-      <include name="lib/dt.jar"/>
-      <include name="lib/javafx-mx.jar"/>
-      <include name="lib/jconsole.jar"/>
-      <include name="lib/sa-jdi.jar"/>
-      <include name="lib/tools.jar"/>
+      <include name="jre/lib/plugin.jar"/>
+      <include name="jre/lib/jfr.jar"/>
       <include name="jre/lib/charsets.jar"/>
       <include name="jre/lib/deploy.jar"/>
-      <include name="jre/lib/javaws.jar"/>
+      <include name="jre/lib/resources.jar"/>
       <include name="jre/lib/jce.jar"/>
-      <include name="jre/lib/jfr.jar"/>
+      <include name="jre/lib/javaws.jar"/>
+      <include name="jre/lib/management-agent.jar"/>
       <include name="jre/lib/jfxswt.jar"/>
       <include name="jre/lib/jsse.jar"/>
-      <include name="jre/lib/management-agent.jar"/>
-      <include name="jre/lib/plugin.jar"/>
-      <include name="jre/lib/resources.jar"/>
       <include name="jre/lib/rt.jar"/>
-      <include name="jre/lib/ext/cldrdata.jar"/>
-      <include name="jre/lib/ext/dnsns.jar"/>
-      <include name="jre/lib/ext/jfxrt.jar"/>
-      <include name="jre/lib/ext/localedata.jar"/>
-      <include name="jre/lib/ext/nashorn.jar"/>
       <include name="jre/lib/ext/sunec.jar"/>
       <include name="jre/lib/ext/sunjce_provider.jar"/>
-      <include name="jre/lib/ext/sunpkcs11.jar"/>
       <include name="jre/lib/ext/zipfs.jar"/>
+      <include name="jre/lib/ext/jfxrt.jar"/>
+      <include name="jre/lib/ext/dnsns.jar"/>
+      <include name="jre/lib/ext/sunpkcs11.jar"/>
+      <include name="jre/lib/ext/cldrdata.jar"/>
+      <include name="jre/lib/ext/localedata.jar"/>
+      <include name="jre/lib/ext/nashorn.jar"/>
     </fileset>
   </path>
   
-  <property name="project.jdk.home" value="${jdk.home.1.8}"/>
-  <property name="project.jdk.bin" value="${jdk.bin.1.8}"/>
-  <property name="project.jdk.classpath" value="jdk.classpath.1.8"/>
+  <property name="project.jdk.home" value=""/>
+  <property name="project.jdk.bin" value=""/>
+  <property name="project.jdk.classpath" value=""/>
   
   
   <!-- Project Libraries -->
@@ -131,6 +125,18 @@
   <path id="library.swt.classpath">
     <pathelement location="${basedir}/fielded/lib/swt.jar"/>
   </path>
+  <!-- Register Custom Compiler Taskdefs -->
+  <property name="javac2.home" value="${idea.home}/lib"/>
+  <path id="javac2.classpath">
+    <pathelement location="${javac2.home}/javac2.jar"/>
+    <pathelement location="${javac2.home}/jdom.jar"/>
+    <pathelement location="${javac2.home}/asm4-all.jar"/>
+    <pathelement location="${javac2.home}/jgoodies-forms.jar"/>
+  </path>
+  <target name="register.custom.compilers">
+    <taskdef name="javac2" classname="com.intellij.ant.Javac2" classpathref="javac2.classpath"/>
+    <taskdef name="instrumentIdeaExtensions" classname="com.intellij.ant.InstrumentIdeaExtensions" classpathref="javac2.classpath"/>
+  </target>
   
   <!-- Modules -->
   
@@ -140,11 +146,11 @@
   <dirname property="module.fieldagent.basedir" file="${ant.file}"/>
   
   
-  <property name="module.jdk.home.fieldagent" value="${project.jdk.home}"/>
-  <property name="module.jdk.bin.fieldagent" value="${project.jdk.bin}"/>
-  <property name="module.jdk.classpath.fieldagent" value="${project.jdk.classpath}"/>
+  <property name="module.jdk.home.fieldagent" value="${jdk.home.1.8}"/>
+  <property name="module.jdk.bin.fieldagent" value="${jdk.bin.1.8}"/>
+  <property name="module.jdk.classpath.fieldagent" value="jdk.classpath.1.8"/>
   
-  <property name="compiler.args.fieldagent" value="-encoding UTF-8 -source 8 ${compiler.args}"/>
+  <property name="compiler.args.fieldagent" value="-encoding UTF-8 -source 8 -target 1.8 ${compiler.args}"/>
   
   <property name="fieldagent.output.dir" value="${module.fieldagent.basedir}/out/production/fieldagent"/>
   <property name="fieldagent.testoutput.dir" value="${module.fieldagent.basedir}/out/test/fieldagent"/>
@@ -189,15 +195,15 @@
   
   <target name="compile.module.fieldagent" depends="compile.module.fieldagent.production,compile.module.fieldagent.tests" description="Compile module fieldagent"/>
   
-  <target name="compile.module.fieldagent.production" description="Compile module fieldagent; production classes">
+  <target name="compile.module.fieldagent.production" depends="register.custom.compilers" description="Compile module fieldagent; production classes">
     <mkdir dir="${fieldagent.output.dir}"/>
-    <javac destdir="${fieldagent.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.fieldagent}/javac">
+    <javac2 destdir="${fieldagent.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.fieldagent}/javac">
       <compilerarg line="${compiler.args.fieldagent}"/>
       <bootclasspath refid="fieldagent.module.bootclasspath"/>
       <classpath refid="fieldagent.module.production.classpath"/>
       <src refid="fieldagent.module.sourcepath"/>
       <patternset refid="excluded.from.compilation.fieldagent"/>
-    </javac>
+    </javac2>
     
     <copy todir="${fieldagent.output.dir}">
       <fileset dir="${module.fieldagent.basedir}/fieldagent/src">
@@ -207,7 +213,7 @@
     </copy>
   </target>
   
-  <target name="compile.module.fieldagent.tests" depends="compile.module.fieldagent.production" description="compile module fieldagent; test classes" unless="skip.tests"/>
+  <target name="compile.module.fieldagent.tests" depends="register.custom.compilers,compile.module.fieldagent.production" description="compile module fieldagent; test classes" unless="skip.tests"/>
   
   <target name="clean.module.fieldagent" description="cleanup module">
     <delete dir="${fieldagent.output.dir}"/>
@@ -220,11 +226,11 @@
   <dirname property="module.fieldrsyntaxarea.basedir" file="${ant.file}"/>
   
   
-  <property name="module.jdk.home.fieldrsyntaxarea" value=""/>
-  <property name="module.jdk.bin.fieldrsyntaxarea" value=""/>
-  <property name="module.jdk.classpath.fieldrsyntaxarea" value=""/>
+  <property name="module.jdk.home.fieldrsyntaxarea" value="${jdk.home.1.8}"/>
+  <property name="module.jdk.bin.fieldrsyntaxarea" value="${jdk.bin.1.8}"/>
+  <property name="module.jdk.classpath.fieldrsyntaxarea" value="jdk.classpath.1.8"/>
   
-  <property name="compiler.args.fieldrsyntaxarea" value="-encoding UTF-8 -source 8 ${compiler.args}"/>
+  <property name="compiler.args.fieldrsyntaxarea" value="-encoding UTF-8 -source 8 -target 1.8 ${compiler.args}"/>
   
   <property name="fieldrsyntaxarea.output.dir" value="${module.fieldrsyntaxarea.basedir}/out/production/fieldrsyntaxarea"/>
   <property name="fieldrsyntaxarea.testoutput.dir" value="${module.fieldrsyntaxarea.basedir}/out/test/fieldrsyntaxarea"/>
@@ -233,13 +239,16 @@
     <!-- Paths to be included in compilation bootclasspath -->
   </path>
   
-  <path id="fieldrsyntaxarea.module.production.classpath"/>
+  <path id="fieldrsyntaxarea.module.production.classpath">
+    <path refid="${module.jdk.classpath.fieldrsyntaxarea}"/>
+  </path>
   
   <path id="fieldrsyntaxarea.runtime.production.module.classpath">
     <pathelement location="${fieldrsyntaxarea.output.dir}"/>
   </path>
   
   <path id="fieldrsyntaxarea.module.classpath">
+    <path refid="${module.jdk.classpath.fieldrsyntaxarea}"/>
     <pathelement location="${fieldrsyntaxarea.output.dir}"/>
   </path>
   
@@ -260,9 +269,9 @@
   
   <target name="compile.module.fieldrsyntaxarea" depends="compile.module.fieldrsyntaxarea.production,compile.module.fieldrsyntaxarea.tests" description="Compile module fieldrsyntaxarea"/>
   
-  <target name="compile.module.fieldrsyntaxarea.production" description="Compile module fieldrsyntaxarea; production classes"/>
+  <target name="compile.module.fieldrsyntaxarea.production" depends="register.custom.compilers" description="Compile module fieldrsyntaxarea; production classes"/>
   
-  <target name="compile.module.fieldrsyntaxarea.tests" depends="compile.module.fieldrsyntaxarea.production" description="compile module fieldrsyntaxarea; test classes" unless="skip.tests"/>
+  <target name="compile.module.fieldrsyntaxarea.tests" depends="register.custom.compilers,compile.module.fieldrsyntaxarea.production" description="compile module fieldrsyntaxarea; test classes" unless="skip.tests"/>
   
   <target name="clean.module.fieldrsyntaxarea" description="cleanup module">
     <delete dir="${fieldrsyntaxarea.output.dir}"/>
@@ -275,11 +284,11 @@
   <dirname property="module.fieldwork2.basedir" file="${ant.file}"/>
   
   
-  <property name="module.jdk.home.fieldwork2" value="${project.jdk.home}"/>
-  <property name="module.jdk.bin.fieldwork2" value="${project.jdk.bin}"/>
-  <property name="module.jdk.classpath.fieldwork2" value="${project.jdk.classpath}"/>
+  <property name="module.jdk.home.fieldwork2" value="${jdk.home.1.8}"/>
+  <property name="module.jdk.bin.fieldwork2" value="${jdk.bin.1.8}"/>
+  <property name="module.jdk.classpath.fieldwork2" value="jdk.classpath.1.8"/>
   
-  <property name="compiler.args.fieldwork2" value="-encoding UTF-8 -source 8 ${compiler.args}"/>
+  <property name="compiler.args.fieldwork2" value="-encoding UTF-8 -source 8 -target 1.8 ${compiler.args}"/>
   
   <property name="fieldwork2.output.dir" value="${module.fieldwork2.basedir}/out/production/fieldwork2"/>
   <property name="fieldwork2.testoutput.dir" value="${module.fieldwork2.basedir}/out/test/fieldwork2"/>
@@ -303,7 +312,7 @@
     <path refid="library.lwjgl.classpath"/>
     <path refid="library.commons-math3-3.2.classpath"/>
     <path refid="library.commons-math3-3.2-sources.classpath"/>
-    <path refid="fieldagent.runtime.production.module.classpath"/>
+    <pathelement location="${fieldagent.output.dir}"/>
     <path refid="library.jglfw.classpath"/>
     <path refid="library.guava-16.0.1.classpath"/>
   </path>
@@ -326,7 +335,8 @@
     <path refid="library.lwjgl.classpath"/>
     <path refid="library.commons-math3-3.2.classpath"/>
     <path refid="library.commons-math3-3.2-sources.classpath"/>
-    <path refid="fieldagent.runtime.module.classpath"/>
+    <pathelement location="${fieldagent.testoutput.dir}"/>
+    <pathelement location="${fieldagent.output.dir}"/>
     <path refid="library.jglfw.classpath"/>
     <path refid="library.guava-16.0.1.classpath"/>
   </path>
@@ -350,15 +360,15 @@
   
   <target name="compile.module.fieldwork2" depends="compile.module.fieldwork2.production,compile.module.fieldwork2.tests" description="Compile module fieldwork2"/>
   
-  <target name="compile.module.fieldwork2.production" depends="compile.module.fieldagent" description="Compile module fieldwork2; production classes">
+  <target name="compile.module.fieldwork2.production" depends="register.custom.compilers,compile.module.fieldagent" description="Compile module fieldwork2; production classes">
     <mkdir dir="${fieldwork2.output.dir}"/>
-    <javac destdir="${fieldwork2.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.fieldwork2}/javac">
+    <javac2 destdir="${fieldwork2.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.fieldwork2}/javac">
       <compilerarg line="${compiler.args.fieldwork2}"/>
       <bootclasspath refid="fieldwork2.module.bootclasspath"/>
       <classpath refid="fieldwork2.module.production.classpath"/>
       <src refid="fieldwork2.module.sourcepath"/>
       <patternset refid="excluded.from.compilation.fieldwork2"/>
-    </javac>
+    </javac2>
     
     <copy todir="${fieldwork2.output.dir}">
       <fileset dir="${module.fieldwork2.basedir}/src">
@@ -372,7 +382,7 @@
     </copy>
   </target>
   
-  <target name="compile.module.fieldwork2.tests" depends="compile.module.fieldwork2.production" description="compile module fieldwork2; test classes" unless="skip.tests"/>
+  <target name="compile.module.fieldwork2.tests" depends="register.custom.compilers,compile.module.fieldwork2.production" description="compile module fieldwork2; test classes" unless="skip.tests"/>
   
   <target name="clean.module.fieldwork2" description="cleanup module">
     <delete dir="${fieldwork2.output.dir}"/>
@@ -385,11 +395,11 @@
   <dirname property="module.fieldbox.basedir" file="${ant.file}"/>
   
   
-  <property name="module.jdk.home.fieldbox" value="${project.jdk.home}"/>
-  <property name="module.jdk.bin.fieldbox" value="${project.jdk.bin}"/>
-  <property name="module.jdk.classpath.fieldbox" value="${project.jdk.classpath}"/>
+  <property name="module.jdk.home.fieldbox" value="${jdk.home.1.8}"/>
+  <property name="module.jdk.bin.fieldbox" value="${jdk.bin.1.8}"/>
+  <property name="module.jdk.classpath.fieldbox" value="jdk.classpath.1.8"/>
   
-  <property name="compiler.args.fieldbox" value="-encoding UTF-8 -source 8 ${compiler.args}"/>
+  <property name="compiler.args.fieldbox" value="-encoding UTF-8 -source 8 -target 1.8 ${compiler.args}"/>
   
   <property name="fieldbox.output.dir" value="${module.fieldbox.basedir}/out/production/fieldbox"/>
   <property name="fieldbox.testoutput.dir" value="${module.fieldbox.basedir}/out/test/fieldbox"/>
@@ -414,11 +424,13 @@
   <path id="fieldbox.runtime.production.module.classpath">
     <pathelement location="${fieldbox.output.dir}"/>
     <path refid="library.lwjgl.classpath"/>
-    <path refid="fieldwork2.runtime.production.module.classpath"/>
-    <path refid="library.edn-java-0.4.4.classpath"/>
+    <pathelement location="${fieldwork2.output.dir}"/>
+    <path refid="library.commons-math3-3.2.classpath"/>
+    <path refid="library.commons-math3-3.2-sources.classpath"/>
+    <pathelement location="${fieldagent.output.dir}"/>
     <path refid="library.jglfw.classpath"/>
     <path refid="library.guava-16.0.1.classpath"/>
-    <path refid="fieldagent.runtime.production.module.classpath"/>
+    <path refid="library.edn-java-0.4.4.classpath"/>
     <path refid="library.swt.classpath"/>
     <path refid="library.java_websocket.classpath"/>
     <path refid="library.qdox-2.0-m1.classpath"/>
@@ -444,11 +456,15 @@
     <pathelement location="${fieldbox.testoutput.dir}"/>
     <pathelement location="${fieldbox.output.dir}"/>
     <path refid="library.lwjgl.classpath"/>
-    <path refid="fieldwork2.runtime.module.classpath"/>
-    <path refid="library.edn-java-0.4.4.classpath"/>
+    <pathelement location="${fieldwork2.testoutput.dir}"/>
+    <pathelement location="${fieldwork2.output.dir}"/>
+    <path refid="library.commons-math3-3.2.classpath"/>
+    <path refid="library.commons-math3-3.2-sources.classpath"/>
+    <pathelement location="${fieldagent.testoutput.dir}"/>
+    <pathelement location="${fieldagent.output.dir}"/>
     <path refid="library.jglfw.classpath"/>
     <path refid="library.guava-16.0.1.classpath"/>
-    <path refid="fieldagent.runtime.module.classpath"/>
+    <path refid="library.edn-java-0.4.4.classpath"/>
     <path refid="library.swt.classpath"/>
     <path refid="library.java_websocket.classpath"/>
     <path refid="library.qdox-2.0-m1.classpath"/>
@@ -491,15 +507,15 @@
   
   <target name="compile.module.fieldbox" depends="compile.module.fieldbox.production,compile.module.fieldbox.tests" description="Compile modules fieldbox"/>
   
-  <target name="compile.module.fieldbox.production" depends="compile.module.fieldwork2,compile.module.fieldagent" description="Compile modules fieldbox; production classes">
+  <target name="compile.module.fieldbox.production" depends="register.custom.compilers,compile.module.fieldwork2,compile.module.fieldagent" description="Compile modules fieldbox; production classes">
     <mkdir dir="${fieldbox.output.dir}"/>
-    <javac destdir="${fieldbox.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.fieldbox}/javac">
+    <javac2 destdir="${fieldbox.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.fieldbox}/javac">
       <compilerarg line="${compiler.args.fieldbox}"/>
       <bootclasspath refid="fieldbox.module.bootclasspath"/>
       <classpath refid="fieldbox.module.production.classpath"/>
       <src refid="fieldbox.module.sourcepath"/>
       <patternset refid="excluded.from.compilation.fieldbox"/>
-    </javac>
+    </javac2>
     
     <copy todir="${fieldbox.output.dir}">
       <fileset dir="${module.fieldbox.basedir}/fieldbox/src">
@@ -537,7 +553,7 @@
     </copy>
   </target>
   
-  <target name="compile.module.fieldbox.tests" depends="compile.module.fieldbox.production" description="compile modules fieldbox; test classes" unless="skip.tests"/>
+  <target name="compile.module.fieldbox.tests" depends="register.custom.compilers,compile.module.fieldbox.production" description="compile modules fieldbox; test classes" unless="skip.tests"/>
   
   <target name="clean.module.fieldbox" description="cleanup module">
     <delete dir="${fieldbox.output.dir}"/>

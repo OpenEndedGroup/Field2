@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -35,6 +36,30 @@ public class Options {
 			}
 		}
 	}
+
+	static public String getString(String name, Supplier<String> def)
+	{
+		return options.o.computeIfAbsent(name, x->def.get());
+	}
+
+
+	static public String getDirectory(String name, Supplier<String> def)
+	{
+		String d = options.o.computeIfAbsent(name, x -> def.get());
+		return d.endsWith("/") ? d : (d+"/");
+	}
+
+	static public Integer getInt(String name, Supplier<Integer> def)
+	{
+		Integer n = (Integer) toNumber(options.o.computeIfAbsent(name, x -> "" + def.get()));
+		if (n==null)
+		{
+			options.o.put(name, ""+def.get());
+			return def.get();
+		}
+		else return n;
+	}
+
 
 	static public Set<String> identifiers() {
 		return options.o.values().stream().filter(Options::isValidIdentifier).collect(Collectors.toSet());

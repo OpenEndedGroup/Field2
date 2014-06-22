@@ -182,6 +182,7 @@ public class Drawing extends Box {
 
 			return frame.intersects(drawing.get().windowSystemToDrawingSystem(o2.get()));
 		}
+
 		return false;
 	}
 

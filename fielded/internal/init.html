@@ -44,7 +44,8 @@
                         window.eval.call(window, e.data);
                     } catch (e) {
                         console.log(e);
-                        _field.error(e.message + " on line:" + e.line);
+                        console.log(e.stack);
+                        _field.error(e.message + " on line:" + e.stack);
                     }
                 }
 

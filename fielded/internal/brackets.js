@@ -1,4 +1,6 @@
-raph = Raphael($(".CodeMirror-linenumbers").get(0), "100%", "100%")
+var lineNumbers = $(".CodeMirror-linenumbers").get(0)
+
+raph = Raphael(lineNumbers, "100%", "100%")
 
 function rectForLineHandle(lh) {
     var y = cm.getLineNumber(lh);
@@ -16,6 +18,10 @@ function rectForLineHandle(lh) {
                 }
             }
         }
+
+        z.top -= $(lineNumbers).offset().top-8
+        z.bottom -= $(lineNumbers).offset().top-8
+
         return z;
     }
     return null;
@@ -24,15 +30,17 @@ function rectForLineHandle(lh) {
 function pathStringForTwoLineHandles(lh1, lh2) {
     r1 = rectForLineHandle(lh1)
     r2 = rectForLineHandle(lh2)
-    console.log(r1 + " " + r2)
+    console.log("rect for line "+cm.getLineNumber(lh1)+" is "+r1.bottom+" "+r1.top)
     if (r1 && r2) {
         sz = (r2.bottom - r1.top) / 8
+        sz = 5+Math.min(10, Math.sqrt(Math.abs(r2.bottom - r1.top)))
         r2.bottom -= 8
-        r1.top -= 5
+        r1.top -= 8
 
         w = 30 + sz - 10
         w2 = 48
         w3 = 10 + sz - 10
+        w3 = sz;
         return "M" + w2 + "," + r1.top + "L" + w + "," + r1.top + "C" + (-8 + w3) + "," + r1.top + "," + (20 + w3) + "," + ((r1.top + r2.bottom) / 2) + "," + w3 + "," + ((r1.top + r2.bottom) / 2) + "C" + (20 + w3) + "," + ((r1.top + r2.bottom) / 2) + "," + (-8 + w3) + "," + r2.bottom + "," + w + "," + r2.bottom + "L" + w2 + "," + r2.bottom;
     }
     return null;
@@ -106,8 +114,38 @@ function serializeAllBrackets() {
     return ret
 }
 
+function findPathForLines(h1, h2)
+{
+	var found;
+	raph.forEach(function (e) {
+        if ("isHandleDecorator" in e) {
+        	if (cm.getLineNumber(e.h1)==h1 && cm.getLineNumber(e.h2)==h2)
+	        	found = e
+        }
+    })
+	return found;
+}
+
+function findEnclosingPathForLine(line)
+{
+	var found = null;
+	raph.forEach(function (e) {
+        if ("isHandleDecorator" in e) {
+        	if (cm.getLineNumber(e.h1)<=line && cm.getLineNumber(e.h2)>=line)
+        	{
+        		if (found==null)
+					found = e
+				else if (Math.abs(cm.getLineNumber(found.h1)-cm.getLineNumber(found.h2))>Math.abs(cm.getLineNumber(e.h1)-cm.getLineNumber(e.h1)))
+					found = e
+	        }
+        }
+    })
+	return found;
+}
 
 raph.clear()
+
+var currentBracket = null;
 
 function updateAllBrackets() {
     raph.forEach(function (e) {
@@ -115,7 +153,8 @@ function updateAllBrackets() {
             var ps = pathStringForTwoLineHandles(e.h1, e.h2)
             if (ps) {
                 e.attr({
-                    path: ps
+                    path: ps,
+                    "stroke-opacity": 0.5
                 })
             } else {
                 e.attr({
@@ -126,6 +165,18 @@ function updateAllBrackets() {
 
         }
     })
+
+    var f = findEnclosingPathForLine(cm.getCursor().line)
+    if (f!=null)
+    {
+    	f.attr({"stroke-opacity":1.0})
+    	currentBracket = f
+    }
+    else
+    {
+    	currentBracket = null
+    }
+
 }
 
 updateAllBrackets()
@@ -133,6 +184,16 @@ updateAllBrackets()
 cm.on("change", function (x, c) {
     updateAllBrackets()
 })
+
+cm.on("cursorActivity", function(x, c) {
+    var f = findEnclosingPathForLine(cm.getCursor().line)
+    console.log(" cursor activity ", f, currentBracket)
+    if (f!=currentBracket)
+    {
+    	updateAllBrackets();
+    }
+})
+
 cm.on("fold", function (x, c) {
     updateAllBrackets()
 })

@@ -32,6 +32,8 @@ import java.util.stream.Collectors;
  */
 public class JavaSupport {
 
+	static public JavaSupport javaSupport = null;
+
 	public interface HandlesCompletion {
 		public List<Execution.Completion> getCompletionsFor(String prefix);
 	}
@@ -41,6 +43,8 @@ public class JavaSupport {
 	Map<String, String> allClassNames = new LinkedHashMap<>();
 
 	public JavaSupport() {
+		javaSupport = this;
+
 		builder = new JavaProjectBuilder();
 
 		List<Path> all = new ArrayList<>();
@@ -127,8 +131,13 @@ public class JavaSupport {
 
 	public List<Execution.Completion> getCompletionsFor(Object o, String prefix) {
 		if (o instanceof HandlesCompletion) {
+
+			System.out.println(" object :"+o+" is a completion handler ");
+
 			return ((HandlesCompletion) o).getCompletionsFor(prefix);
 		}
+		else
+			System.out.println(" object :"+o+" is not a completion handler ");
 
 		boolean staticsOnly = o instanceof Class;
 
@@ -158,18 +167,15 @@ public class JavaSupport {
 		return r;
 	}
 
-	private String compress(String name, String signature) {
+	static public String compress(String name, String signature) {
 		signature = " " + signature;
 
 		Pattern p = Pattern.compile("([A-Za-z]*?)\\.([A-Za-z]*?)");
 		Matcher m = p.matcher(signature);
 
-		System.out.println(" matcher ? " + m);
-
 		while (m.find()) {
 			signature = m.replaceAll("$2");
 			m = p.matcher(signature);
-			System.out.println(" matcher2 ? " + m);
 		}
 
 		signature = signature.replace(" public ", " ");

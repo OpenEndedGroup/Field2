@@ -1,3 +1,68 @@
+@font-face
+{
+	font-family: 'Source Code Pro';
+	src: url('/field/filesystem/fonts/SourceCodePro-Regular.ttf.woff') format('woff');
+	font-weight: 400;
+	font-style: normal;
+}
+@font-face
+{
+	font-family: 'Source Code Pro';
+	src: url('/field/filesystem/fonts/SourceCodePro-Light.ttf.woff') format('woff');
+	font-weight: 100;
+	font-style: normal;
+}
+@font-face
+{
+	font-family: 'Source Code Pro';
+	src: url('/field/filesystem/fonts/SourceCodePro-Bold.ttf.woff') format('woff');
+	font-weight: 700;
+	font-style: normal;
+}
+@font-face
+{
+	font-family: 'Source Sans Pro';
+	src: url('/field/filesystem/fonts/SourceSansPro-Regular.ttf.woff') format('woff');
+	font-weight: 400;
+	font-style: normal;
+}
+@font-face
+{
+	font-family: 'Source Sans Pro';
+	src: url('/field/filesystem/fonts/SourceSansPro-Light.ttf.woff') format('woff');
+	font-weight: 100;
+	font-style: normal;
+}
+@font-face
+{
+	font-family: 'Source Sans Pro';
+	src: url('/field/filesystem/fonts/SourceSansPro-Bold.ttf.woff') format('woff');
+	font-weight: 700;
+	font-style: normal;
+}
+@font-face
+{
+	font-family: 'Source Sans Pro';
+	src: url('/field/filesystem/fonts/SourceSansPro-Italic.ttf.woff') format('woff');
+	font-weight: 400;
+	font-style: italic;
+}
+@font-face
+{
+	font-family: 'Source Sans Pro';
+	src: url('/field/filesystem/fonts/SourceSansPro-LightIt.ttf.woff') format('woff');
+	font-weight: 100;
+	font-style: italic;
+}
+@font-face
+{
+	font-family: 'Source Sans Pro';
+	src: url('/field/filesystem/fonts/SourceSansPro-BoldIt.ttf.woff') format('woff');
+	font-weight: 700;
+	font-style: italic;
+}
+
+
 :root {
     var-bg: ;
     var-fg: #aaa;
@@ -330,6 +395,7 @@ input {
     margin-bottom: 3px;
     margin-top: 1px;
     background: #222;
+    float:left;
 }
 
 .Field-modal ol {
@@ -374,6 +440,21 @@ $
     border-radius: 5px;
 }
 
+.Field-modal-positioned ol li .Field-number-empty {
+    font-weight: bold;
+    float: left;
+    text-align: right;
+    margin-right: 5px;
+    padding-left: 3px;
+    padding-right: 3px;
+    width: 1em;
+    font-size: 100%;
+    background: black;
+    border-radius: 5px;
+    opacity:0.0;
+}
+
+
 .Field-modal-positioned ol li .matched,
 .Field-modal ol li .matched {
     text-decoration: underline;
@@ -383,18 +464,18 @@ $
 .Field-modal ol li span.doc {
     opacity: 0.5;
     text-height: 120%;
+	float:left;
+	clear:both;
+	margin-left:25px;
 }
 
 .Field-modal-positioned ol li span.type,
 .Field-modal ol li span.type {
     font-style: italic;
-    $
     font-weight: light;
-    opacity: 0.5;
-    //    display: inline-block;
-    //float: left;
-    //text-align: right;
-    clear: left;
+    opacity: 0.75;
+    font-size:75%;
+
 }
 
 .Field-modal ol li:after {

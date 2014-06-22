@@ -26,6 +26,11 @@ public class Box {
 	static public final Dict.Prop<String> name = new Dict.Prop<>("name").type().toCannon().doc("the name of this box");
 	static public final Dict.Prop<Rect> frame = new Dict.Prop<>("frame").type().toCannon().doc("the rectangle that this box occupies");
 
+	/** Marker interface, marks functions as taking a box as a parameter. Allows us to finesse the dispatch of functions stored in properties*/
+	static public interface FunctionOfBox<T> extends Function<Box, T>
+	{
+	}
+
 	public Set<Box> parents = new LinkedHashSet<Box>();
 	public Set<Box> children = new LinkedHashSet<Box>();
 	public Deque<Box> all = new ArrayDeque<>();

@@ -171,6 +171,11 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform {
 		return s;
 	}
 
+	public Map<Type, Source> getSources()
+	{
+		return this.source;
+	}
+
 
 	@Override
 	protected void deallocate(State s) {
