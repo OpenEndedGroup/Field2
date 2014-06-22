@@ -1,4 +1,4 @@
-package fielded.scratch;
+package fielded;
 
 import field.message.MessageQueue;
 import field.utility.Dict;
