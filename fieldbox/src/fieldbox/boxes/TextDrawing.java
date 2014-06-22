@@ -97,7 +97,7 @@ public class TextDrawing extends Box {
 			    "   gl_Position =  vec4(-1+at.x*2, 1-at.y*2, 0.5, 1.0);\n" +
 			    "   vertexColor = color;\n" +
 			    "   vtc =tc;\n" +
-			    "   vtc.z =smoothing;\n" +
+			    "   vtc.z =tc.z;\n" +
 			    "}");
 
 
