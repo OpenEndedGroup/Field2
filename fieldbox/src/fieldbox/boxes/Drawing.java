@@ -49,11 +49,11 @@ public class Drawing extends Box {
 	}
 
 	private Vec2 translation = new Vec2(0, 0);
+	private Vec2 translationNext = null;
 	private Vec2 scale = new Vec2(1, 1);
 	private float opacity = 1f;
 
 	Map<String, PerLayer> layerLocal = new LinkedHashMap<>();
-
 
 	List<Bracketable> bracketableList = new ArrayList<>();
 
@@ -166,17 +166,15 @@ public class Drawing extends Box {
 	}
 
 
-	static public boolean intersects(Window.Event<?> event, Box box)
-	{
+	static public boolean intersects(Window.Event<?> event, Box box) {
 		Rect frame = (Rect) box.properties.get(Box.frame);
-		if (frame==null) return false;
+		if (frame == null) return false;
 
 		Optional<Drawing> drawing = (Optional<Drawing>) box.find(Drawing.drawing, box.both()).findFirst();
 		if (!drawing.isPresent()) return false;
 
 		Object o = event.after;
-		if (o instanceof Window.HasPosition)
-		{
+		if (o instanceof Window.HasPosition) {
 			Optional<Vec2> o2 = ((Window.HasPosition) o).position();
 			if (!o2.isPresent()) return false;
 
@@ -220,9 +218,16 @@ public class Drawing extends Box {
 		Boolean q = root.properties.remove(needRepaint);
 		if (q == null || !q) return;
 
+		if (translationNext != null) {
+			translation.x = translationNext.x;
+			translation.y = translationNext.y;
+			translationNext = null;
+		}
+
 		try (AutoCloseable ignored = closeable(bracketableList)) {
 			insideDrawing = true;
-			root.find(drawers, root.both()).collect(Collectors.toList()).stream().flatMap(x -> x.stream()).collect(Collectors.toList()).stream().forEach(x -> x.draw(this));
+			root.find(drawers, root.both()).collect(Collectors.toList()).stream().flatMap(x -> x.stream()).collect(Collectors.toList())
+				    .stream().forEach(x -> x.draw(this));
 		} catch (Exception e) {
 			System.err.println(" exception thrown during drawing ");
 			e.printStackTrace();
@@ -255,9 +260,13 @@ public class Drawing extends Box {
 		return new Vec2(translation);
 	}
 
+	/**
+	 * sets the translation of the canvas. Note, we defer actually handing this off to the graphics system (or getTranslation) until the next draw
+	 * cycle. This way we do not get repaints during which the transformation changes half way through.
+	 */
 	public void setTranslation(Box root, Vec2 t) {
 		if (this.translation.distanceFrom(t) > 1e-10) dirty(root);
-		this.translation.set(t);
+		this.translationNext = new Vec2(t);
 	}
 
 	/**
@@ -300,8 +309,7 @@ public class Drawing extends Box {
 			return f;
 		}, dur, 0.05f));
 
-		if (from!=null)
-			Drawing.dirty(from);
+		if (from != null) Drawing.dirty(from);
 
 	}
 }

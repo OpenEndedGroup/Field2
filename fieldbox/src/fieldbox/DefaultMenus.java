@@ -1,5 +1,6 @@
 package fieldbox;
 
+import com.badlogic.jglfw.Glfw;
 import field.graphics.Window;
 import field.linalg.Vec2;
 import field.utility.Pair;
@@ -32,7 +33,7 @@ public class DefaultMenus extends Box {
 					save();
 				}));
 				spec.items.put(MarkingMenus.Position.N, new MarkingMenus.MenuItem("New Box", () -> {
-					newBox(event);
+					newBox(event.after);
 				}));
 				return spec;
 			}
@@ -47,10 +48,22 @@ public class DefaultMenus extends Box {
 			return m;
 		});
 
+		properties.putToList(Keyboard.onKeyDown, (e, k) -> {
+
+			if ( k == Glfw.GLFW_KEY_N)
+			{
+				newBox(e.after.mouseState);
+			}
+			return null;
+		});
+
 	}
 
-	private void newBox(Window.Event<Window.MouseState> event) {
-		Vec2 at = convertCoordinateSystem(event.after);
+	private void newBox(Window.MouseState event) {
+
+		System.out.println(" new box at :"+event);
+
+		Vec2 at = convertCoordinateSystem(event);
 
 		Box b1 = new Box();
 		root.connect(b1);

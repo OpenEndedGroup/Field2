@@ -23,6 +23,10 @@ public class Mouse {
 		public Dragger onMouseDown(Window.Event<Window.MouseState> e, int button);
 	}
 
+	public interface OnMouseScroll {
+		public void onMouseScroll(Window.Event<Window.MouseState> e);
+	}
+
 	public interface OnMouseMove {
 		public Dragger onMouseMove(Window.Event<Window.MouseState> e);
 	}
@@ -38,6 +42,7 @@ public class Mouse {
 	static public final Dict.Prop<Collection<OnMouseDown>> onMouseDown = new Dict.Prop<>("onMouseDown").type().toCannon();
 	static public final Dict.Prop<Collection<OnMouseMove>> onMouseMove = new Dict.Prop<>("onMouseMove").type().toCannon();
 	static public final Dict.Prop<Collection<OnMouseEnter>> onMouseEnter = new Dict.Prop<>("onMouseEnter").type().toCannon();
+	static public final Dict.Prop<Collection<OnMouseScroll>> onMouseScroll = new Dict.Prop<>("onMouseScroll").type().toCannon();
 	static public final Dict.Prop<Collection<OnMouseExit>> onMouseExit = new Dict.Prop<>("onMouseExit").type().toCannon();
 
 	static public final Dict.Prop<Boolean> isSelected = new Dict.Prop<>("isSelected").type().toCannon();
@@ -76,6 +81,10 @@ public class Mouse {
 				    .filter(x -> x != null).collect(Collectors.toSet());
 			ongoingDrags.computeIfAbsent(-1, (k) -> new LinkedHashSet<Dragger>()).addAll(draggers);
 		}
+
+		if (event.after.dwheely != 0.0 || event.after.dwheel != 0.0)
+			root.find(onMouseScroll, root.both()).flatMap(x -> x.stream()).forEach(x -> x.onMouseScroll(event));
+
 
 		pressed.stream().forEach(p -> {
 			Collection<Dragger> dragger = ongoingDrags.computeIfAbsent(p, (x) -> new ArrayList<>());

@@ -65,21 +65,23 @@ public class TimeSlider extends Box {
 		Rect w = f.inset(0);
 
 		Drawing d = first(Drawing.drawing).orElse(null);
-		if (d != null) {
-			Rect viewBounds = d.getCurrentViewBounds(TimeSlider.this);
-//				System.out.println(" current view bounds are :" + viewBounds);
 
-			w.y = viewBounds.y - width;
-			w.h = viewBounds.h + width * 2;
+		float safety = 500;
+
+		Rect viewBounds = d.getCurrentViewBounds(TimeSlider.this);
+
+		if (d != null) {
+			w.y = viewBounds.y - width-safety;
+			w.h = viewBounds.h + width * 2+safety*2;
 			w.w = width;
 		}
 
-		if (!w.equals(f)) {
-//				System.out.println(" new frame is :"+w);
+		// this check stops us from having to blow the MeshBuilder cache on every vertical scroll...
+		if (!w.equals(f) && (f.y>viewBounds.y || f.y+f.h<viewBounds.y+viewBounds.h))
+		{
 			properties.put(frame, w);
 			Drawing.dirty(TimeSlider.this);
 		} else {
-//				System.out.println(" no frame change :"+w+" "+f);
 		}
 
 		return true;

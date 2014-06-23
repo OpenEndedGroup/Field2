@@ -178,6 +178,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 				List<String> textToDraw = node.attributes.get(FLineDrawing.textSpans);
 				List<String> fontToDraw = node.attributes.get(FLineDrawing.fontSpans);
 				List<Vec4> colorsToDraw = node.attributes.get(FLineDrawing.textColorSpans);
+				float textScale = node.attributes.getFloat(FLineDrawing.textScale, 1f) * 0.2f;
 				String prev = "source-sans-pro-regular.fnt";
 				Vec4 prevColor = fc;
 
@@ -187,7 +188,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 					String m = textToDraw.get(i);
 					String f = fontToDraw == null ? prev : (i >= fontToDraw.size() ? prev : fontToDraw.get(i));
 					text.map(t -> t.getFontSupport(fline.attributes.getOr(font, () -> f), layerName)).ifPresent(fs -> {
-						Vec2 v = fs.font.dimensions(m, 0.2f);
+						Vec2 v = fs.font.dimensions(m, textScale);
 						dim.x += v.x;
 					});
 					prev = f;
@@ -200,8 +201,8 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 					Vec4 fcHere = colorsToDraw == null ? prevColor : (i >= colorsToDraw.size() ? prevColor : colorsToDraw.get(i));
 					text.map(t -> t.getFontSupport(fline.attributes.getOr(font, () -> f))).ifPresent(fs -> {
 						fs.mesh.aux(1, new Vec4(fcHere).scale(op));
-						fs.font.draw(m, new Vec2(node.to.x - dim.x / 2 + o.x, node.to.y), 0.2f, fline);
-						o.x += fs.font.dimensions(m, 0.2f).x;
+						fs.font.draw(m, new Vec2(node.to.x - dim.x / 2 + o.x, node.to.y), textScale, fline);
+						o.x += fs.font.dimensions(m, textScale).x;
 					});
 					prev = f;
 					prevColor = fcHere;
