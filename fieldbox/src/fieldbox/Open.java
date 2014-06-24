@@ -4,7 +4,6 @@ import field.graphics.MeshBuilder;
 import field.graphics.RunLoop;
 import field.graphics.Scene;
 import field.graphics.SimpleArrayBuffer;
-import field.utility.Rect;
 import fieldagent.Main;
 import fieldbox.boxes.*;
 import fieldbox.boxes.TimeSlider;
@@ -13,7 +12,7 @@ import fieldbox.io.IO;
 import fieldbox.ui.Compositor;
 import fieldbox.ui.FieldBoxWindow;
 import fielded.Execution;
-import fielded.scratch.ServerSupport;
+import fielded.ServerSupport;
 import fielded.windowmanager.LinuxWindowTricks;
 import fieldnashorn.Nashorn;
 import org.lwjgl.opengl.GL11;
@@ -115,7 +114,11 @@ public class Open {
 
 		new Rename(boxes.root()).connect(boxes.root());
 
+		new Scrolling(boxes.root()).connect(boxes.root());
+
 		new GraphicsSupport(boxes.root()).connect(boxes.root());
+
+		new BlankCanvas(boxes.root()).connect(boxes.root());
 
 		/* cascade two blurs, a vertical and a horizontal together from the glass layer onto the base layer */
 		Compositor.Layer lx = window.getCompositor().newLayer("__main__blurx");

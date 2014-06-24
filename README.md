@@ -10,7 +10,7 @@ Welcome to the Field2 development repository.
 
  * ```Intellij IDEA``` (a java development environment) from http://www.jetbrains.com/idea/ (you can use the community addition until we can figure out an educational license.
 
- * ```java``` itself. Either get a JDK 8 (not a JRE 8) from your Linux distribution or install one from Oracle. JDK 8u5 should be sufficient (the EA version 8u20 is good for running Field2 but, alas, JavaC crashes on compiling it).
+ * ```java``` itself. Either get a JDK 8 (not a JRE 8) from your Linux distribution or install one from Oracle. JDK 8u5 should be sufficient (the EA version 8u20 is good for running Field2 but, alas, JavaC crashes with an internal error while building).
 
 To build, either invest the time importing the code-base into Idea (very recommended), or edit fieldwork2.properties in the repository and and build using ```ant -f fieldwork2.xml```
 
@@ -28,6 +28,8 @@ Then, assuming an error-free build:
 cd ((therepository))
 ./f fieldbox.FieldBox
 ```
+
+on OSX subsitute ```./f_mac``` for ```./f```. Note you may need to edit your ```./f``` script to point to the location of your JDK.
 
 ```fieldbox.FieldBox``` is the Java Class that's the main entry-point into Field2. 
  
