@@ -37,6 +37,17 @@ public class LinkedHashMapAndArrayList<K, V> extends LinkedHashMap<K,V> {
 		return "[["+super.toString()+" | "+a.toString()+"]]";
 	}
 
+	/**
+	 * TODO it would be nice to make this support mutation just like the underlying values
+	 */
+	@Override
+	public Collection<V> values() {
+		LinkedHashSet r = new LinkedHashSet<V>();
+		r.addAll(super.values());
+		r.addAll(a);
+		return r;
+	}
+
 	// pure ArrayList delegates follow ------------
 
 	/**
@@ -101,7 +112,7 @@ public class LinkedHashMapAndArrayList<K, V> extends LinkedHashMap<K,V> {
 	 * @since 1.8
 	 */
 	public Stream<V> parallelStream() {
-		return a.parallelStream();
+		return values().parallelStream();
 	}
 
 	/**
@@ -369,7 +380,7 @@ public class LinkedHashMapAndArrayList<K, V> extends LinkedHashMap<K,V> {
 	 * @since 1.8
 	 */
 	public Stream<V> stream() {
-		return a.stream();
+		return this.values().stream();
 	}
 
 	/**
