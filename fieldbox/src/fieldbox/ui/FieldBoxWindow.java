@@ -3,6 +3,7 @@ package fieldbox.ui;
 import com.badlogic.jglfw.GlfwCallback;
 import com.badlogic.jglfw.GlfwCallbackAdapter;
 import field.graphics.GraphicsContext;
+import field.graphics.RunLoop;
 import field.graphics.Scene;
 import field.graphics.Window;
 
@@ -83,6 +84,16 @@ public class FieldBoxWindow extends Window {
 			@Override
 			public void windowRefresh(long l) {
 				requestRepaint();
+			}
+
+			@Override
+			public boolean windowClose(long l)
+			{
+				System.out.println(" WINDOW CLOSE ");
+
+
+				RunLoop.main.exit();
+				return false;
 			}
 
 			@Override

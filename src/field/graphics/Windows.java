@@ -111,6 +111,12 @@ public class Windows {
 			}
 
 
+			@Override
+			public boolean windowClose(long window) {
+				GlfwCallback a = adaptors.get(window);
+				if (a != null) return a.windowClose(window);
+				return true;
+			}
 		};
 	}
 
