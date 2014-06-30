@@ -15,7 +15,9 @@ import java.util.Map;
 /**
  * Utilities for helping you write code for the Field graphics system.
  * <p>
- * Three pieces of functionality: commands for swapping the editor into editing properties that
+ * Three pieces of functionality: commands for swapping the editor into editing properties that correspond to GLSL shader sources (vertex, geometry
+ * and fragment); _.newShader() function (injected into the Box graph via a FunctionOfBox implementation) and a command for compiling / reloading a
+ * shader from a box.
  */
 public class GraphicsSupport extends Box {
 
@@ -64,10 +66,10 @@ public class GraphicsSupport extends Box {
 				ed.setCurrentlyEditingProperty(Execution.code);
 			});
 
-			if (s!=null)
-				m.put(new Pair<>("Reload shader", "Reloads all "+s.size()+" shader"+(s.size()==1 ? "" : "s")+" associated with this box via _.newShader()"), () -> {
-					reload(box, s);
-				});
+			if (s != null) m.put(new Pair<>("Reload shader", "Reloads all " + s.size() + " shader" + (s
+				    .size() == 1 ? "" : "s") + " associated with this box via _.newShader()"), () -> {
+				reload(box, s);
+			});
 
 
 			return m;
@@ -78,26 +80,25 @@ public class GraphicsSupport extends Box {
 	}
 
 	private void reload(Box b, List<Shader> s) {
-		for(Shader ss : s)
-		{
+		for (Shader ss : s) {
 			Map<Shader.Type, Shader.Source> sources = ss.getSources();
 
 			{
 				String v = b.properties.get(vertex);
 				Shader.Source source = sources.get(Shader.Type.vertex);
-				if (source == null && v != null && v.trim().length()>0) ss.addSource(Shader.Type.vertex, v);
+				if (source == null && v != null && v.trim().length() > 0) ss.addSource(Shader.Type.vertex, v);
 				else if (source != null && v != null) source.source = v;
 			}
 			{
 				String v = b.properties.get(fragment);
 				Shader.Source source = sources.get(Shader.Type.fragment);
-				if (source == null && v != null && v.trim().length()>0) ss.addSource(Shader.Type.fragment, v);
+				if (source == null && v != null && v.trim().length() > 0) ss.addSource(Shader.Type.fragment, v);
 				else if (source != null && v != null) source.source = v;
 			}
 			{
 				String v = b.properties.get(geometry);
 				Shader.Source source = sources.get(Shader.Type.geometry);
-				if (source == null && v != null && v.trim().length()>0) ss.addSource(Shader.Type.geometry, v);
+				if (source == null && v != null && v.trim().length() > 0) ss.addSource(Shader.Type.geometry, v);
 				else if (source != null && v != null) source.source = v;
 			}
 
