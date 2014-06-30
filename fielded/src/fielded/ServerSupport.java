@@ -33,7 +33,7 @@ import java.util.function.Consumer;
 public class ServerSupport {
 
 	static List<String> playlist = Arrays
-		    .asList("messagebus.js", "instantiate.js", "changehooks.js", "status.js", "modal.js", "brackets.js", "output.js", "doubleshift.js");
+		    .asList("messagebus.js", "instantiate.js", "changehooks.js", "status.js", "helpbox.js", "modal.js", "brackets.js", "output.js", "doubleshift.js");
 
 	public ServerSupport(Boxes boxes) {
 
