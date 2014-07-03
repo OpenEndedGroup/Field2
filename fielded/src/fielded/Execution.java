@@ -56,7 +56,7 @@ public class Execution extends Box {
 
 		public void executeAll(String allText, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success);
 
-		public void begin(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success);
+		public String begin(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success);
 
 		public void end(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success);
 
@@ -72,32 +72,40 @@ public class Execution extends Box {
 
 		default public void begin(Box box) {
 
-			Function<Box, Consumer<Pair<Integer, String>>> ef = box.first(RemoteEditor.outputErrorFactory).orElse(null);
-			Function<Box, Consumer<String>> of = box.first(RemoteEditor.outputFactory).orElse(null);
-
-			System.out.println(" factories are :"+ef+" "+of);
+			Function<Box, Consumer<Pair<Integer, String>>> ef = box.first(RemoteEditor.outputErrorFactory)
+				    .orElse((x) -> (is -> System.err.println("error (without remote editor attached) :" + is)));
+			Function<Box, Consumer<String>> of = box.first(RemoteEditor.outputFactory)
+				    .orElse(x -> (is -> System.out.println("output (without remote editor attached) :" + is)));
 
 			begin(ef.apply(box), of.apply(box));
 		}
 
 		default public void executeTextFragment(String allText, Box box) {
-			executeTextFragment(allText, box.first(RemoteEditor.outputErrorFactory).orElse(null).apply(box), box
-				    .first(RemoteEditor.outputFactory).orElse(null).apply(box));
+			executeTextFragment(allText, box.first(RemoteEditor.outputErrorFactory)
+				    .orElse((x) -> (is -> System.err.println("error (without remote editor attached) :" + is))).apply(box), box
+				    .first(RemoteEditor.outputFactory)
+				    .orElse(x -> (is -> System.out.println("output (without remote editor attached) :" + is))).apply(box));
 		}
 
 		default public void executeAndPrint(String allText, Box box) {
-			executeAndPrint(allText, box.first(RemoteEditor.outputErrorFactory).orElse(null).apply(box), box
-				    .first(RemoteEditor.outputFactory).orElse(null).apply(box));
+			executeAndPrint(allText, box.first(RemoteEditor.outputErrorFactory)
+				    .orElse((x) -> (is -> System.err.println("error (without remote editor attached) :" + is))).apply(box), box
+				    .first(RemoteEditor.outputFactory)
+				    .orElse(x -> (is -> System.out.println("output (without remote editor attached) :" + is))).apply(box));
 		}
 
 		default public void executeAll(String allText, Box box) {
-			executeAll(allText, box.first(RemoteEditor.outputErrorFactory).orElse(null).apply(box), box.first(RemoteEditor.outputFactory)
-				    .orElse(null).apply(box));
+			executeAll(allText, box.first(RemoteEditor.outputErrorFactory)
+				    .orElse((x) -> (is -> System.err.println("error (without remote editor attached) :" + is))).apply(box), box
+				    .first(RemoteEditor.outputFactory)
+				    .orElse(x -> (is -> System.out.println("output (without remote editor attached) :" + is))).apply(box));
 		}
 
 		default public void end(Box box) {
-			end(box.first(RemoteEditor.outputErrorFactory).orElse(null).apply(box), box.first(RemoteEditor.outputFactory).orElse(null)
-				    .apply(box));
+			end(box.first(RemoteEditor.outputErrorFactory)
+				    .orElse((x) -> (is -> System.err.println("error (without remote editor attached) :" + is))).apply(box), box
+				    .first(RemoteEditor.outputFactory)
+				    .orElse(x -> (is -> System.out.println("output (without remote editor attached) :" + is))).apply(box));
 		}
 	}
 
