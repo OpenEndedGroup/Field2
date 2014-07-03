@@ -97,13 +97,11 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform {
 			if (GraphicsContext.trace) System.out.println(" shader name " + s.name);
 
 			if (s.name == -1) {
-				System.out.println(" compiling ");
 				s.name = GL20.glCreateShader(type.gl);
 				GL20.glShaderSource(s.name, s.source);
 				GL20.glCompileShader(s.name);
 				status = GL20.glGetShaderi(s.name, GL20.GL_COMPILE_STATUS);
 
-				System.out.println(" status " + status);
 				if (status == 0) {
 					String ret = GL20.glGetShaderInfoLog(s.name, 10000);
 					System.err.println(type + " program failed to compile");
@@ -139,8 +137,6 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform {
 					return false;
 				} else {
 					if (onError != null) onError.noError();
-
-					System.out.println(" shader is good ");
 
 					s.good = true;
 					return true;
@@ -202,13 +198,11 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform {
 			for (Map.Entry<Type, Source> s : source.entrySet()) {
 				Source.State state = GraphicsContext.get(s.getValue());
 				if (s.getValue().status != 0 && state.name != -1 && !s.getValue().attachedTo.contains(name.name)) {
-					System.out.println(" attaching :" + s.getKey() + " / " + s.getValue() + " " + name.name);
 					GL20.glAttachShader(name.name, state.name);
 					s.getValue().attachedTo.add(name.name);
 				}
 			}
 
-			System.out.println(" --- binding frag data --- ");
 			GL30.glBindFragDataLocation(name.name, 0, "_output");
 			GL30.glBindFragDataLocation(name.name, 0, "_output0");
 			GL30.glBindFragDataLocation(name.name, 1, "_output1");
@@ -218,7 +212,6 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform {
 			for (int i = 1; i < 16; i++)
 				glBindAttribLocation(name.name, i, "attribute" + i);
 
-			System.out.println(" linking .... ");
 			glLinkProgram(name.name);
 			int linkStatus = glGetProgrami(name.name, GL20.GL_LINK_STATUS);
 			if (linkStatus == 0) {
@@ -234,13 +227,11 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform {
 			}
 
 
-			System.out.println(" validating .... ");
 			glValidateProgram(name.name);
 			int validateStatus = glGetProgrami(name.name, GL20.GL_VALIDATE_STATUS);
 			if (validateStatus == 0) {
 				String ret = GL20.glGetProgramInfoLog(name.name, 10000);
-				System.err.println(" program failed to validate");
-				System.err.println(" log is <" + ret + ">");
+				System.err.println(" program failed to validate (note, this can be benign). Log is "+ret);
 				if (onError != null) {
 					onError.beginError();
 					onError.errorOnLine(-1, ret);

@@ -77,11 +77,8 @@ public class EDN {
 	}
 
 	public String write(Object o) {
-		System.out.println(" writing :" + o);
 		StringBuilder w = new StringBuilder();
 		Printers.newPrinter(thePrinter, w).printValue(o);
-
-		System.out.println(" value :" + w.toString());
 		return w.toString();
 	}
 

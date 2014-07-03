@@ -144,9 +144,6 @@ public class Compositor {
 				we = we+(weight[i+taps]/tot)+",";
 			}
 			we = we.substring(0, we.length()-1);
-
-			System.out.println(" weights are :"+we);
-
 			shader.addSource(Shader.Type.fragment, "#version 410\n" +
 				    "layout(location=0) out vec4 _output;\n" +
 				    "uniform sampler2D te;\n" +
