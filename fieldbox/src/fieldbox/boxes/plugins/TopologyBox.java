@@ -50,8 +50,8 @@ public class TopologyBox extends Box
 	}
 
 	public void loaded() {
-		this.properties.putToMap(Boxes.insideRunLoop, "__checkfordeletion__", this::checkForDeletion);
-		this.properties.putToMap(Boxes.insideRunLoop, "__updateframe__", this::updateFrameToMiddle);
+		this.properties.putToMap(Boxes.insideRunLoop, "main.__checkfordeletion__", this::checkForDeletion);
+		this.properties.putToMap(Boxes.insideRunLoop, "main.__updateframe__", this::updateFrameToMiddle);
 		this.properties.computeIfAbsent(FLineDrawing.frameDrawing, this::defaultdrawsLines);
 		this.properties.put(frame, head().properties.get(frame).union(tail().properties.get(frame)));
 		this.properties.put(FrameManipulation.lockHeight, true); // the dimensions of this box cannot be changed

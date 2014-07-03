@@ -24,7 +24,7 @@ public class Watches extends Box  {
 
 	public Watches(MessageQueue<Quad<Dict.Prop, Box,  Object, Object>, String> messageQueue) {
 		this.messageQueue = messageQueue;
-		this.properties.putToMap(Boxes.insideRunLoop, "__watch_updator__", this::update);
+		this.properties.putToMap(Boxes.insideRunLoop, "main.__watch_updator__", this::update);
 		this.properties.put(watches, this);
 	}
 
@@ -55,7 +55,7 @@ public class Watches extends Box  {
 				};
 			}
 		};
-		this.properties.putToMap(Boxes.insideRunLoop, "__watch_updator__", this::update);
+		this.properties.putToMap(Boxes.insideRunLoop, "main.__watch_updator__", this::update);
 		this.properties.put(watches, this);
 	}
 

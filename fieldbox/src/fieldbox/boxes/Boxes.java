@@ -39,8 +39,10 @@ public class Boxes {
 
 				Iterator<Map.Entry<String, Supplier<Boolean>>> r = x.entrySet().iterator();
 				while (r.hasNext()) {
+					Map.Entry<String, Supplier<Boolean>> n = r.next();
+					if (n.getKey().startsWith("main."))
 					try {
-						if (!r.next().getValue().get()) r.remove();
+						if (!n.getValue().get()) r.remove();
 					} catch (Throwable t) {
 						t.printStackTrace();
 					}

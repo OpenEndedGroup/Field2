@@ -4,6 +4,7 @@ import field.utility.Cached;
 import field.utility.Dict;
 import field.utility.Pair;
 import fieldbox.boxes.Box;
+import fieldbox.boxes.Boxes;
 import fielded.Animatable;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
@@ -65,7 +66,6 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 				if (start == null) start = noop();
 				if (middle == null) middle = noop();
 				if (end == null) end = noop();
-
 
 				Animatable.AnimationElement fstart = start;
 				Animatable.AnimationElement fmiddle = middle;

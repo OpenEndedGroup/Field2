@@ -58,7 +58,7 @@ public class RemoteEditor extends Box {
 		this.watches = watches;
 		this.properties.put(editor, this);
 
-		this.properties.putToMap(Boxes.insideRunLoop, "__watch_service__", (Supplier<Boolean>) this::update);
+		this.properties.putToMap(Boxes.insideRunLoop, "main.__watch_service__", (Supplier<Boolean>) this::update);
 
 		watches.addWatch(Mouse.isSelected, "selection.changed");
 		watches.addWatch(LinuxWindowTricks.lostFocus, "focus.editor");
