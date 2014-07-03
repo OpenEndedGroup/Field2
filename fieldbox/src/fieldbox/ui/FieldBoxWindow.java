@@ -39,13 +39,14 @@ public class FieldBoxWindow extends Window {
 		System.out.println(" cursor is :" + cursor);
 	}
 
-	boolean dirty = true;
+	int dirty = 1;
 	boolean wasDirty = false;
 
 	@Override
 	public void loop() {
-		wasDirty = dirty;
-		dirty = false;
+		wasDirty = dirty>0;
+		dirty = dirty--;
+		if (dirty<0) dirty = 0;
 		super.loop();
 	}
 
@@ -90,8 +91,6 @@ public class FieldBoxWindow extends Window {
 			public boolean windowClose(long l)
 			{
 				System.out.println(" WINDOW CLOSE ");
-
-
 				RunLoop.main.exit();
 				return false;
 			}
@@ -104,7 +103,7 @@ public class FieldBoxWindow extends Window {
 	}
 
 	public void requestRepaint() {
-		dirty = true;
+		dirty = 1;
 	}
 
 	public void requestRaise()

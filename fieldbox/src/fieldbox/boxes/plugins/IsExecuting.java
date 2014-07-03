@@ -2,10 +2,7 @@ package fieldbox.boxes.plugins;
 
 import field.graphics.FLine;
 import field.linalg.Vec4;
-import field.utility.Cached;
-import field.utility.Dict;
-import field.utility.Pair;
-import field.utility.Rect;
+import field.utility.*;
 import fieldbox.boxes.*;
 
 import java.util.function.BiConsumer;
@@ -29,16 +26,24 @@ public class IsExecuting extends Box {
 	public IsExecuting(Box root_unused) {
 		this.properties.put(isExecuting, (box, name) -> {
 
-			box.properties.put(executionCount, 1 + box.properties.computeIfAbsent(executionCount, (k) -> 0));
+			box.properties.put(executionCount, Math.max(1, 1 + box.properties.computeIfAbsent(executionCount, (k) -> 0)));
 
-			box.properties.putToMap(FLineDrawing.frameDrawing, "_animationFeedback_", new Cached<Box, Object, FLine>((b, was) -> {
+			box.properties.putToMap(FLineDrawing.frameDrawing, "_animationFeedback_"+name, new Cached<Box, Object, FLine>((b, was) -> {
+
 				Rect rect = box.properties.get(frame);
 
 				if (rect == null) return null;
 
 				Supplier<Boolean> x = b.properties.getFromMap(Boxes.insideRunLoop, name);
 				if (x == null) {
-					box.properties.put(executionCount, -1 + box.properties.computeIfAbsent(executionCount, (k) -> 0));
+					box.properties.put(executionCount, Math.max(0, -1 + box.properties.computeIfAbsent(executionCount, (k) -> 0)));
+					Drawing.dirty(this);
+					return null;
+				}
+
+				if (box.properties.get(executionCount)<1)
+				{
+					Drawing.dirty(this);
 					return null;
 				}
 
@@ -50,7 +55,7 @@ public class IsExecuting extends Box {
 
 				return f;
 
-			}, (b) -> new Pair(b.properties.get(frame), b.properties.getFromMap(Boxes.insideRunLoop, name))));
+			}, (b) -> new Triple(box.properties.get(Boxes.insideRunLoop), b.properties.get(frame), b.properties.getFromMap(Boxes.insideRunLoop, name))));
 			Drawing.dirty(box);
 		});
 	}

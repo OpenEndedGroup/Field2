@@ -269,7 +269,10 @@ public class MarkingMenus extends Box {
 						if (m.nothing != null) m.nothing.run();
 					}
 				} finally {
-					if (m.onExit != null) m.onExit.run();
+					if (m.onExit != null)
+					{
+						m.onExit.run();
+					}
 				}
 			}
 			return true;
@@ -280,6 +283,7 @@ public class MarkingMenus extends Box {
 	public void hide() {
 		this.properties.remove(FLineDrawing.frameDrawing);
 		this.properties.remove(FLineInteraction.interactiveLines);
+		System.out.println(" setting dirty ...");
 		Drawing.dirty(this);
 	}
 
