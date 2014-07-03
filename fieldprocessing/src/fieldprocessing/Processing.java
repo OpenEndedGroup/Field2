@@ -1,0 +1,169 @@
+package fieldprocessing;
+
+import field.graphics.FLine;
+import field.graphics.RunLoop;
+import field.linalg.Vec4;
+import field.utility.*;
+import fieldbox.boxes.*;
+import fieldbox.boxes.Box;
+import fielded.Execution;
+import fielded.RemoteEditor;
+import org.omg.CORBA.TIMEOUT;
+import processing.core.PApplet;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.*;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+/**
+ * Created by marc on 7/1/14.
+ */
+public class Processing extends Box {
+
+	private final ProcessingExecution processingExecution;
+	public static PApplet applet;
+
+	// synchronized via Runloop.lock
+	public List<Runnable> queue = new ArrayList<>();
+
+	public Processing(Box root) {
+
+		System.out.println(" processing plugin is starting up ");
+
+		JFrame frame = new JFrame();
+		applet = new PApplet() {
+			@Override
+			public void setup() {
+				size(400, 400);
+			}
+
+			@Override
+			public void draw() {
+				try {
+					if (RunLoop.lock.tryLock(1, TimeUnit.DAYS)) {
+						for (Runnable r : queue) {
+							try {
+								r.run();
+							} catch (Throwable t) {
+								System.err.println(" exception thrown inside Processing runloop");
+								t.printStackTrace();
+							}
+						}
+						queue.clear();
+
+						find(Boxes.insideRunLoop, both()).forEach(x -> {
+
+							Iterator<Map.Entry<String, Supplier<Boolean>>> rn = x.entrySet().iterator();
+							while (rn.hasNext()) {
+								Map.Entry<String, Supplier<Boolean>> n = rn.next();
+								if (n.getKey().startsWith("processing.")) {
+									try {
+										if (!n.getValue().get()) {
+											rn.remove();
+											Drawing.dirty(Processing.this);
+										}
+									} catch (Throwable t) {
+										t.printStackTrace();
+									}
+								}
+							}
+						});
+
+					} else {
+						System.out.println(" didn't acquire lock ?");
+					}
+					Thread.sleep(1);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				} finally {
+					RunLoop.lock.unlock();
+				}
+
+			}
+		};
+		applet.init();
+		applet.loop();
+		frame.add(applet, BorderLayout.CENTER);
+		frame.setSize(400, 400);
+		frame.setVisible(true);
+		frame.validate();
+
+		Execution delegate = root.find(Execution.execution, root.both()).findFirst()
+			    .orElseThrow(() -> new IllegalArgumentException(" can't instantiate Processing execution - no default execution found"));
+		processingExecution = new ProcessingExecution(delegate, queue);
+
+		root.connect(processingExecution);
+
+		properties.put(RemoteEditor.commands, () -> {
+
+			Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
+			List<Box> selected = selection().collect(Collectors.toList());
+			if (selected.size() == 1) {
+				if (selected.get(0).properties.isTrue(ProcessingExecution.bridgedToProcessing, false)) {
+					m.put(new Pair<>("Remove bridge to Processing", "No longer will this box execute inside the Processing draw method"), () -> {
+						disconnectFromProcessing(selected.get(0));
+					});
+				} else {
+					m.put(new Pair<>("Bridge to Processing", "This box execute will inside the Processing draw method"), () -> {
+						connectToProcessing(selected.get(0));
+					});
+				}
+			}
+			return m;
+		});
+
+
+		System.out.println(" searching for boxes that need processing support ");
+
+		// we delay this for one update cycle to make sure that everybody has loaded everything that they are going to load
+		RunLoop.main.once(() -> {
+			root.breadthFirst(both()).forEach(box -> {
+				if (box.properties.isTrue(ProcessingExecution.bridgedToProcessing, false)) {
+					connectToProcessing(box);
+				}
+			});
+		});
+
+		System.out.println(" processing plugin has finished starting up ");
+
+
+	}
+
+	protected void connectToProcessing(Box box) {
+		processingExecution.connect(box);
+		box.properties.put(ProcessingExecution.bridgedToProcessing, true);
+
+		box.properties.putToMap(FLineDrawing.frameDrawing, "_processingBadge_", new Cached<Box, Object, FLine>((b, was) -> {
+
+			Rect rect = box.properties.get(frame);
+			if (rect == null) return null;
+
+			FLine f = new FLine();
+			f.attributes.put(FLineDrawing.hasText, true);
+			f.attributes.put(FLineDrawing.fillColor, new Vec4(0,0,0.25f,0.5f));
+			f.moveTo(rect.x + rect.w - 7, rect.y + rect.h - 5);
+			f.nodes.get(f.nodes.size() - 1).attributes.put(FLineDrawing.text, "P");
+
+			return f;
+
+		}, (b) -> new Pair(b.properties.get(ProcessingExecution.bridgedToProcessing), b.properties.get(frame))));
+		Drawing.dirty(box);
+
+	}
+
+	protected void disconnectFromProcessing(Box box) {
+		processingExecution.disconnect(box);
+		box.properties.remove(ProcessingExecution.bridgedToProcessing);
+		box.properties.removeFromMap(FLineDrawing.frameDrawing, "_processingBadge_");
+	}
+
+	private Stream<Box> selection() {
+		return breadthFirst(both()).filter(x -> x.properties.isTrue(Mouse.isSelected, false));
+	}
+
+}
