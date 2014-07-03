@@ -1,6 +1,7 @@
 package fieldnashorn;
 
 import com.thoughtworks.qdox.JavaProjectBuilder;
+import com.thoughtworks.qdox.directorywalker.*;
 import com.thoughtworks.qdox.model.JavaClass;
 import com.thoughtworks.qdox.model.JavaField;
 import com.thoughtworks.qdox.model.JavaMethod;
@@ -14,6 +15,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.*;
+import java.nio.file.FileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.jar.JarFile;
@@ -51,21 +53,21 @@ public class JavaSupport {
 
 		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
-		if (classLoader instanceof URLClassLoader) {
-			URL[] paths = ((URLClassLoader) classLoader).getURLs();
-			for (URL path : paths) {
-				RunLoop.workerPool.submit(() -> {
-					Map<String, String> a = indexClasses(path);
-					synchronized (allClassNames) {
-						allClassNames.putAll(a);
-					}
-				});
-			}
-
-		}
-
 		RunLoop.workerPool.submit(() -> {
 			try {
+				URL[] paths = ((URLClassLoader) classLoader).getURLs();
+				for (URL path : paths) {
+					RunLoop.workerPool.submit(() -> {
+						Map<String, String> a = indexClasses(path);
+						synchronized (allClassNames) {
+							allClassNames.putAll(a);
+						}
+					});
+				}
+
+				builder.setErrorHandler( e -> System.err.println(" problem parsing Java source file for completion, will skip this file and continue on "));
+				builder.addClassLoader(classLoader);
+
 				String root = fieldagent.Main.app;
 				Files.walkFileTree(FileSystems.getDefault().getPath(root), new FileVisitor<Path>() {
 					@Override
@@ -75,7 +77,7 @@ public class JavaSupport {
 							System.out.println(" added " + dir + " to source path");
 							all.add(dir);
 							try {
-								builder.addSourceTree(dir.toFile());
+								builder.addSourceTree(dir.toFile(), f -> System.err.println(" error parsing file "+f+", but we'll continue on anyway..."));
 							} catch (ParseException e) {
 								e.printStackTrace();
 							}
@@ -143,26 +145,47 @@ public class JavaSupport {
 
 		Class c = o instanceof Class ? (Class) o : o.getClass();
 
+		boolean wasJava = c.getName().startsWith("java");
+
 		JavaClass j = builder.getClassByName(c.getName());
 
 		System.out.println(" java class (for javadoc supported completion) :"+j);
 
 		List<Execution.Completion> r = new ArrayList<>();
-		for (JavaField m : j.getFields()) {
-			if (m.getName().startsWith(prefix) && m.getModifiers().contains("public") && (!staticsOnly || m.getModifiers().contains("static"))) {
-				r.add(new Execution.Completion(-1, -1, m.getName(), "<span class=type>" + compress(m.getName(), m
-					    .getDeclarationSignature(true)) + "</span>" + (m.getComment() != null ? "&mdash; <span class=doc>" + m
-					    .getComment() + "</span>" : "")));
-			}
-		}
-		for (JavaMethod m : j.getMethods()) {
-			if (m.getName().startsWith(prefix) && m.getModifiers().contains("public") && (!staticsOnly || m.getModifiers().contains("static"))) {
-				r.add(new Execution.Completion(-1, -1, m.getName(), "<span class=type>" + compress(m.getName(), m
-					    .getDeclarationSignature(true)) + "</span>" + (m.getComment() != null ? "&mdash; <span class=doc>" + m
-					    .getComment() + "</span>" : "")));
-			}
-		}
+		try {
+			while(j!=null) {
+				for (JavaField m : j.getFields()) {
+					if (m.getName().startsWith(prefix) && m.getModifiers().contains("public") && (!staticsOnly || m.getModifiers()
+						    .contains("static"))) {
+						r.add(new Execution.Completion(-1, -1, m.getName(), "<span class=type>" + compress(m.getName(), m
+							    .getDeclarationSignature(true)) + "</span>" + (m.getComment() != null ? "&mdash; <span class=doc>" + m.getComment() + "</span>" : "")));
+					}
+				}
+				for (JavaMethod m : j.getMethods()) {
+					if (m.getName().startsWith(prefix) && m.getModifiers().contains("public") && (!staticsOnly || m.getModifiers()
+						    .contains("static"))) {
+						r.add(new Execution.Completion(-1, -1, m.getName(), "<span class=type>" + compress(m.getName(), m
+							    .getDeclarationSignature(true)) + "</span>" + (m.getComment() != null ? "&mdash; <span class=doc>" + m.getComment() + "</span>" : "")));
+					}
+				}
 
+				c = c.getSuperclass();
+				if (c==null) break;
+				j = builder.getClassByName(c.getName());
+
+				//TODO: should we stop when we get into java.* classes if we started from something that wasnt?
+				// PApplet's completion is heavily polluted by this stuff.
+				// let's try that now.
+
+				boolean isJava = c.getName().startsWith("java");
+				if (!wasJava && isJava) break;
+
+			}
+		}
+		catch(Throwable t)
+		{
+			t.printStackTrace();
+		}
 
 		return r;
 	}
