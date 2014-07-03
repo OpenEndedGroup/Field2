@@ -6,7 +6,7 @@
       <module fileurl="file://$PROJECT_DIR$/fieldbox/fieldbox.iml" filepath="$PROJECT_DIR$/fieldbox/fieldbox.iml" />
       <module fileurl="file://$PROJECT_DIR$/fielded/fielded.iml" filepath="$PROJECT_DIR$/fielded/fielded.iml" />
       <module fileurl="file://$PROJECT_DIR$/fieldnashorn/fieldnashorn.iml" filepath="$PROJECT_DIR$/fieldnashorn/fieldnashorn.iml" />
-      <module fileurl="file://$PROJECT_DIR$/fieldrsyntaxarea/fieldrsyntaxarea.iml" filepath="$PROJECT_DIR$/fieldrsyntaxarea/fieldrsyntaxarea.iml" />
+      <module fileurl="file://$PROJECT_DIR$/fieldprocessing/fieldprocessing.iml" filepath="$PROJECT_DIR$/fieldprocessing/fieldprocessing.iml" />
       <module fileurl="file://$PROJECT_DIR$/fieldwork2.iml" filepath="$PROJECT_DIR$/fieldwork2.iml" />
     </modules>
   </component>

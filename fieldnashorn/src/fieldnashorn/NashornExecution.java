@@ -1,11 +1,8 @@
 package fieldnashorn;
 
-import field.graphics.FLine;
 import field.linalg.Vec4;
-import field.utility.Cached;
 import field.utility.Dict;
 import field.utility.Pair;
-import field.utility.Rect;
 import fieldbox.boxes.*;
 import fieldbox.boxes.plugins.IsExecuting;
 import fieldbox.io.IO;
@@ -60,10 +57,10 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 					@Override
 					public void write(char[] cbuf, int off, int len) throws IOException {
-						if (len>0) {
+						if (len > 0) {
 							String s = new String(cbuf, off, len);
-							if (s.endsWith("\n")) s = s.substring(0, s.length()-1);
-							if (s.trim().length()==0) return;
+							if (s.endsWith("\n")) s = s.substring(0, s.length() - 1);
+							if (s.trim().length() == 0) return;
 							success.accept(s);
 						}
 					}
@@ -111,7 +108,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	int uniq = 0;
 
 	@Override
-	public void begin(Consumer<field.utility.Pair<Integer, String>> lineErrors, Consumer<String> success) {
+	public String begin(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
 		context.setAttribute("_r", null, ScriptContext.ENGINE_SCOPE);
 
 		String allText = box.first(property).orElse("");
@@ -119,24 +116,24 @@ public class NashornExecution implements Execution.ExecutionSupport {
 		executeAndReturn(allText, lineErrors, success, false);
 		Object _r = context.getBindings(ScriptContext.ENGINE_SCOPE).get("_r");
 
-		System.out.println(" interpreting :" + _r + " " + (_r == null ? null : _r.getClass()));
-
 		Supplier<Boolean> r = interpretAnimation(_r);
-		System.out.println(" obtained :" + r);
 		if (r != null) {
 			end(lineErrors, success);
-			String name = "_animator_" + (uniq);
+			String name = "main._animator_" + (uniq);
 			box.properties.putToMap(Boxes.insideRunLoop, name, r);
-			box.first(IsExecuting.isExecuting).ifPresent( x-> x.accept(box, name));
+			box.first(IsExecuting.isExecuting).ifPresent(x -> x.accept(box, name));
 
 			uniq++;
+			return name;
 		}
+
+		return null;
 	}
 
 	private Supplier<Boolean> interpretAnimation(Object r) {
 		Animatable.AnimationElement res = Animatable.interpret(r, null);
 
-		if (res==null) return null;
+		if (res == null) return null;
 
 		return new Animatable.Shim(res);
 	}
@@ -146,8 +143,11 @@ public class NashornExecution implements Execution.ExecutionSupport {
 		Map<String, Supplier<Boolean>> m = box.properties.get(Boxes.insideRunLoop);
 		if (m == null) return;
 		for (String s : new ArrayList<>(m.keySet())) {
-			if (s.startsWith("_animator_")) {
+			if (s.contains("_animator_")) {
 				Supplier<Boolean> b = m.get(s);
+
+				System.out.println(" shutting down "+s+" "+(b instanceof Consumer));
+
 				if (b instanceof Consumer) ((Consumer<Boolean>) b).accept(false);
 				else {
 					m.remove(s);

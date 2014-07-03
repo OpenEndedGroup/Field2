@@ -13,6 +13,7 @@ public class Cached<t_check, t_witness, t_value> implements Function<t_check, t_
 	private t_witness valid;
 	private t_value value;
 	private boolean invalid = false;
+	private String debug = null;
 
 	public Cached(BiFunction<t_check, t_value, t_value> compute, Function<t_check,t_witness> witness)
 	{
@@ -28,6 +29,8 @@ public class Cached<t_check, t_witness, t_value> implements Function<t_check, t_
 
 	public Cached<t_check, t_witness, t_value> invalidate()
 	{
+		if (debug!=null)
+			System.out.println(" cache invalidated :"+debug);
 		invalid = true;
 		return this;
 	}
@@ -38,11 +41,22 @@ public class Cached<t_check, t_witness, t_value> implements Function<t_check, t_
 
 		if (invalid || !Util.safeEq(w, valid))
 		{
+			if (debug!=null)
+			{
+				System.out.println(" cache invalid "+debug+" :"+invalid+" "+w+" "+valid+" "+Util.safeEq(w, valid));
+			}
 			value = compute.apply(check, value);
 			valid = w;
 			invalid = false;
 		}
+		else if (debug!=null) System.out.println(" cache valid "+debug+" :"+invalid+" "+w+" "+valid+" "+Util.safeEq(w, valid));
 		return value;
+	}
+
+	public Cached<t_check, t_witness, t_value> debugOn(String name)
+	{
+		this.debug = name;
+		return this;
 	}
 
 

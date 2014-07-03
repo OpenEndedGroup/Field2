@@ -74,7 +74,7 @@ public class Chorder extends Box {
 
 		int count0 = box.properties.computeIfAbsent(IsExecuting.executionCount, (k) -> 0);
 
-		if (count0 == 0) {
+		if (count0 < 1) {
 
 			box.first(Execution.execution).ifPresent(x -> x.support(box, Execution.code).begin(box));
 			// with remote back ends it's possible we'll have to defer this to the next update cycle to give them a chance to acknowledge that were actually executing
@@ -87,6 +87,7 @@ public class Chorder extends Box {
 				}));
 				menuSpec.nothing = () -> {
 					box.first(Execution.execution).ifPresent(x -> x.support(box, Execution.code).end(box));
+					Drawing.dirty(this);
 				};
 				return MarkingMenus.runMenu(box, point, menuSpec);
 			}
@@ -94,6 +95,7 @@ public class Chorder extends Box {
 			MarkingMenus.MenuSpecification menuSpec = new MarkingMenus.MenuSpecification();
 			menuSpec.items.put(MarkingMenus.Position.SH, new MarkingMenus.MenuItem("Stop", () -> {
 				box.first(Execution.execution).ifPresent(x -> x.support(box, Execution.code).end(box));
+				Drawing.dirty(this);
 			}));
 			return MarkingMenus.runMenu(box, point, menuSpec);
 		}

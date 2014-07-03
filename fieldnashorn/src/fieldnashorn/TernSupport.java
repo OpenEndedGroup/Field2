@@ -51,7 +51,6 @@ public class TernSupport {
 		new Thread( () -> {
 
 		for (File ff : f) {
-			System.out.println(" file -- :" + ff);
 			try (FileReader fr = new FileReader(ff.getAbsolutePath())) {
 				engine.put("__FILE__", ff.getName());
 				engine.eval(fr);
@@ -148,9 +147,7 @@ public class TernSupport {
 				else if (e instanceof Box)
 				{
 					e = new UnderscoreBox((Box)e);
-					System.out.println(" wrapped in a box ");
 					List<Execution.Completion> fromJava = javaSupport.getCompletionsFor(e, right);
-					System.out.println(" completions are :"+fromJava);
 					for(Execution.Completion x : fromJava)
 					{
 						if (x.start==-1) x.start=c-right.length();

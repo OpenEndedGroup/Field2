@@ -14,7 +14,7 @@ import java.util.stream.Stream;
  * Adds: a command to rename a box
  *
  * TODO: ideally we'd have both a prompt and some placeholder text
- * TODO: specifying chained "parameterized" commands such as this ought to be more straightfoward.
+ * TODO: specifying chained "parameterized" commands such as this ought to be more straightforward.
  */
 public class Rename extends Box {
 

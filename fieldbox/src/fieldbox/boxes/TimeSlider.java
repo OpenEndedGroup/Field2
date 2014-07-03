@@ -28,8 +28,8 @@ public class TimeSlider extends Box {
 	int width = 20;
 
 	public TimeSlider() {
-		this.properties.putToMap(Boxes.insideRunLoop, "__swipe__", this::swiper);
-		this.properties.putToMap(Boxes.insideRunLoop, "__force_onscreen__", this::forceOnscreen);
+		this.properties.putToMap(Boxes.insideRunLoop, "main.__swipe__", this::swiper);
+		this.properties.putToMap(Boxes.insideRunLoop, "main.__force_onscreen__", this::forceOnscreen);
 
 		properties.put(frame, new Rect(0, 0, width, 5000));
 

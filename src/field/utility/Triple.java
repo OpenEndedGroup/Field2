@@ -30,4 +30,9 @@ public class Triple<A, B, C> extends Pair<A,B> {
 		result = 31 * result + (third != null ? third.hashCode() : 0);
 		return result;
 	}
+
+	@Override
+	public String toString() {
+		return "Triple{" + first + "," + second + ","+third+"}";
+	}
 }

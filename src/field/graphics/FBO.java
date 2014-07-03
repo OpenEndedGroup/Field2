@@ -136,7 +136,6 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform {
 
 		int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 		if (status != GL_FRAMEBUFFER_COMPLETE) throw new IllegalArgumentException(" bad status, " + status);
-		else System.err.println(" status is good ");
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		return s;
 	}

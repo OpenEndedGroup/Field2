@@ -7,6 +7,7 @@ import field.linalg.Vec2;
 import field.linalg.Vec4;
 import field.utility.Dict;
 import field.utility.Rect;
+import fieldbox.ui.Cursors;
 
 import java.awt.*;
 import java.util.*;
@@ -105,6 +106,8 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 
 				feedback(hitBox, originalFrame, originalFrame, -1);
 
+				find(Boxes.window, both()).findFirst().ifPresent( x-> Cursors.arrow(x));
+
 				return (Mouse.Dragger) (drag, termination) -> {
 					Vec2 delta = new Vec2(drag.after.dx, drag.after.dy);
 					Vec2 drawingDelta = drawing.map(x -> x.windowSystemToDrawingSystemDelta(delta))
@@ -121,6 +124,11 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 					if (termination && frame(hitBox).equals(originalFrame) && selected) {
 						hitBox.properties.put(Mouse.isSelected, false);
 						Drawing.dirty(hitBox);
+					}
+
+					if (termination)
+					{
+						find(Boxes.window, both()).findFirst().ifPresent( x-> Cursors.clear(x));
 					}
 
 					return true;

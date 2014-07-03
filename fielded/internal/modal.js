@@ -96,7 +96,6 @@ function runModal(placeholder, getcompletionsfunction, cssclass, initialText, al
             highlightRunAndClose(this.value, 0, x, this.allowAlternative)
         }
         if (x.keyCode == 27) {
-            console.log("forcing focus?")
             setTimeout(function () {
                 cm.focus()
             }, 25)
@@ -122,10 +121,22 @@ function runModalAtCursor(placeholder, completeme, initialText) {
     var m = runModal(placeholder, completeme, "Field-modal-positioned", initialText)
     var cc = cm.cursorCoords()
     console.log(cc)
+    var h = $(m).height()
     if (cc.bottom > $(window).height() / 2)
-        $(m).css("bottom", $(window).height() - cc.bottom)
+        $(m).css("top", Math.max(100, cc.bottom-h))
     else
+    {
         $(m).css("top", cc.bottom)
+    }
+
+    var p = $(m).position()
+    console.log(" checking height :"+p.top+" "+h+" "+$(window).height())
+    if (p.top+h>$(window).height()-40)
+	{
+		h = $(window).height()-p.top-100
+		console.log(" set height to be "+h);
+		$($(m).children()[1]).height(h)
+	}
     $(m).css("left", cc.right)
 }
 

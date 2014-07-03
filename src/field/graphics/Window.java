@@ -9,6 +9,7 @@ import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GLContext;
 
+import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Function;
@@ -47,11 +48,14 @@ public class Window {
 		this.h = h;
 
 		window = glfwCreateWindow(w, h, title, 0, 0);
+
 		Windows.windows.register(window, makeCallback());
 		glfwShowWindow(window);
 
 		glfwMakeContextCurrent(window);
 		glfwSwapInterval(1);
+
+		glfwWindowShouldClose(window);
 
 		try {
 			GLContext.useContext(this);
@@ -64,10 +68,19 @@ public class Window {
 		glfwSwapBuffers(window);
 
 
-		addMouseHandler(Window::debugMouseTransition);
-		addKeyboardHandler(Window::debugKeyboardTransition);
+//		addMouseHandler(Window::debugMouseTransition);
+//		addKeyboardHandler(Window::debugKeyboardTransition);
 
 		RunLoop.main.getLoop().connect(0, (i) -> loop());
+
+		ByteBuffer dest = ByteBuffer.allocateDirect(32*32*4);
+		for(int i=0;i<32*32*4;i++)
+			dest.put((byte)(Math.random()*255));
+
+		dest.rewind();
+//		Glfw.glfwSetCursor(window, Glfw.glfwCreateCursor(dest, 32,32,32,32));
+
+		Glfw.glfwSetInputMode(window, Glfw.GLFW_CURSOR, Glfw.GLFW_CURSOR_NORMAL);
 
 	}
 
@@ -106,10 +119,16 @@ public class Window {
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 		updateScene();
 
-		glfwSetCursor(window, 0);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 		currentWindow = null;
+
+		ByteBuffer dest = ByteBuffer.allocateDirect(32*32*4);
+		for(int i=0;i<32*32*4;i++)
+			dest.put((byte)(Math.random()*255));
+
+		dest.rewind();
+//		Glfw.glfwSetCursor(window, Glfw.glfwCreateCursor(dest, 32,32,32,32));
 
 	}
 
@@ -158,6 +177,13 @@ public class Window {
 
 	public GraphicsContext getGraphicsContext() {
 		return graphicsContext;
+	}
+
+	/**
+	 * returns the internal glfw window handle for this window. You'll only need this if you are going to do GLFW stuff to this window)
+	 */
+	public long getGLFWWindowReference() {
+		return window;
 	}
 
 	static public interface HasPosition
@@ -567,6 +593,8 @@ public class Window {
 			public void windowRefresh(long window) {
 			}
 
+
+
 			@Override
 			public void mouseButton(long window, int button, boolean pressed, int mods) {
 				if (window == Window.this.window) {
@@ -603,7 +631,6 @@ public class Window {
 			@Override
 			public void key(long window, int key, int scancode, int action, int mods) {
 				if (window == Window.this.window) {
-					System.out.println(" key -- " + key + " " + scancode + " " + action + " " + mods);
 					KeyboardState next = keyboardState.withKey(key, action != GLFW_RELEASE);
 					fireKeyboardTransition(keyboardState, next);
 					keyboardState = next;
@@ -623,6 +650,7 @@ public class Window {
 					fireDrop(new Drop(files, mouseState, keyboardState));
 				}
 			}
+
 		};
 	}
 
