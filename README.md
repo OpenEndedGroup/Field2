@@ -33,7 +33,18 @@ on OSX subsitute ```./f_mac``` for ```./f```. Note you may need to edit your ```
 
 ```fieldbox.FieldBox``` is the Java Class that's the main entry-point into Field2. 
  
-In case of confusion, email marc (marc@openendedgroup.com); in case of trouble or doubt, file an issue. Finally, I'll take everybody through this (on Linux and OS X at least) during a hands-on tutorial.  
+In case of confusion, search the issues here and email marc (marc@openendedgroup.com); in case of trouble or doubt, file an issue. Finally, I'll take everybody through this (on Linux and OS X at least) during a hands-on tutorial.  
+
+## Plugins (e.g Processing)
+
+We've just checked in a Plugin API. Field will write an example to ~/.field/plugins.edn on first run. Edit this to extend the classpath, set options and tell Field to add plugins. So, for example, to run the Processing Plugin, I have a file that reads something like this:
+
+```clojure
+{:classpath ["/Users/marc/fieldwork2/out/production/fieldprocessing/" "/Users/marc/Downloads/Processing.app/Contents/Java/core/library/core.jar"] } ; adds the core Processing jar to Field and the place where you are building fieldprocessing
+{:plugin fieldprocessing.Processing} ; tells Field to initialize the Processing plugin 
+```
+
+If something goes wrong initializing a plugin Field will continue to launch, but look in the terminal for the stacktrace
 
 # License
 
