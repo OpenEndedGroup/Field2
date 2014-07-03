@@ -17,12 +17,14 @@ public class Main {
 
 	public static final String app = System.getProperty("appDir")+"/";
 
-	static Set<String> whitelist_prefix = new LinkedHashSet<>(Arrays.asList("field/"));
-	static Set<String> blacklist_prefix = new LinkedHashSet<>(Arrays.asList("--nothing--"));
+//	static Set<String> whitelist_prefix = new LinkedHashSet<>(Arrays.asList("field/"));
+//	static Set<String> blacklist_prefix = new LinkedHashSet<>(Arrays.asList("--nothing--"));
 
 
 	public static void premain(String agentArgs, Instrumentation inst) {
-		Transform transform = new Transform();
+		//jdk1.8_20's instrumentation support is busted with respect to lambdas. Fortunately, now we have our own classloader we don't care.
+
+		/*Transform transform = new Transform();
 
 		if (false) inst.addTransformer((loader, className, classBeingRedefined, protectionDomain, classfileBuffer) -> {
 
@@ -44,8 +46,6 @@ public class Main {
 			if (found) {
 				return transform.transform(className, classfileBuffer);
 			} else return classfileBuffer;
-		});
-
-
+		});*/
 	}
 }

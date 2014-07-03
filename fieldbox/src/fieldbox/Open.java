@@ -18,6 +18,7 @@ import fieldnashorn.Nashorn;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 
@@ -120,6 +121,9 @@ public class Open {
 
 		new BlankCanvas(boxes.root()).connect(boxes.root());
 
+
+
+
 		/* cascade two blurs, a vertical and a horizontal together from the glass layer onto the base layer */
 		Compositor.Layer lx = window.getCompositor().newLayer("__main__blurx");
 		Compositor.Layer ly = window.getCompositor().newLayer("__main__blury", 1);
@@ -128,7 +132,6 @@ public class Open {
 		window.getCompositor().getMainLayer().drawInto(window.scene());
 		window.getCompositor().getLayer("glass").compositeWith(ly, window.scene());
 
-		System.err.println(" -- FieldBox finished initializing -- ");
 
 		/* reports on how much data we're sending to OpenGL and how much the MeshBuilder caching system is getting us. This is useful for noticing when we're repainting excessively or our cache is suddenly blown completely */
 		RunLoop.main.getLoop().connect(10, Scene.strobe((i) -> {
@@ -162,8 +165,23 @@ public class Open {
 		// add a red line time slider to the sheet (this isn't saved with the document, so we'll add it each time
 		boxes.root().connect(new TimeSlider());
 
+
 		// actually open the document that's stored on disk
 		doOpen();
+
+		System.err.println(" -- FieldBox finished initializing, loading plugins ... -- ");
+
+		// initialize the plugins
+
+		try {
+			PluginList pluginList = new PluginList();
+			Map<String, List<Object>> plugins = pluginList.read(System.getProperty("user.home") + "/.field/plugins.edn", true);
+			pluginList.interpretMap(plugins, boxes.root());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		System.err.println(" -- FieldBox plugins finished, entering animation loop -- ");
 
 		// start the runloop
 		boxes.start();
