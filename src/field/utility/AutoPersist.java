@@ -105,7 +105,8 @@ public class AutoPersist {
 			T ro2 = validate.apply(ro);
 			return hook(name, ro2, () -> atEnd.apply(ro2));
 		} catch (Throwable e) {
-			e.printStackTrace();
+			System.out.println(" couldn't load saved preference for "+name+" using compiled default ");
+//			e.printStackTrace();
 			T x = (T) def.get();
 			T x2 = validate.apply(x);
 			try (ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(new File(dir + name))))) {
