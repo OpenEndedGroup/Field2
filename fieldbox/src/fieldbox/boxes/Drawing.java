@@ -302,7 +302,7 @@ public class Drawing extends Box {
 			FLine f = new FLine();
 			int w = 20;
 			int h = 60;
-			f.rect(view.x - w, view.y + view.h / 2 - h-10, view.w + w * 2, h+10);
+			f.rect(view.x - w, view.y + view.h / 2 - h-10, view.w + w * 2, h+25);
 			f.attributes.put(FLineDrawing.color, new Vec4(0, 0, 0, -0.8f));
 			f.attributes.put(FLineDrawing.layer, "glass");
 			f.attributes.put(FLineDrawing.filled, true);
