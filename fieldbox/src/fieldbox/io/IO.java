@@ -18,12 +18,13 @@ import java.util.stream.Collectors;
  * This is in stark contrast to the Field1 design where a Field "sheet" was a directory that contained all of its boxes. Sharing boxes between
  * documents was therefore completely impossible. This structure will give us the ability to drag and drop documents into the Field window and save
  * side-car .fieldbox files next to them that contain the properties.
- *
+ * <p>
  * .fieldbox (the properties) and .field2 (the master document) files are stored as EDN files (see EDN.java for specifics).
  */
 public class IO {
 	static public final String WORKSPACE = "{{workspace}}";
 	static public final String EXECUTION = "{{execution}}";
+
 
 	/**
 	 * tag interface for boxes, method will be called after all boxes have been loaded (and all properties set)
@@ -44,6 +45,28 @@ public class IO {
 		f.defaultSuffix = defaultSuffix;
 		f.language = language;
 		knownFiles.put(f.name, f);
+	}
+
+
+	public Dict.Prop<String> lookupFileSuffix(String filename, Box root) {
+		String[] pieces = filename.split("\\.");
+		if (pieces.length < 2) return null;
+		for (Filespec f : knownFiles.values()) {
+			if (f.defaultSuffix.equals(pieces[pieces.length - 1])) return new Dict.Prop<String>(f.name).findCannon();
+			if (f.defaultSuffix.equals(EXECUTION)) {
+				Optional<Execution> e = root.find(Execution.execution, root.both()).findFirst();
+				if (e.isPresent()) if (e.get().support(root, new Dict.Prop<String>(f.name)).getDefaultFileExtension()
+					    .equals(pieces[pieces.length - 1])) return new Dict.Prop<String>(f.name).findCannon();
+			}
+		}
+
+		return null;
+	}
+
+	public boolean isBoxFile(String filename) {
+		String[] pieces = filename.split("\\.");
+		if (pieces.length < 2) return false;
+		return pieces[pieces.length - 1].equals("box");
 	}
 
 	public class Filespec {
@@ -194,6 +217,57 @@ public class IO {
 
 	}
 
+	public Box loadSingleBox(String f) {
+
+		Map<Object, String> m = (Map) (serializeFromString(readFromFile(filenameFor(f))));
+
+		String boxClass = m.getOrDefault("__boxclass__", Box.class.getName());
+
+		Box box;
+
+		try {
+			Class c = this.getClass().getClassLoader().loadClass(boxClass);
+			Constructor<Box> cc = c.getDeclaredConstructor();
+			cc.setAccessible(true);
+			box = (Box) cc.newInstance();
+		} catch (Throwable e) {
+			System.out.println(" while looking for class <" + boxClass + "> an exception was thrown");
+			e.printStackTrace();
+			System.out.println(" will proceed with just a vanilla Box class, but custom behavior will be lost ");
+			box = new Box();
+		}
+
+
+		String selfFilename = m.getOrDefault("__datafilename__", null);
+		String selfPrefix = new File(selfFilename).getParent();
+
+		String currentPrefix = new File(f).getParent();
+
+		for (Map.Entry<?, ?> entry : m.entrySet()) {
+			box.properties.put(new Dict.Prop((String) entry.getKey()), entry.getValue());
+
+			if (((String) entry.getKey()).startsWith("__filename__"))
+			{
+				String suffix =((String) entry.getKey()).substring("__filename__".length());
+
+				String p = (String) entry.getValue();
+
+				//TODO: rewrite p if it's prefixed with selfFilename (spliting by '/' to handle subdirectories)
+
+				File path = filenameFor(p);
+
+				box.properties.put(new Dict.Prop<String>(suffix), readFromFile(path));
+			}
+
+		}
+
+		return box;
+
+
+
+	}
+
+
 
 	protected External toExternal(Box box, Map<Box, String> specialBoxes) {
 		if (specialBoxes.containsKey(box)) return null;
@@ -264,6 +338,9 @@ public class IO {
 				Object d = external.box.properties.get(new Dict.Prop(kp));
 				if (d != null) data.put(kp, d);
 			}
+
+			data.put("__boxclass__", external.boxClass);
+
 			writeToFile(dataFile, serializeToString(data));
 		}
 	}
@@ -302,9 +379,13 @@ public class IO {
 
 	private File filenameFor(String value) {
 		if (value.startsWith(WORKSPACE)) {
-			return new File(defaultDirectory, value.substring(WORKSPACE.length()));
+			return new File(defaultDirectory, safe(value.substring(WORKSPACE.length())));
 		}
 		return new File(value);
+	}
+
+	private String safe(String filename) {
+		return filename.replace("/", "_");
 	}
 
 	private String makeDataFilenameFor(External ex, Box box) {
