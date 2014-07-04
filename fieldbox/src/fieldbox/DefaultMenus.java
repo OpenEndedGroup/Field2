@@ -54,9 +54,10 @@ public class DefaultMenus extends Box {
 		});
 
 		properties.putToList(Keyboard.onKeyDown, (e, k) -> {
+			System.out.println(" key down :"+e+" "+k+" "+Glfw.GLFW_KEY_N);
 			if ( k == Glfw.GLFW_KEY_N)
 			{
-				newBox(convertCoordinateSystem(e.after.mouseState));
+				newBox(convertCoordinateSystem(e.after.mouseState), root);
 			}
 			return null;
 		});
