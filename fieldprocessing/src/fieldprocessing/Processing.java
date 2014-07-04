@@ -31,15 +31,22 @@ public class Processing extends Box {
 	// synchronized via Runloop.lock
 	public List<Runnable> queue = new ArrayList<>();
 
+
+
+	protected JFrame frame;
+
 	public Processing(Box root) {
 
 		System.out.println(" processing plugin is starting up ");
 
-		JFrame frame = new JFrame();
+		int sizeX = AutoPersist.persist("processing_sizeX", () -> 400, x -> Math.min(2560, Math.max(100, x)), (x) -> frame.getSize().width);
+		int sizeY = AutoPersist.persist("processing_sizeY", () -> 400, x -> Math.min(2560, Math.max(100, x)), (x) -> frame.getSize().height);
+
+		frame = new JFrame("Field/Processing");
 		applet = new PApplet() {
 			@Override
 			public void setup() {
-				size(400, 400);
+				size(sizeX, sizeY);
 			}
 
 			@Override
@@ -89,7 +96,7 @@ public class Processing extends Box {
 		applet.init();
 		applet.loop();
 		frame.add(applet, BorderLayout.CENTER);
-		frame.setSize(400, 400);
+		frame.setSize(sizeX, sizeY);
 		frame.setVisible(true);
 		frame.validate();
 
@@ -140,7 +147,7 @@ public class Processing extends Box {
 
 		box.properties.putToMap(FLineDrawing.frameDrawing, "_processingBadge_", new Cached<Box, Object, FLine>((b, was) -> {
 
-			Rect rect = box.properties.get(frame);
+			Rect rect = box.properties.get(Box.frame);
 			if (rect == null) return null;
 
 			FLine f = new FLine();
@@ -151,7 +158,7 @@ public class Processing extends Box {
 
 			return f;
 
-		}, (b) -> new Pair(b.properties.get(ProcessingExecution.bridgedToProcessing), b.properties.get(frame))));
+		}, (b) -> new Pair(b.properties.get(ProcessingExecution.bridgedToProcessing), b.properties.get(Box.frame))));
 		Drawing.dirty(box);
 
 	}
