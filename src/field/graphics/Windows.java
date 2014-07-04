@@ -1,7 +1,9 @@
 package field.graphics;
 
+import com.badlogic.jglfw.Glfw;
 import com.badlogic.jglfw.GlfwCallback;
 import com.badlogic.jglfw.GlfwCallbackAdapter;
+import fieldagent.Main;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -74,6 +76,14 @@ public class Windows {
 				}
 
 				GlfwCallback a = adaptors.get(window);
+
+				// added, because mouse down doesn't report the mouse location correctly on first click in os X
+				if (Main.os==Main.OS.mac)
+				{
+					a.cursorPos(window, Glfw.glfwGetCursorPosX(window), Glfw.glfwGetCursorPosY(window));
+				}
+
+
 				if (a != null) a.mouseButton(window, button, pressed, mods);
 			}
 
