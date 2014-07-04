@@ -6,7 +6,6 @@ import field.graphics.Scene;
 import field.graphics.SimpleArrayBuffer;
 import fieldagent.Main;
 import fieldbox.boxes.*;
-import fieldbox.boxes.TimeSlider;
 import fieldbox.boxes.plugins.*;
 import fieldbox.io.IO;
 import fieldbox.ui.Compositor;
@@ -18,20 +17,19 @@ import fieldnashorn.Nashorn;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL11.glEnable;
 
 /**
  * This Opens a document, loading a Window and a standard assortment of plugins into the top of a Box graph and the document into the "bottom" of the
  * Box graph.
  * <p>
  * The significant TODO: here is the open Plugin architecture
- *
- * A Plugin is simply something that's initialized: Constructor(boxes.root()).connect(boxes.root()) we can take these from a classname and can optionally initialize them connected to something else
+ * <p>
+ * A Plugin is simply something that's initialized: Constructor(boxes.root()).connect(boxes.root()) we can take these from a classname and can
+ * optionally initialize them connected to something else
  */
 public class Open {
 
@@ -47,6 +45,7 @@ public class Open {
 	private final MarkingMenus markingMenus;
 	private final String filename;
 	private final Keyboard keyboard;
+	private final Drops drops;
 	private Nashorn javascript;
 
 	public Open(String filename) {
@@ -95,6 +94,12 @@ public class Open {
 			return true;
 		});
 
+		drops = new Drops();
+		window.addDropHandler(state -> {
+			drops.dispatch(boxes.root(), state);
+			return true;
+		});
+
 		interaction = (FLineInteraction) new FLineInteraction(boxes.root()).connect(boxes.root());
 
 		// MarkingMenus must come before FrameManipulation, so FrameManipulation can handle selection state modification before MarkingMenus run
@@ -121,8 +126,7 @@ public class Open {
 
 		new BlankCanvas(boxes.root()).connect(boxes.root());
 
-
-
+		new DragFilesToCanvas(boxes.root()).connect(boxes.root());
 
 		/* cascade two blurs, a vertical and a horizontal together from the glass layer onto the base layer */
 		Compositor.Layer lx = window.getCompositor().newLayer("__main__blurx");
@@ -131,7 +135,6 @@ public class Open {
 		lx.blurXInto(5, ly.getScene());
 		window.getCompositor().getMainLayer().drawInto(window.scene());
 		window.getCompositor().getLayer("glass").compositeWith(ly, window.scene());
-
 
 		/* reports on how much data we're sending to OpenGL and how much the MeshBuilder caching system is getting us. This is useful for noticing when we're repainting excessively or our cache is suddenly blown completely */
 		RunLoop.main.getLoop().connect(10, Scene.strobe((i) -> {
@@ -165,7 +168,6 @@ public class Open {
 		// add a red line time slider to the sheet (this isn't saved with the document, so we'll add it each time
 		boxes.root().connect(new TimeSlider());
 
-
 		// actually open the document that's stored on disk
 		doOpen();
 
@@ -176,6 +178,9 @@ public class Open {
 		try {
 			PluginList pluginList = new PluginList();
 			Map<String, List<Object>> plugins = pluginList.read(System.getProperty("user.home") + "/.field/plugins.edn", true);
+
+			//TODO need to split this into two parts --- Options & Classpath extension, which should happen as early as possible, and plugin instantiation, which should happen here
+
 			pluginList.interpretMap(plugins, boxes.root());
 		} catch (IOException e) {
 			e.printStackTrace();

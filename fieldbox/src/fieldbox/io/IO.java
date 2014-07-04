@@ -72,8 +72,6 @@ public class IO {
 
 			return language;
 		}
-
-
 	}
 
 	public IO(String defaultDirectory) {
@@ -95,6 +93,10 @@ public class IO {
 		d.knownFiles = new LinkedHashMap<>(knownFiles);
 		d.knownProperties = new LinkedHashSet<>(knownProperties);
 		return d;
+	}
+
+	public String getDefaultDirectory() {
+		return defaultDirectory;
 	}
 
 	boolean lastWasNew = false;
@@ -286,7 +288,7 @@ public class IO {
 		w.close();
 	}
 
-	private String readFromFile(File f) {
+	static public String readFromFile(File f) {
 		try (BufferedReader r = new BufferedReader(new FileReader(f))) {
 			String m = "";
 			while (r.ready()) m += r.readLine() + "\n";

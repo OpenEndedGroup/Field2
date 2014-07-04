@@ -90,15 +90,10 @@ public class FieldBoxWindow extends Window {
 			@Override
 			public boolean windowClose(long l)
 			{
-				System.out.println(" WINDOW CLOSE ");
 				RunLoop.main.exit();
 				return false;
 			}
 
-			@Override
-			public void drop(long l, String[] strings) {
-		System.out.println(" DROP! :"+ Arrays.asList(strings));
-			}
 		};
 	}
 
