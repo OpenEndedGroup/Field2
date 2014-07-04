@@ -127,7 +127,11 @@ public class ServerSupport {
 				break;
 			case mac:
 				try {
-					new ProcessBuilder("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "--app=http://localhost:8080/init")
+					File f = File.createTempFile("fieldchromeuserdir", "field");
+					f.delete();
+					f.mkdirs();
+					System.out.println(" Launching field with tmp dir :"+f);
+					new ProcessBuilder("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "--app=http://localhost:8080/init", "--user-data-dir="+f.getAbsolutePath(), "--no-first-run")
 						    .redirectOutput(ProcessBuilder.Redirect.to(File.createTempFile("field", "browseroutput")))
 						    .redirectError(File.createTempFile("field", "browsererror")).start();
 
