@@ -127,11 +127,15 @@ public class IO {
 	public Document readDocument(String filename, Map<String, Box> specialBoxes, Set<Box> created) {
 		File f = filenameFor(filename);
 
+		System.out.println(" reading document :"+f);
+
 		lastWasNew = false;
 
 		if (!f.exists()) {
 			// new file
 			lastWasNew = true;
+
+			System.out.println(" document doesn't exist ");
 
 			Document d = new Document();
 			d.externalList = new ArrayList<>();
@@ -144,6 +148,10 @@ public class IO {
 
 		Document d = (Document) new EDN().read(m);
 		Map<String, Box> loaded = new HashMap<String, Box>();
+
+		System.out.println(" document contains "+d.externalList.size()+" boxes ");
+
+
 		for (External e : d.externalList) {
 			fromExternal(e, specialBoxes);
 			if (e.box != null) {
@@ -252,7 +260,7 @@ public class IO {
 
 				String p = (String) entry.getValue();
 
-				//TODO: rewrite p if it's prefixed with selfFilename (spliting by '/' to handle subdirectories)
+				//TODO: rewrite p if it's prefixed with selfFilename (splitting by '/' to handle subdirectories)
 
 				File path = filenameFor(p);
 
@@ -385,6 +393,7 @@ public class IO {
 	}
 
 	private String safe(String filename) {
+		while (filename.startsWith("/")) filename = filename.substring(1);
 		return filename.replace("/", "_");
 	}
 
