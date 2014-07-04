@@ -31,8 +31,6 @@ public class Processing extends Box {
 	// synchronized via Runloop.lock
 	public List<Runnable> queue = new ArrayList<>();
 
-
-
 	protected JFrame frame;
 
 	public Processing(Box root) {
