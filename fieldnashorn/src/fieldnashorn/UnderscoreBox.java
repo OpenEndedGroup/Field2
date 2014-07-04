@@ -109,9 +109,18 @@ public class UnderscoreBox extends AbstractJSObject implements JavaSupport.Handl
 		Object ret = at.find(cannon, at.upwards()).findFirst().orElse(null);
 
 		if (ret instanceof Box.FunctionOfBox) {
-			return (Supplier) (() -> ((Box.FunctionOfBox) ret).apply(at));
+			return enunderscoreReturn((Supplier) (() -> ((Box.FunctionOfBox) ret).apply(at)));
 		}
 
+		return enunderscoreReturn(ret);
+	}
+
+	private Object enunderscoreReturn(Object ret) {
+		if (ret instanceof Box) return new UnderscoreBox((Box)ret);
+		if (ret instanceof List)
+			return ((List)ret).stream().map(this::enunderscoreReturn).collect(Collectors.toList());
+		if (ret instanceof Set)
+			return ((Set)ret).stream().map(this::enunderscoreReturn).collect(Collectors.toSet());
 		return ret;
 	}
 
