@@ -423,6 +423,13 @@ public class IO {
 				n++;
 			}
 			name = n2;
+
+			// create it now, so that other calls to makeFilenameFor still create unique names
+			try {
+				new File(defaultDirectory, name).createNewFile();
+			} catch (IOException e) {
+			}
+
 		}
 
 		return WORKSPACE + name;
