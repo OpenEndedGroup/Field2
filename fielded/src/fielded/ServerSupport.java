@@ -128,7 +128,10 @@ public class ServerSupport {
 					f.delete();
 					f.mkdirs();
 					System.out.println(" Launching field with tmp dir :"+f);
-					new ProcessBuilder("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "--app=http://localhost:8080/init", "--user-data-dir="+f.getAbsolutePath(), "--no-first-run")
+					// this causes us to miss the "experimental javascript options" flag enable. Presumably we need to put a preferences file in here someplace...
+					// otherwise it works great. Commenting out for now
+//					new ProcessBuilder("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "--app=http://localhost:8080/init", "--user-data-dir="+f.getAbsolutePath(), "--no-first-run")
+					new ProcessBuilder("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "--app=http://localhost:8080/init", "--no-first-run")
 						    .redirectOutput(ProcessBuilder.Redirect.to(File.createTempFile("field", "browseroutput")))
 						    .redirectError(File.createTempFile("field", "browsererror")).start();
 
