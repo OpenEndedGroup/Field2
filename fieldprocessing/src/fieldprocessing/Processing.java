@@ -35,7 +35,7 @@ public class Processing extends Box {
 
 	public Processing(Box root) {
 
-		System.out.println(" processing plugin is starting up ");
+		Log.log("startup.processing", " processing plugin is starting up ");
 
 		int sizeX = AutoPersist.persist("processing_sizeX", () -> 400, x -> Math.min(2560, Math.max(100, x)), (x) -> frame.getSize().width);
 		int sizeY = AutoPersist.persist("processing_sizeY", () -> 400, x -> Math.min(2560, Math.max(100, x)), (x) -> frame.getSize().height);
@@ -123,7 +123,7 @@ public class Processing extends Box {
 		});
 
 
-		System.out.println(" searching for boxes that need processing support ");
+		Log.log("startup.processing"," searching for boxes that need processing support ");
 
 		// we delay this for one update cycle to make sure that everybody has loaded everything that they are going to load
 		RunLoop.main.once(() -> {
@@ -134,7 +134,7 @@ public class Processing extends Box {
 			});
 		});
 
-		System.out.println(" processing plugin has finished starting up ");
+		Log.log("startup.processing", " processing plugin has finished starting up ");
 
 
 	}

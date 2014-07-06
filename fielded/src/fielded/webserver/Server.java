@@ -2,6 +2,7 @@ package fielded.webserver;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import field.utility.Log;
 import field.utility.Util;
 import field.graphics.RunLoop;
 import org.java_websocket.WebSocket;
@@ -87,12 +88,12 @@ public class Server {
 		webSocketServer = new WebSocketServer(new InetSocketAddress(websocketPort)) {
 			@Override
 			public void onOpen(WebSocket webSocket, ClientHandshake clientHandshake) {
-				System.err.println(" websocket connected " + clientHandshake);
+				Log.log("remote.trace", " websocket connected " + clientHandshake);
 			}
 
 			@Override
 			public void onClose(WebSocket webSocket, int i, String s, boolean b) {
-				System.err.println(" websocket closed " + i + " " + s + " " + b);
+				Log.log("remote.trace", " websocket closed " + i + " " + s + " " + b);
 				synchronized (knownSockets) {
 					knownSockets.values().remove(webSocket);
 				}
@@ -101,7 +102,7 @@ public class Server {
 			@Override
 			public void onMessage(WebSocket webSocket, String s) {
 
-				System.out.println(" message:<"+s+">");
+				Log.log("remote.trace", () -> " message:<" + s + ">");
 				JSONObject o = new JSONObject(s);
 				String address = o.getString("address");
 				Object payload = o.get("payload");
@@ -114,8 +115,7 @@ public class Server {
 							try {
 								payload = queue(() -> h.handle(Server.this, webSocket, address, p)).get();
 							} catch (InterruptedException | ExecutionException e) {
-								System.err.println(" exception thrown by asynchronous websocket handler <" + h + "> while servicing <" + s + " / " + address + " -> " + originalPayload + " " + p);
-								e.printStackTrace();
+								Log.log("remote.error"," exception thrown by asynchronous websocket handler <" + h + "> while servicing <" + s + " / " + address + " -> " + originalPayload + " " + p, e);
 							}
 						}
 					} else {
@@ -126,7 +126,7 @@ public class Server {
 
 			@Override
 			public void onError(WebSocket webSocket, Exception e) {
-				System.err.println(" websocket error reported :" + e);
+				Log.log("remote.error", " websocket error reported :" + e);
 				e.printStackTrace();
 			}
 		};

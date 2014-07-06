@@ -105,14 +105,14 @@ public class AutoPersist {
 			T ro2 = validate.apply(ro);
 			return hook(name, ro2, () -> atEnd.apply(ro2));
 		} catch (Throwable e) {
-			System.out.println(" couldn't load saved preference for "+name+" using compiled default ");
+			Log.log("startup.autopersist", " couldn't load saved preference for "+name+" using compiled default ");
 //			e.printStackTrace();
 			T x = (T) def.get();
 			T x2 = validate.apply(x);
 			try (ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(new File(dir + name))))) {
 				oos.writeObject(x2);
 			} catch (Throwable e2) {
-				e2.printStackTrace();
+				Log.log("startup.autopersist", e2);
 			}
 			return hook(name, x2, () -> atEnd.apply(x2));
 		}
@@ -132,7 +132,7 @@ public class AutoPersist {
 				try {
 					Files.move(Paths.get(dir+name+"_tmp"), Paths.get(dir+name), StandardCopyOption.ATOMIC_MOVE);
 				} catch (IOException e) {
-					e.printStackTrace();
+					Log.log("shutdown.autopersist", e);
 				}
 			}
 		});

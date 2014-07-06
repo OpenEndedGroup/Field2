@@ -97,7 +97,6 @@ public class TopologyBox extends Box
 
 			boolean selected = box.properties.isTrue(Mouse.isSelected, false);
 
-			System.out.println(" is selected ? " + selected);
 
 			f = new FLine();
 			float w = selected ? 10 : 5;

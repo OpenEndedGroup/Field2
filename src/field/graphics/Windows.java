@@ -127,6 +127,18 @@ public class Windows {
 				if (a != null) return a.windowClose(window);
 				return true;
 			}
+
+			@Override
+			public void windowPos(long window, int x, int y) {
+				GlfwCallback a = adaptors.get(window);
+				if (a != null)  a.windowPos(window,x,y);
+			}
+
+			@Override
+			public void windowSize(long window, int w, int h) {
+				GlfwCallback a = adaptors.get(window);
+				if (a != null) a.windowSize(window,w,h);
+			}
 		};
 	}
 

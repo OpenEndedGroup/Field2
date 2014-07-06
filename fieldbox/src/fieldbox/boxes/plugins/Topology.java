@@ -97,7 +97,6 @@ public class Topology extends Box implements Mouse.OnMouseDown {
 	}
 
 	protected void showIncompleteDrag(Box start, Vec2 to) {
-		System.out.println(" incomplete drag ");
 		this.properties.putToMap(FLineDrawing.frameDrawing, "__ongoingDrag__", (box) -> {
 
 			Rect f1 = frame(start);
@@ -146,7 +145,6 @@ public class Topology extends Box implements Mouse.OnMouseDown {
 			FLine m = TopologyBox.thickenArc(TopologyBox.arc(f1, f2), f1, f2);
 
 			boolean selected = true;
-
 
 			float o = -0.5f;
 

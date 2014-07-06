@@ -112,7 +112,7 @@ public class Conversions {
 		inputs.put(conversion.input, conversion);
 		outputs.put(conversion.output, conversion);
 
-		System.out.println(" REGISTERED conversion "+length+" "+conversion.input+" -> "+conversion.output);
+		Log.log("conversions.general", " REGISTERED conversion "+length+" "+conversion.input+" -> "+conversion.output);
 
 	}
 
@@ -126,7 +126,7 @@ public class Conversions {
 			if (r!=null) return r;
 		}
 
-		System.out.println(" no conversion found ");
+		Log.log("conversions.general", " no conversion found ");
 
 		return null;
 	}

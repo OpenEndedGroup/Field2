@@ -2,10 +2,7 @@ package fieldbox.boxes;
 
 import field.graphics.FLine;
 import field.linalg.Vec4;
-import field.utility.Cached;
-import field.utility.Dict;
-import field.utility.Pair;
-import field.utility.Rect;
+import field.utility.*;
 import fielded.Execution;
 
 import java.awt.*;
@@ -105,14 +102,14 @@ public class TimeSlider extends Box {
 
 	protected void off(Stream<Box> off) {
 		off.forEach(b -> {
-//			System.out.println(" -- END :"+b);
+			Log.log("debug.execution", " -- END :" + b);
 			b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).end(b));
 		});
 	}
 
 	protected void on(Stream<Box> on) {
 		on.forEach(b -> {
-//			System.out.println(" -- BEGIN :"+b);
+			Log.log("debug.execution", " -- BEGIN :"+b);
 			b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).begin(b));
 		});
 
@@ -123,7 +120,7 @@ public class TimeSlider extends Box {
 	 */
 	protected void skipForward(Stream<Box> skipForward) {
 		skipForward.forEach(b -> {
-//			System.out.println(" -- FORWARD :"+b);
+			Log.log("debug.execution", " -- FORWARD :"+b);
 			b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).begin(b));
 			b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).end(b));
 		});
@@ -134,7 +131,7 @@ public class TimeSlider extends Box {
 	 */
 	protected void skipBackward(Stream<Box> skipBackward) {
 		skipBackward.forEach(b -> {
-//			System.out.println(" -- backward :"+b);
+			Log.log("debug.execution", " -- backward :"+b);
 			b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).begin(b));
 			b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).end(b));
 		});

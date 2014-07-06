@@ -1,7 +1,8 @@
 package fieldbox.boxes.plugins;
 
+import field.utility.Dict;
+import field.utility.Log;
 import field.utility.Options;
-import fieldagent.Main;
 import fieldagent.Trampoline;
 import fieldbox.boxes.Box;
 import us.bpsm.edn.parser.Parseable;
@@ -9,10 +10,8 @@ import us.bpsm.edn.parser.Parser;
 import us.bpsm.edn.parser.Parsers;
 
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -51,7 +50,7 @@ public class PluginList {
 		}
 	}
 
-	public void interpretMap(Map<String, List<Object>> o, Box root) {
+	public void interpretClassPathAndOptions(Map<String, List<Object>> o) {
 		// note the order here is important: we extend the classpath, set options, extend options and then activate the plugins.
 		o.entrySet().forEach(e -> {
 			if (e.getKey().toLowerCase().equals("classpath")) {
@@ -78,6 +77,9 @@ public class PluginList {
 			} else {
 			}
 		});
+	}
+
+	public void interpretPlugins(Map<String, List<Object>> o, Box root) {
 		o.entrySet().forEach(e -> {
 			if (e.getKey().toLowerCase().equals("classpath")) {
 			} else if (e.getKey().toLowerCase().equals("plugin")) {
@@ -91,23 +93,31 @@ public class PluginList {
 	private void activeatePlugin(List<Object> value, Box root) {
 
 		for (Object o : value) {
+
+			Log.log("startup", ">>>>>>>>>>>>> activating plugin '" + o + "'");
+
 			try {
 				Box plugin = (Box) this.getClass().getClassLoader().loadClass(o.toString()).getConstructor(Box.class)
 					    .newInstance(root);
 				plugin.connect(root);
 
 			} catch (Throwable e) {
-				System.out.println(" -- problem launching plugin \"" + o + "\", will continue on regardless -- ");
+				System.out.println(" -- problem activating plugin \"" + o + "\", will continue on regardless -- ");
 				e.printStackTrace();
 			}
+			Log.log("startup", "<<<<<<<<<<<<< finished plugin '" + o + "'");
 		}
 	}
 
-	private void extendOption(String substring, List<Object> value) {
-
+	private void extendOption(String key, List<Object> value) {
+		for (Object v : value)
+			Options.dict().putToList(new Dict.Prop<List<Object>>(key), v);
 	}
 
 	private void setOption(String key, List<Object> value) {
+
+		if (value.size() == 1) Options.dict().put(new Dict.Prop(key), value.get(0));
+		else Options.dict().put(new Dict.Prop(key), value);
 
 	}
 
@@ -117,7 +127,7 @@ public class PluginList {
 
 		for (Object o : value) {
 			String m = o.toString();
-			System.out.println(" extending classpath <"+m+">");
+			Log.log("startup", " extending classpath <" + m + ">");
 			try {
 				Trampoline.addURL(new URL("file:" + m));
 			} catch (MalformedURLException e) {
@@ -144,11 +154,7 @@ public class PluginList {
 	}
 
 	private void massageAndCollapse(Object o, Map<String, List<Object>> r) {
-		System.out.println(" read :" + o + " of " + (o == null ? null : o.getClass()));
-
 		if (o instanceof Map) {
-			System.out.println("        -- map " + ((Map) o).keySet() + " : " + ((Map) o).values());
-
 			((Map<Object, Object>) o).entrySet().forEach(x -> {
 				r.computeIfAbsent(asKey(x.getKey()), k -> new ArrayList<Object>()).addAll(asList(x.getValue()));
 			});

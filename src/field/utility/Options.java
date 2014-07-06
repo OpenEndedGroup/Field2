@@ -1,6 +1,10 @@
 package field.utility;
 
-import java.util.Collections;
+import field.graphics.RunLoop;
+
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -19,7 +23,31 @@ public class Options {
 
 	static public final Options options = new Options();
 
-	public Map<String, String> o = Collections.synchronizedMap(new LinkedHashMap<>());
+	public Map<Dict.Prop, Object> allAccessed = new LinkedHashMap<>();
+
+	public Dict o = new Dict() {
+		@Override
+		public <T> T get(Prop<T> key) {
+			T v = super.get(key);
+			allAccessed.put(key, v);
+			return v;
+		}
+	};
+
+	protected Options() {
+		RunLoop.main.onExit(() -> {
+
+			try (PrintWriter b = new PrintWriter(new FileWriter(System.getProperty("user.home") + "/.field/options_accessed.edn"))) {
+				allAccessed.entrySet().forEach(e -> {
+					// TODO: make this actually edn
+					b.println("{:" + e.getKey() + " " + e.getValue() + "} ; " + o.dictionary.get(e.getKey()));
+				});
+			} catch (IOException e) {
+				System.err.println(" error saving out accessed options");
+			}
+		});
+	}
+
 
 	static public void parseCommandLine(String[] arg) {
 
@@ -31,60 +59,42 @@ public class Options {
 
 				if (i < arg.length - 1) {
 					String v = arg[i + 1];
-					options.o.put(q, v);
+					options.o.put(new Dict.Prop<String>(q), v);
 				}
 			}
 		}
 	}
 
-	static public String getString(String name, Supplier<String> def)
-	{
-		return options.o.computeIfAbsent(name, x->def.get());
+	static public Dict dict() {
+		return options.o;
 	}
-
-
-	static public String getDirectory(String name, Supplier<String> def)
-	{
-		String d = options.o.computeIfAbsent(name, x -> def.get());
-		return d.endsWith("/") ? d : (d+"/");
-	}
-
-	static public Integer getInt(String name, Supplier<Integer> def)
-	{
-		Integer n = (Integer) toNumber(options.o.computeIfAbsent(name, x -> "" + def.get()));
-		if (n==null)
-		{
-			options.o.put(name, ""+def.get());
-			return def.get();
-		}
-		else return n;
-	}
-
 
 	static public Set<String> identifiers() {
-		return options.o.values().stream().filter(Options::isValidIdentifier).collect(Collectors.toSet());
+		return options.o.getMap().keySet().stream().map(x -> x.getName()).filter(Options::isValidIdentifier).collect(Collectors.toSet());
 	}
 
 	/**
 	 * checks to see if this can be made an Integer, a Long, a Float, or a Double (in that order)
 	 * <p>
 	 * returns null on failure;
-	 *
+	 * <p>
 	 * We often want Number representations of command line things rather than string representations
 	 */
-	static public Number toNumber(String s) {
+	static public Number toNumber(Object s) {
+		if (s instanceof Number) return ((Number) s);
+		if (s instanceof Boolean) return ((Boolean) s).booleanValue() ? 1 : 0;
 		try {
-			return Integer.parseInt(s);
+			return Integer.parseInt("" + s);
 		} catch (NumberFormatException e) {
 			try {
-				return Long.parseLong(s);
+				return Long.parseLong("" + s);
 			} catch (NumberFormatException e2) {
 				try {
 
-					return Float.parseFloat(s);
+					return Float.parseFloat("" + s);
 				} catch (NumberFormatException e3) {
 					try {
-						return Double.parseDouble(s);
+						return Double.parseDouble("" + s);
 					} catch (NumberFormatException e4) {
 						return null;
 					}
@@ -102,4 +112,12 @@ public class Options {
 	}
 
 
+	public static String getString(String key, Supplier<String> def) {
+		return dict().computeIfAbsent(new Dict.Prop<String>(key), (k) -> def.get());
+	}
+
+	public static String getDirectory(String key, Supplier<String> def) {
+		String v = getString(key, def);
+		return v.endsWith("/") ? v : (v+"/");
+	}
 }

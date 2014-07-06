@@ -3,6 +3,7 @@ package fieldnashorn;
 import field.graphics.RunLoop;
 import field.utility.Conversions;
 import field.utility.Dict;
+import field.utility.Log;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Drawing;
 import fielded.Execution;
@@ -15,7 +16,6 @@ import jdk.nashorn.internal.runtime.linker.JavaAdapterFactory;
 import javax.script.ScriptContext;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
-import java.lang.reflect.TypeVariable;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -105,7 +105,7 @@ public class UnderscoreBox extends AbstractJSObject implements JavaSupport.Handl
 			return at.find(new Dict.Prop(m), at.upwards()).findFirst().orElse(null);
 		}
 
-		System.out.println(" type information for cannon property is " + cannon.getTypeInformation());
+		Log.log("underscore.debug", " type information for cannon property is " + cannon.getTypeInformation());
 		Object ret = at.find(cannon, at.upwards()).findFirst().orElse(null);
 
 		if (ret instanceof Box.FunctionOfBox) {
@@ -116,33 +116,34 @@ public class UnderscoreBox extends AbstractJSObject implements JavaSupport.Handl
 	}
 
 	private Object enunderscoreReturn(Object ret) {
-		if (ret instanceof Box) return new UnderscoreBox((Box)ret);
-		if (ret instanceof List)
-			return ((List)ret).stream().map(this::enunderscoreReturn).collect(Collectors.toList());
-		if (ret instanceof Set)
-			return ((Set)ret).stream().map(this::enunderscoreReturn).collect(Collectors.toSet());
+		if (ret instanceof Box) return new UnderscoreBox((Box) ret);
+		if (ret instanceof List) return ((List) ret).stream().map(this::enunderscoreReturn).collect(Collectors.toList());
+		if (ret instanceof Set) return ((Set) ret).stream().map(this::enunderscoreReturn).collect(Collectors.toSet());
 		return ret;
 	}
 
 
 	public void setMember(String name, Object value) {
-		System.out.println(" underscore box set :" + name + " to " + value.getClass() + " <" + Function.class.getName() + ">");
+		Log.log("underscore.debug", " underscore box set :" + name + " to " + value.getClass() + " <" + Function.class.getName() + ">");
 		Dict.Prop cannon = new Dict.Prop(name).toCannon();
 
-		System.out.println(" cannonical type information " + cannon.getTypeInformation());
+		Log.log("underscore.debug", " cannonical type information " + cannon.getTypeInformation());
 
 		Object converted = convert(value, cannon.getTypeInformation());
 
 		at.properties.put(cannon, converted);
 
-		System.out.println(" PROPERTIES NOW :");
-		for (Map.Entry<Dict.Prop, Object> q : at.properties.getMap().entrySet()) {
-			try {
-				System.out.println("     " + q.getKey() + " = " + q.getValue());
-			} catch (NullPointerException e) {
-				//JDK bug JDK-8035426 --- sometimes Nashorn lambdas throw NPE's when they are .toString'd
+		Log.log("underscore.debug", () -> {
+			Log.log("underscore.debug", " PROPERTIES NOW :");
+			for (Map.Entry<Dict.Prop, Object> q : at.properties.getMap().entrySet()) {
+				try {
+					Log.log("underscore.debug", "     " + q.getKey() + " = " + q.getValue());
+				} catch (NullPointerException e) {
+					//JDK bug JDK-8035426 --- sometimes Nashorn lambdas throw NPE's when they are .toString'd
+				}
 			}
-		}
+			return null;
+		});
 
 		if (tick != RunLoop.tick) {
 			Drawing.dirty(at);
@@ -186,19 +187,20 @@ public class UnderscoreBox extends AbstractJSObject implements JavaSupport.Handl
 			Dict.Prop q = new Dict.Prop(x).findCannon();
 			if (q == null) {
 				return null;
-			} else return new Execution.Completion(-1, -1, x, "<span class='type'>" + Conversions.fold(q.getTypeInformation(), t -> compress(t)) + "</span> <span class='doc'>" + q.getDocumentation()+"</span>");
+			} else return new Execution.Completion(-1, -1, x, "<span class='type'>" + Conversions
+				    .fold(q.getTypeInformation(), t -> compress(t)) + "</span> <span class='doc'>" + q
+				    .getDocumentation() + "</span>");
 		}).filter(x -> x != null).collect(Collectors.toList());
 
 		List<Execution.Completion> l2 = JavaSupport.javaSupport.getCompletionsFor(at, prefix);
 
-		l1.addAll(l2.stream().filter(x ->{
-			for(Execution.Completion c : l1)
+		l1.addAll(l2.stream().filter(x -> {
+			for (Execution.Completion c : l1)
 				if (c.replacewith.equals(x.replacewith)) return false;
 			return true;
 		}).collect(Collectors.toList()));
 		return l1;
 	}
-
 
 
 	static public String compress(String signature) {
@@ -257,11 +259,9 @@ public class UnderscoreBox extends AbstractJSObject implements JavaSupport.Handl
 			try {
 				return adapterClassFor.getRepresentedClass().newInstance();
 			} catch (InstantiationException e) {
-				System.err.println(" problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0));
-				e.printStackTrace();
+				Log.log("underscore.error", " problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0), e);
 			} catch (IllegalAccessException e) {
-				System.err.println(" problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0));
-				e.printStackTrace();
+				Log.log("underscore.error", " problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0), e);
 			}
 		}
 

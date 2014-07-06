@@ -1,6 +1,7 @@
 package fieldbox.io;
 
 import field.utility.Dict;
+import field.utility.Log;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Boxes;
 import fieldbox.boxes.FrameManipulation;
@@ -127,7 +128,7 @@ public class IO {
 	public Document readDocument(String filename, Map<String, Box> specialBoxes, Set<Box> created) {
 		File f = filenameFor(filename);
 
-		System.out.println(" reading document :"+f);
+		Log.log("io.general", " reading document :"+f);
 
 		lastWasNew = false;
 
@@ -135,7 +136,7 @@ public class IO {
 			// new file
 			lastWasNew = true;
 
-			System.out.println(" document doesn't exist ");
+			Log.log("io.general"," document doesn't exist ");
 
 			Document d = new Document();
 			d.externalList = new ArrayList<>();
@@ -149,7 +150,7 @@ public class IO {
 		Document d = (Document) new EDN().read(m);
 		Map<String, Box> loaded = new HashMap<String, Box>();
 
-		System.out.println(" document contains "+d.externalList.size()+" boxes ");
+		Log.log("io.general"," document contains "+d.externalList.size()+" boxes ");
 
 
 		for (External e : d.externalList) {
@@ -164,18 +165,14 @@ public class IO {
 			for (String id : e.children) {
 				Box mc = specialBoxes.getOrDefault(id, loaded.get(id));
 
-				System.out.println(" connecting :" + e.box + " -> " + mc);
-
 				if (mc != null) e.box.connect(mc);
-				else System.err.println(" lost child ? " + id + " of " + e.box + " " + specialBoxes);
+				else Log.log("io.error", " lost child ? " + id + " of " + e.box + " " + specialBoxes);
 			}
 			for (String id : e.parents) {
 				Box mc = specialBoxes.getOrDefault(id, loaded.get(id));
 
-				System.out.println(" connecting :" + e.box + " <- " + mc);
-
 				if (mc != null) mc.connect(e.box);
-				else System.err.println(" lost child ? " + id + " of " + e.box + " " + specialBoxes);
+				else Log.log("io.error", " lost child ? " + id + " of " + e.box + " " + specialBoxes);
 			}
 		}
 		created.addAll(loaded.values());
@@ -184,9 +181,9 @@ public class IO {
 			try {
 				((Loaded) b).loaded();
 			} catch (Throwable t) {
-				System.out.println(" exception thrown while finishing loading for box " + b);
-				t.printStackTrace();
-				System.out.println(" continuing on...");
+				Log.log("io.error", " exception thrown while finishing loading for box " + b);
+				Log.log("io.error", t);
+				Log.log("io.error", " continuing on...");
 			}
 		});
 
@@ -204,9 +201,9 @@ public class IO {
 			cc.setAccessible(true);
 			ex.box = (Box) cc.newInstance();
 		} catch (Throwable e) {
-			System.out.println(" while looking for class <" + ex.boxClass + "> needed for <" + ex.id + " / " + ex.textFiles + "> an exception was thrown");
-			e.printStackTrace();
-			System.out.println(" will proceed with just a vanilla Box class, but custom behavior will be lost ");
+			Log.log("io.error", " while looking for class <" + ex.boxClass + "> needed for <" + ex.id + " / " + ex.textFiles + "> an exception was thrown");
+			Log.log("io.error", e);
+			Log.log("io.error", " will proceed with just a vanilla Box class, but custom behavior will be lost ");
 			ex.box = new Box();
 		}
 
@@ -239,9 +236,9 @@ public class IO {
 			cc.setAccessible(true);
 			box = (Box) cc.newInstance();
 		} catch (Throwable e) {
-			System.out.println(" while looking for class <" + boxClass + "> an exception was thrown");
-			e.printStackTrace();
-			System.out.println(" will proceed with just a vanilla Box class, but custom behavior will be lost ");
+			Log.log("io.error"," while looking for class <" + boxClass + "> an exception was thrown");
+			Log.log("io.error", e);
+			Log.log("io.error"," will proceed with just a vanilla Box class, but custom behavior will be lost ");
 			box = new Box();
 		}
 
@@ -355,7 +352,7 @@ public class IO {
 
 	private String serializeToString(Object data) {
 		String written = edn.write(data);
-		System.out.println("edn is " + written);
+		Log.log("io.general", () -> "edn is " + written);
 		return written;
 	}
 
@@ -367,7 +364,7 @@ public class IO {
 	EDN edn = new EDN();
 
 	private void writeToFile(File filename, String text) throws IOException {
-		System.out.println(" would write :" + text + " to " + filename);
+		Log.log("io.general", " will write :" + text + " to " + filename);
 		BufferedWriter w = new BufferedWriter(new FileWriter(filename));
 		w.append(text);
 		w.close();

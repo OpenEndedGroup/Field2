@@ -7,6 +7,7 @@ import com.thoughtworks.qdox.model.JavaField;
 import com.thoughtworks.qdox.model.JavaMethod;
 import com.thoughtworks.qdox.parser.ParseException;
 import field.graphics.RunLoop;
+import field.utility.Log;
 import field.utility.Pair;
 import fielded.Execution;
 
@@ -65,7 +66,7 @@ public class JavaSupport {
 					});
 				}
 
-				builder.setErrorHandler( e -> System.err.println(" problem parsing Java source file for completion, will skip this file and continue on "));
+				builder.setErrorHandler( e -> Log.log("completion.general", " problem parsing Java source file for completion, will skip this file and continue on "));
 				builder.addClassLoader(classLoader);
 
 				String root = fieldagent.Main.app;
@@ -74,10 +75,10 @@ public class JavaSupport {
 					public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
 						if (dir.endsWith("temp")) return FileVisitResult.SKIP_SUBTREE;
 						if (dir.endsWith("src")) {
-							System.out.println(" added " + dir + " to source path");
+							Log.log("completion.debug"," added " + dir + " to source path");
 							all.add(dir);
 							try {
-								builder.addSourceTree(dir.toFile(), f -> System.err.println(" error parsing file "+f+", but we'll continue on anyway..."));
+								builder.addSourceTree(dir.toFile(), f -> Log.log("completion.error", " error parsing file "+f+", but we'll continue on anyway..."));
 							} catch (ParseException e) {
 								e.printStackTrace();
 							}
@@ -100,11 +101,11 @@ public class JavaSupport {
 						return FileVisitResult.CONTINUE;
 					}
 				});
+				Log.log("completion.debug", " all is :" + all);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		});
-		System.out.println(" all is :" + all);
 
 	}
 
@@ -134,12 +135,12 @@ public class JavaSupport {
 	public List<Execution.Completion> getCompletionsFor(Object o, String prefix) {
 		if (o instanceof HandlesCompletion) {
 
-			System.out.println(" object :"+o+" is a completion handler ");
+			Log.log("completion.debug", " object :" + o + " is a completion handler ");
 
 			return ((HandlesCompletion) o).getCompletionsFor(prefix);
 		}
 		else
-			System.out.println(" object :"+o+" is not a completion handler ");
+			Log.log("completion.debug", " object :"+o+" is not a completion handler ");
 
 		boolean staticsOnly = o instanceof Class;
 
@@ -149,7 +150,7 @@ public class JavaSupport {
 
 		JavaClass j = builder.getClassByName(c.getName());
 
-		System.out.println(" java class (for javadoc supported completion) :"+j);
+		Log.log("completion.debug", " java class (for javadoc supported completion) :"+j);
 
 		List<Execution.Completion> r = new ArrayList<>();
 		try {

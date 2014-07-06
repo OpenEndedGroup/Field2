@@ -253,7 +253,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform {
 
 	@Override
 	protected boolean perform1() {
-		GraphicsContext.put(currentShader, null);
+		GraphicsContext.remove(currentShader);
 		GL20.glUseProgram(0);
 		return true;
 	}

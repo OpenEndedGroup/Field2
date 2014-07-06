@@ -6,6 +6,7 @@ import field.graphics.Window;
 import field.linalg.Vec2;
 import field.linalg.Vec4;
 import field.utility.Dict;
+import field.utility.Log;
 import field.utility.SimpleVoronoi;
 
 import java.awt.*;
@@ -68,7 +69,6 @@ public class MarkingMenus extends Box {
 
 		this.properties.put(markingMenus, this);
 		this.properties.putToList(Mouse.onMouseDown, (event, button) -> {
-			System.out.println(" button is " + button);
 			if (button != 1) return null;
 
 			MenuSpecification m = find(menu, both()).filter(x -> x != null).map(x -> x.apply(event)).filter(x -> x != null)
@@ -88,12 +88,12 @@ public class MarkingMenus extends Box {
 					    return a;
 				    });
 
-			System.out.println("merged spec and got :" + m.items.keySet());
+			Log.log("debug.markingmenus", "merged spec and got :" + m.items.keySet());
 
 			if (m.items.size() > 0) {
 				return runMenu(this, convertCoordinateSystem(new Vec2(event.after.x, event.after.y)), m);
 			} else {
-				System.out.println(" no menu for event ");
+				Log.log("debug.markingmenus"," no menu for event ");
 				return null;
 			}
 		});
@@ -125,7 +125,7 @@ public class MarkingMenus extends Box {
 		for (Map.Entry<Position, MenuItem> e : m.items.entrySet()) {
 			textLine.moveTo(center.x + e.getKey().pos.x * scale, center.y + e.getKey().pos.y * scale);
 
-			System.out.println(e.getKey() + " " + e.getKey().pos);
+			Log.log("debug.markingmenus", () -> e.getKey() + " " + e.getKey().pos);
 
 			textLine.node().attributes.put(FLineDrawing.text, e.getValue().label);
 			textLine.attributes.put(FLineDrawing.layer, "glass");
@@ -283,7 +283,6 @@ public class MarkingMenus extends Box {
 	public void hide() {
 		this.properties.remove(FLineDrawing.frameDrawing);
 		this.properties.remove(FLineInteraction.interactiveLines);
-		System.out.println(" setting dirty ...");
 		Drawing.dirty(this);
 	}
 

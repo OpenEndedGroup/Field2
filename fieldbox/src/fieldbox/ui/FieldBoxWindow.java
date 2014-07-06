@@ -6,6 +6,7 @@ import field.graphics.GraphicsContext;
 import field.graphics.RunLoop;
 import field.graphics.Scene;
 import field.graphics.Window;
+import field.utility.Log;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -26,6 +27,7 @@ public class FieldBoxWindow extends Window {
 
 		compositor = new Compositor(this);
 
+		// Playing with cursors, ignore for now
 		ByteBuffer noise = ByteBuffer.allocateDirect(64 * 64 * 4);
 		for(int i=0;i<64*64;i++)
 		{
@@ -36,7 +38,6 @@ public class FieldBoxWindow extends Window {
 		}
 		noise.rewind();
 		cursor = glfwCreateCursor(noise, 64, 64, 4, 4);
-		System.out.println(" cursor is :" + cursor);
 	}
 
 	int dirty = 1;
@@ -55,7 +56,8 @@ public class FieldBoxWindow extends Window {
 	protected void updateScene() {
 		GraphicsContext.enterContext(graphicsContext);
 		try {
-			if (GraphicsContext.trace) System.out.println("scene is ...\n" + mainScene.debugPrintScene());
+			if (GraphicsContext.trace)
+				Log.log("graphics.trace", () -> "scene is ...\n" + mainScene.debugPrintScene());
 
 			compositor.updateScene();
 

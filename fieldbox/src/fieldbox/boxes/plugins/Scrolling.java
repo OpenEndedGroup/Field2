@@ -19,8 +19,6 @@ public class Scrolling extends Box {
 					t.x += e.after.dwheel*4;
 					t.y += e.after.dwheely*4;
 
-					System.out.println(" e"+e.after.dwheel);
-
 					x.setTranslation(this, t);
 				});
 			}

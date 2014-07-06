@@ -4,6 +4,7 @@ import com.badlogic.jglfw.Glfw;
 import field.graphics.Window;
 import field.linalg.Vec2;
 import field.utility.Dict;
+import field.utility.Log;
 import field.utility.Pair;
 import field.utility.Rect;
 import fieldbox.boxes.*;
@@ -86,7 +87,7 @@ public class DefaultMenus extends Box {
 
 	private void save() {
 
-		System.out.println(" saving .... ");
+		Log.println("io.debug", " saving .... ");
 		Map<Box, String> special = new LinkedHashMap<>();
 		special.put(root, ">>root<<");
 
@@ -102,9 +103,9 @@ public class DefaultMenus extends Box {
 		}
 
 		if (!error) {
-			System.out.println(" going to notify ...");
+			Log.println("io.debug", " going to notify ...");
 			Drawing.notify("Saved to " + filename, this, 200);
-			System.out.println(" ... notified ");
+			Log.println("io.debug", " ... notified ");
 		}
 	}
 

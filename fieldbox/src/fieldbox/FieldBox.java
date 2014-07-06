@@ -18,8 +18,7 @@ public class FieldBox {
 
 	{
 		io.addFilespec("code", io.EXECUTION, io.EXECUTION);
-
-
+		LoggingDefaults.initialize();
 	}
 
 	public void go() {
@@ -35,7 +34,7 @@ public class FieldBox {
 		// TODO --- get from command line / previous
 		Options.parseCommandLine(s);
 
-		Open open = new Open("testFile.field2");
+		Open open = new Open("testFileConnect.field2");
 
 		// TODO --- save automatically on exit
 		fieldBox.go();

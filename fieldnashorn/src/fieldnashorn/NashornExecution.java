@@ -2,6 +2,7 @@ package fieldnashorn;
 
 import field.linalg.Vec4;
 import field.utility.Dict;
+import field.utility.Log;
 import field.utility.Pair;
 import fieldbox.boxes.*;
 import fieldbox.boxes.plugins.IsExecuting;
@@ -77,12 +78,12 @@ public class NashornExecution implements Execution.ExecutionSupport {
 				engine.getContext().setWriter(writer);
 			}
 
-			System.out.println("\n>>javascript in");
-			System.out.println(textFragment);
+			Log.log("nashorn.general", "\n>>javascript in");
+			Log.log("nashorn.general", textFragment);
 			Object ret = engine.eval(textFragment, context);
-			System.out.println("\n<<javascript out" + ret + " " + (ret != null ? ret.getClass() + "" : ""));
+			Log.log("nashorn.general", () -> "\n<<javascript out" + ret + " " + (ret != null ? ret.getClass() + "" : ""));
 			if (writer != null) writer.flush();
-			if (success != null) if (ret != null) success.accept("" + ret);
+			if (success != null) if (ret != null) success.accept("" + ret); else success.accept("&#x2713;");
 
 			RemoteEditor.boxFeedback(Optional.of(box), new Vec4(0.3f, 0.7f, 0.3f, 0.5f));
 
@@ -145,9 +146,6 @@ public class NashornExecution implements Execution.ExecutionSupport {
 		for (String s : new ArrayList<>(m.keySet())) {
 			if (s.contains("_animator_")) {
 				Supplier<Boolean> b = m.get(s);
-
-				System.out.println(" shutting down "+s+" "+(b instanceof Consumer));
-
 				if (b instanceof Consumer) ((Consumer<Boolean>) b).accept(false);
 				else {
 					m.remove(s);

@@ -141,8 +141,6 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 			if (!e.after.buttonsDown.contains(0)) return null;
 			if (e.after.keyboardState.isAltDown()) return null;
 
-			System.out.println(" nothing hit ");
-
 			boolean shift = e.after.keyboardState.keysDown.contains(Glfw.GLFW_KEY_LEFT_SHIFT) || e.after.keyboardState.keysDown
 				    .contains(Glfw.GLFW_KEY_RIGHT_SHIFT);
 			if (!shift) breadthFirst(both()).forEach(x -> x.properties.remove(Mouse.isSelected));
@@ -156,8 +154,6 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 
 			return (Mouse.Dragger) (drag, termination) -> {
 				Vec2 delta = new Vec2(drag.after.dx, drag.after.dy);
-
-				System.out.println(" hello ? ");
 
 				Vec2 drawingDelta = drawing.map(x -> x.windowSystemToDrawingSystemDelta(delta))
 					    .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
