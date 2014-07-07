@@ -121,12 +121,20 @@ public class Log {
 
 	static protected void printlnDecorated(String prefix, String message, Object text, String suffix) {
 		String tt = toString(text);
+
+		if (tt.startsWith("<<") && indent.get().length()>4)
+			indent.set(indent.get().substring(4));
+
 		if (tt.startsWith("-- ") && tt.endsWith(" --"))
 		{
 			System.out.println("\n"+indent.get()+ prefix + "------------------------------------------------------------------------------------" + suffix);
 			System.out.format("%s%s%25s :: %s%s\n",  indent.get(),prefix, message, tt, suffix);
 			System.out.println(indent.get() + prefix +"------------------------------------------------------------------------------------" + suffix+"\n");
 		} else System.out.format("%s%s%25s :: %s%s\n", indent.get(), prefix, message, tt, suffix);
+
+
+		if (tt.startsWith(">>"))
+			indent.set("    "+indent.get());
 	}
 
 	static public void red(String message, Object text) {

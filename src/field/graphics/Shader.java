@@ -1,6 +1,7 @@
 package field.graphics;
 
 import field.utility.Dict;
+import field.utility.Log;
 import org.lwjgl.opengl.*;
 
 import java.util.LinkedHashMap;
@@ -94,7 +95,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform {
 				GraphicsContext.put(this, s);
 			}
 
-			if (GraphicsContext.trace) System.out.println(" shader name " + s.name);
+			Log.log("graphics.trace", " shader name " + s.name);
 
 			if (s.name == -1) {
 				s.name = GL20.glCreateShader(type.gl);
@@ -104,9 +105,9 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform {
 
 				if (status == 0) {
 					String ret = GL20.glGetShaderInfoLog(s.name, 10000);
-					System.err.println(type + " program failed to compile");
-					System.err.println(" log is <" + ret + ">");
-					System.err.println(" shader source is <" + source + ">");
+					Log.log("graphics.error", type + " program failed to compile");
+					Log.log("graphics.error", " log is <" + ret + ">");
+					Log.log("graphics.error", " shader source is <" + source + ">");
 					if (onError != null) {
 						onError.beginError();
 						String log = ret;
@@ -132,7 +133,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform {
 						}
 						onError.endError();
 					}
-					System.out.println(" shader is not good");
+					Log.log("graphics.error", " shader is not good");
 					s.good = false;
 					return false;
 				} else {
@@ -182,7 +183,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform {
 	protected boolean perform0() {
 		boolean work = false;
 
-		if (GraphicsContext.trace) System.out.println(" checking :" + source.keySet());
+		Log.log("graphics.trace", () -> " checking :" + source.keySet());
 
 		for (Map.Entry<Type, Source> s : source.entrySet()) {
 			work |= s.getValue().clean();
@@ -231,7 +232,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform {
 			int validateStatus = glGetProgrami(name.name, GL20.GL_VALIDATE_STATUS);
 			if (validateStatus == 0) {
 				String ret = GL20.glGetProgramInfoLog(name.name, 10000);
-				System.err.println(" program failed to validate (note, this can be benign). Log is "+ret);
+				Log.log("graphics.warning", " program failed to validate (note, this can be benign). Log is "+ret);
 				if (onError != null) {
 					onError.beginError();
 					onError.errorOnLine(-1, ret);
@@ -243,7 +244,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform {
 		}
 
 		if (name.valid) {
-			if (GraphicsContext.trace) System.out.println(" using program " + name.name);
+			Log.log("graphics.trace", () -> " using program " + name.name);
 			GraphicsContext.put(currentShader, this);
 			GL20.glUseProgram(name.name);
 		}

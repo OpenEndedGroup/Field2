@@ -5,6 +5,7 @@ import com.badlogic.jglfw.GlfwCallback;
 import com.badlogic.jglfw.GlfwCallbackAdapter;
 import field.linalg.Vec2;
 import field.utility.Dict;
+import field.utility.Log;
 import field.utility.Rect;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.GL11;
@@ -168,7 +169,7 @@ public class Window {
 	protected void updateScene() {
 		GraphicsContext.enterContext(graphicsContext);
 		try {
-			if (GraphicsContext.trace) System.out.println("scene is ...\n" + mainScene.debugPrintScene());
+			Log.log("graphics.trace", () -> "scene is ...\n" + mainScene.debugPrintScene());
 
 			mainScene.updateAll();
 		} finally {

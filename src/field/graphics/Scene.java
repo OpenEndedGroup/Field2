@@ -2,6 +2,7 @@ package field.graphics;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import field.utility.Log;
 import field.utility.Pair;
 
 import java.util.*;
@@ -182,7 +183,7 @@ public class Scene {
 		int first = 0;
 		boolean ret = true;
 		for (Integer i : new LinkedHashSet<>(scene.keySet())) {
-			if (GraphicsContext.trace) System.out.println(this + " pass " + i + " -> " + scene.get(i));
+			Log.log("graphics.trace", () -> this + " pass " + i + " -> " + scene.get(i));
 			while (!a.isEmpty() && i >= a.peek().first) ret = wrappedCall(a.poll().second);
 
 			ArrayList<Consumer<Integer>> previously = new ArrayList<>(scene.get(i));

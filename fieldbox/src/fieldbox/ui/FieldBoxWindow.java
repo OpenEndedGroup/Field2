@@ -56,7 +56,6 @@ public class FieldBoxWindow extends Window {
 	protected void updateScene() {
 		GraphicsContext.enterContext(graphicsContext);
 		try {
-			if (GraphicsContext.trace)
 				Log.log("graphics.trace", () -> "scene is ...\n" + mainScene.debugPrintScene());
 
 			compositor.updateScene();

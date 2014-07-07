@@ -1,5 +1,7 @@
 package field.graphics;
 
+import field.utility.Log;
+
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.Arrays;
@@ -203,9 +205,7 @@ public class BaseMesh extends Scene implements Scene.Perform {
 	@Override
 	public boolean perform(int pass) {
 
-		if (GraphicsContext.trace) {
-			System.out.println(" perform pass :" + this + " / " + pass);
-		}
+		Log.log("graphics.trace", " perform pass :" + this + " / " + pass);
 
 		if (pass == 0) {
 			Integer va = GraphicsContext.get(this);
@@ -214,7 +214,7 @@ public class BaseMesh extends Scene implements Scene.Perform {
 				GraphicsContext.put(this, va);
 			}
 
-			if (GraphicsContext.trace) System.out.println(" va name is " + va);
+			Log.log("graphics.trace", " va name is " + va);
 			glBindVertexArray(va);
 
 			boolean work = false;
