@@ -30,7 +30,7 @@ public class Cached<t_check, t_witness, t_value> implements Function<t_check, t_
 	public Cached<t_check, t_witness, t_value> invalidate()
 	{
 		if (debug!=null)
-			System.out.println(" cache invalidated :"+debug);
+			Log.log("cached."+debug, " cache invalidated :");
 		invalid = true;
 		return this;
 	}
@@ -43,13 +43,13 @@ public class Cached<t_check, t_witness, t_value> implements Function<t_check, t_
 		{
 			if (debug!=null)
 			{
-				System.out.println(" cache invalid "+debug+" :"+invalid+" "+w+" "+valid+" "+Util.safeEq(w, valid));
+				Log.log("cached."+debug, " cache invalid :"+invalid+" "+w+" "+valid+" "+Util.safeEq(w, valid));
 			}
 			value = compute.apply(check, value);
 			valid = w;
 			invalid = false;
 		}
-		else if (debug!=null) System.out.println(" cache valid "+debug+" :"+invalid+" "+w+" "+valid+" "+Util.safeEq(w, valid));
+		else if (debug!=null) Log.log("cached."+debug, " cache valid :"+invalid+" "+w+" "+valid+" "+Util.safeEq(w, valid));
 		return value;
 	}
 

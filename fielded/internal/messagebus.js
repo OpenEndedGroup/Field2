@@ -36,7 +36,7 @@ function messageBusTTLChecker() {
                 delete _messageBus_ttl[key]
                 _field.log(" unsubscribed from channel ");
             } else {
-                _field.log(" channel has longer to live");
+//                _field.log(" channel has longer to live");
             }
         }
     }

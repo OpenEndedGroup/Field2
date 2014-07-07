@@ -1,10 +1,7 @@
 package fielded;
 
 import field.message.MessageQueue;
-import field.utility.Dict;
-import field.utility.Pair;
-import field.utility.Quad;
-import field.utility.Triple;
+import field.utility.*;
 import field.graphics.RunLoop;
 import fieldagent.Main;
 import fieldbox.boxes.Box;
@@ -42,7 +39,7 @@ public class ServerSupport {
 		MessageQueue<Quad<Dict.Prop, Box, Object, Object>, String> queue = watches.getQueue();
 
 
-		System.out.println(" server support is initializing ");
+		Log.log("startup", " server support is initializing ");
 		try {
 
 			// todo: these need to be random, unallocated ports
@@ -53,16 +50,16 @@ public class ServerSupport {
 			s.addDocumentRoot(fieldagent.Main.app + "/fielded/external/");
 
 			s.addHandlerLast(x -> x.equals("alive"), (server, socket, address, payload) -> {
-				System.out.println(" alive :" + payload);
+				Log.log("remote.general", " alive :" + payload);
 				return payload;
 			});
 
 			s.addHandlerLast(x -> x.equals("log"), (server, socket, address, payload) -> {
-				System.out.println("-\n" + payload + "\n-");
+				Log.log("remote.general","-\n" + payload + "\n-");
 				return payload;
 			});
 			s.addHandlerLast(x -> x.equals("error"), (server, socket, address, payload) -> {
-				System.out.println("-e-\n" + payload + "\n-e-");
+				Log.log("remote.general","-e-\n" + payload + "\n-e-");
 				return payload;
 			});
 
@@ -78,15 +75,15 @@ public class ServerSupport {
 					s.send(socket, readFile(fieldagent.Main.app + "/fielded/internal/" + n));
 				}
 
-				System.out.println(" payload is :" + payload);
+				Log.log("remote.trace", " payload is :" + payload);
 
 				String name = payload + "";
 
-				System.out.println(" naming socket " + name + " = " + socket);
+				Log.log("remote.trace"," naming socket " + name + " = " + socket);
 
 				s.nameSocket(name, socket);
 
-				System.out.println(" initializing remote editor ");
+				Log.log("startup"," initializing remote editor ");
 
 				RemoteEditor ed = new RemoteEditor(s, name, watches, queue);
 				ed.connect(boxes.root());
@@ -127,7 +124,13 @@ public class ServerSupport {
 				break;
 			case mac:
 				try {
-					new ProcessBuilder("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "--app=http://localhost:8080/init")
+					File f = File.createTempFile("fieldchromeuserdir", "field");
+					f.delete();
+					f.mkdirs();
+					System.out.println(" Launching field with tmp dir :"+f);
+					//  this almost works, but chrome is ignoring the --harmony flag completely
+//					new ProcessBuilder("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", /*"--app=http://localhost:8080/init",*/ "--user-data-dir="+f.getAbsolutePath(), "--enable-experimental-web-platform-features", "--js-flags=\"--harmony\"", "--no-first-run")
+					new ProcessBuilder("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "--app=http://localhost:8080/init", "--no-first-run")
 						    .redirectOutput(ProcessBuilder.Redirect.to(File.createTempFile("field", "browseroutput")))
 						    .redirectError(File.createTempFile("field", "browsererror")).start();
 

@@ -51,7 +51,6 @@ public abstract class RateLimitingQueue<t_group, T> {
 
 					if (sleep>maxLatency) sleep=maxLatency;
 					if (sleep<1) sleep=1;
-//					System.out.println(" sleep now :"+sleep+" "+currentRate);
 				}
 				try {
 					Thread.sleep((long) sleep);

@@ -5,6 +5,7 @@ import field.graphics.FLine;
 import field.graphics.Window;
 import field.linalg.Vec2;
 import field.linalg.Vec4;
+import field.utility.Dict;
 import field.utility.Rect;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Drawing;
@@ -12,7 +13,9 @@ import fieldbox.boxes.FLineDrawing;
 import fieldbox.boxes.Mouse;
 
 import java.awt.*;
+import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Adds: Hold down T to connect elements with other elements.
@@ -23,12 +26,24 @@ import java.util.Optional;
  */
 public class Topology extends Box implements Mouse.OnMouseDown {
 
+	static public final Dict.Prop<FunctionOfBox<Collection<Box>>> outward = new Dict.Prop<FunctionOfBox<Collection<Box>>>("outward").doc("a collection of boxes that are the outward connections to this box").toCannon().type();
+	static public final Dict.Prop<FunctionOfBox<Collection<Box>>> inward = new Dict.Prop<FunctionOfBox<Collection<Box>>>("inward").doc("a collection of boxes that are the inward connections to this box").toCannon().type();
+
 	private final Box root;
 	boolean on = false;
 
 	public Topology(Box root) {
 		this.root = root;
 		this.properties.putToList(Mouse.onMouseDown, this);
+
+		root.properties.put(outward, (box) -> {
+			return box.children().stream().filter(x -> x.properties.has(TopologyBox.head)).filter(x -> x.properties.get(TopologyBox.head).get(root) == box)
+				    .map(x -> x.properties.get(TopologyBox.tail).get(root)).collect(Collectors.toSet());
+		});
+		root.properties.put(inward, (box) -> {
+			return box.children().stream().filter(x -> x.properties.has(TopologyBox.tail)).filter(x -> x.properties.get(TopologyBox.tail).get(root) == box)
+				    .map(x -> x.properties.get(TopologyBox.tail).get(root)).collect(Collectors.toSet());
+		});
 	}
 
 	@Override
@@ -82,17 +97,24 @@ public class Topology extends Box implements Mouse.OnMouseDown {
 	}
 
 	protected void showIncompleteDrag(Box start, Vec2 to) {
-		System.out.println(" incomplete drag ");
 		this.properties.putToMap(FLineDrawing.frameDrawing, "__ongoingDrag__", (box) -> {
 
 			Rect f1 = frame(start);
 
-			FLine m = new FLine();
-			m.moveTo(f1.x, f1.y);
-			m.lineTo(to.x, to.y);
+			FLine m = TopologyBox.thickenArc(TopologyBox.arc(f1, new Rect(to.x - 10, to.y - 10, 20, 20)), f1, new Rect(to.x-10, to.y-10, 20, 20));
 
-			m.attributes.put(FLineDrawing.thicken, new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-			m.attributes.put(FLineDrawing.strokeColor, new Vec4(1, 0, 0, 1f));
+			boolean selected = false;
+
+			float o = -0.5f;
+
+			m.attributes.put(FLineDrawing.fillColor, selected ? new Vec4(1, 1, 1, 1.0f*o) : new Vec4(1, 1, 1, 0.5f*o));
+			m.attributes.put(FLineDrawing.strokeColor, selected ? new Vec4(1, 1, 1, 0.25f*o) : new Vec4(1, 1, 1, 0.1f*o));
+			m.attributes.put(FLineDrawing.thicken, new BasicStroke(selected ? 3 : 0.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
+
+			m.attributes.put(FLineDrawing.filled, true);
+			m.attributes.put(FLineDrawing.stroked, true);
+
+			m.rect(to.x-10, to.y-10, 20, 20);
 
 			return m;
 		});
@@ -104,24 +126,34 @@ public class Topology extends Box implements Mouse.OnMouseDown {
 	}
 
 	protected void completeDrag(Box start, Box box) {
-		System.out.println(" Drag completed ");
 		this.properties.removeFromMap(FLineDrawing.frameDrawing, "__ongoingDrag__");
+
+		TopologyBox b = new TopologyBox(start, box);
+		start.connect(b);
+		box.connect(b);
+
 		Drawing.dirty(this);
 	}
 
 	protected void showCompleteDrag(Box start, Box end) {
-		System.out.println(" complete drag ");
 		this.properties.putToMap(FLineDrawing.frameDrawing, "__ongoingDrag__", (box) -> {
 
 			Rect f1 = frame(start);
 			Rect f2 = frame(end);
 
-			FLine m = new FLine();
-			m.moveTo(f1.x, f1.y);
-			m.lineTo(f2.x, f2.y);
 
-			m.attributes.put(FLineDrawing.thicken, new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-			m.attributes.put(FLineDrawing.strokeColor, new Vec4(1, 0, 0, 1f));
+			FLine m = TopologyBox.thickenArc(TopologyBox.arc(f1, f2), f1, f2);
+
+			boolean selected = true;
+
+			float o = -0.5f;
+
+			m.attributes.put(FLineDrawing.fillColor, selected ? new Vec4(1, 1, 1, 1.0f*o) : new Vec4(1, 1, 1, 0.5f*o));
+			m.attributes.put(FLineDrawing.strokeColor, selected ? new Vec4(1, 1, 1, 0.25f*o) : new Vec4(1, 1, 1, 0.1f*o));
+			m.attributes.put(FLineDrawing.thicken, new BasicStroke(selected ? 3 : 0.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
+
+			m.attributes.put(FLineDrawing.filled, true);
+			m.attributes.put(FLineDrawing.stroked, true);
 
 			return m;
 		});

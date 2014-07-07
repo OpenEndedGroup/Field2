@@ -1,5 +1,7 @@
 package field.utility;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.MapMaker;
 import sun.reflect.CallerSensitive;
 
 import java.io.Serializable;
@@ -17,7 +19,6 @@ import java.util.function.Supplier;
  */
 public class Dict implements Serializable {
 	private static final long serialVersionUID = 4506062700963421662L;
-
 
 	static public class Canonical {
 		static protected Map<String, Prop> cannon = Collections.synchronizedMap(new HashMap<>());
@@ -166,7 +167,7 @@ public class Dict implements Serializable {
 		}
 	}
 
-	Map<Prop, Object> dictionary = new LinkedHashMap<Prop, Object>();
+	Map<Prop, Object> dictionary = new MapMaker().concurrencyLevel(2).makeMap();
 
 	@SuppressWarnings("unchecked")
 	public <T> T get(Prop<T> key) {
@@ -174,17 +175,22 @@ public class Dict implements Serializable {
 	}
 
 	public <T> T getOr(Prop<T> key, Supplier<T> def) {
-		T t = (T) dictionary.get(key);
+		T t = (T) get(key);
 		if (t == null) return def.get();
 		return t;
 	}
 
 	public <T> T computeIfAbsent(Prop<T> k, Function<Prop<T>, T> def) {
+
+		// this is redundant, but it makes sure we register a 'get'
+		T t = get(k);
+		if (t!=null) return t;
+
 		return (T) dictionary.computeIfAbsent(k, (x) -> def.apply(k));
 	}
 
 	public float getFloat(Prop<? extends Number> n, float def) {
-		Object x = dictionary.get(n);
+		Object x = get(n);
 		if (x instanceof Float[]) return ((Float[]) x)[0].floatValue();
 		if (x instanceof float[]) return ((float[]) x)[0];
 
@@ -234,9 +240,6 @@ public class Dict implements Serializable {
 			Prop k = e.getKey();
 			Object v = e.getValue();
 			c += k.hashCode();
-//            if (v instanceof PyObject)
-//                c += System.identityHashCode(v);
-//            else
 			c += (v == null ? 0 : v.hashCode());
 		}
 		return c;
@@ -295,7 +298,7 @@ public class Dict implements Serializable {
 	}
 
 	public <K, T> T getFromMap(Prop<? extends Map<String, T>> key, K tok) {
-		Map<K, T> c = (Map<K, T>) dictionary.get(key);
+		Map<K, T> c = (Map<K, T>) get(key);
 		if (c == null) return null;
 		return c.get(tok);
 	}

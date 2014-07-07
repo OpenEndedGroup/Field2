@@ -1,5 +1,7 @@
 package field.graphics;
 
+import field.utility.Log;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -51,7 +53,7 @@ public class SimpleArrayBuffer implements ArrayBuffer {
 	@Override
 	public boolean clean(int limit) {
 		State state = GraphicsContext.get(this);
-		if (GraphicsContext.trace) System.out.println("       clean " + state);
+		Log.log("graphics.trace", "       clean " + state);
 		if (state == null) GraphicsContext.put(this, state = setup());
 		if (state.mod != mod || state.limit < limit) {
 			upload(state, limit);

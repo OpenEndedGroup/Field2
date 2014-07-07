@@ -15,8 +15,6 @@
     return define({init: mod});
   self.tern.def = {init: mod};
 
-  print("self.tern.def now "+self.tern.def)
-
 })(function(exports, infer) {
   "use strict";
 

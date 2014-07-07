@@ -26,7 +26,8 @@ public class BlankCanvas extends Box {
 
 			// 1 is that timeslider
 
-			if (root.children().size()>1) return new FLine();
+			if (root.children().stream().filter(x -> x.properties.has(Box.frame)).count()>1) return new FLine();
+
 
 			Rect m = this.find(Drawing.drawing, this.both()).findFirst().map(x -> x.getCurrentViewBounds(this)).orElseGet(() -> new Rect(0,0,100,100));
 
@@ -48,7 +49,7 @@ public class BlankCanvas extends Box {
 		this.properties.putToMap(FLineDrawing.frameDrawing, "__textprompt2__", new Cached<Box, Object, FLine>((box, previously) -> {
 
 			// 1 is that timeslider
-			if (root.children().size()>1) return new FLine();
+			if (root.children().stream().filter(x -> x.properties.has(Box.frame)).count()>1) return new FLine();
 
 			Rect m = this.find(Drawing.drawing, this.both()).findFirst().map(x -> x.getCurrentViewBounds(this)).orElseGet(() -> new Rect(0,0,100,100));
 

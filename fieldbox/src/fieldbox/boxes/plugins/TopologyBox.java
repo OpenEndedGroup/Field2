@@ -76,8 +76,8 @@ public class TopologyBox extends Box
 
 			boolean selected = box.properties.isTrue(Mouse.isSelected, false);
 
-			f.attributes.put(FLineDrawing.fillColor, selected ? new Vec4(1, 1, 1, 1.0f) : new Vec4(1, 1, 1, 0.5f));
-			f.attributes.put(FLineDrawing.strokeColor, selected ? new Vec4(1, 1, 1, 0.25f) : new Vec4(1, 1, 1, 0.1f));
+			f.attributes.put(FLineDrawing.fillColor, selected ? new Vec4(1, 1, 1, -0.5f) : new Vec4(1, 1, 1, 0.5f));
+			f.attributes.put(FLineDrawing.strokeColor, selected ? new Vec4(1, 1, 1, 0.1f) : new Vec4(1, 1, 1, 0.1f));
 			f.attributes.put(FLineDrawing.thicken, new BasicStroke(selected ? 3 : 0.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
 
 			f.attributes.put(FLineDrawing.filled, true);
@@ -97,7 +97,6 @@ public class TopologyBox extends Box
 
 			boolean selected = box.properties.isTrue(Mouse.isSelected, false);
 
-			System.out.println(" is selected ? " + selected);
 
 			f = new FLine();
 			float w = selected ? 10 : 5;
@@ -109,8 +108,8 @@ public class TopologyBox extends Box
 			f.lineTo(at.x - w, at.y - w);
 
 
-			f.attributes.put(FLineDrawing.fillColor, selected ? new Vec4(1, 1, 1, 1.0f) : new Vec4(1, 1, 1, 0.5f));
-			f.attributes.put(FLineDrawing.strokeColor, selected ? new Vec4(1, 1, 1, -0.25f) : new Vec4(1, 1, 1, 0.1f));
+			f.attributes.put(FLineDrawing.fillColor, selected ? new Vec4(1, 1, 1, 0.5f) : new Vec4(1, 1, 1, 0.5f));
+			f.attributes.put(FLineDrawing.strokeColor, selected ? new Vec4(1, 1, 1, -0.1f) : new Vec4(1, 1, 1, 0.1f));
 			f.attributes.put(FLineDrawing.thicken, new BasicStroke(selected ? 16 : 0.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
 
 			f.attributes.put(FLineDrawing.filled, true);
@@ -122,9 +121,9 @@ public class TopologyBox extends Box
 		return r;
 	}
 
-	protected FLine thickenArc(FLine f, Rect from, Rect to) {
+	static public FLine thickenArc(FLine f, Rect from, Rect to) {
 		Shape shape = FLinesAndJavaShapes.flineToJavaShape(f);
-		Area r1 = new Area(new BasicStroke(5.5f).createStrokedShape(shape));
+		Area r1 = new Area(new BasicStroke(3.5f).createStrokedShape(shape));
 		Area r2 = new Area(new Rectangle2D.Float(from.x, from.y, from.w, from.h));
 		Area r3 = new Area(new Rectangle2D.Float(to.x, to.y, to.w, to.h));
 
@@ -137,7 +136,7 @@ public class TopologyBox extends Box
 	}
 
 
-	protected FLine arc(Rect from, Rect to) {
+	static public FLine arc(Rect from, Rect to) {
 
 		FLine f = new FLine();
 

@@ -24,10 +24,6 @@ public class Chorder extends Box {
 	public Chorder(Box root_unused) {
 
 		properties.putToList(Mouse.onMouseDown, (e, button) -> {
-
-			System.out.println(" on mouse down :" + e + " " + button + " " + e.after.keyboardState.keysDown + " " + e.after.keyboardState
-				    .isAltDown());
-
 			if (button != 0) return null;
 			if (!e.after.keyboardState.isAltDown()) return null;
 			if (e.after.keyboardState.isShiftDown()) return null;
@@ -44,8 +40,6 @@ public class Chorder extends Box {
 
 			Optional<Pair<Box, Rect>> hit = frames.stream().filter(b -> b.second.intersects(point))
 				    .sorted((a, b) -> Float.compare(order(a.second), order(b.second))).findFirst();
-
-			System.out.println(" chord hit :" + hit);
 
 			if (hit.isPresent()) return executeNowAt(e, point, hit.get().first);
 
@@ -83,7 +77,6 @@ public class Chorder extends Box {
 			if (count1 > count0) {
 				MarkingMenus.MenuSpecification menuSpec = new MarkingMenus.MenuSpecification();
 				menuSpec.items.put(MarkingMenus.Position.NH, new MarkingMenus.MenuItem("Continue", () -> {
-					System.out.println(" continue !");
 				}));
 				menuSpec.nothing = () -> {
 					box.first(Execution.execution).ifPresent(x -> x.support(box, Execution.code).end(box));

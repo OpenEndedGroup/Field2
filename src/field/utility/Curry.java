@@ -85,9 +85,6 @@ public class Curry {
 		return Optional.empty();
 	}
 
-	static public <T> Function<T, T> log(String prefix)
-	{
-		return x -> {System.out.println(prefix+" "+x); return x;};
-	}
+
 
 }

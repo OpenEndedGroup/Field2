@@ -4,9 +4,10 @@ import field.graphics.MeshBuilder;
 import field.graphics.RunLoop;
 import field.graphics.Scene;
 import field.graphics.SimpleArrayBuffer;
+import field.utility.AutoPersist;
+import field.utility.Log;
 import fieldagent.Main;
 import fieldbox.boxes.*;
-import fieldbox.boxes.TimeSlider;
 import fieldbox.boxes.plugins.*;
 import fieldbox.io.IO;
 import fieldbox.ui.Compositor;
@@ -18,24 +19,21 @@ import fieldnashorn.Nashorn;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL11.glEnable;
 
 /**
  * This Opens a document, loading a Window and a standard assortment of plugins into the top of a Box graph and the document into the "bottom" of the
  * Box graph.
  * <p>
- * The significant TODO: here is the open Plugin architecture
- *
- * A Plugin is simply something that's initialized: Constructor(boxes.root()).connect(boxes.root()) we can take these from a classname and can optionally initialize them connected to something else
+ * A Plugin is simply something that's initialized: Constructor(boxes.root()).connect(boxes.root()) we can take these from a classname and can
+ * optionally initialize them connected to something else
  */
 public class Open {
 
-	private final FieldBoxWindow window;
+	private FieldBoxWindow window;
 	private final Boxes boxes;
 	private final Drawing drawing;
 	private final FLineDrawing frameDrawing;
@@ -47,11 +45,29 @@ public class Open {
 	private final MarkingMenus markingMenus;
 	private final String filename;
 	private final Keyboard keyboard;
+	private final Drops drops;
+	private PluginList pluginList;
+	private Map<String, List<Object>> plugins;
 	private Nashorn javascript;
+
+	private int sizeX = AutoPersist.persist("window_sizeX", () -> 1000, x -> Math.min(2560, Math.max(100, x)), (x) -> (int)window.getBounds().w);
+	private int sizeY = AutoPersist.persist("window_sizeY", () -> 800, x -> Math.min(2560, Math.max(100, x)), (x) -> (int)window.getBounds().h);
 
 	public Open(String filename) {
 		this.filename = filename;
-		window = new FieldBoxWindow(50, 50, 1500, 1000, filename);
+		Log.log("startup", " -- Initializing window -- ");
+
+		try {
+			pluginList = new PluginList();
+			plugins = pluginList.read(System.getProperty("user.home") + "/.field/plugins.edn", true);
+
+			pluginList.interpretClassPathAndOptions(plugins);
+		} catch (IOException e) {
+			e.printStackTrace();
+			pluginList = null;
+		}
+
+		window = new FieldBoxWindow(50, 50, sizeX, sizeY, filename);
 
 		window.scene().connect(-5, this::defaultGLPreamble);
 		window.mainLayer().connect(-5, this::defaultGLPreamble);
@@ -95,6 +111,12 @@ public class Open {
 			return true;
 		});
 
+		drops = new Drops();
+		window.addDropHandler(state -> {
+			drops.dispatch(boxes.root(), state);
+			return true;
+		});
+
 		interaction = (FLineInteraction) new FLineInteraction(boxes.root()).connect(boxes.root());
 
 		// MarkingMenus must come before FrameManipulation, so FrameManipulation can handle selection state modification before MarkingMenus run
@@ -121,8 +143,7 @@ public class Open {
 
 		new BlankCanvas(boxes.root()).connect(boxes.root());
 
-
-
+		new DragFilesToCanvas(boxes.root()).connect(boxes.root());
 
 		/* cascade two blurs, a vertical and a horizontal together from the glass layer onto the base layer */
 		Compositor.Layer lx = window.getCompositor().newLayer("__main__blurx");
@@ -132,18 +153,17 @@ public class Open {
 		window.getCompositor().getMainLayer().drawInto(window.scene());
 		window.getCompositor().getLayer("glass").compositeWith(ly, window.scene());
 
-
 		/* reports on how much data we're sending to OpenGL and how much the MeshBuilder caching system is getting us. This is useful for noticing when we're repainting excessively or our cache is suddenly blown completely */
 		RunLoop.main.getLoop().connect(10, Scene.strobe((i) -> {
 			if (MeshBuilder.cacheHits + MeshBuilder.cacheMisses_internalHash + MeshBuilder.cacheMisses_cursor + MeshBuilder.cacheMisses_externalHash > 0) {
-				System.out.println(" meshbuilder cache " + MeshBuilder.cacheHits + " | " + MeshBuilder.cacheMisses_cursor + " / " + MeshBuilder.cacheMisses_externalHash + " / " + MeshBuilder.cacheMisses_internalHash);
+				Log.println("graphics.stats", " meshbuilder cache " + MeshBuilder.cacheHits + " | " + MeshBuilder.cacheMisses_cursor + " / " + MeshBuilder.cacheMisses_externalHash + " / " + MeshBuilder.cacheMisses_internalHash);
 				MeshBuilder.cacheHits = 0;
 				MeshBuilder.cacheMisses_cursor = 0;
 				MeshBuilder.cacheMisses_externalHash = 0;
 				MeshBuilder.cacheMisses_internalHash = 0;
 			}
 			if (SimpleArrayBuffer.uploadBytes > 0) {
-				System.out.println(" uploaded " + SimpleArrayBuffer.uploadBytes + " bytes to OpenGL");
+				Log.println("graphics.stats", " uploaded " + SimpleArrayBuffer.uploadBytes + " bytes to OpenGL");
 				SimpleArrayBuffer.uploadBytes = 0;
 			}
 		}, 600));
@@ -165,23 +185,17 @@ public class Open {
 		// add a red line time slider to the sheet (this isn't saved with the document, so we'll add it each time
 		boxes.root().connect(new TimeSlider());
 
-
 		// actually open the document that's stored on disk
 		doOpen();
 
-		System.err.println(" -- FieldBox finished initializing, loading plugins ... -- ");
+		Log.log("startup", " -- FieldBox finished initializing, loading plugins ... -- ");
 
 		// initialize the plugins
 
-		try {
-			PluginList pluginList = new PluginList();
-			Map<String, List<Object>> plugins = pluginList.read(System.getProperty("user.home") + "/.field/plugins.edn", true);
-			pluginList.interpretMap(plugins, boxes.root());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		if (pluginList!=null)
+			pluginList.interpretPlugins(plugins, boxes.root());
 
-		System.err.println(" -- FieldBox plugins finished, entering animation loop -- ");
+		Log.log("startup", " -- FieldBox plugins finished, entering animation loop -- ");
 
 		// start the runloop
 		boxes.start();
@@ -194,7 +208,7 @@ public class Open {
 
 		Set<Box> created = new LinkedHashSet<Box>();
 		IO.Document doc = FieldBox.fieldBox.io.readDocument(FieldBox.fieldBox.io.WORKSPACE + "/" + filename, special, created);
-		System.out.println("created :" + created);
+		Log.println("io.debug", "created :" + created);
 
 		Drawing.dirty(boxes.root());
 

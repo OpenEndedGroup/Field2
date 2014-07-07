@@ -4,10 +4,7 @@ import field.graphics.FLine;
 import field.linalg.Vec2;
 import field.linalg.Vec4;
 import field.message.MessageQueue;
-import field.utility.Dict;
-import field.utility.Pair;
-import field.utility.Quad;
-import field.utility.Util;
+import field.utility.*;
 import fieldbox.boxes.*;
 import fieldbox.io.IO;
 import fielded.webserver.RateLimitingQueue;
@@ -64,12 +61,12 @@ public class RemoteEditor extends Box {
 		watches.addWatch(LinuxWindowTricks.lostFocus, "focus.editor");
 
 		queue.register(Predicate.isEqual("selection.changed"), (c) -> {
-			System.out.println(" selection changed message ");
+			Log.log("remote.trace", " selection changed message ");
 			selectionHasChanged = true;
 		});
 
 		queue.register(Predicate.isEqual("focus.editor"), (c) -> {
-			System.out.println(" sending focus request ");
+			Log.log("remote.trace", " sending focus request ");
 			server.send(socketName, "_messageBus.publish('focus', {})");
 		});
 
@@ -80,8 +77,6 @@ public class RemoteEditor extends Box {
 
 		this.properties.put(outputFactory, x -> newOutput(x, "box.output", (m) -> new JSONStringer().object().key("type").value("success").key("message").value(m).endObject().toString()));
 		this.properties.put(outputErrorFactory, x -> newOutput(x, "box.error", (Function<Pair<Integer, String>, String>) (lineerror) -> new JSONStringer().object().key("type").value("error").key("line").value((int) lineerror.first).key("message").value(lineerror.second).endObject().toString()));
-
-		System.out.println(" set default factories ");
 
 
 		server.addHandlerLast(Predicate.isEqual("text.updated"), () -> socketName, (s, socket, address, payload) -> {
@@ -129,8 +124,8 @@ public class RemoteEditor extends Box {
 			if (text == null) throw new IllegalArgumentException(" missing text <" + p + ">");
 
 
-			System.out.println(" storing cookie to :" + ("_" + prop + "_cookie"));
-			System.out.println(" cookie is :" + text);
+			Log.log("remote.trace", " storing cookie to :" + ("_" + prop + "_cookie"));
+			Log.log("remote.trace", " cookie is :" + text);
 			box.get().properties.put(new Dict.Prop<JSONObject>("_" + prop + "_cookie"), text);
 
 			boxFeedback(box, new Vec4(0, 0, 0, 0.8f));
@@ -140,7 +135,7 @@ public class RemoteEditor extends Box {
 
 		server.addHandlerLast(Predicate.isEqual("execution.fragment"), () -> socketName, (s, socket, address, payload) -> {
 
-			System.out.println(" inside execution fragment ");
+			Log.log("remote.trace", " inside execution fragment ");
 
 			JSONObject p = (JSONObject) payload;
 
@@ -170,7 +165,7 @@ public class RemoteEditor extends Box {
 
 		server.addHandlerLast(Predicate.isEqual("execution.all"), () -> socketName, (s, socket, address, payload) -> {
 
-			System.out.println(" inside execution all ");
+			Log.log("remote.trace", " inside execution all ");
 
 			JSONObject p = (JSONObject) payload;
 
@@ -200,7 +195,7 @@ public class RemoteEditor extends Box {
 
 		server.addHandlerLast(Predicate.isEqual("execution.begin"), () -> socketName, (s, socket, address, payload) -> {
 
-			System.out.println(" inside execution begin ");
+			Log.log("remote.trace", " inside execution begin ");
 
 			JSONObject p = (JSONObject) payload;
 
@@ -230,7 +225,7 @@ public class RemoteEditor extends Box {
 		});
 		server.addHandlerLast(Predicate.isEqual("execution.end"), () -> socketName, (s, socket, address, payload) -> {
 
-			System.out.println(" inside execution end ");
+			Log.log("remote.trace", " inside execution end ");
 
 			JSONObject p = (JSONObject) payload;
 
@@ -261,7 +256,7 @@ public class RemoteEditor extends Box {
 
 		server.addHandlerLast(Predicate.isEqual("request.completions"), () -> socketName, (s, socket, address, payload) -> {
 
-			System.out.println(" inside request completions ");
+			Log.log("remote.trace", " inside request completions ");
 
 			JSONObject p = (JSONObject) payload;
 
@@ -307,7 +302,7 @@ public class RemoteEditor extends Box {
 		});
 		server.addHandlerLast(Predicate.isEqual("request.imports"), () -> socketName, (s, socket, address, payload) -> {
 
-			System.out.println(" inside request completions ");
+			Log.log("remote.trace", " inside request completions ");
 
 			JSONObject p = (JSONObject) payload;
 
@@ -355,7 +350,7 @@ public class RemoteEditor extends Box {
 
 		server.addHandlerLast(Predicate.isEqual("request.commands"), () -> socketName, (s, socket, address, payload) -> {
 
-			System.out.println(" inside request commands ");
+			Log.log("remote.trace", " inside request commands ");
 
 			JSONObject p = (JSONObject) payload;
 
@@ -374,7 +369,7 @@ public class RemoteEditor extends Box {
 				    (List<Map.Entry<Pair<String, String>, Runnable>>) box.get().find(RemoteEditor.commands, box.get().both()).flatMap(m -> m.get().entrySet().stream()).collect(Collectors.toList());
 
 
-			System.out.println(" commands are :" + commands);
+			Log.log("remote.trace", " commands are :" + commands);
 
 			JSONStringer stringer = new JSONStringer();
 			stringer.array();
@@ -390,7 +385,7 @@ public class RemoteEditor extends Box {
 			}
 
 
-			System.out.println(" call table looks like :" + callTable);
+			Log.log("remote.trace", " call table looks like :" + callTable);
 
 			stringer.endArray();
 
@@ -500,7 +495,7 @@ public class RemoteEditor extends Box {
 		@Override
 		protected void send(String key, Collection<Pair<String, String>> value) {
 
-			System.out.println(" >> " + key + " " + value.size());
+			Log.log("remote.trace", " >> " + key + " " + value.size());
 
 			if (value.size() > 1) {
 
@@ -559,7 +554,7 @@ public class RemoteEditor extends Box {
 
 	private void changeSelection(Box currentSelection, Dict.Prop<String> editingProperty) {
 
-		System.out.println(" publishing selection changed :" + currentSelection + " " + editingProperty);
+		Log.log("remote.trace", " publishing selection changed :" + currentSelection + " " + editingProperty);
 
 		if (currentSelection == null || editingProperty == null) {
 			server.send(socketName, "_messageBus.publish('selection.changed', {box:null, property:null, text:''})");
@@ -569,7 +564,7 @@ public class RemoteEditor extends Box {
 			String text = currentSelection.properties.get(editingProperty);
 			if (text == null) text = "";
 
-			System.out.println(" current text is :" + text);
+			Log.log("remote.trace", " current text is :" + text);
 
 
 			//todo: pass back two cookies for this box --- one persistant (saved to disk), one just for current things
@@ -581,9 +576,9 @@ public class RemoteEditor extends Box {
 			buildMessage.put("name", currentSelection.properties.get(Box.name));
 			buildMessage.put("cookie", currentSelection.properties.get(new Dict.Prop<JSONObject>("_" + editingProperty.getName() + "_cookie")));
 
-			System.out.println(" message will be sent " + buildMessage.toString());
+			Log.log("remote.trace", " message will be sent " + buildMessage.toString());
 
-			System.out.println("\n " + currentSelection.properties.get(new Dict.Prop<JSONObject>("_" + editingProperty.getName() + "_cookie")) + "\n");
+			Log.log("remote.trace", () -> "\n " + currentSelection.properties.get(new Dict.Prop<JSONObject>("_" + editingProperty.getName() + "_cookie")) + "\n");
 
 			server.send(socketName, "_messageBus.publish('selection.changed', " + buildMessage.toString() + ")");
 			//todo: set language? get it from execution?

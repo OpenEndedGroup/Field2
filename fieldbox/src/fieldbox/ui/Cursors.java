@@ -9,7 +9,7 @@ import java.net.URL;
 import java.nio.ByteBuffer;
 
 /**
- * Classes for setting cursors
+ * Classes for setting cursors (INCOMPLETE)
  */
 public class Cursors {
 
@@ -20,14 +20,11 @@ public class Cursors {
 
 
 	static public void clear(Window window)	{
-//		Glfw.
-// (window.getGLFWWindowReference(), 0);
 	}
 
 	static public void arrow(Window window)
 	{
 		if (true) return;
-//		System.out.println(" ARROW ");
 		if (arrow==0)
 		{
 			URL arrowFile = Cursors.class.getClassLoader().getResource("arrow.jpg");

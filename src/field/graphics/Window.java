@@ -5,6 +5,8 @@ import com.badlogic.jglfw.GlfwCallback;
 import com.badlogic.jglfw.GlfwCallbackAdapter;
 import field.linalg.Vec2;
 import field.utility.Dict;
+import field.utility.Log;
+import field.utility.Rect;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GLContext;
@@ -26,11 +28,15 @@ public class Window {
 
 	protected GraphicsContext graphicsContext;
 	protected long window;
+
 	protected int w;
 	protected int h;
+	private Rect currentBounds;
 
 	public Window(int x, int y, int w, int h, String title) {
 		Windows.windows.init();
+
+		currentBounds = new Rect(x,y,w,h);
 
 		graphicsContext = GraphicsContext.newContext();
 
@@ -149,6 +155,12 @@ public class Window {
 		glfwSetWindowPos(window, x, y);
 		glfwSetWindowSize(window, w, h);
 		glfwSetWindowPos(window, x, y);
+		currentBounds = new Rect(x, y, w, h);
+	}
+
+	public Rect getBounds()
+	{
+		return currentBounds;
 	}
 
 
@@ -157,7 +169,7 @@ public class Window {
 	protected void updateScene() {
 		GraphicsContext.enterContext(graphicsContext);
 		try {
-			if (GraphicsContext.trace) System.out.println("scene is ...\n" + mainScene.debugPrintScene());
+			Log.log("graphics.trace", () -> "scene is ...\n" + mainScene.debugPrintScene());
 
 			mainScene.updateAll();
 		} finally {
@@ -651,8 +663,24 @@ public class Window {
 				}
 			}
 
+			@Override
+			public void windowPos(long window, int x, int y) {
+				if (window == Window.this.window) {
+					currentBounds.x = x;
+					currentBounds.y = y;
+				}
+			}
+
+			@Override
+			public void windowSize(long window, int width, int height) {
+				if (window == Window.this.window) {
+
+					System.out.println(" window size :"+width+" "+height);
+					currentBounds.w = width;
+					currentBounds.h = height;
+				}
+			}
 		};
 	}
-
 
 }

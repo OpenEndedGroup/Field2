@@ -3,6 +3,8 @@ package fieldbox;
 import com.badlogic.jglfw.Glfw;
 import field.graphics.Window;
 import field.linalg.Vec2;
+import field.utility.Dict;
+import field.utility.Log;
 import field.utility.Pair;
 import field.utility.Rect;
 import fieldbox.boxes.*;
@@ -19,6 +21,9 @@ import java.util.Optional;
  */
 public class DefaultMenus extends Box {
 
+	//TODO: consider being able to .toCommand("A command") Suppliers and FunctionOfBox's
+	static public final Dict.Prop<FunctionOfBox<Box>> newBox = new Dict.Prop<FunctionOfBox<Box>>("newBox").toCannon().doc("create a new box that's a peer of this one");
+
 	private final Box root;
 	private final String filename;
 
@@ -33,7 +38,8 @@ public class DefaultMenus extends Box {
 					save();
 				}));
 				spec.items.put(MarkingMenus.Position.N, new MarkingMenus.MenuItem("New Box", () -> {
-					newBox(event.after);
+					Vec2 at = convertCoordinateSystem(event.after);
+					newBox(at, root);
 				}));
 				return spec;
 			}
@@ -49,29 +55,29 @@ public class DefaultMenus extends Box {
 		});
 
 		properties.putToList(Keyboard.onKeyDown, (e, k) -> {
-
 			if ( k == Glfw.GLFW_KEY_N)
 			{
-				newBox(e.after.mouseState);
+				newBox(convertCoordinateSystem(e.after.mouseState), root);
 			}
 			return null;
 		});
 
+		properties.put(newBox, (box) -> {
+			return newBox(box.find(Box.frame, box.both()).findFirst().map(x -> new Vec2(x.x+x.w+5, x.y+x.h+5)).orElseGet(() -> new Vec2(0,0)), box.parents().toArray(new Box[]{}));
+		});
+
 	}
 
-	private void newBox(Window.MouseState event) {
-
-		System.out.println(" new box at :"+event);
-
-		Vec2 at = convertCoordinateSystem(event);
+	private Box newBox(Vec2 at, Box... parents) {
 
 		Box b1 = new Box();
-		root.connect(b1);
+		for(Box p : parents)
+			p.connect(b1);
 		float w = 50;
 		b1.properties.put(frame, new Rect(at.x-w, at.y-w, w*2, w*2));
 		b1.properties.put(Box.name, "Untitled");
 		Drawing.dirty(b1);
-
+		return b1;
 	}
 
 	public Vec2 convertCoordinateSystem(Window.MouseState event) {
@@ -81,7 +87,7 @@ public class DefaultMenus extends Box {
 
 	private void save() {
 
-		System.out.println(" saving .... ");
+		Log.println("io.debug", " saving .... ");
 		Map<Box, String> special = new LinkedHashMap<>();
 		special.put(root, ">>root<<");
 
@@ -97,9 +103,9 @@ public class DefaultMenus extends Box {
 		}
 
 		if (!error) {
-			System.out.println(" going to notify ...");
+			Log.println("io.debug", " going to notify ...");
 			Drawing.notify("Saved to " + filename, this, 200);
-			System.out.println(" ... notified ");
+			Log.println("io.debug", " ... notified ");
 		}
 	}
 

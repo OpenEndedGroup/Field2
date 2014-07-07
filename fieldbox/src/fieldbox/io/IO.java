@@ -1,6 +1,7 @@
 package fieldbox.io;
 
 import field.utility.Dict;
+import field.utility.Log;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Boxes;
 import fieldbox.boxes.FrameManipulation;
@@ -18,12 +19,13 @@ import java.util.stream.Collectors;
  * This is in stark contrast to the Field1 design where a Field "sheet" was a directory that contained all of its boxes. Sharing boxes between
  * documents was therefore completely impossible. This structure will give us the ability to drag and drop documents into the Field window and save
  * side-car .fieldbox files next to them that contain the properties.
- *
+ * <p>
  * .fieldbox (the properties) and .field2 (the master document) files are stored as EDN files (see EDN.java for specifics).
  */
 public class IO {
 	static public final String WORKSPACE = "{{workspace}}";
 	static public final String EXECUTION = "{{execution}}";
+
 
 	/**
 	 * tag interface for boxes, method will be called after all boxes have been loaded (and all properties set)
@@ -44,6 +46,28 @@ public class IO {
 		f.defaultSuffix = defaultSuffix;
 		f.language = language;
 		knownFiles.put(f.name, f);
+	}
+
+
+	public Dict.Prop<String> lookupFileSuffix(String filename, Box root) {
+		String[] pieces = filename.split("\\.");
+		if (pieces.length < 2) return null;
+		for (Filespec f : knownFiles.values()) {
+			if (f.defaultSuffix.equals(pieces[pieces.length - 1])) return new Dict.Prop<String>(f.name).findCannon();
+			if (f.defaultSuffix.equals(EXECUTION)) {
+				Optional<Execution> e = root.find(Execution.execution, root.both()).findFirst();
+				if (e.isPresent()) if (e.get().support(root, new Dict.Prop<String>(f.name)).getDefaultFileExtension()
+					    .equals(pieces[pieces.length - 1])) return new Dict.Prop<String>(f.name).findCannon();
+			}
+		}
+
+		return null;
+	}
+
+	public boolean isBoxFile(String filename) {
+		String[] pieces = filename.split("\\.");
+		if (pieces.length < 2) return false;
+		return pieces[pieces.length - 1].equals("box");
 	}
 
 	public class Filespec {
@@ -72,8 +96,6 @@ public class IO {
 
 			return language;
 		}
-
-
 	}
 
 	public IO(String defaultDirectory) {
@@ -97,16 +119,24 @@ public class IO {
 		return d;
 	}
 
+	public String getDefaultDirectory() {
+		return defaultDirectory;
+	}
+
 	boolean lastWasNew = false;
 
 	public Document readDocument(String filename, Map<String, Box> specialBoxes, Set<Box> created) {
 		File f = filenameFor(filename);
+
+		Log.log("io.general", " reading document :"+f);
 
 		lastWasNew = false;
 
 		if (!f.exists()) {
 			// new file
 			lastWasNew = true;
+
+			Log.log("io.general"," document doesn't exist ");
 
 			Document d = new Document();
 			d.externalList = new ArrayList<>();
@@ -119,6 +149,10 @@ public class IO {
 
 		Document d = (Document) new EDN().read(m);
 		Map<String, Box> loaded = new HashMap<String, Box>();
+
+		Log.log("io.general"," document contains "+d.externalList.size()+" boxes ");
+
+
 		for (External e : d.externalList) {
 			fromExternal(e, specialBoxes);
 			if (e.box != null) {
@@ -131,18 +165,14 @@ public class IO {
 			for (String id : e.children) {
 				Box mc = specialBoxes.getOrDefault(id, loaded.get(id));
 
-				System.out.println(" connecting :" + e.box + " -> " + mc);
-
 				if (mc != null) e.box.connect(mc);
-				else System.err.println(" lost child ? " + id + " of " + e.box + " " + specialBoxes);
+				else Log.log("io.error", " lost child ? " + id + " of " + e.box + " " + specialBoxes);
 			}
 			for (String id : e.parents) {
 				Box mc = specialBoxes.getOrDefault(id, loaded.get(id));
 
-				System.out.println(" connecting :" + e.box + " <- " + mc);
-
 				if (mc != null) mc.connect(e.box);
-				else System.err.println(" lost child ? " + id + " of " + e.box + " " + specialBoxes);
+				else Log.log("io.error", " lost child ? " + id + " of " + e.box + " " + specialBoxes);
 			}
 		}
 		created.addAll(loaded.values());
@@ -151,9 +181,9 @@ public class IO {
 			try {
 				((Loaded) b).loaded();
 			} catch (Throwable t) {
-				System.out.println(" exception thrown while finishing loading for box " + b);
-				t.printStackTrace();
-				System.out.println(" continuing on...");
+				Log.log("io.error", " exception thrown while finishing loading for box " + b);
+				Log.log("io.error", t);
+				Log.log("io.error", " continuing on...");
 			}
 		});
 
@@ -171,9 +201,9 @@ public class IO {
 			cc.setAccessible(true);
 			ex.box = (Box) cc.newInstance();
 		} catch (Throwable e) {
-			System.out.println(" while looking for class <" + ex.boxClass + "> needed for <" + ex.id + " / " + ex.textFiles + "> an exception was thrown");
-			e.printStackTrace();
-			System.out.println(" will proceed with just a vanilla Box class, but custom behavior will be lost ");
+			Log.log("io.error", " while looking for class <" + ex.boxClass + "> needed for <" + ex.id + " / " + ex.textFiles + "> an exception was thrown");
+			Log.log("io.error", e);
+			Log.log("io.error", " will proceed with just a vanilla Box class, but custom behavior will be lost ");
 			ex.box = new Box();
 		}
 
@@ -191,6 +221,57 @@ public class IO {
 		}
 
 	}
+
+	public Box loadSingleBox(String f) {
+
+		Map<Object, String> m = (Map) (serializeFromString(readFromFile(filenameFor(f))));
+
+		String boxClass = m.getOrDefault("__boxclass__", Box.class.getName());
+
+		Box box;
+
+		try {
+			Class c = this.getClass().getClassLoader().loadClass(boxClass);
+			Constructor<Box> cc = c.getDeclaredConstructor();
+			cc.setAccessible(true);
+			box = (Box) cc.newInstance();
+		} catch (Throwable e) {
+			Log.log("io.error"," while looking for class <" + boxClass + "> an exception was thrown");
+			Log.log("io.error", e);
+			Log.log("io.error"," will proceed with just a vanilla Box class, but custom behavior will be lost ");
+			box = new Box();
+		}
+
+
+		String selfFilename = m.getOrDefault("__datafilename__", null);
+		String selfPrefix = new File(selfFilename).getParent();
+
+		String currentPrefix = new File(f).getParent();
+
+		for (Map.Entry<?, ?> entry : m.entrySet()) {
+			box.properties.put(new Dict.Prop((String) entry.getKey()), entry.getValue());
+
+			if (((String) entry.getKey()).startsWith("__filename__"))
+			{
+				String suffix =((String) entry.getKey()).substring("__filename__".length());
+
+				String p = (String) entry.getValue();
+
+				//TODO: rewrite p if it's prefixed with selfFilename (splitting by '/' to handle subdirectories)
+
+				File path = filenameFor(p);
+
+				box.properties.put(new Dict.Prop<String>(suffix), readFromFile(path));
+			}
+
+		}
+
+		return box;
+
+
+
+	}
+
 
 
 	protected External toExternal(Box box, Map<Box, String> specialBoxes) {
@@ -262,13 +343,16 @@ public class IO {
 				Object d = external.box.properties.get(new Dict.Prop(kp));
 				if (d != null) data.put(kp, d);
 			}
+
+			data.put("__boxclass__", external.boxClass);
+
 			writeToFile(dataFile, serializeToString(data));
 		}
 	}
 
 	private String serializeToString(Object data) {
 		String written = edn.write(data);
-		System.out.println("edn is " + written);
+		Log.log("io.general", () -> "edn is " + written);
 		return written;
 	}
 
@@ -280,13 +364,13 @@ public class IO {
 	EDN edn = new EDN();
 
 	private void writeToFile(File filename, String text) throws IOException {
-		System.out.println(" would write :" + text + " to " + filename);
+		Log.log("io.general", " will write :" + text + " to " + filename);
 		BufferedWriter w = new BufferedWriter(new FileWriter(filename));
 		w.append(text);
 		w.close();
 	}
 
-	private String readFromFile(File f) {
+	static public String readFromFile(File f) {
 		try (BufferedReader r = new BufferedReader(new FileReader(f))) {
 			String m = "";
 			while (r.ready()) m += r.readLine() + "\n";
@@ -300,9 +384,14 @@ public class IO {
 
 	private File filenameFor(String value) {
 		if (value.startsWith(WORKSPACE)) {
-			return new File(defaultDirectory, value.substring(WORKSPACE.length()));
+			return new File(defaultDirectory, safe(value.substring(WORKSPACE.length())));
 		}
 		return new File(value);
+	}
+
+	private String safe(String filename) {
+		while (filename.startsWith("/")) filename = filename.substring(1);
+		return filename.replace("/", "_");
 	}
 
 	private String makeDataFilenameFor(External ex, Box box) {
@@ -331,6 +420,13 @@ public class IO {
 				n++;
 			}
 			name = n2;
+
+			// create it now, so that other calls to makeFilenameFor still create unique names
+			try {
+				new File(defaultDirectory, name).createNewFile();
+			} catch (IOException e) {
+			}
+
 		}
 
 		return WORKSPACE + name;

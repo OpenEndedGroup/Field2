@@ -2,6 +2,7 @@ package fieldbox.ui;
 
 import field.graphics.*;
 import field.linalg.Vec2;
+import field.utility.Log;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -193,7 +194,7 @@ public class Compositor {
 					l.fbo = newFBO(l.fbo.specification.unit);
 					l.fbo.display.setScene(sceneWas);
 
-					System.out.println(" scene was :" + sceneWas);
+					Log.log("graphics.debug", " scene was :" + sceneWas);
 				}
 			}
 		}

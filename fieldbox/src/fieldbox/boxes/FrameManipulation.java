@@ -58,16 +58,17 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 			    .sorted((a, b) -> Float.compare(order(frame(a)), order(frame(b)))).findFirst();
 
 		if (!hit.isPresent()) {
+
+			Drawing d = drawing.get();
+			Vec2 originalT = d.getTranslation();
+
 			return (Mouse.Dragger) (drag, termination) -> {
-				Vec2 delta = new Vec2(drag.after.dx, drag.after.dy);
-				Vec2 drawingDelta = drawing.map(x -> x.windowSystemToDrawingSystemDelta(delta))
+				Vec2 deltaNow = drawing.map(x -> x.windowSystemToDrawingSystemDelta(new Vec2(drag.after.x-e.after.x, drag.after.y-e.after.y)))
 					    .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
 
 				if (drawing.isPresent()) {
-					Drawing d = drawing.get();
-					Vec2 t = d.getTranslation();
+					Vec2 t = new Vec2(originalT).translate(deltaNow.x, deltaNow.y);
 
-					t.translate(drawingDelta.x, drawingDelta.y);
 					d.setTranslation(FrameManipulation.this, t);
 				}
 				return true;
@@ -140,8 +141,6 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 			if (!e.after.buttonsDown.contains(0)) return null;
 			if (e.after.keyboardState.isAltDown()) return null;
 
-			System.out.println(" nothing hit ");
-
 			boolean shift = e.after.keyboardState.keysDown.contains(Glfw.GLFW_KEY_LEFT_SHIFT) || e.after.keyboardState.keysDown
 				    .contains(Glfw.GLFW_KEY_RIGHT_SHIFT);
 			if (!shift) breadthFirst(both()).forEach(x -> x.properties.remove(Mouse.isSelected));
@@ -155,8 +154,6 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 
 			return (Mouse.Dragger) (drag, termination) -> {
 				Vec2 delta = new Vec2(drag.after.dx, drag.after.dy);
-
-				System.out.println(" hello ? ");
 
 				Vec2 drawingDelta = drawing.map(x -> x.windowSystemToDrawingSystemDelta(delta))
 					    .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));

@@ -1,6 +1,7 @@
 package field.graphics;
 
 import field.utility.Dict;
+import field.utility.Log;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,11 +29,6 @@ import java.util.function.Supplier;
  */
 public class GraphicsContext {
 
-	/**
-	 * set to true to enable much debug output about OpenGL execution to System.out
-	 */
-	static public boolean trace = false;
-
 	static protected GraphicsContext currentGraphicsContext;
 	static List<GraphicsContext> allGraphicsContexts = new ArrayList<GraphicsContext>();
 
@@ -56,7 +52,7 @@ public class GraphicsContext {
 	}
 
 	static public void enterContext(GraphicsContext c) {
-		if (trace) System.out.println("\n\n -- graphics context begin -- ");
+		Log.log("graphics.trace", ">> graphics context begin ");
 		currentGraphicsContext = c;
 		for (Runnable r : currentGraphicsContext.preQueue)
 			r.run();
@@ -66,7 +62,7 @@ public class GraphicsContext {
 		for (Runnable r : currentGraphicsContext.postQueue)
 			r.run();
 		currentGraphicsContext = null;
-		if (trace) System.out.println("\n\n -- graphics context end-- ");
+		Log.log("graphics.trace", "<< graphics context end");
 	}
 
 	static public <T> T get(Object o) {

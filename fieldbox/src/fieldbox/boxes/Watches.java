@@ -39,7 +39,7 @@ public class Watches extends Box  {
 				RunLoop.main.getLoop().connect(0, (x) -> {
 					try {
 						if (this.queue.size()>0)
-							System.out.println(" message queue :"+this.queue.size());
+							Log.log("debug.messages", " message queue :"+this.queue.size());
 
 						while (this.queue.peek()!=null)
 						{

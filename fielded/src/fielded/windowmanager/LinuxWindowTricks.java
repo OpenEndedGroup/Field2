@@ -4,6 +4,7 @@ import com.badlogic.jglfw.Glfw;
 import field.graphics.RunLoop;
 import field.graphics.Window;
 import field.utility.Dict;
+import field.utility.Log;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Boxes;
 
@@ -52,7 +53,6 @@ public class LinuxWindowTricks extends Box {
 
 	public void trigger() {
 		long now = System.currentTimeMillis();
-		System.out.println(" trigger :" + (now - lastTriggerAt));
 		if (now - lastTriggerAt < 500) {
 			beginEditorForward();
 		}
@@ -105,7 +105,6 @@ public class LinuxWindowTricks extends Box {
 
 	public void afterOpen() {
 		long a = System.currentTimeMillis();
-		System.out.println("a = " + a);
 		RunLoop.main.mainLoop.connect(i -> {
 
 			long b = System.currentTimeMillis();
@@ -113,18 +112,18 @@ public class LinuxWindowTricks extends Box {
 			String[] now = listWindows();
 
 			if (now == null) {
-				System.err.println(" WARNING: couldn't track editor window opening, won't be able to switch between windows and do other tricks");
+				Log.log("windows.general", " WARNING: couldn't track editor window opening, won't be able to switch between windows and do other tricks");
 			} else {
 				for (String s : now) {
 					String[] parts = s.split(" ", 2);
 					if (parts[1].contains(field_editor_title) && !previously.contains(parts[0])) {
-						System.err.println("  tracking editor " + parts[0] + " / " + parts[1]);
+						Log.log("windows.general", "  tracking editor " + parts[0] + " / " + parts[1]);
 						editors.add(parts[0]);
 					}
 				}
 			}
 
-			System.out.println(" registered :" + editors + " editors out of " + previously);
+			Log.log("windows.general", " registered :" + editors + " editors out of " + previously);
 
 			//TODO: should be preference.
 			pinEditorOnTop();
@@ -141,9 +140,7 @@ public class LinuxWindowTricks extends Box {
 	public String beginEditorForward() {
 		if (editors.size() == 0) return "No editor found";
 
-		System.out.println(" setting lost focus property ");
 		properties.put(lostFocus, properties.getOr(lostFocus, () -> 0)+1);
-		System.out.println(" properties :"+properties);
 		// the order here is odd, because we want the first wmctrl to be executed speculatively (before the listing of all the windows) in the very likely case that the window is still around in order to minimize latency
 		Set<String> still = null;
 		Iterator<String> i = editors.iterator();
