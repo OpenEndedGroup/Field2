@@ -123,11 +123,12 @@ public class PluginList {
 
 	private void extendClassPath(List<Object> value) {
 
-		//TODO: handle relative paths!
-
 		for (Object o : value) {
 			String m = o.toString();
 			Log.log("startup", " extending classpath <" + m + ">");
+
+			if (!new File(m).exists()) Log.log("startup.error", " adding a path that doesn't exist to the classpath <"+m+">, almost certainly a typo in your plugins file");
+
 			try {
 				Trampoline.addURL(new URL("file:" + m));
 			} catch (MalformedURLException e) {

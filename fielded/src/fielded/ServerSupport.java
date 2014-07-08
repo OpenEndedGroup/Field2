@@ -68,7 +68,6 @@ public class ServerSupport {
 				return payload;
 			});
 
-
 			s.addHandlerLast(x -> x.equals("initialize.finished"), (server, socket, address, payload) -> {
 
 				for (String n : playlist) {

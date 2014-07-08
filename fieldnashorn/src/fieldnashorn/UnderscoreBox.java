@@ -105,7 +105,7 @@ public class UnderscoreBox extends AbstractJSObject implements JavaSupport.Handl
 			return at.find(new Dict.Prop(m), at.upwards()).findFirst().orElse(null);
 		}
 
-		Log.log("underscore.debug", " type information for cannon property is " + cannon.getTypeInformation());
+		Log.log("underscore.debug", " type information for cannon property "+m+" is " + cannon.getTypeInformation());
 		Object ret = at.find(cannon, at.upwards()).findFirst().orElse(null);
 
 		if (ret instanceof Box.FunctionOfBox) {
@@ -116,7 +116,12 @@ public class UnderscoreBox extends AbstractJSObject implements JavaSupport.Handl
 	}
 
 	private Object enunderscoreReturn(Object ret) {
-		if (ret instanceof Box) return new UnderscoreBox((Box) ret);
+
+//		if (ret instanceof Box) return new UnderscoreBox((Box) ret);
+
+		// fancy subclasses of Box shouldn't be wrapped
+		if (ret.getClass()==Box.class) return new UnderscoreBox((Box) ret);
+
 		if (ret instanceof List) return ((List) ret).stream().map(this::enunderscoreReturn).collect(Collectors.toList());
 		if (ret instanceof Set) return ((Set) ret).stream().map(this::enunderscoreReturn).collect(Collectors.toSet());
 		return ret;
