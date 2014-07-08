@@ -50,6 +50,7 @@ public class PluginList {
 		}
 	}
 
+
 	public void interpretClassPathAndOptions(Map<String, List<Object>> o) {
 		// note the order here is important: we extend the classpath, set options, extend options and then activate the plugins.
 		o.entrySet().forEach(e -> {
@@ -93,7 +94,6 @@ public class PluginList {
 	private void activeatePlugin(List<Object> value, Box root) {
 
 		for (Object o : value) {
-
 			Log.log("startup", ">>>>>>>>>>>>> activating plugin '" + o + "'");
 
 			try {
@@ -127,7 +127,32 @@ public class PluginList {
 			String m = o.toString();
 			Log.log("startup", " extending classpath <" + m + ">");
 
-			if (!new File(m).exists()) Log.log("startup.error", " adding a path that doesn't exist to the classpath <"+m+">, almost certainly a typo in your plugins file");
+			if (m.endsWith("*")) {
+				m = m.substring(0, m.length() - 1);
+				if (!new File(m).exists())
+					Log.log("startup.error", " adding a path that doesn't exist to the classpath <" + m + ">, almost certainly a typo in your plugins file");
+				try {
+					Trampoline.addURL(new URL("file:" + m));
+				} catch (MalformedURLException e) {
+					e.printStackTrace();
+				}
+
+				File[] subFiles = new File(m).listFiles((FilenameFilter) (d, n) -> n.endsWith(".jar"));
+
+				if (subFiles != null) {
+					for (File f : subFiles) {
+						Log.log("startup", " extending classpath <" + f.getAbsolutePath() + ">");
+						try {
+							Trampoline.addURL(new URL("file:" + f.getAbsolutePath()));
+						} catch (MalformedURLException e) {
+							e.printStackTrace();
+						}
+					}
+				} else Log.log("startup.error", " added a wildcard path <" + m + "> with no .jar files in it");
+			}
+
+			if (!new File(m).exists())
+				Log.log("startup.error", " adding a path that doesn't exist to the classpath <" + m + ">, almost certainly a typo in your plugins file");
 
 			try {
 				Trampoline.addURL(new URL("file:" + m));
