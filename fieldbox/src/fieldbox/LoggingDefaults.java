@@ -10,6 +10,7 @@ public class LoggingDefaults {
 	public static void initialize() {
 
 		Log.on(".*startup.*", Log::blue);
+		Log.on(".*error.*", Log::red);
 		Log.disable(".*trace.*");
 
 	}
