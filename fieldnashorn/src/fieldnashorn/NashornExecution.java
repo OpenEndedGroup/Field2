@@ -51,7 +51,9 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 		try {
 			Writer writer = null;
+			boolean[] written = {false};
 			if (success != null) {
+
 
 				writer = new Writer() {
 					StringBuilder b = new StringBuilder();
@@ -62,6 +64,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 							String s = new String(cbuf, off, len);
 							if (s.endsWith("\n")) s = s.substring(0, s.length() - 1);
 							if (s.trim().length() == 0) return;
+							written[0] = true;
 							success.accept(s);
 						}
 					}
@@ -83,7 +86,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 			Object ret = engine.eval(textFragment, context);
 			Log.log("nashorn.general", () -> "\n<<javascript out" + ret + " " + (ret != null ? ret.getClass() + "" : ""));
 			if (writer != null) writer.flush();
-			if (success != null) if (ret != null) success.accept("" + ret); else success.accept("&#x2713;");
+			if (success != null) if (ret != null) success.accept("" + ret); else if (!written[0]) success.accept("[ok]");
 
 			RemoteEditor.boxFeedback(Optional.of(box), new Vec4(0.3f, 0.7f, 0.3f, 0.5f));
 
