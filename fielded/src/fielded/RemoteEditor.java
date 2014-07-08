@@ -295,9 +295,6 @@ public class RemoteEditor extends Box {
 				return stringer.toString();
 			}));
 
-
-			// todo: feedback in the UI that something is executing.
-
 			return payload;
 		});
 		server.addHandlerLast(Predicate.isEqual("request.imports"), () -> socketName, (s, socket, address, payload) -> {
@@ -610,4 +607,14 @@ public class RemoteEditor extends Box {
 	public Execution getExecution(Box box) {
 		return box.first(Execution.execution).orElseThrow(() -> new IllegalArgumentException("no execution found for box " + box));
 	}
+
+
+	/**
+	 * A general purpose Send some JavaScript to a text editor call
+	 */
+	public void sendJavaScript(String javascript)
+	{
+		server.send(socketName, javascript);
+	}
+
 }
