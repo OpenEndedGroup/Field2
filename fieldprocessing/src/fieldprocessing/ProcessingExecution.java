@@ -76,6 +76,7 @@ public class ProcessingExecution extends Execution {
 			public String begin(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
 				System.out.println(" WRAPPED (begin)");
 				String name = s.begin(lineErrors, success);
+				if (name==null) return null;
 				Supplier<Boolean> was = box.properties.removeFromMap(Boxes.insideRunLoop, name);
 				String newName = name.replace("main.", "processing.");
 				box.properties.putToMap(Boxes.insideRunLoop, newName, was);
