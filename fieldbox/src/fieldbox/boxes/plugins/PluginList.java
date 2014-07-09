@@ -5,6 +5,7 @@ import field.utility.Log;
 import field.utility.Options;
 import fieldagent.Trampoline;
 import fieldbox.boxes.Box;
+import us.bpsm.edn.EdnSyntaxException;
 import us.bpsm.edn.parser.Parseable;
 import us.bpsm.edn.parser.Parser;
 import us.bpsm.edn.parser.Parsers;
@@ -30,23 +31,30 @@ public class PluginList {
 
 	public Map<String, List<Object>> read(String filename, boolean createOnDemand) throws IOException {
 
-		if (!new File(filename).exists()) {
-			if (createOnDemand) createBlankFile(filename);
-			return Collections.emptyMap();
-		}
-
-		try (FileReader fr = new FileReader(new File(filename))) {
-			Parseable parseme = Parsers.newParseable(fr);
-
-			Map<String, List<Object>> r = new LinkedHashMap<>();
-
-			while (true) {
-				Object o = parser.nextValue(parseme);
-				if (o.equals(parser.END_OF_INPUT)) break;
-
-				massageAndCollapse(o, r);
+		try {
+			if (!new File(filename).exists()) {
+				if (createOnDemand) createBlankFile(filename);
+				return Collections.emptyMap();
 			}
-			return r;
+
+			try (FileReader fr = new FileReader(new File(filename))) {
+				Parseable parseme = Parsers.newParseable(fr);
+
+				Map<String, List<Object>> r = new LinkedHashMap<>();
+
+				while (true) {
+					Object o = parser.nextValue(parseme);
+					if (o.equals(parser.END_OF_INPUT)) break;
+
+					massageAndCollapse(o, r);
+				}
+				return r;
+			}
+		}
+		catch(EdnSyntaxException syntax)
+		{
+			Log.log("startup.error", "Syntax error in plugins.edn file", syntax);
+			return null;
 		}
 	}
 

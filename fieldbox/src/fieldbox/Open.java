@@ -50,8 +50,8 @@ public class Open {
 	private Map<String, List<Object>> plugins;
 	private Nashorn javascript;
 
-	private int sizeX = AutoPersist.persist("window_sizeX", () -> 1000, x -> Math.min(2560, Math.max(100, x)), (x) -> (int)window.getBounds().w);
-	private int sizeY = AutoPersist.persist("window_sizeY", () -> 800, x -> Math.min(2560, Math.max(100, x)), (x) -> (int)window.getBounds().h);
+	private int sizeX = AutoPersist.persist("window_sizeX", () -> 1000, x -> Math.min(2560, Math.max(100, x)), (x) -> window==null ? x : (int)window.getBounds().w);
+	private int sizeY = AutoPersist.persist("window_sizeY", () -> 800, x -> Math.min(2560, Math.max(100, x)), (x) -> window==null ? x : (int)window.getBounds().h);
 
 	public Open(String filename) {
 		this.filename = filename;
@@ -61,7 +61,8 @@ public class Open {
 			pluginList = new PluginList();
 			plugins = pluginList.read(System.getProperty("user.home") + "/.field/plugins.edn", true);
 
-			pluginList.interpretClassPathAndOptions(plugins);
+			if (plugins!=null)
+				pluginList.interpretClassPathAndOptions(plugins);
 		} catch (IOException e) {
 			e.printStackTrace();
 			pluginList = null;
