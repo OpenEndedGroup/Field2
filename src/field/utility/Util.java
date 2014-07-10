@@ -55,6 +55,13 @@ public class Util {
 		return closeable(Arrays.asList(c1));
 	}
 
+	/** An autoclosable that doesn't throw an exception */
+	static public interface ExceptionlessAutoCloasable extends AutoCloseable
+	{
+		@Override
+		public void close();
+	}
+
 
 	/**
 	 * dynamic languages often have broad notions of what truth is, and we often don't have the opportunity to cast and box all of them to true
