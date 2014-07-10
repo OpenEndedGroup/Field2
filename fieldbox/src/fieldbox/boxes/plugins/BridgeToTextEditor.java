@@ -32,8 +32,12 @@ public class BridgeToTextEditor extends Box {
 	TextEditorExecution teExecution;
 
 	public BridgeToTextEditor(Box root) {
+		root.find(Watches.watches, both()).findFirst().ifPresent(w -> w.addWatch(RemoteEditor.editor, (q) -> lazyInit(root)));
+	}
+
+	protected void lazyInit(Box root) {
 		RemoteEditor delegate = root.find(RemoteEditor.editor, root.both()).findFirst()
-			    .orElseThrow(() -> new IllegalArgumentException(" can't instantiate BridgeToTextEditor execution - no default execution found"));
+			    .orElseThrow(() -> new IllegalArgumentException(" can't instantiate BridgeToTextEditor execution - no remote editor found"));
 		teExecution = new TextEditorExecution(delegate);
 
 		root.connect(teExecution);
@@ -44,11 +48,11 @@ public class BridgeToTextEditor extends Box {
 			List<Box> selected = selection().collect(Collectors.toList());
 			if (selected.size() == 1) {
 				if (selected.get(0).properties.isTrue(bridgedToEditor, false)) {
-					m.put(new Pair<>("Remove bridge to Editor", "No longer will this box execute inside the Editor draw method"), () -> {
+					m.put(new Pair<>("Remove bridge to Editor", "No longer will this box execute inside this editor"), () -> {
 						disconnectFromEditor(selected.get(0));
 					});
 				} else {
-					m.put(new Pair<>("Bridge to Editor", "This box execute will inside the Editor draw method"), () -> {
+					m.put(new Pair<>("Bridge to Editor", "This box will execute inside this editor. To print, use _field.log('...') rather than console.log"), () -> {
 						connectToEditor(selected.get(0));
 					});
 				}
@@ -69,6 +73,7 @@ public class BridgeToTextEditor extends Box {
 		});
 
 		Log.log("startup.editor", " editor plugin has finished starting up ");
+
 
 	}
 
@@ -127,13 +132,16 @@ public class BridgeToTextEditor extends Box {
 		private Execution.ExecutionSupport wrap(Box box) {
 
 			return new Execution.ExecutionSupport() {
+
+				protected Util.ExceptionlessAutoCloasable previousPush = null;
+
 				@Override
 				public void executeTextFragment(String textFragment, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
 
-					try (Util.ExceptionlessAutoCloasable c = delegateTo
-						    .pushToLogStack(s -> success.accept(s), e -> lineErrors.accept(new Pair<>(0, e)))) {
-						delegateTo.sendJavaScript(textFragment);
-					}
+					if (previousPush!=null) previousPush.close();;
+					previousPush = delegateTo
+						    .pushToLogStack(s -> success.accept(s), e -> lineErrors.accept(new Pair<>(0, e)));
+					delegateTo.sendJavaScript(textFragment);
 				}
 
 				@Override
