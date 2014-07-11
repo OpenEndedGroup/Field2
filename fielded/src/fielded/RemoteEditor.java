@@ -613,6 +613,11 @@ public class RemoteEditor extends Box {
 			server.send(socketName, "_messageBus.publish('selection.changed', " + buildMessage.toString() + ")");
 			//todo: set language? get it from execution?
 
+			Execution ex = getExecution(currentSelection);
+			if (ex != null) {
+				Execution.ExecutionSupport support = ex.support(currentSelection, editingProperty);
+				if (support != null) support.setFilenameForStacktraces("" + currentSelection);
+			}
 			//todo: check for other editors?
 			//watches.addWatch(editingProperty, "edited.property.changed");
 		}

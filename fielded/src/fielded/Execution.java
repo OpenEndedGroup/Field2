@@ -50,6 +50,7 @@ public class Execution extends Box {
 	 * absolutely everything you need to support a language in Field
 	 */
 	static public interface ExecutionSupport {
+
 		public void executeTextFragment(String textFragment, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success);
 
 		public void executeAndPrint(String textFragment, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success);
@@ -69,6 +70,11 @@ public class Execution extends Box {
 		public String getCodeMirrorLanguageName();
 
 		public String getDefaultFileExtension();
+
+		default public void setFilenameForStacktraces(String name)
+		{
+
+		}
 
 		default public void begin(Box box) {
 
