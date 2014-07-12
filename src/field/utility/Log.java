@@ -7,12 +7,14 @@ import com.sun.istack.internal.Nullable;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * A Microscopically small logging framework
@@ -150,13 +152,17 @@ public class Log {
 	}
 
 	static protected String toString(Object o) {
+
+
 		if (o == null) return "null";
+		System.out.println(" -- class "+o.getClass());
 		if (o instanceof Throwable) {
 			StringWriter ps = new StringWriter();
 			((Throwable) o).printStackTrace(new PrintWriter(ps));
 			return ps.toString();
 		}
-		if (o.getClass().isArray()) return "" + Arrays.asList((Object[]) o);
+		if (o instanceof Collection) return "" + ((Collection)o).stream().map( x -> toString(x)).collect(Collectors.toList());
+		if (o.getClass().isArray()) return "" + Arrays.asList((Object[]) o).stream().map( x -> toString(x)).collect(Collectors.toList());
 		return ("" + o).trim();
 	}
 

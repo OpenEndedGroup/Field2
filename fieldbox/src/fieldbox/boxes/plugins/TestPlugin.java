@@ -40,9 +40,6 @@ public class TestPlugin extends Box {
 						    OutputStream out = Files.newOutputStream(properties);
 						    PrintStream printStream = new PrintStream(out)
 					) {
-
-						//option 2
-
 						printStream.print("Hello World!\n");
 						printStream.close();
 					} catch(IOException x){

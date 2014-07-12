@@ -78,6 +78,7 @@ public class TernSupport {
 	public List<Execution.Completion> completion(String boxName, String allText, int line, int ch) {
 		List<Execution.Completion> r = new ArrayList<>();
 
+
 		try {
 			engine.put("__someFile", allText);
 			engine.eval("__completions = new java.util.ArrayList()");
@@ -95,10 +96,13 @@ public class TernSupport {
 				for (Object k : bindings.keySet()) {
 					Object t = bindings.get(k);
 					if (t == null) continue;
-					if (t instanceof String) if (((String) t).contains("\n")) t = ((String) t).split("\n")[0] + " ...";
+					if (t instanceof String) if (((String) t).split("\n").length>0) t = ((String) t).split("\n")[0] + " ...";
 					Log.log("completion.debug", "    " + k + " " + t);
-				} return null;
+				}
+				return null;
 			});
+
+			if (allText.trim().length()==0) return r;
 
 			String[] lines = allText.split("\n");
 			int c = 0;
@@ -112,19 +116,22 @@ public class TernSupport {
 			Log.log("completion.debug", " line :" + line + " -> " + ch + " -> " + c);
 
 			engine.eval("__c=new self.tern.Context()");
-			Object[] ret = (Object[]) engine.eval("self.tern.withContext(__c, function(){\n" +
-				    "\tvar a = self.tern.parse(__someFile)\n" +
-				    "\tself.tern.analyze(a)\n" +
-				    "\tvar n = self.tern.findExpressionAround(a, " + c + ", " + c + ")\n" +
-				    "\treturn Java.to([n.node.start, n.node.end])" +
-				    "})");
-			Log.log("completion.debug", " expression to analyze is :" + ret[0] + " " + ret[1] + " " + allText
-				    .substring(((Number) ret[0]).intValue(), ((Number) ret[1]).intValue()));
-
-
-			String s = allText.substring(((Number) ret[0]).intValue(), ((Number) ret[1]).intValue());
-
 			try {
+				Object[] ret = (Object[]) engine.eval("self.tern.withContext(__c, function(){\n" +
+					    "\tvar a = self.tern.parse(__someFile)\n" +
+					    "\tself.tern.analyze(a)\n" +
+					    "\tvar n = self.tern.findExpressionAround(a, " + c + ", " + c + ")\n" +
+					    "\tif (n!=null)\n" +
+					    "\treturn Java.to([n.node.start, n.node.end]);\n" + "\treturn null;}) ");
+				if (ret == null) return r;
+				if (ret.length==0) return r;
+
+				Log.log("completion.debug", " expression to analyze is :" + ret[0] + " " + ret[1] + " " + allText
+					    .substring(((Number) ret[0]).intValue(), ((Number) ret[1]).intValue()));
+
+
+				String s = allText.substring(((Number) ret[0]).intValue(), ((Number) ret[1]).intValue());
+
 
 				String left = s, right = "";
 

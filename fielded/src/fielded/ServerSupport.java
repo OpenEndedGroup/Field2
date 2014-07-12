@@ -11,11 +11,13 @@ import fielded.Execution;
 import fielded.RemoteEditor;
 import fielded.webserver.Server;
 import fieldnashorn.Nashorn;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -31,6 +33,7 @@ public class ServerSupport {
 
 	static List<String> playlist = Arrays
 		    .asList("messagebus.js", "instantiate.js", "changehooks.js", "status.js", "helpbox.js", "modal.js", "brackets.js", "output.js", "doubleshift.js");
+
 
 	public ServerSupport(Boxes boxes) {
 
@@ -58,8 +61,10 @@ public class ServerSupport {
 				Log.log("remote.general","-\n" + payload + "\n-");
 				return payload;
 			});
+
 			s.addHandlerLast(x -> x.equals("error"), (server, socket, address, payload) -> {
 				Log.log("remote.general","-e-\n" + payload + "\n-e-");
+
 				return payload;
 			});
 
@@ -95,6 +100,7 @@ public class ServerSupport {
 		} catch (IOException e) {
 		}
 	}
+
 
 	private static String readFile(String s) {
 		try (BufferedReader r = new BufferedReader(new FileReader(new File(s)))) {

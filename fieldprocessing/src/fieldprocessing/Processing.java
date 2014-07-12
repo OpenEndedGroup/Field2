@@ -21,7 +21,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Created by marc on 7/1/14.
+ * The Processing Plugin. Refer to Processing.applet to get at the applet.
+ *
+ * E.g. var P = Java.type('fieldprocessing.Processing').applet
+ *
+ * This adds a command "Bridge box to Processing". Run that to move this box (and any children) into the Processing draw cycle. Then you can write things like:
+ *
+ * P.background(0) // sets background to black
+ *
  */
 public class Processing extends Box {
 
@@ -114,7 +121,7 @@ public class Processing extends Box {
 						disconnectFromProcessing(selected.get(0));
 					});
 				} else {
-					m.put(new Pair<>("Bridge to Processing", "This box execute will inside the Processing draw method"), () -> {
+					m.put(new Pair<>("Bridge to Processing", "This box will execute inside the Processing draw method"), () -> {
 						connectToProcessing(selected.get(0));
 					});
 				}

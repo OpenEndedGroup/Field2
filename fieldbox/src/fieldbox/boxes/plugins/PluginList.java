@@ -5,6 +5,7 @@ import field.utility.Log;
 import field.utility.Options;
 import fieldagent.Trampoline;
 import fieldbox.boxes.Box;
+import us.bpsm.edn.EdnSyntaxException;
 import us.bpsm.edn.parser.Parseable;
 import us.bpsm.edn.parser.Parser;
 import us.bpsm.edn.parser.Parsers;
@@ -30,25 +31,33 @@ public class PluginList {
 
 	public Map<String, List<Object>> read(String filename, boolean createOnDemand) throws IOException {
 
-		if (!new File(filename).exists()) {
-			if (createOnDemand) createBlankFile(filename);
-			return Collections.emptyMap();
-		}
-
-		try (FileReader fr = new FileReader(new File(filename))) {
-			Parseable parseme = Parsers.newParseable(fr);
-
-			Map<String, List<Object>> r = new LinkedHashMap<>();
-
-			while (true) {
-				Object o = parser.nextValue(parseme);
-				if (o.equals(parser.END_OF_INPUT)) break;
-
-				massageAndCollapse(o, r);
+		try {
+			if (!new File(filename).exists()) {
+				if (createOnDemand) createBlankFile(filename);
+				return Collections.emptyMap();
 			}
-			return r;
+
+			try (FileReader fr = new FileReader(new File(filename))) {
+				Parseable parseme = Parsers.newParseable(fr);
+
+				Map<String, List<Object>> r = new LinkedHashMap<>();
+
+				while (true) {
+					Object o = parser.nextValue(parseme);
+					if (o.equals(parser.END_OF_INPUT)) break;
+
+					massageAndCollapse(o, r);
+				}
+				return r;
+			}
+		}
+		catch(EdnSyntaxException syntax)
+		{
+			Log.log("startup.error", "Syntax error in plugins.edn file", syntax);
+			return null;
 		}
 	}
+
 
 	public void interpretClassPathAndOptions(Map<String, List<Object>> o) {
 		// note the order here is important: we extend the classpath, set options, extend options and then activate the plugins.
@@ -93,7 +102,6 @@ public class PluginList {
 	private void activeatePlugin(List<Object> value, Box root) {
 
 		for (Object o : value) {
-
 			Log.log("startup", ">>>>>>>>>>>>> activating plugin '" + o + "'");
 
 			try {
@@ -123,11 +131,37 @@ public class PluginList {
 
 	private void extendClassPath(List<Object> value) {
 
-		//TODO: handle relative paths!
-
 		for (Object o : value) {
 			String m = o.toString();
 			Log.log("startup", " extending classpath <" + m + ">");
+
+			if (m.endsWith("*")) {
+				m = m.substring(0, m.length() - 1);
+				if (!new File(m).exists())
+					Log.log("startup.error", " adding a path that doesn't exist to the classpath <" + m + ">, almost certainly a typo in your plugins file");
+				try {
+					Trampoline.addURL(new URL("file:" + m));
+				} catch (MalformedURLException e) {
+					e.printStackTrace();
+				}
+
+				File[] subFiles = new File(m).listFiles((FilenameFilter) (d, n) -> n.endsWith(".jar"));
+
+				if (subFiles != null) {
+					for (File f : subFiles) {
+						Log.log("startup", " extending classpath <" + f.getAbsolutePath() + ">");
+						try {
+							Trampoline.addURL(new URL("file:" + f.getAbsolutePath()));
+						} catch (MalformedURLException e) {
+							e.printStackTrace();
+						}
+					}
+				} else Log.log("startup.error", " added a wildcard path <" + m + "> with no .jar files in it");
+			}
+
+			if (!new File(m).exists())
+				Log.log("startup.error", " adding a path that doesn't exist to the classpath <" + m + ">, almost certainly a typo in your plugins file");
+
 			try {
 				Trampoline.addURL(new URL("file:" + m));
 			} catch (MalformedURLException e) {

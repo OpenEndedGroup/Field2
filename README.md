@@ -46,7 +46,7 @@ We've just checked in a Plugin API. Field will write an example to ```~/.field/p
 
 Edit the _two paths_ to point to where you are building Field2 and where you have downloaded Processing 2 to (```.../marc/fieldwork2/...``` and ```.../marc/Downloads/Processing.app/...```).
 
-If something goes wrong initializing a plugin Field will continue to launch, but look in the terminal for the stacktrace
+If something goes wrong initializing a plugin Field will continue to launch, but look in the terminal for the stacktrace and error message.
 
 # License
 

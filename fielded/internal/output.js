@@ -29,6 +29,11 @@ function appendRemoteOutputToLine(line, text, checkClass, lineClass, append) {
     if (found != null) {
         console.log(" reusing previous element ")
         d = found.node
+
+        $(d).removeClass(checkClass)
+        $(d).removeClass(lineClass)
+        $(d).addClass(lineClass)
+
         $(d).append("\n" + escapeHtml(text.trim()))
         $(d).animate({
             scrollTop: $(d)[0].scrollHeight
@@ -54,15 +59,7 @@ function appendRemoteOutputToLine(line, text, checkClass, lineClass, append) {
     var closeBox = $($(d).children()[0])
     var expandBox = $($(d).children()[1])
 
-
-    //    console.log("thisdivheight "+thisDiv.height())
-    //    if (thisDiv.height()>60)
-    //        expandBox.show()
-    //    else
-    //        expandBox.hide()
-
     updateAllBrackets()
-
 
     if (bm) {
         closeBox.click(function () {
@@ -145,10 +142,8 @@ boxOutputs = {}
 _messageBus.subscribe("box.output", function (d, e) {
     box = d.box
     if (cm.currentbox === box) {
-        console.log(" got box output for current box ")
         appendRemoteOutputToLine(cm.lineCount() - 1, d.message, "Field-remoteOutput-error", "Field-remoteOutput", true)
     } else {
-        console.log(" got box output for some other box")
     }
     if (boxOutputs[box] === undefined)
         boxOutputs[box] = d.message
