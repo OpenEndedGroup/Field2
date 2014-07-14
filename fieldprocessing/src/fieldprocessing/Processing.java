@@ -121,7 +121,7 @@ public class Processing extends Box {
 						disconnectFromProcessing(selected.get(0));
 					});
 				} else {
-					m.put(new Pair<>("Bridge to Processing", "This box execute will inside the Processing draw method"), () -> {
+					m.put(new Pair<>("Bridge to Processing", "This box will execute inside the Processing draw method"), () -> {
 						connectToProcessing(selected.get(0));
 					});
 				}

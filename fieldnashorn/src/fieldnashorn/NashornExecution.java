@@ -33,6 +33,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	private final ScriptContext context;
 	private final ScriptEngine engine;
 	private TernSupport ternSupport;
+	public String filename = null;
 
 	public NashornExecution(Box box, Dict.Prop<String> property, ScriptContext b, ScriptEngine engine) {
 		this.box = box;
@@ -83,6 +84,10 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 			Log.log("nashorn.general", "\n>>javascript in");
 			Log.log("nashorn.general", textFragment);
+
+			if (filename!=null)
+				textFragment = "//# sourceURL="+filename+"\n"+textFragment;
+
 			Object ret = engine.eval(textFragment, context);
 			Log.log("nashorn.general", () -> "\n<<javascript out" + ret + " " + (ret != null ? ret.getClass() + "" : ""));
 			if (writer != null) writer.flush();
@@ -181,6 +186,11 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 	public void setTernSupport(TernSupport ternSupport) {
 		this.ternSupport = ternSupport;
+	}
+
+	public void setFilenameForStacktraces(String filename)
+	{
+		this.filename = filename;
 	}
 
 	@Override
