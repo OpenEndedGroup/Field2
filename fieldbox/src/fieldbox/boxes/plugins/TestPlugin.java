@@ -2,19 +2,18 @@ package fieldbox.boxes.plugins;
 
 import field.utility.Pair;
 import fieldbox.boxes.Box;
-import fieldbox.boxes.Drawing;
 import fieldbox.boxes.Mouse;
 import fielded.RemoteEditor;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.stream.Stream;
-import java.io.PrintStream;
 import java.nio.file.Path;
 
 /**
@@ -29,41 +28,43 @@ public class TestPlugin extends Box {
 		properties.put(RemoteEditor.commands, () -> {
 
 			Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
-			m.put(new Pair<>("Test File Write", "Testing writing to a properties file"), new Runnable() {
+			Runnable put = m.put(new Pair<>("Test File Write", "Testing writing to a properties file"), new Runnable() {
 
 				public RemoteEditor.SupportsPrompt p;
 
-			@Override
-			public void run() {
-				Path properties = FileSystems.getDefault().getPath("fieldbox/resources", "properties.txt");
-				try (
-					OutputStream out = Files.newOutputStream(properties);
-					PrintStream printStream = new PrintStream(out)
-				) {
-					printStream.print("Hello World!\n");
-					printStream.close();
-				} catch (IOException x) {
-					System.err.println("CANNOT OPEN FILE!!!!");
+				@Override
+				public void run() {
+					final static Charset ENCODING = StandardCharsets.UTF_8;
+
+					Path properties = FileSystems.getDefault().getPath("fieldbox/resources", "properties.txt");
+					try (
+						    OutputStream out = Files.newOutputStream(properties);
+						    PrintStream printStream = new PrintStream(out)
+					) {
+						printStream.print("Hello World!\n");
+						printStream.close();
+					} catch (IOException x) {
+						System.err.println("CANNOT OPEN FILE!!!!");
+					}
+
+					//Send message to text editor socket to change keyboard shortcut
+					find(RemoteEditor.editor, both())
+						    .forEach(editor -> editor.sendJavaScript("extraKeys[\"Ctrl-/\"] = function (cm) {\n" +
+									    "    goCommands();\n" +
+									    "};"));
+
+					try (
+						Scanner scanner = new Scanner(properties, ENCODING.name())
+					) {
+						System.out.println(String.valueof)
+					} catch(IOException x) {
+						System.err.println("CANNOT OPEN FILE!!!!");
+					}
 				}
-
-				//Send message to text editor socket to change keyboard shortcut
-				find(RemoteEditor.editor, both()).forEach( editor -> editor.sendJavaScript(
-					"extraKeys[\"Ctrl-/\"] = function (cm) {\n" +
-							"    goCommands();\n" +
-							"};"
-				));
-
-				try(
-					InputStream in = Files.newInputStream(properties);
-					
-				) {
-
-				}
-			}
-		});
+			});
 
 
-		return m;
+			return m;
 	});
 }
 
