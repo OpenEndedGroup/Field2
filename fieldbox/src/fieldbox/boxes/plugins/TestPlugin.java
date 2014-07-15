@@ -7,6 +7,7 @@ import fieldbox.boxes.Mouse;
 import fielded.RemoteEditor;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -28,45 +29,35 @@ public class TestPlugin extends Box {
 		properties.put(RemoteEditor.commands, () -> {
 
 			Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
-			m.put(new Pair<>("Test File Write", "Testing writing to a properties file"), new RemoteEditor.ExtendedCommand() {
+			m.put(new Pair<>("Test File Write", "Testing writing to a properties file"), new Runnable() {
 
 				public RemoteEditor.SupportsPrompt p;
-
-				@Override
-				public void begin(RemoteEditor.SupportsPrompt prompt, String alternativeChosen) {
-				}
-				/*
-				//This is what we will do to read the file
-				try(InputStream in = Files.newInputStream(properties);
-				BufferedReader reader =  new BufferedReader(new InputStreamReader(in))){
-					String line=null;
-					while ((line=reader.readline()) != null) {
-						//we are reading
-					}
-				}
-				catch (IOException x){
-					System.err.println("CANNOT OPEN FILE!!!!");
-				}
-				*/
 
 			@Override
 			public void run() {
 				Path properties = FileSystems.getDefault().getPath("fieldbox/resources", "properties.txt");
-
 				try (
-					    OutputStream out = Files.newOutputStream(properties);
-					    PrintStream printStream = new PrintStream(out)
+					OutputStream out = Files.newOutputStream(properties);
+					PrintStream printStream = new PrintStream(out)
 				) {
 					printStream.print("Hello World!\n");
 					printStream.close();
-
-					find(RemoteEditor.editor, both()).forEach( editor -> editor.sendJavaScript(
-						    "extraKeys[\"Ctrl-/\"] = function (cm) {\n" +
-								"    goCommands();\n" +
-								"};"
-					));
-				} catch(IOException x){
+				} catch (IOException x) {
 					System.err.println("CANNOT OPEN FILE!!!!");
+				}
+
+				//Send message to text editor socket to change keyboard shortcut
+				find(RemoteEditor.editor, both()).forEach( editor -> editor.sendJavaScript(
+					"extraKeys[\"Ctrl-/\"] = function (cm) {\n" +
+							"    goCommands();\n" +
+							"};"
+				));
+
+				try(
+					InputStream in = Files.newInputStream(properties);
+					
+				) {
+
 				}
 			}
 		});
