@@ -34,14 +34,13 @@ public class TestPlugin extends Box {
 
 				@Override
 				public void run() {
-					final static Charset ENCODING = StandardCharsets.UTF_8;
-
 					Path properties = FileSystems.getDefault().getPath("fieldbox/resources", "properties.txt");
 					try (
 						    OutputStream out = Files.newOutputStream(properties);
 						    PrintStream printStream = new PrintStream(out)
 					) {
 						printStream.print("Hello World!\n");
+						printStream.print("HOLY POOP\n");
 						printStream.close();
 					} catch (IOException x) {
 						System.err.println("CANNOT OPEN FILE!!!!");
@@ -53,10 +52,12 @@ public class TestPlugin extends Box {
 									    "    goCommands();\n" +
 									    "};"));
 
-					try (
-						Scanner scanner = new Scanner(properties, ENCODING.name())
-					) {
-						System.out.println(String.valueof)
+					try {
+					   	File file = new File(properties.toString());
+						Scanner scanner = new Scanner(file);
+						while(scanner.hasNextLine()){
+							System.out.println(scanner.nextLine());
+						}
 					} catch(IOException x) {
 						System.err.println("CANNOT OPEN FILE!!!!");
 					}
