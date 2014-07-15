@@ -17,10 +17,9 @@ import java.util.stream.Stream;
 import java.nio.file.Path;
 
 /**
- * Adds: a command to rename a box
+ * Adds: a command to set custom user hotkeys
  *
- * TODO: ideally we'd have both a prompt and some placeholder text
- * TODO: specifying chained "parameterized" commands such as this ought to be more straightforward.
+ * TODO: lots
  */
 public class TestPlugin extends Box {
 
@@ -34,6 +33,9 @@ public class TestPlugin extends Box {
 
 				@Override
 				public void run() {
+
+					//Open properties.txt file stored in fieldbox/resources for writing
+					//This should store the user's commands and hotkey settings (write them now)
 					Path properties = FileSystems.getDefault().getPath("fieldbox/resources", "properties.txt");
 					try (
 						    OutputStream out = Files.newOutputStream(properties);
@@ -52,6 +54,7 @@ public class TestPlugin extends Box {
 									    "    goCommands();\n" +
 									    "};"));
 
+					//Test reading from the properties.txt file
 					try {
 					   	File file = new File(properties.toString());
 						Scanner scanner = new Scanner(file);
