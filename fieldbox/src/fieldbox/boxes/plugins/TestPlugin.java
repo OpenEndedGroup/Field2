@@ -34,17 +34,6 @@ public class TestPlugin extends Box {
 
 				@Override
 				public void begin(RemoteEditor.SupportsPrompt prompt, String alternativeChosen) {
-					Path properties = FileSystems.getDefault().getPath("fieldbox/resources", "properties.txt");
-
-					try (
-						    OutputStream out = Files.newOutputStream(properties);
-						    PrintStream printStream = new PrintStream(out)
-					) {
-						printStream.print("Hello World!\n");
-						printStream.close();
-					} catch(IOException x){
-						System.err.println("CANNOT OPEN FILE!!!!");
-					}
 				}
 				/*
 				//This is what we will do to read the file
@@ -62,8 +51,22 @@ public class TestPlugin extends Box {
 
 			@Override
 			public void run() {
-				if(false){
-					System.out.println("Don't Run Me");
+				Path properties = FileSystems.getDefault().getPath("fieldbox/resources", "properties.txt");
+
+				try (
+					    OutputStream out = Files.newOutputStream(properties);
+					    PrintStream printStream = new PrintStream(out)
+				) {
+					printStream.print("Hello World!\n");
+					printStream.close();
+
+					find(RemoteEditor.editor, both()).forEach( editor -> editor.sendJavaScript(
+						    "extraKeys[\"Ctrl-/\"] = function (cm) {\n" +
+								"    goCommands();\n" +
+								"};"
+					));
+				} catch(IOException x){
+					System.err.println("CANNOT OPEN FILE!!!!");
 				}
 			}
 		});

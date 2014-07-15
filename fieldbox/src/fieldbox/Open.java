@@ -148,11 +148,9 @@ public class Open {
 
 		new DragFilesToCanvas(boxes.root()).connect(boxes.root());
 
-<<<<<<< HEAD
 		new TestPlugin(boxes.root()).connect(boxes.root());
-=======
+
 		new BridgeToTextEditor(boxes.root()).connect(boxes.root());
->>>>>>> 70da35c8bc50be9393ddfc40a271d1259a044da2
 
 		/* cascade two blurs, a vertical and a horizontal together from the glass layer onto the base layer */
 		Compositor.Layer lx = window.getCompositor().newLayer("__main__blurx");
