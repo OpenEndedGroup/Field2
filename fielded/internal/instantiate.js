@@ -83,6 +83,33 @@ goCommands = function () {
     );
 }
 
+testCommand = function () {
+    _field.sendWithReturn("request.commands", {
+            box: cm.currentbox,
+            property: cm.currentproperty,
+            text: cm.getValue(),
+            line: cm.listSelections()[0].anchor.line,
+            ch: cm.listSelections()[0].anchor.ch
+        },
+        function (d, e) {
+
+            completionFunction = function (e) {
+                var m = []
+
+
+                m.push({
+                	text: "TITLE <span class=doc> BODY </span>",
+                	})
+                m.push({
+                	text: "Ctrl+Space <span class=doc> Commands </span>",
+                })
+                return m
+            }
+            runModal("Commands...", completionFunction, "Field-Modal")
+        }
+    );
+}
+
 _messageBus.subscribe("begin.commands", function (d, e) {
 
     var completions = []
@@ -338,6 +365,10 @@ extraKeys = {
     },
     "Ctrl-Space": function (cm) {
         goCommands();
+    },
+
+    "Ctrl-/": function(cm) {
+    	testCommand();
     },
     "Ctrl-I": function (cm) {
         _field.sendWithReturn("request.imports", {
