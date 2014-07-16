@@ -2,25 +2,24 @@ package fieldbox.boxes.plugins;
 
 import field.utility.Pair;
 import fieldbox.boxes.Box;
-import fieldbox.boxes.Drawing;
 import fieldbox.boxes.Mouse;
 import fielded.RemoteEditor;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.stream.Stream;
-import java.io.PrintStream;
 import java.nio.file.Path;
 
 /**
- * Adds: a command to rename a box
+ * Adds: a command to set custom user hotkeys
  *
- * TODO: ideally we'd have both a prompt and some placeholder text
- * TODO: specifying chained "parameterized" commands such as this ought to be more straightforward.
+ * TODO: lots
  */
 public class TestPlugin extends Box {
 
@@ -28,48 +27,48 @@ public class TestPlugin extends Box {
 		properties.put(RemoteEditor.commands, () -> {
 
 			Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
-			m.put(new Pair<>("Test File Write", "Testing writing to a properties file"), new RemoteEditor.ExtendedCommand() {
+			Runnable put = m.put(new Pair<>("Test File Write", "Testing writing to a properties file"), new Runnable() {
 
 				public RemoteEditor.SupportsPrompt p;
 
 				@Override
-				public void begin(RemoteEditor.SupportsPrompt prompt, String alternativeChosen) {
-					Path properties = FileSystems.getDefault().getPath("fieldbox/resources", "properties.txt");
+				public void run() {
 
+					//Open properties.txt file stored in fieldbox/resources for writing
+					//This should store the user's commands and hotkey settings (write them now)
+					Path properties = FileSystems.getDefault().getPath("fieldbox/resources", "properties.txt");
 					try (
 						    OutputStream out = Files.newOutputStream(properties);
 						    PrintStream printStream = new PrintStream(out)
 					) {
 						printStream.print("Hello World!\n");
+						printStream.print("HOLY POOP\n");
 						printStream.close();
-					} catch(IOException x){
+					} catch (IOException x) {
+						System.err.println("CANNOT OPEN FILE!!!!");
+					}
+
+					//Send message to text editor socket to change keyboard shortcut
+					find(RemoteEditor.editor, both())
+						    .forEach(editor -> editor.sendJavaScript("extraKeys[\"Ctrl-/\"] = function (cm) {\n" +
+									    "    goCommands();\n" +
+									    "};"));
+
+					//Test reading from the properties.txt file
+					try {
+					   	File file = new File(properties.toString());
+						Scanner scanner = new Scanner(file);
+						while(scanner.hasNextLine()){
+							System.out.println(scanner.nextLine());
+						}
+					} catch(IOException x) {
 						System.err.println("CANNOT OPEN FILE!!!!");
 					}
 				}
-				/*
-				//This is what we will do to read the file
-				try(InputStream in = Files.newInputStream(properties);
-				BufferedReader reader =  new BufferedReader(new InputStreamReader(in))){
-					String line=null;
-					while ((line=reader.readline()) != null) {
-						//we are reading
-					}
-				}
-				catch (IOException x){
-					System.err.println("CANNOT OPEN FILE!!!!");
-				}
-				*/
-
-			@Override
-			public void run() {
-				if(false){
-					System.out.println("Don't Run Me");
-				}
-			}
-		});
+			});
 
 
-		return m;
+			return m;
 	});
 }
 

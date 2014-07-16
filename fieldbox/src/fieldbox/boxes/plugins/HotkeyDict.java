@@ -254,7 +254,7 @@ public class HotkeyDict{
 			    "                                        else\n" +
 			    "                                            appendRemoteOutputToLine(anchorLine, d.message, \"Field-remoteOutput-error\", \"Field-remoteOutput\", 1)\n" +
 			    "                                    });\n" +
-			    "\n" +b
+			    "\n" +
 			    "                                }.bind({\n" +
 			    "                                    \"i\": i\n" +
 			    "                                })\n" +
@@ -271,5 +271,3 @@ public class HotkeyDict{
 
 	}
 }
-
-	h
