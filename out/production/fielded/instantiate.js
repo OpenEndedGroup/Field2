@@ -83,6 +83,77 @@ goCommands = function () {
     );
 }
 
+testCommand = function () {
+    _field.sendWithReturn("request.hotkeyCommands", {
+            box: cm.currentbox,
+            property: cm.currentproperty,
+            text: cm.getValue(),
+            line: cm.listSelections()[0].anchor.line,
+            ch: cm.listSelections()[0].anchor.ch
+        },
+        function (d, e) {
+						var completions = []
+						for (var i = 0; i < d.length; i++) {
+								d[i].callback = function () {
+										_field.send("call.command", {
+												command: this.call
+										});
+								}.bind({
+										"call": d[i].call
+								})
+								d[i].callback.remote = 1
+								completions.push(d[i])
+						}
+						completions = completions.concat(globalCommands)
+						completions.sort(function (a, b) {
+								return a.name < b.name ? -1 : 1;
+						})
+
+						completionFunction = function (e) {
+								var m = []
+
+								var fuzzyPattern = fuzzy(e);
+
+								for (var i = 0; i < completions.length; i++) {
+										if (completions[i].name.search(fuzzyPattern) != -1) {
+												matched = completions[i].name.replace(fuzzyPattern, replacer);
+												m.push({
+														text: matched + " <span class=doc>" + completions[i].info + "</span>",
+														callback: function () {
+																completions[this.i].callback()
+														}.bind({
+																"i": i
+														})
+												})
+										}
+								}
+								return m
+						}
+						if (completions.length > 0)
+								runModal("Commands...", completionFunction, "Field-Modal")
+				}
+				/* Cyril's Stuff
+
+        function (d, e) {
+
+            completionFunction = function (e) {
+                var m = []
+
+
+                m.push({
+                	text: "TITLE <span class=doc> BODY </span>",
+                	})
+                m.push({
+                	text: "Ctrl+Space <span class=doc> Commands </span>",
+                })
+                return m
+            }
+            runModal("Commands...", completionFunction, "Field-Modal")
+        }
+        */
+    );
+}
+
 _messageBus.subscribe("begin.commands", function (d, e) {
 
     var completions = []
@@ -339,6 +410,11 @@ extraKeys = {
     "Ctrl-Space": function (cm) {
         goCommands();
     },
+
+    "Ctrl-/": function(cm) {
+    	testCommand();
+    },
+
     "Ctrl-I": function (cm) {
         _field.sendWithReturn("request.imports", {
                 box: cm.currentbox,
