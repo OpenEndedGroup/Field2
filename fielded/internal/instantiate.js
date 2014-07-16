@@ -104,7 +104,6 @@ testCommand = function () {
 								d[i].callback.remote = 1
 								completions.push(d[i])
 						}
-						completions = completions.concat(globalCommands)
 						completions.sort(function (a, b) {
 								return a.name < b.name ? -1 : 1;
 						})
@@ -132,25 +131,6 @@ testCommand = function () {
 						if (completions.length > 0)
 								runModal("Commands...", completionFunction, "Field-Modal")
 				}
-				/* Cyril's Stuff
-
-        function (d, e) {
-
-            completionFunction = function (e) {
-                var m = []
-
-
-                m.push({
-                	text: "TITLE <span class=doc> BODY </span>",
-                	})
-                m.push({
-                	text: "Ctrl+Space <span class=doc> Commands </span>",
-                })
-                return m
-            }
-            runModal("Commands...", completionFunction, "Field-Modal")
-        }
-        */
     );
 }
 

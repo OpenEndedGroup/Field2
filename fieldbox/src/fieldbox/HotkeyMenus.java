@@ -73,23 +73,9 @@ public class HotkeyMenus extends Box {
 
 	private void doThis() {
 
-		System.out.println("I DID ITTTTTTT!!!!!");
-		System.out.println("I DID ITTTTTTT!!!!!");
-		System.out.println("I DID ITTTTTTT!!!!!");
-		System.out.println("I DID ITTTTTTT!!!!!");
-		System.out.println("I DID ITTTTTTT!!!!!");
-		System.out.println("I DID ITTTTTTT!!!!!");
-		System.out.println("I DID ITTTTTTT!!!!!");
-		System.out.println("I DID ITTTTTTT!!!!!");
-		System.out.println("I DID ITTTTTTT!!!!!");
-		System.out.println("I DID ITTTTTTT!!!!!");
-		System.out.println("I DID ITTTTTTT!!!!!");
-		System.out.println("I DID ITTTTTTT!!!!!");
-		System.out.println("I DID ITTTTTTT!!!!!");
+		find(RemoteEditor.editor, both())
+			    .forEach(editor -> editor.sendJavaScript("extraKeys[\"Ctrl-4\"] = function (cm) {\n" +
+					"    goCommands();\n" +
+					"};"));
 	}
-
-	private boolean isNothingSelected() {
-		return !find(Mouse.isSelected, both()).filter(x -> x.booleanValue()).findFirst().isPresent();
-	}
-
 }
