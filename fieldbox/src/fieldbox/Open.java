@@ -14,6 +14,7 @@ import fieldbox.ui.Compositor;
 import fieldbox.ui.FieldBoxWindow;
 import fielded.Execution;
 import fielded.ServerSupport;
+import fielded.plugins.BridgeToTextEditor;
 import fielded.windowmanager.LinuxWindowTricks;
 import fieldnashorn.Nashorn;
 import org.lwjgl.opengl.GL11;
@@ -145,8 +146,6 @@ public class Open {
 		new BlankCanvas(boxes.root()).connect(boxes.root());
 
 		new DragFilesToCanvas(boxes.root()).connect(boxes.root());
-
-		new BridgeToTextEditor(boxes.root()).connect(boxes.root());
 
 		/* cascade two blurs, a vertical and a horizontal together from the glass layer onto the base layer */
 		Compositor.Layer lx = window.getCompositor().newLayer("__main__blurx");

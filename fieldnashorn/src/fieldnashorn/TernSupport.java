@@ -55,7 +55,6 @@ public class TernSupport {
 				try (FileReader fr = new FileReader(ff.getAbsolutePath())) {
 					engine.put("__FILE__", ff.getName());
 					engine.eval(fr);
-					//engine.eval("print(self.tern.signal)");
 				} catch (ScriptException e) {
 					e.printStackTrace();
 				} catch (FileNotFoundException e) {

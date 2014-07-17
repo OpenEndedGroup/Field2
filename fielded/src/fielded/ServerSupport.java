@@ -9,6 +9,7 @@ import fieldbox.boxes.Boxes;
 import fieldbox.boxes.Watches;
 import fielded.Execution;
 import fielded.RemoteEditor;
+import fielded.plugins.BridgeToTextEditor;
 import fielded.webserver.Server;
 import fieldnashorn.Nashorn;
 import org.json.JSONObject;
@@ -36,6 +37,9 @@ public class ServerSupport {
 
 
 	public ServerSupport(Boxes boxes) {
+
+		new BridgeToTextEditor(boxes.root()).connect(boxes.root());
+
 
 		Watches watches = boxes.root().first(Watches.watches)
 			    .orElseThrow(() -> new IllegalArgumentException(" need Watches for server support"));

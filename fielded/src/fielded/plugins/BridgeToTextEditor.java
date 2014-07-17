@@ -1,4 +1,4 @@
-package fieldbox.boxes.plugins;
+package fielded.plugins;
 
 import field.graphics.FLine;
 import field.graphics.RunLoop;
@@ -9,6 +9,7 @@ import fieldbox.io.IO;
 import fielded.Execution;
 import fielded.RemoteEditor;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +20,7 @@ import java.util.stream.Stream;
 /**
  * Bridges code execution directly to the text editor
  * <p>
- * (Developed after discussion with Peter, very similar to EditorPlugin)
+ * (Developed after discussion with Peter, very similar to ProcessingPlugin)
  */
 public class BridgeToTextEditor extends Box {
 
@@ -30,6 +31,7 @@ public class BridgeToTextEditor extends Box {
 	}
 
 	TextEditorExecution teExecution;
+	private BridgedTernSupport tern;
 
 	public BridgeToTextEditor(Box root) {
 		root.find(Watches.watches, both()).findFirst().ifPresent(w -> w.addWatch(RemoteEditor.editor, (q) -> lazyInit(root)));
@@ -71,6 +73,11 @@ public class BridgeToTextEditor extends Box {
 				}
 			});
 		});
+
+		Log.log("startup.editor", " editor plugin is going to init Tern ");
+
+		tern = new BridgedTernSupport();
+		tern.inject(x -> delegate.sendJavaScript(x));
 
 		Log.log("startup.editor", " editor plugin has finished starting up ");
 
@@ -182,8 +189,8 @@ public class BridgeToTextEditor extends Box {
 
 				@Override
 				public void completion(String allText, int line, int ch, Consumer<List<Execution.Completion>> results) {
-					// TODO, hardish
-					// need to spin up Tern locally on first use...
+					tern.completion(x -> delegateTo.sendJavaScript(x), "remoteFieldProcess", allText, line, ch);
+					results.accept(Collections.emptyList());
 				}
 
 				@Override
