@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/fieldagent/fieldagent.iml" filepath="$PROJECT_DIR$/fieldagent/fieldagent.iml" />
       <module fileurl="file://$PROJECT_DIR$/fieldbox/fieldbox.iml" filepath="$PROJECT_DIR$/fieldbox/fieldbox.iml" />
+      <module fileurl="file://$PROJECT_DIR$/fieldclojure/fieldclojure.iml" filepath="$PROJECT_DIR$/fieldclojure/fieldclojure.iml" />
       <module fileurl="file://$PROJECT_DIR$/fielded/fielded.iml" filepath="$PROJECT_DIR$/fielded/fielded.iml" />
       <module fileurl="file://$PROJECT_DIR$/fieldnashorn/fieldnashorn.iml" filepath="$PROJECT_DIR$/fieldnashorn/fieldnashorn.iml" />
       <module fileurl="file://$PROJECT_DIR$/fieldprocessing/fieldprocessing.iml" filepath="$PROJECT_DIR$/fieldprocessing/fieldprocessing.iml" />
