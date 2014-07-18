@@ -37,20 +37,17 @@ public class ClojureExecution extends Execution {
 
 	static public String nsClojure = "clojure.core";
 
-	static final IFn in_ns = Clojure.var(nsClojure, "in-ns");
-	static final IFn refer = Clojure.var(nsClojure, "refer");
-	static final IFn ns = Clojure.var(nsClojure, "*ns*");
-	static final IFn compile_path = Clojure.var(nsClojure, "*compile-path*");
-	static final IFn warn_on_reflection = Clojure.var(nsClojure, "*warn-on-reflection*");
-	static final IFn print_meta = Clojure.var(nsClojure, "*print-meta*");
-	static final IFn print_length = Clojure.var(nsClojure, "*print-length*");
-	static final IFn print_level = Clojure.var(nsClojure, "*print-level*");
-	static final IFn out = Clojure.var(nsClojure, "*out*");
+	static  IFn ns;
+	static  IFn out;
+
 	static IFn completions;
 	static IFn documentation;
 
 	public ClojureExecution() {
 		super(null);
+
+		ns = Clojure.var(nsClojure, "*ns*");
+		out = Clojure.var(nsClojure, "*out*");
 		this.properties.put(Boxes.dontSave, true);
 		Log.on("clojure.*", Log::green);
 
