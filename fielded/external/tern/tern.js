@@ -107,7 +107,6 @@
     this.reset();
   };
 
-  print(signal);
 
   Server.prototype = signal.mixin({
     addFile: function(name, /*optional*/ text, parent) {

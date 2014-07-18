@@ -159,14 +159,14 @@ public class JavaSupport {
 					if (m.getName().startsWith(prefix) && m.getModifiers().contains("public") && (!staticsOnly || m.getModifiers()
 						    .contains("static"))) {
 						r.add(new Execution.Completion(-1, -1, m.getName(), "<span class=type>" + compress(m.getName(), m
-							    .getDeclarationSignature(true)) + "</span>" + (m.getComment() != null ? "&mdash; <span class=doc>" + m.getComment() + "</span>" : "")));
+							    .getDeclarationSignature(true)) + "</span>" + (m.getComment() != null ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + m.getComment() + "</span>" : "")));
 					}
 				}
 				for (JavaMethod m : j.getMethods()) {
 					if (m.getName().startsWith(prefix) && m.getModifiers().contains("public") && (!staticsOnly || m.getModifiers()
 						    .contains("static"))) {
 						r.add(new Execution.Completion(-1, -1, m.getName(), "<span class=type>" + compress(m.getName(), m
-							    .getDeclarationSignature(true)) + "</span>" + (m.getComment() != null ? "&mdash; <span class=doc>" + m.getComment() + "</span>" : "")));
+							    .getDeclarationSignature(true)) + "</span>" + (m.getComment() != null ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + m.getComment() + "</span>" : "")));
 					}
 				}
 

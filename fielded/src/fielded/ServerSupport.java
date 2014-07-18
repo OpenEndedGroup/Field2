@@ -9,6 +9,7 @@ import fieldbox.boxes.Boxes;
 import fieldbox.boxes.Watches;
 import fielded.Execution;
 import fielded.RemoteEditor;
+import fielded.plugins.BridgeToTextEditor;
 import fielded.webserver.Server;
 import fieldnashorn.Nashorn;
 import org.json.JSONObject;
@@ -31,11 +32,14 @@ import java.util.function.Consumer;
  */
 public class ServerSupport {
 
-	static List<String> playlist = Arrays
+	static public List<String> playlist = Arrays
 		    .asList("messagebus.js", "instantiate.js", "changehooks.js", "status.js", "helpbox.js", "modal.js", "brackets.js", "output.js", "doubleshift.js");
 
 
 	public ServerSupport(Boxes boxes) {
+
+		new BridgeToTextEditor(boxes.root()).connect(boxes.root());
+
 
 		Watches watches = boxes.root().first(Watches.watches)
 			    .orElseThrow(() -> new IllegalArgumentException(" need Watches for server support"));

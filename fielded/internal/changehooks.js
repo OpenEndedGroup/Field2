@@ -63,6 +63,9 @@ _messageBus.subscribe("selection.changed", function (d, e) {
         _messageBus.publish("status", "Selected '" + d.name + "'")
 
         document.title = d.name + "/" + d.property + " - Field Editor";
+
+		if (d.languageName)
+	        cm.setOption("mode", d.languageName);
     }
 
     if (d.cookie) {

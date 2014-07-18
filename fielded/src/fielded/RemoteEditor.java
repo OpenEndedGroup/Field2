@@ -593,7 +593,6 @@ public class RemoteEditor extends Box {
 
 			if (value.size() > 1) {
 
-
 				if (value.size() < 10) {
 					String m = "";
 					for (Pair<String, String> v : value) {
@@ -653,7 +652,6 @@ public class RemoteEditor extends Box {
 			server.send(socketName, "_messageBus.publish('selection.changed', {box:null, property:null, text:''})");
 		} else {
 
-
 			String text = currentSelection.properties.get(editingProperty);
 			if (text == null) text = "";
 
@@ -670,19 +668,24 @@ public class RemoteEditor extends Box {
 			buildMessage.put("cookie", currentSelection.properties
 				    .get(new Dict.Prop<JSONObject>("_" + editingProperty.getName() + "_cookie")));
 
+
+
+			Execution ex = getExecution(currentSelection);
+			if (ex != null) {
+				Execution.ExecutionSupport support = ex.support(currentSelection, editingProperty);
+				String cmln = support.getCodeMirrorLanguageName();
+				Log.log("remote.general", "langage :"+cmln);
+				buildMessage.put("languageName", cmln);
+				if (support != null) support.setFilenameForStacktraces("" + currentSelection);
+			}
+
 			Log.log("remote.trace", " message will be sent " + buildMessage.toString());
 
 			Log.log("remote.trace", () -> "\n " + currentSelection.properties
 				    .get(new Dict.Prop<JSONObject>("_" + editingProperty.getName() + "_cookie")) + "\n");
 
 			server.send(socketName, "_messageBus.publish('selection.changed', " + buildMessage.toString() + ")");
-			//todo: set language? get it from execution?
 
-			Execution ex = getExecution(currentSelection);
-			if (ex != null) {
-				Execution.ExecutionSupport support = ex.support(currentSelection, editingProperty);
-				if (support != null) support.setFilenameForStacktraces("" + currentSelection);
-			}
 			//todo: check for other editors?
 			//watches.addWatch(editingProperty, "edited.property.changed");
 		}
