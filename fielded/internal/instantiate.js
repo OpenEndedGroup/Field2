@@ -190,8 +190,8 @@ _messageBus.subscribe("begin.commands", function (d, e) {
 
 });
 
-
-
+// list of Chrome default hotkeys to override and set to null function. To add more, simply add strings to this array.
+overrides = ["Ctrl-H", "Shift-Ctrl-O", "Ctrl-W", "Ctrl-J", "Ctrl-N", "Shift-Ctrl-N", "Ctrl-P", "Ctrl-T", "Shift-Ctrl-T"];
 
 extraKeys = {
     "Ctrl-Left": function (cm) {
@@ -392,7 +392,7 @@ extraKeys = {
     },
 
     "Ctrl-/": function(cm) {
-    	testCommand();
+    		testCommand();
     },
 
     "Ctrl-I": function (cm) {
@@ -444,6 +444,11 @@ extraKeys = {
             }
         );
     }
+}
+
+// iterate through overrides and set to no functionality
+for (i = 0; i < overrides.length; i++) {
+		extraKeys[overrides[i]] = function (cm) {};
 }
 
 cm.setOption("extraKeys", extraKeys)
