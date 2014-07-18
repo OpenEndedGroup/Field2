@@ -9,6 +9,8 @@ cm.setOption("lineNumbers", true)
 cm.setOption("lineWrapping", true)
 cm.setOption("foldGutter", true)
 cm.setOption("gutters", ["CodeMirror-foldgutter", "CodeMirror-linenumbers"])
+cm.setOption("matchBrackets", true)
+cm.setOption("closeBrackets", true)
 
 function fuzzy(pat) {
     m = pat.split(" ")
@@ -298,6 +300,7 @@ extraKeys = {
         });
     },
     "Ctrl-.": function (cm) {
+        __extraCompletions = []
 
         _field.sendWithReturn("request.completions", {
                 box: cm.currentbox,
@@ -352,7 +355,6 @@ extraKeys = {
                 else if (__extraCompletions.length>0)
                     runModalAtCursor("completion", completionFunction, cm.getValue().substring(__extraCompletions[0][0], __extraCompletions[0][1]))
 
-                __extraCompletions = []
             }
         );
     },

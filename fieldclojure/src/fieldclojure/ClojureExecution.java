@@ -29,6 +29,7 @@ import java.util.regex.Pattern;
 public class ClojureExecution extends Execution {
 
 	static public final Dict.Prop<Boolean> bridgedToClojure = new Dict.Prop<>("bridgedToClojure").toCannon();
+	static public final Dict.Prop<String> _clojureNS= new Dict.Prop<>("_clojureNS").toCannon();
 
 	static {
 		IO.persist(bridgedToClojure);
@@ -58,9 +59,9 @@ public class ClojureExecution extends Execution {
 		completions = Clojure.var("compliment.core", "completions");
 		documentation= Clojure.var("compliment.core", "documentation");
 
-
 		log("clojure.debug", completions.invoke("al-", null));
 
+		Var.pushThreadBindings(PersistentHashMap.create(ns , Namespace.findOrCreate(Symbol.create("user"))));
 	}
 
 	@Override
@@ -74,6 +75,18 @@ public class ClojureExecution extends Execution {
 			@Override
 			public void executeTextFragment(String textFragment, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
 
+				log("clojure.debug", "ns at entry :"+((Var)ns).get());
+
+				String sticky = box.properties.get(_clojureNS);
+				if (sticky!=null)
+				{
+					eval("(ns "+sticky+")", null);
+				}
+
+				log("clojure.debug", "ns at entry after sticky :"+((Var)ns).get());
+
+				Object nsOnEntry = ((Var) ns).get();
+
 				log("clojure.debug", " execute text fragment on :" + textFragment);
 				StringWriter sw = new StringWriter();
 				((Var)out).bindRoot(sw);
@@ -86,6 +99,16 @@ public class ClojureExecution extends Execution {
 					success.accept(out);
 				}
 				log("clojure.debug", " result string is "+out);
+
+				log("clojure.debug", "ns at exit :"+((Var)ns).get());
+
+				Object nsAtExit = ((Var) ns).get();
+				if (!nsAtExit.equals(nsOnEntry))
+				{
+					log("clojure.debug", "ns has changed, setting sticky");
+					box.properties.put(_clojureNS, ((Namespace)nsAtExit).getName().getName());
+				}
+
 			}
 
 			@Override
@@ -285,6 +308,7 @@ public class ClojureExecution extends Execution {
 				c2.initCause(c);
 				c.printStackTrace();
 				lineErrors.accept(new Pair<>(0,""+c));
+				break;
 			}
 		}
 		return result;

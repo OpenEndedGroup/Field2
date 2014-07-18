@@ -1,11 +1,14 @@
 package fielded.plugins;
 
 import field.utility.Log;
+import fieldagent.Main;
 import fieldbox.boxes.Box;
 import fielded.Execution;
+import fielded.ServerSupport;
 import fieldnashorn.UnderscoreBox;
 import jdk.internal.dynalink.beans.StaticClass;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.json.JSONString;
 import org.json.JSONStringer;
 import org.json.JSONWriter;
 
@@ -45,6 +48,23 @@ public class BridgedTernSupport {
 		engine.accept("__ecma5json=" + readFile(fieldagent.Main.app + "/fielded/external/tern/ecma5.json"));
 		engine.accept("self.ternServer=new self.tern.Server({defs: [__ecma5json]})");
 		engine.accept("delete __ecma5json");
+
+
+
+		for(String name : ServerSupport.playlist)
+		{
+			JSONStringer j = new JSONStringer();
+			Log.log("TERN", " quoting ");
+
+			j.object().key("at").value(readFile(Main.app+"/fielded/internal/"+name)).endObject();
+
+			Log.log("TERN", " injecting code mirror source file <"+name+">");
+			engine.accept("self.ternServer.addFile('" + name + "', " + j.toString() + ".at)");
+
+		}
+		Log.log("TERN", " done ");
+
+
 	}
 
 	private static String readFile(String s) {
@@ -76,7 +96,7 @@ public class BridgedTernSupport {
 			    "files:[{type:\"full\",name:\"" + boxName + ".js\",text:__someFile}]},\n" +
 			    "	function (e,r){\n" +
 			    "		for(var i=0;i<r.completions.length;i++)" +
-			    "			__completions = __completions.concat([[r.start, r.end, r.completions[i].name, r.completions[i].type]])" +
+			    "			__completions = __completions.concat([[r.start, r.end, r.completions[i].name, '<span class=type>'+r.completions[i].type+'</span>']])" +
 			    "	})");
 
 		engine.accept("__extraCompletions = __completions");
