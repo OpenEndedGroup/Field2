@@ -74,8 +74,12 @@ public class HotkeyMenus extends Box {
 	private void doThis() {
 
 		find(RemoteEditor.editor, both())
-			    .forEach(editor -> editor.sendJavaScript("extraKeys[\"Ctrl-4\"] = function (cm) {\n" +
-					"    goCommands();\n" +
-					"};"));
+			    .forEach(editor -> editor.sendJavaScript("onKeyEvent: function(editor, event){\n" +
+					"\tevent= $.event.fix(event);\n" +
+					"\tif (event.type == \"keypress\" && event.keyCode == 13){\n" +
+					"\t\tconsole.log(\"onkeyevent is doing what i think it is\\n\");\n" +
+					"\n" +
+					"\t}\n" +
+					"}"));
 	}
 }
