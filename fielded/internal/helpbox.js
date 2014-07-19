@@ -3,7 +3,9 @@
 //helpBox
 var helpBox = $("<div class='Field-status' id = 'hbox'></div")
 helpBox.appendTo($("body"))
+
 helpBox.html("Help")
+
 
 //Help Menu
 //var helpMenu = $("")
@@ -19,7 +21,7 @@ function setHelpBox () {
 //    helpBox.html(text)
     setTimeout(function () {
         helpBox.css("transition", "opacity 1s")
-        helpBox.css("opacity", 0.2)
+        helpBox.css("opacity", 1)
     }, 1000)
 }
 
