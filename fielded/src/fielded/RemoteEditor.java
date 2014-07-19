@@ -28,6 +28,8 @@ public class RemoteEditor extends Box {
 
 	static public final Dict.Prop<Supplier<Map<Pair<String, String>, Runnable>>> commands = new Dict.Prop<>("commands").type()
 		    .doc("commands injected into the editor as ctrl-space menu").toCannon();
+	static public final Dict.Prop<Supplier<Map<Pair<String, String>, Runnable>>> hotkeyCommands = new Dict.Prop<>("hotkeyCommands").type()
+		    .doc("commands injected into the editor as hotkey menu").toCannon();
 	static public final Dict.Prop<RemoteEditor> editor = new Dict.Prop<>("editor").type().doc("the (remote) editor object").toCannon();
 	static public final Dict.Prop<Function<Box, Consumer<String>>> outputFactory = new Dict.Prop<>("outputFactory");
 	static public final Dict.Prop<Function<Box, Consumer<Pair<Integer, String>>>> outputErrorFactory = new Dict.Prop<>("outputErrorFactory");
@@ -439,6 +441,69 @@ public class RemoteEditor extends Box {
 
 			return payload;
 		});
+
+		server.addHandlerLast(Predicate.isEqual("request.hotkeyCommands"), () -> socketName, (s, socket, address, payload) -> {
+
+			Log.log("remote.trace", " inside request commands ");
+
+			JSONObject p = (JSONObject) payload;
+
+			Optional<Box> box = findBoxByID(p.getString("box"));
+			String prop = p.getString("property");
+			String text = p.getString("text");
+			String returnAddress = p.getString("returnAddress");
+			int line = p.getInt("line");
+			int ch = p.getInt("ch");
+
+			// now we need to ask everybody if they have any commands to offer based on the above.
+
+			//todo: handle no box case
+
+			List<Map.Entry<Pair<String, String>, Runnable>> commands = (List<Map.Entry<Pair<String, String>, Runnable>>) box.get()
+				    .find(RemoteEditor.hotkeyCommands, box.get().both()).flatMap(m -> m.get().entrySet().stream())
+				    .collect(Collectors.toList());
+
+
+			Log.log("remote.trace", " commands are :" + commands);
+
+			JSONStringer stringer = new JSONStringer();
+			stringer.array();
+			callTable.clear();
+			for (Map.Entry<Pair<String, String>, Runnable> r : commands) {
+				String u = UUID.randomUUID().toString();
+				callTable.put(u, r.getValue());
+				stringer.object();
+				stringer.key("name").value(r.getKey().first);
+				stringer.key("info").value(r.getKey().second);
+				stringer.key("call").value(u);
+				stringer.endObject();
+			}
+
+
+			Log.log("remote.trace", " call table looks like :" + callTable);
+
+			stringer.endArray();
+
+			server.send(socketName, "_messageBus.publish('" + returnAddress + "', " + stringer.toString() + ")");
+
+			return payload;
+		});
+
+/*		DO WE NEED THIS? NOT SURE...
+		server.addHandlerLast(Predicate.isEqual("call.hotkeyCommand"), () -> socketName, (s, socket, address, payload) -> {
+
+			JSONObject p = (JSONObject) payload;
+			String command = p.getString("command");
+
+			Runnable r = callTable.get(command);
+
+			if (r != null) {
+				if (r instanceof ExtendedCommand) ((ExtendedCommand) r).begin(supportsPrompt(server, socketName), null);
+				r.run();
+			}
+
+			return payload;
+		});*/
 
 		server.addHandlerLast(Predicate.isEqual("call.alternative"), () -> socketName, (s, socket, address, payload) -> {
 
