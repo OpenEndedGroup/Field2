@@ -1,31 +1,48 @@
-//This module displays a help box (next to the status box) that, when clicked pulls up a nifty little menu that displays all current key bindings.
-var helpBox = $("<div class='Field-status' id='help'></div")
-helpBox.appendTo($("body"))
-helpBox.html("<input id="clickMe" type="button" value="clickme" onclick="console.log("Hello World");" />")
+////This module displays a help box (next to the status box) that, when clicked pulls up a nifty little menu that displays all current key bindings.
 
-//for Debugging (clearly)
-console.log("Help Box Debugging")
-console.log(helpBox.text())
+//helpBox
+var helpBox = $("<div class='Field-status' id = 'hbox'></div")
+helpBox.appendTo($("body"))
+
+helpBox.html("Help")
+
+
+//Help Menu
+//var helpMenu = $("")
 
 helpBox.css("bottom", "3.5em")
-helpBox.css("position", "absolute")
+//helpBox.css("position", "relative")
 helpBox.css("opacity", "0.3")
 helpBox.css("opacity", "1")
 
-
-function setHelpBox(text) {
+function setHelpBox () {
     helpBox.css("transition", "opacity 0s")
     helpBox.css("opacity", 1)
-    helpBox.html(text)
+//    helpBox.html(text)
     setTimeout(function () {
         helpBox.css("transition", "opacity 1s")
         helpBox.css("opacity", 1)
     }, 1000)
 }
 
-setHelpBox("<span class='highlighted'>Help</span>")
+//function to pull up help menu
+function showHelpMenu()
+{
+    goCommands();
+}
 
 
-_messageBus.subscribe("helpBox", function (d, e) {
-    setHelpBox(d)
-})
+setHelpBox()
+
+
+//Highlights box on mouseover
+$('#hbox').mouseover(function(){
+    setHelpBox();
+});
+
+$('#hbox').mousedown(function(){
+    showHelpMenu();
+});
+
+
+
