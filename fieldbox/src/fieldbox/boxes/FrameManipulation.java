@@ -52,7 +52,7 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 	public Mouse.Dragger button2(Window.Event<Window.MouseState> e) {
 		Optional<Drawing> drawing = this.find(Drawing.drawing, both()).findFirst();
 		Vec2 point = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e.after.x, e.after.y)))
-			    .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
+			    .orElseThrow(() -> new IllegalArgumentException(" can't mouse around something without drawing support (to provide coordinate system)"));
 
 		Optional<Box> hit = breadthFirst(both()).filter(b -> frame(b) != null).filter(b -> frame(b).intersects(point))
 			    .sorted((a, b) -> Float.compare(order(frame(a)), order(frame(b)))).findFirst();
@@ -89,7 +89,7 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 			Drawing.dirty(hitBox);
 
 			boolean shift = e.after.keyboardState.keysDown.contains(Glfw.GLFW_KEY_LEFT_SHIFT) || e.after.keyboardState.keysDown
-				    .contains(Glfw.GLFW_KEY_RIGHT_SHIFT);
+				    .contains(Glfw.GLFW_KEY_RIGHT_SHIFT) || e.after.buttonsDown.contains(1);
 			boolean selected = hitBox.properties.isTrue(Mouse.isSelected, false);
 			Rect originalFrame = frame(hitBox);
 
