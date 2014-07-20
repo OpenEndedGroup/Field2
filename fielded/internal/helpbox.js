@@ -4,7 +4,7 @@
 var helpBox = $("<div class='Field-status' id = 'hbox'></div")
 helpBox.appendTo($("body"))
 
-helpBox.html("Help")
+helpBox.html("Commands &#8963;&#9251;")
 
 
 //Help Menu
