@@ -201,39 +201,10 @@ _messageBus.subscribe("begin.commands", function (d, e) {
 overrides = ["Ctrl-H", "Shift-Ctrl-O", "Ctrl-W", "Ctrl-J", "Ctrl-N", "Shift-Ctrl-N", "Ctrl-P", "Ctrl-T", "Shift-Ctrl-T"];
 
 extraKeys = {
+// should this be alt-Left on Linux?
     "Ctrl-Left": function (cm) {
-        if (currentBracket != null) {
-
-            currentBracket.attr({
-                fill: "#afc"
-            }).animate({
-                fill: "#fff"
-            }, 500)
-
-            anchorLine = Math.max(cm.getLineNumber(currentBracket.h1), cm.getLineNumber(currentBracket.h2) + 1)
-
-            c = cm.getCursor()
-            cm.setSelection({
-                line: cm.getLineNumber(currentBracket.h1),
-                ch: 0
-            }, {
-                line: cm.getLineNumber(currentBracket.h2) + 1,
-                ch: 0
-            })
-
-            fragment = cm.getSelections()[0]
-
-            _field.sendWithReturn("execution.fragment", {
-                box: cm.currentbox,
-                property: cm.currentproperty,
-                text: fragment
-            }, function (d, e) {
-                if (d.type == 'error')
-                    appendRemoteOutputToLine(anchorLine, d.line + " : " + d.message, "Field-remoteOutput", "Field-remoteOutput-error", 1)
-                else
-                    appendRemoteOutputToLine(anchorLine, d.message, "Field-remoteOutput-error", "Field-remoteOutput", 1)
-            });
-        }
+    		console.log(" ctrl left ! ", currentBracket);
+        executeCurrentBracket()
         cm.setCursor(c);
     },
     "Ctrl-Enter": function (cm) {

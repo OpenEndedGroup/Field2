@@ -2,6 +2,42 @@ var lineNumbers = $(".CodeMirror-linenumbers").get(0)
 
 raph = Raphael(lineNumbers, "100%", "100%")
 
+
+function executeCurrentBracket()
+{
+if (currentBracket != null) {
+
+            currentBracket.attr({
+                fill: "#afc"
+            }).animate({
+                fill: "#fff"
+            }, 500)
+
+            anchorLine = Math.max(cm.getLineNumber(currentBracket.h1), cm.getLineNumber(currentBracket.h2) + 1)
+
+            c = cm.getCursor()
+            cm.setSelection({
+                line: cm.getLineNumber(currentBracket.h1),
+                ch: 0
+            }, {
+                line: cm.getLineNumber(currentBracket.h2) + 1,
+                ch: 0
+            })
+
+            fragment = cm.getSelections()[0]
+
+            _field.sendWithReturn("execution.fragment", {
+                box: cm.currentbox,
+                property: cm.currentproperty,
+                text: fragment
+            }, function (d, e) {
+                if (d.type == 'error')
+                    appendRemoteOutputToLine(anchorLine, d.line + " : " + d.message, "Field-remoteOutput", "Field-remoteOutput-error", 1)
+                else
+                    appendRemoteOutputToLine(anchorLine, d.message, "Field-remoteOutput-error", "Field-remoteOutput", 1)
+            });
+        }
+        }
 function rectForLineHandle(lh) {
     var y = cm.getLineNumber(lh);
     if (y > -1) {
@@ -86,6 +122,14 @@ function makePathForHandles(h1, h2) {
                 "stroke-opacity": 0.5
             })
         })
+        path.mousedown(function (e) {
+        console.log("down?",e, e.altDown)
+        if (e.altKey)
+        {
+					currentBracket = path;
+					executeCurrentBracket();
+        }
+                })
 
         path.h1 = h1
         path.h2 = h2
@@ -187,7 +231,6 @@ cm.on("change", function (x, c) {
 
 cm.on("cursorActivity", function(x, c) {
     var f = findEnclosingPathForLine(cm.getCursor().line)
-    console.log(" cursor activity ", f, currentBracket)
     if (f!=currentBracket)
     {
     	updateAllBrackets();

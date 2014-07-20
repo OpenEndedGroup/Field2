@@ -578,3 +578,8 @@ $
 }
 
 .CodeMirror-gutters { background: #2d3133; border-color:#2d3133; }
+
+.CodeMirror-gutter-wrapper
+{
+	pointer-events:none;
+}
