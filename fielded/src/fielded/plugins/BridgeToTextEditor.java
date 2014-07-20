@@ -16,6 +16,9 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import static fieldbox.boxes.StandardFLineDrawing.*;
+import static fieldbox.boxes.FLineDrawing.*;
+
 
 /**
  * Bridges code execution directly to the text editor
@@ -88,16 +91,16 @@ public class BridgeToTextEditor extends Box {
 		teExecution.connect(box);
 		box.properties.put(bridgedToEditor, true);
 
-		box.properties.putToMap(FLineDrawing.frameDrawing, "_editorBadge_", new Cached<Box, Object, FLine>((b, was) -> {
+		box.properties.putToMap(frameDrawing, "_editorBadge_", new Cached<Box, Object, FLine>((b, was) -> {
 
 			Rect rect = box.properties.get(Box.frame);
 			if (rect == null) return null;
 
 			FLine f = new FLine();
-			f.attributes.put(FLineDrawing.hasText, true);
-			f.attributes.put(FLineDrawing.fillColor, new Vec4(0, 0, 0.25f, 0.5f));
+			f.attributes.put(hasText, true);
+			f.attributes.put(fillColor, new Vec4(0, 0, 0.25f, 0.5f));
 			f.moveTo(rect.x + rect.w - 7, rect.y + rect.h - 5);
-			f.nodes.get(f.nodes.size() - 1).attributes.put(FLineDrawing.text, "T");
+			f.nodes.get(f.nodes.size() - 1).attributes.put(text, "T");
 
 			return f;
 
@@ -109,7 +112,7 @@ public class BridgeToTextEditor extends Box {
 	protected void disconnectFromEditor(Box box) {
 		teExecution.disconnect(box);
 		box.properties.remove(bridgedToEditor);
-		box.properties.removeFromMap(FLineDrawing.frameDrawing, "_editorBadge_");
+		box.properties.removeFromMap(frameDrawing, "_editorBadge_");
 	}
 
 	private Stream<Box> selection() {

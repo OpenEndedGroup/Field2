@@ -1,5 +1,7 @@
 package fieldbox.boxes;
 
+import static fieldbox.boxes.StandardFLineDrawing.*;
+import static fieldbox.boxes.FLineDrawing.*;
 import field.graphics.FLine;
 import field.linalg.Vec4;
 import field.utility.*;
@@ -36,7 +38,7 @@ public class TimeSlider extends Box {
 		this.properties.put(Boxes.dontSave, true);
 		this.properties.put(Box.name, "TimeSlider");
 
-		this.properties.computeIfAbsent(FLineDrawing.frameDrawing, this::defaultdrawsLines);
+		this.properties.computeIfAbsent(frameDrawing, this::defaultdrawsLines);
 	}
 
 	protected boolean swiper() {
@@ -161,11 +163,11 @@ public class TimeSlider extends Box {
 			f.moveTo(rect.x, rect.y);
 			f.lineTo(rect.x, rect.y + rect.h);
 
-			f.attributes.put(FLineDrawing.strokeColor, selected ? new Vec4(1, 0, 0, -1.0f) : new Vec4(0.5f, 0, 0, 0.5f));
+			f.attributes.put(strokeColor, selected ? new Vec4(1, 0, 0, -1.0f) : new Vec4(0.5f, 0, 0, 0.5f));
 
-			f.attributes.put(FLineDrawing.thicken, new BasicStroke(selected ? 2.5f : 2.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
+			f.attributes.put(thicken, new BasicStroke(selected ? 2.5f : 2.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
 
-			f.attributes.put(FLineDrawing.stroked, true);
+			f.attributes.put(stroked, true);
 
 			return f;
 		}, (box) -> new Pair(box.properties.get(frame), box.properties.get(Mouse.isSelected))));
@@ -185,17 +187,17 @@ public class TimeSlider extends Box {
 
 			FLine f = new FLine();
 			f.moveTo(rect.x, rect.y);
-			f.nodes.get(f.nodes.size() - 1).attributes.put(FLineDrawing.fillColor, new Vec4(a, 0, 0, s));
+			f.nodes.get(f.nodes.size() - 1).attributes.put(fillColor, new Vec4(a, 0, 0, s));
 			f.lineTo(rect.x + rect.w, rect.y);
-			f.nodes.get(f.nodes.size() - 1).attributes.put(FLineDrawing.fillColor, new Vec4(b, 0, 0, s));
+			f.nodes.get(f.nodes.size() - 1).attributes.put(fillColor, new Vec4(b, 0, 0, s));
 			f.lineTo(rect.x + rect.w, rect.y + rect.h);
-			f.nodes.get(f.nodes.size() - 1).attributes.put(FLineDrawing.fillColor, new Vec4(a, 0, 0, s));
+			f.nodes.get(f.nodes.size() - 1).attributes.put(fillColor, new Vec4(a, 0, 0, s));
 			f.lineTo(rect.x, rect.y + rect.h);
-			f.nodes.get(f.nodes.size() - 1).attributes.put(FLineDrawing.fillColor, new Vec4(a, 0, 0, s));
+			f.nodes.get(f.nodes.size() - 1).attributes.put(fillColor, new Vec4(a, 0, 0, s));
 			f.lineTo(rect.x, rect.y);
-			f.nodes.get(f.nodes.size() - 1).attributes.put(FLineDrawing.fillColor, new Vec4(a, 0, 0, s));
+			f.nodes.get(f.nodes.size() - 1).attributes.put(fillColor, new Vec4(a, 0, 0, s));
 
-			f.attributes.put(FLineDrawing.filled, true);
+			f.attributes.put(filled, true);
 
 			Map<Integer, String> customFill = new LinkedHashMap<Integer, String>();
 			customFill.put(1, "fillColor");

@@ -4,11 +4,12 @@ import field.graphics.FLine;
 import field.graphics.RunLoop;
 import field.linalg.Vec4;
 import field.utility.*;
-import fieldbox.boxes.*;
 import fieldbox.boxes.Box;
+import fieldbox.boxes.Boxes;
+import fieldbox.boxes.Drawing;
+import fieldbox.boxes.Mouse;
 import fielded.Execution;
 import fielded.RemoteEditor;
-import org.omg.CORBA.TIMEOUT;
 import processing.core.PApplet;
 
 import javax.swing.*;
@@ -20,15 +21,18 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static fieldbox.boxes.FLineDrawing.frameDrawing;
+import static fieldbox.boxes.StandardFLineDrawing.*;
+
 /**
  * The Processing Plugin. Refer to Processing.applet to get at the applet.
- *
+ * <p>
  * E.g. var P = Java.type('fieldprocessing.Processing').applet
- *
- * This adds a command "Bridge box to Processing". Run that to move this box (and any children) into the Processing draw cycle. Then you can write things like:
- *
+ * <p>
+ * This adds a command "Bridge box to Processing". Run that to move this box (and any children) into the Processing draw cycle. Then you can write
+ * things like:
+ * <p>
  * P.background(0) // sets background to black
- *
  */
 public class Processing extends Box {
 
@@ -130,7 +134,7 @@ public class Processing extends Box {
 		});
 
 
-		Log.log("startup.processing"," searching for boxes that need processing support ");
+		Log.log("startup.processing", " searching for boxes that need processing support ");
 
 		// we delay this for one update cycle to make sure that everybody has loaded everything that they are going to load
 		RunLoop.main.once(() -> {
@@ -150,16 +154,16 @@ public class Processing extends Box {
 		processingExecution.connect(box);
 		box.properties.put(ProcessingExecution.bridgedToProcessing, true);
 
-		box.properties.putToMap(FLineDrawing.frameDrawing, "_processingBadge_", new Cached<Box, Object, FLine>((b, was) -> {
+		box.properties.putToMap(frameDrawing, "_processingBadge_", new Cached<Box, Object, FLine>((b, was) -> {
 
 			Rect rect = box.properties.get(Box.frame);
 			if (rect == null) return null;
 
 			FLine f = new FLine();
-			f.attributes.put(FLineDrawing.hasText, true);
-			f.attributes.put(FLineDrawing.fillColor, new Vec4(0,0,0.25f,0.5f));
+			f.attributes.put(hasText, true);
+			f.attributes.put(fillColor, new Vec4(0, 0, 0.25f, 0.5f));
 			f.moveTo(rect.x + rect.w - 7, rect.y + rect.h - 5);
-			f.nodes.get(f.nodes.size() - 1).attributes.put(FLineDrawing.text, "P");
+			f.nodes.get(f.nodes.size() - 1).attributes.put(text, "P");
 
 			return f;
 
@@ -171,7 +175,7 @@ public class Processing extends Box {
 	protected void disconnectFromProcessing(Box box) {
 		processingExecution.disconnect(box);
 		box.properties.remove(ProcessingExecution.bridgedToProcessing);
-		box.properties.removeFromMap(FLineDrawing.frameDrawing, "_processingBadge_");
+		box.properties.removeFromMap(frameDrawing, "_processingBadge_");
 	}
 
 	private Stream<Box> selection() {

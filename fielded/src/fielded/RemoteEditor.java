@@ -12,6 +12,8 @@ import fielded.webserver.Server;
 import fielded.windowmanager.LinuxWindowTricks;
 import org.json.JSONObject;
 import org.json.JSONStringer;
+import static fieldbox.boxes.StandardFLineDrawing.*;
+import static fieldbox.boxes.FLineDrawing.*;
 
 import java.io.Closeable;
 import java.util.*;
@@ -567,13 +569,13 @@ public class RemoteEditor extends Box {
 	}
 
 	static public void boxFeedback(Optional<Box> box, Vec4 color) {
-		box.get().properties.putToMap(FLineDrawing.frameDrawing, "__edited__", FLineDrawing.expires(FLineDrawing.boxOrigin((bx) -> {
+		box.get().properties.putToMap(frameDrawing, "__edited__", expires(boxOrigin((bx) -> {
 
 			FLine f = new FLine();
 			f.rect(-5, -5, 10, 10);
-			f.attributes.put(FLineDrawing.filled, true);
-			f.attributes.put(FLineDrawing.stroked, false);
-			f.attributes.put(FLineDrawing.color, color);
+			f.attributes.put(filled, true);
+			f.attributes.put(stroked, false);
+			f.attributes.put(StandardFLineDrawing.color, color);
 			return f;
 
 		}, new Vec2(1, 1)), 60));

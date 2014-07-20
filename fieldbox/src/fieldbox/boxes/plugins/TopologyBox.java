@@ -17,6 +17,8 @@ import java.awt.geom.Rectangle2D;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
+import static fieldbox.boxes.StandardFLineDrawing.*;
+import static fieldbox.boxes.FLineDrawing.*;
 
 /**
  * A Box with a custom drawer for holding onto and drawning a connection between two other boxes.
@@ -52,7 +54,7 @@ public class TopologyBox extends Box
 	public void loaded() {
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__checkfordeletion__", this::checkForDeletion);
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__updateframe__", this::updateFrameToMiddle);
-		this.properties.computeIfAbsent(FLineDrawing.frameDrawing, this::defaultdrawsLines);
+		this.properties.computeIfAbsent(frameDrawing, this::defaultdrawsLines);
 		this.properties.put(frame, head().properties.get(frame).union(tail().properties.get(frame)));
 		this.properties.put(FrameManipulation.lockHeight, true); // the dimensions of this box cannot be changed
 		this.properties.put(FrameManipulation.lockWidth, true);
@@ -76,12 +78,12 @@ public class TopologyBox extends Box
 
 			boolean selected = box.properties.isTrue(Mouse.isSelected, false);
 
-			f.attributes.put(FLineDrawing.fillColor, selected ? new Vec4(1, 1, 1, -0.5f) : new Vec4(1, 1, 1, 0.5f));
-			f.attributes.put(FLineDrawing.strokeColor, selected ? new Vec4(1, 1, 1, 0.1f) : new Vec4(1, 1, 1, 0.1f));
-			f.attributes.put(FLineDrawing.thicken, new BasicStroke(selected ? 3 : 0.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
+			f.attributes.put(fillColor, selected ? new Vec4(1, 1, 1, -0.5f) : new Vec4(1, 1, 1, 0.5f));
+			f.attributes.put(strokeColor, selected ? new Vec4(1, 1, 1, 0.1f) : new Vec4(1, 1, 1, 0.1f));
+			f.attributes.put(thicken, new BasicStroke(selected ? 3 : 0.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
 
-			f.attributes.put(FLineDrawing.filled, true);
-			f.attributes.put(FLineDrawing.stroked, true);
+			f.attributes.put(filled, true);
+			f.attributes.put(stroked, true);
 
 			return f;
 		}, (box) -> new Triple<Boolean, Rect, Rect>(properties.get(Mouse.isSelected), ((TopologyBox) box).head().properties.get(frame), (((TopologyBox) box).tail().properties.get(frame)))));
@@ -108,12 +110,12 @@ public class TopologyBox extends Box
 			f.lineTo(at.x - w, at.y - w);
 
 
-			f.attributes.put(FLineDrawing.fillColor, selected ? new Vec4(1, 1, 1, 0.5f) : new Vec4(1, 1, 1, 0.5f));
-			f.attributes.put(FLineDrawing.strokeColor, selected ? new Vec4(1, 1, 1, -0.1f) : new Vec4(1, 1, 1, 0.1f));
-			f.attributes.put(FLineDrawing.thicken, new BasicStroke(selected ? 16 : 0.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
+			f.attributes.put(fillColor, selected ? new Vec4(1, 1, 1, 0.5f) : new Vec4(1, 1, 1, 0.5f));
+			f.attributes.put(strokeColor, selected ? new Vec4(1, 1, 1, -0.1f) : new Vec4(1, 1, 1, 0.1f));
+			f.attributes.put(thicken, new BasicStroke(selected ? 16 : 0.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
 
-			f.attributes.put(FLineDrawing.filled, true);
-			f.attributes.put(FLineDrawing.stroked, true);
+			f.attributes.put(filled, true);
+			f.attributes.put(stroked, true);
 
 			return f;
 		}, (box) -> new Triple<Boolean, Rect, Rect>(properties.get(Mouse.isSelected), ((TopologyBox) box).head().properties.get(frame), (((TopologyBox) box).tail().properties.get(frame)))));

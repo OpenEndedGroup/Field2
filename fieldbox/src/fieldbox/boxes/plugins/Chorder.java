@@ -15,6 +15,8 @@ import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import static fieldbox.boxes.StandardFLineDrawing.*;
+import static fieldbox.boxes.FLineDrawing.*;
 
 /**
  * Created by marc on 4/16/14.
@@ -53,14 +55,14 @@ public class Chorder extends Box {
 	private Mouse.Dragger executeNowAt(Window.Event<Window.MouseState> e, Vec2 point, Box box) {
 		e.properties.put(Window.consumed, true);
 
-		properties.putToMap(FLineDrawing.frameDrawing, "__feedback__chorderbox", FLineDrawing.expires(b -> {
+		properties.putToMap(frameDrawing, "__feedback__chorderbox", expires(b -> {
 
 			FLine f = new FLine();
 			Rect fr = frame(box);
 			f.rect(fr.x, fr.y, fr.w, fr.h);
 
-			f.attributes.put(FLineDrawing.strokeColor, new Vec4(0.5f, 0.75f, 0.5f, -0.5f));
-			f.attributes.put(FLineDrawing.thicken, new BasicStroke(10.5f));
+			f.attributes.put(strokeColor, new Vec4(0.5f, 0.75f, 0.5f, -0.5f));
+			f.attributes.put(thicken, new BasicStroke(10.5f));
 
 			return f;
 
@@ -134,27 +136,27 @@ public class Chorder extends Box {
 	private void chordOver(List<Pair<Box, Rect>> frames, Vec2 start, Vec2 end, boolean termination) {
 
 
-		properties.putToMap(FLineDrawing.frameDrawing, "__feedback__chorder", FLineDrawing.expires(box -> {
+		properties.putToMap(frameDrawing, "__feedback__chorder", expires(box -> {
 			FLine f = new FLine();
 			f.moveTo(start.x, start.y, 0);
 			f.lineTo(end.x, end.y, 0);
-			f.attributes.put(FLineDrawing.color, new Vec4(0.5f, 0.95f, 0.6f, 0.15f));
-			f.attributes.put(FLineDrawing.thicken, new BasicStroke(3.5f));
+			f.attributes.put(color, new Vec4(0.5f, 0.95f, 0.6f, 0.15f));
+			f.attributes.put(thicken, new BasicStroke(3.5f));
 
 			return f;
 		}, termination ? 50 : -1));
-		properties.putToMap(FLineDrawing.frameDrawing, "__feedback__chorderC", FLineDrawing.expires(box -> {
+		properties.putToMap(frameDrawing, "__feedback__chorderC", expires(box -> {
 			FLine f = new FLine();
 			f.moveTo(start.x, start.y, 0);
 			f.lineTo(end.x, end.y, 0);
-			f.attributes.put(FLineDrawing.color, new Vec4(0.5f, 0.95f, 0.6f, 0.5f));
-			f.attributes.put(FLineDrawing.thicken, new BasicStroke(1.5f));
+			f.attributes.put(color, new Vec4(0.5f, 0.95f, 0.6f, 0.5f));
+			f.attributes.put(thicken, new BasicStroke(1.5f));
 
 			return f;
 		}, termination ? 50 : -1));
 
 		List<Triple<Vec2, Float, Box>> i = intersectionsFor(frames, start, end);
-		properties.putToMap(FLineDrawing.frameDrawing, "__feedback__chorderbox", FLineDrawing.expires(box -> {
+		properties.putToMap(frameDrawing, "__feedback__chorderbox", expires(box -> {
 
 			FLine f = new FLine();
 
@@ -167,13 +169,13 @@ public class Chorder extends Box {
 
 			});
 
-			f.attributes.put(FLineDrawing.strokeColor, new Vec4(0.5f, 0.75f, 0.5f, -0.5f));
-			f.attributes.put(FLineDrawing.thicken, new BasicStroke(10.5f));
+			f.attributes.put(strokeColor, new Vec4(0.5f, 0.75f, 0.5f, -0.5f));
+			f.attributes.put(thicken, new BasicStroke(10.5f));
 
 			return f;
 
 		}, termination ? 50 : -1));
-		properties.putToMap(FLineDrawing.frameDrawing, "__feedback__chorderbox2", FLineDrawing.expires(box -> {
+		properties.putToMap(frameDrawing, "__feedback__chorderbox2", expires(box -> {
 
 			FLine f = new FLine();
 
@@ -186,14 +188,14 @@ public class Chorder extends Box {
 
 			});
 
-			f.attributes.put(FLineDrawing.color, new Vec4(0.5f, 0.75f, 0.5f, -0.75f));
-			f.attributes.put(FLineDrawing.filled, true);
-			f.attributes.put(FLineDrawing.stroked, false);
+			f.attributes.put(color, new Vec4(0.5f, 0.75f, 0.5f, -0.75f));
+			f.attributes.put(filled, true);
+			f.attributes.put(stroked, false);
 			return f;
 
 		}, termination ? 50 : -1));
 
-		properties.putToMap(FLineDrawing.frameDrawing, "__feedback__chorderbox3", FLineDrawing.expires(box -> {
+		properties.putToMap(frameDrawing, "__feedback__chorderbox3", expires(box -> {
 
 			FLine f = new FLine();
 
@@ -204,11 +206,11 @@ public class Chorder extends Box {
 			i.stream().filter(x -> x != null).forEach((x) -> {
 
 				f.moveTo(x.first.x + delta.x * 12, x.first.y + delta.y * 12);
-				f.nodes.get(f.nodes.size() - 1).attributes.put(FLineDrawing.text, " " + (count[0]++));
+				f.nodes.get(f.nodes.size() - 1).attributes.put(text, " " + (count[0]++));
 			});
 
-			f.attributes.put(FLineDrawing.color, new Vec4(0.1f, 0.25f, 0.1f, 0.75f));
-			f.attributes.put(FLineDrawing.hasText, true);
+			f.attributes.put(color, new Vec4(0.1f, 0.25f, 0.1f, 0.75f));
+			f.attributes.put(hasText, true);
 			return f;
 
 		}, termination ? 50 : -1));
