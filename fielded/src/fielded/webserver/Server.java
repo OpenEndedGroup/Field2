@@ -50,6 +50,8 @@ public class Server {
 			@Override
 			Response serve(String uri, Method method, Map<String, String> headers, Map<String, String> parms, Map<String, String> files) {
 
+				Log.log("server", "Serving "+uri);
+
 				Object id = parms.get("id");
 
 				if (id == null) {

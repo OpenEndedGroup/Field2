@@ -70,8 +70,10 @@ _messageBus.subscribe("selection.changed", function (d, e) {
 
     if (d.cookie) {
         if (d.cookie.currentpos) {
+            cm.scrollIntoView({line:0,ch:0}, 100);
             cm.setCursor(d.cookie.currentpos);
             cm.scrollIntoView(null, 100);
+            console.log(" scrollde into view?");
         }
     }
 

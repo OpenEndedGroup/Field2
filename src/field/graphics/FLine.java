@@ -120,6 +120,11 @@ public class FLine implements Supplier<FLine> {
 		return this.lineTo(x, y);
 	}
 
+	public Node last()
+	{
+		return nodes.size()==0 ? null : nodes.get(nodes.size()-1);
+	}
+
 
 	public class BookmarkCache {
 		MeshBuilder.Bookmark start;
@@ -505,4 +510,7 @@ public class FLine implements Supplier<FLine> {
 	public FLine get() {
 		return this;
 	}
+
+	public FLine testFunction(float f, String y)
+	{return this;}
 }

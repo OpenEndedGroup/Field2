@@ -124,12 +124,12 @@ function makePathForHandles(h1, h2) {
         })
         path.mousedown(function (e) {
         console.log("down?",e, e.altDown)
-        if (e.altKey)
-        {
-					currentBracket = path;
-					executeCurrentBracket();
-        }
-                })
+        	if (e.altKey)
+        	{
+						currentBracket = path;
+						executeCurrentBracket();
+        	}
+        })
 
         path.h1 = h1
         path.h2 = h2
