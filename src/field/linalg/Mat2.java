@@ -363,9 +363,6 @@ public class Mat2 implements Serializable {
 		return src;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.lwjgl.Vec2.Matrix#determinant()
-	 */
 	public float determinant() {
 		return m00 * m11 - m01 * m10;
 	}
