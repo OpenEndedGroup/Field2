@@ -131,6 +131,8 @@ public class Open {
 
 		new Topology(boxes.root()).connect(boxes.root());
 
+		new Dispatch(boxes.root()).connect(boxes.root());
+
 		new Chorder(boxes.root()).connect(boxes.root());
 
 		new DefaultMenus(boxes.root(), filename).connect(boxes.root());
@@ -150,7 +152,9 @@ public class Open {
 		new BlankCanvas(boxes.root()).connect(boxes.root());
 
 		new DragFilesToCanvas(boxes.root()).connect(boxes.root());
-		
+
+		new Reload(boxes.root()).connect(boxes.root());
+
 		/* cascade two blurs, a vertical and a horizontal together from the glass layer onto the base layer */
 		Compositor.Layer lx = window.getCompositor().newLayer("__main__blurx");
 		Compositor.Layer ly = window.getCompositor().newLayer("__main__blury", 1);
