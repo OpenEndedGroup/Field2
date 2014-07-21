@@ -72,9 +72,9 @@ public class OSXWindowTricks extends Box {
 		ProcessBuilder pb = new ProcessBuilder("osascript", "-e", CloseAll);
 		try {
 			pb.start();
-			System.out.print("****Close All****");
+			Log.log("osxwindowtricks.trace", "****Close All****");
 		} catch (IOException e) {
-			System.out.print("****Close Oops****");
+			Log.log("osxwindowtricks.error", "****Close Oops****", e);
 
 		}
 
@@ -83,9 +83,8 @@ public class OSXWindowTricks extends Box {
 
 
 	public void afterOpen() {
-
-			//TODO: should be preference.
-			pinEditorOnTop();
+		//TODO: should be preference.
+		pinEditorOnTop();
 	}
 
 	/**
@@ -110,9 +109,9 @@ public class OSXWindowTricks extends Box {
 		ProcessBuilder pb = new ProcessBuilder("osascript", "-e", EditorForward);
 		try {
 			pb.start();
-			System.out.print("****Editor Forward****");
+			Log.log("osxwindowtricks.trace", "****Editor forward****");
 		} catch (IOException e) {
-			System.out.print("****Editor Oops****");
+			Log.log("osxwindowtricks.error", "****Editor Oops****", e);
 		}
 		return null;
 	}
