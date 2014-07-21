@@ -21,6 +21,7 @@ import java.util.Set;
  * This allows us to programmatically switch focus to it (by double tapping shift) and close it on exit
  *
  * todo: figure out how to mimic this on OS X
+ * todo: on startup consider closing all windows called "Field / Disconnected" since they are left over from a crash
  */
 public class LinuxWindowTricks extends Box {
 
