@@ -86,7 +86,10 @@ raph.clear()
 
 
 function makePathForHandles(h1, h2) {
-    ps = pathStringForTwoLineHandles(h1, h2)
+		f = findPathForLines(h1,h2)
+		if (f) return f;
+
+		ps = pathStringForTwoLineHandles(h1, h2)
     if (ps) {
         var path = raph.path()
         console.log(path)
