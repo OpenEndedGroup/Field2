@@ -15,6 +15,7 @@ import fieldbox.ui.FieldBoxWindow;
 import fielded.Execution;
 import fielded.ServerSupport;
 import fielded.windowmanager.LinuxWindowTricks;
+import fielded.windowmanager.OSXWindowTricks;
 import fieldnashorn.Nashorn;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
@@ -171,8 +172,13 @@ public class Open {
 			}
 		}, 600));
 
-
+//initializes window mgmt for linux
 		if (Main.os == Main.OS.linux) new LinuxWindowTricks(boxes.root());
+//initializes window mgmt for osx
+		if (Main.os == Main.OS.mac) new OSXWindowTricks(boxes.root());
+
+
+
 
 		// add Javascript runtime as base execution layer
 		javascript = new Nashorn();
