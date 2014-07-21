@@ -32,6 +32,7 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 
 	Object allFrameHash  = 0L;
 	long allFrameHashAt = 0;
+	long allFrameHashSalt = 0;
 
 	public Dispatch(Box root) {
 		this.root = root;
@@ -80,7 +81,7 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 	private Object allFrameHash() {
 		if (allFrameHashAt== RunLoop.tick) return allFrameHash;
 		allFrameHash = breadthFirst(both()).filter(x -> x.properties.has(Box.frame))
-			    .reduce(0L, (w, frame) -> 31 * w + (frame.properties.isTrue(Mouse.isSelected, false) ? 1 : 0) + frame.properties.get(Box.frame).hashCode(), (x, y) -> 31 * x + y);
+			    .reduce(0L, (w, frame) -> 31 * w + allFrameHashSalt+(frame.properties.isTrue(Mouse.isSelected, false) ? 1 : 0) + frame.properties.get(Box.frame).hashCode(), (x, y) -> 31 * x + y);
 
 		allFrameHashAt = RunLoop.tick;
 		return allFrameHash;
@@ -168,8 +169,10 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 
 		start.connect(box);
 		allFrameHashAt = 0;
+		allFrameHash = 0;
+		allFrameHashSalt++;
 
-		Drawing.dirty(this);
+		Drawing.dirty(start);
 	}
 
 	protected void showCompleteDrag(Box start, Box end) {
