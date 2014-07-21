@@ -14,7 +14,7 @@ import java.util.Iterator;
  * In addition to the tools that exploit the ability to round trip the geometry (but not the attributes) of 2d FLines to java.awt.geom classes (and thus gain quite a bit of 2d computational geometry for no cost), the star here is the Cursor class which solves some key problems in traversing FLines by equal units of distance (rather than node by node). **/
 public class FLinesAndJavaShapes {
 
-	static public Shape flineToJavaShape(FLine f) {
+	static public GeneralPath flineToJavaShape(FLine f) {
 		GeneralPath p = new GeneralPath();
 
 		for (FLine.Node n : f.nodes) {

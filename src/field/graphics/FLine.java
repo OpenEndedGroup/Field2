@@ -120,9 +120,18 @@ public class FLine implements Supplier<FLine> {
 		return this.lineTo(x, y);
 	}
 
-	public Node last()
-	{
-		return nodes.size()==0 ? null : nodes.get(nodes.size()-1);
+
+	public FLine circle(float x, float y, float r) {
+		float k = 0.5522847498f * r;
+		this.moveTo(x, y - r);
+		this.cubicTo(x + k, y - r, x + r, y - k, x + r, y);
+		this.cubicTo(x + r, y + k, x + k, y + r, x, y + r);
+		this.cubicTo(x - k, y + r, x - r, y + k, x - r, y);
+		return this.cubicTo(x - r, y - k, x - k, y - r, x, y - r);
+	}
+
+	public Node last() {
+		return nodes.size() == 0 ? null : nodes.get(nodes.size() - 1);
 	}
 
 
@@ -265,7 +274,6 @@ public class FLine implements Supplier<FLine> {
 						if (start == null) {
 							start = m.bookmark();
 							ts.beginContour();
-							;
 						}
 
 					}
@@ -275,7 +283,6 @@ public class FLine implements Supplier<FLine> {
 
 				if (start != null && start.at() != end.at()) {
 					ts.endContour();
-					;
 				}
 				ts.end();
 			} finally {
@@ -286,7 +293,6 @@ public class FLine implements Supplier<FLine> {
 
 	public void setAuxProperties(Map<Integer, String> propertiesToAuxChannels) {
 		auxProperties = propertiesToAuxChannels;
-
 	}
 
 	private void flattenAuxProperties() {
@@ -511,6 +517,7 @@ public class FLine implements Supplier<FLine> {
 		return this;
 	}
 
-	public FLine testFunction(float f, String y)
-	{return this;}
+	public FLine testFunction(float f, String y) {
+		return this;
+	}
 }

@@ -103,11 +103,7 @@ public class TopologyBox extends Box
 			f = new FLine();
 			float w = selected ? 10 : 5;
 
-			f.moveTo(at.x - w, at.y - w);
-			f.lineTo(at.x + w, at.y - w);
-			f.lineTo(at.x + w, at.y + w);
-			f.lineTo(at.x - w, at.y + w);
-			f.lineTo(at.x - w, at.y - w);
+			f.circle(at.x, at.y, w);
 
 
 			f.attributes.put(fillColor, selected ? new Vec4(1, 1, 1, 0.5f) : new Vec4(1, 1, 1, 0.5f));
