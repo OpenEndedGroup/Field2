@@ -29,6 +29,7 @@ _messageBus.subscribe("selection.changed", function (d, e) {
             "cookie": cookie
         })
         clearOutputs(0, cm.lineCount())
+        raph.clear();
     }
 
     cm.currentbox = d.box;
@@ -37,6 +38,7 @@ _messageBus.subscribe("selection.changed", function (d, e) {
 
     if (d.cookie) {
         if (d.cookie.brackets) {
+		        raph.clear();
             eval(d.cookie.brackets)
             setTimeout(updateAllBrackets, 50)
         }
