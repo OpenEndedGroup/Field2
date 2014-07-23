@@ -23,9 +23,8 @@ import java.util.Set;
  *
  */
 public class OSXWindowTricks extends Box {
-	// TODO: there should be a discovery mechanism for this
 	static public final String field_editor_title = "Field Editor";
-	public static Dict.Prop<Integer> lostFocus = new Dict.Prop<>("lostFocus");
+	public static Dict.Prop<Integer> lostFocus = LinuxWindowTricks.lostFocus;
 
 
 	public OSXWindowTricks(Box root) {
