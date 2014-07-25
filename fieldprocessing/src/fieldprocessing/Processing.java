@@ -44,64 +44,68 @@ public class Processing extends Box {
 
 	protected JFrame frame;
 
+	int sizeX = AutoPersist.persist("processing_sizeX", () -> 400, x -> Math.min(2560, Math.max(100, x)), (x) -> frame.getSize().width);
+	int sizeY = AutoPersist.persist("processing_sizeY", () -> 400, x -> Math.min(2560, Math.max(100, x)), (x) -> frame.getSize().height);
+
+
+	public class FieldProcessingApplet extends PApplet {
+		@Override
+		public void setup() {
+			size(sizeX, sizeY);
+		}
+
+		@Override
+		public void draw() {
+			try {
+				if (RunLoop.lock.tryLock(1, TimeUnit.DAYS)) {
+					for (Runnable r : queue) {
+						try {
+							r.run();
+						} catch (Throwable t) {
+							System.err.println(" exception thrown inside Processing runloop");
+							t.printStackTrace();
+						}
+					}
+					queue.clear();
+
+					find(Boxes.insideRunLoop, both()).forEach(x -> {
+
+						Iterator<Map.Entry<String, Supplier<Boolean>>> rn = x.entrySet().iterator();
+						while (rn.hasNext()) {
+							Map.Entry<String, Supplier<Boolean>> n = rn.next();
+							if (n.getKey().startsWith("processing.")) {
+								try {
+									if (!n.getValue().get()) {
+										rn.remove();
+										Drawing.dirty(Processing.this);
+									}
+								} catch (Throwable t) {
+									t.printStackTrace();
+								}
+							}
+						}
+					});
+
+				} else {
+					System.out.println(" didn't acquire lock ?");
+				}
+				Thread.sleep(1);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} finally {
+				RunLoop.lock.unlock();
+			}
+		}
+	}
+
 	public Processing(Box root) {
 
 		Log.log("startup.processing", " processing plugin is starting up ");
 
-		int sizeX = AutoPersist.persist("processing_sizeX", () -> 400, x -> Math.min(2560, Math.max(100, x)), (x) -> frame.getSize().width);
-		int sizeY = AutoPersist.persist("processing_sizeY", () -> 400, x -> Math.min(2560, Math.max(100, x)), (x) -> frame.getSize().height);
 
 		frame = new JFrame("Field/Processing");
-		applet = new PApplet() {
-			@Override
-			public void setup() {
-				size(sizeX, sizeY);
-			}
+		applet = new FieldProcessingApplet();
 
-			@Override
-			public void draw() {
-				try {
-					if (RunLoop.lock.tryLock(1, TimeUnit.DAYS)) {
-						for (Runnable r : queue) {
-							try {
-								r.run();
-							} catch (Throwable t) {
-								System.err.println(" exception thrown inside Processing runloop");
-								t.printStackTrace();
-							}
-						}
-						queue.clear();
-
-						find(Boxes.insideRunLoop, both()).forEach(x -> {
-
-							Iterator<Map.Entry<String, Supplier<Boolean>>> rn = x.entrySet().iterator();
-							while (rn.hasNext()) {
-								Map.Entry<String, Supplier<Boolean>> n = rn.next();
-								if (n.getKey().startsWith("processing.")) {
-									try {
-										if (!n.getValue().get()) {
-											rn.remove();
-											Drawing.dirty(Processing.this);
-										}
-									} catch (Throwable t) {
-										t.printStackTrace();
-									}
-								}
-							}
-						});
-
-					} else {
-						System.out.println(" didn't acquire lock ?");
-					}
-					Thread.sleep(1);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				} finally {
-					RunLoop.lock.unlock();
-				}
-
-			}
-		};
 		applet.init();
 		applet.loop();
 		frame.add(applet, BorderLayout.CENTER);
