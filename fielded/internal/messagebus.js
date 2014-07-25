@@ -31,10 +31,8 @@ function messageBusTTLChecker() {
     for (var key in _messageBus_ttl) {
         if (_messageBus_ttl.hasOwnProperty(key)) {
             if (new Date().valueOf() - _messageBus_ttl[key][0] > 0 && !(key in _messageBus_forever)) {
-                _field.log(" unsubscribing from channel ");
                 _messageBus_ttl[key][1].unsubscribe()
                 delete _messageBus_ttl[key]
-                _field.log(" unsubscribed from channel ");
             } else {
 //                _field.log(" channel has longer to live");
             }

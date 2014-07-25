@@ -155,7 +155,6 @@ public class Log {
 
 
 		if (o == null) return "null";
-		System.out.println(" -- class "+o.getClass());
 		if (o instanceof Throwable) {
 			StringWriter ps = new StringWriter();
 			((Throwable) o).printStackTrace(new PrintWriter(ps));

@@ -9,6 +9,8 @@ cm.setOption("lineNumbers", true)
 cm.setOption("lineWrapping", true)
 cm.setOption("foldGutter", true)
 cm.setOption("gutters", ["CodeMirror-foldgutter", "CodeMirror-linenumbers"])
+cm.setOption("matchBrackets", true)
+cm.setOption("closeBrackets", true)
 
 function fuzzy(pat) {
     m = pat.split(" ")
@@ -30,6 +32,8 @@ function replacer() {
 }
 
 globalCommands = []
+
+var __extraCompletions = [] // set by BridgedTernSupport
 
 goCommands = function () {
     _field.sendWithReturn("request.commands", {
@@ -138,6 +142,9 @@ _messageBus.subscribe("begin.commands", function (d, e) {
 
     var completions = []
     for (var i = 0; i < d.commands.length; i++) {
+
+
+
         d.commands[i].callback = function () {
             _field.send("call.command", {
                 command: this.call
@@ -190,48 +197,17 @@ _messageBus.subscribe("begin.commands", function (d, e) {
 
 });
 
-
-
+// list of Chrome default hotkeys to override and set to null function. To add more, simply add strings to this array.
+overrides = ["Ctrl-H", "Shift-Ctrl-O", "Ctrl-W", "Ctrl-J", "Ctrl-N", "Shift-Ctrl-N", "Ctrl-P", "Ctrl-T", "Shift-Ctrl-T"];
 
 extraKeys = {
+// should this be alt-Left on Linux?
     "Ctrl-Left": function (cm) {
-        if (currentBracket != null) {
-
-            currentBracket.attr({
-                fill: "#afc"
-            }).animate({
-                fill: "#fff"
-            }, 500)
-
-            anchorLine = Math.max(cm.getLineNumber(currentBracket.h1), cm.getLineNumber(currentBracket.h2) + 1)
-
-            c = cm.getCursor()
-            cm.setSelection({
-                line: cm.getLineNumber(currentBracket.h1),
-                ch: 0
-            }, {
-                line: cm.getLineNumber(currentBracket.h2) + 1,
-                ch: 0
-            })
-
-            fragment = cm.getSelections()[0]
-
-            _field.sendWithReturn("execution.fragment", {
-                box: cm.currentbox,
-                property: cm.currentproperty,
-                text: fragment
-            }, function (d, e) {
-                if (d.type == 'error')
-                    appendRemoteOutputToLine(anchorLine, d.line + " : " + d.message, "Field-remoteOutput", "Field-remoteOutput-error", 1)
-                else
-                    appendRemoteOutputToLine(anchorLine, d.message, "Field-remoteOutput-error", "Field-remoteOutput", 1)
-            });
-        }
+    		console.log(" ctrl left ! ", currentBracket);
+        executeCurrentBracket()
         cm.setCursor(c);
     },
     "Ctrl-Enter": function (cm) {
-        _field.log(cm.getSelections())
-        _field.log(cm.listSelections())
 
         anchorLine = Math.max(cm.listSelections()[0].anchor.line, cm.listSelections()[0].head.line)
 
@@ -297,8 +273,6 @@ extraKeys = {
         });
     },
     "Ctrl-0": function (cm) {
-        _field.log(cm.getSelections())
-        _field.log(cm.listSelections())
 
         fragment = cm.getValue()
         anchorLine = cm.lineCount() - 1
@@ -316,8 +290,6 @@ extraKeys = {
     },
 
     "Ctrl-PageUp": function (cm) {
-        _field.log(cm.getSelections())
-        _field.log(cm.listSelections())
 
         fragment = cm.getValue()
         anchorLine = cm.lineCount() - 1
@@ -334,8 +306,6 @@ extraKeys = {
         });
     },
     "Ctrl-PageDown": function (cm) {
-        _field.log(cm.getSelections())
-        _field.log(cm.listSelections())
 
         fragment = cm.getValue()
         anchorLine = cm.lineCount() - 1
@@ -352,8 +322,7 @@ extraKeys = {
         });
     },
     "Ctrl-.": function (cm) {
-        _field.log(cm.getSelections())
-        _field.log(cm.listSelections())
+        __extraCompletions = []
 
         _field.sendWithReturn("request.completions", {
                 box: cm.currentbox,
@@ -363,6 +332,9 @@ extraKeys = {
                 ch: cm.listSelections()[0].anchor.ch
             },
             function (d, e) {
+
+            	console.log(" -- about to go completion --", __extraCompletions, completions);
+
                 var completions = d
                 completionFunction = function (e) {
                     var m = []
@@ -380,10 +352,31 @@ extraKeys = {
                             })
                         }
                     }
+
+					for (var i = 0; i < __extraCompletions.length; i++) {
+                        if (__extraCompletions[i][2].contains(e)) {
+                            pattern = new RegExp("(" + e + ")");
+                            matched = __extraCompletions[i][2].replace(pattern, "<span class='matched'>$1</span>");
+                            m.push({
+                                text: matched + " " + __extraCompletions[i][3],
+                                callback: function () {
+                                    cm.replaceRange(__extraCompletions[this.i][2], cm.posFromIndex(__extraCompletions[this.i][0]), cm.posFromIndex(__extraCompletions[this.i][1]))
+                                }.bind({
+                                    "i": i
+                                })
+                            })
+                        }
+                    }
+
+
                     return m
                 }
+
                 if (completions.length > 0)
                     runModalAtCursor("completion", completionFunction, cm.getValue().substring(completions[0].start, completions[0].end))
+                else if (__extraCompletions.length>0)
+                    runModalAtCursor("completion", completionFunction, cm.getValue().substring(__extraCompletions[0][0], __extraCompletions[0][1]))
+
             }
         );
     },
@@ -392,7 +385,7 @@ extraKeys = {
     },
 
     "Ctrl-/": function(cm) {
-    	testCommand();
+    		testCommand();
     },
 
     "Ctrl-I": function (cm) {
@@ -444,6 +437,11 @@ extraKeys = {
             }
         );
     }
+}
+
+// iterate through overrides and set to no functionality
+for (i = 0; i < overrides.length; i++) {
+		extraKeys[overrides[i]] = function (cm) {};
 }
 
 cm.setOption("extraKeys", extraKeys)

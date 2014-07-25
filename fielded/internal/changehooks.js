@@ -29,6 +29,7 @@ _messageBus.subscribe("selection.changed", function (d, e) {
             "cookie": cookie
         })
         clearOutputs(0, cm.lineCount())
+        raph.clear();
     }
 
     cm.currentbox = d.box;
@@ -37,6 +38,7 @@ _messageBus.subscribe("selection.changed", function (d, e) {
 
     if (d.cookie) {
         if (d.cookie.brackets) {
+		        raph.clear();
             eval(d.cookie.brackets)
             setTimeout(updateAllBrackets, 50)
         }
@@ -63,12 +65,17 @@ _messageBus.subscribe("selection.changed", function (d, e) {
         _messageBus.publish("status", "Selected '" + d.name + "'")
 
         document.title = d.name + "/" + d.property + " - Field Editor";
+
+		if (d.languageName)
+	        cm.setOption("mode", d.languageName);
     }
 
     if (d.cookie) {
         if (d.cookie.currentpos) {
+            cm.scrollIntoView({line:0,ch:0}, 100);
             cm.setCursor(d.cookie.currentpos);
             cm.scrollIntoView(null, 100);
+            console.log(" scrollde into view?");
         }
     }
 

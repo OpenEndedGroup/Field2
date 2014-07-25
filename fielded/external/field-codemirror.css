@@ -43,7 +43,7 @@
 @font-face
 {
 	font-family: 'Source Sans Pro';
-	src: url('/field/filesystem/fonts/SourceSansPro-Italic.ttf.woff') format('woff');
+	src: url('/field/filesystem/fonts/SourceSansPro-It.ttf.woff') format('woff');
 	font-weight: 400;
 	font-style: italic;
 }
@@ -352,12 +352,16 @@ input {
     transition: width 0.25s;
 }
 
+.Field-modal
+{
+    font-family: "Source Sans Pro";
+}
+
 .Field-modal ol {
     color: #bbb;
     list-style-type: 1;
     padding: 0px;
     margin: 0px;
-    font-family: "Source Sans Pro";
     font-size: 14px;
     max-height: 80vh;
     max-width: 80vh;
@@ -472,7 +476,7 @@ $
 .Field-modal-positioned ol li span.type,
 .Field-modal ol li span.type {
     font-style: italic;
-    font-weight: light;
+    font-weight: 400;
     opacity: 0.75;
     font-size:75%;
 
@@ -542,7 +546,7 @@ $
     padding: 5px;
     border-radius: 5px;
     transition: 1s opacity;
-    font-family: Source Sans Pro;
+    font-family: "Source Sans Pro";
 }
 
 .Field-status .highlighted {
@@ -574,3 +578,8 @@ $
 }
 
 .CodeMirror-gutters { background: #2d3133; border-color:#2d3133; }
+
+.CodeMirror-gutter-wrapper
+{
+	pointer-events:none;
+}

@@ -4,8 +4,8 @@ import java.io.Serializable;
 import java.nio.FloatBuffer;
 
 /**
+ * A class representing a 2-vector (both a position and direction in 2-space).
  */
-
 public class Vec2 implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -13,7 +13,7 @@ public class Vec2 implements Serializable {
 	public float x, y;
 
 	/**
-	 * Constructor for Vector3f.
+	 * Constructor for Vector2f.
 	 */
 	public Vec2() {
 		super();

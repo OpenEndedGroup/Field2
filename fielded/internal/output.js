@@ -34,7 +34,9 @@ function appendRemoteOutputToLine(line, text, checkClass, lineClass, append) {
         $(d).removeClass(lineClass)
         $(d).addClass(lineClass)
 
-        $(d).append("\n" + escapeHtml(text.trim()))
+//        $(d).append("\n" + escapeHtml(text.trim()))
+		$(d).append("\n" + text.trim())
+
         $(d).animate({
             scrollTop: $(d)[0].scrollHeight
         }, 0)
@@ -47,12 +49,21 @@ function appendRemoteOutputToLine(line, text, checkClass, lineClass, append) {
         found.changed()
     } else {
         console.log(" making new element ")
-        d = $("<div class='" + lineClass + "'><div class='Field-closebox'>&#x2715;</div><div class='Field-expandBox'>&#x21A7;</div>" + escapeHtml(text) + "</div>")[0]
+        d = $("<div class='" + lineClass + "'><div class='Field-closebox'>&#x2715;</div><div class='Field-expandBox'>&#x21A7;</div>" + text.trim() + "</div>")[0]
         console.log(d)
         bm = cm.addLineWidget(lh, d, {
             showIfHidden: true,
             handleMouseEvents: false
         })
+
+		console.log(" transient ? "+text.trim().length)
+        if (text.trim().length<2)
+        {
+	        console.log(" transient ");
+	        $(d).animate({opacity:0.0, "max-height":"0%"}, {"duration":400, "progress":function(){console.log($(d).height()); bm.changed()}, "done":function() {bm.clear(); updateAllBrackets(); }});
+        }
+
+
     }
 
     var thisDiv = $(d)

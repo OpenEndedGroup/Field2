@@ -116,6 +116,7 @@ public class UnderscoreBox extends AbstractJSObject implements JavaSupport.Handl
 	}
 
 	private Object enunderscoreReturn(Object ret) {
+		if (ret ==null) return null;
 
 //		if (ret instanceof Box) return new UnderscoreBox((Box) ret);
 

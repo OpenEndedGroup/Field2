@@ -3,7 +3,7 @@ package field.linalg;
 import java.nio.FloatBuffer;
 
 /**
- * Created by marc on 3/12/14.
+ * A class representing a 4-vector (useful for colors and homogeneous coordinates)
  */
 public class Vec4 {
 
@@ -32,26 +32,17 @@ public class Vec4 {
 		set(x, y, z, w);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.lwjgl.util.vector.WritableVector2f#set(float, float)
-	 */
 	public void set(float x, float y) {
 		this.x = x;
 		this.y = y;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.lwjgl.util.vector.WritableVector3f#set(float, float, float)
-	 */
 	public void set(float x, float y, float z) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.lwjgl.util.vector.WritableVector4#set(float, float, float, float)
-	 */
 	public void set(float x, float y, float z, float w) {
 		this.x = x;
 		this.y = y;
@@ -208,9 +199,6 @@ public class Vec4 {
 		return (float) Math.acos(dls);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.lwjgl.vector.Vector#load(FloatBuffer)
-	 */
 	public Vec4 load(FloatBuffer buf) {
 		x = buf.get();
 		y = buf.get();
@@ -219,9 +207,6 @@ public class Vec4 {
 		return this;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.lwjgl.vector.Vector#scale(float)
-	 */
 	public Vec4 scale(float scale) {
 		x *= scale;
 		y *= scale;
@@ -230,9 +215,6 @@ public class Vec4 {
 		return this;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.lwjgl.vector.Vector#store(FloatBuffer)
-	 */
 	public Vec4 store(FloatBuffer buf) {
 
 		buf.put(x);
@@ -305,9 +287,6 @@ public class Vec4 {
 		this.w = w;
 	}
 
-	/* (Overrides)
-	 * @see org.lwjgl.vector.ReadableVector3f#getZ()
-	 */
 	public float getW() {
 		return w;
 	}

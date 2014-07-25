@@ -3,7 +3,7 @@ package field.linalg;
 import java.nio.FloatBuffer;
 
 /**
- * Created by marc on 3/12/14.
+ * A class representing a 3-vector (both a position and direction in 3-space).
  */
 public class Vec3 {
 
@@ -221,9 +221,6 @@ public class Vec3 {
 		return (float) Math.acos(dls);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.lwjgl.vector.Vector#load(FloatBuffer)
-	 */
 	public Vec3 load(FloatBuffer buf) {
 		x = buf.get();
 		y = buf.get();
@@ -231,9 +228,6 @@ public class Vec3 {
 		return this;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.lwjgl.vector.Vector#scale(float)
-	 */
 	public Vec3 scale(float scale) {
 
 		x *= scale;
@@ -244,9 +238,6 @@ public class Vec3 {
 
 	}
 
-	/* (non-Javadoc)
-	 * @see org.lwjgl.vector.Vector#store(FloatBuffer)
-	 */
 	public Vec3 store(FloatBuffer buf) {
 
 		buf.put(x);
@@ -256,9 +247,6 @@ public class Vec3 {
 		return this;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
 	public String toString() {
 		StringBuilder sb = new StringBuilder(64);
 
@@ -313,9 +301,6 @@ public class Vec3 {
 		this.z = z;
 	}
 
-	/* (Overrides)
-	 * @see org.lwjgl.vector.ReadableVector3#getZ()
-	 */
 	public float getZ() {
 		return z;
 	}
