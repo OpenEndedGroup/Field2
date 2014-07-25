@@ -13,6 +13,9 @@ import fielded.windowmanager.LinuxWindowTricks;
 import org.json.JSONObject;
 import org.json.JSONStringer;
 
+import java.io.*;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
