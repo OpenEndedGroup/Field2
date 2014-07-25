@@ -460,13 +460,101 @@ public class RemoteEditor extends Box {
 			int line = p.getInt("line");
 			int ch = p.getInt("ch");
 
-			// now we need to ask everybody if they have any commands to offer based on the above.
-
 			//todo: handle no box case
 
 			List<Map.Entry<Pair<String, String>, Runnable>> commands = (List<Map.Entry<Pair<String, String>, Runnable>>) box.get()
-				    .find(RemoteEditor.hotkeyCommands, box.get().both()).flatMap(m -> m.get().entrySet().stream())
+				    .find(RemoteEditor.commands, box.get().both()).flatMap(m -> m.get().entrySet().stream())
 				    .collect(Collectors.toList());
+
+			//Override the existing functionality in the menu to instead prompt for a new hotkey
+			//And write the new hotkey to the properties file
+			for (Map.Entry<Pair<String, String>, Runnable> currCommand : commands) {
+				ExtendedCommand val = new ExtendedCommand() {
+					public SupportsPrompt p;
+
+					@Override
+					public void begin(SupportsPrompt prompt, String alternativeChosen) {
+						this.p = prompt;
+					}
+
+					@Override
+					public void run() {
+
+						Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
+
+						//Prompt for a new hotkey
+						p.prompt("set hotkey to...", m, new ExtendedCommand() {
+							String altWas = null;
+
+							@Override
+							public void begin(SupportsPrompt prompt, String alternativeChosen) {
+								altWas = alternativeChosen;
+							}
+
+							@Override
+							public void run() {
+								if (altWas != null) {
+									//Set up file reading
+									Path properties = FileSystems.getDefault().getPath("fieldbox/resources", "properties.txt");
+									File file = new File(properties.toString());
+									StringBuilder contents = new StringBuilder();
+
+									//Read properties text file into a string (contents)
+									try ( BufferedReader in = new BufferedReader(new FileReader(file) ) ) {
+										int curr;
+										while((curr = in.read()) != -1) {
+											contents.append((char)curr);
+										}
+										in.close();
+									} catch(IOException x) {
+										System.err.println("Error: Cannot open properties text file in read");
+									}
+
+									//Find if the hotkey is already associated with a command
+									//If so, determine the beginning and end of the command text for replacement with new command
+									int commandBegin = -1;
+									int commandEnd = -1;
+									for (int i = 0; i < contents.length(); ++i){
+										StringBuilder readCommand = new StringBuilder();
+										char currChar;
+										while ((currChar = contents.charAt(i)) != ':') {
+											readCommand.append(currChar);
+											++i;
+										}
+										if (readCommand.toString().equals(altWas)) {
+											commandBegin = i+2;
+											while ((contents.charAt(i)) != '\n') ++i;
+											commandEnd = i;
+											break;
+										}
+										while ((contents.charAt(i)) != '\n') ++i;
+										readCommand.setLength(0);
+									}
+
+									//Replace the old command in contents with the new one or create a new command
+									if (commandBegin > -1) {
+										contents.delete(commandBegin, commandEnd);
+										contents.insert(commandBegin, currCommand.getKey().first);
+									} else {
+										contents.append(altWas);
+										contents.append(": ");
+										contents.append(currCommand.getKey().first);
+										contents.append("\n");
+									}
+
+									//Write the contents to the output file
+									try ( BufferedWriter out = new BufferedWriter(new FileWriter(file)) ) {
+										out.write(contents.toString());
+									} catch (IOException x) {
+										System.err.println("Error: Cannot open properties text file in write");
+									}
+								}
+							}
+						});
+					}
+				};
+				currCommand.setValue(val);
+			}
 
 
 			Log.log("remote.trace", " commands are :" + commands);
@@ -493,22 +581,6 @@ public class RemoteEditor extends Box {
 
 			return payload;
 		});
-
-/*		DO WE NEED THIS? NOT SURE...
-		server.addHandlerLast(Predicate.isEqual("call.hotkeyCommand"), () -> socketName, (s, socket, address, payload) -> {
-
-			JSONObject p = (JSONObject) payload;
-			String command = p.getString("command");
-
-			Runnable r = callTable.get(command);
-
-			if (r != null) {
-				if (r instanceof ExtendedCommand) ((ExtendedCommand) r).begin(supportsPrompt(server, socketName), null);
-				r.run();
-			}
-
-			return payload;
-		});*/
 
 		server.addHandlerLast(Predicate.isEqual("call.alternative"), () -> socketName, (s, socket, address, payload) -> {
 

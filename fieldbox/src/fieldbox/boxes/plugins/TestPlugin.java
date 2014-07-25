@@ -54,7 +54,7 @@ public class TestPlugin extends Box {
 
 					//Test reading from the properties.txt file
 					try {
-					   	File file = new File(properties.toString());
+					  File file = new File(properties.toString());
 						Scanner scanner = new Scanner(file);
 						while(scanner.hasNextLine()){
 							System.out.println(scanner.nextLine());

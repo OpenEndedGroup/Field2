@@ -133,7 +133,7 @@ testCommand = function () {
 								return m
 						}
 						if (completions.length > 0)
-								runModal("Commands...", completionFunction, "Field-Modal")
+								runModal("Set Hotkeys", completionFunction, "Field-Modal")
 				}
     );
 }
