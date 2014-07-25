@@ -1,5 +1,8 @@
 package fieldbox.boxes;
 
+import static fieldbox.boxes.StandardFLineDrawing.*;
+import static fieldbox.boxes.FLineDrawing.*;
+
 import com.badlogic.jglfw.Glfw;
 import field.graphics.FLine;
 import field.graphics.Window;
@@ -52,7 +55,7 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 	public Mouse.Dragger button2(Window.Event<Window.MouseState> e) {
 		Optional<Drawing> drawing = this.find(Drawing.drawing, both()).findFirst();
 		Vec2 point = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e.after.x, e.after.y)))
-			    .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
+			    .orElseThrow(() -> new IllegalArgumentException(" can't mouse around something without drawing support (to provide coordinate system)"));
 
 		Optional<Box> hit = breadthFirst(both()).filter(b -> frame(b) != null).filter(b -> frame(b).intersects(point))
 			    .sorted((a, b) -> Float.compare(order(frame(a)), order(frame(b)))).findFirst();
@@ -89,7 +92,7 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 			Drawing.dirty(hitBox);
 
 			boolean shift = e.after.keyboardState.keysDown.contains(Glfw.GLFW_KEY_LEFT_SHIFT) || e.after.keyboardState.keysDown
-				    .contains(Glfw.GLFW_KEY_RIGHT_SHIFT);
+				    .contains(Glfw.GLFW_KEY_RIGHT_SHIFT) || e.after.buttonsDown.contains(1);
 			boolean selected = hitBox.properties.isTrue(Mouse.isSelected, false);
 			Rect originalFrame = frame(hitBox);
 
@@ -186,12 +189,12 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 						m.lineTo(downAt.x, point.y);
 						m.lineTo(point.x, point.y);
 
-						m.attributes.put(FLineDrawing.thicken, new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-						m.attributes.put(FLineDrawing.strokeColor, new Vec4(1, 1, 1, 0.2f));
-						m.attributes.put(FLineDrawing.fillColor, new Vec4(1, 1, 1, 0.3f));
-						m.attributes.put(FLineDrawing.stroked, true);
-						m.attributes.put(FLineDrawing.filled, true);
-						m.attributes.put(FLineDrawing.pointed, false);
+						m.attributes.put(StandardFLineDrawing.thicken, new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+						m.attributes.put(StandardFLineDrawing.strokeColor, new Vec4(1, 1, 1, 0.2f));
+						m.attributes.put(StandardFLineDrawing.fillColor, new Vec4(1, 1, 1, 0.3f));
+						m.attributes.put(StandardFLineDrawing.stroked, true);
+						m.attributes.put(StandardFLineDrawing.filled, true);
+						m.attributes.put(StandardFLineDrawing.pointed, false);
 
 						return m;
 					});
@@ -263,7 +266,7 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 		if (b.properties.getFromMap(FLineDrawing.frameDrawing, "__feedback__") != null || exp == -1 || true)
 			b.properties.putToMap(FLineDrawing.frameDrawing, "__feedback__", FLineDrawing.expires(box -> {
 				FLine f = new FLine();
-				f.attributes.put(FLineDrawing.hasText, true);
+				f.attributes.put(StandardFLineDrawing.hasText, true);
 				f.moveTo(r.x + r.w / 2, r.y + r.h + 14);
 				List<String> text = new ArrayList<String>();
 				List<Vec4> color = new ArrayList<Vec4>();
@@ -285,8 +288,8 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 				color.add(r.h == r0.h ? new Vec4(1, 1, 1, 0.5f) : new Vec4(1, 1, 1, 1));
 
 
-				f.nodes.get(f.nodes.size() - 1).attributes.put(FLineDrawing.textSpans, text);
-				f.nodes.get(f.nodes.size() - 1).attributes.put(FLineDrawing.textColorSpans, color);
+				f.nodes.get(f.nodes.size() - 1).attributes.put(StandardFLineDrawing.textSpans, text);
+				f.nodes.get(f.nodes.size() - 1).attributes.put(StandardFLineDrawing.textColorSpans, color);
 				return f;
 			}, exp));
 

@@ -91,7 +91,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 			Object ret = engine.eval(textFragment, context);
 			Log.log("nashorn.general", () -> "\n<<javascript out" + ret + " " + (ret != null ? ret.getClass() + "" : ""));
 			if (writer != null) writer.flush();
-			if (success != null) if (ret != null) success.accept("" + ret); else if (!written[0]) success.accept("[ok]");
+			if (success != null) if (ret != null) success.accept("" + ret); else if (!written[0]) success.accept(" &#10003; ");
 
 			RemoteEditor.boxFeedback(Optional.of(box), new Vec4(0.3f, 0.7f, 0.3f, 0.5f));
 

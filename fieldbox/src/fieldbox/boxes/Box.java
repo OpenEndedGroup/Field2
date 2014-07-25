@@ -197,8 +197,8 @@ public class Box {
 	@Override
 	public String toString() {
 		String name = properties.get(Box.name);
-		if (name == null) return "bx<" + this.getClass().getSimpleName() + ">";
-		else return "bx<" + name + ">";
+		if (name == null) return "bx[" + this.getClass().getSimpleName() + "]";
+		else return "bx[" + name + "]";
 	}
 
 

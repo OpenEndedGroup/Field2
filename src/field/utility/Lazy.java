@@ -6,9 +6,6 @@ import java.util.Spliterators;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-/**
- * Created by marc on 3/18/14.
- */
 public abstract class Lazy<T> {
 
 	private final int estimatedSize;
@@ -26,7 +23,6 @@ public abstract class Lazy<T> {
 		future = initialize();
 		return this;
 	}
-
 
 	public Stream<T> stream() {
 		return StreamSupport.stream(Spliterators.spliterator(internal, estimatedSize, Spliterator.IMMUTABLE), false);

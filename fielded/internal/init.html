@@ -54,12 +54,15 @@
 
             _field.socket.onclose = function (e) {
                 _messageBus.publish("status", "<span class='error'>Disconnected from Field</span>");
+                document.title = "Field / Disconnected"
             }
 
             _field.socket.onerror = function (e) {
                 _messageBus.publish("status", "<span class='error'>Disconnected from Field</span>");
+                document.title = "Field / Disconnected"
             }
         }
+
 
 
          // and, we're off

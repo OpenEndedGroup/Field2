@@ -15,7 +15,6 @@ import org.json.JSONStringer;
 
 import java.io.*;
 import java.nio.file.FileSystems;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Consumer;
@@ -23,6 +22,10 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+
+import static fieldbox.boxes.FLineDrawing.*;
+import static fieldbox.boxes.StandardFLineDrawing.filled;
+import static fieldbox.boxes.StandardFLineDrawing.stroked;
 
 /**
  * connects to that WebSocket and does things via those message busses
@@ -148,9 +151,11 @@ public class RemoteEditor extends Box {
 			if (text == null) throw new IllegalArgumentException(" missing text <" + p + ">");
 
 
-			Log.log("remote.trace", " storing cookie to :" + ("_" + prop + "_cookie"));
-			Log.log("remote.trace", " cookie is :" + text);
-			box.get().properties.put(new Dict.Prop<JSONObject>("_" + prop + "_cookie"), text);
+			Log.log("remote.cookie", " storing cookie to :" + ("_" + prop + "_cookie"));
+			Log.log("remote.cookie", " cookie is :" + text.toString());
+			box.get().properties.put(new Dict.Prop<String>("_" + prop + "_cookie"), text.toString());
+
+			IO.persist(new Dict.Prop<String>("_" + prop + "_cookie"));
 
 			boxFeedback(box, new Vec4(0, 0, 0, 0.8f));
 
@@ -642,13 +647,13 @@ public class RemoteEditor extends Box {
 	}
 
 	static public void boxFeedback(Optional<Box> box, Vec4 color) {
-		box.get().properties.putToMap(FLineDrawing.frameDrawing, "__edited__", FLineDrawing.expires(FLineDrawing.boxOrigin((bx) -> {
+		box.get().properties.putToMap(frameDrawing, "__edited__", expires(boxOrigin((bx) -> {
 
 			FLine f = new FLine();
 			f.rect(-5, -5, 10, 10);
-			f.attributes.put(FLineDrawing.filled, true);
-			f.attributes.put(FLineDrawing.stroked, false);
-			f.attributes.put(FLineDrawing.color, color);
+			f.attributes.put(filled, true);
+			f.attributes.put(stroked, false);
+			f.attributes.put(StandardFLineDrawing.color, color);
 			return f;
 
 		}, new Vec2(1, 1)), 60));
@@ -667,7 +672,6 @@ public class RemoteEditor extends Box {
 			Log.log("remote.trace", " >> " + key + " " + value.size());
 
 			if (value.size() > 1) {
-
 
 				if (value.size() < 10) {
 					String m = "";
@@ -728,7 +732,6 @@ public class RemoteEditor extends Box {
 			server.send(socketName, "_messageBus.publish('selection.changed', {box:null, property:null, text:''})");
 		} else {
 
-
 			String text = currentSelection.properties.get(editingProperty);
 			if (text == null) text = "";
 
@@ -742,8 +745,21 @@ public class RemoteEditor extends Box {
 			buildMessage.put("text", currentSelection.properties.getOr(currentlyEditing, () -> ""));
 			buildMessage.put("property", currentlyEditing.getName());
 			buildMessage.put("name", currentSelection.properties.get(Box.name));
-			buildMessage.put("cookie", currentSelection.properties
-				    .get(new Dict.Prop<JSONObject>("_" + editingProperty.getName() + "_cookie")));
+
+
+			String cooked = currentSelection.properties.get(new Dict.Prop<String>("_" + editingProperty.getName() + "_cookie"));
+			Log.log("remote.cookie", "cookie ns now :" + cooked);
+			buildMessage.put("cookie", new JSONObject(cooked == null ? "{}" : cooked));
+
+
+			Execution ex = getExecution(currentSelection);
+			if (ex != null) {
+				Execution.ExecutionSupport support = ex.support(currentSelection, editingProperty);
+				String cmln = support.getCodeMirrorLanguageName();
+				Log.log("remote.general", "langage :" + cmln);
+				buildMessage.put("languageName", cmln);
+				if (support != null) support.setFilenameForStacktraces("" + currentSelection);
+			}
 
 			Log.log("remote.trace", " message will be sent " + buildMessage.toString());
 
@@ -751,13 +767,7 @@ public class RemoteEditor extends Box {
 				    .get(new Dict.Prop<JSONObject>("_" + editingProperty.getName() + "_cookie")) + "\n");
 
 			server.send(socketName, "_messageBus.publish('selection.changed', " + buildMessage.toString() + ")");
-			//todo: set language? get it from execution?
 
-			Execution ex = getExecution(currentSelection);
-			if (ex != null) {
-				Execution.ExecutionSupport support = ex.support(currentSelection, editingProperty);
-				if (support != null) support.setFilenameForStacktraces("" + currentSelection);
-			}
 			//todo: check for other editors?
 			//watches.addWatch(editingProperty, "edited.property.changed");
 		}

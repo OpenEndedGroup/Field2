@@ -5,7 +5,10 @@ import field.linalg.Vec2;
 import field.linalg.Vec4;
 import field.utility.Dict;
 import field.utility.Rect;
+import fieldbox.io.IO;
 import fieldbox.ui.FieldBoxWindow;
+import static fieldbox.boxes.StandardFLineDrawing.*;
+import static fieldbox.boxes.FLineDrawing.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -40,6 +43,12 @@ public class Drawing extends Box {
 		    .doc("a collection of things that will draw inside the OpenGL paint context. Currently FrameDrawer & FLineInteraction plug into the window at this low level");
 	static public final Dict.Prop<Drawing> drawing = new Dict.Prop<>("drawing").type().toCannon().doc("the Drawing plugin");
 	static public final Dict.Prop<Boolean> needRepaint = new Dict.Prop<>("_needRepaint").type().toCannon();
+	static public final Dict.Prop<Boolean> windowSpace= new Dict.Prop<>("windowSpace").type().toCannon()
+		    .doc("set to true to make this box stick to the viewport when it pans around");
+
+	static {
+		IO.persist(windowSpace);
+	}
 
 	public class PerLayer {
 		private MeshBuilder _mesh;
@@ -219,6 +228,8 @@ public class Drawing extends Box {
 		if (q == null || !q) return;
 
 		if (translationNext != null) {
+			updateWindowSpaceBoxes(translation, translationNext);
+
 			translation.x = translationNext.x;
 			translation.y = translationNext.y;
 			translationNext = null;
@@ -234,6 +245,16 @@ public class Drawing extends Box {
 		} finally {
 			insideDrawing = false;
 		}
+	}
+
+	private void updateWindowSpaceBoxes(Vec2 was, Vec2 now) {
+		this.breadthFirst(both()).filter(x -> x.properties.isTrue(windowSpace, false)).forEach( box -> {
+			Rect f = box.properties.get(Box.frame);
+			f = new Rect(f.x, f.y,f.w, f.h);
+			f.x  = f.x + was.x - now.x;
+			f.y  = f.y + was.y - now.y;
+			box.properties.put(Box.frame, f);
+		});
 	}
 
 	/**
@@ -281,21 +302,21 @@ public class Drawing extends Box {
 	 * puts some text on the screen for a certain number of animation cycles. TODO --- really ought to be certain number of seconds, not cycles.
 	 */
 	static public void notify(String text, Box from, int dur) {
-		from.properties.putToMap(FLineDrawing.frameDrawing, "__notificationText__", FLineDrawing.expires(box -> {
+		from.properties.putToMap(frameDrawing, "__notificationText__", expires(box -> {
 
 			Drawing d = from.first(drawing, from.both()).get();
 			Rect view = d.getCurrentViewBounds(from);
 			FLine f = new FLine();
 			f.moveTo(view.x + view.w / 2, view.y + view.h / 2);
-			f.nodes.get(0).attributes.put(FLineDrawing.text, text);
-			f.nodes.get(0).attributes.put(FLineDrawing.textScale, 4);
-			f.attributes.put(FLineDrawing.color, new Vec4(1, 1, 1, 1f));
-			f.attributes.put(FLineDrawing.hasText, true);
-			f.attributes.put(FLineDrawing.layer, "glass");
+			f.nodes.get(0).attributes.put(StandardFLineDrawing.text, text);
+			f.nodes.get(0).attributes.put(textScale, 4);
+			f.attributes.put(color, new Vec4(1, 1, 1, 1f));
+			f.attributes.put(hasText, true);
+			f.attributes.put(layer, "glass");
 
 			return f;
 		}, (int) (dur), 0.05f));
-		from.properties.putToMap(FLineDrawing.frameDrawing, "__notificationMask__", FLineDrawing.expires(box -> {
+		from.properties.putToMap(frameDrawing, "__notificationMask__", expires(box -> {
 
 			Drawing d = from.first(drawing, from.both()).get();
 			Rect view = d.getCurrentViewBounds(from);
@@ -303,9 +324,9 @@ public class Drawing extends Box {
 			int w = 20;
 			int h = 60;
 			f.rect(view.x - w, view.y + view.h / 2 - h-10, view.w + w * 2, h+25);
-			f.attributes.put(FLineDrawing.color, new Vec4(0, 0, 0, -0.8f));
-			f.attributes.put(FLineDrawing.layer, "glass");
-			f.attributes.put(FLineDrawing.filled, true);
+			f.attributes.put(color, new Vec4(0, 0, 0, -0.8f));
+			f.attributes.put(layer, "glass");
+			f.attributes.put(filled, true);
 			return f;
 		}, dur, 0.05f));
 

@@ -45,33 +45,17 @@ public class Quat implements Serializable {
 		set(x, y, z, w);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.lwjgl.util.vector.WritableVector2f#set(float, float)
-	 */
 	public void set(float x, float y) {
 		this.x = x;
 		this.y = y;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.lwjgl.util.vector.WritableVector3f#set(float, float, float)
-	 */
 	public void set(float x, float y, float z) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.lwjgl.util.vector.WritableVector4#set(float, float, float,
-	 *      float)
-	 */
 	public void set(float x, float y, float z, float w) {
 		this.x = x;
 		this.y = y;
@@ -219,9 +203,6 @@ public class Quat implements Serializable {
 		return negate(this, this);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.lwjgl.util.vector.Vector#load(java.nio.FloatBuffer)
-	 */
 	public Quat load(FloatBuffer buf) {
 		x = buf.get();
 		y = buf.get();
@@ -230,11 +211,6 @@ public class Quat implements Serializable {
 		return this;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.lwjgl.vector.Vector#scale(float)
-	 */
 	public Quat scale(float scale) {
 		return scale(scale, this, this);
 	}
@@ -256,9 +232,6 @@ public class Quat implements Serializable {
 		return dest;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.lwjgl.util.vector.ReadableVector#store(java.nio.FloatBuffer)
-	 */
 	public Quat store(FloatBuffer buf) {
 		buf.put(x);
 		buf.put(y);
@@ -309,11 +282,6 @@ public class Quat implements Serializable {
 		this.z = z;
 	}
 
-	/*
-	 * (Overrides)
-	 *
-	 * @see org.lwjgl.vector.ReadableVector3f#getZ()
-	 */
 	public float getZ() {
 		return z;
 	}
@@ -327,11 +295,6 @@ public class Quat implements Serializable {
 		this.w = w;
 	}
 
-	/*
-	 * (Overrides)
-	 *
-	 * @see org.lwjgl.vector.ReadableVector3f#getW()
-	 */
 	public float getW() {
 		return w;
 	}

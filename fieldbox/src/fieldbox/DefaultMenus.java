@@ -1,6 +1,7 @@
 package fieldbox;
 
 import com.badlogic.jglfw.Glfw;
+import field.graphics.RunLoop;
 import field.graphics.Window;
 import field.linalg.Vec2;
 import field.utility.Dict;
@@ -54,17 +55,11 @@ public class DefaultMenus extends Box {
 			return m;
 		});
 
-		properties.putToList(Keyboard.onKeyDown, (e, k) -> {
-			if ( k == Glfw.GLFW_KEY_N)
-			{
-				newBox(convertCoordinateSystem(e.after.mouseState), root);
-			}
-			return null;
-		});
-
 		properties.put(newBox, (box) -> {
 			return newBox(box.find(Box.frame, box.both()).findFirst().map(x -> new Vec2(x.x+x.w+5, x.y+x.h+5)).orElseGet(() -> new Vec2(0,0)), box.parents().toArray(new Box[]{}));
 		});
+
+		RunLoop.main.onExit(() -> save());
 
 	}
 

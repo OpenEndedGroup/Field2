@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="clojure-1.6.0 (2)">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/fieldclojure/resources/clojure-1.6.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/fieldclojure/resources/clojure-1.6.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

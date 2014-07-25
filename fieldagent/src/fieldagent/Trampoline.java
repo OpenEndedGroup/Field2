@@ -1,7 +1,10 @@
 package fieldagent;
 
+import com.google.common.collect.MapMaker;
 import com.google.common.io.ByteStreams;
 
+import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -11,6 +14,7 @@ import java.net.URLClassLoader;
 import java.net.URLStreamHandlerFactory;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.Map;
 
 /**
  * Created by marc on 7/1/14.
@@ -21,8 +25,30 @@ public class Trampoline {
 
 	static protected Transform transform = new Transform();
 
+	static public class Record {
+		String filename;
+		long modification;
+
+		public Record(String fn, long l) {
+			this.filename = fn;
+			this.modification = l;
+		}
+
+		public boolean modified() {
+			return new File(filename).lastModified() != modification;
+		}
+
+		public Record update() {
+			modification = new File(filename).lastModified();
+			return this;
+		}
+	}
+
+	static public Map<Class, Record> loadMap = new MapMaker().concurrencyLevel(2).initialCapacity(1000).weakKeys().makeMap();
+
 
 	static public class ExtensibleClassloader extends URLClassLoader {
+
 
 		public ExtensibleClassloader(URL[] urls, ClassLoader parent) {
 			super(urls, parent);
@@ -63,12 +89,19 @@ public class Trampoline {
 					if (traceLoader) System.out.println("C(lc): found  " + c);
 				} catch (ClassNotFoundException cnfe) {
 					{
-						try (InputStream where = getResourceAsStream(name.replace(".", "/") + ".class")) {
+						String fn = name.replace(".", "/") + ".class";
+
+						URL r = getResource(fn);
+						if (r != null) try (InputStream where = new BufferedInputStream(r.openStream())) {
 							if (where != null) {
 								byte[] b = ByteStreams.toByteArray(where);
 								b = transformClass(name, b);
 								c = defineClass(name, b, 0, b.length);
-								if (traceLoader) System.out.println(" loaded ");
+
+								Record rec = new Record(r.getFile(), new File(r.getFile()).lastModified());
+								if (rec.modification != 0) loadMap.put(c, rec);
+
+								if (traceLoader) System.out.println(" loaded " + loadMap.size());
 							}
 						} catch (IOException e) {
 							e.printStackTrace();
@@ -99,7 +132,8 @@ public class Trampoline {
 		}
 
 
-		LinkedHashSet<String> blacklist_prefix = new LinkedHashSet<String>(Arrays.asList("java", "sun", "jdk", "javax", "sunw", "apple", "com.apple"));
+		LinkedHashSet<String> blacklist_prefix = new LinkedHashSet<String>(Arrays
+			    .asList("fieldagent", "java", "sun", "jdk", "javax", "sunw", "apple", "com.apple"));
 
 		protected boolean shouldLoad(String name) {
 
@@ -129,7 +163,7 @@ public class Trampoline {
 			}
 
 			if (traceLoader) System.out.println("C: " + name + " -> " + url);
-			if (traceLoader) if (url==null) System.out.println(" URL search paths are "+Arrays.asList(getURLs()));
+			if (traceLoader) if (url == null) System.out.println(" URL search paths are " + Arrays.asList(getURLs()));
 
 			return url;
 		}

@@ -7,6 +7,8 @@ import fieldbox.boxes.*;
 
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
+import static fieldbox.boxes.StandardFLineDrawing.*;
+import static fieldbox.boxes.FLineDrawing.*;
 
 /**
  * Adds: a default decorator for setting a drawer appropriately to give feedback (currently a stripey green frame
@@ -28,7 +30,7 @@ public class IsExecuting extends Box {
 
 			box.properties.put(executionCount, Math.max(1, 1 + box.properties.computeIfAbsent(executionCount, (k) -> 0)));
 
-			box.properties.putToMap(FLineDrawing.frameDrawing, "_animationFeedback_"+name, new Cached<Box, Object, FLine>((b, was) -> {
+			box.properties.putToMap(frameDrawing, "_animationFeedback_"+name, new Cached<Box, Object, FLine>((b, was) -> {
 
 				Rect rect = box.properties.get(frame);
 
@@ -49,9 +51,9 @@ public class IsExecuting extends Box {
 
 				FLine f = new FLine();
 				f.rect(rect.x, rect.y, rect.w, rect.h);
-				f.attributes.put(FLineDrawing.filled, true);
-				f.attributes.put(FLineDrawing.fillColor, new Vec4(0.2f, 0.5f, 0.3f, -0.2f));
-				f.attributes.put(FLineDrawing.color, new Vec4(0.2f, 0.5f, 0.3f, 0.8f));
+				f.attributes.put(filled, true);
+				f.attributes.put(fillColor, new Vec4(0.2f, 0.5f, 0.3f, -0.2f));
+				f.attributes.put(color, new Vec4(0.2f, 0.5f, 0.3f, 0.8f));
 
 				return f;
 
