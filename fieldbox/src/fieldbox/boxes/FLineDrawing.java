@@ -41,7 +41,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 
 	static public final Dict.Prop<Map<String, Function<Box, FLine>>> frameDrawing = new Dict.Prop<>("frameDrawing").type().toCannon()
 		    .doc("Functions that compute lines to be drawn along with this box");
-	static public final Dict.Prop<LinkedHashMapAndArrayList<String, Supplier<FLine>>> lines = new Dict.Prop<>("lines").type().toCannon()
+	static public final Dict.Prop<LinkedHashMapAndArrayList<Supplier<FLine>>> lines = new Dict.Prop<>("lines").type().toCannon()
 		    .doc("Geometry to be drawn along with this box");
 
 	static public final Dict.Prop<Boolean> dirty = new Dict.Prop<>("dirty").type().toCannon()

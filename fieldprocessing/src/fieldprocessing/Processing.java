@@ -10,10 +10,18 @@ import fieldbox.boxes.Drawing;
 import fieldbox.boxes.Mouse;
 import fielded.Execution;
 import fielded.RemoteEditor;
+import fieldnashorn.IdempotencyMap;
+import jdk.internal.dynalink.beans.StaticClass;
+import jdk.nashorn.internal.objects.ScriptFunctionImpl;
+import jdk.nashorn.internal.runtime.ScriptObject;
+import jdk.nashorn.internal.runtime.linker.JavaAdapterFactory;
 import processing.core.PApplet;
+import processing.event.MouseEvent;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseWheelEvent;
+import java.lang.invoke.MethodHandles;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -47,56 +55,10 @@ public class Processing extends Box {
 	int sizeX = AutoPersist.persist("processing_sizeX", () -> 400, x -> Math.min(2560, Math.max(100, x)), (x) -> frame.getSize().width);
 	int sizeY = AutoPersist.persist("processing_sizeY", () -> 400, x -> Math.min(2560, Math.max(100, x)), (x) -> frame.getSize().height);
 
-
-	public class FieldProcessingApplet extends PApplet {
-		@Override
-		public void setup() {
-			size(sizeX, sizeY);
-		}
-
-		@Override
-		public void draw() {
-			try {
-				if (RunLoop.lock.tryLock(1, TimeUnit.DAYS)) {
-					for (Runnable r : queue) {
-						try {
-							r.run();
-						} catch (Throwable t) {
-							System.err.println(" exception thrown inside Processing runloop");
-							t.printStackTrace();
-						}
-					}
-					queue.clear();
-
-					find(Boxes.insideRunLoop, both()).forEach(x -> {
-
-						Iterator<Map.Entry<String, Supplier<Boolean>>> rn = x.entrySet().iterator();
-						while (rn.hasNext()) {
-							Map.Entry<String, Supplier<Boolean>> n = rn.next();
-							if (n.getKey().startsWith("processing.")) {
-								try {
-									if (!n.getValue().get()) {
-										rn.remove();
-										Drawing.dirty(Processing.this);
-									}
-								} catch (Throwable t) {
-									t.printStackTrace();
-								}
-							}
-						}
-					});
-
-				} else {
-					System.out.println(" didn't acquire lock ?");
-				}
-				Thread.sleep(1);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			} finally {
-				RunLoop.lock.unlock();
-			}
-		}
+	public interface MouseHandler {
+		public void handle(FieldProcessingApplet applet, Object/*MouseEvent or MouseMoveEvent*/ event);
 	}
+
 
 	public Processing(Box root) {
 
@@ -104,7 +66,7 @@ public class Processing extends Box {
 
 
 		frame = new JFrame("Field/Processing");
-		applet = new FieldProcessingApplet();
+		applet = new FieldProcessingApplet(sizeX, sizeY, queue, this);
 
 		applet.init();
 		applet.loop();

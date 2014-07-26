@@ -150,20 +150,20 @@ public class JavaSupport {
 
 		JavaClass j = builder.getClassByName(c.getName());
 
-		Log.log("completion.debug", " java class (for javadoc supported completion) :"+j);
+		Log.log("completion.debug", " java class (for javadoc supported completion) :"+j+" prefix is <"+prefix+">");
 
 		List<Execution.Completion> r = new ArrayList<>();
 		try {
 			while(j!=null) {
 				for (JavaField m : j.getFields()) {
-					if (m.getName().startsWith(prefix) && m.getModifiers().contains("public") && (!staticsOnly || m.getModifiers()
+					if ((prefix.equals("") || m.getName().startsWith(prefix)) && m.getModifiers().contains("public") && (!staticsOnly || m.getModifiers()
 						    .contains("static"))) {
 						r.add(new Execution.Completion(-1, -1, m.getName(), "<span class=type>" + compress(m.getName(), m
 							    .getDeclarationSignature(true)) + "</span>" + (m.getComment() != null ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + m.getComment() + "</span>" : "")));
 					}
 				}
 				for (JavaMethod m : j.getMethods()) {
-					if (m.getName().startsWith(prefix) && m.getModifiers().contains("public") && (!staticsOnly || m.getModifiers()
+					if ((prefix.equals("") ||m.getName().startsWith(prefix)) && m.getModifiers().contains("public") && (!staticsOnly || m.getModifiers()
 						    .contains("static"))) {
 						r.add(new Execution.Completion(-1, -1, m.getName(), "<span class=type>" + compress(m.getName(), m
 							    .getDeclarationSignature(true)) + "</span>" + (m.getComment() != null ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + m.getComment() + "</span>" : "")));
