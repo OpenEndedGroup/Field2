@@ -6,11 +6,12 @@ import fieldbox.boxes.Boxes;
 import fieldbox.boxes.Drawing;
 import fieldnashorn.IdempotencyMap;
 import fieldprocessing.Processing.MouseHandler;
+import fieldprocessing.Processing.KeyHandler;
 import processing.core.PApplet;
+import processing.event.KeyEvent;
 import processing.event.MouseEvent;
 
 import java.awt.event.MouseWheelEvent;
-import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -171,6 +172,27 @@ public class FieldProcessingApplet extends PApplet {
 	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
 		onMouseWheelMoved.values().forEach(x -> x.handle(this, e));
+	}
+
+	/**
+	 * A Map containing handlers to be called when the mouse wheel is moved with (Applet, MouseWheelEvent)
+	 */
+	public Map<String, KeyHandler> onKeyPressed = new IdempotencyMap<>(KeyHandler.class);
+
+	@Override
+	public void keyPressed(KeyEvent event) {
+		onKeyPressed.values().forEach(x -> x.handle(this, event));
+
+	}
+
+	/**
+	 * A Map containing handlers to be called when the mouse wheel is moved with (Applet, MouseWheelEvent)
+	 */
+	public Map<String, KeyHandler> onKeyReleased = new IdempotencyMap<>(KeyHandler.class);
+
+	@Override
+	public void keyReleased(KeyEvent event) {
+		onKeyReleased.values().forEach(x -> x.handle(this, event));
 	}
 
 }

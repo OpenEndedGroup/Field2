@@ -20,6 +20,7 @@ import processing.event.MouseEvent;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseWheelEvent;
 import java.lang.invoke.MethodHandles;
 import java.util.*;
@@ -57,6 +58,11 @@ public class Processing extends Box {
 
 	public interface MouseHandler {
 		public void handle(FieldProcessingApplet applet, Object/*MouseEvent or MouseMoveEvent*/ event);
+	}
+
+	public interface KeyHandler
+	{
+		public void handle(FieldProcessingApplet applet, processing.event.KeyEvent event);
 	}
 
 
