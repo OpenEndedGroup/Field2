@@ -32,10 +32,11 @@ public class LinkedHashMapAndArrayList<V> extends LinkedHashMap<String, V> {
 
 	public V remove(Object v)
 	{
+		Log.log("lhmaal_remove", "removing "+v+" "+this);
 		V q = super.remove(v);
 		V q2 = super.remove(keys.remove(v));
+		Log.log("lhmaal_remove", "now "+this);
 		return q!=null ? q : q2;
 	}
-
 
 }
