@@ -34,6 +34,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	private final ScriptEngine engine;
 	private TernSupport ternSupport;
 	public String filename = null;
+	private int lineOffset;
 
 	public NashornExecution(Box box, Dict.Prop<String> property, ScriptContext b, ScriptEngine engine) {
 		this.box = box;
@@ -85,8 +86,16 @@ public class NashornExecution implements Execution.ExecutionSupport {
 			Log.log("nashorn.general", "\n>>javascript in");
 			Log.log("nashorn.general", textFragment);
 
+			engine.put("__LINE__", 200);
+
+
+			StringBuffer prefix = new StringBuffer(lineOffset);
+			for(int i=0;i<lineOffset;i++)
+				prefix.append('\n');
+
 			if (filename!=null)
-				textFragment = "//# sourceURL="+filename+"\n"+textFragment;
+				textFragment = prefix+textFragment+"//# sourceURL="+filename;
+
 
 			Object ret = engine.eval(textFragment, context);
 			Log.log("nashorn.general", () -> "\n<<javascript out" + ret + " " + (ret != null ? ret.getClass() + "" : ""));
@@ -102,18 +111,31 @@ public class NashornExecution implements Execution.ExecutionSupport {
 			lineErrors.accept(new Pair<>(-1, t.getMessage()));
 			t.printStackTrace();
 		}
+		finally
+		{
+			lineOffset = 0;
+		}
 	}
 
 	@Override
 	public void executeAndPrint(String textFragment, Consumer<field.utility.Pair<Integer, String>> lineErrors, Consumer<String> success) {
 		executeAndReturn(textFragment, lineErrors, success, true);
+		lineOffset = 0;
 	}
 
 	@Override
 	public void executeAll(String allText, Consumer<field.utility.Pair<Integer, String>> lineErrors, Consumer<String> success) {
+		lineOffset = 0;
 		executeAndReturn(allText, lineErrors, success, false);
+		lineOffset = 0;
 	}
 
+
+	@Override
+	public void setLineOffsetForFragment(int line)
+	{
+		lineOffset = line;
+	}
 	int uniq = 0;
 
 	@Override

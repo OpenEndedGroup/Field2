@@ -142,9 +142,6 @@ _messageBus.subscribe("begin.commands", function (d, e) {
 
     var completions = []
     for (var i = 0; i < d.commands.length; i++) {
-
-
-
         d.commands[i].callback = function () {
             _field.send("call.command", {
                 command: this.call
@@ -203,7 +200,6 @@ overrides = ["Ctrl-H", "Shift-Ctrl-O", "Ctrl-W", "Ctrl-J", "Ctrl-N", "Shift-Ctrl
 extraKeys = {
 // should this be alt-Left on Linux?
     "Ctrl-Left": function (cm) {
-    		console.log(" ctrl left ! ", currentBracket);
         executeCurrentBracket()
         cm.setCursor(c);
     },
@@ -264,7 +260,8 @@ extraKeys = {
         _field.sendWithReturn("execution.fragment", {
             box: cm.currentbox,
             property: cm.currentproperty,
-            text: fragment
+            text: fragment,
+            lineoffset: Math.min(cm.listSelections()[0].anchor.line, cm.listSelections()[0].head.line)
         }, function (d, e) {
             if (d.type == 'error')
                 appendRemoteOutputToLine(anchorLine, d.line + " : " + d.message, "Field-remoteOutput", "Field-remoteOutput-error", 1)

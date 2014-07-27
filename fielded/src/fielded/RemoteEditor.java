@@ -180,8 +180,13 @@ public class RemoteEditor extends Box {
 
 			String returnAddress = p.getString("returnAddress");
 
+			int lineoffset = p.has("lineoffset") ? p.getInt("lineoffset") : 0;
+
+			Log.log("remote.debug", "lineoffset ;"+lineoffset+" "+p.has("lineoffset"));
 
 			Execution.ExecutionSupport support = getExecution(box.get()).support(box.get(), new Dict.Prop<String>(prop));
+
+			support.setLineOffsetForFragment(lineoffset);
 			support.executeTextFragment(text, newOutput(box
 				    .get(), returnAddress, (Function<Pair<Integer, String>, String>) (lineerror) -> new JSONStringer().object()
 				    .key("type").value("error").key("line").value((int) lineerror.first).key("message").value(lineerror.second)
