@@ -205,20 +205,20 @@ overrides = ["Ctrl-H", "Shift-Ctrl-O", "Ctrl-W", "Ctrl-J", "Ctrl-N", "Shift-Ctrl
 extraKeys = {
 // should this be alt-Left on Linux?
     "Ctrl-Left": function (cm) {
-    		$.getScript("/field/filesystem/js_helpers/currentbracket.js");
+    		$.getScript("/field/filesystem/js_helpers/current_bracket.js");
     },
     "Ctrl-Enter": function (cm) {
-    		$.getScript("/field/filesystem/js_helpers/runselection.js");
+    		$.getScript("/field/filesystem/js_helpers/run_selection.js");
     },
     "Ctrl-0": function (cm) {
-    		$.getScript("/field/filesystem/js_helpers/runall.js");
+    		$.getScript("/field/filesystem/js_helpers/run_all.js");
     },
     "Ctrl-PageDown": function (cm) {
-    		$.getScript("/field/filesystem/js_helpers/runend.js");
+    		$.getScript("/field/filesystem/js_helpers/run_end.js");
     },
     "Ctrl-PageUp": function (cm) {
-        		$.getScript("/field/filesystem/js_helpers/runbegin.js");
-        },
+        $.getScript("/field/filesystem/js_helpers/run_begin.js");
+    },
     "Ctrl-.": function (cm) {
     		$.getScript("/field/filesystem/js_helpers/autocomplete.js");
     },

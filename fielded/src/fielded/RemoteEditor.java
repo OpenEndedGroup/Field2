@@ -465,9 +465,21 @@ public class RemoteEditor extends Box {
 
 			//todo: handle no box case
 
-			List<Map.Entry<Pair<String, String>, Runnable>> commands = (List<Map.Entry<Pair<String, String>, Runnable>>) box.get()
+			List<Map.Entry<Pair<String, String>, Runnable>> commands = box.get()
 				    .find(RemoteEditor.commands, box.get().both()).flatMap(m -> m.get().entrySet().stream())
 				    .collect(Collectors.toList());
+
+			//God, I hate Javascript. I'll quarantine it all here.
+			List<String> jsFiles = findJSFiles(FileSystems.getDefault().getPath("fielded/external/js_helpers").toString());
+			List<String> jsCommandNames = new ArrayList<>();
+
+			for (String jsFile : jsFiles) {
+				jsCommandNames.add(jsFile.substring(0, jsFile.length()-3).replace('_', ' '));
+			}
+
+			for (String command : jsCommandNames) {
+				commands.add(new Map.Entry<>(new Pair<>(command, "This is a js command.")), ()->;);
+			}
 
 			//Override the existing functionality in the menu to instead prompt for a new hotkey
 			//And write the new hotkey to the properties file
@@ -497,6 +509,7 @@ public class RemoteEditor extends Box {
 							@Override
 							public void run() {
 								if (altWas != null) {
+
 									//Set up file reading
 									Path properties = FileSystems.getDefault().getPath("fieldbox/resources", "properties.txt");
 									File file = new File(properties.toString());
@@ -817,6 +830,23 @@ public class RemoteEditor extends Box {
 	public void popFromLogStack() {
 		this.logStack.remove(this.logStack.size() - 1);
 		this.errorStack.remove(this.errorStack.size() - 1);
+	}
+
+	// Function to gather all javascript files in a directory as a list of strings
+	// (i.e. "somefile.js")
+	// Arguments: Absolute directory location of .js files
+	// Returns: List of file names
+	private static List<String> findJSFiles(String dir){
+		File[] files = new File(dir).listFiles();
+		List<String> fileStrings = new ArrayList<>();
+		for (File file : files) {
+			if (!file.isDirectory() && file.toString().endsWith(".js")) {
+				String fullPath = file.toString();
+				fileStrings.add(fullPath.substring(fullPath.lastIndexOf('/')+1));
+			}
+		}
+
+		return fileStrings;
 	}
 
 }
