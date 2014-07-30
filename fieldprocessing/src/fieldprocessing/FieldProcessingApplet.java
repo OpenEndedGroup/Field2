@@ -18,9 +18,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-/**
- * moved to make completion better
- */
 public class FieldProcessingApplet extends PApplet {
 
 	private final int sizeX;
@@ -87,97 +84,111 @@ public class FieldProcessingApplet extends PApplet {
 	/**
 	 * A Map containing handlers to be called when the mouse is clicked with (Applet, MouseEvent)
 	 */
-	public Map<String, MouseHandler> onMouseClicked = new IdempotencyMap<>(MouseHandler.class);
+	public final Map<String, MouseHandler> onMouseClicked = new IdempotencyMap<>(MouseHandler.class);
+
+	/**
+	 * A Map containing handlers to be called when the mouse is moved with (Applet, MouseEvent)
+	 */
+	public final Map<String, MouseHandler> onMouseMoved = new IdempotencyMap<>(MouseHandler.class);
+
+	/**
+	 * A Map containing handlers to be called when the mouse is pressed with (Applet, MouseEvent)
+	 */
+	public final Map<String, MouseHandler> onMousePressed = new IdempotencyMap<>(MouseHandler.class);
+
+	/**
+	 * A Map containing handlers to be called when the mouse is dragged with (Applet, MouseEvent)
+	 */
+	public final Map<String, MouseHandler> onMouseDragged = new IdempotencyMap<>(MouseHandler.class);
+
+	/**
+	 * A Map containing handlers to be called when the mouse enters with (Applet, MouseEvent)
+	 */
+	public final Map<String, MouseHandler> onMouseEntered = new IdempotencyMap<>(MouseHandler.class);
+
+	/**
+	 * A Map containing handlers to be called when the mouse exits with (Applet, MouseEvent)
+	 */
+	public final Map<String, MouseHandler> onMouseExited = new IdempotencyMap<>(MouseHandler.class);
+
+	/**
+	 * A Map containing handlers to be called when the mouse is released with (Applet, MouseEvent)
+	 */
+	public final Map<String, MouseHandler> onMouseReleased = new IdempotencyMap<>(MouseHandler.class);
+
+	/**
+	 * A Map containing handlers to be called when the mouse wheel is pressed with (Applet, MouseEvent)
+	 */
+	public final Map<String, MouseHandler> onMouseWheel = new IdempotencyMap<>(MouseHandler.class);
+
+	/**
+	 * A Map containing handlers to be called when the mouse wheel is moved with (Applet, MouseWheelEvent)
+	 */
+	public final Map<String, MouseHandler> onMouseWheelMoved = new IdempotencyMap<>(MouseHandler.class);
+
+	/**
+	 * A Map containing handlers to be called when the mouse wheel is moved with (Applet, MouseWheelEvent)
+	 */
+	public final Map<String, KeyHandler> onKeyPressed = new IdempotencyMap<>(KeyHandler.class);
+
+	/**
+	 * A Map containing handlers to be called when the mouse wheel is moved with (Applet, MouseWheelEvent)
+	 */
+	public final Map<String, KeyHandler> onKeyReleased = new IdempotencyMap<>(KeyHandler.class);
 
 	@Override
 	public void mouseClicked(MouseEvent event) {
 		onMouseClicked.values().forEach(x -> x.handle(this, event));
 	}
 
-	/**
-	 * A Map containing handlers to be called when the mouse is moved with (Applet, MouseEvent)
-	 */
-	public Map<String, MouseHandler> onMouseMoved = new IdempotencyMap<>(MouseHandler.class);
 
 	@Override
 	public void mouseMoved(MouseEvent event) {
 		onMouseMoved.values().forEach(x -> x.handle(this, event));
 	}
 
-	/**
-	 * A Map containing handlers to be called when the mouse is pressed with (Applet, MouseEvent)
-	 */
-	public Map<String, MouseHandler> onMousePressed = new IdempotencyMap<>(MouseHandler.class);
 
 	@Override
 	public void mousePressed(MouseEvent event) {
 		onMousePressed.values().forEach(x -> x.handle(this, event));
 	}
 
-	/**
-	 * A Map containing handlers to be called when the mouse is dragged with (Applet, MouseEvent)
-	 */
-	public Map<String, MouseHandler> onMouseDragged = new IdempotencyMap<>(MouseHandler.class);
 
 	@Override
 	public void mouseDragged(MouseEvent event) {
 		onMouseDragged.values().forEach(x -> x.handle(this, event));
 	}
 
-	/**
-	 * A Map containing handlers to be called when the mouse enters with (Applet, MouseEvent)
-	 */
-	public Map<String, MouseHandler> onMouseEntered = new IdempotencyMap<>(MouseHandler.class);
 
 	@Override
 	public void mouseEntered(MouseEvent event) {
 		onMouseEntered.values().forEach(x -> x.handle(this, event));
 	}
 
-	/**
-	 * A Map containing handlers to be called when the mouse exits with (Applet, MouseEvent)
-	 */
-	public Map<String, MouseHandler> onMouseExited = new IdempotencyMap<>(MouseHandler.class);
 
 	@Override
 	public void mouseExited(MouseEvent event) {
 		onMouseExited.values().forEach(x -> x.handle(this, event));
 	}
 
-	/**
-	 * A Map containing handlers to be called when the mouse is released with (Applet, MouseEvent)
-	 */
-	public Map<String, MouseHandler> onMouseReleased = new IdempotencyMap<>(MouseHandler.class);
 
 	@Override
 	public void mouseReleased(MouseEvent event) {
 		onMouseReleased.values().forEach(x -> x.handle(this, event));
 	}
 
-	/**
-	 * A Map containing handlers to be called when the mouse wheel is pressed with (Applet, MouseEvent)
-	 */
-	public Map<String, MouseHandler> onMouseWheel = new IdempotencyMap<>(MouseHandler.class);
 
 	@Override
 	public void mouseWheel(MouseEvent event) {
 		onMouseWheel.values().forEach(x -> x.handle(this, event));
 	}
 
-	/**
-	 * A Map containing handlers to be called when the mouse wheel is moved with (Applet, MouseWheelEvent)
-	 */
-	public Map<String, MouseHandler> onMouseWheelMoved = new IdempotencyMap<>(MouseHandler.class);
 
 	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
 		onMouseWheelMoved.values().forEach(x -> x.handle(this, e));
 	}
 
-	/**
-	 * A Map containing handlers to be called when the mouse wheel is moved with (Applet, MouseWheelEvent)
-	 */
-	public Map<String, KeyHandler> onKeyPressed = new IdempotencyMap<>(KeyHandler.class);
 
 	@Override
 	public void keyPressed(KeyEvent event) {
@@ -185,14 +196,24 @@ public class FieldProcessingApplet extends PApplet {
 
 	}
 
-	/**
-	 * A Map containing handlers to be called when the mouse wheel is moved with (Applet, MouseWheelEvent)
-	 */
-	public Map<String, KeyHandler> onKeyReleased = new IdempotencyMap<>(KeyHandler.class);
-
 	@Override
 	public void keyReleased(KeyEvent event) {
 		onKeyReleased.values().forEach(x -> x.handle(this, event));
 	}
 
+	public int getDmouseX() {
+		return dmouseX;
+	}
+
+	public int getDmouseY() {
+		return dmouseY;
+	}
+
+	public int getEmouseX() {
+		return emouseX;
+	}
+
+	public int getEmouseY() {
+		return emouseY;
+	}
 }

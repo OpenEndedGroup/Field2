@@ -5,28 +5,16 @@ import field.graphics.RunLoop;
 import field.linalg.Vec4;
 import field.utility.*;
 import fieldbox.boxes.Box;
-import fieldbox.boxes.Boxes;
 import fieldbox.boxes.Drawing;
 import fieldbox.boxes.Mouse;
 import fielded.Execution;
 import fielded.RemoteEditor;
-import fieldnashorn.IdempotencyMap;
-import jdk.internal.dynalink.beans.StaticClass;
-import jdk.nashorn.internal.objects.ScriptFunctionImpl;
-import jdk.nashorn.internal.runtime.ScriptObject;
-import jdk.nashorn.internal.runtime.linker.JavaAdapterFactory;
 import processing.core.PApplet;
-import processing.event.MouseEvent;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseWheelEvent;
-import java.lang.invoke.MethodHandles;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -34,9 +22,9 @@ import static fieldbox.boxes.FLineDrawing.frameDrawing;
 import static fieldbox.boxes.StandardFLineDrawing.*;
 
 /**
- * The Processing Plugin. Refer to Processing.applet to get at the applet.
+ * The Processing Plugin. Refer to Processing.__applet to get at the __applet.
  * <p>
- * E.g. var P = Java.type('fieldprocessing.Processing').applet
+ * E.g. var P = Java.type('fieldprocessing.Processing').__applet
  * <p>
  * This adds a command "Bridge box to Processing". Run that to move this box (and any children) into the Processing draw cycle. Then you can write
  * things like:
@@ -46,7 +34,9 @@ import static fieldbox.boxes.StandardFLineDrawing.*;
 public class Processing extends Box {
 
 	private final ProcessingExecution processingExecution;
-	public static PApplet applet;
+	public FieldProcessingApplet __applet;
+	public static FieldProcessingAppletDelgate applet;
+
 
 	// synchronized via Runloop.lock
 	public List<Runnable> queue = new ArrayList<>();
@@ -72,14 +62,16 @@ public class Processing extends Box {
 
 
 		frame = new JFrame("Field/Processing");
-		applet = new FieldProcessingApplet(sizeX, sizeY, queue, this);
+		__applet = new FieldProcessingApplet(sizeX, sizeY, queue, this);
 
-		applet.init();
-		applet.loop();
-		frame.add(applet, BorderLayout.CENTER);
+		__applet.init();
+		__applet.loop();
+		frame.add(__applet, BorderLayout.CENTER);
 		frame.setSize(sizeX, sizeY);
 		frame.setVisible(true);
 		frame.validate();
+
+		applet = new FieldProcessingAppletDelgate(__applet);
 
 		Execution delegate = root.find(Execution.execution, root.both()).findFirst()
 			    .orElseThrow(() -> new IllegalArgumentException(" can't instantiate Processing execution - no default execution found"));

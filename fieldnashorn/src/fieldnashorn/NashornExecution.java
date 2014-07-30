@@ -89,6 +89,8 @@ public class NashornExecution implements Execution.ExecutionSupport {
 			engine.put("__LINE__", 200);
 
 
+			// we prefix the code with a sufficient number of \n's so that the line number of any error message actually refers to the correct line
+			// dreadful hack, but there's no other option right now in Nashorn (sourceMaps aren't supported for example)
 			StringBuffer prefix = new StringBuffer(lineOffset);
 			for(int i=0;i<lineOffset;i++)
 				prefix.append('\n');
