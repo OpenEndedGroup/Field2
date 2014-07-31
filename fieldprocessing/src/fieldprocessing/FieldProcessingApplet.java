@@ -5,8 +5,8 @@ import fieldbox.boxes.Box;
 import fieldbox.boxes.Boxes;
 import fieldbox.boxes.Drawing;
 import fieldnashorn.IdempotencyMap;
-import fieldprocessing.Processing.MouseHandler;
 import fieldprocessing.Processing.KeyHandler;
+import fieldprocessing.Processing.MouseHandler;
 import processing.core.PApplet;
 import processing.event.KeyEvent;
 import processing.event.MouseEvent;
@@ -35,7 +35,7 @@ public class FieldProcessingApplet extends PApplet {
 
 	@Override
 	public void setup() {
-		size(sizeX, sizeY);
+		size(sizeX, sizeY, P3D);
 	}
 
 	@Override
@@ -69,7 +69,6 @@ public class FieldProcessingApplet extends PApplet {
 						}
 					}
 				});
-
 			} else {
 				System.out.println(" didn't acquire lock ?");
 			}
