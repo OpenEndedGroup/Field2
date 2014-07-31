@@ -6094,7 +6094,7 @@ public class FieldProcessingAppletDelgate {
 		applet.text(num, x, y, z);
 	}
 
-	int p = 0;
+
 
 	/**
 	 * ( begin auto-generated from pushMatrix.xml )
@@ -6116,8 +6116,6 @@ public class FieldProcessingAppletDelgate {
 	 * @see processing.core.PGraphics#rotateZ(float)
 	 */
 	public void pushMatrix() {
-//		p++;
-//		Log.log("processing.push", "push :" + p);
 		applet.pushMatrix();
 	}
 
@@ -6135,10 +6133,9 @@ public class FieldProcessingAppletDelgate {
 	 * @see processing.core.PGraphics#pushMatrix()
 	 */
 	public void popMatrix() {
-//		p--;
-//		Log.log("processing.push", "pop :" + p);
 		applet.popMatrix();
 	}
+
 
 	/**
 	 * ( begin auto-generated from translate.xml )

@@ -45,37 +45,43 @@ public class FieldProcessingApplet extends PApplet {
 	public void draw() {
 		try {
 			if (RunLoop.lock.tryLock(1, TimeUnit.DAYS)) {
-				for (Runnable r : queue) {
-					try {
-						r.run();
-					} catch (Throwable t) {
-						System.err.println(" exception thrown inside Processing runloop");
-						t.printStackTrace();
-						error.accept(t.getMessage());
-					}
-				}
-				queue.clear();
-
-				box.find(Boxes.insideRunLoop, box.both()).forEach(x -> {
-
-					Iterator<Map.Entry<String, Supplier<Boolean>>> rn = x.entrySet().iterator();
-					while (rn.hasNext()) {
-						Map.Entry<String, Supplier<Boolean>> n = rn.next();
-						if (n.getKey().startsWith("processing.")) {
-							try {
-								if (!n.getValue().get()) {
-									rn.remove();
-									Drawing.dirty(box);
-								}
-							} catch (Throwable t) {
-								System.err.println(" exception thrown inside Processing runloop");
-								t.printStackTrace();
-								error.accept(t.getMessage());
-								rn.remove();
-							}
+				try {
+					for (Runnable r : queue) {
+						try {
+							r.run();
+						} catch (Throwable t) {
+							System.err.println(" exception thrown inside Processing runloop");
+							t.printStackTrace();
+							error.accept(t.getMessage());
 						}
 					}
-				});
+					queue.clear();
+
+					box.find(Boxes.insideRunLoop, box.both()).forEach(x -> {
+
+						Iterator<Map.Entry<String, Supplier<Boolean>>> rn = x.entrySet().iterator();
+						while (rn.hasNext()) {
+							Map.Entry<String, Supplier<Boolean>> n = rn.next();
+							if (n.getKey().startsWith("processing.")) {
+								try {
+									if (!n.getValue().get()) {
+										rn.remove();
+										Drawing.dirty(box);
+									}
+								} catch (Throwable t) {
+									System.err.println(" exception thrown inside Processing runloop");
+									t.printStackTrace();
+									error.accept(t.getMessage());
+									rn.remove();
+								}
+							}
+						}
+					});
+				}
+				finally
+				{
+					autoPopMatrix();
+				}
 			} else {
 				System.out.println(" didn't acquire lock ?");
 			}
@@ -85,6 +91,26 @@ public class FieldProcessingApplet extends PApplet {
 		} finally {
 			RunLoop.lock.unlock();
 		}
+	}
+
+	protected int popCount = 0;
+
+	@Override
+	public void pushMatrix() {
+		super.pushMatrix();
+		popCount++;
+	}
+
+	@Override
+	public void popMatrix() {
+		super.popMatrix();
+		popCount--;
+	}
+
+	protected void autoPopMatrix()
+	{
+		while(popCount>0)
+			popMatrix();
 	}
 
 	/**
