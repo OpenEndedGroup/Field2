@@ -16,6 +16,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class FieldProcessingApplet extends PApplet {
@@ -24,12 +25,14 @@ public class FieldProcessingApplet extends PApplet {
 	private final int sizeY;
 	private final List<Runnable> queue;
 	private final Box box;
+	private Consumer<String> error;
 
-	protected FieldProcessingApplet(int sizeX, int sizeY, List<Runnable> queue, Box root) {
+	protected FieldProcessingApplet(int sizeX, int sizeY, List<Runnable> queue, Box root, Consumer<String> error) {
 		this.sizeX = sizeX;
 		this.sizeY = sizeY;
 		this.queue = queue;
 		this.box = root;
+		this.error = error;
 	}
 
 
@@ -48,6 +51,7 @@ public class FieldProcessingApplet extends PApplet {
 					} catch (Throwable t) {
 						System.err.println(" exception thrown inside Processing runloop");
 						t.printStackTrace();
+						error.accept(t.getMessage());
 					}
 				}
 				queue.clear();
@@ -64,7 +68,10 @@ public class FieldProcessingApplet extends PApplet {
 									Drawing.dirty(box);
 								}
 							} catch (Throwable t) {
+								System.err.println(" exception thrown inside Processing runloop");
 								t.printStackTrace();
+								error.accept(t.getMessage());
+								rn.remove();
 							}
 						}
 					}

@@ -33,7 +33,7 @@ import static fieldbox.boxes.StandardFLineDrawing.*;
  */
 public class Processing extends Box {
 
-	private final ProcessingExecution processingExecution;
+	private ProcessingExecution processingExecution;
 	public FieldProcessingApplet __applet;
 	public static FieldProcessingAppletDelgate applet;
 
@@ -62,7 +62,10 @@ public class Processing extends Box {
 
 
 		frame = new JFrame("Field/Processing");
-		__applet = new FieldProcessingApplet(sizeX, sizeY, queue, this);
+		__applet = new FieldProcessingApplet(sizeX, sizeY, queue, this, s -> {
+			if (processingExecution.getLastErrorOutput()!=null)
+				processingExecution.getLastErrorOutput().accept(new Pair<>(-1, s));
+		});
 
 		__applet.init();
 		__applet.loop();
