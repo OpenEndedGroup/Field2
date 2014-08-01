@@ -95,7 +95,8 @@ testCommand = function () {
             property: cm.currentproperty,
             text: cm.getValue(),
             line: cm.listSelections()[0].anchor.line,
-            ch: cm.listSelections()[0].anchor.ch
+            ch: cm.listSelections()[0].anchor.ch,
+            allJScommands: ["Autocomplete", "Commands", "Current_Bracket", "Hotkeys", "Import", "Run_All", "Run_Begin", "Run_End", "Run_Selection"]
         },
         function (d, e) {
 						var completions = []
@@ -205,32 +206,32 @@ overrides = ["Ctrl-H", "Shift-Ctrl-O", "Ctrl-W", "Ctrl-J", "Ctrl-N", "Shift-Ctrl
 extraKeys = {
 // should this be alt-Left on Linux?
     "Ctrl-Left": function (cm) {
-    		$.getScript("/field/filesystem/js_helpers/current_bracket.js");
+    		Current_Bracket();
     },
     "Ctrl-Enter": function (cm) {
-    		$.getScript("/field/filesystem/js_helpers/run_selection.js");
+    		Run_Selection();
     },
     "Ctrl-0": function (cm) {
-    		$.getScript("/field/filesystem/js_helpers/run_all.js");
+    		Run_All();
     },
     "Ctrl-PageDown": function (cm) {
-    		$.getScript("/field/filesystem/js_helpers/run_end.js");
+    		Run_End();
     },
     "Ctrl-PageUp": function (cm) {
-        $.getScript("/field/filesystem/js_helpers/run_begin.js");
+        Run_Begin();
     },
     "Ctrl-.": function (cm) {
-    		$.getScript("/field/filesystem/js_helpers/autocomplete.js");
+    		Autocomplete();
     },
     "Ctrl-Space": function (cm) {
-        $.getScript("/field/filesystem/js_helpers/commands.js");
+        Commands();
     },
 
     "Ctrl-/": function(cm) {
-        $.getScript("/field/filesystem/js_helpers/hotkeys.js");
+        Hotkeys();
     },
     "Ctrl-I": function (cm) {
-        $.getScript("/field/filesystem/js_helpers/import.js");
+        Import();
     }
 }
 
