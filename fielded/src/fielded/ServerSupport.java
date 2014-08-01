@@ -18,6 +18,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -33,7 +35,7 @@ import java.util.function.Consumer;
 public class ServerSupport {
 
 	static public List<String> playlist = Arrays
-		    .asList("messagebus.js", "instantiate.js", "JSHotkeyFunctions.js", "changehooks.js", "status.js", "helpbox.js", "modal.js", "brackets.js", "output.js", "doubleshift.js");
+		    .asList("messagebus.js", "instantiate.js", "JSHotkeyFunctions.js", "readHotkeys.js", "changehooks.js", "status.js", "helpbox.js", "modal.js", "brackets.js", "output.js", "doubleshift.js");
 
 
 	public ServerSupport(Boxes boxes) {
@@ -96,6 +98,27 @@ public class ServerSupport {
 				RemoteEditor ed = new RemoteEditor(s, name, watches, queue);
 				ed.connect(boxes.root());
 				ed.setCurrentlyEditingProperty(Execution.code);
+
+				//Set up file reading
+				Path properties = FileSystems.getDefault().getPath("fieldbox/resources", "properties.txt");
+				File file = new File(properties.toString());
+				StringBuilder contents = new StringBuilder();
+
+				//Read properties text file into a string (contents)
+				try ( BufferedReader in = new BufferedReader(new FileReader(file) ) ) {
+					int curr;
+					while((curr = in.read()) != -1) {
+						contents.append((char)curr);
+					}
+					in.close();
+				} catch(IOException x) {
+					System.err.println("Error: Cannot open properties text file in read");
+				}
+
+				for (String line : contents.toString().split("\n") ) {
+					String[] splitLine = line.split(": ");
+					ed.sendJavaScript("extraKeys[" + splitLine[0] + "] = function (cm) " );
+				}
 
 				return payload;
 			});

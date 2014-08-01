@@ -53,6 +53,7 @@ public class RemoteEditor extends Box {
 	private final String socketName;
 	private final MessageQueue<Quad<Dict.Prop, Box, Object, Object>, String> queue;
 	private final Watches watches;
+	public final LinkedHashMap<String, String> hotkeyTranslator = new LinkedHashMap<>();
 
 	LinkedHashMap<String, Runnable> callTable = new LinkedHashMap<>();
 	ExtendedCommand callTable_alternative = null;
@@ -68,6 +69,16 @@ public class RemoteEditor extends Box {
 		this.properties.put(editor, this);
 
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__watch_service__", (Supplier<Boolean>) this::update);
+
+		this.hotkeyTranslator.put("Autocomplete","Autocomplete()");
+		this.hotkeyTranslator.put("Commands", "Commands()");
+		this.hotkeyTranslator.put("Current Bracket", "Current_Bracket()");
+		this.hotkeyTranslator.put("Hotkeys", "Hotkeys()");
+		this.hotkeyTranslator.put("Import", "Import()");
+		this.hotkeyTranslator.put("Run All", "Run_All()");
+		this.hotkeyTranslator.put("Run Begin", "Run_Begin()");
+		this.hotkeyTranslator.put("Run End", "Run_End()");
+		this.hotkeyTranslator.put("Run Selection", "Run_Selection()");
 
 		watches.addWatch(Mouse.isSelected, "selection.changed");
 		watches.addWatch(LinuxWindowTricks.lostFocus, "focus.editor");
@@ -471,18 +482,6 @@ public class RemoteEditor extends Box {
 			String JSCommands = p.getJSONObject("allJSCommands").toString();
 			HashMap<String, String> JSMap = new HashMap<>();
 			HashMap<Pair<String, String>, Runnable> mergemap = new HashMap<>();
-
-			LinkedHashMap<String, String> hotkeyTranslator = new LinkedHashMap<>();
-			hotkeyTranslator.put("Autocomplete","Autocomplete()");
-			hotkeyTranslator.put("Commands", "Commands()");
-			hotkeyTranslator.put("Current Bracket", "Current_Bracket()");
-			hotkeyTranslator.put("Hotkeys", "Hotkeys()");
-			hotkeyTranslator.put("Import", "Import()");
-			hotkeyTranslator.put("Run All", "Run_All()");
-			hotkeyTranslator.put("Run Begin", "Run_Begin()");
-			hotkeyTranslator.put("Run End", "Run_End()");
-			hotkeyTranslator.put("Run Selection", "Run_Selection()");
-
 
 			for (String entry : JSCommands.substring(1, JSCommands.length()-1).replace("\"","").split(",") ) {
 				String[] splitEntry = entry.split(":");
