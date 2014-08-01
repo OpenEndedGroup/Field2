@@ -818,6 +818,9 @@ public class RemoteEditor extends Box {
 	 * A general purpose Send some JavaScript to a text editor call
 	 */
 	public void sendJavaScript(String javascript) {
+		Log.log("javascript.trace", ">>>Sending javascript");
+		Log.log("javascript.trace", javascript);
+		Log.log("javascript.trace", "<<<Sentjavascript");
 		server.send(socketName, javascript);
 	}
 
