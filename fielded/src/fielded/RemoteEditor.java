@@ -556,28 +556,26 @@ public class RemoteEditor extends Box {
 									int commandBegin = -1;
 									int commandEnd = -1;
 									for (int i = 0; i < contents.length(); ++i){
+										if (contents.toString().startsWith("\n")) break;
 										StringBuilder readCommand = new StringBuilder();
 										char currChar;
 										while ((currChar = contents.charAt(i)) != ':') {
 											readCommand.append(currChar);
-											++i;
+											if (i+1 < contents.length()) ++i;
 										}
 										if (readCommand.toString().equals(altWas)) {
-											commandBegin = i+2;
-											while ((contents.charAt(i)) != '\n') ++i;
+											if (i+2 < contents.length()) commandBegin = i+2;
+											while ((contents.charAt(i)) != '\n' && i+1 < contents.length()) ++i;
 											commandEnd = i;
 											break;
 										}
-										while ((contents.charAt(i)) != '\n') ++i;
+										while ((contents.charAt(i)) != '\n' && i+1 < contents.length()) ++i;
 										readCommand.setLength(0);
 									}
 
 									//publish to the codemirror
-									System.out.println(altWas);
-									System.out.print(currCommand.getKey().first);
-									System.out.println("altWas");
-									String jscode= "extraKeys[\"" + altWas + "\"]=" + "\": function(cm) {" + hotkeyTranslator.get(currCommand.getKey().first) + ";}"
-										    +"cm.setOption(\"extraKeys\", extraKeys)";
+									System.out.println("HERE I AM");
+									String jscode= "extraKeys[\"" + altWas + "\"] = function(cm) {" + hotkeyTranslator.get(currCommand.getKey().first) + ";}";
 									sendJavaScript(jscode);
 
 									//Replace the old command in contents with the new one or create a new command
