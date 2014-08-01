@@ -662,7 +662,6 @@ public class RemoteEditor extends Box {
 			} else {
 				callTable_alternative = null;
 				stringer.key("alternative");
-				String u = UUID.randomUUID().toString();
 				callTable_alternative = alternative;
 				stringer.value(null);
 			}
