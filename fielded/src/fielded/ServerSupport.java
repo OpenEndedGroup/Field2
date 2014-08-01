@@ -116,8 +116,8 @@ public class ServerSupport {
 				}
 
 				for (String line : contents.toString().split("\n") ) {
-					String[] splitLine = line.split(": ");
-					ed.sendJavaScript("extraKeys[\"" + splitLine[0] + "\"] = function (cm) {" + ed.hotkeyTranslator.get(splitLine[1]) + ";}");
+					String[] splitLine = line.split(":");
+					ed.sendJavaScript("extraKeys[\"" + splitLine[0].trim() + "\"] = function (cm) {" + splitLine[1].trim() + ";}");
 				}
 
 				return payload;
