@@ -11,6 +11,7 @@
     <orderEntry type="module" module-name="fieldbox" />
     <orderEntry type="module" module-name="fieldwork2" />
     <orderEntry type="library" name="core" level="project" />
+    <orderEntry type="module" module-name="fieldnashorn" />
   </component>
 </module>
 

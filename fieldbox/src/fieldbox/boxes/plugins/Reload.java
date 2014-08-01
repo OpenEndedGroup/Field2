@@ -215,7 +215,13 @@ public class Reload extends Box {
 				ReferenceType refType = (ReferenceType) classes.get(i);
 				Map<ReferenceType, byte[]> map = new HashMap<ReferenceType, byte[]>();
 				map.put(refType, classBytes);
-				vm.redefineClasses((Map<? extends com.sun.jdi.ReferenceType, byte[]>) map);
+				try {
+					vm.redefineClasses((Map<? extends com.sun.jdi.ReferenceType, byte[]>) map);
+				}
+				catch(Throwable t)
+				{
+					Log.log("reload.error", "trouble reloading class "+classes.get(i));
+				}
 			}
 			// System.err.println("class replaced!");
 		}

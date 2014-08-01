@@ -45,9 +45,16 @@ public class ProcessingExecution extends Execution {
 		return wrap(box, s);
 	}
 
+	public Consumer<Pair<Integer, String>> lastErrorOutput;
+
+	public Consumer<Pair<Integer, String>> getLastErrorOutput() {
+		return lastErrorOutput;
+	}
+
 	private ExecutionSupport wrap(Box box, ExecutionSupport s) {
 
 		return new ExecutionSupport() {
+
 			@Override
 			public void executeTextFragment(String textFragment, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
 				System.out.println(" WRAPPED :"+textFragment);
@@ -74,7 +81,9 @@ public class ProcessingExecution extends Execution {
 
 			@Override
 			public String begin(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
-				System.out.println(" WRAPPED (begin)");
+
+				lastErrorOutput = lineErrors;
+
 				String name = s.begin(lineErrors, success);
 				if (name==null) return null;
 				Supplier<Boolean> was = box.properties.removeFromMap(Boxes.insideRunLoop, name);

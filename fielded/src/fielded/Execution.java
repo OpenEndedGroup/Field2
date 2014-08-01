@@ -113,6 +113,9 @@ public class Execution extends Box {
 				    .first(RemoteEditor.outputFactory)
 				    .orElse(x -> (is -> System.out.println("output (without remote editor attached) :" + is))).apply(box));
 		}
+
+		default public void setLineOffsetForFragment(int lineOffset)
+		{}
 	}
 
 	/**

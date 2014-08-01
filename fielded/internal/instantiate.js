@@ -144,9 +144,6 @@ _messageBus.subscribe("begin.commands", function (d, e) {
 
     var completions = []
     for (var i = 0; i < d.commands.length; i++) {
-
-
-
         d.commands[i].callback = function () {
             _field.send("call.command", {
                 command: this.call
