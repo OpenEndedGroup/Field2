@@ -95,7 +95,8 @@ testCommand = function () {
             property: cm.currentproperty,
             text: cm.getValue(),
             line: cm.listSelections()[0].anchor.line,
-            ch: cm.listSelections()[0].anchor.ch
+            ch: cm.listSelections()[0].anchor.ch,
+            allJSCommands: {"Autocomplete": "Documentation for Autocomplete", "Commands": "Documentation for Commands", "Current Bracket": "Documentation for Current Bracket", "Hotkeys": "Documentation for Hotkeys", "Import": "Documentation for Import", "Run All": "Documentation for Run All", "Run Begin": "Documentation for Run Begin", "Run End": "Documentation for Run End", "Run Selection": "Documentation for Run Selection"}
         },
         function (d, e) {
 						var completions = []
@@ -202,32 +203,32 @@ overrides = ["Ctrl-H", "Shift-Ctrl-O", "Ctrl-W", "Ctrl-J", "Ctrl-N", "Shift-Ctrl
 extraKeys = {
 // should this be alt-Left on Linux?
     "Ctrl-Left": function (cm) {
-    		$.getScript("/field/filesystem/js_helpers/current_bracket.js");
+    		$.getScript("/field/filesystem/js_helpers/Current_Bracket.js");
     },
     "Ctrl-Enter": function (cm) {
-    		$.getScript("/field/filesystem/js_helpers/run_selection.js");
+    		$.getScript("/field/filesystem/js_helpers/Run_Selection.js");
     },
     "Ctrl-0": function (cm) {
-    		$.getScript("/field/filesystem/js_helpers/run_all.js");
+    		$.getScript("/field/filesystem/js_helpers/Run_All.js");
     },
     "Ctrl-PageDown": function (cm) {
-    		$.getScript("/field/filesystem/js_helpers/run_end.js");
+    		$.getScript("/field/filesystem/js_helpers/Run_End.js");
     },
     "Ctrl-PageUp": function (cm) {
-        $.getScript("/field/filesystem/js_helpers/run_begin.js");
+        $.getScript("/field/filesystem/js_helpers/Run_Begin.js");
     },
     "Ctrl-.": function (cm) {
-    		$.getScript("/field/filesystem/js_helpers/autocomplete.js");
+    		$.getScript("/field/filesystem/js_helpers/Autocomplete.js");
     },
     "Ctrl-Space": function (cm) {
-        $.getScript("/field/filesystem/js_helpers/commands.js");
+        $.getScript("/field/filesystem/js_helpers/Commands.js");
     },
 
     "Ctrl-/": function(cm) {
-        $.getScript("/field/filesystem/js_helpers/hotkeys.js");
+        $.getScript("/field/filesystem/js_helpers/Hotkeys.js");
     },
     "Ctrl-I": function (cm) {
-        $.getScript("/field/filesystem/js_helpers/import.js");
+        $.getScript("/field/filesystem/js_helpers/Import.js");
     }
 }
 
