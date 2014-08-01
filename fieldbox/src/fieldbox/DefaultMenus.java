@@ -59,7 +59,10 @@ public class DefaultMenus extends Box {
 			return newBox(box.find(Box.frame, box.both()).findFirst().map(x -> new Vec2(x.x+x.w+5, x.y+x.h+5)).orElseGet(() -> new Vec2(0,0)), box.parents().toArray(new Box[]{}));
 		});
 
-		RunLoop.main.onExit(() -> save());
+		RunLoop.main.onExit(() -> {
+			if (this.breadthFirst(both()).filter(x -> x.properties.get(Box.frame)!=null).findFirst().isPresent())
+				save();
+		});
 
 	}
 

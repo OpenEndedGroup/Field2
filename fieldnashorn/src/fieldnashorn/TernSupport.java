@@ -112,7 +112,7 @@ public class TernSupport {
 			c += ch;
 
 
-			Log.log("completion.debug", " line :" + line + " -> " + ch + " -> " + c);
+			Log.log("completion.debug", " line :" + line + " -> " + ch + " -> " + c+" alltext is <"+allText+">");
 
 			engine.eval("__c=new self.tern.Context()");
 			try {
@@ -131,7 +131,6 @@ public class TernSupport {
 
 				String s = allText.substring(((Number) ret[0]).intValue(), ((Number) ret[1]).intValue());
 
-
 				String left = s, right = "";
 
 				if (s.lastIndexOf('.') != -1) {
@@ -140,7 +139,9 @@ public class TernSupport {
 				}
 
 				Object e = engine.eval("_e=eval('" + left.replace("'", "\\'") + "')");
-				Log.log("completion.debug", " e is :" + e + " " + e.getClass());
+				Log.log("completion.debug", " e is :" + e + " " + e.getClass()+" computed prefix from <"+s+"> <"+s.lastIndexOf('.')+">");
+
+				if (right.trim().length()!=right.length()) right="";
 
 				// now if e is an actual java object --- i.e. it's got nothing to do with nashorn, then we could use a more general Field java completion service
 				// and just add the dot back in

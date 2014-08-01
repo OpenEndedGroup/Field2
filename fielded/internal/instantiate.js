@@ -96,7 +96,11 @@ testCommand = function () {
             text: cm.getValue(),
             line: cm.listSelections()[0].anchor.line,
             ch: cm.listSelections()[0].anchor.ch,
+<<<<<<< HEAD
             allJScommands: ["Autocomplete", "Commands", "Current_Bracket", "Hotkeys", "Import", "Run_All", "Run_Begin", "Run_End", "Run_Selection"]
+=======
+            allJSCommands: {"Autocomplete": "Documentation for Autocomplete", "Commands": "Documentation for Commands", "Current Bracket": "Documentation for Current Bracket", "Hotkeys": "Documentation for Hotkeys", "Import": "Documentation for Import", "Run All": "Documentation for Run All", "Run Begin": "Documentation for Run Begin", "Run End": "Documentation for Run End", "Run Selection": "Documentation for Run Selection"}
+>>>>>>> 1a47ae069f9028e7de419a8b14635c78ca7b012a
         },
         function (d, e) {
 						var completions = []
@@ -145,9 +149,6 @@ _messageBus.subscribe("begin.commands", function (d, e) {
 
     var completions = []
     for (var i = 0; i < d.commands.length; i++) {
-
-
-
         d.commands[i].callback = function () {
             _field.send("call.command", {
                 command: this.call

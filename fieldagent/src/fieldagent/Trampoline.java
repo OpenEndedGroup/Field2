@@ -49,6 +49,9 @@ public class Trampoline {
 
 	static public class ExtensibleClassloader extends URLClassLoader {
 
+		{
+			registerAsParallelCapable();
+		}
 
 		public ExtensibleClassloader(URL[] urls, ClassLoader parent) {
 			super(urls, parent);

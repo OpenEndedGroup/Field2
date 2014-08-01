@@ -520,4 +520,34 @@ public class FLine implements Supplier<FLine> {
 	public FLine testFunction(float f, String y) {
 		return this;
 	}
+
+	public List<Node> getNodes()
+	{
+		return nodes;
+	}
+
+	public void callMe(FLine f)
+	{
+		System.out.println(" CALLED !"+f);
+	}
+
+	public void callMe2(Function<String, String> f)
+	{
+		System.out.println(" CALLED !"+f.apply("boo"));
+	}
+
+	public void callMe3(int f)
+	{
+		System.out.println(" CALLED !"+f);
+	}
+
+	public void callMe3(String f)
+	{
+		System.out.println(" CALLED !"+f);
+	}
+
+	public void callMe3(Supplier<String> f)
+	{
+		System.out.println(" CALLED !"+f.get());
+	}
 }

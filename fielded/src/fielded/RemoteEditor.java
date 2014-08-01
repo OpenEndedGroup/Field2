@@ -10,6 +10,7 @@ import fieldbox.io.IO;
 import fielded.webserver.RateLimitingQueue;
 import fielded.webserver.Server;
 import fielded.windowmanager.LinuxWindowTricks;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONStringer;
 
@@ -183,8 +184,13 @@ public class RemoteEditor extends Box {
 
 			String returnAddress = p.getString("returnAddress");
 
+			int lineoffset = p.has("lineoffset") ? p.getInt("lineoffset") : 0;
+
+			Log.log("remote.debug", "lineoffset ;"+lineoffset+" "+p.has("lineoffset"));
 
 			Execution.ExecutionSupport support = getExecution(box.get()).support(box.get(), new Dict.Prop<String>(prop));
+
+			support.setLineOffsetForFragment(lineoffset);
 			support.executeTextFragment(text, newOutput(box
 				    .get(), returnAddress, (Function<Pair<Integer, String>, String>) (lineerror) -> new JSONStringer().object()
 				    .key("type").value("error").key("line").value((int) lineerror.first).key("message").value(lineerror.second)
@@ -462,6 +468,14 @@ public class RemoteEditor extends Box {
 			String returnAddress = p.getString("returnAddress");
 			int line = p.getInt("line");
 			int ch = p.getInt("ch");
+			String JSCommands = p.getJSONObject("allJSCommands").toString();
+			HashMap<String, String> JSMap = new HashMap<>();
+			HashMap<Pair<String, String>, Runnable> mergemap = new HashMap<>();
+
+			for (String entry : JSCommands.substring(1, JSCommands.length()-1).replace("\"","").split(",") ) {
+				String[] splitEntry = entry.split(":");
+				JSMap.put(splitEntry[0], splitEntry[1]);
+			}
 
 			//todo: handle no box case
 
@@ -469,17 +483,17 @@ public class RemoteEditor extends Box {
 				    .find(RemoteEditor.commands, box.get().both()).flatMap(m -> m.get().entrySet().stream())
 				    .collect(Collectors.toList());
 
-			//God, I hate Javascript. I'll quarantine it all here.
-			List<String> jsFiles = findJSFiles(FileSystems.getDefault().getPath("fielded/external/js_helpers").toString());
-			List<String> jsCommandNames = new ArrayList<>();
+			for (String key : JSMap.keySet()) {
+				mergemap.put(new Pair<>(key, JSMap.get(key)), new ExtendedCommand() {
+					@Override
+					public void begin(SupportsPrompt prompt, String alternativeChosen) { }
 
-			for (String jsFile : jsFiles) {
-				jsCommandNames.add(jsFile.substring(0, jsFile.length()-3).replace('_', ' '));
+					@Override
+					public void run() {	}
+				});
 			}
 
-			for (String command : jsCommandNames) {
-				commands.add(new Map.Entry<>(new Pair<>(command, "This is a js command.")), ()->;);
-			}
+			commands.addAll(mergemap.entrySet());
 
 			//Override the existing functionality in the menu to instead prompt for a new hotkey
 			//And write the new hotkey to the properties file

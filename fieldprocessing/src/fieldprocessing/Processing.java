@@ -5,7 +5,6 @@ import field.graphics.RunLoop;
 import field.linalg.Vec4;
 import field.utility.*;
 import fieldbox.boxes.Box;
-import fieldbox.boxes.Boxes;
 import fieldbox.boxes.Drawing;
 import fieldbox.boxes.Mouse;
 import fielded.Execution;
@@ -16,8 +15,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -25,9 +22,9 @@ import static fieldbox.boxes.FLineDrawing.frameDrawing;
 import static fieldbox.boxes.StandardFLineDrawing.*;
 
 /**
- * The Processing Plugin. Refer to Processing.applet to get at the applet.
+ * The Processing Plugin. Refer to Processing.__applet to get at the __applet.
  * <p>
- * E.g. var P = Java.type('fieldprocessing.Processing').applet
+ * E.g. var P = Java.type('fieldprocessing.Processing').__applet
  * <p>
  * This adds a command "Bridge box to Processing". Run that to move this box (and any children) into the Processing draw cycle. Then you can write
  * things like:
@@ -36,78 +33,48 @@ import static fieldbox.boxes.StandardFLineDrawing.*;
  */
 public class Processing extends Box {
 
-	private final ProcessingExecution processingExecution;
-	public static PApplet applet;
+	private ProcessingExecution processingExecution;
+	public FieldProcessingApplet __applet;
+	public static FieldProcessingAppletDelgate applet;
+
 
 	// synchronized via Runloop.lock
 	public List<Runnable> queue = new ArrayList<>();
 
 	protected JFrame frame;
 
+	int sizeX = AutoPersist.persist("processing_sizeX", () -> 400, x -> Math.min(2560, Math.max(100, x)), (x) -> frame.getSize().width);
+	int sizeY = AutoPersist.persist("processing_sizeY", () -> 400, x -> Math.min(2560, Math.max(100, x)), (x) -> frame.getSize().height);
+
+	public interface MouseHandler {
+		public void handle(FieldProcessingApplet applet, Object/*MouseEvent or MouseMoveEvent*/ event);
+	}
+
+	public interface KeyHandler
+	{
+		public void handle(FieldProcessingApplet applet, processing.event.KeyEvent event);
+	}
+
+
 	public Processing(Box root) {
 
 		Log.log("startup.processing", " processing plugin is starting up ");
 
-		int sizeX = AutoPersist.persist("processing_sizeX", () -> 400, x -> Math.min(2560, Math.max(100, x)), (x) -> frame.getSize().width);
-		int sizeY = AutoPersist.persist("processing_sizeY", () -> 400, x -> Math.min(2560, Math.max(100, x)), (x) -> frame.getSize().height);
 
 		frame = new JFrame("Field/Processing");
-		applet = new PApplet() {
-			@Override
-			public void setup() {
-				size(sizeX, sizeY);
-			}
+		__applet = new FieldProcessingApplet(sizeX, sizeY, queue, this, s -> {
+			if (processingExecution.getLastErrorOutput()!=null)
+				processingExecution.getLastErrorOutput().accept(new Pair<>(-1, s));
+		});
 
-			@Override
-			public void draw() {
-				try {
-					if (RunLoop.lock.tryLock(1, TimeUnit.DAYS)) {
-						for (Runnable r : queue) {
-							try {
-								r.run();
-							} catch (Throwable t) {
-								System.err.println(" exception thrown inside Processing runloop");
-								t.printStackTrace();
-							}
-						}
-						queue.clear();
-
-						find(Boxes.insideRunLoop, both()).forEach(x -> {
-
-							Iterator<Map.Entry<String, Supplier<Boolean>>> rn = x.entrySet().iterator();
-							while (rn.hasNext()) {
-								Map.Entry<String, Supplier<Boolean>> n = rn.next();
-								if (n.getKey().startsWith("processing.")) {
-									try {
-										if (!n.getValue().get()) {
-											rn.remove();
-											Drawing.dirty(Processing.this);
-										}
-									} catch (Throwable t) {
-										t.printStackTrace();
-									}
-								}
-							}
-						});
-
-					} else {
-						System.out.println(" didn't acquire lock ?");
-					}
-					Thread.sleep(1);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				} finally {
-					RunLoop.lock.unlock();
-				}
-
-			}
-		};
-		applet.init();
-		applet.loop();
-		frame.add(applet, BorderLayout.CENTER);
+		__applet.init();
+		__applet.loop();
+		frame.add(__applet, BorderLayout.CENTER);
 		frame.setSize(sizeX, sizeY);
 		frame.setVisible(true);
 		frame.validate();
+
+		applet = new FieldProcessingAppletDelgate(__applet);
 
 		Execution delegate = root.find(Execution.execution, root.both()).findFirst()
 			    .orElseThrow(() -> new IllegalArgumentException(" can't instantiate Processing execution - no default execution found"));

@@ -1,6 +1,5 @@
 package field.graphics;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -25,61 +24,50 @@ public class RunLoop {
 
 	protected final Thread shutdownThread;
 
-	protected RunLoop()
-	{
-		Runtime.getRuntime().addShutdownHook(shutdownThread = new Thread( () -> exit()));
+	protected RunLoop() {
+		Runtime.getRuntime().addShutdownHook(shutdownThread = new Thread(() -> exit()));
 	}
 
-	public Scene getLoop()
-	{
+	public Scene getLoop() {
 		return mainLoop;
 	}
 
-	public boolean isMainThread()
-	{
-		return Thread.currentThread()==mainThread;
+	public boolean isMainThread() {
+		return Thread.currentThread() == mainThread;
 	}
 
-	public void enterMainLoop()
-	{
+	public void enterMainLoop() {
 		mainThread = Thread.currentThread();
-		while(true)
-		{
-			try{
+		while (true) {
+			try {
 				tick++;
 
-				if (lock.tryLock(1, TimeUnit.DAYS))
-				{
+				if (lock.tryLock(1, TimeUnit.DAYS)) {
 					mainLoop.updateAll();
-				}
-				else
-				{
+				} else {
 				}
 				Thread.sleep(1);
-			}
-			catch(Throwable t)
-			{
+			} catch (Throwable t) {
 				System.err.println(" exception thrown in main loop");
 				t.printStackTrace();
-			}
-			finally
-			{
+			} finally {
 				RunLoop.lock.unlock();
 			}
 
 		}
 	}
 
-	public void once(Runnable r)
-	{
-		mainLoop.connect( i -> {r.run(); return false;});
+	public void once(Runnable r) {
+		mainLoop.connect(i -> {
+			r.run();
+			return false;
+		});
 	}
 
 	List<Runnable> onExit = new LinkedList<>();
 	AtomicBoolean exitStarted = new AtomicBoolean(false);
 
-	public void exit()
-	{
+	public void exit() {
 		try {
 			if (exitStarted.compareAndSet(false, true)) {
 				for (Runnable r : onExit) {
@@ -90,11 +78,9 @@ public class RunLoop {
 						t.printStackTrace();
 					}
 				}
-				if (Thread.currentThread()!=shutdownThread) System.exit(0);
+				if (Thread.currentThread() != shutdownThread) System.exit(0);
 			}
-		}
-		catch(Throwable t)
-		{
+		} catch (Throwable t) {
 			System.err.println(" unexpected exception thrown during exit ");
 			t.printStackTrace();
 		}
@@ -103,8 +89,7 @@ public class RunLoop {
 	/**
 	 * adds a Runnable to be executed on exit. This will run before anything else that's been added.
 	 */
-	public void onExit(Runnable r)
-	{
+	public void onExit(Runnable r) {
 		// we add this to the start of the list, it will be run before anything that's already there.
 		onExit.add(0, r);
 	}
