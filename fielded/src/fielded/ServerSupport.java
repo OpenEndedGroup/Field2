@@ -35,7 +35,7 @@ import java.util.function.Consumer;
 public class ServerSupport {
 
 	static public List<String> playlist = Arrays
-		    .asList("messagebus.js", "instantiate.js", "JSHotkeyFunctions.js", "readHotkeys.js", "changehooks.js", "status.js", "helpbox.js", "modal.js", "brackets.js", "output.js", "doubleshift.js");
+		    .asList("messagebus.js", "instantiate.js", "JSHotkeyFunctions.js", "changehooks.js", "status.js", "helpbox.js", "modal.js", "brackets.js", "output.js", "doubleshift.js");
 
 
 	public ServerSupport(Boxes boxes) {
@@ -117,7 +117,7 @@ public class ServerSupport {
 
 				for (String line : contents.toString().split("\n") ) {
 					String[] splitLine = line.split(": ");
-					ed.sendJavaScript("extraKeys[" + splitLine[0] + "] = function (cm) " );
+					ed.sendJavaScript("extraKeys[\"" + splitLine[0] + "\"] = function (cm) {" + ed.hotkeyTranslator.get(splitLine[1]) + ";}");
 				}
 
 				return payload;
