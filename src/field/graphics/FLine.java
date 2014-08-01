@@ -146,6 +146,13 @@ public class FLine implements Supplier<FLine> {
 		return this;
 	}
 
+	public FLine clear()
+	{
+		nodes.clear();
+		modify();
+		return this;
+	}
+
 	public Node last() {
 		return nodes.size() == 0 ? null : nodes.get(nodes.size() - 1);
 	}

@@ -268,8 +268,7 @@ public class Dict implements Serializable {
 		for (Map.Entry<Prop, Object> e : d.dictionary.entrySet()) {
 			Object was = get(e.getKey());
 			put(e.getKey(), e.getValue());
-			if (was!=null)
-				r.put(e.getKey(), was);
+			if (was != null) r.put(e.getKey(), was);
 		}
 		return r;
 	}
@@ -283,6 +282,20 @@ public class Dict implements Serializable {
 			else {
 				Object r = collision.apply(e.getKey(), dictionary.get(e.getKey()), e.getValue());
 				if (r != null) put(e.getKey(), r);
+			}
+		}
+		return this;
+	}
+
+
+	/**
+	 * putAll, filtered
+	 */
+	public Dict putAll(Dict d, Function<Prop, Boolean> filter) {
+		for (Map.Entry<Prop, Object> e : d.dictionary.entrySet()) {
+
+			if (filter.apply(e.getKey())) {
+				put(e.getKey(), e.getValue());
 			}
 		}
 		return this;
