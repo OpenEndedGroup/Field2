@@ -572,6 +572,14 @@ public class RemoteEditor extends Box {
 										readCommand.setLength(0);
 									}
 
+									//publish to the codemirror
+									System.out.println(altWas);
+									System.out.print(currCommand.getKey().first);
+									System.out.println("altWas");
+									String jscode= "extraKeys[\"" + altWas + "\"]=" + "\": function(cm) {" + hotkeyTranslator.get(currCommand.getKey().first) + ";}"
+										    +"cm.setOption(\"extraKeys\", extraKeys)";
+									sendJavaScript(jscode);
+
 									//Replace the old command in contents with the new one or create a new command
 									if (commandBegin > -1) {
 										contents.delete(commandBegin, commandEnd);
