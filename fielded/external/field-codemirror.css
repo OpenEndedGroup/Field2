@@ -64,10 +64,6 @@
 
 
 :root {
-    var-bg: ;
-    var-fg: #aaa;
-    var-multi: #202020;
-    var-scrollbar: #666;
 }
 
 /**********************************************************
@@ -81,6 +77,7 @@ html {
 body {
     background: #2d3133;
     color: #aaa;
+    font-size: 13px;
 }
 
 a {
@@ -478,7 +475,7 @@ $
     font-style: italic;
     font-weight: 400;
     opacity: 0.75;
-    font-size:75%;
+    font-size:90%;
 
 }
 
@@ -582,4 +579,42 @@ $
 .CodeMirror-gutter-wrapper
 {
 	pointer-events:none;
+}
+
+
+.CodeMirror-dialog {
+  position: absolute;
+  left: 0; right: 0;
+  background: rgba(64,64, 64, 0.85);
+  z-index: 15;
+  foreground: #aaa !important;
+  padding: 0.2em 0.2em;
+  overflow: hidden;
+  font-family: "Source Sans Pro";
+  font-size:100%;
+}
+
+.CodeMirror-dialog-top {
+  border-top: none;
+  top: 0;
+}
+
+.CodeMirror-dialog-bottom {
+  border-top: 1px solid #222;
+  bottom: 0;
+}
+
+.CodeMirror-dialog input {
+  border: none;
+  outline: none;
+  background: rgba(255,255,255, 0.2);
+  width: 40em;
+  color: inherit;
+  font-size: 100%;
+  padding:0.2em;
+}
+
+.CodeMirror-dialog button {
+  background: rgba(255,255,255, 0.2);
+  font-size:75%;
 }
