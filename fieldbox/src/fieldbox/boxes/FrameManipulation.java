@@ -9,6 +9,7 @@ import field.graphics.Window;
 import field.linalg.Vec2;
 import field.linalg.Vec4;
 import field.utility.Dict;
+import field.utility.Log;
 import field.utility.Rect;
 import fieldbox.ui.Cursors;
 
@@ -42,6 +43,8 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 
 	@Override
 	public Mouse.Dragger onMouseDown(Window.Event<Window.MouseState> e, int button) {
+
+		Log.log("interaction.debug", "marquee, has this been consumed ? " + e + " " + e.properties+" "+System.identityHashCode(e));
 
 		// if this event has already been consumed by somebody else, then let's do nothing
 		if (e.properties.isTrue(Window.consumed, false)) return null;

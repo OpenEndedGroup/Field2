@@ -82,12 +82,11 @@ public class JSFLine extends FLine implements JSObject {
 	@Override
 	@HiddenInAutocomplete
 	public Object getMember(String s) {
-//		if (s.endsWith("_")) {
-//			return last().attributes.get(new Dict.Prop(s.substring(0, s.length() - 1)));
-//		} else {
-//			return this.attributes.get(new Dict.Prop(s));
-//		}
-		return null;
+		if (s.endsWith("_")) {
+			return last().attributes.get(new Dict.Prop(s.substring(0, s.length() - 1)));
+		} else {
+			return this.attributes.get(new Dict.Prop(s));
+		}
 	}
 
 	@Override

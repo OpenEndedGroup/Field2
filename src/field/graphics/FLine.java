@@ -4,6 +4,7 @@ import field.linalg.Vec2;
 import field.linalg.Vec3;
 import field.utility.Curry;
 import field.utility.Dict;
+import field.utility.Log;
 import field.utility.Rect;
 
 import java.awt.*;
@@ -72,6 +73,11 @@ public class FLine implements Supplier<FLine> {
 		protected Node(float x, float y, float z) {
 			this.to = new Vec3(x, y, z);
 		}
+
+		public void transform(Function<Vec3, Vec3> by) {
+			this.to.set(by.apply(to));
+			modify();
+		}
 	}
 
 	public FLine add(Node n) {
@@ -128,6 +134,23 @@ public class FLine implements Supplier<FLine> {
 		this.cubicTo(x + r, y + k, x + k, y + r, x, y + r);
 		this.cubicTo(x - k, y + r, x - r, y + k, x - r, y);
 		return this.cubicTo(x - r, y - k, x - k, y - r, x, y - r);
+	}
+
+	public FLine transform(Function<Vec3, Vec3> by)
+	{
+		for(Node n : nodes)
+		{
+			n.transform(by);
+		}
+		modify();
+		return this;
+	}
+
+	public FLine clear()
+	{
+		nodes.clear();
+		modify();
+		return this;
 	}
 
 	public Node last() {
@@ -191,6 +214,8 @@ public class FLine implements Supplier<FLine> {
 
 		BookmarkCache c = cache.computeIfAbsent(m, (k) -> new BookmarkCache(m));
 
+//		Log.log("drawing.trace", "should skip ? "+mod);
+
 		return m.skipTo(c.start, c.end, mod, () -> {
 
 			flattenAuxProperties();
@@ -198,6 +223,8 @@ public class FLine implements Supplier<FLine> {
 			try {
 				MeshBuilder.Bookmark start = null;
 				// todo: AUX!
+
+//				Log.log("drawing.trace", "ACTUALLY DRAWING");
 
 				Node a = null;
 				for (int i = 0; i < nodes.size(); i++) {
@@ -228,6 +255,7 @@ public class FLine implements Supplier<FLine> {
 	}
 
 	public boolean renderToLine(MeshBuilder m, int fixedSizeForCubic) {
+		Log.log("drawing.trace", "renderToLine");
 		return renderToLine(m, this::renderMoveTo, this::renderLineTo, renderCubicTo(fixedSizeForCubic));
 	}
 
@@ -346,6 +374,8 @@ public class FLine implements Supplier<FLine> {
 		}
 	}
 
+
+
 	private float[] interpolate(float alpha, float[] a, float[] b, int dim) {
 		if (a == null) return b;
 		if (b == null) return a;
@@ -365,6 +395,7 @@ public class FLine implements Supplier<FLine> {
 			float[] value = to.flatAuxData[i];
 			if (value != null && channel > 0) m.aux(channel, value);
 		}
+		Log.log("drawing.trace", "moveTo " + to.to);
 		m.nextVertex(to.to.x, to.to.y, to.to.z);
 		return to;
 	}
@@ -375,6 +406,9 @@ public class FLine implements Supplier<FLine> {
 			float[] value = to.flatAuxData[i];
 			if (value != null && channel > 0) m.aux(channel, value);
 		}
+
+		Log.log("drawing.trace", "lineTo " + to.to);
+
 		m.nextVertex(to.to.x, to.to.y, to.to.z);
 		return to;
 	}
@@ -459,6 +493,13 @@ public class FLine implements Supplier<FLine> {
 			this.c1 = new Vec3(c1x, c1y, c1z);
 			this.c2 = new Vec3(c2x, c2y, c2z);
 		}
+
+		@Override
+		public void transform(Function<Vec3, Vec3> by) {
+			super.transform(by);
+			this.c1.set(by.apply(c1));
+			this.c2.set(by.apply(c2));
+		}
 	}
 
 	static public Vec2 evaluateCubicFrame(float ax, float ay, float c1x, float c1y, float c2x, float c2y, float bx, float by, float alpha, Vec2 out) {
@@ -517,37 +558,8 @@ public class FLine implements Supplier<FLine> {
 		return this;
 	}
 
-	public FLine testFunction(float f, String y) {
-		return this;
-	}
-
-	public List<Node> getNodes()
-	{
+	public List<Node> getNodes() {
 		return nodes;
 	}
 
-	public void callMe(FLine f)
-	{
-		System.out.println(" CALLED !"+f);
-	}
-
-	public void callMe2(Function<String, String> f)
-	{
-		System.out.println(" CALLED !"+f.apply("boo"));
-	}
-
-	public void callMe3(int f)
-	{
-		System.out.println(" CALLED !"+f);
-	}
-
-	public void callMe3(String f)
-	{
-		System.out.println(" CALLED !"+f);
-	}
-
-	public void callMe3(Supplier<String> f)
-	{
-		System.out.println(" CALLED !"+f.get());
-	}
 }

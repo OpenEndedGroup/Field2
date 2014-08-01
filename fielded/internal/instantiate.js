@@ -35,8 +35,6 @@ globalCommands = []
 
 var __extraCompletions = [] // set by BridgedTernSupport
 
-
-
 goCommands = function () {
     _field.sendWithReturn("request.commands", {
             box: cm.currentbox,
@@ -95,7 +93,10 @@ testCommand = function () {
             property: cm.currentproperty,
             text: cm.getValue(),
             line: cm.listSelections()[0].anchor.line,
-            ch: cm.listSelections()[0].anchor.ch
+            ch: cm.listSelections()[0].anchor.ch,
+
+            allJSCommands: {"Autocomplete": ["Documentation for Autocomplete","Autocomplete()"], "Commands": ["Documentation for Commands","Commands()"], "Current Bracket": ["Documentation for Current Bracket", "Current_Bracket()"], "Hotkeys": ["Documentation for Hotkeys", "Hotkeys()"], "Import": ["Documentation for Import", "Import()"], "Run All": ["Documentation for Run All", "Run_All()"], "Run Begin": ["Documentation for Run Begin", "Run_Begin()"], "Run End": ["Documentation for Run End", "Run_End()"], "Run Selection": ["Documentation for Run Selection", "Run_Selection()"]}
+
         },
         function (d, e) {
 						var completions = []
@@ -202,32 +203,31 @@ overrides = ["Ctrl-H", "Shift-Ctrl-O", "Ctrl-W", "Ctrl-J", "Ctrl-N", "Shift-Ctrl
 extraKeys = {
 // should this be alt-Left on Linux?
     "Ctrl-Left": function (cm) {
-    		$.getScript("/field/filesystem/js_helpers/current_bracket.js");
+    		Current_Bracket();
     },
     "Ctrl-Enter": function (cm) {
-    		$.getScript("/field/filesystem/js_helpers/run_selection.js");
+    		Run_Selection();
     },
     "Ctrl-0": function (cm) {
-    		$.getScript("/field/filesystem/js_helpers/run_all.js");
+    		Run_All();
     },
     "Ctrl-PageDown": function (cm) {
-    		$.getScript("/field/filesystem/js_helpers/run_end.js");
+    		Run_End();
     },
     "Ctrl-PageUp": function (cm) {
-        $.getScript("/field/filesystem/js_helpers/run_begin.js");
+        Run_Begin();
     },
     "Ctrl-.": function (cm) {
-    		$.getScript("/field/filesystem/js_helpers/autocomplete.js");
+    		Autocomplete();
     },
     "Ctrl-Space": function (cm) {
-        $.getScript("/field/filesystem/js_helpers/commands.js");
+        Commands();
     },
-
     "Ctrl-/": function(cm) {
-        $.getScript("/field/filesystem/js_helpers/hotkeys.js");
+        Hotkeys();
     },
     "Ctrl-I": function (cm) {
-        $.getScript("/field/filesystem/js_helpers/import.js");
+        Import();
     }
 }
 
@@ -237,3 +237,8 @@ for (i = 0; i < overrides.length; i++) {
 }
 
 cm.setOption("extraKeys", extraKeys)
+
+function performCommand(nameOfCommand)
+{
+	_field.send("call.commandByName", {command: nameOfCommand, rebuild:true});
+}
