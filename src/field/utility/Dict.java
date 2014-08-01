@@ -1,6 +1,5 @@
 package field.utility;
 
-import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.MapMaker;
 import sun.reflect.CallerSensitive;
 
@@ -47,8 +46,7 @@ public class Dict implements Serializable {
 			return prop;
 		}
 
-		static public <T> Prop<T> findCannon(Prop<T> p)
-		{
+		static public <T> Prop<T> findCannon(Prop<T> p) {
 			return cannon.get(p.name);
 		}
 
@@ -184,7 +182,7 @@ public class Dict implements Serializable {
 
 		// this is redundant, but it makes sure we register a 'get'
 		T t = get(k);
-		if (t!=null) return t;
+		if (t != null) return t;
 
 		return (T) dictionary.computeIfAbsent(k, (x) -> def.apply(k));
 	}
@@ -262,12 +260,18 @@ public class Dict implements Serializable {
 		return this;
 	}
 
-	@SuppressWarnings("unchecked")
+	/**
+	 * returns a dict of the things displaced by putting this
+	 */
 	public Dict putAll(Dict d) {
+		Dict r = new Dict();
 		for (Map.Entry<Prop, Object> e : d.dictionary.entrySet()) {
+			Object was = get(e.getKey());
 			put(e.getKey(), e.getValue());
+			if (was!=null)
+				r.put(e.getKey(), was);
 		}
-		return this;
+		return r;
 	}
 
 	/**

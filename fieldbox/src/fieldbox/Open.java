@@ -120,12 +120,14 @@ public class Open {
 			return true;
 		});
 
-		interaction = (FLineInteraction) new FLineInteraction(boxes.root()).connect(boxes.root());
 
 		// MarkingMenus must come before FrameManipulation, so FrameManipulation can handle selection state modification before MarkingMenus run
 		markingMenus = (MarkingMenus) new MarkingMenus(boxes.root()).connect(boxes.root());
 
 		frameManipulation = (FrameManipulation) new FrameManipulation(boxes.root()).connect(boxes.root());
+
+		// Interaction must come before frameManipulation, otherwise all those drags with FLines become marquees on the canvas
+		interaction = (FLineInteraction) new FLineInteraction(boxes.root()).connect(boxes.root());
 
 		// here are some examples of plugins
 		new Delete(boxes.root()).connect(boxes.root());
@@ -143,8 +145,6 @@ public class Open {
 		new IsExecuting(boxes.root()).connect(boxes.root());
 
 		new Rename(boxes.root()).connect(boxes.root());
-
-		new PetersPlugin(boxes.root()).connect(boxes.root());
 
 		new Scrolling(boxes.root()).connect(boxes.root());
 

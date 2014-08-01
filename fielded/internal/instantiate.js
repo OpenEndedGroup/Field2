@@ -96,6 +96,7 @@ testCommand = function () {
             ch: cm.listSelections()[0].anchor.ch,
 
             allJSCommands: {"Autocomplete": "Documentation for Autocomplete", "Commands": "Documentation for Commands", "Current Bracket": "Documentation for Current Bracket", "Hotkeys": "Documentation for Hotkeys", "Import": "Documentation for Import", "Run All": "Documentation for Run All", "Run Begin": "Documentation for Run Begin", "Run End": "Documentation for Run End", "Run Selection": "Documentation for Run Selection"}
+
         },
         function (d, e) {
 						var completions = []
@@ -222,7 +223,6 @@ extraKeys = {
     "Ctrl-Space": function (cm) {
         Commands();
     },
-
     "Ctrl-/": function(cm) {
         Hotkeys();
     },

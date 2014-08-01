@@ -37,6 +37,8 @@ public class GraphicsSupport extends Box {
 	}
 
 	public GraphicsSupport(Box root_unused) {
+
+
 		properties.put(RemoteEditor.commands, () -> {
 			Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
 			RemoteEditor ed = this.find(RemoteEditor.editor, both()).findFirst().get();

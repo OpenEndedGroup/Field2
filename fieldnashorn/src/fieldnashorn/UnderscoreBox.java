@@ -97,6 +97,7 @@ public class UnderscoreBox extends AbstractJSObject implements JavaSupport.Handl
 	public Object getMember(String m) {
 
 		if (m.equals("at")) return at;
+		if (m.equals("box")) return at;
 		if (m.equals("children")) return (Supplier<List<UnderscoreBox>>) this::children;
 		if (m.equals("parents")) return (Supplier<List<UnderscoreBox>>) this::parents;
 

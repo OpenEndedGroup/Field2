@@ -5,6 +5,7 @@ import field.graphics.MeshBuilder;
 import field.linalg.Vec2;
 import field.linalg.Vec4;
 import field.utility.Dict;
+import field.utility.Log;
 
 import java.awt.*;
 import java.awt.List;
@@ -52,6 +53,8 @@ public class StandardFLineDrawing {
 
 
 	static protected void dispatchLine(FLine fline, MeshBuilder mesh, MeshBuilder line, MeshBuilder points, Optional<TextDrawing> ot, String layerName) {
+
+		Log.log("drawing.trace", "dispatching line :" + fline);
 
 		Vec4 sc = new Vec4(fline.attributes.getOr(strokeColor, () -> fline.attributes.getOr(color, () -> new Vec4(0, 0, 0, 1))));
 		Vec4 fc = new Vec4(fline.attributes.getOr(fillColor, () -> fline.attributes.getOr(color, () -> new Vec4(0, 0, 0, 1))));

@@ -56,7 +56,7 @@ public class Mouse {
 		Set<Integer> down = event.after.buttonsDown;
 
 		released.stream().map(r -> ongoingDrags.remove(r)).filter(x -> x != null).forEach(drags -> {
-			drags.stream().forEach(dragger -> dragger.update(event, true));
+			drags.stream().filter(d -> d!=null).forEach(dragger -> dragger.update(event, true));
 			drags.clear();
 		});
 
@@ -91,7 +91,12 @@ public class Mouse {
 
 			// change map to handle errors on x
 
-			root.find(onMouseDown, root.both()).flatMap(x -> x.stream()).map(x -> x.onMouseDown(event, p)).filter(x -> x != null)
+			root.find(onMouseDown, root.both()).map(x -> {
+
+				System.out.println(" on mouse down order :"+x);
+
+				return x;
+			}).flatMap(x -> x.stream()).map(x -> x.onMouseDown(event, p)).filter(x -> x != null)
 				    .collect(Collectors.toCollection(() -> dragger));
 		});
 

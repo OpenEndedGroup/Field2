@@ -504,7 +504,9 @@ public class RemoteEditor extends Box {
 				});
 			}
 
+
 			commands.addAll(mergemap.entrySet());
+
 
 			//Override the existing functionality in the menu to instead prompt for a new hotkey
 			//And write the new hotkey to the properties file

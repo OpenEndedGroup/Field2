@@ -191,7 +191,7 @@ public class MarkingMenus extends Box {
 		for (Map.Entry<Position, MenuItem> e : m.items.entrySet()) {
 			FLine f = v.makeFLine(v.getContourForSite(sites.get(e.getKey())));
 			this.properties.putToMap(frameDrawing, "contour" + e.getKey(), box -> f);
-			this.properties.putToMap(FLineInteraction.interactiveLines, "contour" + e.getKey(), box -> f);
+			this.properties.putToMap(FLineInteraction.interactiveDrawing, "contour" + e.getKey(), box -> f);
 			f.attributes.put(strokeColor, new Vec4(0.15f, 0.15f, 0.15f, 0.5f));
 			f.attributes.put(filled, true);
 			f.attributes.put(fillColor, new Vec4(0, 0.0f, 0, 0.15f));
@@ -284,7 +284,7 @@ public class MarkingMenus extends Box {
 
 	public void hide() {
 		this.properties.remove(frameDrawing);
-		this.properties.remove(FLineInteraction.interactiveLines);
+		this.properties.remove(FLineInteraction.interactiveDrawing);
 		Drawing.dirty(this);
 	}
 

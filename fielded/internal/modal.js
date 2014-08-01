@@ -1,3 +1,5 @@
+var currentmodal = null;
+
 function runModal(placeholder, getcompletionsfunction, cssclass, initialText, allowAlternative) {
     "use strict";
     let modal = $("<dialog class='" + cssclass + "'><input spellcheck='false' data-autosize-input='{ \"space\": 10 }' autocomplete='off' placeholder='" + placeholder + "' class='Field-textBox' type='text' name='main'></input><ol></ol></dialog>")
@@ -111,11 +113,14 @@ function runModal(placeholder, getcompletionsfunction, cssclass, initialText, al
 
     $(modal[0]).width($($(modal[0]).children()[1]).width())
 
+		currentmodal = modal;
+
     return modal
 }
 
 
 //runModal("running modal...", completme, "Field-modal")
+
 
 function runModalAtCursor(placeholder, completeme, initialText) {
     var m = runModal(placeholder, completeme, "Field-modal-positioned", initialText)
