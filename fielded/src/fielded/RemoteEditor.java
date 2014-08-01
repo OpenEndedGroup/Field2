@@ -472,6 +472,18 @@ public class RemoteEditor extends Box {
 			HashMap<String, String> JSMap = new HashMap<>();
 			HashMap<Pair<String, String>, Runnable> mergemap = new HashMap<>();
 
+			LinkedHashMap<String, String> hotkeyTranslator = new LinkedHashMap<>();
+			hotkeyTranslator.put("Autocomplete","Autocomplete()");
+			hotkeyTranslator.put("Commands", "Commands()");
+			hotkeyTranslator.put("Current Bracket", "Current_Bracket()");
+			hotkeyTranslator.put("Hotkeys", "Hotkeys()");
+			hotkeyTranslator.put("Import", "Import()");
+			hotkeyTranslator.put("Run All", "Run_All()");
+			hotkeyTranslator.put("Run Begin", "Run_Begin()");
+			hotkeyTranslator.put("Run End", "Run_End()");
+			hotkeyTranslator.put("Run Selection", "Run_Selection()");
+
+
 			for (String entry : JSCommands.substring(1, JSCommands.length()-1).replace("\"","").split(",") ) {
 				String[] splitEntry = entry.split(":");
 				JSMap.put(splitEntry[0], splitEntry[1]);
