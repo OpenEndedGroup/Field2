@@ -95,7 +95,7 @@ testCommand = function () {
             line: cm.listSelections()[0].anchor.line,
             ch: cm.listSelections()[0].anchor.ch,
 
-            allJSCommands: {"Autocomplete": "Documentation for Autocomplete", "Commands": "Documentation for Commands", "Current Bracket": "Documentation for Current Bracket", "Hotkeys": "Documentation for Hotkeys", "Import": "Documentation for Import", "Run All": "Documentation for Run All", "Run Begin": "Documentation for Run Begin", "Run End": "Documentation for Run End", "Run Selection": "Documentation for Run Selection"}
+            allJSCommands: {"Autocomplete": ["Documentation for Autocomplete","Autocomplete()"], "Commands": ["Documentation for Commands","Commands()"], "Current Bracket": ["Documentation for Current Bracket", "Current_Bracket()"], "Hotkeys": ["Documentation for Hotkeys", "Hotkeys()"], "Import": ["Documentation for Import", "Import()"], "Run All": ["Documentation for Run All", "Run_All()"], "Run Begin": ["Documentation for Run Begin", "Run_Begin()"], "Run End": ["Documentation for Run End", "Run_End()"], "Run Selection": ["Documentation for Run Selection", "Run_Selection()"]}
 
         },
         function (d, e) {
@@ -237,3 +237,8 @@ for (i = 0; i < overrides.length; i++) {
 }
 
 cm.setOption("extraKeys", extraKeys)
+
+function performCommand(nameOfCommand)
+{
+	_field.send("call.commandByName", {command: nameOfCommand, rebuild:true});
+}

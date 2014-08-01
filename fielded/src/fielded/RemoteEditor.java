@@ -10,13 +10,10 @@ import fieldbox.io.IO;
 import fielded.webserver.RateLimitingQueue;
 import fielded.webserver.Server;
 import fielded.windowmanager.LinuxWindowTricks;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONStringer;
 
 import java.io.*;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -29,7 +26,7 @@ import static fieldbox.boxes.StandardFLineDrawing.filled;
 import static fieldbox.boxes.StandardFLineDrawing.stroked;
 
 /**
- * connects to that WebSocket and does things via those message busses
+ * connects to that WebSocket and does things via those message buses
  */
 public class RemoteEditor extends Box {
 
@@ -70,7 +67,7 @@ public class RemoteEditor extends Box {
 
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__watch_service__", (Supplier<Boolean>) this::update);
 
-		this.hotkeyTranslator.put("Autocomplete","Autocomplete()");
+		this.hotkeyTranslator.put("Autocomplete", "Autocomplete()");
 		this.hotkeyTranslator.put("Commands", "Commands()");
 		this.hotkeyTranslator.put("Current Bracket", "Current_Bracket()");
 		this.hotkeyTranslator.put("Hotkeys", "Hotkeys()");
@@ -197,7 +194,7 @@ public class RemoteEditor extends Box {
 
 			int lineoffset = p.has("lineoffset") ? p.getInt("lineoffset") : 0;
 
-			Log.log("remote.debug", "lineoffset ;"+lineoffset+" "+p.has("lineoffset"));
+			Log.log("remote.debug", "lineoffset ;" + lineoffset + " " + p.has("lineoffset"));
 
 			Execution.ExecutionSupport support = getExecution(box.get()).support(box.get(), new Dict.Prop<String>(prop));
 
@@ -452,6 +449,22 @@ public class RemoteEditor extends Box {
 			return payload;
 		});
 
+		server.addHandlerLast(Predicate.isEqual("call.commandByName"), () -> socketName, (s, socket, address, payload) -> {
+
+			JSONObject p = (JSONObject) payload;
+			String command = p.getString("command");
+
+			find(RemoteEditor.commands, both()).flatMap(m -> m.get().entrySet().stream())
+				    .filter(m -> m.getKey().first.trim().toLowerCase().equals(command.trim().toLowerCase())).findFirst()
+				    .ifPresent(m -> {
+					    Runnable r = m.getValue();
+					    if (r instanceof ExtendedCommand) ((ExtendedCommand) r).begin(supportsPrompt(server, socketName), null);
+					    r.run();
+				    });
+
+			return payload;
+		});
+
 		server.addHandlerLast(Predicate.isEqual("call.command"), () -> socketName, (s, socket, address, payload) -> {
 
 			JSONObject p = (JSONObject) payload;
@@ -479,132 +492,28 @@ public class RemoteEditor extends Box {
 			String returnAddress = p.getString("returnAddress");
 			int line = p.getInt("line");
 			int ch = p.getInt("ch");
-			String JSCommands = p.getJSONObject("allJSCommands").toString();
-			HashMap<String, String> JSMap = new HashMap<>();
-			HashMap<Pair<String, String>, Runnable> mergemap = new HashMap<>();
 
-			for (String entry : JSCommands.substring(1, JSCommands.length()-1).replace("\"","").split(",") ) {
-				String[] splitEntry = entry.split(":");
-				JSMap.put(splitEntry[0], splitEntry[1]);
-			}
+			JSONObject allJSCommands = p.getJSONObject("allJSCommands");
+
 
 			//todo: handle no box case
 
-			List<Map.Entry<Pair<String, String>, Runnable>> commands = box.get()
-				    .find(RemoteEditor.commands, box.get().both()).flatMap(m -> m.get().entrySet().stream())
-				    .collect(Collectors.toList());
+			List<Map.Entry<Pair<String, String>, Runnable>> commands = box.get().find(RemoteEditor.commands, box.get().both())
+				    .flatMap(m -> m.get().entrySet().stream()).collect(Collectors.toList());
 
-			for (String key : JSMap.keySet()) {
-				mergemap.put(new Pair<>(key, JSMap.get(key)), new ExtendedCommand() {
-					@Override
-					public void begin(SupportsPrompt prompt, String alternativeChosen) { }
-
-					@Override
-					public void run() {	}
-				});
+			Map<Pair<String, String>, Runnable> mergeMap = new LinkedHashMap<>();
+			for (Object key : allJSCommands.keySet()) {
+				mergeMap.put(new Pair<>("" + key, allJSCommands.getJSONArray("" + key)
+					    .getString(0)), wrapCommandForHotkeys(allJSCommands.getJSONArray("" + key).getString(1)));
 			}
 
 
-			commands.addAll(mergemap.entrySet());
-
-
-			//Override the existing functionality in the menu to instead prompt for a new hotkey
-			//And write the new hotkey to the properties file
 			for (Map.Entry<Pair<String, String>, Runnable> currCommand : commands) {
-				ExtendedCommand val = new ExtendedCommand() {
-					public SupportsPrompt p;
-
-					@Override
-					public void begin(SupportsPrompt prompt, String alternativeChosen) {
-						this.p = prompt;
-					}
-
-					@Override
-					public void run() {
-
-						Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
-
-						//Prompt for a new hotkey
-						p.prompt("set hotkey to...", m, new ExtendedCommand() {
-							String altWas = null;
-
-							@Override
-							public void begin(SupportsPrompt prompt, String alternativeChosen) {
-								altWas = alternativeChosen;
-							}
-
-							@Override
-							public void run() {
-								if (altWas != null) {
-
-									//Set up file reading
-									Path properties = FileSystems.getDefault().getPath("fieldbox/resources", "properties.txt");
-									File file = new File(properties.toString());
-									StringBuilder contents = new StringBuilder();
-
-									//Read properties text file into a string (contents)
-									try ( BufferedReader in = new BufferedReader(new FileReader(file) ) ) {
-										int curr;
-										while((curr = in.read()) != -1) {
-											contents.append((char)curr);
-										}
-										in.close();
-									} catch(IOException x) {
-										System.err.println("Error: Cannot open properties text file in read");
-									}
-
-									//Find if the hotkey is already associated with a command
-									//If so, determine the beginning and end of the command text for replacement with new command
-									int commandBegin = -1;
-									int commandEnd = -1;
-									for (int i = 0; i < contents.length(); ++i){
-										if (contents.toString().startsWith("\n")) break;
-										StringBuilder readCommand = new StringBuilder();
-										char currChar;
-										while ((currChar = contents.charAt(i)) != ':') {
-											readCommand.append(currChar);
-											if (i+1 < contents.length()) ++i;
-										}
-										if (readCommand.toString().equals(altWas)) {
-											if (i+2 < contents.length()) commandBegin = i+2;
-											while ((contents.charAt(i)) != '\n' && i+1 < contents.length()) ++i;
-											commandEnd = i;
-											break;
-										}
-										while ((contents.charAt(i)) != '\n' && i+1 < contents.length()) ++i;
-										readCommand.setLength(0);
-									}
-
-									//publish to the codemirror
-									System.out.println("HERE I AM");
-									String jscode= "extraKeys[\"" + altWas + "\"] = function(cm) {" + hotkeyTranslator.get(currCommand.getKey().first) + ";}";
-									sendJavaScript(jscode);
-
-									//Replace the old command in contents with the new one or create a new command
-									if (commandBegin > -1) {
-										contents.delete(commandBegin, commandEnd);
-										contents.insert(commandBegin, currCommand.getKey().first);
-									} else {
-										contents.append(altWas);
-										contents.append(": ");
-										contents.append(currCommand.getKey().first);
-										contents.append("\n");
-									}
-
-									//Write the contents to the output file
-									try ( BufferedWriter out = new BufferedWriter(new FileWriter(file)) ) {
-										out.write(contents.toString());
-									} catch (IOException x) {
-										System.err.println("Error: Cannot open properties text file in write");
-									}
-								}
-							}
-						});
-					}
-				};
+				ExtendedCommand val = wrapCommandForHotkeys("performCommand('" + currCommand.getKey().first + "')");
 				currCommand.setValue(val);
 			}
 
+			commands.addAll(mergeMap.entrySet());
 
 			Log.log("remote.trace", " commands are :" + commands);
 
@@ -650,6 +559,78 @@ public class RemoteEditor extends Box {
 		selectionHasChanged = true;
 
 
+	}
+
+	protected ExtendedCommand wrapCommandForHotkeys(String text) {
+		return new ExtendedCommand() {
+			public SupportsPrompt p;
+
+			@Override
+			public void begin(SupportsPrompt prompt, String alternativeChosen) {
+				this.p = prompt;
+			}
+
+			@Override
+			public void run() {
+
+				Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
+
+				//Prompt for a new hotkey
+				p.prompt("set hotkey to...", m, new ExtendedCommand() {
+					String altWas = null;
+
+					@Override
+					public void begin(SupportsPrompt prompt, String alternativeChosen) {
+						altWas = alternativeChosen.trim().toLowerCase();
+					}
+
+					@Override
+					public void run() {
+						if (altWas == null) return;
+
+						//Set up file reading
+						File file = new File(System.getProperty("user.home") + "/.field/hotkeys.txt");
+						String contents = "";
+
+						//Read properties text file into a string (contents)
+						try (BufferedReader in = new BufferedReader(new FileReader(file))) {
+							while (in.ready()) contents += in.readLine() + "\n";
+						} catch (IOException x) {
+							Log.log("hotkeys.error", "Error: Cannot open properties text file in read, file is " + file);
+							Log.log("hotkeys.error", x);
+						}
+
+						String[] lines = contents.split("\n");
+						String next = "";
+						int n = 1;
+						for (String line : lines) {
+							String[] parts = line.split(":");
+							if (parts.length != 2) {
+								Log.log("hotkeys.error", "couldn't parse <" + line + "> in file, on line " + n);
+							} else {
+								if (parts[0].trim().equals(altWas)) {
+									// filter it out
+								} else {
+									next += line + "\n";
+								}
+							}
+							n++;
+						}
+
+						next += altWas + ":" + text;
+
+						//Write the contents to the output file
+						try (BufferedWriter out = new BufferedWriter(new FileWriter(file))) {
+							out.write(next);
+						} catch (IOException x) {
+							Log.log("hotkeys.error", "Error: Cannot open properties text file in write, file is " + file);
+							Log.log("hotkeys.error", x);
+						}
+
+					}
+				});
+			}
+		};
 	}
 
 	protected SupportsPrompt supportsPrompt(Server server, String socketName) {
@@ -868,13 +849,13 @@ public class RemoteEditor extends Box {
 	// (i.e. "somefile.js")
 	// Arguments: Absolute directory location of .js files
 	// Returns: List of file names
-	private static List<String> findJSFiles(String dir){
+	private static List<String> findJSFiles(String dir) {
 		File[] files = new File(dir).listFiles();
 		List<String> fileStrings = new ArrayList<>();
 		for (File file : files) {
 			if (!file.isDirectory() && file.toString().endsWith(".js")) {
 				String fullPath = file.toString();
-				fileStrings.add(fullPath.substring(fullPath.lastIndexOf('/')+1));
+				fileStrings.add(fullPath.substring(fullPath.lastIndexOf('/') + 1));
 			}
 		}
 
