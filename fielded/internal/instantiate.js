@@ -95,7 +95,7 @@ testCommand = function () {
             line: cm.listSelections()[0].anchor.line,
             ch: cm.listSelections()[0].anchor.ch,
 
-            allJSCommands: {"Autocomplete": ["Documentation for Autocomplete","Autocomplete()"], "Commands": ["Documentation for Commands","Commands()"], "Current Bracket": ["Documentation for Current Bracket", "Current_Bracket()"], "Hotkeys": ["Documentation for Hotkeys", "Hotkeys()"], "Import": ["Documentation for Import", "Import()"], "Run All": ["Documentation for Run All", "Run_All()"], "Run Begin": ["Documentation for Run Begin", "Run_Begin()"], "Run End": ["Documentation for Run End", "Run_End()"], "Run Selection": ["Documentation for Run Selection", "Run_Selection()"]}
+            allJSCommands: {"Autocomplete": ["Shows valid completion options for current text","Autocomplete()"], "Commands": ["Displays a menu of command options","Commands()"], "Current Bracket": ["Executes the current bracket of code", "Current_Bracket()"], "Hotkeys": ["Displays a menu that allows you to configure your hotkeys", "Hotkeys()"], "Import": ["Imports a Field project?", "Import()"], "Run All": ["Runs all code in the current box", "Run_All()"], "Run Begin": ["Documentation for Run Begin", "Run_Begin()"], "Run End": ["Documentation for Run End", "Run_End()"], "Run Selection": ["Runs the currently selected code", "Run_Selection()"]}
 
         },
         function (d, e) {
@@ -111,6 +111,7 @@ testCommand = function () {
 								d[i].callback.remote = 1
 								completions.push(d[i])
 						}
+						completions = completions.concat(globalCommands)
 						completions.sort(function (a, b) {
 								return a.name < b.name ? -1 : 1;
 						})
