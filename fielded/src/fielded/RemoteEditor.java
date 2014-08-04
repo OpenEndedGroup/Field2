@@ -571,7 +571,12 @@ public class RemoteEditor extends Box {
 
 					@Override
 					public void begin(SupportsPrompt prompt, String alternativeChosen) {
-						altWas = alternativeChosen.trim().toLowerCase();
+						altWas = "";
+						String[] indivKeys = alternativeChosen.trim().toLowerCase().split("-");
+						for (String key : indivKeys){
+							altWas += key.substring(0,1).toUpperCase() + key.substring(1) + "-";
+						}
+						altWas = altWas.substring(0, altWas.length()-1);
 					}
 
 					@Override
