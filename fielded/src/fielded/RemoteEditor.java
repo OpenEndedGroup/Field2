@@ -579,7 +579,12 @@ public class RemoteEditor extends Box {
 
 					@Override
 					public void begin(SupportsPrompt prompt, String alternativeChosen) {
-						altWas = alternativeChosen.trim().toLowerCase();
+						altWas = "";
+						String[] indivKeys = alternativeChosen.trim().toLowerCase().split("-");
+						for (String key : indivKeys){
+							altWas += key.substring(0,1).toUpperCase() + key.substring(1) + "-";
+						}
+						altWas = altWas.substring(0, altWas.length()-1);
 					}
 
 					@Override
@@ -623,6 +628,27 @@ public class RemoteEditor extends Box {
 						} catch (IOException x) {
 							Log.log("hotkeys.error", "Error: Cannot open properties text file in write, file is " + file);
 							Log.log("hotkeys.error", x);
+						}
+
+						//now that the contents have been written to the output file we update the hotkeys
+						StringBuilder propertiesContents = new StringBuilder();
+						//Read properties text file into a string (contents)
+						try (BufferedReader in = new BufferedReader(new FileReader(file))) {
+							int curr;
+							while ((curr = in.read()) != -1) {
+								propertiesContents.append((char) curr);
+							}
+							in.close();
+						} catch (IOException x) {
+							System.err.println("Error: Cannot open properties text file in read");
+						}
+						for (String line : propertiesContents.toString().split("\n")) {
+							String[] splitLine = line.split(":");
+							Log.log("hotkeys.debug", " line is :" + splitLine.length + " <" + line + ">");
+							if (splitLine.length > 1) {
+								sendJavaScript("extraKeys[\"" + splitLine[0].trim() + "\"] = function (cm) {" + splitLine[1]
+									    .trim() + ";}");
+							}
 						}
 
 					}

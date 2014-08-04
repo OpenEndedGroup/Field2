@@ -57,6 +57,8 @@ goCommands = function () {
                 completions.push(d[i])
             }
             completions = completions.concat(globalCommands)
+            console.log("HERE ARE THE COMMANDS")
+            console.log(globalCommands)
             completions.sort(function (a, b) {
                 return a.name < b.name ? -1 : 1;
             })
@@ -88,15 +90,20 @@ goCommands = function () {
 }
 
 testCommand = function () {
+		JSCommands = {}
+
+		for (var i = 0; i < globalCommands.length; i++) {
+			var currCommand = globalCommands[i]
+			JSCommands[currCommand.name] = [currCommand.info, currCommand.callback.toString().replace(/[^{]*{|}[^}]*$/g, "").trim()]
+		}
+
     _field.sendWithReturn("request.hotkeyCommands", {
             box: cm.currentbox,
             property: cm.currentproperty,
             text: cm.getValue(),
             line: cm.listSelections()[0].anchor.line,
             ch: cm.listSelections()[0].anchor.ch,
-
-            allJSCommands: {"Autocomplete": ["Documentation for Autocomplete","Autocomplete()"], "Commands": ["Documentation for Commands","Commands()"], "Current Bracket": ["Documentation for Current Bracket", "Current_Bracket()"], "Hotkeys": ["Documentation for Hotkeys", "Hotkeys()"], "Import": ["Documentation for Import", "Import()"], "Run All": ["Documentation for Run All", "Run_All()"], "Run Begin": ["Documentation for Run Begin", "Run_Begin()"], "Run End": ["Documentation for Run End", "Run_End()"], "Run Selection": ["Documentation for Run Selection", "Run_Selection()"]}
-
+            allJSCommands: JSCommands
         },
         function (d, e) {
 						var completions = []
