@@ -192,7 +192,7 @@ public class PluginList {
 			((Map<Object, Object>) o).entrySet().forEach(x -> {
 				r.computeIfAbsent(asKey(x.getKey()), k -> new ArrayList<Object>()).addAll(asList(x.getValue()));
 			});
-		} else throw new IllegalArgumentException(" can't parse object <" + o + "> in plugins file (expected a map)");
+		} else Log.log("startup.error", " can't parse object <" + o + "> in plugins file (expected a map)");
 
 	}
 

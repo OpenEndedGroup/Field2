@@ -43,7 +43,6 @@ public class EDN {
 
 		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
 			e.printStackTrace();
-			;
 		}
 		return null;
 	}
