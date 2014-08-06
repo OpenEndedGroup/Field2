@@ -5,6 +5,7 @@ import field.linalg.Vec2;
 import field.linalg.Vec4;
 import field.message.MessageQueue;
 import field.utility.*;
+import fieldbox.FieldBox;
 import fieldbox.boxes.*;
 import fieldbox.io.IO;
 import fielded.webserver.RateLimitingQueue;
@@ -13,6 +14,7 @@ import fielded.windowmanager.LinuxWindowTricks;
 import org.json.JSONObject;
 import org.json.JSONStringer;
 
+import java.io.*;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -25,7 +27,7 @@ import static fieldbox.boxes.StandardFLineDrawing.filled;
 import static fieldbox.boxes.StandardFLineDrawing.stroked;
 
 /**
- * connects to that WebSocket and does things via those message busses
+ * connects to that WebSocket and does things via those message buses
  */
 public class RemoteEditor extends Box {
 
@@ -37,12 +39,19 @@ public class RemoteEditor extends Box {
 	static public final Dict.Prop<Function<Box, Consumer<String>>> outputFactory = new Dict.Prop<>("outputFactory");
 	static public final Dict.Prop<Function<Box, Consumer<Pair<Integer, String>>>> outputErrorFactory = new Dict.Prop<>("outputErrorFactory");
 
+	static public final Dict.Prop<String> defaultEditorProperty = new Dict.Prop<String>("defaultEditorProperty").type().doc("The property that the editor will switch to. Will default to 'code' if not set.");
+
 	static public interface ExtendedCommand extends Runnable {
 		public void begin(SupportsPrompt prompt, String alternativeChosen);
 	}
 
 	static public interface SupportsPrompt {
 		public void prompt(String prompt, Map<Pair<String, String>, Runnable> options, ExtendedCommand alternative);
+	}
+
+	static
+	{
+		IO.persist(defaultEditorProperty);
 	}
 
 	private final Server server;
@@ -64,6 +73,7 @@ public class RemoteEditor extends Box {
 		this.properties.put(editor, this);
 
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__watch_service__", (Supplier<Boolean>) this::update);
+
 
 		watches.addWatch(Mouse.isSelected, "selection.changed");
 		watches.addWatch(LinuxWindowTricks.lostFocus, "focus.editor");
@@ -180,8 +190,13 @@ public class RemoteEditor extends Box {
 
 			String returnAddress = p.getString("returnAddress");
 
+			int lineoffset = p.has("lineoffset") ? p.getInt("lineoffset") : 0;
+
+			Log.log("remote.debug", "lineoffset ;" + lineoffset + " " + p.has("lineoffset"));
 
 			Execution.ExecutionSupport support = getExecution(box.get()).support(box.get(), new Dict.Prop<String>(prop));
+
+			support.setLineOffsetForFragment(lineoffset);
 			support.executeTextFragment(text, newOutput(box
 				    .get(), returnAddress, (Function<Pair<Integer, String>, String>) (lineerror) -> new JSONStringer().object()
 				    .key("type").value("error").key("line").value((int) lineerror.first).key("message").value(lineerror.second)
@@ -432,6 +447,22 @@ public class RemoteEditor extends Box {
 			return payload;
 		});
 
+		server.addHandlerLast(Predicate.isEqual("call.commandByName"), () -> socketName, (s, socket, address, payload) -> {
+
+			JSONObject p = (JSONObject) payload;
+			String command = p.getString("command");
+
+			find(RemoteEditor.commands, both()).flatMap(m -> m.get().entrySet().stream())
+				    .filter(m -> m.getKey().first.trim().toLowerCase().equals(command.trim().toLowerCase())).findFirst()
+				    .ifPresent(m -> {
+					    Runnable r = m.getValue();
+					    if (r instanceof ExtendedCommand) ((ExtendedCommand) r).begin(supportsPrompt(server, socketName), null);
+					    r.run();
+				    });
+
+			return payload;
+		});
+
 		server.addHandlerLast(Predicate.isEqual("call.command"), () -> socketName, (s, socket, address, payload) -> {
 
 			JSONObject p = (JSONObject) payload;
@@ -460,14 +491,27 @@ public class RemoteEditor extends Box {
 			int line = p.getInt("line");
 			int ch = p.getInt("ch");
 
-			// now we need to ask everybody if they have any commands to offer based on the above.
+			JSONObject allJSCommands = p.getJSONObject("allJSCommands");
+
 
 			//todo: handle no box case
 
-			List<Map.Entry<Pair<String, String>, Runnable>> commands = (List<Map.Entry<Pair<String, String>, Runnable>>) box.get()
-				    .find(RemoteEditor.hotkeyCommands, box.get().both()).flatMap(m -> m.get().entrySet().stream())
-				    .collect(Collectors.toList());
+			List<Map.Entry<Pair<String, String>, Runnable>> commands = box.get().find(RemoteEditor.commands, box.get().both())
+				    .flatMap(m -> m.get().entrySet().stream()).collect(Collectors.toList());
 
+			Map<Pair<String, String>, Runnable> mergeMap = new LinkedHashMap<>();
+			for (Object key : allJSCommands.keySet()) {
+				mergeMap.put(new Pair<>("" + key, allJSCommands.getJSONArray("" + key)
+					    .getString(0)), wrapCommandForHotkeys(allJSCommands.getJSONArray("" + key).getString(1)));
+			}
+
+
+			for (Map.Entry<Pair<String, String>, Runnable> currCommand : commands) {
+				ExtendedCommand val = wrapCommandForHotkeys("performCommand('" + currCommand.getKey().first + "')");
+				currCommand.setValue(val);
+			}
+
+			commands.addAll(mergeMap.entrySet());
 
 			Log.log("remote.trace", " commands are :" + commands);
 
@@ -494,22 +538,6 @@ public class RemoteEditor extends Box {
 			return payload;
 		});
 
-/*		DO WE NEED THIS? NOT SURE...
-		server.addHandlerLast(Predicate.isEqual("call.hotkeyCommand"), () -> socketName, (s, socket, address, payload) -> {
-
-			JSONObject p = (JSONObject) payload;
-			String command = p.getString("command");
-
-			Runnable r = callTable.get(command);
-
-			if (r != null) {
-				if (r instanceof ExtendedCommand) ((ExtendedCommand) r).begin(supportsPrompt(server, socketName), null);
-				r.run();
-			}
-
-			return payload;
-		});*/
-
 		server.addHandlerLast(Predicate.isEqual("call.alternative"), () -> socketName, (s, socket, address, payload) -> {
 
 			JSONObject p = (JSONObject) payload;
@@ -529,6 +557,104 @@ public class RemoteEditor extends Box {
 		selectionHasChanged = true;
 
 
+	}
+
+	protected ExtendedCommand wrapCommandForHotkeys(String text) {
+		return new ExtendedCommand() {
+			public SupportsPrompt p;
+
+			@Override
+			public void begin(SupportsPrompt prompt, String alternativeChosen) {
+				this.p = prompt;
+			}
+
+			@Override
+			public void run() {
+
+				Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
+
+				//Prompt for a new hotkey
+				p.prompt("set hotkey to...", m, new ExtendedCommand() {
+					String altWas = null;
+
+					@Override
+					public void begin(SupportsPrompt prompt, String alternativeChosen) {
+						altWas = "";
+						String[] indivKeys = alternativeChosen.trim().toLowerCase().split("-");
+						for (String key : indivKeys){
+							altWas += key.substring(0,1).toUpperCase() + key.substring(1) + "-";
+						}
+						altWas = altWas.substring(0, altWas.length()-1);
+					}
+
+					@Override
+					public void run() {
+						if (altWas == null) return;
+
+						//Set up file reading
+						File file = new File(System.getProperty("user.home") + "/.field/hotkeys.txt");
+						String contents = "";
+
+						//Read properties text file into a string (contents)
+						try (BufferedReader in = new BufferedReader(new FileReader(file))) {
+							while (in.ready()) contents += in.readLine() + "\n";
+						} catch (IOException x) {
+							Log.log("hotkeys.error", "Error: Cannot open properties text file in read, file is " + file);
+							Log.log("hotkeys.error", x);
+						}
+
+						String[] lines = contents.split("\n");
+						String next = "";
+						int n = 1;
+						for (String line : lines) {
+							String[] parts = line.split(":");
+							if (parts.length != 2) {
+								Log.log("hotkeys.error", "couldn't parse <" + line + "> in file, on line " + n);
+							} else {
+								if (parts[0].trim().equals(altWas)) {
+									// filter it out
+								} else {
+									next += line + "\n";
+								}
+							}
+							n++;
+						}
+
+						next += altWas + ":" + text;
+
+						//Write the contents to the output file
+						try (BufferedWriter out = new BufferedWriter(new FileWriter(file))) {
+							out.write(next);
+						} catch (IOException x) {
+							Log.log("hotkeys.error", "Error: Cannot open properties text file in write, file is " + file);
+							Log.log("hotkeys.error", x);
+						}
+
+						//now that the contents have been written to the output file we update the hotkeys
+						StringBuilder propertiesContents = new StringBuilder();
+						//Read properties text file into a string (contents)
+						try (BufferedReader in = new BufferedReader(new FileReader(file))) {
+							int curr;
+							while ((curr = in.read()) != -1) {
+								propertiesContents.append((char) curr);
+							}
+							in.close();
+						} catch (IOException x) {
+							System.err.println("Error: Cannot open properties text file in read");
+						}
+						for (String line : propertiesContents.toString().split("\n")) {
+							String[] splitLine = line.split(":");
+							Log.log("hotkeys.debug", " line is :" + splitLine.length + " <" + line + ">");
+							if (splitLine.length > 1) {
+								sendJavaScript("extraKeys[\"" + splitLine[0].trim() + "\"] = function (cm) {" + splitLine[1]
+									    .trim() + ";}");
+							}
+						}
+
+					}
+				});
+			}
+		};
 	}
 
 	protected SupportsPrompt supportsPrompt(Server server, String socketName) {
@@ -560,7 +686,6 @@ public class RemoteEditor extends Box {
 			} else {
 				callTable_alternative = null;
 				stringer.key("alternative");
-				String u = UUID.randomUUID().toString();
 				callTable_alternative = alternative;
 				stringer.value(null);
 			}
@@ -667,8 +792,8 @@ public class RemoteEditor extends Box {
 
 			JSONObject buildMessage = new JSONObject();
 			buildMessage.put("box", currentSelection.properties.get(IO.id));
-			buildMessage.put("text", currentSelection.properties.getOr(currentlyEditing, () -> ""));
-			buildMessage.put("property", currentlyEditing.getName());
+			buildMessage.put("text", currentSelection.properties.getOr(editingProperty, () -> ""));
+			buildMessage.put("property", editingProperty.getName());
 			buildMessage.put("name", currentSelection.properties.get(Box.name));
 
 
@@ -680,10 +805,19 @@ public class RemoteEditor extends Box {
 			Execution ex = getExecution(currentSelection);
 			if (ex != null) {
 				Execution.ExecutionSupport support = ex.support(currentSelection, editingProperty);
-				String cmln = support.getCodeMirrorLanguageName();
-				Log.log("remote.general", "langage :" + cmln);
-				buildMessage.put("languageName", cmln);
-				if (support != null) support.setFilenameForStacktraces("" + currentSelection);
+				if (support !=null) {
+					String cmln = support.getCodeMirrorLanguageName();
+					Log.log("remote.general", "langage :" + cmln);
+					buildMessage.put("languageName", cmln);
+					support.setFilenameForStacktraces("" + currentSelection);
+				}
+				else
+				{
+					// this can happen when we're editing something that isn't 'code'
+					String cmln = FieldBox.fieldBox.io.getLanguageForProperty(editingProperty);
+					Log.log("remote.general", "langage :" + cmln);
+					buildMessage.put("languageName", cmln);
+				}
 			}
 
 			Log.log("remote.trace", " message will be sent " + buildMessage.toString());
@@ -711,7 +845,15 @@ public class RemoteEditor extends Box {
 			if (selection.size() != 1) {
 				changeSelection(null, currentlyEditing);
 			} else {
-				changeSelection(selection.iterator().next(), currentlyEditing);
+				Box target = selection.iterator().next();
+
+				Dict.Prop objectProp = target.find(defaultEditorProperty, target.upwards()).findFirst()
+					    .map(x -> (Dict.Prop)new Dict.Prop<String>(x).toCannon()).orElseGet(() -> (Dict.Prop)Execution.code);
+
+
+				Log.log("remoteeditor", " looking for a defaultEditorProperty on <"+target+"> <"+target.properties.get(defaultEditorProperty)+">, got <"+objectProp+">");
+
+				changeSelection(target, objectProp);
 			}
 		}
 		return true;
@@ -727,6 +869,9 @@ public class RemoteEditor extends Box {
 	 * A general purpose Send some JavaScript to a text editor call
 	 */
 	public void sendJavaScript(String javascript) {
+		Log.log("javascript.trace", ">>>Sending javascript");
+		Log.log("javascript.trace", javascript);
+		Log.log("javascript.trace", "<<<Sentjavascript");
 		server.send(socketName, javascript);
 	}
 
@@ -742,6 +887,23 @@ public class RemoteEditor extends Box {
 	public void popFromLogStack() {
 		this.logStack.remove(this.logStack.size() - 1);
 		this.errorStack.remove(this.errorStack.size() - 1);
+	}
+
+	// Function to gather all javascript files in a directory as a list of strings
+	// (i.e. "somefile.js")
+	// Arguments: Absolute directory location of .js files
+	// Returns: List of file names
+	private static List<String> findJSFiles(String dir) {
+		File[] files = new File(dir).listFiles();
+		List<String> fileStrings = new ArrayList<>();
+		for (File file : files) {
+			if (!file.isDirectory() && file.toString().endsWith(".js")) {
+				String fullPath = file.toString();
+				fileStrings.add(fullPath.substring(fullPath.lastIndexOf('/') + 1));
+			}
+		}
+
+		return fileStrings;
 	}
 
 }

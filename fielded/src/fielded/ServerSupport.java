@@ -1,31 +1,22 @@
 package fielded;
 
 import field.message.MessageQueue;
-import field.utility.*;
-import field.graphics.RunLoop;
+import field.utility.Dict;
+import field.utility.Log;
+import field.utility.Quad;
 import fieldagent.Main;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Boxes;
 import fieldbox.boxes.Watches;
-import fielded.Execution;
-import fielded.RemoteEditor;
 import fielded.plugins.BridgeToTextEditor;
 import fielded.webserver.Server;
-import fieldnashorn.Nashorn;
-import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
 
 /**
  * Created by marc on 3/26/14.
@@ -33,7 +24,7 @@ import java.util.function.Consumer;
 public class ServerSupport {
 
 	static public List<String> playlist = Arrays
-		    .asList("messagebus.js", "instantiate.js", "changehooks.js", "status.js", "helpbox.js", "modal.js", "brackets.js", "output.js", "doubleshift.js");
+		    .asList("messagebus.js", "instantiate.js", "changehooks.js", "status.js", "helpbox.js", "modal.js", "brackets.js", "output.js", "doubleshift.js", "JSHotkeyFunctions.js");
 
 
 	public ServerSupport(Boxes boxes) {
@@ -62,12 +53,12 @@ public class ServerSupport {
 			});
 
 			s.addHandlerLast(x -> x.equals("log"), (server, socket, address, payload) -> {
-				Log.log("remote.general","-\n" + payload + "\n-");
+				Log.log("remote.general", "-\n" + payload + "\n-");
 				return payload;
 			});
 
 			s.addHandlerLast(x -> x.equals("error"), (server, socket, address, payload) -> {
-				Log.log("remote.general","-e-\n" + payload + "\n-e-");
+				Log.log("remote.general", "-e-\n" + payload + "\n-e-");
 
 				return payload;
 			});
@@ -87,15 +78,39 @@ public class ServerSupport {
 
 				String name = payload + "";
 
-				Log.log("remote.trace"," naming socket " + name + " = " + socket);
+				Log.log("remote.trace", " naming socket " + name + " = " + socket);
 
 				s.nameSocket(name, socket);
 
-				Log.log("startup"," initializing remote editor ");
+				Log.log("startup", " initializing remote editor ");
 
 				RemoteEditor ed = new RemoteEditor(s, name, watches, queue);
 				ed.connect(boxes.root());
 				ed.setCurrentlyEditingProperty(Execution.code);
+
+				//Set up file reading
+				File file = new File(System.getProperty("user.home") + "/.field/hotkeys.txt");
+				StringBuilder contents = new StringBuilder();
+
+				//Read properties text file into a string (contents)
+				try (BufferedReader in = new BufferedReader(new FileReader(file))) {
+					int curr;
+					while ((curr = in.read()) != -1) {
+						contents.append((char) curr);
+					}
+					in.close();
+				} catch (IOException x) {
+					System.err.println("Error: Cannot open properties text file in read");
+				}
+
+				for (String line : contents.toString().split("\n")) {
+					String[] splitLine = line.split(":");
+					Log.log("hotkeys.debug", " line is :" + splitLine.length + " <" + line + ">");
+					if (splitLine.length > 1) {
+						ed.sendJavaScript("extraKeys[\"" + splitLine[0].trim() + "\"] = function (cm) {" + splitLine[1]
+							    .trim() + ";}");
+					}
+				}
 
 				return payload;
 			});
@@ -136,7 +151,7 @@ public class ServerSupport {
 					File f = File.createTempFile("fieldchromeuserdir", "field");
 					f.delete();
 					f.mkdirs();
-					System.out.println(" Launching field with tmp dir :"+f);
+					System.out.println(" Launching field with tmp dir :" + f);
 					//  this almost works, but chrome is ignoring the --harmony flag completely
 //					new ProcessBuilder("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", /*"--app=http://localhost:8080/init",*/ "--user-data-dir="+f.getAbsolutePath(), "--enable-experimental-web-platform-features", "--js-flags=\"--harmony\"", "--no-first-run")
 					new ProcessBuilder("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "--app=http://localhost:8080/init", "--no-first-run")

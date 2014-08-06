@@ -41,7 +41,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 
 	static public final Dict.Prop<Map<String, Function<Box, FLine>>> frameDrawing = new Dict.Prop<>("frameDrawing").type().toCannon()
 		    .doc("Functions that compute lines to be drawn along with this box");
-	static public final Dict.Prop<LinkedHashMapAndArrayList<String, Supplier<FLine>>> lines = new Dict.Prop<>("lines").type().toCannon()
+	static public final Dict.Prop<LinkedHashMapAndArrayList<Supplier<FLine>>> lines = new Dict.Prop<>("lines").type().toCannon()
 		    .doc("Geometry to be drawn along with this box");
 
 	static public final Dict.Prop<Boolean> dirty = new Dict.Prop<>("dirty").type().toCannon()
@@ -86,6 +86,8 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 
 			Map<String, Supplier<FLine>> ll = x.properties.computeIfAbsent(lines, (k) -> new LinkedHashMapAndArrayList<>());
 
+			Log.log("drawing.trace", "lines for "+x+" -> "+ll);
+
 			all = new ArrayList<>();
 			Iterator<Supplier<FLine>> it2 = ll.values().iterator();
 			while (it.hasNext()) {
@@ -94,6 +96,9 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 				if (fl == null) it.remove();
 				else all.add(fl);
 			}
+
+			Log.log("drawing.trace", " --> "+ll);
+
 
 			ll.values().stream().map(c -> c.get()).filter(fline -> fline != null).forEach(fline -> dispatchLine(fline, context));
 

@@ -4,12 +4,16 @@ import field.linalg.Vec4;
 import field.utility.Dict;
 import field.utility.Log;
 import field.utility.Pair;
-import fieldbox.boxes.*;
+import fieldbox.boxes.Box;
+import fieldbox.boxes.Boxes;
+import fieldbox.boxes.Drawing;
 import fieldbox.boxes.plugins.IsExecuting;
 import fieldbox.io.IO;
 import fielded.Animatable;
 import fielded.Execution;
 import fielded.RemoteEditor;
+import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import jdk.nashorn.internal.runtime.ScriptObject;
 
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
@@ -34,6 +38,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	private final ScriptEngine engine;
 	private TernSupport ternSupport;
 	public String filename = null;
+	private int lineOffset;
 
 	public NashornExecution(Box box, Dict.Prop<String> property, ScriptContext b, ScriptEngine engine) {
 		this.box = box;
@@ -85,13 +90,29 @@ public class NashornExecution implements Execution.ExecutionSupport {
 			Log.log("nashorn.general", "\n>>javascript in");
 			Log.log("nashorn.general", textFragment);
 
-			if (filename!=null)
-				textFragment = "//# sourceURL="+filename+"\n"+textFragment;
+			engine.put("__LINE__", 200);
+
+
+			// we prefix the code with a sufficient number of \n's so that the line number of any error message actually refers to the correct line
+			// dreadful hack, but there's no other option right now in Nashorn (sourceMaps aren't supported for example)
+			StringBuffer prefix = new StringBuffer(lineOffset);
+			for (int i = 0; i < lineOffset; i++)
+				prefix.append('\n');
+
+			if (filename != null) textFragment = prefix + textFragment + "//# sourceURL=" + filename;
+
 
 			Object ret = engine.eval(textFragment, context);
 			Log.log("nashorn.general", () -> "\n<<javascript out" + ret + " " + (ret != null ? ret.getClass() + "" : ""));
 			if (writer != null) writer.flush();
-			if (success != null) if (ret != null) success.accept("" + ret); else if (!written[0]) success.accept(" &#10003; ");
+			if (success != null) {
+				if (ret != null) {
+					if (ret instanceof ScriptObjectMirror && ((ScriptObjectMirror) ret).isFunction()) {
+						success.accept("[function defined]");
+					} else
+						success.accept("" + ret);
+				} else if (!written[0]) success.accept(" &#10003; ");
+			}
 
 			RemoteEditor.boxFeedback(Optional.of(box), new Vec4(0.3f, 0.7f, 0.3f, 0.5f));
 
@@ -101,17 +122,28 @@ public class NashornExecution implements Execution.ExecutionSupport {
 		} catch (Throwable t) {
 			lineErrors.accept(new Pair<>(-1, t.getMessage()));
 			t.printStackTrace();
+		} finally {
+			lineOffset = 0;
 		}
 	}
 
 	@Override
 	public void executeAndPrint(String textFragment, Consumer<field.utility.Pair<Integer, String>> lineErrors, Consumer<String> success) {
 		executeAndReturn(textFragment, lineErrors, success, true);
+		lineOffset = 0;
 	}
 
 	@Override
 	public void executeAll(String allText, Consumer<field.utility.Pair<Integer, String>> lineErrors, Consumer<String> success) {
+		lineOffset = 0;
 		executeAndReturn(allText, lineErrors, success, false);
+		lineOffset = 0;
+	}
+
+
+	@Override
+	public void setLineOffsetForFragment(int line) {
+		lineOffset = line;
 	}
 
 	int uniq = 0;
@@ -188,8 +220,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 		this.ternSupport = ternSupport;
 	}
 
-	public void setFilenameForStacktraces(String filename)
-	{
+	public void setFilenameForStacktraces(String filename) {
 		this.filename = filename;
 	}
 

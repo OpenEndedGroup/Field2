@@ -27,6 +27,7 @@ public class IO {
 	static public final String EXECUTION = "{{execution}}";
 
 
+
 	/**
 	 * tag interface for boxes, method will be called after all boxes have been loaded (and all properties set)
 	 */
@@ -63,6 +64,14 @@ public class IO {
 
 		return null;
 	}
+
+	public String getLanguageForProperty(Dict.Prop<String> editingProperty) {
+		for (Filespec f : knownFiles.values()) {
+			if (f.name.equals(editingProperty.getName())) return f.language;
+		}
+		return null;
+	}
+
 
 	public boolean isBoxFile(String filename) {
 		String[] pieces = filename.split("\\.");
@@ -128,7 +137,7 @@ public class IO {
 	public Document readDocument(String filename, Map<String, Box> specialBoxes, Set<Box> created) {
 		File f = filenameFor(filename);
 
-		Log.log("io.general", " reading document :"+f);
+		Log.log("io.general", " reading document :" + f);
 
 		lastWasNew = false;
 
@@ -136,7 +145,7 @@ public class IO {
 			// new file
 			lastWasNew = true;
 
-			Log.log("io.general"," document doesn't exist ");
+			Log.log("io.general", " document doesn't exist ");
 
 			Document d = new Document();
 			d.externalList = new ArrayList<>();
@@ -150,7 +159,7 @@ public class IO {
 		Document d = (Document) new EDN().read(m);
 		Map<String, Box> loaded = new HashMap<String, Box>();
 
-		Log.log("io.general"," document contains "+d.externalList.size()+" boxes ");
+		Log.log("io.general", " document contains " + d.externalList.size() + " boxes ");
 
 
 		for (External e : d.externalList) {
@@ -215,9 +224,12 @@ public class IO {
 
 		File dataFile = filenameFor(ex.dataFile);
 
-		Map<?, ?> m = (Map) (serializeFromString(readFromFile(dataFile)));
-		for (Map.Entry<?, ?> entry : m.entrySet()) {
-			ex.box.properties.put(new Dict.Prop((String) entry.getKey()), entry.getValue());
+		String read = readFromFile(dataFile);
+		if (read != null) {
+			Map<?, ?> m = (Map) serializeFromString(read);
+			for (Map.Entry<?, ?> entry : m.entrySet()) {
+				ex.box.properties.put(new Dict.Prop((String) entry.getKey()), entry.getValue());
+			}
 		}
 
 	}
@@ -236,9 +248,9 @@ public class IO {
 			cc.setAccessible(true);
 			box = (Box) cc.newInstance();
 		} catch (Throwable e) {
-			Log.log("io.error"," while looking for class <" + boxClass + "> an exception was thrown");
+			Log.log("io.error", " while looking for class <" + boxClass + "> an exception was thrown");
 			Log.log("io.error", e);
-			Log.log("io.error"," will proceed with just a vanilla Box class, but custom behavior will be lost ");
+			Log.log("io.error", " will proceed with just a vanilla Box class, but custom behavior will be lost ");
 			box = new Box();
 		}
 
@@ -251,9 +263,8 @@ public class IO {
 		for (Map.Entry<?, ?> entry : m.entrySet()) {
 			box.properties.put(new Dict.Prop((String) entry.getKey()), entry.getValue());
 
-			if (((String) entry.getKey()).startsWith("__filename__"))
-			{
-				String suffix =((String) entry.getKey()).substring("__filename__".length());
+			if (((String) entry.getKey()).startsWith("__filename__")) {
+				String suffix = ((String) entry.getKey()).substring("__filename__".length());
 
 				String p = (String) entry.getValue();
 
@@ -269,9 +280,7 @@ public class IO {
 		return box;
 
 
-
 	}
-
 
 
 	protected External toExternal(Box box, Map<Box, String> specialBoxes) {
@@ -282,10 +291,12 @@ public class IO {
 		External ex = new External();
 
 		for (Map.Entry<Dict.Prop, Object> e : new LinkedHashMap<>(box.properties.getMap()).entrySet()) {
+			Log.log("io.general", "checking :"+e.getKey().getName()+" against "+knownFiles.keySet());
 			if (knownFiles.containsKey(e.getKey().getName())) {
 				Filespec f = knownFiles.get(e.getKey().getName());
 
 				String extantFilename = box.properties.get(new Dict.Prop<String>("__filename__" + e.getKey().getName()));
+				Log.log("io.general", "extant filename is :"+extantFilename+" for "+e.getKey().getName()+" from "+box.properties);
 				if (extantFilename == null) {
 					box.properties.put(new Dict.Prop<String>("__filename__" + e.getKey()
 						    .getName()), extantFilename = makeFilenameFor(f, box));

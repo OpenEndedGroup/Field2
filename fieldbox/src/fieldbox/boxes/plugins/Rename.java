@@ -8,13 +8,14 @@ import fielded.RemoteEditor;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
  * Adds: a command to rename a box
- *
- * TODO: ideally we'd have both a prompt and some placeholder text
- * TODO: specifying chained "parameterized" commands such as this ought to be more straightforward.
+ * <p>
+ * TODO: ideally we'd have both a prompt and some placeholder text TODO: specifying chained "parameterized" commands such as this ought to be more
+ * straightforward.
  */
 public class Rename extends Box {
 
@@ -27,7 +28,7 @@ public class Rename extends Box {
 				public RemoteEditor.SupportsPrompt p;
 
 				@Override
-				public void begin(RemoteEditor.SupportsPrompt prompt, String alternativeChosen) {
+				public void begin(RemoteEditor.SupportsPrompt prompt, String alternativeChosen/*, Consumer<String> feedback*/) {
 					this.p = prompt;
 				}
 
@@ -38,10 +39,12 @@ public class Rename extends Box {
 
 					p.prompt("rename box to...", m, new RemoteEditor.ExtendedCommand() {
 						String altWas = null;
+						Consumer<String> feedback;
 
 						@Override
-						public void begin(RemoteEditor.SupportsPrompt prompt, String alternativeChosen) {
+						public void begin(RemoteEditor.SupportsPrompt prompt, String alternativeChosen/*, Consumer<String> feedback*/) {
 							altWas = alternativeChosen;
+							this.feedback = feedback;
 						}
 
 						@Override
@@ -49,6 +52,7 @@ public class Rename extends Box {
 							if (altWas != null) selection().forEach(x -> {
 								x.properties.put(Box.name, altWas);
 								Drawing.dirty(x);
+								feedback.accept("Renamed to \"" + altWas + "\"");
 							});
 						}
 					});

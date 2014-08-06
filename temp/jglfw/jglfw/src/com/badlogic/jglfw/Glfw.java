@@ -212,11 +212,14 @@ public class Glfw {
 	public static final int GLFW_FORMAT_UNAVAILABLE = 0x00010009;
 
 
-public static final int GLFW_FOCUSED                =0x00020001;
-public static final int GLFW_ICONIFIED              =0x00020002;
-public static final int GLFW_RESIZABLE              =0x00020003;
-public static final int GLFW_VISIBLE                =0x00020004;
-public static final int GLFW_DECORATED              =0x00020005;
+    public static final int GLFW_FOCUSED                =0x00020001;
+    public static final int GLFW_ICONIFIED              =0x00020002;
+    public static final int GLFW_RESIZABLE              =0x00020003;
+    public static final int GLFW_VISIBLE                =0x00020004;
+    public static final int GLFW_DECORATED              =0x00020005;
+    public static final int GLFW_AUTO_ICONIFY           =0x00020006;
+    public static final int GLFW_FLOATING           =0x00020007;
+
 
 public static final int GLFW_RED_BITS               =0x00021001;
 public static final int GLFW_GREEN_BITS             =0x00021002;
@@ -233,6 +236,7 @@ public static final int GLFW_STEREO                 =0x0002100C;
 public static final int GLFW_SAMPLES                =0x0002100D;
 public static final int GLFW_SRGB_CAPABLE           =0x0002100E;
 public static final int GLFW_REFRESH_RATE           =0x0002100F;
+public static final int GLFW_DOUBLEBUFFER           =0x00021010;
 
 public static final int GLFW_CLIENT_API             =0x00022001;
 public static final int GLFW_CONTEXT_VERSION_MAJOR  =0x00022002;
@@ -264,6 +268,8 @@ public static final int GLFW_CURSOR_DISABLED        =0x00034003;
 
 public static final int GLFW_CONNECTED              =0x00040001;
 public static final int GLFW_DISCONNECTED           =0x00040002;
+    
+    public static final int GLFW_DONT_CARE = -1;
 
 	public static final int GLFW_GAMMA_RAMP_SIZE = 256;
 
