@@ -237,8 +237,11 @@ extraKeys = {
         Hotkeys();
     },
     "Ctrl-I": function (cm) {
-        addColorPicker();
-        colorpickernum++
+    		Import();
+    },
+    "Ctrl-Q": function (cm) {
+    		addColorPicker();
+    		colorpickernum++;
     }
 }
 
