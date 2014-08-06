@@ -57,6 +57,13 @@ public class MainFrameNearlyHeadless /*extends JFrame*/ {
 			@Override
 			public void onPaint(boolean popup, Rectangle[] dirtyRects, ByteBuffer buffer, int width, int height) {
 				System.out.println("Painting rectangles " + dirtyRects.length+" "+ Arrays.asList(dirtyRects)+" -> "+buffer);
+				int q = 0;
+				for(int i=0;i<buffer.capacity();i++)
+				{
+					int z = buffer.get(i) & 0xff;
+					if (z!=0)
+						System.out.println(z);
+				}
 			}
 		};
 		browser_ = (CefRendererBrowserBuffer) client_
@@ -211,6 +218,6 @@ public class MainFrameNearlyHeadless /*extends JFrame*/ {
 	}
 
 	public static void main(String[] args) {
-		new MainFrameNearlyHeadless("https://news.ycombinator.com/", true);
+		new MainFrameNearlyHeadless("http://www.tictocfamily.com/latest/320-tictoc-appointed-to-develop-a-new-site-for-maven-capital-partners", true);
 	}
 }

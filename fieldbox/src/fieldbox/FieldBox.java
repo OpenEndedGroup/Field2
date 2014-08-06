@@ -34,7 +34,7 @@ public class FieldBox {
 		// TODO --- get from command line / previous
 		Options.parseCommandLine(s);
 
-		Open open = new Open("testFileConnect.field2");
+		Open open = new Open("testCEF.field2");
 
 		// TODO --- save automatically on exit
 		fieldBox.go();

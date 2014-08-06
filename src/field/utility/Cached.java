@@ -1,11 +1,16 @@
 package field.utility;
 
-import field.utility.Util;
-
-import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+
+/**
+ * Handy Utility class for guarding computation of function with a check-function
+ * <p>
+ * This is a Function<t_check, t_value> and you can give a function 'witness' that's <t_check, t_witness>. If the witness function returns something
+ * that's different from the last time it returned (or this cache has been marked as invalid manually) then the original function is executed and it's
+ * return value stored and return. Otherwise, you get the same result as before.
+ */
 public class Cached<t_check, t_witness, t_value> implements Function<t_check, t_value> {
 
 	private BiFunction<t_check, t_value, t_value> compute;
@@ -15,8 +20,7 @@ public class Cached<t_check, t_witness, t_value> implements Function<t_check, t_
 	private boolean invalid = false;
 	private String debug = null;
 
-	public Cached(BiFunction<t_check, t_value, t_value> compute, Function<t_check,t_witness> witness)
-	{
+	public Cached(BiFunction<t_check, t_value, t_value> compute, Function<t_check, t_witness> witness) {
 		this.witness = witness;
 		this.compute = compute;
 		invalid = true;
@@ -27,34 +31,28 @@ public class Cached<t_check, t_witness, t_value> implements Function<t_check, t_
 		return this;
 	}
 
-	public Cached<t_check, t_witness, t_value> invalidate()
-	{
-		if (debug!=null)
-			Log.log("cached."+debug, " cache invalidated :");
+	public Cached<t_check, t_witness, t_value> invalidate() {
+		if (debug != null) Log.log("cached." + debug, " cache invalidated :");
 		invalid = true;
 		return this;
 	}
 
-	public t_value apply(t_check check)
-	{
+	public t_value apply(t_check check) {
 		t_witness w = witness.apply(check);
 
-		if (invalid || !Util.safeEq(w, valid))
-		{
-			if (debug!=null)
-			{
-				Log.log("cached."+debug, " cache invalid :"+invalid+" "+w+" "+valid+" "+Util.safeEq(w, valid));
+		if (invalid || !Util.safeEq(w, valid)) {
+			if (debug != null) {
+				Log.log("cached." + debug, " cache invalid :" + invalid + " " + w + " " + valid + " " + Util.safeEq(w, valid));
 			}
 			value = compute.apply(check, value);
 			valid = w;
 			invalid = false;
-		}
-		else if (debug!=null) Log.log("cached."+debug, " cache valid :"+invalid+" "+w+" "+valid+" "+Util.safeEq(w, valid));
+		} else if (debug != null)
+			Log.log("cached." + debug, " cache valid :" + invalid + " " + w + " " + valid + " " + Util.safeEq(w, valid));
 		return value;
 	}
 
-	public Cached<t_check, t_witness, t_value> debugOn(String name)
-	{
+	public Cached<t_check, t_witness, t_value> debugOn(String name) {
 		this.debug = name;
 		return this;
 	}

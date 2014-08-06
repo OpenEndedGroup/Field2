@@ -68,6 +68,8 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 	public void draw(Drawing context) {
 
 		this.breadthFirst(this.both()).forEach(x -> {
+			Log.log("drawing.trace", "lines for "+x);
+
 			Rect r = x.properties.get(frame);
 
 			Map<String, Function<Box, FLine>> drawing = x.properties.computeIfAbsent(frameDrawing, this::defaultdrawsLines);
@@ -81,12 +83,13 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 				else all.add(fl);
 			}
 
+			Log.log("drawing.trace", " --> "+drawing);
+
 			drawing.values().stream().map(c -> c.apply(x)).filter(fline -> fline != null).collect(Collectors.toList()).forEach(fline -> dispatchLine(fline, context));
 
 
 			Map<String, Supplier<FLine>> ll = x.properties.computeIfAbsent(lines, (k) -> new LinkedHashMapAndArrayList<>());
 
-			Log.log("drawing.trace", "lines for "+x+" -> "+ll);
 
 			all = new ArrayList<>();
 			Iterator<Supplier<FLine>> it2 = ll.values().iterator();
@@ -101,6 +104,8 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 
 
 			ll.values().stream().map(c -> c.get()).filter(fline -> fline != null).forEach(fline -> dispatchLine(fline, context));
+
+			Log.log("drawing.trace", "lines for "+x+" finished");
 
 		});
 	}
@@ -194,7 +199,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 
 			f.attributes.put(hasText, true);
 			f.attributes.put(color, new Vec4(0, 0, 0, 0.75f));
-			f.nodes.get(f.nodes.size() - 1).attributes.put(text, box.properties.get(Box.name));
+			f.nodes.get(f.nodes.size() - 1).attributes.put(text, box.properties.getOr(Box.name, () -> ""));
 
 			return f;
 		}, (box) -> new Pair(box.properties.get(frame), box.properties.get(Box.name))));

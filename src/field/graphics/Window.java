@@ -366,6 +366,18 @@ public class Window {
 			return new KeyboardState(keysDown, charsDown, time);
 		}
 
+		public KeyboardState withChar(char c, boolean down) {
+			Set<Integer> keysDown = new LinkedHashSet<>(this.keysDown);
+			Map<Integer, Character> charsDown = new LinkedHashMap<>(this.charsDown);
+			if (down) {
+				charsDown.put((int)c, c);
+			} else {
+				charsDown.remove((int)c);
+			}
+
+			return new KeyboardState(keysDown, charsDown, time);
+		}
+
 		static public Set<Integer> keysPressed(KeyboardState before, KeyboardState after) {
 			Set<Integer> b = new LinkedHashSet<>(after.keysDown);
 			b.removeAll(before.keysDown);
@@ -652,7 +664,12 @@ public class Window {
 			@Override
 			public void character(long window, char character) {
 				if (window == Window.this.window) {
-					System.out.println(" char -- " + character);
+					KeyboardState next = keyboardState.withChar(character, true);
+					fireKeyboardTransition(keyboardState, next);
+					keyboardState = next;
+					next = keyboardState.withChar(character, false);
+					fireKeyboardTransition(keyboardState, next);
+					keyboardState = next;
 				}
 			}
 

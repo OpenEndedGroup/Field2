@@ -84,6 +84,7 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 			    .reduce(0L, (w, frame) -> 31 * w + allFrameHashSalt+(frame.properties.isTrue(Mouse.isSelected, false) ? 1 : 0) + frame.properties.get(Box.frame).hashCode(), (x, y) -> 31 * x + y);
 
 		allFrameHashAt = RunLoop.tick;
+
 		return allFrameHash;
 	}
 

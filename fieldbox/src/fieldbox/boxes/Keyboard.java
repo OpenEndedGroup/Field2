@@ -10,13 +10,16 @@ import java.util.stream.Collectors;
  * Entry-point from GLFW based Window.Event<Window.KeyboardState> into Field. Defines OnKeyDown and Hold interfaces for Boxes to implement if they
  * want to listen to key presses (and holds and, thus, releases).
  * <p>
- * This operates in exactly the same manner as "Mouse" except there is no analogue of the OnMouseMove (no hovering of hands over the
- * keyboard).
+ * This operates in exactly the same manner as "Mouse" except there is no analogue of the OnMouseMove (no hovering of hands over the keyboard).
  */
 public class Keyboard {
 
 	public interface OnKeyDown {
 		public Hold onKeyDown(Window.Event<Window.KeyboardState> e, int key);
+	}
+
+	public interface OnCharTyped {
+		public void onCharTyped(Window.Event<Window.KeyboardState> e, char key);
 	}
 
 	public interface Hold {
@@ -26,10 +29,12 @@ public class Keyboard {
 	Map<Integer, Collection<Hold>> ongoingDrags = new HashMap<Integer, Collection<Hold>>();
 
 	static public final Dict.Prop<Collection<OnKeyDown>> onKeyDown = new Dict.Prop<>("onKeyDown").type().toCannon();
+	static public final Dict.Prop<Collection<OnCharTyped>> onCharTyped = new Dict.Prop<>("onCharTyped").type().toCannon();
 
 
 	public void dispatch(Box root, Window.Event<Window.KeyboardState> event) {
 		Set<Integer> pressed = Window.KeyboardState.keysPressed(event.before, event.after);
+		Set<Character> typed = Window.KeyboardState.charsPressed(event.before, event.after);
 		Set<Integer> released = Window.KeyboardState.keysReleased(event.before, event.after);
 		Set<Integer> down = event.after.keysDown;
 
@@ -62,5 +67,10 @@ public class Keyboard {
 			root.find(onKeyDown, root.both()).flatMap(x -> x.stream()).map(x -> x.onKeyDown(event, p)).filter(x -> x != null)
 				    .collect(Collectors.toCollection(() -> hold));
 		});
+
+		typed.stream().forEach(p -> {
+			root.find(onCharTyped, root.both()).flatMap(x -> x.stream()).forEach(x -> x.onCharTyped(event, p));
+		});
+
 	}
 }

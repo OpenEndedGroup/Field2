@@ -390,9 +390,6 @@ abstract public class CefBrowser_N extends CefNativeAdapter implements CefBrowse
 	 * @param e The event to send.
 	 */
 	public final void sendMouseEvent(MouseEvent e) {
-
-		System.out.println(" SEND MOUSE EVENT :"+e);
-
 		try {
 			N_SendMouseEvent(e);
 		} catch (UnsatisfiedLinkError ule) {

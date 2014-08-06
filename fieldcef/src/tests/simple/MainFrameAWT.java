@@ -158,7 +158,7 @@ public class MainFrameAWT extends JFrame {
 
 		System.out.println(" -- mousing around --- ");
 
-		client_.addMessageRouter();
+//		client_.addMessageRouter();
 
 		browser_.executeJavaScript("console.log('BANANA')", "", 0);
 

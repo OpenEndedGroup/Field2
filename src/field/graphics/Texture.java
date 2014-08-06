@@ -1,10 +1,12 @@
 package field.graphics;
 
+import field.utility.Log;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL21;
 import org.lwjgl.opengl.GL30;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
@@ -44,15 +46,23 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform {
 
 	int mod = 0;
 
+	AtomicInteger pendingUploads = new AtomicInteger(0);
+
 	/**
 	 * schedules an upload from this bytebuffer to this texture during the next drawn. Set stream to true to hint to OpenGL that you mean to keep
 	 * on doing this.
 	 */
 	public void upload(ByteBuffer upload, boolean stream) {
+		pendingUploads.incrementAndGet();
 		connect(new Transient(() -> {
+			pendingUploads.decrementAndGet();
 			State s = GraphicsContext.get(this, null);
+
+			Log.log("graphics.trace", "state for texture in upload is "+s);
+
 			if (s == null) return;
 
+			Log.log("graphics.trace", "uploading ");
 			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, s.pboA);
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 			glPixelStorei(GL_UNPACK_ROW_LENGTH, specification.width);
@@ -60,18 +70,29 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform {
 			s.old = GL15.glMapBuffer(GL21.GL_PIXEL_UNPACK_BUFFER, GL15.GL_WRITE_ONLY, s.old);
 			s.old.rewind();
 			upload.rewind();
+			upload.limit(s.old.limit());
 			s.old.put(upload);
+			upload.clear();
 			upload.rewind();
 			s.old.rewind();
 			GL15.glUnmapBuffer(GL21.GL_PIXEL_UNPACK_BUFFER);
 			GL15.glBindBuffer(GL21.GL_PIXEL_UNPACK_BUFFER, 0);
+			Log.log("graphics.trace", "uploaded part 1");
 			s.mod++;
 		}, -2));
+	}
+
+	public int getPendingUploads()
+	{
+		return pendingUploads.get();
 	}
 
 	protected boolean perform0() {
 
 		State s = GraphicsContext.get(this);
+
+		Log.log("graphics.trace", "activating texture :"+specification.unit+" = "+s.name);
+
 		glActiveTexture(GL_TEXTURE0 + specification.unit);
 		glBindTexture(specification.target, s.name);
 
@@ -150,7 +171,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform {
 		}
 
 		static public TextureSpecification byte4(int unit, int width, int height, ByteBuffer source, boolean mips) {
-			return new TextureSpecification(unit, GL_TEXTURE_2D, GL_RGBA, width, height, GL_RGBA, GL_UNSIGNED_BYTE, 4, source, mips);
+			return new TextureSpecification(unit, GL_TEXTURE_2D, GL_RGBA8, width, height, GL_RGBA, GL_UNSIGNED_BYTE, 4, source, mips);
 		}
 
 		static public TextureSpecification float4(int unit, int width, int height, ByteBuffer source, boolean mips) {
@@ -164,6 +185,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform {
 
 	protected int upload(State s) {
 
+		Log.log("graphics.trace", "finishing upload part 2");
 		glActiveTexture(GL_TEXTURE0 + specification.unit);
 		glBindTexture(specification.target, s.name);
 		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, s.pbo);
