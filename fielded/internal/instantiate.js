@@ -89,11 +89,12 @@ goCommands = function () {
     );
 }
 
-testCommand = function () {
+hotkeys = function () {
 		JSCommands = {}
 
 		for (var i = 0; i < globalCommands.length; i++) {
 			var currCommand = globalCommands[i]
+			//This regex trims the function () { and } from the beginning and end of the call, reducing it to just the command in the body
 			JSCommands[currCommand.name] = [currCommand.info, currCommand.callback.toString().replace(/[^{]*{|}[^}]*$/g, "").trim()]
 		}
 
