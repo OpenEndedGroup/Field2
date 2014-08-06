@@ -6,7 +6,7 @@ public class ReloadTarget {
 
 	public String test()
 	{
-		return "GEN";
+		return "GEN  1";
 	}
 
 }
