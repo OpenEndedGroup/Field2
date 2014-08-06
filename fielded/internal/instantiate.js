@@ -12,6 +12,8 @@ cm.setOption("gutters", ["CodeMirror-foldgutter", "CodeMirror-linenumbers"])
 cm.setOption("matchBrackets", true)
 cm.setOption("closeBrackets", true)
 
+colorpickernum = 0
+
 function fuzzy(pat) {
     m = pat.split(" ")
     var s = ""
@@ -235,7 +237,8 @@ extraKeys = {
         Hotkeys();
     },
     "Ctrl-I": function (cm) {
-        Import();
+        addColorPicker();
+        colorpickernum++
     }
 }
 
