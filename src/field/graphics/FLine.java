@@ -136,18 +136,15 @@ public class FLine implements Supplier<FLine> {
 		return this.cubicTo(x - r, y - k, x - k, y - r, x, y - r);
 	}
 
-	public FLine transform(Function<Vec3, Vec3> by)
-	{
-		for(Node n : nodes)
-		{
+	public FLine transform(Function<Vec3, Vec3> by) {
+		for (Node n : nodes) {
 			n.transform(by);
 		}
 		modify();
 		return this;
 	}
 
-	public FLine clear()
-	{
+	public FLine clear() {
 		nodes.clear();
 		modify();
 		return this;
@@ -169,13 +166,16 @@ public class FLine implements Supplier<FLine> {
 	}
 
 	WeakHashMap<MeshBuilder, BookmarkCache> cache = new WeakHashMap<>();
+	WeakHashMap<MeshBuilder, BookmarkCache> cache_thickening = new WeakHashMap<>();
 
 	public void clearCache() {
 		cache.clear();
+		cache_thickening.clear();
 	}
 
 	public void clearCache(MeshBuilder m) {
 		cache.remove(m);
+		cache_thickening.remove(m);
 	}
 
 
@@ -214,7 +214,7 @@ public class FLine implements Supplier<FLine> {
 
 		BookmarkCache c = cache.computeIfAbsent(m, (k) -> new BookmarkCache(m));
 
-//		Log.log("drawing.trace", "should skip ? "+mod);
+		Log.log("drawing.trace", "should skip ? " + mod);
 
 		return m.skipTo(c.start, c.end, mod, () -> {
 
@@ -224,7 +224,7 @@ public class FLine implements Supplier<FLine> {
 				MeshBuilder.Bookmark start = null;
 				// todo: AUX!
 
-//				Log.log("drawing.trace", "ACTUALLY DRAWING");
+				Log.log("drawing.trace", "ACTUALLY DRAWING");
 
 				Node a = null;
 				for (int i = 0; i < nodes.size(); i++) {
@@ -260,7 +260,7 @@ public class FLine implements Supplier<FLine> {
 	}
 
 	public boolean renderLineToMeshByStroking(MeshBuilder m, int fixedSizeForCubic, BasicStroke stroke) {
-		BookmarkCache c = cache.computeIfAbsent(m, (k) -> new BookmarkCache(m));
+		BookmarkCache c = cache_thickening.computeIfAbsent(m, (k) -> new BookmarkCache(m));
 
 		return m.skipTo(c.start, c.end, mod, () -> {
 			Shape s = stroke.createStrokedShape(flineToJavaShape(this));
@@ -268,6 +268,7 @@ public class FLine implements Supplier<FLine> {
 			drawInstead.attributes.putAll(attributes);
 			drawInstead.renderToMesh(m, fixedSizeForCubic);
 		});
+
 	}
 
 
@@ -373,7 +374,6 @@ public class FLine implements Supplier<FLine> {
 			target.get(i).flatAuxData[slot] = val;
 		}
 	}
-
 
 
 	private float[] interpolate(float alpha, float[] a, float[] b, int dim) {

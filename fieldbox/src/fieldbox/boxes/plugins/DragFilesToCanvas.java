@@ -2,6 +2,7 @@ package fieldbox.boxes.plugins;
 
 import field.linalg.Vec2;
 import field.utility.Dict;
+import field.utility.Log;
 import field.utility.Rect;
 import fieldbox.FieldBox;
 import fieldbox.boxes.Box;
@@ -9,12 +10,13 @@ import fieldbox.boxes.Drawing;
 import fieldbox.boxes.Drops;
 import fieldbox.io.IO;
 import fielded.Execution;
+import fielded.RemoteEditor;
 
 import java.io.File;
 import java.lang.reflect.Field;
 
 /**
- * Created by marc on 7/3/14.
+ * Plugin that lets you drag files onto the canvas. Files are now kept out of the workspace.
  */
 public class DragFilesToCanvas extends Box {
 
@@ -47,14 +49,26 @@ public class DragFilesToCanvas extends Box {
 				root.connect(b1);
 
 				Dict.Prop<String> code = FieldBox.fieldBox.io.lookupFileSuffix(f, root);
+
+				Log.log("drags", "looked up code suffix for " + f + " got " + code);
+
 				if(code==null) code = Execution.code;
+				else {
+					Log.log("drags", "set default editor property to "+code);
+					b1.properties.put(RemoteEditor.defaultEditorProperty, code.getName());
+				}
 				b1.properties.put(code, IO.readFromFile(new File(f)));
 
 				String ff = new File(f).getAbsolutePath();
 				if (ff.startsWith(FieldBox.fieldBox.io.getDefaultDirectory())) {
 					ff = IO.WORKSPACE + "/" + ff.substring(FieldBox.fieldBox.io.getDefaultDirectory().length());
+					Log.log("drags", "filename is part of workspace "+ff);
 				}
-				b1.properties.put(new Dict.Prop<String>("__filename__" + Execution.code), ff);
+
+				Log.log("drags", "final filename is :"+ff);
+				b1.properties.put(new Dict.Prop<String>("__filename__" + code.getName()), ff);
+
+
 
 				//TODO what if there's already a sidecar .box file. Need to read that in a set properties (a job for IO) otherwise we'll probably blow it away on save?
 			}

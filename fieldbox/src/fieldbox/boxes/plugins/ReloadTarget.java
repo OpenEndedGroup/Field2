@@ -10,7 +10,7 @@ public class ReloadTarget {
 
 	public String test()
 	{
-		return "GEN";
+		return "GEN  1";
 	}
 
 	public static float test2(){ return 10.0f;}

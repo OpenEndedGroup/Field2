@@ -50,7 +50,7 @@ public class Trampoline {
 	static public class ExtensibleClassloader extends URLClassLoader {
 
 		{
-			registerAsParallelCapable();
+//			registerAsParallelCapable();
 		}
 
 		public ExtensibleClassloader(URL[] urls, ClassLoader parent) {
@@ -136,7 +136,7 @@ public class Trampoline {
 
 
 		LinkedHashSet<String> blacklist_prefix = new LinkedHashSet<String>(Arrays
-			    .asList("fieldagent", "java", "sun", "jdk", "javax", "sunw", "apple", "com.apple"));
+			    .asList("fieldagent", "java", "sun", "jdk", "javax", "sunw", "apple", "com.apple", "org.cef"));
 
 		protected boolean shouldLoad(String name) {
 

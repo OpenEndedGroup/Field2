@@ -1,8 +1,10 @@
 package field.graphics;
 
+import com.sun.tools.doclets.internal.toolkit.builders.MethodBuilder;
 import field.linalg.Vec2;
 import field.linalg.Vec3;
 import field.linalg.Vec4;
+import field.utility.Log;
 import field.utility.Pair;
 import field.utility.Util;
 import org.lwjgl.opengl.GL15;
@@ -40,16 +42,19 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 
 		public boolean stillValid(Object externalHash) {
 			if (MeshBuilder.this.vertexCursor != vertexCursor || MeshBuilder.this.elementCursor != elementCursor) {
+				Log.log("drawing.trace", () -> " CURSORS vertex cursor was :" + vertexCursor + " / " + MeshBuilder.this.vertexCursor + "  " + elementCursor + " / " + MeshBuilder.this.elementCursor);
 				cacheMisses_cursor++;
 				return false;
 			}
 			if (!Util.safeEq(this.externalHash, externalHash)) {
+				Log.log("drawing.trace", () -> " externalHash "+this.externalHash+" "+externalHash);
 				cacheMisses_externalHash++;
 				return false;
 			}
 
 			Object h2 = computeHash();
 			if (!h2.equals(hash)) {
+				Log.log("drawing.trace", () -> " internalHash "+h2+" "+hash);
 				cacheMisses_internalHash++;
 				return false;
 			}
@@ -286,6 +291,8 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	 * value of externalHash.
 	 */
 	public boolean skipTo(Bookmark from, Bookmark to, Object externalHash, Consumer<MeshBuilder> updator) {
+
+
 		if (!from.stillValid(externalHash) || from.getOuter() != this) {
 			from.reset(externalHash);
 			updator.accept(this);

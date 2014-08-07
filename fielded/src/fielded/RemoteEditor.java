@@ -5,6 +5,7 @@ import field.linalg.Vec2;
 import field.linalg.Vec4;
 import field.message.MessageQueue;
 import field.utility.*;
+import fieldbox.FieldBox;
 import fieldbox.boxes.*;
 import fieldbox.io.IO;
 import fielded.webserver.RateLimitingQueue;
@@ -38,12 +39,19 @@ public class RemoteEditor extends Box {
 	static public final Dict.Prop<Function<Box, Consumer<String>>> outputFactory = new Dict.Prop<>("outputFactory");
 	static public final Dict.Prop<Function<Box, Consumer<Pair<Integer, String>>>> outputErrorFactory = new Dict.Prop<>("outputErrorFactory");
 
+	static public final Dict.Prop<String> defaultEditorProperty = new Dict.Prop<String>("defaultEditorProperty").type().doc("The property that the editor will switch to. Will default to 'code' if not set.");
+
 	static public interface ExtendedCommand extends Runnable {
 		public void begin(SupportsPrompt prompt, String alternativeChosen);
 	}
 
 	static public interface SupportsPrompt {
 		public void prompt(String prompt, Map<Pair<String, String>, Runnable> options, ExtendedCommand alternative);
+	}
+
+	static
+	{
+		IO.persist(defaultEditorProperty);
 	}
 
 	private final Server server;
@@ -784,8 +792,8 @@ public class RemoteEditor extends Box {
 
 			JSONObject buildMessage = new JSONObject();
 			buildMessage.put("box", currentSelection.properties.get(IO.id));
-			buildMessage.put("text", currentSelection.properties.getOr(currentlyEditing, () -> ""));
-			buildMessage.put("property", currentlyEditing.getName());
+			buildMessage.put("text", currentSelection.properties.getOr(editingProperty, () -> ""));
+			buildMessage.put("property", editingProperty.getName());
 			buildMessage.put("name", currentSelection.properties.get(Box.name));
 
 
@@ -797,10 +805,19 @@ public class RemoteEditor extends Box {
 			Execution ex = getExecution(currentSelection);
 			if (ex != null) {
 				Execution.ExecutionSupport support = ex.support(currentSelection, editingProperty);
-				String cmln = support.getCodeMirrorLanguageName();
-				Log.log("remote.general", "langage :" + cmln);
-				buildMessage.put("languageName", cmln);
-				if (support != null) support.setFilenameForStacktraces("" + currentSelection);
+				if (support !=null) {
+					String cmln = support.getCodeMirrorLanguageName();
+					Log.log("remote.general", "langage :" + cmln);
+					buildMessage.put("languageName", cmln);
+					support.setFilenameForStacktraces("" + currentSelection);
+				}
+				else
+				{
+					// this can happen when we're editing something that isn't 'code'
+					String cmln = FieldBox.fieldBox.io.getLanguageForProperty(editingProperty);
+					Log.log("remote.general", "langage :" + cmln);
+					buildMessage.put("languageName", cmln);
+				}
 			}
 
 			Log.log("remote.trace", " message will be sent " + buildMessage.toString());
@@ -828,7 +845,15 @@ public class RemoteEditor extends Box {
 			if (selection.size() != 1) {
 				changeSelection(null, currentlyEditing);
 			} else {
-				changeSelection(selection.iterator().next(), currentlyEditing);
+				Box target = selection.iterator().next();
+
+				Dict.Prop objectProp = target.find(defaultEditorProperty, target.upwards()).findFirst()
+					    .map(x -> (Dict.Prop)new Dict.Prop<String>(x).toCannon()).orElseGet(() -> (Dict.Prop)Execution.code);
+
+
+				Log.log("remoteeditor", " looking for a defaultEditorProperty on <"+target+"> <"+target.properties.get(defaultEditorProperty)+">, got <"+objectProp+">");
+
+				changeSelection(target, objectProp);
 			}
 		}
 		return true;

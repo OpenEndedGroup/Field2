@@ -12,6 +12,7 @@ public class LoggingDefaults {
 		Log.on(".*startup.*", Log::blue);
 		Log.on(".*error.*", Log::red);
 		Log.disable(".*trace.*");
+		Log.on("cef.*", Log::green);
 
 	}
 }

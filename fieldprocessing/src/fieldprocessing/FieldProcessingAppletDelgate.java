@@ -632,65 +632,24 @@ public class FieldProcessingAppletDelgate {
 	}
 
 	/**
-	 * ( begin auto-generated from size.xml )
-	 * <p>
-	 * Defines the dimension of the display window in units of pixels. The <b>size()</b> function must be the first line in <b>setup()</b>. If
-	 * <b>size()</b> is not used, the default size of the window is 100x100 pixels. The system variables <b>width</b> and <b>height</b> are set by
-	 * the parameters passed to this function.<br /> <br /> Do not use variables as the parameters to <b>size()</b> function, because it will
-	 * cause problems when exporting your sketch. When variables are used, the dimensions of your sketch cannot be determined during export.
-	 * Instead, employ numeric values in the <b>size()</b> statement, and then use the built-in <b>width</b> and <b>height</b> variables inside
-	 * your program when the dimensions of the display window are needed.<br /> <br /> The <b>size()</b> function can only be used once inside a
-	 * sketch, and cannot be used for resizing.<br/> <br/> <b>renderer</b> parameter selects which rendering engine to use. For example, if you
-	 * will be drawing 3D shapes, use <b>P3D</b>, if you want to export images from a program as a PDF file use <b>PDF</b>. A brief description of
-	 * the three primary renderers follows:<br /> <br /> <b>P2D</b> (Processing 2D) - The default renderer that supports two dimensional
-	 * drawing.<br /> <br /> <b>P3D</b> (Processing 3D) - 3D graphics renderer that makes use of OpenGL-compatible graphics hardware.<br /> <br />
-	 * <b>PDF</b> - The PDF renderer draws 2D graphics directly to an Acrobat PDF file. This produces excellent results when you need vector
-	 * shapes for high resolution output or printing. You must first use Import Library &rarr; PDF to make use of the library. More information
-	 * can be found in the PDF library reference.<br /> <br /> The P3D renderer doesn't support <b>strokeCap()</b> or <b>strokeJoin()</b>, which
-	 * can lead to ugly results when using <b>strokeWeight()</b>. (<a href="http://code.google.com/p/processing/issues/detail?id=123">Issue
-	 * 123</a>) <br /> <br /> The maximum width and height is limited by your operating system, and is usually the width and height of your actual
-	 * screen. On some machines it may simply be the number of pixels on your current screen, meaning that a screen of 800x600 could support
-	 * <b>size(1600, 300)</b>, since it's the same number of pixels. This varies widely so you'll have to try different rendering modes and sizes
-	 * until you get what you're looking for. If you need something larger, use <b>createGraphics</b> to create a non-visible drawing surface.<br
-	 * /> <br /> Again, the <b>size()</b> function must be the first line of the code (or first item inside setup). Any code that appears before
-	 * the <b>size()</b> command may run more than once, which can lead to confusing results.
-	 * <p>
-	 * ( end auto-generated )
-	 * <p>
-	 * <h3>Advanced</h3> If using Java 1.3 or later, this will default to using PGraphics2, the Java2D-based renderer. If using Java 1.1, or if
-	 * PGraphics2 is not available, then PGraphics will be used. To set your own renderer, use the other version of the size() method that takes a
-	 * renderer as its last parameter.
-	 * <p>
-	 * If called once a renderer has already been set, this will use the previous renderer and simply resize it.
-	 *
-	 * @param w width of the display window in units of pixels
-	 * @param h height of the display window in units of pixels
-	 * @webref environment
-	 * @see PApplet#width
-	 * @see PApplet#height
+	 * Dont call size in Field/Processing
 	 */
 	public void size(int w, int h) {
-		applet.size(w, h);
+		System.err.println(" ((size from Field is a no-op)) ");
 	}
 
 	/**
-	 * @param w
-	 * @param h
-	 * @param renderer Either P2D, P3D, or PDF
+	 * Dont call size in Field/Processing
 	 */
 	public void size(int w, int h, String renderer) {
-		applet.size(w, h, renderer);
+		System.err.println(" ((size from Field is a no-op)) ");
 	}
 
 	/**
-	 * @param w
-	 * @param h
-	 * @param renderer
-	 * @param path
-	 * @nowebref
+	 * Dont call size in Field/Processing
 	 */
 	public void size(int w, int h, String renderer, String path) {
-		applet.size(w, h, renderer, path);
+		System.err.println(" ((size from Field is a no-op)) ");
 	}
 
 	public PGraphics createGraphics(int w, int h) {
