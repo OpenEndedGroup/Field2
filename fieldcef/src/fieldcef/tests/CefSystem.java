@@ -1,5 +1,6 @@
 package fieldcef.tests;
 
+import com.google.common.collect.MapMaker;
 import field.utility.Log;
 import org.cef.CefApp;
 import org.cef.CefClient;
@@ -12,6 +13,8 @@ import org.cef.handler.CefMessageRouterHandler;
 import java.awt.*;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * Singleton class, has all of the CEF singleton stuff hidden inside.
@@ -88,11 +91,21 @@ public class CefSystem {
 		router = CefMessageRouter.create();
 		client.addMessageRouter(router);
 
+
 		router.addHandler(new CefMessageRouterHandler() {
 			@Override
 			public boolean onQuery(CefBrowser browser, long query_id, String request, boolean persistent, CefQueryCallback callback) {
 				Log.log("cef.debug", " -- query :" + request + " " + callback + " " + query_id);
-				callback.success("PEACH");
+				MessageCallback m = callbacks.get(browser);
+				if (m!=null)
+				{
+					m.message(query_id, request, x -> callback.success(x));
+				}
+				else
+				{
+					Log.log("cef.error", "No message handler");
+					callback.failure(0, "No message handler");
+				}
 				return true;
 			}
 
@@ -119,7 +132,14 @@ public class CefSystem {
 
 	}
 
-	public CefRendererBrowserBuffer makeBrowser(int w, int h, PaintCallback callback)
+	public interface MessageCallback
+	{
+		public void message(long id, String message, Consumer<String> answer);
+	}
+
+	Map<CefBrowser, MessageCallback> callbacks = new MapMaker().weakKeys().makeMap();
+
+	public CefRendererBrowserBuffer makeBrowser(int w, int h, PaintCallback callback, MessageCallback message)
 	{
 		CefRenderer cefRenderer = new CefRenderer() {
 			@Override
@@ -137,6 +157,8 @@ public class CefSystem {
 //			    .createBrowser("http://www.w3.org/2002/09/tests/keys.html", true, CefBrowserFactory.RenderType.RENDER_BYTE_BUFFER, null, w, h, cefRenderer);
 		CefRendererBrowserBuffer browser = (CefRendererBrowserBuffer) client
 			    .createBrowser("about:blank", true, CefBrowserFactory.RenderType.RENDER_BYTE_BUFFER, null, w, h, cefRenderer);
+
+		callbacks.put(browser, message);
 
 		return browser;
 	}

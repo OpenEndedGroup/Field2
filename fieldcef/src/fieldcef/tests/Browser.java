@@ -17,6 +17,7 @@ import java.awt.event.MouseEvent;
 import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 import static fieldbox.boxes.StandardFLineDrawing.*;
 
@@ -53,8 +54,6 @@ public class Browser extends Box implements IO.Loaded {
 	{
 		Log.disable("cef.*");
 
-		// browsers cannot, for now, be saved.
-		this.properties.put(Boxes.dontSave, true);
 		this.properties.computeIfAbsent(Box.frame, (k) -> new Rect(0, 0, 512, 512));
 		this.properties.put(Box.name, "(browser)");
 
@@ -70,7 +69,7 @@ public class Browser extends Box implements IO.Loaded {
 
 		this.root = root;
 
-		browser = CefSystem.cefSystem.makeBrowser(w, h, this::paint);
+		browser = CefSystem.cefSystem.makeBrowser(w, h, this::paint, this::message);
 
 		source = ByteBuffer.allocateDirect(w * h * 4);
 		source.position(0).limit(source.capacity());
@@ -322,6 +321,14 @@ public class Browser extends Box implements IO.Loaded {
 		// threading ?
 		root.properties.put(Drawing.needRepaint, true);
 		window.requestRepaint();
+
+	}
+
+	protected void message(long id, String message, Consumer<String> reply)
+	{
+		// here we need to define some functionality.
+
+		// in particular set and get properties on this object
 
 	}
 
