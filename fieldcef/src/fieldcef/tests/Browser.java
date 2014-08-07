@@ -338,7 +338,7 @@ public class Browser extends Box implements IO.Loaded {
 		builder.aux(5, r.w/w, r.h/h, op);
 		builder.nextVertex(r.x + r.w * 1, r.y + r.h * 1, 0);
 		builder.aux(5, 0, r.h/h, op);
-		builder.nextVertex(r.x, r.y + h * 1, 0);
+		builder.nextVertex(r.x, r.y + r.h * 1, 0);
 		builder.nextElement_quad(3, 2, 1, 0);
 		builder.close();
 
