@@ -35,4 +35,9 @@ public class Triple<A, B, C> extends Pair<A,B> {
 	public String toString() {
 		return "Triple{" + first + "," + second + ","+third+"}";
 	}
+
+	@Override
+	public Triple<A, B, C> duplicate() {
+		return new Triple<>(first instanceof Mutable ? (A) ((Mutable)first).duplicate() : first, second instanceof Mutable ? (B) ((Mutable)second).duplicate() : second,  third instanceof Mutable ? (C) ((Mutable)third).duplicate() : third);
+	}
 }

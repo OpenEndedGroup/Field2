@@ -220,7 +220,7 @@ public class Reload extends Box {
 				}
 				catch(Throwable t)
 				{
-					Log.log("reload.error", "trouble reloading class "+classes.get(i));
+					Log.log("reload.error", "trouble reloading class "+classes.get(i), t);
 				}
 			}
 			// System.err.println("class replaced!");

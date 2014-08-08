@@ -16,6 +16,7 @@
     <orderEntry type="module" module-name="fielded" />
     <orderEntry type="module" module-name="fieldnashorn" />
     <orderEntry type="module" module-name="fieldagent" />
+    <orderEntry type="library" name="cassowary" level="project" />
   </component>
 </module>
 
