@@ -373,8 +373,6 @@ public class Browser extends Box implements IO.Loaded {
 	}, (box) -> box.properties.get(html));
 
 
-	float lx, ly, lw, lh;
-
 	boolean again = false;
 
 	protected void update(float x, float y, float scale) {
