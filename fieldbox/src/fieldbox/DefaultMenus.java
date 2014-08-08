@@ -27,6 +27,7 @@ public class DefaultMenus extends Box {
 
 	private final Box root;
 	private final String filename;
+	boolean saveOnExit =  true;
 
 	public DefaultMenus(Box root, String filename)
 	{
@@ -35,13 +36,25 @@ public class DefaultMenus extends Box {
 		properties.put(MarkingMenus.menu, (event) -> {
 			if (isNothingSelected()) {
 				MarkingMenus.MenuSpecification spec = new MarkingMenus.MenuSpecification();
-				spec.items.put(MarkingMenus.Position.E, new MarkingMenus.MenuItem("Save", () -> {
+
+
+				MarkingMenus.MenuSpecification saveMenu = new MarkingMenus.MenuSpecification();
+				saveMenu.items.put(MarkingMenus.Position.E, new MarkingMenus.MenuItem("Save", () -> {
 					save();
 				}));
+
+				saveMenu.items.put(MarkingMenus.Position.S, new MarkingMenus.MenuItem(saveOnExit ? "Save on exit (toggle)" : "Don't save on exit (toggle)", () -> {
+					saveOnExit=!saveOnExit;
+				}));
+
+				spec.items.put(MarkingMenus.Position.E, new MarkingMenus.MenuItem("Save...", () -> {
+					save();
+				}).setSubmenu(saveMenu));
 				spec.items.put(MarkingMenus.Position.N, new MarkingMenus.MenuItem("New Box", () -> {
 					Vec2 at = convertCoordinateSystem(event.after);
 					newBox(at, root);
 				}));
+
 				return spec;
 			}
 			return null;
@@ -60,6 +73,7 @@ public class DefaultMenus extends Box {
 		});
 
 		RunLoop.main.onExit(() -> {
+			if (saveOnExit)
 			if (this.breadthFirst(both()).filter(x -> x.properties.get(Box.frame)!=null).findFirst().isPresent())
 				save();
 		});

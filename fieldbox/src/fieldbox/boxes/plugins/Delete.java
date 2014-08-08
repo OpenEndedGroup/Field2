@@ -28,11 +28,15 @@ public class Delete extends Box {
 			if (selected().findAny().isPresent()) {
 				MarkingMenus.MenuSpecification spec = new MarkingMenus.MenuSpecification();
 				long count = selected().count();
-				spec.items.put(MarkingMenus.Position.S, new MarkingMenus.MenuItem("Delete "+count+" box"+(count==1 ? "" : "es"), () -> {
+
+				MarkingMenus.MenuSpecification really = new MarkingMenus.MenuSpecification();
+				really.items.put(MarkingMenus.Position.N, new MarkingMenus.MenuItem("Really, delete "+count+" box"+(count==1 ? "" : "es")+"?", () -> {
 					Stream<Box> all = selected();
 					all.forEach(bb -> bb.disconnectFromAll());
 					Drawing.dirty(Delete.this);
 				}));
+
+				spec.items.put(MarkingMenus.Position.S, new MarkingMenus.MenuItem("Delete "+count+" box"+(count==1 ? "" : "es"), ()->{}).setSubmenu(really));
 				return spec;
 			}
 			return null;
