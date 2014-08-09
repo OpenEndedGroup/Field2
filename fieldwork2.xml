@@ -3,9 +3,9 @@
   
   
   <property file="fieldwork2.properties"/>
-  <!-- Uncomment the following property if no tests compilation is needed -->
+  <!-- Uncomment the following property if no browser compilation is needed -->
   <!-- 
-  <property name="skip.tests" value="true"/>
+  <property name="skip.browser" value="true"/>
    -->
   
   <!-- Compiler options -->

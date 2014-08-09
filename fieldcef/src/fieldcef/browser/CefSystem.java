@@ -1,4 +1,4 @@
-package fieldcef.tests;
+package fieldcef.browser;
 
 import com.google.common.collect.MapMaker;
 import field.utility.Log;
@@ -154,7 +154,7 @@ public class CefSystem {
 			}
 		};
 //		CefRendererBrowserBuffer browser = (CefRendererBrowserBuffer) client
-//			    .createBrowser("http://www.w3.org/2002/09/tests/keys.html", true, CefBrowserFactory.RenderType.RENDER_BYTE_BUFFER, null, w, h, cefRenderer);
+//			    .createBrowser("http://www.w3.org/2002/09/browser/keys.html", true, CefBrowserFactory.RenderType.RENDER_BYTE_BUFFER, null, w, h, cefRenderer);
 		CefRendererBrowserBuffer browser = (CefRendererBrowserBuffer) client
 			    .createBrowser("about:blank", true, CefBrowserFactory.RenderType.RENDER_BYTE_BUFFER, null, w, h, cefRenderer);
 

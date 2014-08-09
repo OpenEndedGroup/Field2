@@ -22,7 +22,8 @@
         </XML>
         <codeStyleSettings language="JAVA">
           <option name="KEEP_LINE_BREAKS" value="false" />
-          <option name="METHOD_CALL_CHAIN_WRAP" value="1" />
+          <option name="ALIGN_MULTILINE_CHAINED_METHODS" value="true" />
+          <option name="METHOD_CALL_CHAIN_WRAP" value="2" />
           <indentOptions>
             <option name="INDENT_SIZE" value="8" />
             <option name="CONTINUATION_INDENT_SIZE" value="12" />

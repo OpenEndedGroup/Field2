@@ -30,7 +30,7 @@ package org.json.zip;
  * corresponding object is not sufficient. Complete testing requires that the
  * same internal data structures were constructed on both ends. If those
  * structures are not equivalent, then it is likely that the implementations
- * are not correct, even if convention tests are passed.
+ * are not correct, even if convention browser are passed.
  *
  * PostMortem allows for testing of deep structures without breaking
  * encapsulation.

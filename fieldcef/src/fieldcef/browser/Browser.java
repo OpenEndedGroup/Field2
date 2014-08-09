@@ -1,6 +1,5 @@
-package fieldcef.tests;
+package fieldcef.browser;
 
-import com.badlogic.jglfw.Glfw;
 import field.graphics.*;
 import field.graphics.Window;
 import field.linalg.Vec2;
@@ -121,7 +120,7 @@ public class Browser extends Box implements IO.Loaded {
 		shader.connect(q);
 		shader.connect(texture);
 
-		window.getCompositor().getLayer("__main__").getScene().connect(shader);
+		window.getCompositor().getLayer(properties.computeIfAbsent(FLineDrawing.layer, k -> "__main__")).getScene().connect(shader);
 
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__updateSize__", () -> {
 			Rect r = properties.get(Box.frame);
@@ -167,6 +166,8 @@ public class Browser extends Box implements IO.Loaded {
 			Rect r = properties.get(Box.frame);
 
 			if (!intersects(r, e)) return null;
+			if (properties.isTrue(Box.hidden, false)) return null;
+
 			e.properties.put(Window.consumed, true);
 
 			browser.sendMouseEvent(new MouseEvent(component, MouseEvent.MOUSE_PRESSED, 0, MouseEvent
@@ -186,6 +187,8 @@ public class Browser extends Box implements IO.Loaded {
 
 			Rect r = properties.get(Box.frame);
 			if (!intersects(r, e)) return null;
+			if (properties.isTrue(Box.hidden, false)) return null;
+
 			e.properties.put(Window.consumed, true);
 
 			browser.sendMouseEvent(new MouseEvent(component, MouseEvent.MOUSE_MOVED, 0, 0, (int) (e.after.x - r.x), (int) (e.after.y - r.y), 0, false));
@@ -195,6 +198,7 @@ public class Browser extends Box implements IO.Loaded {
 		this.properties.putToList(Keyboard.onKeyDown, (e, k) -> {
 
 			if (!isSelected()) return null;
+			if (properties.isTrue(Box.hidden, false)) return null;
 
 			Log.log("keyboard", "Key down :"+e+" "+k);
 
@@ -240,6 +244,7 @@ public class Browser extends Box implements IO.Loaded {
 
 		this.properties.putToList(Keyboard.onCharTyped, (e, k) -> {
 			if (!isSelected()) return;
+			if (properties.isTrue(Box.hidden, false)) return;
 
 			Log.log("keyboard", "char typed:"+e+" "+k);
 
@@ -336,6 +341,11 @@ public class Browser extends Box implements IO.Loaded {
 
 		Rect r = now.properties.get(Box.frame);
 		float op = now.properties.getFloat(StandardFLineDrawing.opacity,1);
+		if (now.properties.isTrue(FLineDrawing.hidden, false)){
+			builder.open();
+			builder.close();
+			return null;
+		}
 
 		builder.open();
 		builder.aux(5, 0, 0, op);
@@ -350,7 +360,7 @@ public class Browser extends Box implements IO.Loaded {
 		builder.close();
 
 		return null;
-	}, (box) -> new Pair<>(box.properties.getFloat(StandardFLineDrawing.opacity, 1), box.properties.get(Box.frame)));
+	}, (box) -> new Triple<>(box.properties.getFloat(StandardFLineDrawing.opacity, 1), box.properties.get(Box.frame), box.properties.isTrue(FLineDrawing.hidden, false)));
 
 	Cached<Box, String, Void> navigation = new Cached<>((now, nothing) -> {
 		String u = now.properties.get(url);
@@ -376,6 +386,7 @@ public class Browser extends Box implements IO.Loaded {
 	boolean again = false;
 
 	protected void update(float x, float y, float scale) {
+
 		if (this.dirty.getAndSet(false)) {
 			Log.log("cef.debug", " texture was dirty, uploading ");
 			texture.upload(source, true);
@@ -389,8 +400,8 @@ public class Browser extends Box implements IO.Loaded {
 			again = false;
 		}
 
-		geometry.apply(this);
 		navigation.apply(this);
+		geometry.apply(this);
 		direct.apply(this);
 	}
 

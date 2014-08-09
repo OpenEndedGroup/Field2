@@ -1,8 +1,5 @@
 package fieldbox.boxes;
 
-import static fieldbox.boxes.StandardFLineDrawing.*;
-import static fieldbox.boxes.FLineDrawing.*;
-
 import com.badlogic.jglfw.Glfw;
 import field.graphics.FLine;
 import field.graphics.Window;
@@ -28,14 +25,18 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 		translate, left, top, right, bottom;
 	}
 
-	static public final Dict.Prop<Boolean> lockWidth = new Dict.Prop<>("lockWidth").type().toCannon()
-		    .doc("set to true to disable changes to the width of this box via the mouse");
-	static public final Dict.Prop<Boolean> lockHeight = new Dict.Prop<>("lockHeight").type().toCannon()
-		    .doc("set to true to disable changes to the height of this box via the mouse");
-	static public final Dict.Prop<Boolean> lockX = new Dict.Prop<>("lockX").type().toCannon()
-		    .doc("set to true to disable changes to the x-position of this box via the mouse");
-	static public final Dict.Prop<Boolean> lockY = new Dict.Prop<>("lockY").type().toCannon()
-		    .doc("set to true to disable changes to the y-position of this box via the mouse");
+	static public final Dict.Prop<Boolean> lockWidth = new Dict.Prop<>("lockWidth").type()
+										       .toCannon()
+										       .doc("set to true to disable changes to the width of this box via the mouse");
+	static public final Dict.Prop<Boolean> lockHeight = new Dict.Prop<>("lockHeight").type()
+											 .toCannon()
+											 .doc("set to true to disable changes to the height of this box via the mouse");
+	static public final Dict.Prop<Boolean> lockX = new Dict.Prop<>("lockX").type()
+									       .toCannon()
+									       .doc("set to true to disable changes to the x-position of this box via the mouse");
+	static public final Dict.Prop<Boolean> lockY = new Dict.Prop<>("lockY").type()
+									       .toCannon()
+									       .doc("set to true to disable changes to the y-position of this box via the mouse");
 
 	public FrameManipulation(Box root) {
 		this.properties.putToList(Mouse.onMouseDown, this);
@@ -44,7 +45,7 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 	@Override
 	public Mouse.Dragger onMouseDown(Window.Event<Window.MouseState> e, int button) {
 
-		Log.log("interaction.debug", "marquee, has this been consumed ? " + e + " " + e.properties+" "+System.identityHashCode(e));
+		Log.log("interaction.debug", "marquee, has this been consumed ? " + e + " " + e.properties + " " + System.identityHashCode(e));
 
 		// if this event has already been consumed by somebody else, then let's do nothing
 		if (e.properties.isTrue(Window.consumed, false)) return null;
@@ -56,12 +57,16 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 	}
 
 	public Mouse.Dragger button2(Window.Event<Window.MouseState> e) {
-		Optional<Drawing> drawing = this.find(Drawing.drawing, both()).findFirst();
+		Optional<Drawing> drawing = this.find(Drawing.drawing, both())
+						.findFirst();
 		Vec2 point = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e.after.x, e.after.y)))
-			    .orElseThrow(() -> new IllegalArgumentException(" can't mouse around something without drawing support (to provide coordinate system)"));
+				    .orElseThrow(() -> new IllegalArgumentException(" can't mouse around something without drawing support (to provide coordinate system)"));
 
-		Optional<Box> hit = breadthFirst(both()).filter(b -> frame(b) != null).filter(b -> frame(b).intersects(point))
-			    .sorted((a, b) -> Float.compare(order(frame(a)), order(frame(b)))).findFirst();
+		Optional<Box> hit = breadthFirst(both()).filter(b -> frame(b) != null)
+							.filter(b -> !b.properties.isTrue(Box.hidden, false))
+							.filter(b -> frame(b).intersects(point))
+							.sorted((a, b) -> Float.compare(order(frame(a)), order(frame(b))))
+							.findFirst();
 
 		if (!hit.isPresent()) {
 
@@ -69,8 +74,8 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 			Vec2 originalT = d.getTranslation();
 
 			return (Mouse.Dragger) (drag, termination) -> {
-				Vec2 deltaNow = drawing.map(x -> x.windowSystemToDrawingSystemDelta(new Vec2(drag.after.x-e.after.x, drag.after.y-e.after.y)))
-					    .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
+				Vec2 deltaNow = drawing.map(x -> x.windowSystemToDrawingSystemDelta(new Vec2(drag.after.x - e.after.x, drag.after.y - e.after.y)))
+						       .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
 
 				if (drawing.isPresent()) {
 					Vec2 t = new Vec2(originalT).translate(deltaNow.x, deltaNow.y);
@@ -84,18 +89,21 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 	}
 
 	public Mouse.Dragger button0(Window.Event<Window.MouseState> e) {
-		Optional<Drawing> drawing = this.find(Drawing.drawing, both()).findFirst();
+		Optional<Drawing> drawing = this.find(Drawing.drawing, both())
+						.findFirst();
 		Vec2 point = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e.after.x, e.after.y)))
-			    .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
+				    .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
 
-		Optional<Box> hit = breadthFirst(both()).filter(b -> frame(b) != null).filter(b -> frame(b).intersects(point))
-			    .sorted((a, b) -> Float.compare(order(frame(a)), order(frame(b)))).findFirst();
+		Optional<Box> hit = breadthFirst(both()).filter(b -> frame(b) != null)
+							.filter(b -> !b.properties.isTrue(Box.hidden, false))
+							.filter(b -> frame(b).intersects(point))
+							.sorted((a, b) -> Float.compare(order(frame(a)), order(frame(b))))
+							.findFirst();
 
 		return hit.map(hitBox -> {
 			Drawing.dirty(hitBox);
 
-			boolean shift = e.after.keyboardState.keysDown.contains(Glfw.GLFW_KEY_LEFT_SHIFT) || e.after.keyboardState.keysDown
-				    .contains(Glfw.GLFW_KEY_RIGHT_SHIFT) || e.after.buttonsDown.contains(1);
+			boolean shift = e.after.keyboardState.keysDown.contains(Glfw.GLFW_KEY_LEFT_SHIFT) || e.after.keyboardState.keysDown.contains(Glfw.GLFW_KEY_RIGHT_SHIFT) || e.after.buttonsDown.contains(1);
 			boolean selected = hitBox.properties.isTrue(Mouse.isSelected, false);
 			Rect originalFrame = frame(hitBox);
 
@@ -106,107 +114,107 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 			if (hitBox.properties.isTrue(Mouse.isSelected, false) && e.after.buttonsDown.contains(0)) {
 				// what kind of drag might this be?
 
-				List<DragTarget> targets = targetsFor(frame(hitBox), point, drawing
-					    .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"))
-					    .getScale(), hitBox.properties.isTrue(lockWidth, false), hitBox.properties.isTrue(lockHeight, false));
+				List<DragTarget> targets = targetsFor(frame(hitBox), point, drawing.orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"))
+												   .getScale(), hitBox.properties.isTrue(lockWidth, false), hitBox.properties.isTrue(lockHeight, false));
 
 
 				feedback(hitBox, originalFrame, originalFrame, -1);
 
-				find(Boxes.window, both()).findFirst().ifPresent( x-> Cursors.arrow(x));
+				find(Boxes.window, both()).findFirst()
+							  .ifPresent(x -> Cursors.arrow(x));
 
 				return (Mouse.Dragger) (drag, termination) -> {
 					Vec2 delta = new Vec2(drag.after.dx, drag.after.dy);
 					Vec2 drawingDelta = drawing.map(x -> x.windowSystemToDrawingSystemDelta(delta))
-						    .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
+								   .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
 
-					breadthFirst(both()).filter(x -> x.properties.isTrue(Mouse.isSelected, false)).forEach(x -> {
-						Rect r0 = frame(x);
-						Rect r = transform(x, r0, targets, drawingDelta);
-						x.properties.put(frame, r);
-						feedback(hitBox, originalFrame, r, termination ? 60 : -1);
-						Drawing.dirty(hitBox);
-					});
+					breadthFirst(both()).filter(x -> x.properties.isTrue(Mouse.isSelected, false))
+							    .forEach(x -> {
+								    Rect r0 = frame(x);
+								    Rect r = transform(x, r0, targets, drawingDelta);
+								    x.properties.put(frame, r);
+								    feedback(hitBox, originalFrame, r, termination ? 60 : -1);
+								    Drawing.dirty(hitBox);
+							    });
 
 					if (termination && frame(hitBox).equals(originalFrame) && selected) {
 						hitBox.properties.put(Mouse.isSelected, false);
 						Drawing.dirty(hitBox);
 					}
 
-					if (termination)
-					{
-						find(Boxes.window, both()).findFirst().ifPresent( x-> Cursors.clear(x));
+					if (termination) {
+						find(Boxes.window, both()).findFirst()
+									  .ifPresent(x -> Cursors.clear(x));
 					}
 
 					return true;
 				};
 			}
 			return null;
-		}).orElseGet(() -> {
+		})
+			  .orElseGet(() -> {
 
-			if (!e.after.buttonsDown.contains(0)) return null;
-			if (e.after.keyboardState.isAltDown()) return null;
+				  if (!e.after.buttonsDown.contains(0)) return null;
+				  if (e.after.keyboardState.isAltDown()) return null;
 
-			boolean shift = e.after.keyboardState.keysDown.contains(Glfw.GLFW_KEY_LEFT_SHIFT) || e.after.keyboardState.keysDown
-				    .contains(Glfw.GLFW_KEY_RIGHT_SHIFT);
-			if (!shift) breadthFirst(both()).forEach(x -> x.properties.remove(Mouse.isSelected));
+				  boolean shift = e.after.keyboardState.keysDown.contains(Glfw.GLFW_KEY_LEFT_SHIFT) || e.after.keyboardState.keysDown.contains(Glfw.GLFW_KEY_RIGHT_SHIFT);
+				  if (!shift) breadthFirst(both()).forEach(x -> x.properties.remove(Mouse.isSelected));
 
-			Map<Box, Boolean> frozenAt = new LinkedHashMap<Box, Boolean>();
-			breadthFirst(both()).forEach(x -> frozenAt.put(x, x.properties.isTrue(Mouse.isSelected, false)));
+				  Map<Box, Boolean> frozenAt = new LinkedHashMap<Box, Boolean>();
+				  breadthFirst(both()).forEach(x -> frozenAt.put(x, x.properties.isTrue(Mouse.isSelected, false)));
 
-			Drawing.dirty(this);
+				  Drawing.dirty(this);
 
-			Vec2 downAt = new Vec2(point);
+				  Vec2 downAt = new Vec2(point);
 
-			return (Mouse.Dragger) (drag, termination) -> {
-				Vec2 delta = new Vec2(drag.after.dx, drag.after.dy);
+				  return (Mouse.Dragger) (drag, termination) -> {
+					  Vec2 delta = new Vec2(drag.after.dx, drag.after.dy);
 
-				Vec2 drawingDelta = drawing.map(x -> x.windowSystemToDrawingSystemDelta(delta))
-					    .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
-				downAt.x += drawingDelta.x;
-				downAt.y += drawingDelta.y;
+					  Vec2 drawingDelta = drawing.map(x -> x.windowSystemToDrawingSystemDelta(delta))
+								     .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
+					  downAt.x += drawingDelta.x;
+					  downAt.y += drawingDelta.y;
 
-				if (termination) this.properties.removeFromMap(FLineDrawing.frameDrawing, "__marquee__");
-				else {
-					breadthFirst(both()).forEach(x -> {
-						Boolean b = frozenAt.get(x);
+					  if (termination) this.properties.removeFromMap(FLineDrawing.frameDrawing, "__marquee__");
+					  else {
+						  breadthFirst(both()).forEach(x -> {
+							  Boolean b = frozenAt.get(x);
 
-						Rect f = frame(x);
-						if (f == null) return;
+							  Rect f = frame(x);
+							  if (f == null) return;
 
-						if (f.intersects(new Rect(Math.min(downAt.x, point.x), Math.min(downAt.y, point.y), Math
-							    .max(downAt.x, point.x) - Math.min(downAt.x, point.x), Math.max(downAt.y, point.y) - Math
-							    .min(downAt.y, point.y)))) {
-							x.properties.put(Mouse.isSelected, true);
-						} else {
-							if (b == null || !b) x.properties.remove(Mouse.isSelected);
-						}
-					});
+							  if (f.intersects(new Rect(Math.min(downAt.x, point.x), Math.min(downAt.y, point.y), Math.max(downAt.x, point.x) - Math.min(downAt.x, point.x), Math.max(downAt.y, point.y) - Math.min(downAt.y, point.y)))) {
+								  if (!x.properties.isTrue(Box.hidden, false))
+									  x.properties.put(Mouse.isSelected, true);
+							  } else {
+								  if (b == null || !b) x.properties.remove(Mouse.isSelected);
+							  }
+						  });
 
-					this.properties.putToMap(FLineDrawing.frameDrawing, "__marquee__", (box) -> {
+						  this.properties.putToMap(FLineDrawing.frameDrawing, "__marquee__", (box) -> {
 
-						FLine m = new FLine();
-						m.moveTo(point.x, point.y);
-						m.lineTo(point.x, downAt.y);
-						m.lineTo(downAt.x, downAt.y);
-						m.lineTo(downAt.x, point.y);
-						m.lineTo(point.x, point.y);
+							  FLine m = new FLine();
+							  m.moveTo(point.x, point.y);
+							  m.lineTo(point.x, downAt.y);
+							  m.lineTo(downAt.x, downAt.y);
+							  m.lineTo(downAt.x, point.y);
+							  m.lineTo(point.x, point.y);
 
-						m.attributes.put(StandardFLineDrawing.thicken, new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-						m.attributes.put(StandardFLineDrawing.strokeColor, new Vec4(1, 1, 1, 0.2f));
-						m.attributes.put(StandardFLineDrawing.fillColor, new Vec4(1, 1, 1, 0.3f));
-						m.attributes.put(StandardFLineDrawing.stroked, true);
-						m.attributes.put(StandardFLineDrawing.filled, true);
-						m.attributes.put(StandardFLineDrawing.pointed, false);
+							  m.attributes.put(StandardFLineDrawing.thicken, new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+							  m.attributes.put(StandardFLineDrawing.strokeColor, new Vec4(1, 1, 1, 0.2f));
+							  m.attributes.put(StandardFLineDrawing.fillColor, new Vec4(1, 1, 1, 0.3f));
+							  m.attributes.put(StandardFLineDrawing.stroked, true);
+							  m.attributes.put(StandardFLineDrawing.filled, true);
+							  m.attributes.put(StandardFLineDrawing.pointed, false);
 
-						return m;
-					});
-				}
+							  return m;
+						  });
+					  }
 
-				Drawing.dirty(this);
-				return true;
-			};
-		});
+					  Drawing.dirty(this);
+					  return true;
+				  };
+			  });
 	}
 
 	protected Rect frame(Box hitBox) {

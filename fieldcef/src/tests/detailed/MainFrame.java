@@ -207,14 +207,14 @@ public class MainFrame extends JFrame {
 		getContentPane().add(createContentPanel(), BorderLayout.CENTER);
 		MenuBar menuBar = new MenuBar(this, browser_, control_pane_, downloadDialog, cookieManager_);
 
-		menuBar.addBookmark("Binding Test", "client://tests/binding_test.html");
-		menuBar.addBookmark("Binding Test 2", "client://tests/binding_test2.html");
+		menuBar.addBookmark("Binding Test", "client://browser/binding_test.html");
+		menuBar.addBookmark("Binding Test 2", "client://browser/binding_test2.html");
 		menuBar.addBookmark("Download Test", "http://cefbuilds.com");
 		menuBar.addBookmark("Geolocation Test", "http://slides.html5rocks.com/#geolocation");
 		menuBar.addBookmark("Login Test (username:pumpkin, password:pie)", "http://www.colostate.edu/~ric/protect/your.html");
 		menuBar.addBookmark("Certificate-error Test", "https://www.k2go.de");
 		menuBar.addBookmark("Resource-Handler Test", "http://www.foo.bar/");
-		menuBar.addBookmark("Scheme-Handler Test 1: (scheme \"client\")", "client://tests/handler.html");
+		menuBar.addBookmark("Scheme-Handler Test 1: (scheme \"client\")", "client://browser/handler.html");
 		menuBar.addBookmark("Scheme-Handler Test 2: (scheme \"search\")", "search://do a barrel roll/");
 		menuBar.addBookmarkSeparator();
 		menuBar.addBookmark("javachromiumembedded", "https://code.google.com/p/javachromiumembedded/");

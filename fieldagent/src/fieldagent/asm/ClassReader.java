@@ -565,7 +565,7 @@ public class ClassReader {
         u = getAttributes();
         for (int i = readUnsignedShort(u); i > 0; --i) {
             String attrName = readUTF8(u + 2, c);
-            // tests are sorted in decreasing frequency order
+            // browser are sorted in decreasing frequency order
             // (based on frequencies observed on typical classes)
             if ("SourceFile".equals(attrName)) {
                 sourceFile = readUTF8(u + 8, c);
@@ -728,7 +728,7 @@ public class ClassReader {
 
         for (int i = readUnsignedShort(u); i > 0; --i) {
             String attrName = readUTF8(u + 2, c);
-            // tests are sorted in decreasing frequency order
+            // browser are sorted in decreasing frequency order
             // (based on frequencies observed on typical classes)
             if ("ConstantValue".equals(attrName)) {
                 int item = readUnsignedShort(u + 8);
@@ -853,7 +853,7 @@ public class ClassReader {
 
         for (int i = readUnsignedShort(u); i > 0; --i) {
             String attrName = readUTF8(u + 2, c);
-            // tests are sorted in decreasing frequency order
+            // browser are sorted in decreasing frequency order
             // (based on frequencies observed on typical classes)
             if ("Code".equals(attrName)) {
                 if ((context.flags & SKIP_CODE) == 0) {
