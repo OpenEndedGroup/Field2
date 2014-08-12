@@ -246,6 +246,36 @@ a {
     border: 1px solid rgba(0,0,0,0.1);
 }
 
+.expand-close {
+		width: 14px;
+		height: 28px;
+		position: relative;
+		float: right;
+}
+
+.Field-remoteColor {
+    background: #333;
+    border-radius: 3px;
+    padding: 3px;
+    float: right;
+    padding-left: 8px;
+    margin-top: 2px;
+    margin-left: 0px;
+    margin-right: 0px;
+    display: float;
+    max-width: 200px;
+    white-space: pre;
+    overflow: scroll;
+    font-size: 75%;
+    max-height: 2500px;
+    pointer-events: all;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+.Field-remoteColor .Field-closeBox {
+	position: relative;
+}
+
 .Field-closeBox {
     position: absolute;
     border-radius: 3px;
@@ -282,6 +312,19 @@ a {
     font-weight: 700;
     border: 1px solid rgba(0,0,0,0.1);
     background: rgba(0,0,0,0.1);
+}
+
+.Field-remoteColor .Field-closeBox {
+	position: relative;
+	float: left;
+	left: 0px;
+}
+
+.Field-remoteColor .Field-expandBox {
+	position: relative;
+	float: left;
+	left: 0px;
+	top: 20px;
 }
 
 .Field-textBox {

@@ -241,7 +241,6 @@ extraKeys = {
     },
     "Ctrl-Q": function (cm) {
     		addColorPicker();
-    		colorpickernum++;
     }
 }
 
