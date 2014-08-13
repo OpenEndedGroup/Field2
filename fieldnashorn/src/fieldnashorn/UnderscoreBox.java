@@ -10,6 +10,7 @@ import fielded.Execution;
 import jdk.internal.dynalink.beans.StaticClass;
 import jdk.nashorn.api.scripting.AbstractJSObject;
 import jdk.nashorn.internal.objects.ScriptFunctionImpl;
+import jdk.nashorn.internal.runtime.ConsString;
 import jdk.nashorn.internal.runtime.ScriptObject;
 import jdk.nashorn.internal.runtime.linker.JavaAdapterFactory;
 
@@ -131,6 +132,10 @@ public class UnderscoreBox extends AbstractJSObject implements JavaSupport.Handl
 
 
 	public void setMember(String name, Object value) {
+
+		if (value instanceof ConsString) value = ((ConsString)value).toString();
+
+
 		Log.log("underscore.debug", " underscore box set :" + name + " to " + value.getClass() + " <" + Function.class.getName() + ">");
 		Dict.Prop cannon = new Dict.Prop(name).toCannon();
 
