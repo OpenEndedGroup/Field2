@@ -34,6 +34,7 @@ public class GlassBrowser extends Box implements IO.Loaded {
 	static public final Dict.Prop<GlassBrowser> glassBrowser = new Dict.Prop<>("glassBrowser").toCannon()
 												  .type()
 												  .doc("The Browser that is stuck in front of the window, in window coordinates");
+	private final Box root;
 
 	List<String> playlist = Arrays.asList("preamble.js", "jquery-2.1.0.min.js", "jquery.autosize.input.js", "modal.js");
 	String styleSheet = "field-codemirror.css";
@@ -45,9 +46,8 @@ public class GlassBrowser extends Box implements IO.Loaded {
 	public String styles;
 
 	public GlassBrowser(Box root) {
-		this.properties.put(glassBrowser, this);
+		this.properties.put(glassBrowser, this);this.root = root;
 	}
-
 	int tick = 0;
 
 	Commands commandHelper = new Commands();
@@ -59,7 +59,8 @@ public class GlassBrowser extends Box implements IO.Loaded {
 		browser.properties.put(FLineDrawing.layer, "glass");
 		browser.properties.put(Drawing.windowSpace, true);
 		browser.properties.put(Boxes.dontSave, true);
-		browser.connect(this);
+		browser.properties.put(Box.hidden, true);
+		browser.connect(root);
 		browser.loaded();
 		this.properties.put(Boxes.dontSave, true);
 		styles = findAndLoad(styleSheet, false);
@@ -157,6 +158,24 @@ public class GlassBrowser extends Box implements IO.Loaded {
 						ignoreHide = 4;
 						show();
 					}), null);
+				r.run();
+			}
+			ret.accept("OK");
+		});
+
+
+		browser.addHandler(x -> x.equals("call.alternative"), (address, payload, ret) -> {
+			String command = payload.getString("command");
+			String text = payload.getString("text");
+			Runnable r = commandHelper.callTable_alternative;
+			if (r != null) {
+				if (r instanceof RemoteEditor.ExtendedCommand)
+					((RemoteEditor.ExtendedCommand) r).begin(commandHelper.supportsPrompt(x -> {
+						Log.log("glassbrowser.debug", "continue commands " + x + "");
+						browser.executeJavaScript("continueCommands(JSON.parse('" + x + "'))");
+						ignoreHide = 4;
+						show();
+					}), text);
 				r.run();
 			}
 			ret.accept("OK");

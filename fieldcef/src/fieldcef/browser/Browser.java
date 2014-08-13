@@ -259,6 +259,7 @@ public class Browser extends Box implements IO.Loaded {
 
 			KeyEvent ke = new KeyEvent(component, KeyEvent.KEY_PRESSED, 0, mod, fk, (char) fk);
 
+			Log.log("consumption", "consuming keyboard event :"+e);
 			e.properties.put(Window.consumed, true);
 
 			browser.sendKeyEvent(ke);

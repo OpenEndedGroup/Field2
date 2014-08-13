@@ -41,6 +41,7 @@ public class HotkeyMenus extends Box {
 		});
 
 		properties.putToList(Keyboard.onKeyDown, (e, k) -> {
+			Log.log("consumption", "new :"+e);
 			if (e.properties.isTrue(Window.consumed, false)) return null;
 
 			if ( k == Glfw.GLFW_KEY_N)
