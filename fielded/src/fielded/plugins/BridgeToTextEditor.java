@@ -57,7 +57,7 @@ public class BridgeToTextEditor extends Box {
 						disconnectFromEditor(selected.get(0));
 					});
 				} else {
-					m.put(new Pair<>("Bridge to Editor", "This box will execute inside this editor. To print, use _field.log('...') rather than console.log"), () -> {
+					m.put(new Pair<>("Bridge to Editor", "This box will execute inside this editor. To print, use <code>_field.log</code> rather than <code>console.log</code>"), () -> {
 						connectToEditor(selected.get(0));
 					});
 				}
