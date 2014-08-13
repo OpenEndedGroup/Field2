@@ -246,10 +246,9 @@ a {
     border: 1px solid rgba(0,0,0,0.1);
 }
 
-.expand-close {
-		width: 14px;
-		height: 28px;
-		position: relative;
+.colorpicker-warning {
+		color: #f86859;
+		font-size: 150%;
 		float: right;
 }
 
@@ -272,8 +271,8 @@ a {
     border: 1px solid rgba(0,0,0,0.1);
 }
 
-.Field-remoteColor .Field-closeBox {
-	position: relative;
+.Field-remoteColor form {
+		display: inline;
 }
 
 .Field-closeBox {
@@ -314,17 +313,23 @@ a {
     background: rgba(0,0,0,0.1);
 }
 
-.Field-remoteColor .Field-closeBox {
-	position: relative;
-	float: left;
-	left: 0px;
+.close-expand {
+		margin: 0px;
+		padding: 0px;
+		float: right;
+		display: inline;
+		width: 20px;
+		height: 28px;
 }
 
-.Field-remoteColor .Field-expandBox {
-	position: relative;
-	float: left;
-	left: 0px;
-	top: 20px;
+.close-expand .Field-closeBox {
+		position: initial;
+		float: right;
+}
+
+.close-expand .Field-expandBox {
+		position: initial;
+		float: right;
 }
 
 .Field-textBox {
