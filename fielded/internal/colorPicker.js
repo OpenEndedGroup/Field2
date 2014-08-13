@@ -1,10 +1,12 @@
 function addColorPicker() {
 	var widget_div = makeColorPicker(getCurrentColor, setCurrentColor)
+	var selection_start = cm.getCursor(true);
+	var selection_end   = cm.getCursor(false);
 
 	if ($(widget_div).is(":visible")){
 			$(widget_div).show();
 	} else {
-		var widget = cm.addLineWidget(0, widget_div);
+		var widget = cm.addLineWidget(selection_end.line, widget_div);
 	}
 }
 
