@@ -101,4 +101,11 @@ public class CefRendererBrowserBuffer extends CefBrowser_N implements CefRenderH
 	public void onCursorChange(CefBrowser browser, int cursorType) {
 		//canvas_.setCursor(new Cursor(cursorType));
 	}
+
+	public final void invalidate(int x, int y, int w, int h) {
+		super.wasResized(w,h);
+		super.invalidate(new Rectangle(x,y,w,h));
+	}
+
+
 }

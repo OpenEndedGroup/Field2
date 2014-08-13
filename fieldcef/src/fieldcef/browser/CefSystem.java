@@ -7,6 +7,7 @@ import org.cef.CefClient;
 import org.cef.browser.*;
 import org.cef.callback.CefQueryCallback;
 import org.cef.handler.CefDisplayHandler;
+import org.cef.handler.CefLifeSpanHandler;
 import org.cef.handler.CefLoadHandlerAdapter;
 import org.cef.handler.CefMessageRouterHandler;
 
@@ -28,15 +29,49 @@ public class CefSystem {
 
 	protected CefSystem()
 	{
-		cefApp = CefApp.getInstance(new String[]{"--off-screen-rendering-mode-enabled"});
+		cefApp = CefApp.getInstance(new String[]{"--off-screen-rendering-mode-enabled", "--enable-experimental-web-platform-features"});
 
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			System.err.println(" disposing...");
 			cefApp.dispose();
 			System.err.println(" disposed ");
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}));
 
 		client = cefApp.createClient();
+		client.addLifeSpanHandler(new CefLifeSpanHandler() {
+			@Override
+			public boolean onBeforePopup(CefBrowser browser, String target_url, String target_frame_name) {
+				return false;
+			}
+
+			@Override
+			public void onAfterCreated(CefBrowser browser) {
+				Log.log("cef.debug", "afterCreated "+browser);
+			}
+
+			@Override
+			public boolean runModal(CefBrowser browser) {
+				Log.log("cef.debug", "runModal "+browser);
+				return true;
+			}
+
+			@Override
+			public boolean doClose(CefBrowser browser) {
+				Log.log("cef.debug", "doClose "+browser);
+				return true;
+			}
+
+			@Override
+			public void onBeforeClose(CefBrowser browser) {
+				Log.log("cef.debug", "beforeClose "+browser);
+			}
+		});
+
 		client.addDisplayHandler(new CefDisplayHandler() {
 			@Override
 			public void onAddressChange(CefBrowser browser, String url) {
@@ -124,6 +159,12 @@ public class CefSystem {
 				return 0;
 			}
 		}, true);
+
+//		try {
+//			Thread.sleep(5000);
+//		} catch (InterruptedException e) {
+//			e.printStackTrace();
+//		}
 	}
 
 	public interface PaintCallback
@@ -153,10 +194,8 @@ public class CefSystem {
 				callback.onPaint(popup, dirtyRects, buffer, width, height);
 			}
 		};
-//		CefRendererBrowserBuffer browser = (CefRendererBrowserBuffer) client
-//			    .createBrowser("http://www.w3.org/2002/09/browser/keys.html", true, CefBrowserFactory.RenderType.RENDER_BYTE_BUFFER, null, w, h, cefRenderer);
 		CefRendererBrowserBuffer browser = (CefRendererBrowserBuffer) client
-			    .createBrowser("about:blank", true, CefBrowserFactory.RenderType.RENDER_BYTE_BUFFER, null, w, h, cefRenderer);
+			    .createBrowser(null, true, CefBrowserFactory.RenderType.RENDER_BYTE_BUFFER, null, w, h, cefRenderer);
 
 		callbacks.put(browser, message);
 
