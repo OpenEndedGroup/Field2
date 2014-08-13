@@ -42,7 +42,7 @@ public class Rename extends Box {
 						Consumer<String> feedback;
 
 						@Override
-						public void begin(RemoteEditor.SupportsPrompt prompt, String alternativeChosen/*, Consumer<String> feedback*/) {
+							public void begin(RemoteEditor.SupportsPrompt prompt, String alternativeChosen/*, Consumer<String> feedback*/) {
 							altWas = alternativeChosen;
 							this.feedback = feedback;
 						}
