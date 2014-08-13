@@ -2,9 +2,12 @@ function addColorPicker() {
 	var selection_start = cm.getCursor(true);
 	var selection_end   = cm.getCursor(false);
 
-	var widget_div = $('<div class="colorpicker-container"><div class="Field-remoteColor"><form><input type="text" id="color'+selection_end.line+'" name="color" value="'+cm.getSelection()+'" /></form><span class="colorpicker-warning"> !</span><div class="colorpicker" id="colorpicker'+colorpickernum+'"></div></div><div class="close-expand"><div class="Field-closebox">&#x2715;</div><div class="Field-expandBox">&#x21A7;</div></div></div>')[0]
+//	var widget_div = $('<div class="colorpicker-container"><div class="Field-remoteColor"><form><input type="text" id="color'+selection_end.line+'" name="color" value="'+cm.getSelection()+'" /></form><span class="colorpicker-warning"> !</span><div class="colorpicker" id="colorpicker'+colorpickernum+'"></div></div><div class="close-expand"><div class="Field-closebox">&#x2715;</div><div class="Field-expandBox">&#x21A7;</div></div></div>')[0]
+	var widget_div = $('<div class="Field-remoteColor"><div class="Field-closebox">&#x2715;</div><form><input type="text" id="color'+selection_end.line+'" name="color" value="'+cm.getSelection()+'" /></form><span class="colorpicker-warning"> !</span><div class="colorpicker" id="colorpicker'+colorpickernum+'"></div></div>')[0]
+
 
 	console.log(cm.lineInfo(selection_end.line).widgets)
+
 	if (($(".Field-remoteColor").is(":visible"))){
 		console.log($("#colorpicker"+selection_end.line));
 		$(widget_div).show();
@@ -41,8 +44,8 @@ function addColorPicker() {
 				}
 			})
 			closeBox.click(function () {
-				console.log("jkaldsjflkds");
-				$(widget_div).hide()
+				widget.clear();
+				$(widget_div).remove()
 			})
 		}
 	}
