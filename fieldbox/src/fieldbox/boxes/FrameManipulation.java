@@ -48,7 +48,12 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 		Log.log("interaction.debug", "marquee, has this been consumed ? " + e + " " + e.properties + " " + System.identityHashCode(e));
 
 		// if this event has already been consumed by somebody else, then let's do nothing
-		if (e.properties.isTrue(Window.consumed, false)) return null;
+		if (e.properties.isTrue(Window.consumed, false)) {
+			Log.log("interactoin.debug", "yes it has");
+			return null;
+		}
+
+		Log.log("interaction.debug", "button was :" + button);
 
 		if (button == 0 || button == 1) return button0(e);
 		if (button == 2) return button2(e);
@@ -183,9 +188,8 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 							  Rect f = frame(x);
 							  if (f == null) return;
 
-							  if (f.intersects(new Rect(Math.min(downAt.x, point.x), Math.min(downAt.y, point.y), Math.max(downAt.x, point.x) - Math.min(downAt.x, point.x), Math.max(downAt.y, point.y) - Math.min(downAt.y, point.y)))) {
-								  if (!x.properties.isTrue(Box.hidden, false))
-									  x.properties.put(Mouse.isSelected, true);
+							  if (f.intersects(new Rect(Math.min(downAt.x, point.x), Math.min(downAt.y, point.y), Math.max(downAt.x, point.x) - Math.min(downAt.x, point.x), Math.max(downAt.y, point.y) - Math.min(downAt.y, point.y))) && (!x.properties.isTrue(Box.hidden, false))) {
+								  x.properties.put(Mouse.isSelected, true);
 							  } else {
 								  if (b == null || !b) x.properties.remove(Mouse.isSelected);
 							  }
