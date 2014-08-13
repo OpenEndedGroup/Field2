@@ -267,7 +267,7 @@ globalCommands.push({
 
 	{
 		"name": "Import",
-		"info": "Imports a Field project?",
+		"info": "Get Java import help",
 		"callback": function () {
 			Import()
 		}
@@ -283,7 +283,7 @@ globalCommands.push({
 
 	{
 		"name": "Run Begin",
-		"info": "Documentation for Run Begin",
+		"info": "Runs all the code in the current box, and adds <code>_r</code> to the animation loop",
 		"callback": function () {
 			Run_Begin()
 		}
@@ -291,7 +291,7 @@ globalCommands.push({
 
 	{
 		"name": "Run End",
-		"info": "Documentation for Run End",
+		"info": "Stops animating this box",
 		"callback": function () {
 			Run_End()
 		}
