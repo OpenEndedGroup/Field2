@@ -592,6 +592,12 @@ $
     border-radius: 5px;
 }
 
+
+code
+{
+	font-size:80%;
+}
+
 .CodeMirror-scroll {
     border-radius: 5px;
     background: #222;
