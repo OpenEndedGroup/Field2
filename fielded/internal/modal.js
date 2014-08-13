@@ -36,13 +36,13 @@ function runModal(placeholder, getcompletionsfunction, cssclass, initialText, al
                 $(this).css("background", "")
             })
             label.click(function () {
-                callback(inputBox.val())
+                this.callback(inputBox.val())
                 modal[0].close()
                 modal.detach()
                 setTimeout(function () {
                     cm.focus()
                 }, 25)
-            })
+            }.bind({"callback":completions[i].callback}))
 
             ol.append(label)
         }
