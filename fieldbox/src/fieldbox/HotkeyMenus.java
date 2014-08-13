@@ -41,6 +41,8 @@ public class HotkeyMenus extends Box {
 		});
 
 		properties.putToList(Keyboard.onKeyDown, (e, k) -> {
+			if (e.properties.isTrue(Window.consumed, false)) return null;
+
 			if ( k == Glfw.GLFW_KEY_N)
 			{
 				newBox(convertCoordinateSystem(e.after.mouseState), root);

@@ -1,6 +1,7 @@
 package fieldbox.boxes.plugins;
 
 import com.badlogic.jglfw.Glfw;
+import field.graphics.Window;
 import fieldbox.boxes.*;
 
 import java.util.stream.Stream;
@@ -15,6 +16,7 @@ public class Delete extends Box {
 	public Delete(Box root) {
 		this.root = root;
 		this.properties.putToList(Keyboard.onKeyDown, (event, key) -> {
+			if (event.properties.isTrue(Window.consumed, false)) return null;
 			if (event.after.isSuperDown() && key == Glfw.GLFW_KEY_DELETE) {
 				Stream<Box> all = selected();
 				all.forEach(bb -> bb.disconnectFromAll());
