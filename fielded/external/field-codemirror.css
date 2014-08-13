@@ -246,13 +246,6 @@ a {
     border: 1px solid rgba(0,0,0,0.1);
 }
 
-.colorpicker-warning {
-		color: #f86859;
-		font-size: 150%;
-		float: right;
-}
-
-
 .Field-remoteColor {
     background: #333;
     border-radius: 3px;
