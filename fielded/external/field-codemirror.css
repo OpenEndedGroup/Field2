@@ -326,7 +326,6 @@ a {
 .Field-modal-positioned {
     position: fixed;
     background-color: rgba(0,0,0,0.8);
-    height:100%;
     border: 1px;
     margin: 0px;
 }
@@ -363,39 +362,12 @@ input {
     list-style-type: 1;
     padding: 0px;
     margin: 0px;
+    font-family: "Source Sans Pro";
     font-size: 14px;
-//    height: 80vh;
     max-width: 80vh;
     overflow-y: auto;
     overflow-x: hidden;
    }
-
-.Field-modal-positioned ol:before
-{
-	content:'';
-    display:block;
-    position:absolute;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-   box-shadow:         inset 0 0 20px #f00;
-   -webkit-box-shadow:  inset 0 0 20px #f00;
-   -moz-box-shadow: inset 0 0 20px #000000;
-}
-
-.Field-modal ol:before
-{
-    display:block;
-    position:absolute;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-   box-shadow:         inset 0 0 20px #f00;
-   -webkit-box-shadow:  inset 0 0 20px #f00;
-   -moz-box-shadow: inset 0 0 50px #000000;
-}
 
 .Field-modal-positioned ol {
     color: #bbb;
@@ -404,10 +376,39 @@ input {
     margin: 0px;
     font-family: "Source Sans Pro";
     font-size: 14px;
-    max-width: 46vh;
+    max-width: 80vh;
     overflow-y: auto;
     overflow-x: hidden;
 }
+
+.Field-modal-positioned ol:before
+{
+	content:' ';
+    display:block;
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+   box-shadow:         inset 0 0 20px #000;
+   -webkit-box-shadow:  inset 0 0 20px #000;
+   -moz-box-shadow: inset 0 0 20px #000000;
+}
+
+.Field-modal ol:before
+{
+	content:' ';
+    display:block;
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+   box-shadow:         inset 0 0 20px #000;
+   -webkit-box-shadow:  inset 0 0 20px #000;
+   -moz-box-shadow: inset 0 0 50px #000000;
+}
+
 
 .Field-modal ol li {
     padding: 5px;
@@ -421,13 +422,12 @@ input {
 
 .Field-modal-positioned ol li {
     padding: 5px;
-    width: 95%;
+    width: 100%;
     margin-right: auto;
     margin-left: 0px;
     margin-bottom: 1px;
     margin-top: 1px;
     background: #222;
-    float:left;
 }
 
 .Field-modal ol {
@@ -523,13 +523,13 @@ $
     display: inline-block;
 }
 
-.Field-modal-positioned ol li:after {
-    content: ".";
-    display: block;
-    height: 0;
-    clear: both;
-    visibility: hidden;
-}
+//.Field-modal-positioned ol li:after {
+//    content: ".";
+//    display: block;
+//    height: 0;
+//    clear: both;
+//    visibility: hidden;
+//}
 
 .Field-modal-positioned ol li {
     display: inline-block;
