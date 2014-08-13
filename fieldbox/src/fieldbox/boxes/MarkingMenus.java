@@ -201,7 +201,7 @@ public class MarkingMenus extends Box {
 			FLine f = v.makeFLine(v.getContourForSite(sites.get(e.getKey())));
 			this.properties.putToMap(frameDrawing, "contour" + e.getKey(), box -> f);
 			this.properties.putToMap(FLineInteraction.interactiveDrawing, "contour" + e.getKey(), box -> f);
-			f.attributes.put(strokeColor, new Vec4(0.15f, 0.15f, 0.15f, 0.5f));
+			f.attributes.put(strokeColor, new Vec4(0.15f, 0.15f, 0.15f, 0.25f));
 			f.attributes.put(filled, true);
 			f.attributes.put(fillColor, new Vec4(0, 0.0f, 0, 0.15f));
 			f.attributes.put(layer, "glass");
@@ -254,7 +254,7 @@ public class MarkingMenus extends Box {
 			areas.add(new Area(FLinesAndJavaShapes.flineToJavaShape(label)));
 
 			label.attributes.put(filled, true);
-			label.attributes.put(fillColor, new Vec4(0.8f, 0.8f, 0.8f, 0.9f));
+			label.attributes.put(fillColor, new Vec4(0.7f, 0.7f, 0.7f, 0.8f));
 			label.attributes.put(strokeColor, new Vec4(0, 0, 0, 0.9f));
 			label.attributes.put(layer, "glass");
 

@@ -86,10 +86,11 @@ public class Compositor {
 				    "	vec4 ta = texelFetch(te, ivec2(gl_FragCoord.xy), 0);" +
 				    "	vec4 tb = texelFetch(blur, ivec2(gl_FragCoord.xy), 0);" +
 				    "	float mix = pow(ta.w, 0.1);"+
-				    "	float m2 = pow(ta.w, 0.25);"+
+				    "	float m2 = pow(ta.w, 0.85);"+
 				    //"	_output  = vec4((ta.xyz+(tb.xyz-vec3(0.85))*0.4), mix);\n" +
 				    //"	_output  = vec4(ta.xyz*mix+(1-mix)*tb.xyz, mix);\n" +
-				    "_output = vec4(tb.xyz*(1-m2)*0.5+m2*ta.xyz, mix);"+
+//				    "_output = vec4(tb.xyz*(1-m2)*ta.xyz+m2*ta.xyz, mix);"+
+				    "_output = mix(vec4(tb.xyz+ta.xyz, 0), vec4(tb.xyz*ta.xyz+ta.xyz*m2, 1), mix);"+
 				    "\n" +
 				    "}");
 
