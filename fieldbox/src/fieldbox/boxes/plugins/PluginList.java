@@ -5,6 +5,7 @@ import field.utility.Log;
 import field.utility.Options;
 import fieldagent.Trampoline;
 import fieldbox.boxes.Box;
+import fieldbox.io.IO;
 import us.bpsm.edn.EdnSyntaxException;
 import us.bpsm.edn.parser.Parseable;
 import us.bpsm.edn.parser.Parser;
@@ -15,6 +16,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static fieldbox.io.IO.Loaded;
 
 /**
  * EDN based list of plugins to load — extends classloader with a classpath, sets and extends Options (see Options.java), and instantiates and loads
@@ -101,13 +104,16 @@ public class PluginList {
 
 	private void activeatePlugin(List<Object> value, Box root) {
 
+		Map<Object, Loaded> loaded = new LinkedHashMap<>();
 		for (Object o : value) {
 			Log.log("startup", ">>>>>>>>>>>>> activating plugin '" + o + "'");
 
 			try {
 				Box plugin = (Box) this.getClass().getClassLoader().loadClass(o.toString()).getConstructor(Box.class)
-					    .newInstance(root);
+						       .newInstance(root);
 				plugin.connect(root);
+				if (plugin instanceof Loaded)
+					loaded.put(o, (Loaded)plugin);
 
 			} catch (Throwable e) {
 				System.out.println(" -- problem activating plugin \"" + o + "\", will continue on regardless -- ");
@@ -115,6 +121,20 @@ public class PluginList {
 			}
 			Log.log("startup", "<<<<<<<<<<<<< finished plugin '" + o + "'");
 		}
+
+		for (Map.Entry<Object, Loaded> o : loaded.entrySet()) {
+			Log.log("startup", ">>>>>>>>>>>>> late initialization for plugin '" + o.getValue() + "'");
+
+			try {
+				o.getValue().loaded();
+			} catch (Throwable e) {
+				System.out.println(" -- problem activating plugin \"" + o + "\", will continue on regardless -- ");
+				e.printStackTrace();
+			}
+			Log.log("startup", "<<<<<<<<<<<<< late initialization for plugin '" + o + "' finished");
+		}
+
+
 	}
 
 	private void extendOption(String key, List<Object> value) {
