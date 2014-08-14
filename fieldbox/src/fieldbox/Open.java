@@ -14,10 +14,10 @@ import fieldbox.ui.Compositor;
 import fieldbox.ui.FieldBoxWindow;
 import fielded.Execution;
 import fielded.ServerSupport;
-import fielded.plugins.BridgeToTextEditor;
 import fielded.windowmanager.LinuxWindowTricks;
 import fielded.windowmanager.OSXWindowTricks;
 import fieldnashorn.Nashorn;
+import jdk.nashorn.internal.runtime.linker.Bootstrap;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 
@@ -52,8 +52,8 @@ public class Open {
 	private Map<String, List<Object>> plugins;
 	private Nashorn javascript;
 
-	private int sizeX = AutoPersist.persist("window_sizeX", () -> 1000, x -> Math.min(2560, Math.max(100, x)), (x) -> window==null ? x : (int)window.getBounds().w);
-	private int sizeY = AutoPersist.persist("window_sizeY", () -> 800, x -> Math.min(2560, Math.max(100, x)), (x) -> window==null ? x : (int)window.getBounds().h);
+	private int sizeX = AutoPersist.persist("window_sizeX", () -> 1000, x -> Math.min(2560, Math.max(100, x)), (x) -> window == null ? x : (int) window.getBounds().w);
+	private int sizeY = AutoPersist.persist("window_sizeY", () -> 800, x -> Math.min(2560, Math.max(100, x)), (x) -> window == null ? x : (int) window.getBounds().h);
 
 	public Open(String filename) {
 		this.filename = filename;
@@ -63,8 +63,7 @@ public class Open {
 			pluginList = new PluginList();
 			plugins = pluginList.read(System.getProperty("user.home") + "/.field/plugins.edn", true);
 
-			if (plugins!=null)
-				pluginList.interpretClassPathAndOptions(plugins);
+			if (plugins != null) pluginList.interpretClassPathAndOptions(plugins);
 		} catch (IOException e) {
 			e.printStackTrace();
 			pluginList = null;
@@ -72,14 +71,20 @@ public class Open {
 
 		window = new FieldBoxWindow(50, 50, sizeX, sizeY, filename);
 
-		window.scene().connect(-5, this::defaultGLPreamble);
-		window.mainLayer().connect(-5, this::defaultGLPreamble);
+		window.scene()
+		      .connect(-5, this::defaultGLPreamble);
+		window.mainLayer()
+		      .connect(-5, this::defaultGLPreamble);
 
 		boxes = new Boxes();
 		boxes.root().properties.put(Boxes.window, window);
 
-		window.getCompositor().newLayer("glass");
-		window.getCompositor().getLayer("glass").getScene().connect(-5, this::defaultGLPreambleTransparent);
+		window.getCompositor()
+		      .newLayer("glass");
+		window.getCompositor()
+		      .getLayer("glass")
+		      .getScene()
+		      .connect(-5, this::defaultGLPreambleTransparent);
 
 		Watches watches = new Watches();
 		watches.connect(boxes.root());
@@ -165,27 +170,36 @@ public class Open {
 		new StatusBar(boxes.root()).connect(boxes.root());
 
 		/* cascade two blurs, a vertical and a horizontal together from the glass layer onto the base layer */
-		Compositor.Layer lx = window.getCompositor().newLayer("__main__blurx");
-		Compositor.Layer ly = window.getCompositor().newLayer("__main__blury", 1);
-		window.getCompositor().getMainLayer().blurYInto(5, lx.getScene());
+		Compositor.Layer lx = window.getCompositor()
+					    .newLayer("__main__blurx");
+		Compositor.Layer ly = window.getCompositor()
+					    .newLayer("__main__blury", 1);
+		window.getCompositor()
+		      .getMainLayer()
+		      .blurYInto(5, lx.getScene());
 		lx.blurXInto(5, ly.getScene());
-		window.getCompositor().getMainLayer().drawInto(window.scene());
-		window.getCompositor().getLayer("glass").compositeWith(ly, window.scene());
+		window.getCompositor()
+		      .getMainLayer()
+		      .drawInto(window.scene());
+		window.getCompositor()
+		      .getLayer("glass")
+		      .compositeWith(ly, window.scene());
 
 		/* reports on how much data we're sending to OpenGL and how much the MeshBuilder caching system is getting us. This is useful for noticing when we're repainting excessively or our cache is suddenly blown completely */
-		RunLoop.main.getLoop().connect(10, Scene.strobe((i) -> {
-			if (MeshBuilder.cacheHits + MeshBuilder.cacheMisses_internalHash + MeshBuilder.cacheMisses_cursor + MeshBuilder.cacheMisses_externalHash > 0) {
-				Log.println("graphics.stats", " meshbuilder cache " + MeshBuilder.cacheHits + " | " + MeshBuilder.cacheMisses_cursor + " / " + MeshBuilder.cacheMisses_externalHash + " / " + MeshBuilder.cacheMisses_internalHash);
-				MeshBuilder.cacheHits = 0;
-				MeshBuilder.cacheMisses_cursor = 0;
-				MeshBuilder.cacheMisses_externalHash = 0;
-				MeshBuilder.cacheMisses_internalHash = 0;
-			}
-			if (SimpleArrayBuffer.uploadBytes > 0) {
-				Log.println("graphics.stats", " uploaded " + SimpleArrayBuffer.uploadBytes + " bytes to OpenGL");
-				SimpleArrayBuffer.uploadBytes = 0;
-			}
-		}, 600));
+		RunLoop.main.getLoop()
+			    .connect(10, Scene.strobe((i) -> {
+				    if (MeshBuilder.cacheHits + MeshBuilder.cacheMisses_internalHash + MeshBuilder.cacheMisses_cursor + MeshBuilder.cacheMisses_externalHash > 0) {
+					    Log.println("graphics.stats", " meshbuilder cache " + MeshBuilder.cacheHits + " | " + MeshBuilder.cacheMisses_cursor + " / " + MeshBuilder.cacheMisses_externalHash + " / " + MeshBuilder.cacheMisses_internalHash);
+					    MeshBuilder.cacheHits = 0;
+					    MeshBuilder.cacheMisses_cursor = 0;
+					    MeshBuilder.cacheMisses_externalHash = 0;
+					    MeshBuilder.cacheMisses_internalHash = 0;
+				    }
+				    if (SimpleArrayBuffer.uploadBytes > 0) {
+					    Log.println("graphics.stats", " uploaded " + SimpleArrayBuffer.uploadBytes + " bytes to OpenGL");
+					    SimpleArrayBuffer.uploadBytes = 0;
+				    }
+			    }, 600));
 
 		//initializes window mgmt for linux
 		if (Main.os == Main.OS.linux) new LinuxWindowTricks(boxes.root());
@@ -205,7 +219,8 @@ public class Open {
 		}
 
 		// add a red line time slider to the sheet (this isn't saved with the document, so we'll add it each time
-		boxes.root().connect(new TimeSlider());
+		boxes.root()
+		     .connect(new TimeSlider());
 
 		// actually open the document that's stored on disk
 		doOpen();
@@ -214,14 +229,17 @@ public class Open {
 
 		// initialize the plugins
 
-		if (pluginList!=null)
-			pluginList.interpretPlugins(plugins, boxes.root());
+		if (pluginList != null) pluginList.interpretPlugins(plugins, boxes.root());
 
 		Log.log("startup", " -- FieldBox plugins finished, entering animation loop -- ");
 
 		// start the runloop
 		boxes.start();
 
+		Log.log("startup", "linkers are :", Bootstrap.class.getClassLoader());
+		ServiceLoader.load(jdk.internal.dynalink.linker.GuardingDynamicLinker.class, Bootstrap.class.getClassLoader())
+			     .spliterator()
+			     .forEachRemaining(x -> System.out.println(x));
 	}
 
 	protected void doOpen() {
