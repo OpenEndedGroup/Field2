@@ -59,7 +59,8 @@ public class DrawBitmapFont {
 			{
 				v.x += g.xadvance*scale;
 			}
-			v.y = Math.max(v.y, /*g.yoffset*scale +*/ g.height*scale);
+//			v.y = Math.max(v.y, /*g.yoffset*scale +*/ g.height*scale);
+			v.y = Math.max(v.y, /*g.yoffset*scale +*/g.height*scale);
 		}
 		return v;
 	}
@@ -80,12 +81,15 @@ public class DrawBitmapFont {
 
 			Vec2 at = new Vec2(origin);
 			char[] ca = text.toCharArray();
-			int mx = 100;
-			for( int i=0;i<ca.length;i++)
-			{
-				BitmapFontData.Glyph g = data.getGlyph(ca[i]);
-				mx = Math.min(mx, g.yoffset);
-			}
+//			int mx = 100;
+//			for( int i=0;i<ca.length;i++)
+//			{
+//				BitmapFontData.Glyph g = data.getGlyph(ca[i]);
+//				mx = Math.min(mx, g.yoffset);
+//			}
+
+			float mx = data.getGlyph('M').yoffset;
+
 
 			at.y += mx*scale;
 			for (int i = 0; i < ca.length; i++) {

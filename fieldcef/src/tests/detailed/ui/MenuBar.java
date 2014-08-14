@@ -241,11 +241,11 @@ public class MenuBar extends JMenuBar {
 				form += "<h2>Testcase 1</h2>";
 				form += "Try to enter the word <b>\"ignore\"</b> into the text field and press \"submit\".<br />";
 				form += "The request will be rejected by the application.";
-				form += "<p>See implementation of <u>tests.RequestHandler.onBeforeBrowse(CefBrowser, CefRequest, boolean)</u> for details</p>";
+				form += "<p>See implementation of <u>browser.RequestHandler.onBeforeBrowse(CefBrowser, CefRequest, boolean)</u> for details</p>";
 				form += "<h2>Testcase 2</h2>";
 				form += "Due Google doesn't allow the POST method, the server replies with a 405 error.</br>";
 				form += "If you activate the checkbox \"Use GET instead of POST\", the application will change the POST request into a GET request.";
-				form += "<p>See implementation of <u>tests.RequestHandler.onBeforeResourceLoad(CefBrowser, CefRequest)</u> for details</p>";
+				form += "<p>See implementation of <u>browser.RequestHandler.onBeforeResourceLoad(CefBrowser, CefRequest)</u> for details</p>";
 				form += "</form>";
 				form += "</body></html>";
 				browser_.loadString(form, control_pane_.getAddress());

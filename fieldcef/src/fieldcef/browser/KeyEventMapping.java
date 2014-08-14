@@ -1,9 +1,8 @@
-package fieldcef.tests;
+package fieldcef.browser;
 
 import com.badlogic.jglfw.Glfw;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import com.google.common.collect.MapMaker;
 
 import java.awt.event.KeyEvent;
 

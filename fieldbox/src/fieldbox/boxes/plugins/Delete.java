@@ -1,6 +1,7 @@
 package fieldbox.boxes.plugins;
 
 import com.badlogic.jglfw.Glfw;
+import field.graphics.Window;
 import fieldbox.boxes.*;
 
 import java.util.stream.Stream;
@@ -15,6 +16,7 @@ public class Delete extends Box {
 	public Delete(Box root) {
 		this.root = root;
 		this.properties.putToList(Keyboard.onKeyDown, (event, key) -> {
+			if (event.properties.isTrue(Window.consumed, false)) return null;
 			if (event.after.isSuperDown() && key == Glfw.GLFW_KEY_DELETE) {
 				Stream<Box> all = selected();
 				all.forEach(bb -> bb.disconnectFromAll());
@@ -28,11 +30,15 @@ public class Delete extends Box {
 			if (selected().findAny().isPresent()) {
 				MarkingMenus.MenuSpecification spec = new MarkingMenus.MenuSpecification();
 				long count = selected().count();
-				spec.items.put(MarkingMenus.Position.S, new MarkingMenus.MenuItem("Delete "+count+" box"+(count==1 ? "" : "es"), () -> {
+
+				MarkingMenus.MenuSpecification really = new MarkingMenus.MenuSpecification();
+				really.items.put(MarkingMenus.Position.N, new MarkingMenus.MenuItem("Really, delete "+count+" box"+(count==1 ? "" : "es")+"?", () -> {
 					Stream<Box> all = selected();
 					all.forEach(bb -> bb.disconnectFromAll());
 					Drawing.dirty(Delete.this);
 				}));
+
+				spec.items.put(MarkingMenus.Position.S, new MarkingMenus.MenuItem("Delete "+count+" box"+(count==1 ? "" : "es"), ()->{}).setSubmenu(really));
 				return spec;
 			}
 			return null;

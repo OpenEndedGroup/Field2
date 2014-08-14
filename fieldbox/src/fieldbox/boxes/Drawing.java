@@ -307,7 +307,7 @@ public class Drawing extends Box {
 			Drawing d = from.first(drawing, from.both()).get();
 			Rect view = d.getCurrentViewBounds(from);
 			FLine f = new FLine();
-			f.moveTo(view.x + view.w / 2, view.y + view.h / 2);
+			f.moveTo(view.x + view.w / 2, view.y + view.h / 2-10);
 			f.nodes.get(0).attributes.put(StandardFLineDrawing.text, text);
 			f.nodes.get(0).attributes.put(textScale, 4);
 			f.attributes.put(color, new Vec4(1, 1, 1, 1f));

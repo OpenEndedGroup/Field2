@@ -14,6 +14,8 @@ import java.awt.geom.Area;
 import java.util.*;
 import java.util.List;
 import java.util.function.Function;
+
+import static field.utility.Log.log;
 import static fieldbox.boxes.StandardFLineDrawing.*;
 import static fieldbox.boxes.FLineDrawing.*;
 
@@ -61,9 +63,16 @@ public class MarkingMenus extends Box {
 		String label;
 		Runnable callback;
 
+		MenuSpecification submenu = null;
+
 		public MenuItem(String label, Runnable c) {
 			this.label = label;
 			this.callback = c;
+		}
+
+		public MenuItem setSubmenu(MenuSpecification submenu) {
+			this.submenu = submenu;
+			return this;
 		}
 	}
 
@@ -90,20 +99,20 @@ public class MarkingMenus extends Box {
 					    return a;
 				    });
 
-			Log.log("debug.markingmenus", "merged spec and got :" + m.items.keySet());
+			log("debug.markingmenus", "merged spec and got :" + m.items.keySet());
 
 			if (m.items.size() > 0) {
-				return runMenu(this, convertCoordinateSystem(new Vec2(event.after.x, event.after.y)), m);
+				return runMenu(this, convertCoordinateSystem(this, new Vec2(event.after.x, event.after.y)), m);
 			} else {
-				Log.log("debug.markingmenus"," no menu for event ");
+				log("debug.markingmenus", " no menu for event ");
 				return null;
 			}
 		});
 
 	}
 
-	public Vec2 convertCoordinateSystem(Vec2 event) {
-		Optional<Drawing> drawing = this.find(Drawing.drawing, both()).findFirst();
+	static public Vec2 convertCoordinateSystem(Box from, Vec2 event) {
+		Optional<Drawing> drawing = from.find(Drawing.drawing, from.both()).findFirst();
 		return drawing.map(x -> x.windowSystemToDrawingSystem(event))
 			    .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
 	}
@@ -118,7 +127,7 @@ public class MarkingMenus extends Box {
 			    .orElseThrow(() -> new IllegalArgumentException(" got to be able to draw text to draw a menu"));
 		TextDrawing.FontSupport defaultFont = t.getDefaultFont();
 
-		float scale = 100;
+		float scale = 65;
 
 		FLine textLine = new FLine();
 		textLine.attributes.put(hasText, true);
@@ -127,7 +136,7 @@ public class MarkingMenus extends Box {
 		for (Map.Entry<Position, MenuItem> e : m.items.entrySet()) {
 			textLine.moveTo(center.x + e.getKey().pos.x * scale, center.y + e.getKey().pos.y * scale);
 
-			Log.log("debug.markingmenus", () -> e.getKey() + " " + e.getKey().pos);
+			log("debug.markingmenus", () -> e.getKey() + " " + e.getKey().pos);
 
 			textLine.node().attributes.put(text, e.getValue().label);
 			textLine.attributes.put(layer, "glass");
@@ -192,7 +201,7 @@ public class MarkingMenus extends Box {
 			FLine f = v.makeFLine(v.getContourForSite(sites.get(e.getKey())));
 			this.properties.putToMap(frameDrawing, "contour" + e.getKey(), box -> f);
 			this.properties.putToMap(FLineInteraction.interactiveDrawing, "contour" + e.getKey(), box -> f);
-			f.attributes.put(strokeColor, new Vec4(0.15f, 0.15f, 0.15f, 0.5f));
+			f.attributes.put(strokeColor, new Vec4(0.15f, 0.15f, 0.15f, 0.25f));
 			f.attributes.put(filled, true);
 			f.attributes.put(fillColor, new Vec4(0, 0.0f, 0, 0.15f));
 			f.attributes.put(layer, "glass");
@@ -219,9 +228,9 @@ public class MarkingMenus extends Box {
 				f.nodes.clear();
 				f.nodes.addAll(fm.nodes);
 
-				f.attributes.put(fillColor, new Vec4(0, 0.0f, 0, 0.05f));
+				f.attributes.put(fillColor, new Vec4(0, 0.0f, 0, 0.15f));
 				f.attributes.put(thicken, new BasicStroke(2.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-				f.attributes.put(strokeColor, new Vec4(0, 0, 0, 0.5f));
+				f.attributes.put(strokeColor, new Vec4(0.15f, 0.15f, 0.15f, 0.5f));
 				over.remove(e.getKey());
 				f.modify();
 				Drawing.dirty(this);
@@ -245,9 +254,26 @@ public class MarkingMenus extends Box {
 			areas.add(new Area(FLinesAndJavaShapes.flineToJavaShape(label)));
 
 			label.attributes.put(filled, true);
-			label.attributes.put(fillColor, new Vec4(0.8f, 0.8f, 0.8f, 0.9f));
+			label.attributes.put(fillColor, new Vec4(0.7f, 0.7f, 0.7f, 0.8f));
 			label.attributes.put(strokeColor, new Vec4(0, 0, 0, 0.9f));
 			label.attributes.put(layer, "glass");
+
+			if (e.getValue().submenu!=null)
+			{
+				FLine label2 = new FLine();
+				label2.rect(center.x + e.getKey().pos.x * scale - w / 2 - outset, center.y + e
+					    .getKey().pos.y * scale - maxHeight - outset, w + outset * 2, maxHeight + outset * 2);
+				this.properties.putToMap(frameDrawing, "labelShade" + e.getKey(), box -> label2);
+
+				areas.add(new Area(FLinesAndJavaShapes.flineToJavaShape(label2)));
+
+				label2.attributes.put(filled, true);
+				label2.attributes.put(color, new Vec4(0.8f, 0.8f, 0.8f, -0.3f));
+				label2.attributes.put(thicken, new BasicStroke(16));
+				label2.attributes.put(stroked, false);
+				label2.attributes.put(layer, "glass");
+
+			}
 		}
 
 		this.properties.putToMap(frameDrawing, "menu", box -> textLine);
@@ -261,7 +287,13 @@ public class MarkingMenus extends Box {
 		MarkingMenus menus = origin.first(markingMenus, origin.both())
 			    .orElseThrow(() -> new IllegalArgumentException(" can't show marking menus if we can't find MarkingMenus"));
 		List<Position> hover = menus.show(center, m);
+		Mouse.Dragger[] replaceWith = {null};
 		return (event, term) -> {
+			if (replaceWith[0]!=null)
+			{
+				return replaceWith[0].update(event, term);
+			}
+
 			if (term) {
 				menus.hide();
 				try {
@@ -277,6 +309,23 @@ public class MarkingMenus extends Box {
 					}
 				}
 			}
+			else
+			{
+				if (hover.size()>0)
+				{
+					Position h = hover.get(0);
+					MenuItem sp = m.items.get(h);
+					MenuSpecification sub = sp.submenu;
+					if (sub!=null)
+					{
+						menus.hide();
+						log("marking", "going submenu");
+						replaceWith[0] = runMenu(origin, convertCoordinateSystem(origin, new Vec2(event.after.x, event.after.y)), sub);
+					}
+				}
+			}
+
+
 			return true;
 		};
 	}

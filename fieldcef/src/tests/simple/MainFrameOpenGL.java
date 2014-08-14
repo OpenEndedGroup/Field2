@@ -23,7 +23,7 @@ import java.awt.event.WindowEvent;
  * <p>
  * The number of used JCEF classes is reduced (nearly) to its minimum and should assist you to get familiar with JCEF.
  * <p>
- * For a more feature complete example have also a look onto the example code within the package "tests.detailed".
+ * For a more feature complete example have also a look onto the example code within the package "browser.detailed".
  */
 public class MainFrameOpenGL extends JFrame {
 	private static final long serialVersionUID = -5570653778104813836L;
@@ -61,7 +61,7 @@ public class MainFrameOpenGL extends JFrame {
 		//     CefBrowser instances. Those events could be simple things like the
 		//     change of the browser title or more complex ones like context menu
 		//     events. By assigning handlers to CefClient you can control the
-		//     behavior of the browser. See tests.detailed.MainFrame for an example
+		//     behavior of the browser. See browser.detailed.MainFrame for an example
 		//     of how to use these handlers.
 		client_ = cefApp_.createClient();
 

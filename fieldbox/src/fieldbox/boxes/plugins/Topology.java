@@ -15,7 +15,9 @@ import static fieldbox.boxes.StandardFLineDrawing.*;
 import static fieldbox.boxes.FLineDrawing.*;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -39,12 +41,12 @@ public class Topology extends Box implements Mouse.OnMouseDown {
 		this.properties.putToList(Mouse.onMouseDown, this);
 
 		root.properties.put(outward, (box) -> {
-			return box.children().stream().filter(x -> x.properties.has(TopologyBox.head)).filter(x -> x.properties.get(TopologyBox.head).get(root) == box)
-				    .map(x -> x.properties.get(TopologyBox.tail).get(root)).collect(Collectors.toSet());
+			return new ArrayList<>(box.children().stream().filter(x -> x.properties.has(TopologyBox.head)).filter(x -> x.properties.get(TopologyBox.head).get(root) == box)
+				    .map(x -> x.properties.get(TopologyBox.tail).get(root)).collect(Collectors.toCollection(() -> new LinkedHashSet<>())));
 		});
 		root.properties.put(inward, (box) -> {
-			return box.children().stream().filter(x -> x.properties.has(TopologyBox.tail)).filter(x -> x.properties.get(TopologyBox.tail).get(root) == box)
-				    .map(x -> x.properties.get(TopologyBox.tail).get(root)).collect(Collectors.toSet());
+			return new ArrayList<>(box.children().stream().filter(x -> x.properties.has(TopologyBox.tail)).filter(x -> x.properties.get(TopologyBox.tail).get(root) == box)
+				    .map(x -> x.properties.get(TopologyBox.head).get(root)).collect(Collectors.toCollection(() -> new LinkedHashSet<>())));
 		});
 	}
 

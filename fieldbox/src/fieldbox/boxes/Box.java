@@ -25,6 +25,8 @@ public class Box {
 
 	static public final Dict.Prop<String> name = new Dict.Prop<>("name").type().toCannon().doc("the name of this box");
 	static public final Dict.Prop<Rect> frame = new Dict.Prop<>("frame").type().toCannon().doc("the rectangle that this box occupies");
+	// not currently implemented everywhere
+	static public final Dict.Prop<Boolean> hidden= new Dict.Prop<>("hidden").type().toCannon().doc("set this to true to hide this box (but be careful, for if it's hidden, how will you get it back again?)");
 
 	/**
 	 * Marker interface, marks functions as taking a box as a parameter. Allows us to finesse the dispatch of functions stored in properties

@@ -5,7 +5,7 @@ import field.linalg.Vec2;
 /**
  * Created by marc on 3/18/14.
  */
-public class Rect {
+public class Rect implements Mutable<Rect> {
 
 	public float x;
 	public float y;
@@ -96,5 +96,10 @@ public class Rect {
 
 	public boolean inside(float start, float end) {
 		return this.x>=start && this.x+this.w<end;
+	}
+
+	@Override
+	public Rect duplicate() {
+		return new Rect(x,y,w,h);
 	}
 }

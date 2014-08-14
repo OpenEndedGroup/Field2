@@ -4,12 +4,12 @@
 
 package org.cef;
 
+import field.utility.Log;
 import org.cef.callback.CefSchemeHandlerFactory;
 import org.cef.handler.CefAppHandler;
 import org.cef.handler.CefAppHandlerAdapter;
 
 import javax.swing.*;
-import java.awt.*;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.HashSet;
@@ -177,6 +177,7 @@ public class CefApp extends CefAppHandlerAdapter {
 				initialize();
 				cefInitialized.signal();
 
+				/*
 				// (2) Handle message loop.
 				if (OS.isMacintosh()) {
 					cefShutdown.awaitUninterruptibly();
@@ -191,6 +192,18 @@ public class CefApp extends CefAppHandlerAdapter {
 						}
 					}
 				}
+*/
+
+				boolean doLoop = true;
+				while (doLoop) {
+					N_DoMessageLoopWork();
+					try {
+						doLoop = !cefShutdown.await(33, TimeUnit.MILLISECONDS);
+					} catch (Exception e) {
+						// ignore exception
+					}
+				}
+
 
 				// (3) Shutdown sequence. Close all clients first.
 				for (CefClient c : clients_) {
@@ -219,52 +232,25 @@ public class CefApp extends CefAppHandlerAdapter {
 	 * @return true on success
 	 */
 	private final void initialize() {
-		try {
-			SwingUtilities.invokeAndWait(new Runnable() {
-				@Override
-				public void run() {
-					String library_path = getJcefLibPath();
-					System.out.println("initialize on " + Thread.currentThread() +
-						    " with library path " + library_path);
-					isInitialized_ = N_Initialize(library_path, appHandler_);
-				}
-			});
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		String library_path = getJcefLibPath();
+		System.out.println("initialize on " + Thread.currentThread() +
+			    " with library path " + library_path);
+		isInitialized_ = N_Initialize(library_path, appHandler_);
 	}
 
 	/**
 	 * Shut down the context.
 	 */
 	private final void shutdown() {
-		try {
-			SwingUtilities.invokeAndWait(new Runnable() {
-				@Override
-				public void run() {
-					System.out.println("  shutdown on " + Thread.currentThread());
-					N_Shutdown();
-				}
-			});
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		System.out.println("  shutdown on " + Thread.currentThread());
+		N_Shutdown();
 	}
 
 	/**
 	 * Perform a single message loop iteration.
 	 */
 	private final void doMessageLoopWork() {
-		try {
-			SwingUtilities.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					N_DoMessageLoopWork();
-				}
-			});
-		} catch (Exception err) {
-			err.printStackTrace();
-		}
+		N_DoMessageLoopWork();
 	}
 
 	/**

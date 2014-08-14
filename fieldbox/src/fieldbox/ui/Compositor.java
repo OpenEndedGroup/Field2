@@ -85,11 +85,12 @@ public class Compositor {
 				    "{\n" +
 				    "	vec4 ta = texelFetch(te, ivec2(gl_FragCoord.xy), 0);" +
 				    "	vec4 tb = texelFetch(blur, ivec2(gl_FragCoord.xy), 0);" +
-				    "	float mix = pow(ta.w, 0.15);"+
-				    "	float m2 = pow(ta.w, 0.25);"+
+				    "	float miz = pow(ta.w, 0.1);"+
+				    "	float m2 = pow(ta.w, 0.85);"+
 				    //"	_output  = vec4((ta.xyz+(tb.xyz-vec3(0.85))*0.4), mix);\n" +
 				    //"	_output  = vec4(ta.xyz*mix+(1-mix)*tb.xyz, mix);\n" +
-				    "_output = vec4(tb.xyz*(1-m2)+m2*ta.xyz, mix);"+
+//				    "_output = vec4(tb.xyz*(1-m2)*ta.xyz+m2*ta.xyz, mix);"+
+				    "_output = mix(vec4(tb.xyz+ta.xyz, 0), vec4(tb.xyz*ta.xyz+ta.xyz*m2, 1), miz);"+
 				    "\n" +
 				    "}");
 
@@ -105,12 +106,12 @@ public class Compositor {
 
 		public void blurXInto(int taps, Scene s)
 		{
-			blurInto(taps, s, "ivec2(i,0)");
+			blurInto(taps, s, "ivec2(i*2,0)");
 		}
 
 		public void blurYInto(int taps, Scene s)
 		{
-			blurInto(taps, s, "ivec2(0,i)");
+			blurInto(taps, s, "ivec2(0,i*2)");
 		}
 
 		protected void blurInto(int taps, Scene s, String access)

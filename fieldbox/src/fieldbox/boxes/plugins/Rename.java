@@ -1,5 +1,6 @@
 package fieldbox.boxes.plugins;
 
+import field.utility.Log;
 import field.utility.Pair;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Drawing;
@@ -42,16 +43,19 @@ public class Rename extends Box {
 						Consumer<String> feedback;
 
 						@Override
-						public void begin(RemoteEditor.SupportsPrompt prompt, String alternativeChosen/*, Consumer<String> feedback*/) {
+							public void begin(RemoteEditor.SupportsPrompt prompt, String alternativeChosen/*, Consumer<String> feedback*/) {
 							altWas = alternativeChosen;
 							this.feedback = feedback;
 						}
 
 						@Override
 						public void run() {
+							Log.log("run", " ALT WAS :" + altWas);
+
 							if (altWas != null) selection().forEach(x -> {
 								x.properties.put(Box.name, altWas);
 								Drawing.dirty(x);
+								if (feedback!=null)
 								feedback.accept("Renamed to \"" + altWas + "\"");
 							});
 						}

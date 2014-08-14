@@ -1,8 +1,7 @@
 var currentmodal = null;
 
 function runModal(placeholder, getcompletionsfunction, cssclass, initialText, allowAlternative) {
-    "use strict";
-    let modal = $("<dialog class='" + cssclass + "'><input spellcheck='false' data-autosize-input='{ \"space\": 10 }' autocomplete='off' placeholder='" + placeholder + "' class='Field-textBox' type='text' name='main'></input><ol></ol></dialog>")
+    var modal = $("<dialog class='" + cssclass + "'><input spellcheck='false' data-autosize-input='{ \"space\": 10 }' autocomplete='off' placeholder='" + placeholder + "' class='Field-textBox' type='text' name='main'></input><ol></ol></dialog>")
 
     modal.appendTo($("body"))
 
@@ -24,26 +23,26 @@ function runModal(placeholder, getcompletionsfunction, cssclass, initialText, al
             var num = ""
             if (i == 0) {
                 num = "&crarr;"
-            } else if (i < 9) {
+            } else if (i < 10) {
                 num = "^" + i
             }
             var label = $("<li><span class='Field-number'>" + num + "</span>" + completions[i].text + "</li>")
             if (num=="")
-	            label = $("<li><span class='Field-number-empty'>&nbsp;</span>" + completions[i].text + "</li>")
-            let callback = completions[i].callback
+	            label = $("<li><span class='Field-number' style='opacity:0.0' >&nbsp;</span>" + completions[i].text + "</li>")
+            var callback = completions[i].callback
             label.hover(function () {
                 $(this).css("background", "#444")
             }, function () {
                 $(this).css("background", "")
             })
             label.click(function () {
-                callback(inputBox.val())
+                this.callback(inputBox.val())
                 modal[0].close()
                 modal.detach()
                 setTimeout(function () {
                     cm.focus()
                 }, 25)
-            })
+            }.bind({"callback":completions[i].callback}))
 
             ol.append(label)
         }
@@ -109,9 +108,9 @@ function runModal(placeholder, getcompletionsfunction, cssclass, initialText, al
 
     modal[0].showModal()
 
-    $("input[data-autosize-input]").autosizeInput()
-
-    $(modal[0]).width($($(modal[0]).children()[1]).width())
+//    $("input[data-autosize-input]").autosizeInput()
+//
+//    $(modal[0]).width($($(modal[0]).children()[1]).width())
 
 		currentmodal = modal;
 

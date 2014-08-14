@@ -43,7 +43,7 @@ public class ClientSchemeHandler extends CefResourceHandlerAdapter {
 				    "This contents of this page page are served by the " +
 				    "ClientSchemeHandler class handling the client:// protocol." +
 				    "<br/>You should see an image:" +
-				    "<br/><img src=\"client://tests/logo.png\"><pre>";
+				    "<br/><img src=\"client://browser/logo.png\"><pre>";
 
 			// Output a string representation of the request
 			html += request.toString();

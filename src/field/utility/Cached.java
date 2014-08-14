@@ -46,6 +46,10 @@ public class Cached<t_check, t_witness, t_value> implements Function<t_check, t_
 			}
 			value = compute.apply(check, value);
 			valid = w;
+
+			if (valid instanceof Mutable)
+				valid = (t_witness) ((Mutable)valid).duplicate();
+
 			invalid = false;
 		} else if (debug != null)
 			Log.log("cached." + debug, " cache valid :" + invalid + " " + w + " " + valid + " " + Util.safeEq(w, valid));

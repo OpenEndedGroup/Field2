@@ -23,6 +23,8 @@ import java.util.List;
  */
 public class ServerSupport {
 
+	static public final Dict.Prop<Server> server = new Dict.Prop<Server>("server").type().toCannon().doc("The internal websocket-capable server");
+
 	static public List<String> playlist = Arrays
 		    .asList("messagebus.js", "instantiate.js", "changehooks.js", "status.js", "helpbox.js", "modal.js", "brackets.js", "output.js", "doubleshift.js", "JSHotkeyFunctions.js", "colorPicker.js");
 
@@ -43,6 +45,7 @@ public class ServerSupport {
 			// todo: these need to be random, unallocated ports
 
 			Server s = new Server(8080, 8081);
+			boxes.root().properties.put(server, s);
 			s.setFixedResource("/init", readFile(fieldagent.Main.app + "fielded/internal/init.html"));
 			s.addDocumentRoot(fieldagent.Main.app + "/fielded/internal/");
 			s.addDocumentRoot(fieldagent.Main.app + "/fielded/external/");
