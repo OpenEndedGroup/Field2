@@ -12,6 +12,8 @@ cm.setOption("gutters", ["CodeMirror-foldgutter", "CodeMirror-linenumbers"])
 cm.setOption("matchBrackets", true)
 cm.setOption("closeBrackets", true)
 
+colorpickernum = 0
+
 function fuzzy(pat) {
     m = pat.split(" ")
     var s = ""
@@ -89,11 +91,12 @@ goCommands = function () {
     );
 }
 
-testCommand = function () {
+hotkeys = function () {
 		JSCommands = {}
 
 		for (var i = 0; i < globalCommands.length; i++) {
 			var currCommand = globalCommands[i]
+			//This regex trims the function () { and } from the beginning and end of the call, reducing it to just the command in the body
 			JSCommands[currCommand.name] = [currCommand.info, currCommand.callback.toString().replace(/[^{]*{|}[^}]*$/g, "").trim()]
 		}
 
@@ -234,7 +237,10 @@ extraKeys = {
         Hotkeys();
     },
     "Ctrl-I": function (cm) {
-        Import();
+    		Import();
+    },
+    "Ctrl-Q": function (cm) {
+    		addColorPicker();
     }
 }
 

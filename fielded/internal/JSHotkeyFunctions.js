@@ -67,7 +67,7 @@ function Current_Bracket() {
 }
 
 function Hotkeys(){
-	testCommand();
+	hotkeys();
 }
 
 function Import(){

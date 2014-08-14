@@ -145,8 +145,6 @@ public class Open {
 
 		new DefaultMenus(boxes.root(), filename).connect(boxes.root());
 
-		new HotkeyMenus(boxes.root(), filename).connect(boxes.root());
-
 		new IsExecuting(boxes.root()).connect(boxes.root());
 
 		new Rename(boxes.root()).connect(boxes.root());
