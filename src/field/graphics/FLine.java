@@ -6,12 +6,24 @@ import field.utility.Curry;
 import field.utility.Dict;
 import field.utility.Log;
 import field.utility.Rect;
+import fieldbox.boxes.Box;
+import fieldbox.boxes.Drawing;
+import fieldlinker.Linker;
+import fieldnashorn.annotations.HiddenInAutocomplete;
+import jdk.internal.dynalink.beans.StaticClass;
+import jdk.nashorn.api.scripting.ScriptUtils;
+import jdk.nashorn.internal.objects.ScriptFunctionImpl;
+import jdk.nashorn.internal.runtime.ConsString;
+import jdk.nashorn.internal.runtime.ScriptObject;
+import jdk.nashorn.internal.runtime.linker.JavaAdapterFactory;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.awt.*;
-import java.util.ArrayList;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.WeakHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -43,7 +55,7 @@ import static field.graphics.FLinesAndJavaShapes.javaShapeToFLine;
  * TODO: port FrameDrawer's guts back out into something freestanding for the broader graphics system. It was a nice place to grow it, but it's more
  * general than that, and we need to be able to attach FLines to MeshBuilders in general
  */
-public class FLine implements Supplier<FLine> {
+public class FLine implements Supplier<FLine>, Linker.AsMap {
 
 	public FLine() {
 	}
@@ -59,7 +71,7 @@ public class FLine implements Supplier<FLine> {
 	}
 
 
-	public class Node {
+	public class Node implements Linker.AsMap{
 		public final Vec3 to;
 		public final Dict attributes = new Dict();
 
@@ -78,6 +90,177 @@ public class FLine implements Supplier<FLine> {
 			this.to.set(by.apply(to));
 			modify();
 		}
+
+		public Node duplicate() {
+			throw new NotImplementedException();
+		}
+
+
+		@Override
+		@HiddenInAutocomplete
+		public Object asMap_get(String m) {
+
+			Dict.Prop cannon = new Dict.Prop(m).findCannon();
+
+			Object ret = 	attributes.getOrConstruct(cannon);
+
+
+			if (ret instanceof Box.FunctionOfBox) {
+				return ((Supplier) (() -> ((Box.FunctionOfBox) ret).apply(this)));
+			}
+
+			return ret;
+		}
+
+		@Override
+		@HiddenInAutocomplete
+		public Object asMap_set(String name, Object value) {
+
+			// workaround bug in Nashorn
+			if (value instanceof ConsString) value = ((ConsString) value).toString();
+
+
+			Log.log("underscore.debug", " underscore box set :" + name + " to " + value.getClass() + " <" + Function.class.getName() + ">");
+			Dict.Prop cannon = new Dict.Prop(name).toCannon();
+
+			Log.log("underscore.debug", " cannonical type information " + cannon.getTypeInformation());
+
+			Object converted = convert(value, cannon.getTypeInformation());
+
+			attributes.put(cannon, converted);
+
+			Log.log("underscore.debug", () -> {
+				Log.log("underscore.debug", " PROPERTIES NOW :");
+				for (Map.Entry<Dict.Prop, Object> q : attributes.getMap()
+										.entrySet()) {
+					try {
+						Log.log("underscore.debug", "     " + q.getKey() + " = " + q.getValue());
+					} catch (NullPointerException e) {
+						//JDK bug JDK-8035426 --- sometimes Nashorn lambdas throw NPE's when they are .toString'd
+					}
+				}
+				return null;
+			});
+
+			modify();
+
+			return this;
+		}
+
+		@HiddenInAutocomplete
+		public Object convert(Object value, List<Class> fit) {
+			if (fit == null) return value;
+			if (fit.get(0)
+			       .isInstance(value)) return value;
+
+			// promote non-arrays to arrays
+			if (List.class.isAssignableFrom(fit.get(0))) {
+				if (!(value instanceof List)) {
+					return Collections.singletonList(convert(value, fit.subList(1, fit.size())));
+				} else {
+					return value;
+				}
+			} else if (Map.class.isAssignableFrom(fit.get(0)) && String.class.isAssignableFrom(fit.get(1))) {
+				// promote non-Map<String, V> to Map<String, V>
+				if (!(value instanceof Map)) {
+					return Collections.singletonMap("" + value + ":" + System.identityHashCode(value), convert(value, fit.subList(2, fit.size())));
+				} else {
+					return value;
+				}
+
+			} else if (Collection.class.isAssignableFrom(fit.get(0))) {
+				if (!(value instanceof Collection)) {
+					return Collections.singletonList(convert(value, fit.subList(1, fit.size())));
+				} else {
+					return value;
+				}
+
+			}
+
+			if (value instanceof ScriptFunctionImpl) {
+				StaticClass adapterClassFor = JavaAdapterFactory.getAdapterClassFor(new Class[]{fit.get(0)}, (ScriptObject) value, MethodHandles.lookup());
+				try {
+					return adapterClassFor.getRepresentedClass()
+							      .newInstance();
+				} catch (InstantiationException e) {
+					Log.log("underscore.error", " problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0), e);
+				} catch (IllegalAccessException e) {
+					Log.log("underscore.error", " problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0), e);
+				}
+			}
+
+			return value;
+		}
+
+
+
+		@Override
+		public Object asMap_call(Object a, Object b) {
+			System.err.println(" call called :" + a + " " + b + " " + (b instanceof Map ? ((Map) b).keySet() : b.getClass()
+															    .getSuperclass() + " " + Arrays.asList(b.getClass()
+																				    .getInterfaces())));
+			boolean success = false;
+			try {
+				Map<?, ?> m = (Map<?, ?>) ScriptUtils.convert(b, Map.class);
+				for (Map.Entry<?, ?> e : m.entrySet()) {
+					asMap_set(""+e.getKey(), e.getValue());
+				}
+				success = true;
+			} catch (UnsupportedOperationException e) {
+
+			}
+			if (!success) {
+				throw new IllegalArgumentException(" can't understand parameter :" + b);
+			}
+			return this;
+		}
+
+
+		@Override
+		public Object asMap_new(Object b) {
+			boolean success = false;
+			try {
+				Map<?, ?> m = (Map<?, ?>) ScriptUtils.convert(b, Map.class);
+
+				Node o = this.duplicate();
+
+				for (Map.Entry<?, ?> e : m.entrySet()) {
+					o.asMap_set(""+e.getKey(), e.getValue());
+				}
+				success = true;
+				return o;
+			} catch (UnsupportedOperationException e) {
+				throw new IllegalArgumentException(" can't understand parameter :" + b);
+			}
+		}
+
+		transient protected Set<String> knownNonProperties;
+
+		@Override
+		@HiddenInAutocomplete
+		public boolean asMap_isProperty(String p) {
+			if (Dict.Canonical.findCannon(p) != null) return true;
+
+			if (knownNonProperties == null) knownNonProperties = computeKnownNonProperties();
+
+			if (knownNonProperties.contains(p)) return false;
+
+			return true;
+		}
+
+		protected Set<String> computeKnownNonProperties() {
+			Set<String> r = new LinkedHashSet<>();
+			Method[] m = this.getClass()
+					 .getMethods();
+			for (Method mm : m)
+				r.add(mm.getName());
+			Field[] f = this.getClass()
+					.getFields();
+			for (Field ff : f)
+				r.add(ff.getName());
+			return r;
+		}
+
 	}
 
 	public FLine add(Node n) {
@@ -176,6 +359,18 @@ public class FLine implements Supplier<FLine> {
 	public void clearCache(MeshBuilder m) {
 		cache.remove(m);
 		cache_thickening.remove(m);
+	}
+
+	public FLine duplicate()
+	{
+		FLine fLine = new FLine();
+		for(Node n : this.nodes)
+		{
+			fLine.nodes.add(n.duplicate());
+		}
+		fLine.attributes.putAll(attributes);
+		fLine.modify();
+		return fLine;
 	}
 
 
@@ -455,6 +650,14 @@ public class FLine implements Supplier<FLine> {
 		public MoveTo(Vec2 to) {
 			super(new Vec3(to.x, to.y, 0));
 		}
+
+		@Override
+		public Node duplicate() {
+			MoveTo l = new MoveTo(to);
+			l.attributes.putAll(attributes);
+			return l;
+		}
+
 	}
 
 	public class LineTo extends Node {
@@ -470,6 +673,12 @@ public class FLine implements Supplier<FLine> {
 			super(x, y, z);
 		}
 
+		@Override
+		public Node duplicate() {
+			LineTo l = new LineTo(to);
+			l.attributes.putAll(attributes);
+			return l;
+		}
 	}
 
 	public class CubicTo extends Node {
@@ -499,6 +708,13 @@ public class FLine implements Supplier<FLine> {
 			super.transform(by);
 			this.c1.set(by.apply(c1));
 			this.c2.set(by.apply(c2));
+		}
+
+		@Override
+		public Node duplicate() {
+			CubicTo l = new CubicTo(to, c1, c2);
+			l.attributes.putAll(attributes);
+			return l;
 		}
 	}
 
@@ -562,4 +778,170 @@ public class FLine implements Supplier<FLine> {
 		return nodes;
 	}
 
+
+	transient protected Set<String> knownNonProperties;
+
+	@Override
+	@HiddenInAutocomplete
+	public boolean asMap_isProperty(String p) {
+		if (Dict.Canonical.findCannon(p) != null) return true;
+
+		if (knownNonProperties == null) knownNonProperties = computeKnownNonProperties();
+
+		if (knownNonProperties.contains(p)) return false;
+
+		return true;
+	}
+
+	@HiddenInAutocomplete
+	protected Set<String> computeKnownNonProperties() {
+		Set<String> r = new LinkedHashSet<>();
+		Method[] m = this.getClass()
+				 .getMethods();
+		for (Method mm : m)
+			r.add(mm.getName());
+		Field[] f = this.getClass()
+				.getFields();
+		for (Field ff : f)
+			r.add(ff.getName());
+		return r;
+	}
+
+	@Override
+	@HiddenInAutocomplete
+	public Object asMap_get(String m) {
+
+		if (m.equals("n")) return last();
+
+		Dict.Prop cannon = new Dict.Prop(m).findCannon();
+
+		Object ret = 	attributes.getOrConstruct(cannon);
+
+
+		if (ret instanceof Box.FunctionOfBox) {
+			return ((Supplier) (() -> ((Box.FunctionOfBox) ret).apply(this)));
+		}
+
+		return ret;
+	}
+
+	@Override
+	@HiddenInAutocomplete
+	public Object asMap_set(String name, Object value) {
+
+		// workaround bug in Nashorn
+		if (value instanceof ConsString) value = ((ConsString) value).toString();
+
+
+		Log.log("underscore.debug", " underscore box set :" + name + " to " + value.getClass() + " <" + Function.class.getName() + ">");
+		Dict.Prop cannon = new Dict.Prop(name).toCannon();
+
+		Log.log("underscore.debug", " cannonical type information " + cannon.getTypeInformation());
+
+		Object converted = convert(value, cannon.getTypeInformation());
+
+		attributes.put(cannon, converted);
+
+		Log.log("underscore.debug", () -> {
+			Log.log("underscore.debug", " PROPERTIES NOW :");
+			for (Map.Entry<Dict.Prop, Object> q : attributes.getMap()
+									.entrySet()) {
+				try {
+					Log.log("underscore.debug", "     " + q.getKey() + " = " + q.getValue());
+				} catch (NullPointerException e) {
+					//JDK bug JDK-8035426 --- sometimes Nashorn lambdas throw NPE's when they are .toString'd
+				}
+			}
+			return null;
+		});
+
+		modify();
+
+		return this;
+	}
+
+	@HiddenInAutocomplete
+	public Object convert(Object value, List<Class> fit) {
+		if (fit == null) return value;
+		if (fit.get(0)
+		       .isInstance(value)) return value;
+
+		// promote non-arrays to arrays
+		if (List.class.isAssignableFrom(fit.get(0))) {
+			if (!(value instanceof List)) {
+				return Collections.singletonList(convert(value, fit.subList(1, fit.size())));
+			} else {
+				return value;
+			}
+		} else if (Map.class.isAssignableFrom(fit.get(0)) && String.class.isAssignableFrom(fit.get(1))) {
+			// promote non-Map<String, V> to Map<String, V>
+			if (!(value instanceof Map)) {
+				return Collections.singletonMap("" + value + ":" + System.identityHashCode(value), convert(value, fit.subList(2, fit.size())));
+			} else {
+				return value;
+			}
+
+		} else if (Collection.class.isAssignableFrom(fit.get(0))) {
+			if (!(value instanceof Collection)) {
+				return Collections.singletonList(convert(value, fit.subList(1, fit.size())));
+			} else {
+				return value;
+			}
+
+		}
+
+		if (value instanceof ScriptFunctionImpl) {
+			StaticClass adapterClassFor = JavaAdapterFactory.getAdapterClassFor(new Class[]{fit.get(0)}, (ScriptObject) value, MethodHandles.lookup());
+			try {
+				return adapterClassFor.getRepresentedClass()
+						      .newInstance();
+			} catch (InstantiationException e) {
+				Log.log("underscore.error", " problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0), e);
+			} catch (IllegalAccessException e) {
+				Log.log("underscore.error", " problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0), e);
+			}
+		}
+
+		return value;
+	}
+
+	@Override
+	public Object asMap_call(Object a, Object b) {
+		System.err.println(" call called :" + a + " " + b + " " + (b instanceof Map ? ((Map) b).keySet() : b.getClass()
+														    .getSuperclass() + " " + Arrays.asList(b.getClass()
+																			    .getInterfaces())));
+		boolean success = false;
+		try {
+			Map<?, ?> m = (Map<?, ?>) ScriptUtils.convert(b, Map.class);
+			for (Map.Entry<?, ?> e : m.entrySet()) {
+				asMap_set(""+e.getKey(), e.getValue());
+			}
+			success = true;
+		} catch (UnsupportedOperationException e) {
+
+		}
+		if (!success) {
+			throw new IllegalArgumentException(" can't understand parameter :" + b);
+		}
+		return this;
+	}
+
+
+	@Override
+	public Object asMap_new(Object b) {
+		boolean success = false;
+		try {
+			Map<?, ?> m = (Map<?, ?>) ScriptUtils.convert(b, Map.class);
+
+			FLine o = this.duplicate();
+
+			for (Map.Entry<?, ?> e : m.entrySet()) {
+				o.asMap_set(""+e.getKey(), e.getValue());
+			}
+			success = true;
+			return o;
+		} catch (UnsupportedOperationException e) {
+			throw new IllegalArgumentException(" can't understand parameter :" + b);
+		}
+	}
 }

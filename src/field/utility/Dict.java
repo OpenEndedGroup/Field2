@@ -49,8 +49,12 @@ public class Dict implements Serializable {
 		static public <T> Prop<T> findCannon(Prop<T> p) {
 			return cannon.get(p.name);
 		}
+		static public <T> Prop<T> findCannon(String p) {
+			return cannon.get(p);
+		}
 
 	}
+
 
 	static public class Prop<T> implements Serializable {
 		String name;
@@ -60,6 +64,9 @@ public class Dict implements Serializable {
 		private List<Class> typeInformation;
 		private Class definedInClass;
 		private String documentation;
+
+		public Supplier<T> autoConstructor;
+
 
 		public Prop(String name) {
 			this.name = name;
@@ -156,6 +163,12 @@ public class Dict implements Serializable {
 			return (Prop<T>) this;
 		}
 
+		public <T> Prop<T> autoConstructs(Supplier<T> t)
+		{
+			this.autoConstructor = (Supplier)t;
+			return (Prop<T>)this;
+		}
+
 		public List<Class> getTypeInformation() {
 			return typeInformation == null ? null : new ArrayList<Class>(typeInformation);
 		}
@@ -169,6 +182,15 @@ public class Dict implements Serializable {
 
 	@SuppressWarnings("unchecked")
 	public <T> T get(Prop<T> key) {
+		return (T) dictionary.get(key);
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> T getOrConstruct(Prop<T> key) {
+		if (key.findCannon().autoConstructor!=null)
+		{
+			return (T)dictionary.computeIfAbsent(key, k -> key.findCannon().autoConstructor.get());
+		}
 		return (T) dictionary.get(key);
 	}
 
@@ -201,7 +223,11 @@ public class Dict implements Serializable {
 	public Dict duplicate() {
 		Dict r = new Dict();
 
-		r.dictionary = new LinkedHashMap<Prop, Object>(dictionary);
+		r.dictionary = new LinkedHashMap<Prop, Object>(dictionary.size());
+		for(Map.Entry<Prop, Object> e : dictionary.entrySet())
+		{
+			r.dictionary.put(e.getKey(), e.getValue() instanceof Mutable ? ((Mutable)e.getValue()).duplicate() : e.getValue());
+		}
 		return r;
 	}
 
@@ -268,7 +294,7 @@ public class Dict implements Serializable {
 		for (Map.Entry<Prop, Object> e : d.dictionary.entrySet()) {
 			Object was = get(e.getKey());
 			put(e.getKey(), e.getValue());
-			if (was != null) r.put(e.getKey(), was);
+			if (was != null) r.put(e.getKey(), was instanceof Mutable ? ((Mutable)was).duplicate() : was);
 		}
 		return r;
 	}
@@ -281,7 +307,7 @@ public class Dict implements Serializable {
 			if (!dictionary.containsKey(e.getKey())) put(e.getKey(), e.getValue());
 			else {
 				Object r = collision.apply(e.getKey(), dictionary.get(e.getKey()), e.getValue());
-				if (r != null) put(e.getKey(), r);
+				if (r != null) put(e.getKey(), r instanceof Mutable ? ((Mutable)r).duplicate() : r);
 			}
 		}
 		return this;
@@ -295,7 +321,7 @@ public class Dict implements Serializable {
 		for (Map.Entry<Prop, Object> e : d.dictionary.entrySet()) {
 
 			if (filter.apply(e.getKey())) {
-				put(e.getKey(), e.getValue());
+				put(e.getKey(), e.getValue() instanceof Mutable ? ((Mutable)e.getValue()).duplicate() : e.getValue());
 			}
 		}
 		return this;
