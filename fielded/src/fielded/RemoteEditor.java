@@ -164,7 +164,11 @@ public class RemoteEditor extends Box {
 
 			Optional<Box> box = findBoxByID(p.getString("box"));
 
-			if (!box.isPresent()) System.err.println(" remote editor is talking about a box that isn't anywhere <" + p + ">");
+			if (!box.isPresent())
+			{
+				Log.log("remote.cookie", " remote editor is talking about a box that isn't anywhere <" + p + ">");
+				return payload;
+			}
 
 			String prop = p.getString("property");
 
