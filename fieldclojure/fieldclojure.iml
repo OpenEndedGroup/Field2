@@ -14,6 +14,7 @@
     <orderEntry type="library" name="clojure-1.6.0" level="project" />
     <orderEntry type="module" module-name="fieldnashorn" />
     <orderEntry type="library" name="clojure-1.6.0 (2)" level="project" />
+    <orderEntry type="module" module-name="fieldlinker" />
   </component>
 </module>
 
