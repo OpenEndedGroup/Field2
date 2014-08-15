@@ -167,6 +167,8 @@ public class Open {
 
 		new StatusBar(boxes.root()).connect(boxes.root());
 
+		new HotkeyMenus(boxes.root(), null).connect(boxes.root());
+
 		/* cascade two blurs, a vertical and a horizontal together from the glass layer onto the base layer */
 		Compositor.Layer lx = window.getCompositor()
 					    .newLayer("__main__blurx");
