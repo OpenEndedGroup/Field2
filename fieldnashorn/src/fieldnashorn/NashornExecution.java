@@ -13,7 +13,6 @@ import fielded.Animatable;
 import fielded.Execution;
 import fielded.RemoteEditor;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
-import jdk.nashorn.internal.runtime.ScriptObject;
 
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
@@ -69,7 +68,8 @@ public class NashornExecution implements Execution.ExecutionSupport {
 						if (len > 0) {
 							String s = new String(cbuf, off, len);
 							if (s.endsWith("\n")) s = s.substring(0, s.length() - 1);
-							if (s.trim().length() == 0) return;
+							if (s.trim()
+							     .length() == 0) return;
 							written[0] = true;
 							success.accept(s);
 						}
@@ -84,7 +84,8 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 					}
 				};
-				engine.getContext().setWriter(writer);
+				engine.getContext()
+				      .setWriter(writer);
 			}
 
 			Log.log("nashorn.general", "\n>>javascript in");
@@ -109,8 +110,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 				if (ret != null) {
 					if (ret instanceof ScriptObjectMirror && ((ScriptObjectMirror) ret).isFunction()) {
 						success.accept("[function defined]");
-					} else
-						success.accept("" + ret);
+					} else success.accept("" + ret);
 				} else if (!written[0]) success.accept(" &#10003; ");
 			}
 
@@ -120,7 +120,22 @@ public class NashornExecution implements Execution.ExecutionSupport {
 			lineErrors.accept(new Pair<>(e.getLineNumber(), e.getMessage()));
 			e.printStackTrace();
 		} catch (Throwable t) {
-			lineErrors.accept(new Pair<>(-1, t.getMessage()));
+
+			// let's see if we can't scrape a line number out of the exception stacktrace
+			StackTraceElement[] s = t.getStackTrace();
+			boolean found = false;
+			if (s != null) {
+				for (int i = 0; i < s.length; i++) {
+					if (s[i].getFileName() != null && s[i].getFileName()
+									      .startsWith("bx[")) {
+						lineErrors.accept(new Pair<>(s[i].getLineNumber(), t.getMessage()));
+						found = true;
+					}
+				}
+			}
+			if (!found) {
+				lineErrors.accept(new Pair<>(-1, t.getMessage()));
+			}
 			t.printStackTrace();
 		} finally {
 			lineOffset = 0;
@@ -152,17 +167,20 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	public String begin(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
 		context.setAttribute("_r", null, ScriptContext.ENGINE_SCOPE);
 
-		String allText = box.first(property).orElse("");
+		String allText = box.first(property)
+				    .orElse("");
 
 		executeAndReturn(allText, lineErrors, success, false);
-		Object _r = context.getBindings(ScriptContext.ENGINE_SCOPE).get("_r");
+		Object _r = context.getBindings(ScriptContext.ENGINE_SCOPE)
+				   .get("_r");
 
 		Supplier<Boolean> r = interpretAnimation(_r);
 		if (r != null) {
 			end(lineErrors, success);
 			String name = "main._animator_" + (uniq);
 			box.properties.putToMap(Boxes.insideRunLoop, name, r);
-			box.first(IsExecuting.isExecuting).ifPresent(x -> x.accept(box, name));
+			box.first(IsExecuting.isExecuting)
+			   .ifPresent(x -> x.accept(box, name));
 
 			uniq++;
 			return name;
