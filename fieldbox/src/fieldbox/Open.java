@@ -12,7 +12,7 @@ import fieldbox.boxes.plugins.*;
 import fieldbox.io.IO;
 import fieldbox.ui.Compositor;
 import fieldbox.ui.FieldBoxWindow;
-import fielded.Execution;
+import fieldbox.execution.Execution;
 import fielded.ServerSupport;
 import fielded.windowmanager.LinuxWindowTricks;
 import fielded.windowmanager.OSXWindowTricks;

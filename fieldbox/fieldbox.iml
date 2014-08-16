@@ -18,6 +18,7 @@
     <orderEntry type="module" module-name="fieldagent" />
     <orderEntry type="library" name="cassowary" level="project" />
     <orderEntry type="module" module-name="fieldlinker" />
+    <orderEntry type="library" name="qdox-2.0-M1" level="project" />
   </component>
 </module>
 

@@ -3,7 +3,8 @@ package fieldnashorn;
 import field.utility.Log;
 import field.utility.Pair;
 import fieldbox.boxes.Box;
-import fielded.Execution;
+import fieldbox.execution.Execution;
+import fieldbox.execution.JavaSupport;
 import jdk.internal.dynalink.beans.StaticClass;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 
@@ -85,7 +86,7 @@ public class TernSupport {
 				    "files:[{type:\"full\",name:\"" + boxName + ".js\",text:__someFile}]},\n" +
 				    "	function (e,r){\n" +
 				    "		for(var i=0;i<r.completions.length;i++)" +
-				    "			__completions.add(new fielded.Execution.Completion(r.start, r.end, r.completions[i].name, '<span class=type>'+r.completions[i].type.replace('->','&rarr;')+'&nbsp;&mdash;&nbsp;</span><span class=doc>'+r.completions[i].doc+'</span>'))" +
+				    "			__completions.add(new fieldbox.execution.Execution.Completion(r.start, r.end, r.completions[i].name, '<span class=type>'+r.completions[i].type.replace('->','&rarr;')+'&nbsp;&mdash;&nbsp;</span><span class=doc>'+r.completions[i].doc+'</span>'))" +
 				    "	})");
 			r.addAll((ArrayList<Execution.Completion>) engine.get("__completions"));
 
@@ -151,7 +152,7 @@ public class TernSupport {
 						    .eval("_v=[]; _p = {}; Object.bindProperties(_p, _e); for(var _k in _p) _v.push(_k); Java.to(_v)");
 					Log.log("completion.debug", " auto eval completion got :" + Arrays.asList(retae));
 				} else if (e instanceof Box) {
-					e = new UnderscoreBox((Box) e);
+//					e = new UnderscoreBox((Box) e);
 					List<Execution.Completion> fromJava = javaSupport.getCompletionsFor(e, right);
 					for (Execution.Completion x : fromJava) {
 						if (x.start == -1) x.start = c - right.length();

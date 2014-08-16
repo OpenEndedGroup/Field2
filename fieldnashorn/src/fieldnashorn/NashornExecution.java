@@ -10,7 +10,7 @@ import fieldbox.boxes.Drawing;
 import fieldbox.boxes.plugins.IsExecuting;
 import fieldbox.io.IO;
 import fielded.Animatable;
-import fielded.Execution;
+import fieldbox.execution.Execution;
 import fielded.RemoteEditor;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 

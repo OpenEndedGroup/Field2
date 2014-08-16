@@ -54,4 +54,8 @@ public class Testy implements Linker.AsMap {
 	public Object asMap_new(Object a) {
 		return null;
 	}
+	@Override
+	public Object asMap_new(Object a, Object b) {
+		return null;
+	}
 }

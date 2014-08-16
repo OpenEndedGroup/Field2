@@ -6,7 +6,9 @@ import field.utility.Dict;
 import field.utility.Log;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Drawing;
-import fielded.Execution;
+import fieldbox.execution.Execution;
+import fieldbox.execution.HandlesCompletion;
+import fieldbox.execution.JavaSupport;
 import jdk.internal.dynalink.beans.StaticClass;
 import jdk.nashorn.api.scripting.AbstractJSObject;
 import jdk.nashorn.internal.objects.ScriptFunctionImpl;
@@ -42,7 +44,7 @@ import java.util.stream.Collectors;
  * <p>
  * Todo: similar shim class for FLine drawing class
  */
-public class UnderscoreBox extends AbstractJSObject implements JavaSupport.HandlesCompletion {
+public class UnderscoreBox extends AbstractJSObject implements HandlesCompletion {
 
 	private final Box at;
 	private long tick;

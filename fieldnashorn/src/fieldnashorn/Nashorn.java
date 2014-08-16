@@ -159,8 +159,12 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 		return ex;
 	}, (x) -> x);
 
+//	void setupInitialBindings(ScriptContext context, Box first) {
+//		context.setAttribute("_", new UnderscoreBox(first), ScriptContext.ENGINE_SCOPE);
+//	}
+
 	void setupInitialBindings(ScriptContext context, Box first) {
-		context.setAttribute("_", new UnderscoreBox(first), ScriptContext.ENGINE_SCOPE);
+		context.setAttribute("_", first, ScriptContext.ENGINE_SCOPE);
 	}
 
 	@Override

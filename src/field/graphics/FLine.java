@@ -146,6 +146,11 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 
 			return this;
 		}
+		@Override
+		public Object asMap_new(Object b, Object c)
+		{
+			throw new NoSuchMethodError(" two argument constructor to node not implemented");
+		}
 
 		@HiddenInAutocomplete
 		public Object convert(Object value, List<Class> fit) {
@@ -712,7 +717,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 
 		@Override
 		public Node duplicate() {
-			CubicTo l = new CubicTo(to, c1, c2);
+			CubicTo l = new CubicTo(c1, c2, to );
 			l.attributes.putAll(attributes);
 			return l;
 		}
@@ -943,5 +948,11 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 		} catch (UnsupportedOperationException e) {
 			throw new IllegalArgumentException(" can't understand parameter :" + b);
 		}
+	}
+
+	@Override
+	public Object asMap_new(Object b, Object c)
+	{
+		throw new NoSuchMethodError(" two argument constructor to fline not implemented");
 	}
 }

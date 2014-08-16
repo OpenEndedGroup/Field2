@@ -1,4 +1,4 @@
-package fieldnashorn;
+package fieldbox.execution;
 
 import com.thoughtworks.qdox.JavaProjectBuilder;
 import com.thoughtworks.qdox.model.JavaAnnotation;
@@ -9,7 +9,6 @@ import com.thoughtworks.qdox.parser.ParseException;
 import field.graphics.RunLoop;
 import field.utility.Log;
 import field.utility.Pair;
-import fielded.Execution;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 import fieldnashorn.annotations.JavaDocOnly;
 import fieldnashorn.annotations.StopAutocompleteHere;
@@ -38,10 +37,6 @@ import java.util.stream.Collectors;
 public class JavaSupport {
 
 	static public JavaSupport javaSupport = null;
-
-	public interface HandlesCompletion {
-		public List<Execution.Completion> getCompletionsFor(String prefix);
-	}
 
 	private final JavaProjectBuilder builder;
 

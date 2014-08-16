@@ -1,13 +1,13 @@
 package fieldbox.boxes;
 
 import field.graphics.RunLoop;
-import field.utility.Dict;
-import field.utility.Lazy;
-import field.utility.Log;
-import field.utility.Rect;
+import field.utility.*;
 import fieldbox.DefaultMenus;
+import fieldbox.execution.Execution;
+import fieldbox.execution.HandlesCompletion;
 import fieldbox.io.IO;
 import fieldlinker.Linker;
+import fieldbox.execution.JavaSupport;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 import jdk.internal.dynalink.beans.StaticClass;
 import jdk.nashorn.api.scripting.ScriptUtils;
@@ -22,6 +22,9 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -36,7 +39,7 @@ import java.util.stream.Stream;
  * Much of the time properties are looked up in the graph in breadth first fashion either "upwards" (towards parents) or less-often downwards
  * (collecting over all children).
  */
-public class Box implements Linker.AsMap {
+public class Box implements Linker.AsMap, HandlesCompletion {
 
 	static public final Dict.Prop<String> name = new Dict.Prop<>("name").type()
 									    .toCannon()
@@ -276,8 +279,7 @@ public class Box implements Linker.AsMap {
 			return ((Supplier) (() -> ((Box.FunctionOfBox) ret).apply(this)));
 		}
 
-		if (ret==null && cannon.autoConstructor!=null)
-		{
+		if (ret == null && cannon.autoConstructor != null) {
 			properties.put(cannon, cannon.autoConstructor.get());
 		}
 
@@ -377,7 +379,7 @@ public class Box implements Linker.AsMap {
 		try {
 			Map<?, ?> m = (Map<?, ?>) ScriptUtils.convert(b, Map.class);
 			for (Map.Entry<?, ?> e : m.entrySet()) {
-				asMap_set(""+e.getKey(), e.getValue());
+				asMap_set("" + e.getKey(), e.getValue());
 			}
 			success = true;
 		} catch (UnsupportedOperationException e) {
@@ -394,13 +396,90 @@ public class Box implements Linker.AsMap {
 	public Object asMap_new(Object a) {
 
 
-
-		FunctionOfBox<Box> b = find(DefaultMenus.newBox, both()).findFirst().get();
+		FunctionOfBox<Box> b = find(DefaultMenus.newBox, both()).findFirst()
+									.get();
 		Box b2 = b.apply(this);
 		// we need a deeper copy than putAll can provide right now (Set, List and Map for example);
 		//b2.properties.putAll(this.properties);
 
 		b2.asMap_call(null, a);
 		return b2;
+	}
+
+	@Override
+	public Object asMap_new(Object tag, Object a) {
+
+		Optional<Box> m = children().stream()
+					    .filter(x -> x.properties.has(Boxes.tag))
+					    .filter(x -> x.properties.get(Boxes.tag)
+								     .equals(tag))
+					    .findFirst();
+
+		Box b2 = m.orElseGet(() -> {
+
+			FunctionOfBox<Box> b = find(DefaultMenus.newBox, both()).findFirst()
+										.get();
+			return b.apply(this);
+			// we need a deeper copy than putAll can provide right now (Set, List and Map for example);
+			//b2.properties.putAll(this.properties);
+		});
+		b2.asMap_call(null, a);
+		return b2;
+	}
+
+	@Override
+	public List<Execution.Completion> getCompletionsFor(String prefix) {
+		Set<String> s1 = this.breadthFirst(this.upwards()).map(x -> x.properties.getMap().keySet()).flatMap(x -> x.stream()).map(x -> x.getName())
+				   .filter(x -> !x.startsWith("_")).collect(Collectors.toSet());
+
+		List<Execution.Completion> l1 = s1.stream().filter(x -> x.startsWith(prefix)).sorted().map(x -> {
+			Dict.Prop q = new Dict.Prop(x).findCannon();
+			if (q == null) {
+				return null;
+			} else return new Execution.Completion(-1, -1, x, "<span class='type'>" + Conversions
+				    .fold(q.getTypeInformation(), t -> compress(t)) + "</span> <span class='doc'>" + q
+				    .getDocumentation() + "</span>");
+		}).filter(x -> x != null).collect(Collectors.toList());
+
+		List<Execution.Completion> l2 = JavaSupport.javaSupport.getCompletionsFor(this, prefix);
+
+		l1.addAll(l2.stream().filter(x -> {
+			for (Execution.Completion c : l1)
+				if (c.replacewith.equals(x.replacewith)) return false;
+			return true;
+		}).collect(Collectors.toList()));
+		return l1;
+	}
+
+
+	protected Set<String> getAllPublicMethods() {
+		Set<String> m1 = new LinkedHashSet<>();
+		Method[] m = this.getClass().getDeclaredMethods();
+		for (Method mm : m) {
+			if (mm.isAccessible()) {
+				m1.add(mm.getName());
+			}
+		}
+		return m1;
+	}
+
+	static public String compress(String signature) {
+		signature = " " + signature;
+
+		Pattern p = Pattern.compile("([A-Za-z]*?)[\\.\\$]([A-Za-z]*?)");
+		Matcher m = p.matcher(signature);
+
+		while (m.find()) {
+			signature = m.replaceAll("$2");
+			m = p.matcher(signature);
+		}
+
+		signature = signature.replace(" public ", " ");
+		signature = signature.replace(" final ", " ");
+		signature = signature.replace(" void ", " ");
+		signature = signature.replace("  ", " ");
+		signature = signature.replace("  ", " ");
+
+		return signature.trim();
 	}
 }

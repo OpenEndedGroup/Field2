@@ -27,6 +27,8 @@ public class Linker implements GuardingDynamicLinker, GuardingTypeConverterFacto
 		public Object asMap_set(String p, Object o);
 
 		public Object asMap_new(Object a);
+
+		public Object asMap_new(Object a, Object b);
 	}
 
 
@@ -78,7 +80,7 @@ public class Linker implements GuardingDynamicLinker, GuardingTypeConverterFacto
 			}
 		} else if (linkRequest.getCallSiteDescriptor()
 				      .getNameToken(CallSiteDescriptor.OPERATOR)
-				      .equals("new")) {
+				      .equals("new") && linkRequest.getArguments().length==2) {
 
 			Object rec = linkRequest.getReceiver();
 
@@ -87,6 +89,19 @@ public class Linker implements GuardingDynamicLinker, GuardingTypeConverterFacto
 				System.err.println(" linking AsMap/new " + rec);
 				MethodHandle get = MethodHandles.lookup()
 								.findVirtual(rec.getClass(), "asMap_new", MethodType.methodType(Object.class, Object.class));
+				return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
+			}
+		} else if (linkRequest.getCallSiteDescriptor()
+				      .getNameToken(CallSiteDescriptor.OPERATOR)
+				      .equals("new") && linkRequest.getArguments().length==3) {
+
+			Object rec = linkRequest.getReceiver();
+
+			if (rec instanceof AsMap) {
+
+				System.err.println(" linking AsMap/new " + rec);
+				MethodHandle get = MethodHandles.lookup()
+								.findVirtual(rec.getClass(), "asMap_new", MethodType.methodType(Object.class, Object.class, Object.class));
 				return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
 			}
 		} else if (linkRequest.getCallSiteDescriptor()
