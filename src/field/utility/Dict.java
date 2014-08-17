@@ -29,7 +29,7 @@ public class Dict implements Serializable {
 				prop = p;
 			} else if (p.isCannon() && prop.isCannon() && p != prop) {
 				// should be an Error?
-				System.err.println(" WARNING: two competing canonical definitions of a Prop");
+				System.err.println(" WARNING: two competing canonical definitions of a Prop <"+p+">");
 				if (p.typeInformation != null && prop.typeInformation == null) {
 					cannon.put(p.name, p);
 					prop = p;
