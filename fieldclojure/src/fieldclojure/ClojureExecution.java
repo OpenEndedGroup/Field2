@@ -8,6 +8,7 @@ import field.utility.Log;
 import static field.utility.Log.log;
 import field.utility.Pair;
 import fieldbox.boxes.Boxes;
+import fieldbox.execution.Completion;
 import fieldbox.io.IO;
 import fieldbox.execution.Execution;
 import fieldbox.boxes.Box;
@@ -200,7 +201,7 @@ public class ClojureExecution extends Execution {
 			@Override
 			public void imports(String allText, int line, int ch, Consumer<List<Completion>> results) {
 
-				List<Execution.Completion> r = new ArrayList<>();
+				List<Completion> r = new ArrayList<>();
 
 				String[] lines = allText.split("\n");
 
@@ -245,7 +246,7 @@ public class ClojureExecution extends Execution {
 				for (Pair<String, String> p : possibleJavaClassesFor) {
 					int tail = p.first.lastIndexOf(".");
 
-					Execution.Completion ex = new Execution.Completion(subStart, subEnd, p.first
+					Completion ex = new Completion(subStart, subEnd, p.first
 						    .substring(tail + 1), p.second);
 					ex.header = "(import '"+p.first+")";
 					r.add(ex);

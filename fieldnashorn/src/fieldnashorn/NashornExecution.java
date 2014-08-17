@@ -8,6 +8,7 @@ import fieldbox.boxes.Box;
 import fieldbox.boxes.Boxes;
 import fieldbox.boxes.Drawing;
 import fieldbox.boxes.plugins.IsExecuting;
+import fieldbox.execution.Completion;
 import fieldbox.io.IO;
 import fielded.Animatable;
 import fieldbox.execution.Execution;
@@ -219,16 +220,16 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	}
 
 	@Override
-	public void completion(String allText, int line, int ch, Consumer<List<Execution.Completion>> results) {
-		List<Execution.Completion> r1 = ternSupport.completion(box.properties.get(IO.id), allText, line, ch);
+	public void completion(String allText, int line, int ch, Consumer<List<Completion>> results) {
+		List<Completion> r1 = ternSupport.completion(box.properties.get(IO.id), allText, line, ch);
 		if (r1 != null) {
 			results.accept(r1);
 		}
 	}
 
 	@Override
-	public void imports(String allText, int line, int ch, Consumer<List<Execution.Completion>> results) {
-		List<Execution.Completion> r1 = ternSupport.imports(box.properties.get(IO.id), allText, line, ch);
+	public void imports(String allText, int line, int ch, Consumer<List<Completion>> results) {
+		List<Completion> r1 = ternSupport.imports(box.properties.get(IO.id), allText, line, ch);
 		if (r1 != null) {
 			results.accept(r1);
 		}

@@ -2,7 +2,7 @@ package fielded.plugins;
 
 import field.utility.Log;
 import fieldagent.Main;
-import fieldbox.execution.Execution;
+import fieldbox.execution.Completion;
 import fielded.ServerSupport;
 import org.json.JSONStringer;
 
@@ -76,8 +76,8 @@ public class BridgedTernSupport {
 		return "";
 	}
 
-	public List<Execution.Completion> completion(Consumer<String> engine, String boxName, String allText, int line, int ch) {
-		List<Execution.Completion> r = new ArrayList<>();
+	public List<Completion> completion(Consumer<String> engine, String boxName, String allText, int line, int ch) {
+		List<Completion> r = new ArrayList<>();
 
 
 		JSONStringer s = new JSONStringer();

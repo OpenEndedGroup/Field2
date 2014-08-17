@@ -26,7 +26,7 @@ public class Boxes {
 	static public final Dict.Prop<Boolean> dontSave = new Dict.Prop<>("dontSave").type()
 										     .toCannon()
 										     .doc("set this to true to cause this box to not be saved with the box graph");
-	static public final Dict.Prop<String> tag = new Dict.Prop<>("dontSave").type()
+	static public final Dict.Prop<String> tag = new Dict.Prop<>("tag").type()
 									       .toCannon()
 									       .doc("Facilitates box creation in an idempotent style'internal name' for boxes. <code>new _('tag', {})</code> will either create a box with tag <code>'tag'</code> (as a child of <code>_</code> or return an existing box with this tag ");
 

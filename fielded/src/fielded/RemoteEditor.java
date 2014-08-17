@@ -7,6 +7,7 @@ import field.message.MessageQueue;
 import field.utility.*;
 import fieldbox.FieldBox;
 import fieldbox.boxes.*;
+import fieldbox.execution.Completion;
 import fieldbox.execution.Execution;
 import fieldbox.io.IO;
 import fielded.webserver.RateLimitingQueue;
@@ -399,7 +400,7 @@ public class RemoteEditor extends Box {
 
 				JSONStringer stringer = new JSONStringer();
 				stringer.array();
-				for (Execution.Completion res : responses) {
+				for (Completion res : responses) {
 					stringer.object();
 					stringer.key("start")
 						.value(res.start);
@@ -446,7 +447,7 @@ public class RemoteEditor extends Box {
 
 				JSONStringer stringer = new JSONStringer();
 				stringer.array();
-				for (Execution.Completion res : responses) {
+				for (Completion res : responses) {
 					stringer.object();
 					stringer.key("start")
 						.value(res.start);

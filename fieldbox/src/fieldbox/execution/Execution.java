@@ -26,28 +26,6 @@ public class Execution extends Box {
 	static public final Dict.Prop<String> code = new Dict.Prop<>("code");
 
 	/**
-	 * helper class for completion results
-	 */
-	static public class Completion {
-		public int start, end;
-		public String replacewith;
-		public String info;
-		public String header;
-
-		public Completion(int start, int end, String replacewith, String info) {
-			this.start = start;
-			this.end = end;
-			this.replacewith = replacewith;
-			this.info = info;
-		}
-
-		@Override
-		public String toString() {
-			return "comp<" + replacewith + " | " + info + ">";
-		}
-	}
-
-	/**
 	 * absolutely everything you need to support a language in Field
 	 */
 	static public interface ExecutionSupport {

@@ -131,7 +131,7 @@ public class JavaSupport {
 		return Collections.emptyMap();
 	}
 
-	public List<Execution.Completion> getCompletionsFor(Object o, String prefix) {
+	public List<Completion> getCompletionsFor(Object o, String prefix) {
 		if (o instanceof HandlesCompletion) {
 
 			Log.log("completion.debug", " object :" + o + " is a completion handler ");
@@ -149,7 +149,7 @@ public class JavaSupport {
 
 		Log.log("completion.debug", " java class (for javadoc supported completion) :" + j + " prefix is <" + prefix + ">");
 
-		List<Execution.Completion> r = new ArrayList<>();
+		List<Completion> r = new ArrayList<>();
 		try {
 			while (j != null) {
 
@@ -163,7 +163,7 @@ public class JavaSupport {
 						if (docOnly && m.getComment().trim().length() < 1) continue;
 						if ((prefix.equals("") || m.getName().startsWith(prefix)) && m.getModifiers()
 							    .contains("public") && (!staticsOnly || m.getModifiers().contains("static"))) {
-							r.add(new Execution.Completion(-1, -1, m.getName(), "<span class=type>" + compress(m
+							r.add(new Completion(-1, -1, m.getName(), "<span class=type>" + compress(m
 								    .getName(), m.getDeclarationSignature(true)) + "</span>" + (m
 								    .getComment() != null ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + m
 								    .getComment() + "</span>" : "")));
@@ -174,7 +174,7 @@ public class JavaSupport {
 						if (docOnly && m.getComment().trim().length() < 1) continue;
 						if ((prefix.equals("") || m.getName().startsWith(prefix)) && m.getModifiers()
 							    .contains("public") && (!staticsOnly || m.getModifiers().contains("static"))) {
-							r.add(new Execution.Completion(-1, -1, m.getName(), "<span class=type>" + compress(m
+							r.add(new Completion(-1, -1, m.getName(), "<span class=type>" + compress(m
 								    .getName(), m.getDeclarationSignature(true)) + "</span>" + (m
 								    .getComment() != null ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + m
 								    .getComment() + "</span>" : "")));
