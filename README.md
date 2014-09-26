@@ -1,6 +1,6 @@
 # Field2
 
-Welcome to the Field2 development repository.
+Welcome to the Field2 development repository. _This codebase is experimental and in flux; it is not ready for production work._
 
 ## Prerequisites for building & running (on Linux)
 
