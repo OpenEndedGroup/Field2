@@ -1,5 +1,5 @@
 
-.cm-s-default { background: var(multi); color:var(fg); }
+.cm-s-default { background: #2d3133; color:#2d3133; }
 
 .cm-s-default span.cm-bracket {color: #aaa;}
 .cm-s-default span.cm-bracket1 {color: #aaa; }
