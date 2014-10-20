@@ -1,27 +1,42 @@
 package fieldbox.boxes.plugins;
 
 import field.graphics.FLine;
+import field.graphics.RunLoop;
 import field.graphics.Window;
 import field.linalg.Vec2;
 import field.linalg.Vec4;
+import field.utility.Dict;
 import field.utility.Pair;
 import field.utility.Rect;
 import field.utility.Triple;
-import fieldbox.boxes.*;
+import fieldbox.boxes.Box;
+import fieldbox.boxes.Drawing;
+import fieldbox.boxes.MarkingMenus;
+import fieldbox.boxes.Mouse;
 import fieldbox.execution.Execution;
 
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import static fieldbox.boxes.StandardFLineDrawing.*;
-import static fieldbox.boxes.FLineDrawing.*;
+
+import static fieldbox.boxes.FLineDrawing.expires;
+import static fieldbox.boxes.FLineDrawing.frameDrawing;
+import static field.graphics.StandardFLineDrawing.*;
 
 /**
  * Created by marc on 4/16/14.
  */
 public class Chorder extends Box {
+
+	static public final Dict.Prop<FunctionOfBox<Supplier<Boolean>>> begin = new Dict.Prop<>("begin").type()
+													.toCannon()
+													.doc("call <code>.begin()</code> to add a box to the animation cycle. Returns a function that tells you whether this box is still running.");
+	static public final Dict.Prop<FunctionOfBox<Void>> end = new Dict.Prop<>("end").type()
+										       .toCannon()
+										       .doc("call <code>.end()</code> to remove a box from the animation cycle.");
 
 	public Chorder(Box root_unused) {
 
@@ -32,24 +47,44 @@ public class Chorder extends Box {
 			if (e.after.keyboardState.isSuperDown()) return null;
 			if (e.after.keyboardState.isControlDown()) return null;
 
-			Optional<Drawing> drawing = this.find(Drawing.drawing, both()).findFirst();
+			Optional<Drawing> drawing = this.find(Drawing.drawing, both())
+							.findFirst();
 			Vec2 point = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e.after.x, e.after.y)))
-				    .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
+					    .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
 
-			Stream<Pair<Box, Rect>> fr = breadthFirst(both()).map(b -> new Pair<>(b, frame(b))).filter(b -> b.second != null);
+			Stream<Pair<Box, Rect>> fr = breadthFirst(both()).map(b -> new Pair<>(b, frame(b)))
+									 .filter(b -> b.second != null);
 
 			List<Pair<Box, Rect>> frames = fr.collect(Collectors.toList());
 
-			Optional<Pair<Box, Rect>> hit = frames.stream().filter(b -> b.second.intersects(point))
-				    .sorted((a, b) -> Float.compare(order(a.second), order(b.second))).findFirst();
+			Optional<Pair<Box, Rect>> hit = frames.stream()
+							      .filter(b -> !b.first.properties.isTrue(Box.hidden, false))
+							      .filter(b -> b.second.intersects(point))
+							      .sorted((a, b) -> Float.compare(order(a.second), order(b.second)))
+							      .findFirst();
 
-			if (hit.isPresent()) return executeNowAt(e, point, hit.get().first);
+			if (hit.isPresent()) {
+				return executeNowAt(e, point, hit.get().first);
+			}
 
 			// we have an execution chord
 
 			return chordAt(frames, point, e);
 		});
 
+
+		this.properties.put(begin, box -> {
+			box.first(Execution.execution)
+			   .ifPresent(x -> x.support(box, Execution.code)
+					    .begin(box));
+			return () -> box.properties.computeIfAbsent(IsExecuting.executionCount, (k) -> 0) > 0;
+		});
+		this.properties.put(end, box -> {
+			box.first(Execution.execution)
+			   .ifPresent(x -> x.support(box, Execution.code)
+					    .end(box));
+			return null;
+		});
 	}
 
 	private Mouse.Dragger executeNowAt(Window.Event<Window.MouseState> e, Vec2 point, Box box) {
@@ -72,7 +107,9 @@ public class Chorder extends Box {
 
 		if (count0 < 1) {
 
-			box.first(Execution.execution).ifPresent(x -> x.support(box, Execution.code).begin(box));
+			box.first(Execution.execution)
+			   .ifPresent(x -> x.support(box, Execution.code)
+					    .begin(box));
 			// with remote back ends it's possible we'll have to defer this to the next update cycle to give them a chance to acknowledge that were actually executing
 			int count1 = box.properties.computeIfAbsent(IsExecuting.executionCount, (k) -> 0);
 
@@ -81,16 +118,21 @@ public class Chorder extends Box {
 				menuSpec.items.put(MarkingMenus.Position.NH, new MarkingMenus.MenuItem("Continue", () -> {
 				}));
 				menuSpec.nothing = () -> {
-					box.first(Execution.execution).ifPresent(x -> x.support(box, Execution.code).end(box));
-					Drawing.dirty(this);
+					box.first(Execution.execution)
+					   .ifPresent(x -> x.support(box, Execution.code)
+							    .end(box));
+					Drawing.dirty(this, 3);
 				};
 				return MarkingMenus.runMenu(box, point, menuSpec);
 			}
 		} else {
 			MarkingMenus.MenuSpecification menuSpec = new MarkingMenus.MenuSpecification();
 			menuSpec.items.put(MarkingMenus.Position.SH, new MarkingMenus.MenuItem("Stop", () -> {
-				box.first(Execution.execution).ifPresent(x -> x.support(box, Execution.code).end(box));
+				box.first(Execution.execution)
+				   .ifPresent(x -> x.support(box, Execution.code)
+						    .end(box));
 				Drawing.dirty(this);
+				Drawing.dirty(this, 3);
 			}));
 			return MarkingMenus.runMenu(box, point, menuSpec);
 		}
@@ -102,11 +144,16 @@ public class Chorder extends Box {
 
 		boolean[] once = {false};
 
+
+		this.properties.putToMap(StatusBar.statuses, "__chordfeedback__", () -> "Drag to start multiple boxes");
+
 		return (e, end) -> {
 
-			Optional<Drawing> drawing = this.find(Drawing.drawing, both()).findFirst();
+			Optional<Drawing> drawing = this.find(Drawing.drawing, both())
+							.findFirst();
 			Vec2 point = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e.after.x, e.after.y)))
-				    .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
+					    .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
+
 
 			chordOver(frames, start, point, end);
 
@@ -120,8 +167,19 @@ public class Chorder extends Box {
 
 					Box b = intersections.get(i).third;
 
-					b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).begin(b));
+					b.first(Execution.execution)
+					 .ifPresent(x -> x.support(b, Execution.code)
+							  .begin(b));
 				}
+
+				long count = intersections.stream()
+							  .filter(x -> x != null)
+							  .count();
+
+				this.properties.putToMap(StatusBar.statuses, "__chordfeedback__", () -> "Drag started " + (count == 0 ? "" : (count == 1 ? "this " : "these ") + count + " box" + (count == 1 ? "" : "es")));
+
+				RunLoop.main.delay(() -> this.properties.removeFromMap(StatusBar.statuses, "__chordfeedback__"), 2000);
+
 			}
 
 			return !end;
@@ -156,18 +214,28 @@ public class Chorder extends Box {
 		}, termination ? 50 : -1));
 
 		List<Triple<Vec2, Float, Box>> i = intersectionsFor(frames, start, end);
+
+		long count = i.stream()
+			      .filter(x -> x != null)
+			      .count();
+		if (count > 0)
+			this.properties.putToMap(StatusBar.statuses, "__chordfeedback__", () -> "Release to start " + (count == 0 ? "" : (count == 1 ? "this " : "these ") + count + " box" + (count == 1 ? "" : "es")));
+		else this.properties.putToMap(StatusBar.statuses, "__chordfeedback__", () -> "Drag to start multiple boxes");
+
 		properties.putToMap(frameDrawing, "__feedback__chorderbox", expires(box -> {
 
 			FLine f = new FLine();
 
-			i.stream().filter(x -> x != null).forEach((x) -> {
+			i.stream()
+			 .filter(x -> x != null)
+			 .forEach((x) -> {
 
-				Rect fr = frame(x.third);
+				 Rect fr = frame(x.third);
 
-				f.rect(fr.x, fr.y, fr.w, fr.h);
+				 f.rect(fr.x, fr.y, fr.w, fr.h);
 
 
-			});
+			 });
 
 			f.attributes.put(strokeColor, new Vec4(0.5f, 0.75f, 0.5f, -0.5f));
 			f.attributes.put(thicken, new BasicStroke(10.5f));
@@ -179,14 +247,16 @@ public class Chorder extends Box {
 
 			FLine f = new FLine();
 
-			i.stream().filter(x -> x != null).forEach((x) -> {
+			i.stream()
+			 .filter(x -> x != null)
+			 .forEach((x) -> {
 
-				Rect fr = frame(x.third);
+				 Rect fr = frame(x.third);
 
-				float w = 8;
-				f.rect(x.first.x - w, x.first.y - w, w * 2, w * 2);
+				 float w = 8;
+				 f.rect(x.first.x - w, x.first.y - w, w * 2, w * 2);
 
-			});
+			 });
 
 			f.attributes.put(color, new Vec4(0.5f, 0.75f, 0.5f, -0.75f));
 			f.attributes.put(filled, true);
@@ -199,15 +269,17 @@ public class Chorder extends Box {
 
 			FLine f = new FLine();
 
-			int[] count = {1};
+			int[] counter = {1};
 
 			Vec2 delta = new Vec2(end.y - start.y, start.x - end.x);
 			delta.normalise();
-			i.stream().filter(x -> x != null).forEach((x) -> {
+			i.stream()
+			 .filter(x -> x != null)
+			 .forEach((x) -> {
 
-				f.moveTo(x.first.x + delta.x * 12, x.first.y + delta.y * 12);
-				f.nodes.get(f.nodes.size() - 1).attributes.put(text, " " + (count[0]++));
-			});
+				 f.moveTo(x.first.x + delta.x * 12, x.first.y + delta.y * 12);
+				 f.nodes.get(f.nodes.size() - 1).attributes.put(text, " " + (counter[0]++));
+			 });
 
 			f.attributes.put(color, new Vec4(0.1f, 0.25f, 0.1f, 0.75f));
 			f.attributes.put(hasText, true);
@@ -247,7 +319,8 @@ public class Chorder extends Box {
 				continue;
 			}
 
-			ret.add(new Triple<>(al.get(0), (float) al.get(0).distanceFrom(start), br.first));
+			ret.add(new Triple<>(al.get(0), (float) al.get(0)
+								  .distanceFrom(start), br.first));
 		}
 
 		return ret;
