@@ -1,23 +1,30 @@
 package fieldclojure;
 
 import clojure.java.api.Clojure;
-import clojure.lang.*;
 import clojure.lang.Compiler;
+import clojure.lang.*;
 import field.utility.Dict;
 import field.utility.Log;
-import static field.utility.Log.log;
 import field.utility.Pair;
-import fieldbox.boxes.Boxes;
-import fieldbox.execution.Completion;
-import fieldbox.io.IO;
-import fieldbox.execution.Execution;
 import fieldbox.boxes.Box;
+import fieldbox.boxes.Boxes;
+import fieldbox.boxes.Drawing;
+import fieldbox.boxes.plugins.IsExecuting;
+import fieldbox.execution.Completion;
+import fieldbox.execution.Execution;
 import fieldbox.execution.JavaSupport;
+import fieldbox.io.IO;
+import fielded.Animatable;
+import fieldnashorn.Nashorn;
 
+import java.io.IOException;
 import java.io.StringReader;
-import java.io.StringWriter;
+import java.io.Writer;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
+
+import static field.utility.Log.log;
 
 /**
 
@@ -45,10 +52,11 @@ public class ClojureExecution extends Execution {
 
 		ns = Clojure.var(nsClojure, "*ns*");
 		out = Clojure.var(nsClojure, "*out*");
+
 		this.properties.put(Boxes.dontSave, true);
 		Log.on("clojure.*", Log::green);
 
-		wrap(this).executeTextFragment("(use 'compliment.core)", x -> System.out.println(x), x -> System.out.println(x));
+		wrap(this, null).executeTextFragment("(use 'compliment.core)", x -> System.out.println(x), x -> System.out.println(x));
 
 		completions = Clojure.var("compliment.core", "completions");
 		documentation= Clojure.var("compliment.core", "documentation");
@@ -56,16 +64,160 @@ public class ClojureExecution extends Execution {
 		log("clojure.debug", completions.invoke("al-", null));
 
 		Var.pushThreadBindings(PersistentHashMap.create(ns , Namespace.findOrCreate(Symbol.create("user"))));
+
+		Animatable.registerHandler( (was, o) -> {
+			if (o instanceof IFn && !(o instanceof Collection) && !(o instanceof Map))
+			{
+				log("clojure.debug", "IFn found");
+				return new Animatable.AnimationElement() {
+					@Override
+					public Object middle(boolean isEnding) {
+						return ((IFn)o).invoke();
+					}
+				};
+			}
+			return null;
+		});
+		Animatable.registerHandler( (was, o) -> {
+			if (o instanceof IFn && (o instanceof Collection) && !(o instanceof Map))
+			{
+				log("clojure.debug", "IFn found -- collection");
+
+				Animatable.AnimationElement start = null;
+				Animatable.AnimationElement middle = null;
+				Animatable.AnimationElement end = null;
+
+				Object o0 = safeGet((Collection)o, 0);
+				Object o1 = safeGet((Collection)o, 1);
+				Object o2 = safeGet((Collection)o, 2);
+
+				if (o0!=null) start = Animatable.interpret(o0, was);
+				if (o1!=null) middle = Animatable.interpret(o1, was);
+				if (o2!=null) end = Animatable.interpret(o2, was);
+
+
+				if (start == null) start = Nashorn.noop();
+				if (middle == null) middle = Nashorn.noop();
+				if (end == null) end = Nashorn.noop();
+
+				Animatable.AnimationElement fstart = start;
+				Animatable.AnimationElement fmiddle = middle;
+				Animatable.AnimationElement fend = end;
+
+				return new Animatable.AnimationElement() {
+
+					Animatable.AnimationElement[] targets = {fstart, fmiddle, fend};
+					int index = 0;
+					boolean finished = false;
+
+					@Override
+					public Object beginning(boolean isEnding) {
+						targets[0] = Nashorn.interpretReturn(targets[0], targets[0].beginning(isEnding));
+						targets[0] = Nashorn.interpretReturn(targets[0], targets[0].middle(isEnding));
+						targets[0] = Nashorn.interpretReturn(targets[0], targets[0].end(isEnding));
+						targets[1] = Nashorn.interpretReturn(targets[1], targets[1].beginning(isEnding));
+						return this;
+					}
+
+					public Object middle(boolean isEnding) {
+						targets[1] = Nashorn.interpretReturn(targets[1], targets[1].middle(isEnding));
+						return this;
+					}
+
+					public Object end(boolean isEnding) {
+						targets[1] = Nashorn.interpretReturn(targets[1], targets[1].end(isEnding));
+						targets[2] = Nashorn.interpretReturn(targets[2], targets[2].beginning(isEnding));
+						targets[2] = Nashorn.interpretReturn(targets[2], targets[2].middle(isEnding));
+						targets[2] = Nashorn.interpretReturn(targets[2], targets[2].end(isEnding));
+						return this;
+					}
+
+				};
+			}
+			return null;
+		});
+		Animatable.registerHandler( (was, o) -> {
+			if (o instanceof IFn && !(o instanceof Collection) && (o instanceof Map))
+			{
+				log("clojure.debug", "IFn found -- map");
+				Animatable.AnimationElement start = null;
+				Animatable.AnimationElement middle = null;
+				Animatable.AnimationElement end = null;
+
+				List<Object> kk = new ArrayList<>(((Map)o).keySet());
+
+				Object o0 = ((Map)o).get("start");
+				Object o1 = ((Map)o).get("middle");
+				Object o2 = ((Map)o).get("end");
+
+				if (o0!=null) start = Animatable.interpret(o0, was);
+				if (o1!=null) middle = Animatable.interpret(o1, was);
+				if (o2!=null) end = Animatable.interpret(o2, was);
+
+
+				if (start == null) start = Nashorn.noop();
+				if (middle == null) middle = Nashorn.noop();
+				if (end == null) end = Nashorn.noop();
+
+				Animatable.AnimationElement fstart = start;
+				Animatable.AnimationElement fmiddle = middle;
+				Animatable.AnimationElement fend = end;
+
+				return new Animatable.AnimationElement() {
+
+					Animatable.AnimationElement[] targets = {fstart, fmiddle, fend};
+					int index = 0;
+					boolean finished = false;
+
+					@Override
+					public Object beginning(boolean isEnding) {
+						targets[0] = Nashorn.interpretReturn(targets[0], targets[0].beginning(isEnding));
+						targets[0] = Nashorn.interpretReturn(targets[0], targets[0].middle(isEnding));
+						targets[0] = Nashorn.interpretReturn(targets[0], targets[0].end(isEnding));
+						targets[1] = Nashorn.interpretReturn(targets[1], targets[1].beginning(isEnding));
+						return this;
+					}
+
+					public Object middle(boolean isEnding) {
+						targets[1] = Nashorn.interpretReturn(targets[1], targets[1].middle(isEnding));
+						return this;
+					}
+
+					public Object end(boolean isEnding) {
+						targets[1] = Nashorn.interpretReturn(targets[1], targets[1].end(isEnding));
+						targets[2] = Nashorn.interpretReturn(targets[2], targets[2].beginning(isEnding));
+						targets[2] = Nashorn.interpretReturn(targets[2], targets[2].middle(isEnding));
+						targets[2] = Nashorn.interpretReturn(targets[2], targets[2].end(isEnding));
+						return this;
+					}
+
+				};			}
+			return null;
+		});
+	}
+
+	private Object safeGet(Collection o, int i) {
+		Iterator a = o.iterator();
+		Object last = null;
+		for(int ii=0;ii<i+1;ii++)
+		{
+			if (a.hasNext())
+				last = a.next();
+			else
+				break;
+		}
+		return last;
 	}
 
 	@Override
 	public ExecutionSupport support(Box box, Dict.Prop<String> prop) {
-		return wrap(box);
+		return wrap(box, prop);
 	}
 
-	private ExecutionSupport wrap(Box box) {
+	private ExecutionSupport wrap(Box box, Dict.Prop<String> prop) {
 
 		return new ExecutionSupport() {
+
 			@Override
 			public void executeTextFragment(String textFragment, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
 
@@ -82,16 +234,30 @@ public class ClojureExecution extends Execution {
 				Object nsOnEntry = ((Var) ns).get();
 
 				log("clojure.debug", " execute text fragment on :" + textFragment);
-				StringWriter sw = new StringWriter();
-				((Var)out).bindRoot(sw);
+				Writer w = new Writer()
+				{
+					@Override
+					public void write(char[] cbuf, int off, int len) throws IOException {
+						success.accept(new String(cbuf, off, len));
+					}
+
+					@Override
+					public void flush() throws IOException {
+					}
+					@Override
+					public void close() throws IOException {
+					}
+				};
+				((Var)out).bindRoot(w);
 
 				Object result = eval(textFragment, lineErrors);
 
-				String out = sw.toString();
-				out = (out.length()>0 ? (out.trim()+"\n") : "")+(result!=null ? (""+result) : "");
-				if (out.trim().length()>0) {
-					success.accept(out);
+				try {
+					w.append("\n"+(result!=null ? (""+result) : ""));
+				} catch (IOException e) {
+					e.printStackTrace();
 				}
+
 				log("clojure.debug", " result string is "+out);
 
 				log("clojure.debug", "ns at exit :"+((Var)ns).get());
@@ -103,12 +269,16 @@ public class ClojureExecution extends Execution {
 					box.properties.put(_clojureNS, ((Namespace)nsAtExit).getName().getName());
 				}
 
+
 			}
 
 			@Override
 			public void executeAndPrint(String textFragment, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
 				executeTextFragment(textFragment, lineErrors, success);
 			}
+
+
+			long uniq;
 
 			@Override
 			public void executeAll(String allText, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
@@ -117,11 +287,81 @@ public class ClojureExecution extends Execution {
 
 			@Override
 			public String begin(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
+
+				log("clojure.debug", "ns at entry :"+((Var)ns).get());
+
+				String sticky = box.properties.get(_clojureNS);
+				if (sticky!=null)
+				{
+					eval("(ns "+sticky+")", null);
+				}
+				else
+				{
+					sticky = ((Namespace)((Var)ns).get()).getName().getName();
+				}
+
+				Var v = (Var)Clojure.var(sticky, "_r");
+				log("clojure.debug", "_r at entry :"+v.get());
+				v.bindRoot(null);
+				log("clojure.debug", "_r at entry :"+v.get());
+
+				String allText = box.first(prop)
+						    .orElse("");
+
+				executeAll(allText, lineErrors, success);
+
+				sticky = box.properties.get(_clojureNS);
+				if (sticky!=null)
+				{
+					eval("(ns "+sticky+")", null);
+				}
+				else
+				{
+					sticky = ((Namespace)((Var)ns).get()).getName().getName();
+				}
+
+				v = (Var)Clojure.var(sticky, "_r");
+				Object ret = v.get();
+
+				log("clojure.debug", "_r at eXit :" + ret);
+
+				log("clojure.debug", "invoking");
+				log("clojure.debug", ret instanceof Runnable, ret instanceof Collection, ret instanceof Map);
+
+
+				Animatable.AnimationElement ae = Animatable.interpret(ret, null);
+
+
+				if (ae != null) {
+					end(lineErrors, success);
+					String name = "main._animatorClojure_" + (uniq);
+					box.properties.putToMap(Boxes.insideRunLoop, name, new Animatable.Shim(ae));
+					box.first(IsExecuting.isExecuting)
+					   .ifPresent(x -> x.accept(box, name));
+
+					uniq++;
+					return name;
+				}
+
+
+
 				return null;
 			}
 
 			@Override
 			public void end(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
+				Map<String, Supplier<Boolean>> m = box.properties.get(Boxes.insideRunLoop);
+				if (m == null) return;
+				for (String s : new ArrayList<>(m.keySet())) {
+					if (s.contains("_animatorClojure_")) {
+						Supplier<Boolean> b = m.get(s);
+						if (b instanceof Consumer) ((Consumer<Boolean>) b).accept(false);
+						else {
+							m.remove(s);
+						}
+					}
+				}
+				Drawing.dirty(box);
 			}
 
 			@Override
@@ -187,6 +427,7 @@ public class ClojureExecution extends Execution {
 				}
 
 
+				log("clojure.debug", "completions are :"+c);
 				results.accept(c);
 
 			}
@@ -273,7 +514,6 @@ public class ClojureExecution extends Execution {
 
 		Object result = null;
 
-		//start the loop
 		for(; ;)
 		{
 			try
@@ -283,7 +523,7 @@ public class ClojureExecution extends Execution {
 				{
 					break;
 				}
-				log("clojure.debug", " form is :" + r);
+				log("clojure.debug", " form is :" + r+" "+Thread.currentThread().getContextClassLoader());
 				Object ret = Compiler.eval(r);
 				log("clojure.debug", " ret is " + ret);
 				result = ret;
