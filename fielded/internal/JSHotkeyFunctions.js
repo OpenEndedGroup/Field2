@@ -16,7 +16,7 @@ function Autocomplete() {
 			completionFunction = function (e) {
 				var m = []
 				for (var i = 0; i < completions.length; i++) {
-					if (completions[i].replaceWith.contains(e)) {
+					if (completions[i].replaceWith.indexOf(e)>-1) {
 						pattern = new RegExp("(" + e + ")");
 						matched = completions[i].replaceWith.replace(pattern, "<span class='matched'>$1</span>");
 						m.push({
@@ -31,7 +31,7 @@ function Autocomplete() {
 				}
 
 				for (var i = 0; i < __extraCompletions.length; i++) {
-					if (__extraCompletions[i][2].contains(e)) {
+					if (__extraCompletions[i][2].indexOf(e)>-1) {
 						pattern = new RegExp("(" + e + ")");
 						matched = __extraCompletions[i][2].replace(pattern, "<span class='matched'>$1</span>");
 						m.push({
@@ -49,9 +49,14 @@ function Autocomplete() {
 			}
 
 			if (completions.length > 0)
-				runModalAtCursor("completion", completionFunction, cm.getValue().substring(completions[0].start, completions[0].end))
+				prefix = cm.getValue().substring(completions[0].start, completions[0].end)
 			else if (__extraCompletions.length>0)
-				runModalAtCursor("completion", completionFunction, cm.getValue().substring(__extraCompletions[0][0], __extraCompletions[0][1]))
+				prefix = cm.getValue().substring(__extraCompletions[0][0], __extraCompletions[0][1])
+
+			if (completionFunction(prefix).length==0)
+				prefix = ""
+
+			runModalAtCursor("completion", completionFunction, prefix)
 		}
 	);
 }
@@ -83,7 +88,11 @@ function Import(){
 						completionFunction = function (e) {
 								var m = []
 								for (var i = 0; i < completions.length; i++) {
-										if (completions[i].replaceWith.contains(e)) {
+
+									console.log("A :"+completions[i]+":");
+									console.log("B :"+completions[i].replaceWith+":");
+
+										if (completions[i].replaceWith.indexOf(e)>-1) {
 												pattern = new RegExp("(" + e + ")");
 												matched = completions[i].replaceWith.replace(pattern, "<span class='matched'>$1</span>");
 												m.push({
@@ -233,13 +242,38 @@ function Run_Selection(){
 	 });
 }
 
-globalCommands.push({
-		"name": "Autocomplete",
-		"info": "Shows valid completion options for current text",
-		"callback": function () {
-			Autocomplete()
+var Reindent = function()
+{
+	if (cm.listSelections()[0].anchor.line == cm.listSelections()[0].head.line && cm.listSelections()[0].anchor.pos == cm.listSelections()[0].head.pos)
+	{
+		for(var v=0;v<cm.lineCount();v++)
+		{
+			cm.indentLine(v);
 		}
-	},
+	}
+	else
+	{
+		for(var v=Math.min(cm.listSelections()[0].anchor.line, cm.listSelections()[0].head.line);v<Math.max(cm.listSelections()[0].anchor.line, cm.listSelections()[0].head.line);v++)
+		{
+			cm.indentLine(v);
+		}
+	}
+}
+
+globalCommands.push({
+                    		"name": "Autocomplete",
+                    		"info": "Shows valid completion options for current text",
+                    		"callback": function () {
+                    			Autocomplete()
+                    		}
+                    	},
+                    	{
+                      		"name": "Reindent",
+                      		"info": "Reindents the selection or the whole file",
+                      		"callback": function () {
+                      			Reindent()
+                      		}
+                      	},
 
 	{
 		"name": "Commands",
