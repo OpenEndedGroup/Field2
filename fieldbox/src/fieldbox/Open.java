@@ -4,18 +4,16 @@ import field.graphics.MeshBuilder;
 import field.graphics.RunLoop;
 import field.graphics.Scene;
 import field.graphics.SimpleArrayBuffer;
+import field.linalg.Vec3;
 import field.utility.AutoPersist;
 import field.utility.Log;
-import fieldagent.Main;
 import fieldbox.boxes.*;
 import fieldbox.boxes.plugins.*;
+import fieldbox.execution.Execution;
 import fieldbox.io.IO;
 import fieldbox.ui.Compositor;
 import fieldbox.ui.FieldBoxWindow;
-import fieldbox.execution.Execution;
 import fielded.ServerSupport;
-import fielded.windowmanager.LinuxWindowTricks;
-import fielded.windowmanager.OSXWindowTricks;
 import fieldnashorn.Nashorn;
 import jdk.nashorn.internal.runtime.linker.Bootstrap;
 import org.lwjgl.opengl.GL11;
@@ -72,9 +70,9 @@ public class Open {
 		window = new FieldBoxWindow(50, 50, sizeX, sizeY, filename);
 
 		window.scene()
-		      .connect(-5, this::defaultGLPreamble);
+		      .attach(-5, this::defaultGLPreambleBackground);
 		window.mainLayer()
-		      .connect(-5, this::defaultGLPreamble);
+		      .attach(-5, this::defaultGLPreamble);
 
 		boxes = new Boxes();
 		boxes.root().properties.put(Boxes.window, window);
@@ -84,7 +82,14 @@ public class Open {
 		window.getCompositor()
 		      .getLayer("glass")
 		      .getScene()
-		      .connect(-5, this::defaultGLPreambleTransparent);
+		      .attach(-5, this::defaultGLPreambleTransparent);
+
+		window.getCompositor()
+		      .newLayer("glass2");
+		window.getCompositor()
+		      .getLayer("glass2")
+		      .getScene()
+		      .attach(-5, this::defaultGLPreambleTransparent);
 
 		Watches watches = new Watches();
 		watches.connect(boxes.root());
@@ -94,6 +99,7 @@ public class Open {
 		drawing.install(boxes.root());
 		// add the glass layer to the box graph
 		drawing.install(boxes.root(), "glass");
+		drawing.install(boxes.root(), "glass2");
 		// connect drawing to the box graph
 		drawing.connect(boxes.root());
 
@@ -102,10 +108,11 @@ public class Open {
 		textDrawing.install(boxes.root());
 		// add the text glass layer to the box graph
 		textDrawing.install(boxes.root(), "glass");
+		textDrawing.install(boxes.root(), "glass2");
 		// connect text drawing to the box graph
 		textDrawing.connect(boxes.root());
 
-		frameDrawing = (FLineDrawing) new FLineDrawing().connect(boxes.root());
+		frameDrawing = (FLineDrawing) new FLineDrawing(boxes.root()).connect(boxes.root());
 
 		mouse = new Mouse();
 		window.addMouseHandler(state -> {
@@ -174,20 +181,46 @@ public class Open {
 					    .newLayer("__main__blurx");
 		Compositor.Layer ly = window.getCompositor()
 					    .newLayer("__main__blury", 1);
+		Compositor.Layer composited = window.getCompositor()
+						    .newLayer("__main__composited", 0);
+
+		composited.getScene()
+			  .attach(-10, this::defaultGLPreamble);
+
 		window.getCompositor()
 		      .getMainLayer()
 		      .blurYInto(5, lx.getScene());
 		lx.blurXInto(5, ly.getScene());
+
 		window.getCompositor()
 		      .getMainLayer()
 		      .drawInto(window.scene());
+
+		window.getCompositor()
+		      .getLayer("glass")
+		      .compositeWith(ly, composited.getScene());
+
 		window.getCompositor()
 		      .getLayer("glass")
 		      .compositeWith(ly, window.scene());
 
+		lx = window.getCompositor()
+			   .newLayer("__main__gblurx");
+		ly = window.getCompositor()
+			   .newLayer("__main__gblury", 1);
+
+
+		composited.blurYInto(5, lx.getScene());
+		lx.blurXInto(5, ly.getScene());
+
+		window.getCompositor()
+		      .getLayer("glass2")
+		      .compositeWith(ly, window.scene());
+
+
 		/* reports on how much data we're sending to OpenGL and how much the MeshBuilder caching system is getting us. This is useful for noticing when we're repainting excessively or our cache is suddenly blown completely */
 		RunLoop.main.getLoop()
-			    .connect(10, Scene.strobe((i) -> {
+			    .attach(10, Scene.strobe((i) -> {
 				    if (MeshBuilder.cacheHits + MeshBuilder.cacheMisses_internalHash + MeshBuilder.cacheMisses_cursor + MeshBuilder.cacheMisses_externalHash > 0) {
 					    Log.println("graphics.stats", " meshbuilder cache " + MeshBuilder.cacheHits + " | " + MeshBuilder.cacheMisses_cursor + " / " + MeshBuilder.cacheMisses_externalHash + " / " + MeshBuilder.cacheMisses_internalHash);
 					    MeshBuilder.cacheHits = 0;
@@ -202,9 +235,9 @@ public class Open {
 			    }, 600));
 
 		//initializes window mgmt for linux
-		if (Main.os == Main.OS.linux) new LinuxWindowTricks(boxes.root());
+//		if (Main.os == Main.OS.linux) new LinuxWindowTricks(boxes.root());
 		//initializes window mgmt for osx
-		if (Main.os == Main.OS.mac) new OSXWindowTricks(boxes.root());
+//		if (Main.os == Main.OS.mac) new OSXWindowTricks(boxes.root());
 
 
 		// add Javascript runtime as base execution layer
@@ -212,11 +245,7 @@ public class Open {
 		Execution execution = new Execution((box, prop) -> (prop.equals(Execution.code) ? javascript.apply(box, prop) : null));
 		execution.connect(boxes.root());
 
-		try {
-			new ServerSupport(boxes).openEditor();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		new ServerSupport(boxes);//.openEditor();
 
 		// add a red line time slider to the sheet (this isn't saved with the document, so we'll add it each time
 		boxes.root()
@@ -254,10 +283,22 @@ public class Open {
 
 	}
 
+	static public Vec3 backgroundColor = new Vec3(0x2d / 255f, 0x31 / 255f, 0x33 / 255f);
+
 	public boolean defaultGLPreamble(int pass) {
 		glViewport(0, 0, window.getWidth(), window.getHeight());
-		glClearColor(0x2d / 255f, 0x31 / 255f, 0x33 / 255f, 1);
+		glClearColor(backgroundColor.x, backgroundColor.y, backgroundColor.z,1);
 		glClear(GL11.GL_COLOR_BUFFER_BIT);
+		glEnable(GL11.GL_BLEND);
+		glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+		glDisable(GL11.GL_DEPTH_TEST);
+		glEnable(GL13.GL_MULTISAMPLE);
+		return true;
+	}
+
+
+	public boolean defaultGLPreambleBackground(int pass) {
+		glViewport(0, 0, window.getWidth(), window.getHeight());
 		glEnable(GL11.GL_BLEND);
 		glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		glDisable(GL11.GL_DEPTH_TEST);
@@ -267,7 +308,7 @@ public class Open {
 
 	public boolean defaultGLPreambleTransparent(int pass) {
 		glViewport(0, 0, window.getWidth(), window.getHeight());
-		glClearColor(2 * 0x2d / 255f, 2 * 0x31 / 255f, 2 * 0x33 / 255f, 0);
+		glClearColor(backgroundColor.x, backgroundColor.y, backgroundColor.z,0);
 		glClear(GL11.GL_COLOR_BUFFER_BIT);
 		glEnable(GL11.GL_BLEND);
 		glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
