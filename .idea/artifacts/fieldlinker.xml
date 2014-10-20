@@ -1,0 +1,13 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="fieldlinker">
+    <output-path>$PROJECT_DIR$/out/artifacts/fieldlinker</output-path>
+    <root id="archive" name="fieldlinker.jar">
+      <element id="module-output" name="fieldlinker" />
+      <element id="directory" name="META-INF">
+        <element id="directory" name="services">
+          <element id="file-copy" path="$PROJECT_DIR$/fieldlinker/META-INF/services/jdk.internal.dynalink.linker.GuardingDynamicLinker" />
+        </element>
+      </element>
+    </root>
+  </artifact>
+</component>
