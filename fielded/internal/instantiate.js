@@ -37,7 +37,7 @@ globalCommands = []
 
 var __extraCompletions = [] // set by BridgedTernSupport
 
-goCommands = function () {
+goCommands = function() {
     _field.sendWithReturn("request.commands", {
             box: cm.currentbox,
             property: cm.currentproperty,
@@ -45,10 +45,10 @@ goCommands = function () {
             line: cm.listSelections()[0].anchor.line,
             ch: cm.listSelections()[0].anchor.ch
         },
-        function (d, e) {
+        function(d, e) {
             var completions = []
             for (var i = 0; i < d.length; i++) {
-                d[i].callback = function () {
+                d[i].callback = function() {
                     _field.send("call.command", {
                         command: this.call
                     });
@@ -59,13 +59,11 @@ goCommands = function () {
                 completions.push(d[i])
             }
             completions = completions.concat(globalCommands)
-            console.log("HERE ARE THE COMMANDS")
-            console.log(globalCommands)
-            completions.sort(function (a, b) {
+            completions.sort(function(a, b) {
                 return a.name < b.name ? -1 : 1;
             })
 
-            completionFunction = function (e) {
+            completionFunction = function(e) {
                 var m = []
 
                 var fuzzyPattern = fuzzy(e);
@@ -75,7 +73,7 @@ goCommands = function () {
                         matched = completions[i].name.replace(fuzzyPattern, replacer);
                         m.push({
                             text: matched + " <span class=doc>" + completions[i].info + "</span>",
-                            callback: function () {
+                            callback: function() {
                                 completions[this.i].callback()
                             }.bind({
                                 "i": i
@@ -91,14 +89,14 @@ goCommands = function () {
     );
 }
 
-hotkeys = function () {
-		JSCommands = {}
+hotkeys = function() {
+    JSCommands = {}
 
-		for (var i = 0; i < globalCommands.length; i++) {
-			var currCommand = globalCommands[i]
-			//This regex trims the function () { and } from the beginning and end of the call, reducing it to just the command in the body
-			JSCommands[currCommand.name] = [currCommand.info, currCommand.callback.toString().replace(/[^{]*{|}[^}]*$/g, "").trim()]
-		}
+    for (var i = 0; i < globalCommands.length; i++) {
+        var currCommand = globalCommands[i]
+            //This regex trims the function () { and } from the beginning and end of the call, reducing it to just the command in the body
+        JSCommands[currCommand.name] = [currCommand.info, currCommand.callback.toString().replace(/[^{]*{|}[^}]*$/g, "").trim()]
+    }
 
     _field.sendWithReturn("request.hotkeyCommands", {
             box: cm.currentbox,
@@ -108,54 +106,54 @@ hotkeys = function () {
             ch: cm.listSelections()[0].anchor.ch,
             allJSCommands: JSCommands
         },
-        function (d, e) {
-						var completions = []
-						for (var i = 0; i < d.length; i++) {
-								d[i].callback = function () {
-										_field.send("call.command", {
-												command: this.call
-										});
-								}.bind({
-										"call": d[i].call
-								})
-								d[i].callback.remote = 1
-								completions.push(d[i])
-						}
-						completions.sort(function (a, b) {
-								return a.name < b.name ? -1 : 1;
-						})
+        function(d, e) {
+            var completions = []
+            for (var i = 0; i < d.length; i++) {
+                d[i].callback = function() {
+                    _field.send("call.command", {
+                        command: this.call
+                    });
+                }.bind({
+                    "call": d[i].call
+                })
+                d[i].callback.remote = 1
+                completions.push(d[i])
+            }
+            completions.sort(function(a, b) {
+                return a.name < b.name ? -1 : 1;
+            })
 
-						completionFunction = function (e) {
-								var m = []
+            completionFunction = function(e) {
+                var m = []
 
-								var fuzzyPattern = fuzzy(e);
+                var fuzzyPattern = fuzzy(e);
 
-								for (var i = 0; i < completions.length; i++) {
-										if (completions[i].name.search(fuzzyPattern) != -1) {
-												matched = completions[i].name.replace(fuzzyPattern, replacer);
-												m.push({
-														text: matched + " <span class=doc>" + completions[i].info + "</span>",
-														callback: function () {
-																completions[this.i].callback()
-														}.bind({
-																"i": i
-														})
-												})
-										}
-								}
-								return m
-						}
-						if (completions.length > 0)
-								runModal("Set Hotkeys", completionFunction, "Field-Modal")
-				}
+                for (var i = 0; i < completions.length; i++) {
+                    if (completions[i].name.search(fuzzyPattern) != -1) {
+                        matched = completions[i].name.replace(fuzzyPattern, replacer);
+                        m.push({
+                            text: matched + " <span class=doc>" + completions[i].info + "</span>",
+                            callback: function() {
+                                completions[this.i].callback()
+                            }.bind({
+                                "i": i
+                            })
+                        })
+                    }
+                }
+                return m
+            }
+            if (completions.length > 0)
+                runModal("Set Hotkeys", completionFunction, "Field-Modal")
+        }
     );
 }
 
-_messageBus.subscribe("begin.commands", function (d, e) {
+_messageBus.subscribe("begin.commands", function(d, e) {
 
     var completions = []
     for (var i = 0; i < d.commands.length; i++) {
-        d.commands[i].callback = function () {
+        d.commands[i].callback = function() {
             _field.send("call.command", {
                 command: this.call
             });
@@ -165,11 +163,11 @@ _messageBus.subscribe("begin.commands", function (d, e) {
         d.commands[i].callback.remote = 1
         completions.push(d.commands[i])
     }
-    completions.sort(function (a, b) {
+    completions.sort(function(a, b) {
         return a.name < b.name ? -1 : 1;
     })
 
-    completionFunction = function (e) {
+    completionFunction = function(e) {
         var m = []
 
         var fuzzyPattern = fuzzy(e);
@@ -179,7 +177,7 @@ _messageBus.subscribe("begin.commands", function (d, e) {
                 matched = completions[i].name.replace(fuzzyPattern, replacer);
                 m.push({
                     text: matched + " <span class=doc>" + completions[i].info + "</span>",
-                    callback: function () {
+                    callback: function() {
                         completions[this.i].callback()
                     }.bind({
                         "i": i
@@ -194,7 +192,7 @@ _messageBus.subscribe("begin.commands", function (d, e) {
 
     if (d.alternative) {
         console.log(" going with modal ");
-        runModal(d.prompt, completionFunction, "Field-Modal", "", function (t) {
+        runModal(d.prompt, completionFunction, "Field-Modal", "", function(t) {
             _field.send("call.alternative", {
                 command: this.call,
                 "text": t
@@ -210,48 +208,67 @@ _messageBus.subscribe("begin.commands", function (d, e) {
 // list of Chrome default hotkeys to override and set to null function. To add more, simply add strings to this array.
 overrides = ["Ctrl-H", "Shift-Ctrl-O", "Ctrl-W", "Ctrl-J", "Ctrl-N", "Shift-Ctrl-N", "Ctrl-P", "Ctrl-T", "Shift-Ctrl-T"];
 
+cmdKey = (navigator.appVersion.indexOf("Mac") != -1) ? "Cmd-" : "Ctrl-"
+
 extraKeys = {
-// should this be alt-Left on Linux?
-    "Ctrl-Left": function (cm) {
-    		Current_Bracket();
-    },
-    "Ctrl-Enter": function (cm) {
-    		Run_Selection();
-    },
-    "Ctrl-0": function (cm) {
-    		Run_All();
-    },
-    "Ctrl-PageDown": function (cm) {
-    		Run_End();
-    },
-    "Ctrl-PageUp": function (cm) {
-        Run_Begin();
-    },
-    "Ctrl-.": function (cm) {
-    		Autocomplete();
-    },
-    "Ctrl-Space": function (cm) {
-        Commands();
-    },
-    "Ctrl-/": function(cm) {
-        Hotkeys();
-    },
-    "Ctrl-I": function (cm) {
-    		Import();
-    },
-    "Ctrl-Q": function (cm) {
-    		addColorPicker();
-    }
+    // should this be alt-Left on Linux?
+    "Ctrl-Left": function(cm) {
+            Current_Bracket();
+        },
+        "Ctrl-Enter": function(cm) {
+            Run_Selection();
+        },
+        "Ctrl-0": function(cm) {
+            Run_All();
+        },
+        "Ctrl-PageDown": function(cm) {
+            Run_End();
+        },
+        "Ctrl-PageUp": function(cm) {
+            Run_Begin();
+        },
+        "Ctrl-.": function(cm) {
+            Autocomplete();
+        },
+        "Ctrl-Space": function(cm) {
+            Commands();
+        },
+        "Ctrl-/": function(cm) {
+            Hotkeys();
+        },
+        "Ctrl-I": function(cm) {
+            Import();
+        },
+        "Ctrl-R": function(cm) {
+            Reindent();
+        },
+        "Ctrl-Q": function(cm) {
+            addColorPicker();
+        },
+        "Ctrl-C": function(cm) {
+            copy();
+        },
+        "Ctrl-X": function(cm) {
+            cut();
+        },
+        "Ctrl-V": function(cm) {
+            paste();
+        },
+        "Alt-V": function(cm) {
+            pasteAgain();
+        }
 }
 
 // iterate through overrides and set to no functionality
 for (i = 0; i < overrides.length; i++) {
-		extraKeys[overrides[i]] = function (cm) {};
+    extraKeys[overrides[i]] = function(cm) {};
 }
 
 cm.setOption("extraKeys", extraKeys)
 
-function performCommand(nameOfCommand)
-{
-	_field.send("call.commandByName", {command: nameOfCommand, rebuild:true});
+function performCommand(nameOfCommand) {
+    _field.send("call.commandByName", {
+        command: nameOfCommand,
+        rebuild: true
+    });
 }
