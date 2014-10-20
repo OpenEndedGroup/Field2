@@ -7,7 +7,6 @@ import field.utility.Dict;
 import field.utility.Log;
 import field.utility.Rect;
 import fieldbox.boxes.Box;
-import fieldbox.boxes.Drawing;
 import fieldlinker.Linker;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 import jdk.internal.dynalink.beans.StaticClass;
@@ -524,6 +523,12 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 		auxProperties = propertiesToAuxChannels;
 	}
 
+	public FLine addAuxProperties(Map<Integer, String> propertiesToAuxChannels) {
+		if (auxProperties==null) auxProperties = new LinkedHashMap<>();
+		auxProperties.putAll(propertiesToAuxChannels);
+		return this;
+	}
+
 	private void flattenAuxProperties() {
 		if (auxProperties == null || auxProperties.size() == 0) return;
 
@@ -585,10 +590,12 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 		return r;
 	}
 
+	@HiddenInAutocomplete
 	public boolean renderToMesh(MeshBuilder m, int fixedSizeForCubic) {
 		return renderToMesh(m, this::renderMoveTo, this::renderLineTo, renderCubicTo(fixedSizeForCubic));
 	}
 
+	@HiddenInAutocomplete
 	public Node renderMoveTo(MeshAcceptor m, Node from, MoveTo to) {
 		if (to.flatAuxData != null) for (int i = 0; i < to.flatAuxData.length; i++) {
 			int channel = to.flatAux[i];
@@ -600,6 +607,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 		return to;
 	}
 
+	@HiddenInAutocomplete
 	public Node renderLineTo(MeshAcceptor m, Node from, LineTo to) {
 		if (to.flatAuxData != null) for (int i = 0; i < to.flatAuxData.length; i++) {
 			int channel = to.flatAux[i];
@@ -617,6 +625,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 	/*
 	 * Everybody is taught in the textbooks that the way to draw a cubic spline segment is to recursively subdivide it until the sub-segments are flat enough that you can just draw them with straight lines. This is a great, efficient and beautiful idea. However, it suffers from a serious problem in the case where the geometry you are drawing is animated: the number of line segments that you emit is constantly changing. This completely destroys our caching strategy here. For after the first animated cubic spline segment that enters the meshbuilder all other segments will need to be completely remade and reuploaded to the GPU. It's better in most cases to burn through extra vertices to have a shot at a fixed geometry layout in most cases. If you want a recursive flattening renderCubicTo, add one here by all means, that's why you can pass in a different Function3 here.
 	 */
+	@HiddenInAutocomplete
 	public Curry.Function3<MeshAcceptor, Node, CubicTo, Node> renderCubicTo(int fixedSize) {
 		return (meshBuilder, from, to) -> {
 			Vec3 o = new Vec3();
@@ -723,6 +732,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 		}
 	}
 
+	@HiddenInAutocomplete
 	static public Vec2 evaluateCubicFrame(float ax, float ay, float c1x, float c1y, float c2x, float c2y, float bx, float by, float alpha, Vec2 out) {
 		if (out == null) out = new Vec2();
 
@@ -738,6 +748,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 		return out;
 	}
 
+	@HiddenInAutocomplete
 	static public Vec3 evaluateCubicFrame(float ax, float ay, float az, float c1x, float c1y, float c1z, float c2x, float c2y, float c2z, float bx, float by, float bz, float alpha, Vec3 out) {
 		if (out == null) out = new Vec3();
 
@@ -768,6 +779,8 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 		}
 		return f;
 	}
+
+
 
 
 	public long getModCount() {
@@ -911,6 +924,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 	}
 
 	@Override
+	@HiddenInAutocomplete
 	public Object asMap_call(Object a, Object b) {
 		System.err.println(" call called :" + a + " " + b + " " + (b instanceof Map ? ((Map) b).keySet() : b.getClass()
 														    .getSuperclass() + " " + Arrays.asList(b.getClass()
@@ -933,6 +947,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 
 
 	@Override
+	@HiddenInAutocomplete
 	public Object asMap_new(Object b) {
 		boolean success = false;
 		try {
@@ -951,6 +966,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 	}
 
 	@Override
+	@HiddenInAutocomplete
 	public Object asMap_new(Object b, Object c)
 	{
 		throw new NoSuchMethodError(" two argument constructor to fline not implemented");
