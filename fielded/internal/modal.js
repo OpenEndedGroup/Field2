@@ -38,9 +38,9 @@ var currentmodal = null;
 								 })
 								 label.click(function () {
 										 this.callback(inputBox.val())
-										 modal[0].close()
-										 modal.detach()
 										 setTimeout(function () {
+											 modal[0].close()
+											 modal.detach()
 												 cm.focus()
 										 }, 25)
 								 }.bind({"callback":completions[i].callback}))

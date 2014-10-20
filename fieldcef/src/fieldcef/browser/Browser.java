@@ -2,30 +2,30 @@ package fieldcef.browser;
 
 import field.graphics.*;
 import field.graphics.Window;
+import field.graphics.util.KeyEventMapping;
 import field.linalg.Vec2;
 import field.linalg.Vec4;
 import field.utility.*;
 import fieldbox.boxes.*;
 import fieldbox.io.IO;
 import fieldbox.ui.FieldBoxWindow;
-import fielded.webserver.Server;
 import org.cef.browser.CefRendererBrowserBuffer;
-import org.java_websocket.WebSocket;
 import org.json.JSONObject;
+import org.json.JSONWriter;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
+import java.io.StringWriter;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 
-import static fieldbox.boxes.StandardFLineDrawing.*;
+import static field.graphics.StandardFLineDrawing.*;
 
 /**
  * The first look at embedded HTML. A Browser is a Field/Graphics texture map, a CEF browser of a fixed size, a quad for drawing it, a shader for
@@ -57,11 +57,13 @@ public class Browser extends Box implements IO.Loaded {
 
 	private final KeyEventMapping mapper = new KeyEventMapping();
 
+	boolean dragOngoing = false;
+
 	public Browser() {
 	}
 
 	public void loaded() {
-//		Log.disable("cef.*");
+		Log.disable("cef.*");
 
 		this.properties.computeIfAbsent(Box.frame, (k) -> new Rect(0, 0, 512, 512));
 		this.properties.put(Box.name, "(browser)");
@@ -121,27 +123,28 @@ public class Browser extends Box implements IO.Loaded {
 			    "\n" +
 			    "void main()\n" +
 			    "{\n" +
-			    "\tvec4 current = texture(te, vtc.xy,0);\n" +
+			    "\tvec4 current = texelFetch(te, ivec2(vtc.xy*textureSize(te,0)), 0);\n" +
 			    "\t_output  = vec4(current.zyx,current.w*vtc.z);\n" +
+			    "\t if (vtc.x==0 || vtc.x==1 || vtc.y==0 || vtc.y==1) _output.w=0;\n"+
 			    "\n" +
 			    "}");
 
-		shader.connect(new Uniform<Vec2>("translation", () -> drawing.getTranslation()));
-		shader.connect(new Uniform<Vec2>("scale", () -> drawing.getScale()));
-		shader.connect(new Uniform<Vec2>("bounds", () -> new Vec2(Window.getCurrentWidth(), Window.getCurrentHeight())));
+		shader.attach(new Uniform<Vec2>("translation", () -> drawing.getTranslationRounded()));
+		shader.attach(new Uniform<Vec2>("scale", () -> drawing.getScale()));
+		shader.attach(new Uniform<Vec2>("bounds", () -> new Vec2(Window.getCurrentWidth(), Window.getCurrentHeight())));
 
-		shader.connect(-2, x -> {
+		shader.attach(-2, x -> {
 			Rect r = properties.get(Box.frame);
 			update(r.x, r.y, 1/*r.w/w*/);
 		});
 
-		shader.connect(q);
-		shader.connect(texture);
+		shader.attach(q);
+		shader.attach(texture);
 
 		window.getCompositor()
 		      .getLayer(properties.computeIfAbsent(FLineDrawing.layer, k -> "__main__"))
 		      .getScene()
-		      .connect(shader);
+		      .attach(shader);
 
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__updateSize__", () -> {
 			Rect r = properties.get(Box.frame);
@@ -165,7 +168,7 @@ public class Browser extends Box implements IO.Loaded {
 			f.lineTo(rect.x, rect.y + rect.h);
 			f.lineTo(rect.x, rect.y);
 
-			f.attributes.put(color, selected ? new Vec4(0, 0, 0, -1.0f) : new Vec4(0, 0, 0, 0.5f));
+			f.attributes.put(color, selected ? new Vec4(0, 0, 0, -1.0f) : new Vec4(0, 0, 0, 0.15f));
 			f.attributes.put(filled, false);
 			f.attributes.put(thicken, new BasicStroke(selected ? 16 : 1.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
 
@@ -187,6 +190,7 @@ public class Browser extends Box implements IO.Loaded {
 			Rect r = properties.get(Box.frame);
 
 			if (!intersects(r, e)) return null;
+
 			if (properties.isTrue(Box.hidden, false)) return null;
 
 			Optional<Drawing> drawing = this.find(Drawing.drawing, both())
@@ -195,32 +199,49 @@ public class Browser extends Box implements IO.Loaded {
 					    .orElseThrow(() -> new IllegalArgumentException(" can't mouse around something without drawing support (to provide coordinate system)"));
 
 
-			e.properties.put(Window.consumed, true);
+			if (isSelected())
+				e.properties.put(Window.consumed, true);
+			else
+			{
+//				setFocus(true);
+			}
 
 			browser.sendMouseEvent(new MouseEvent(component, MouseEvent.MOUSE_PRESSED, 0, MouseEvent.getMaskForButton(button + 1), (int) (point.x - r.x), (int) (point.y - r.y), 1, false, button + 1));
+
+			dragOngoing = true;
 
 			return (e2, term) -> {
 
 				Vec2 point2 = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e2.after.x, e2.after.y)))
 						    .orElseThrow(() -> new IllegalArgumentException(" can't mouse around something without drawing support (to provide coordinate system)"));
 
-				e2.properties.put(Window.consumed, true);
-				if (!term)
+				System.out.println(" dragging .... "+point2+" "+term);
+
+				if (isSelected())
+					e2.properties.put(Window.consumed, true);
+
+				if (!term) {
 					browser.sendMouseEvent(new MouseEvent(component, MouseEvent.MOUSE_DRAGGED, 0, MouseEvent.getMaskForButton(button + 1), (int) (point2.x - r.x), (int) (point2.y - r.y), 1, false, button + 1));
+				}
 				else
 					browser.sendMouseEvent(new MouseEvent(component, MouseEvent.MOUSE_RELEASED, 0, MouseEvent.getMaskForButton(button + 1), (int) (point2.x - r.x), (int) (point2.y - r.y), 1, false, button + 1));
+
+				dragOngoing = !term;
+
 				return !term;
 			};
 		});
 
 		this.properties.putToList(Mouse.onMouseMove, (e) -> {
 
+			if (dragOngoing) return null;
+
 			Rect r = properties.get(Box.frame);
 			if (!intersects(r, e)) return null;
-			if (!isSelected() && !focussed) return null;
 			if (properties.isTrue(Box.hidden, false)) return null;
 
-			e.properties.put(Window.consumed, true);
+			if (isSelected() || focussed) ;
+				e.properties.put(Window.consumed, true);
 
 			Optional<Drawing> drawing = this.find(Drawing.drawing, both())
 							.findFirst();
@@ -230,6 +251,32 @@ public class Browser extends Box implements IO.Loaded {
 
 			browser.sendMouseEvent(new MouseEvent(component, MouseEvent.MOUSE_MOVED, 0, 0, (int) (point.x - r.x), (int) (point.y - r.y), 0, false));
 			return null;
+		});
+
+		this.properties.putToList(Mouse.onMouseScroll, (e) -> {
+
+			Log.log("mouse", "scroll :"+e);
+
+			Rect r = properties.get(Box.frame);
+			if (!intersects(r, e)) return ;
+			if (!isSelected() && !focussed) return ;
+			if (properties.isTrue(Box.hidden, false)) return ;
+
+			Log.log("mouse", "scroll going "+e);
+
+			e.properties.put(Window.consumed, true);
+
+			Optional<Drawing> drawing = this.find(Drawing.drawing, both())
+							.findFirst();
+			Vec2 point = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e.after.x, e.after.y)))
+					    .orElseThrow(() -> new IllegalArgumentException(" can't mouse around something without drawing support (to provide coordinate system)"));
+
+
+			Log.log("mouse", "scroll sending "+point);
+			float dy = e.after.dwheely*8;
+			browser.sendMouseWheelEvent(new MouseWheelEvent(component, MouseWheelEvent.MOUSE_WHEEL, 0, 0, (int) (point.x - r.x), (int) (point.y - r.y), (int) (point.x - r.x), (int) (point.y - r.y),  0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, 1, (int)dy, dy));
+			float dx = e.after.dwheel*8;
+			browser.sendMouseWheelEvent(new MouseWheelEvent(component, MouseWheelEvent.MOUSE_WHEEL, KeyEvent.SHIFT_DOWN_MASK,0, (int) (point.x - r.x), (int) (point.y - r.y), (int) (point.x - r.x), (int) (point.y - r.y), 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, 1, (int)dx, dx));
 		});
 
 		this.properties.putToList(Keyboard.onKeyDown, (e, k) -> {
@@ -253,11 +300,16 @@ public class Browser extends Box implements IO.Loaded {
 
 
 			Integer translated = mapper.translateCode(k);
-			if (translated != null) k = translated;
+			if (translated != null) {
+				k = translated;
+			}
+			else {
+				Log.log("keyboard", "skipping, assuming it will be a char");
+			}
 
-			int fk = k;
+				int fk = k;
 
-			KeyEvent ke = new KeyEvent(component, KeyEvent.KEY_PRESSED, 0, mod, fk, (char) fk);
+			KeyEvent ke = new KeyEvent(component, KeyEvent.KEY_PRESSED, 0, mod, fk, (char)fk);
 
 			Log.log("consumption", "consuming keyboard event :"+e);
 			e.properties.put(Window.consumed, true);
@@ -265,11 +317,14 @@ public class Browser extends Box implements IO.Loaded {
 			browser.sendKeyEvent(ke);
 			Drawing.dirty(this);
 
+			KeyEvent ke3 = new KeyEvent(component, KeyEvent.KEY_RELEASED, 0, fmod, fk, KeyEvent.CHAR_UNDEFINED);
+			browser.sendKeyEvent(ke3);
+
 			return (e2, term) -> {
 
 				if (term) {
 					Log.log("keyboard", "up " + e + " " + fk);
-					KeyEvent ke2 = new KeyEvent(component, KeyEvent.KEY_RELEASED, 0, fmod, fk, (char) fk);
+					KeyEvent ke2 = new KeyEvent(component, KeyEvent.KEY_RELEASED, 0, fmod, fk, KeyEvent.CHAR_UNDEFINED);
 					browser.sendKeyEvent(ke2);
 					e2.properties.put(Window.consumed, true);
 					Drawing.dirty(this);
@@ -284,6 +339,22 @@ public class Browser extends Box implements IO.Loaded {
 
 			Log.log("keyboard", "char typed:" + e + " " + k);
 
+
+			Integer found = null;
+
+			Iterator<Integer> ii = e.after.keysDown.iterator();
+			while(ii.hasNext())
+			{
+				Integer g = ii.next();
+				if (mapper.isModifier(g)) continue;
+				Integer code = mapper.translateCode(g);
+				if (code!=null && (!e.before.keysDown.contains(g) || (e.before.keysDown.equals(e.after.keysDown))))
+				{
+					found = code;
+					break;
+				}
+			}
+
 			int mod = (e.after.isAltDown() ? KeyEvent.ALT_DOWN_MASK : 0);
 			mod |= (e.after.isShiftDown() ? KeyEvent.SHIFT_DOWN_MASK : 0);
 			mod |= (e.after.isControlDown() ? KeyEvent.CTRL_DOWN_MASK : 0);
@@ -292,11 +363,32 @@ public class Browser extends Box implements IO.Loaded {
 			int fmod = mod;
 
 			Log.log("keyboard", "mod :" + fmod);
+			Log.log("keyboard", "found translation?:"+found);
 			e.properties.put(Window.consumed, true);
 
-			KeyEvent ke = new KeyEvent(component, KeyEvent.KEY_TYPED, 0, mod, KeyEvent.VK_UNDEFINED, k);
-
-			browser.sendKeyEvent(ke);
+			if (found==null) {
+//				if (mod==0)
+//				{
+				Log.log("keyboard", "sending char "+k);
+					KeyEvent ke = new KeyEvent(component, KeyEvent.KEY_TYPED, 0, mod, KeyEvent.VK_UNDEFINED, k);
+					browser.sendKeyEvent(ke);
+//				}
+//				else
+//				{
+//					KeyEvent ke = new KeyEvent(component, KeyEvent.KEY_PRESSED, 0, mod, k, k);
+//					browser.sendKeyEvent(ke);
+//					ke = new KeyEvent(component, KeyEvent.KEY_RELEASED, 0, mod, k, k);
+//					browser.sendKeyEvent(ke);
+//				}
+			}
+			else
+			{
+				Log.log("keyboard", "faking keypress");
+				KeyEvent ke = new KeyEvent(component, KeyEvent.KEY_PRESSED, 0, mod, found, KeyEvent.CHAR_UNDEFINED);
+				browser.sendKeyEvent(ke);
+				ke = new KeyEvent(component, KeyEvent.KEY_RELEASED, 0, mod, found, KeyEvent.CHAR_UNDEFINED);
+				browser.sendKeyEvent(ke);
+			}
 			Drawing.dirty(this);
 		});
 	}
@@ -306,14 +398,20 @@ public class Browser extends Box implements IO.Loaded {
 	}
 
 	private boolean intersects(Rect r, Window.Event<Window.MouseState> e) {
-		return (r.x < e.after.x && r.x + r.w > e.after.x) && (r.y < e.after.y && r.y + r.h > e.after.y);
+
+		Optional<Drawing> drawing = this.find(Drawing.drawing, both())
+						.findFirst();
+		Vec2 point = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e.after.x, e.after.y)))
+				    .orElseThrow(() -> new IllegalArgumentException(" can't mouse around something without drawing support (to provide coordinate system)"));
+
+		return (r.x < point.x && r.x + r.w > point.x) && (r.y < point.y && r.y + r.h > point.y);
 	}
 
 
 	protected AtomicBoolean dirty = new AtomicBoolean(false);
 
 	/**
-	 * called from some random thread, buffer only good for duration of call.
+	 * called from some random thread, buffer only good for duration of call. ?
 	 */
 	protected void paint(boolean popup, Rectangle[] dirty, ByteBuffer buffer, int w, int h) {
 		sourceView.clear();
@@ -459,12 +557,24 @@ public class Browser extends Box implements IO.Loaded {
 
 			JSONObject o = new JSONObject(p.first);
 			String address = o.getString("address");
-			JSONObject payload = o.getJSONObject("payload");
+
+			Object payload = o.get("payload");
+
+			if (!(payload instanceof JSONObject))
+			{
+				StringWriter sw = new StringWriter();
+				JSONWriter w = new JSONWriter(sw);
+				w.object();
+				w.key("message");
+				w.value(payload + "");
+				w.endObject();
+				payload = new JSONObject(sw.toString());
+			}
 
 			for (Pair<Predicate<String>, Handler> p2 : handlers) {
 				if (p2.first.test(address)) {
 					Log.log("cef.debug", "found handler");
-					p2.second.handle(address, payload, p.second);
+					p2.second.handle(address, (JSONObject)payload, p.second);
 				}
 			}
 
