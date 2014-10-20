@@ -2,42 +2,41 @@ var lineNumbers = $(".CodeMirror-linenumbers").get(0)
 
 raph = Raphael(lineNumbers, "100%", "100%")
 
+function executeCurrentBracket() {
+    if (currentBracket != null) {
 
-function executeCurrentBracket()
-{
-if (currentBracket != null) {
+        currentBracket.attr({
+            fill: "#afc"
+        }).animate({
+            fill: "#fff"
+        }, 500)
 
-            currentBracket.attr({
-                fill: "#afc"
-            }).animate({
-                fill: "#fff"
-            }, 500)
+        anchorLine = Math.max(cm.getLineNumber(currentBracket.h1), cm.getLineNumber(currentBracket.h2) + 1)
 
-            anchorLine = Math.max(cm.getLineNumber(currentBracket.h1), cm.getLineNumber(currentBracket.h2) + 1)
+        c = cm.getCursor()
+        cm.setSelection({
+            line: cm.getLineNumber(currentBracket.h1),
+            ch: 0
+        }, {
+            line: cm.getLineNumber(currentBracket.h2) + 1,
+            ch: 0
+        })
 
-            c = cm.getCursor()
-            cm.setSelection({
-                line: cm.getLineNumber(currentBracket.h1),
-                ch: 0
-            }, {
-                line: cm.getLineNumber(currentBracket.h2) + 1,
-                ch: 0
-            })
+        fragment = cm.getSelections()[0]
 
-            fragment = cm.getSelections()[0]
+        _field.sendWithReturn("execution.fragment", {
+            box: cm.currentbox,
+            property: cm.currentproperty,
+            text: fragment
+        }, function(d, e) {
+            if (d.type == 'error')
+                appendRemoteOutputToLine(anchorLine, d.line + " : " + d.message, "Field-remoteOutput", "Field-remoteOutput-error", 1)
+            else
+                appendRemoteOutputToLine(anchorLine, d.message, "Field-remoteOutput-error", "Field-remoteOutput", 1)
+        });
+    }
+}
 
-            _field.sendWithReturn("execution.fragment", {
-                box: cm.currentbox,
-                property: cm.currentproperty,
-                text: fragment
-            }, function (d, e) {
-                if (d.type == 'error')
-                    appendRemoteOutputToLine(anchorLine, d.line + " : " + d.message, "Field-remoteOutput", "Field-remoteOutput-error", 1)
-                else
-                    appendRemoteOutputToLine(anchorLine, d.message, "Field-remoteOutput-error", "Field-remoteOutput", 1)
-            });
-        }
-        }
 function rectForLineHandle(lh) {
     var y = cm.getLineNumber(lh);
     if (y > -1) {
@@ -55,21 +54,22 @@ function rectForLineHandle(lh) {
             }
         }
 
-        z.top -= $(lineNumbers).offset().top-8
-        z.bottom -= $(lineNumbers).offset().top-8
+        z.top -= $(lineNumbers).offset().top - 8
+        z.bottom -= $(lineNumbers).offset().top - 8
 
         return z;
     }
     return null;
 }
 
-function pathStringForTwoLineHandles(lh1, lh2) {
+function pathStringForTwoLineHandles(lh1, lh2, level) {
     r1 = rectForLineHandle(lh1)
     r2 = rectForLineHandle(lh2)
-    console.log("rect for line "+cm.getLineNumber(lh1)+" is "+r1.bottom+" "+r1.top)
+    console.log("rect for line " + cm.getLineNumber(lh1) + " is " + r1.bottom + " " + r1.top)
     if (r1 && r2) {
         sz = (r2.bottom - r1.top) / 8
-        sz = 5+Math.min(10, Math.sqrt(Math.abs(r2.bottom - r1.top)))
+        sz = -18 + level * 7
+        console.log(" sz is " + sz + " " + level);
         r2.bottom -= 8
         r1.top -= 8
 
@@ -77,7 +77,12 @@ function pathStringForTwoLineHandles(lh1, lh2) {
         w2 = 48
         w3 = 10 + sz - 10
         w3 = sz;
-        return "M" + w2 + "," + r1.top + "L" + w + "," + r1.top + "C" + (-8 + w3) + "," + r1.top + "," + (20 + w3) + "," + ((r1.top + r2.bottom) / 2) + "," + w3 + "," + ((r1.top + r2.bottom) / 2) + "C" + (20 + w3) + "," + ((r1.top + r2.bottom) / 2) + "," + (-8 + w3) + "," + r2.bottom + "," + w + "," + r2.bottom + "L" + w2 + "," + r2.bottom;
+        //								return "M" + w2 + "," + r1.top + "L" + w + "," + r1.top + "C" + (-8 + w3) + "," + r1.top + "," + (20 + w3) + "," + ((r1.top + r2.bottom) / 2) + "," + w3 + "," + ((r1.top + r2.bottom) / 2) + "C" + (20 + w3) + "," + ((r1.top + r2.bottom) / 2) + "," + (-8 + w3) + "," + r2.bottom + "," + w + "," + r2.bottom + "L" + w2 + "," + r2.bottom;
+        //						 return "M"+w2+","+r1.top+"L"+w+","+r1.top+"L"+w+","+r2.bottom+"L"+w2+","+r2.bottom;
+
+        rr = -10;
+
+        return "M" + w2 + "," + r1.top + "L" + (w - rr) + "," + r1.top + "Q" + w + "," + r1.top + "," + w + "," + (r1.top - rr) + "L" + w + "," + (r2.bottom + rr) + "Q" + w + "," + (r2.bottom) + "," + (w - rr) + "," + (r2.bottom) + "L" + w2 + "," + r2.bottom;
     }
     return null;
 }
@@ -85,19 +90,16 @@ function pathStringForTwoLineHandles(lh1, lh2) {
 raph.clear()
 
 
-function makePathForHandles(h1, h2) {
-		f = findPathForLines(h1,h2)
-		if (f) return f;
+function makePathForHandles(h1, h2, level) {
+    f = findPathForLines(h1, h2)
+    if (f) return f;
 
-		ps = pathStringForTwoLineHandles(h1, h2)
+    ps = pathStringForTwoLineHandles(h1, h2, level)
     if (ps) {
         var path = raph.path()
         console.log(path)
         path.attr({
-            "stroke-width": 1
-        })
-        path.attr({
-            "stroke-opacity": 0.5
+            "stroke-opacity": 0.0
         })
         path.attr({
             "fill-opacity": 0.25
@@ -106,42 +108,49 @@ function makePathForHandles(h1, h2) {
             fill: "#fff"
         })
         path.attr({
-            stroke: "#fff"
+            stroke: "#000"
         })
         path.attr({
             opacity: 0.4
         })
         path.attr({
+            "stroke-width": 2.0
+        })
+        path.attr({
             path: ps
         })
+        path.attr({
+            'stroke-dasharray': '.'
+        })
 
-        path.mouseover(function () {
+        path.mouseover(function() {
             path.attr({
-                "stroke-opacity": 1.0
+                "stroke-opacity": 1.0,
+                stroke: "#fff"
             })
         })
-        path.mouseout(function () {
+        path.mouseout(function() {
             path.attr({
-                "stroke-opacity": 0.5
+                "stroke-opacity": 0.0,
+                stroke: "#000"
             })
         })
-        path.mousedown(function (e) {
-        console.log("down?",e, e.altDown)
-        	if (e.altKey)
-        	{
-						currentBracket = path;
-						executeCurrentBracket();
-        	}
+        path.mousedown(function(e) {
+            console.log("down?", e, e.altDown)
+            if (e.altKey) {
+                currentBracket = path;
+                executeCurrentBracket();
+            }
         })
 
         path.h1 = h1
         path.h2 = h2
         path.isHandleDecorator = 1
 
-        h1.on("delete", function (x) {
+        h1.on("delete", function(x) {
             path.remove()
         })
-        h2.on("delete", function (x) {
+        h2.on("delete", function(x) {
             path.remove()
         })
 
@@ -153,41 +162,72 @@ function makePathForHandles(h1, h2) {
 function serializeAllBrackets() {
     ret = ""
     updateAllBrackets()
-    raph.forEach(function (e) {
+    raph.forEach(function(e) {
         if ("isHandleDecorator" in e) {
-            ret += "makePathForHandles(cm.getLineHandle(" + cm.getLineNumber(e.h1) + "), cm.getLineHandle(" + cm.getLineNumber(e.h2) + "))\n"
+            ret += "makePathForHandles(cm.getLineHandle(" + cm.getLineNumber(e.h1) + "), cm.getLineHandle(" + cm.getLineNumber(e.h2) + "), " + e.level + ")\n"
         }
     })
     return ret
 }
 
-function findPathForLines(h1, h2)
-{
-	var found;
-	raph.forEach(function (e) {
+function findPathForLines(h1, h2) {
+    var found;
+    raph.forEach(function(e) {
         if ("isHandleDecorator" in e) {
-        	if (cm.getLineNumber(e.h1)==h1 && cm.getLineNumber(e.h2)==h2)
-	        	found = e
+            if (cm.getLineNumber(e.h1) == h1 && cm.getLineNumber(e.h2) == h2)
+                found = e
         }
     })
-	return found;
+    return found;
 }
 
-function findEnclosingPathForLine(line)
-{
-	var found = null;
-	raph.forEach(function (e) {
-        if ("isHandleDecorator" in e) {
-        	if (cm.getLineNumber(e.h1)<=line && cm.getLineNumber(e.h2)>=line)
-        	{
-        		if (found==null)
-					found = e
-				else if (Math.abs(cm.getLineNumber(found.h1)-cm.getLineNumber(found.h2))>Math.abs(cm.getLineNumber(e.h1)-cm.getLineNumber(e.h1)))
-					found = e
-	        }
+function recurSortConflictsOf(at, level) {
+    var a = (cm.getLineNumber(at.h1))
+    var b = (cm.getLineNumber(at.h2))
+    at.level = level
+    at.deltWith = 1
+    raph.forEach(function(e) {
+        if ("isHandleDecorator" in e && e.deltWith == 0 && e != at) {
+            var a2 = (cm.getLineNumber(e.h1))
+            var b2 = (cm.getLineNumber(e.h2))
+            if (a2 <= b && b2 >= a) {
+                recurSortConflictsOf(e, level + 1);
+            }
         }
     })
-	return found;
+}
+
+function sortConflicts() {
+    raph.forEach(function(e) {
+        if ("isHandleDecorator" in e)
+            e.deltWith = 0
+    })
+    raph.forEach(function(e) {
+        if ("isHandleDecorator" in e && e.deltWith == 0) {
+            recurSortConflictsOf(e, 0);
+        }
+    })
+    raph.forEach(function(e) {
+        if ("isHandleDecorator" in e) {
+            console.log("bracket level is " + e.level);
+        }
+    })
+}
+
+
+function findEnclosingPathForLine(line) {
+    var found = null;
+    raph.forEach(function(e) {
+        if ("isHandleDecorator" in e) {
+            if (cm.getLineNumber(e.h1) <= line && cm.getLineNumber(e.h2) >= line) {
+                if (found == null)
+                    found = e
+                else if (Math.abs(cm.getLineNumber(found.h1) - cm.getLineNumber(found.h2)) > Math.abs(cm.getLineNumber(e.h1) - cm.getLineNumber(e.h1)))
+                    found = e
+            }
+        }
+    })
+    return found;
 }
 
 raph.clear()
@@ -195,13 +235,16 @@ raph.clear()
 var currentBracket = null;
 
 function updateAllBrackets() {
-    raph.forEach(function (e) {
+
+    sortConflicts();
+    raph.forEach(function(e) {
         if ("isHandleDecorator" in e) {
-            var ps = pathStringForTwoLineHandles(e.h1, e.h2)
+            var ps = pathStringForTwoLineHandles(e.h1, e.h2, e.level)
             if (ps) {
                 e.attr({
                     path: ps,
-                    "stroke-opacity": 0.5
+                    "stroke-opacity": 0.0,
+                    'stroke-dasharray': ''
                 })
             } else {
                 e.attr({
@@ -214,39 +257,40 @@ function updateAllBrackets() {
     })
 
     var f = findEnclosingPathForLine(cm.getCursor().line)
-    if (f!=null)
-    {
-    	f.attr({"stroke-opacity":1.0})
-    	currentBracket = f
-    }
-    else
-    {
-    	currentBracket = null
+    if (f != null) {
+        f.attr({
+            "stroke-opacity": 1.0
+        })
+        f.attr({
+            'stroke-dasharray': '-'
+        })
+        currentBracket = f
+    } else {
+        currentBracket = null
     }
 
 }
 
 updateAllBrackets()
 
-cm.on("change", function (x, c) {
+cm.on("change", function(x, c) {
     updateAllBrackets()
 })
 
 cm.on("cursorActivity", function(x, c) {
     var f = findEnclosingPathForLine(cm.getCursor().line)
-    if (f!=currentBracket)
-    {
-    	updateAllBrackets();
+    if (f != currentBracket) {
+        updateAllBrackets();
     }
 })
 
-cm.on("fold", function (x, c) {
+cm.on("fold", function(x, c) {
     updateAllBrackets()
 })
-cm.on("unfold", function (x, c) {
+cm.on("unfold", function(x, c) {
     updateAllBrackets()
 })
 
-$(window).resize(function () {
+$(window).resize(function() {
     updateAllBrackets()
 })
