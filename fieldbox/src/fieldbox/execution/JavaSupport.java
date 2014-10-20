@@ -51,61 +51,66 @@ public class JavaSupport {
 
 		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
-		RunLoop.workerPool.submit(() -> {
-			try {
-				URL[] paths = ((URLClassLoader) classLoader).getURLs();
-				for (URL path : paths) {
-					RunLoop.workerPool.submit(() -> {
-						Map<String, String> a = indexClasses(path);
-						synchronized (allClassNames) {
-							allClassNames.putAll(a);
+		// we defer this to the main loop (and _then_ punt it off to a separate thread) in order for the majority of Field internal classes to be loaded (for example, the graphics system)
+		RunLoop.main.once( () -> {
+			RunLoop.workerPool.submit(() -> {
+				try {
+					URL[] paths = ((URLClassLoader) classLoader).getURLs();
+					for (URL path : paths) {
+						Log.log("jar.indexer", "will index path " + path);
+						RunLoop.workerPool.submit(() -> {
+							Map<String, String> a = indexClasses(path);
+
+							Log.log("jar.indexer", "indexed path " + path + " and got " + a.size() + " classes");
+
+							synchronized (allClassNames) {
+								allClassNames.putAll(a);
+							}
+						});
+					}
+
+					builder.setErrorHandler(e -> Log.log("completion.general", " problem parsing Java source file for completion, will skip this file and continue on "));
+					builder.addClassLoader(classLoader);
+
+					String root = fieldagent.Main.app;
+					Files.walkFileTree(FileSystems.getDefault()
+								      .getPath(root), new FileVisitor<Path>() {
+						@Override
+						public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+							if (dir.endsWith("temp")) return FileVisitResult.SKIP_SUBTREE;
+							if (dir.endsWith("src")) {
+								Log.log("completion.debug", " added " + dir + " to source path");
+								all.add(dir);
+								try {
+									builder.addSourceTree(dir.toFile(), f -> Log.log("completion.error", " error parsing file " + f + ", but we'll continue on anyway..."));
+								} catch (ParseException e) {
+									e.printStackTrace();
+								}
+							}
+							return FileVisitResult.CONTINUE;
+						}
+
+						@Override
+						public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+							return FileVisitResult.CONTINUE;
+						}
+
+						@Override
+						public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+							return FileVisitResult.CONTINUE;
+						}
+
+						@Override
+						public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+							return FileVisitResult.CONTINUE;
 						}
 					});
+					Log.log("completion.debug", " all is :" + all);
+				} catch (IOException e) {
+					e.printStackTrace();
 				}
-
-				builder.setErrorHandler(e -> Log
-					    .log("completion.general", " problem parsing Java source file for completion, will skip this file and continue on "));
-				builder.addClassLoader(classLoader);
-
-				String root = fieldagent.Main.app;
-				Files.walkFileTree(FileSystems.getDefault().getPath(root), new FileVisitor<Path>() {
-					@Override
-					public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-						if (dir.endsWith("temp")) return FileVisitResult.SKIP_SUBTREE;
-						if (dir.endsWith("src")) {
-							Log.log("completion.debug", " added " + dir + " to source path");
-							all.add(dir);
-							try {
-								builder.addSourceTree(dir.toFile(), f -> Log
-									    .log("completion.error", " error parsing file " + f + ", but we'll continue on anyway..."));
-							} catch (ParseException e) {
-								e.printStackTrace();
-							}
-						}
-						return FileVisitResult.CONTINUE;
-					}
-
-					@Override
-					public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-						return FileVisitResult.CONTINUE;
-					}
-
-					@Override
-					public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-						return FileVisitResult.CONTINUE;
-					}
-
-					@Override
-					public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-						return FileVisitResult.CONTINUE;
-					}
-				});
-				Log.log("completion.debug", " all is :" + all);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			});
 		});
-
 	}
 
 	private Map<String, String> indexClasses(URL path) {
@@ -139,6 +144,12 @@ public class JavaSupport {
 			return ((HandlesCompletion) o).getCompletionsFor(prefix);
 		} else Log.log("completion.debug", " object :" + o + " is not a completion handler ");
 
+		List<Completion> r = getOptionCompletionsFor(o, prefix);
+
+		return r;
+	}
+
+	public List<Completion> getOptionCompletionsFor(Object o, String prefix) {
 		boolean staticsOnly = o instanceof Class;
 
 		Class c = o instanceof Class ? (Class) o : o.getClass();
@@ -196,7 +207,6 @@ public class JavaSupport {
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
-
 		return r;
 	}
 
