@@ -2,6 +2,7 @@ package fieldbox.boxes;
 
 import com.badlogic.jglfw.Glfw;
 import field.graphics.FLine;
+import field.graphics.StandardFLineDrawing;
 import field.graphics.Window;
 import field.linalg.Vec2;
 import field.linalg.Vec4;
@@ -112,7 +113,10 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 			boolean selected = hitBox.properties.isTrue(Mouse.isSelected, false);
 			Rect originalFrame = frame(hitBox);
 
-			if (!shift) breadthFirst(both()).forEach(x -> x.properties.remove(Mouse.isSelected));
+
+			if (!shift && !hitBox.properties.isTrue(Mouse.isSticky, false))
+				breadthFirst(both()).filter(x -> !x.properties.isTrue(Mouse.isSticky, false))
+						    .forEach(x -> x.properties.remove(Mouse.isSelected));
 
 			hitBox.properties.put(Mouse.isSelected, true);
 
@@ -133,7 +137,7 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 					Vec2 drawingDelta = drawing.map(x -> x.windowSystemToDrawingSystemDelta(delta))
 								   .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
 
-					breadthFirst(both()).filter(x -> x.properties.isTrue(Mouse.isSelected, false))
+					breadthFirst(both()).filter(x -> !x.properties.isTrue(Mouse.isSticky, false) || x==hitBox).filter(x -> x.properties.isTrue(Mouse.isSelected, false))
 							    .forEach(x -> {
 								    Rect r0 = frame(x);
 								    Rect r = transform(x, r0, targets, drawingDelta);
@@ -166,7 +170,8 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 				  if (!shift) breadthFirst(both()).forEach(x -> x.properties.remove(Mouse.isSelected));
 
 				  Map<Box, Boolean> frozenAt = new LinkedHashMap<Box, Boolean>();
-				  breadthFirst(both()).forEach(x -> frozenAt.put(x, x.properties.isTrue(Mouse.isSelected, false)));
+				  breadthFirst(both())
+						      .forEach(x -> frozenAt.put(x, x.properties.isTrue(Mouse.isSelected, false)));
 
 				  Drawing.dirty(this);
 
