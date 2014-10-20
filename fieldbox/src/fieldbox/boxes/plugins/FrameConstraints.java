@@ -1,7 +1,6 @@
 package fieldbox.boxes.plugins;
 
 import EDU.Washington.grad.gjb.cassowary.*;
-import field.graphics.RunLoop;
 import field.utility.Dict;
 import field.utility.Log;
 import field.utility.Rect;
@@ -17,9 +16,8 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
- * A constraint system for frames.
+ * A solver-based constraint system for frames.
  * <p>
- * TODO: cassowary?
  */
 public class FrameConstraints extends Box {
 
