@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static fieldbox.boxes.FLineDrawing.frameDrawing;
-import static fieldbox.boxes.StandardFLineDrawing.*;
+import static field.graphics.StandardFLineDrawing.*;
 
 /**
  * Created by marc on 7/15/14.

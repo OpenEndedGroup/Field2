@@ -6,7 +6,6 @@ import field.graphics.Window;
 import field.linalg.Vec2;
 import field.linalg.Vec4;
 import field.utility.Dict;
-import field.utility.Log;
 import field.utility.SimpleVoronoi;
 
 import java.awt.*;
@@ -16,8 +15,9 @@ import java.util.List;
 import java.util.function.Function;
 
 import static field.utility.Log.log;
-import static fieldbox.boxes.StandardFLineDrawing.*;
-import static fieldbox.boxes.FLineDrawing.*;
+import static fieldbox.boxes.FLineDrawing.frameDrawing;
+import static fieldbox.boxes.FLineDrawing.layer;
+import static field.graphics.StandardFLineDrawing.*;
 
 /**
  * Plugin: MarkingMenus adds support for building and showing radial menus for boxes and for the canvas itself to Field.
@@ -139,7 +139,7 @@ public class MarkingMenus extends Box {
 			log("debug.markingmenus", () -> e.getKey() + " " + e.getKey().pos);
 
 			textLine.node().attributes.put(text, e.getValue().label);
-			textLine.attributes.put(layer, "glass");
+			textLine.attributes.put(layer, "glass2");
 			textLine.attributes.put(color, new Vec4(0, 0, 0, 0.75f));
 			maxHeight = Math.max(maxHeight, defaultFont.font.dimensions(e.getValue().label, 0.2f).y);
 		}
@@ -167,7 +167,7 @@ public class MarkingMenus extends Box {
 		centerLine.attributes.put(filled, true);
 		centerLine.attributes.put(fillColor, new Vec4(1, 1, 1, 0.4f));
 		centerLine.attributes.put(strokeColor, new Vec4(0, 0, 0, 0.1f));
-		centerLine.attributes.put(layer, "glass");
+		centerLine.attributes.put(layer, "glass2");
 
 		areas.add(new Area(FLinesAndJavaShapes.flineToJavaShape(centerLine)));
 
@@ -186,7 +186,7 @@ public class MarkingMenus extends Box {
 			connective2.attributes.put(stroked, false);
 			connective2.attributes.put(filled, true);
 			connective2.attributes.put(fillColor, new Vec4(0, 0, 0, 0.7f));
-			connective2.attributes.put(layer, "glass");
+			connective2.attributes.put(layer, "glass2");
 
 		}
 
@@ -204,7 +204,7 @@ public class MarkingMenus extends Box {
 			f.attributes.put(strokeColor, new Vec4(0.15f, 0.15f, 0.15f, 0.25f));
 			f.attributes.put(filled, true);
 			f.attributes.put(fillColor, new Vec4(0, 0.0f, 0, 0.15f));
-			f.attributes.put(layer, "glass");
+			f.attributes.put(layer, "glass2");
 			f.attributes.put(thicken, new BasicStroke(2.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 			f.attributes.putToList(Mouse.onMouseEnter, (event) -> {
 				FLine fm = v.makeFLine(v.getContourForSite(sites.get(e.getKey())));
@@ -241,7 +241,7 @@ public class MarkingMenus extends Box {
 		this.properties.putToMap(frameDrawing, "contour" + null, box -> f);
 		f.attributes.put(strokeColor, new Vec4(0, 0, 0, 0.1f));
 		f.attributes.put(filled, false);
-		f.attributes.put(layer, "glass");
+		f.attributes.put(layer, "glass2");
 
 		for (Map.Entry<Position, MenuItem> e : m.items.entrySet()) {
 			float w = defaultFont.font.dimensions(e.getValue().label, 0.2f).x;
@@ -256,7 +256,7 @@ public class MarkingMenus extends Box {
 			label.attributes.put(filled, true);
 			label.attributes.put(fillColor, new Vec4(0.7f, 0.7f, 0.7f, 0.8f));
 			label.attributes.put(strokeColor, new Vec4(0, 0, 0, 0.9f));
-			label.attributes.put(layer, "glass");
+			label.attributes.put(layer, "glass2");
 
 			if (e.getValue().submenu!=null)
 			{
@@ -271,7 +271,7 @@ public class MarkingMenus extends Box {
 				label2.attributes.put(color, new Vec4(0.8f, 0.8f, 0.8f, -0.3f));
 				label2.attributes.put(thicken, new BasicStroke(16));
 				label2.attributes.put(stroked, false);
-				label2.attributes.put(layer, "glass");
+				label2.attributes.put(layer, "glass2");
 
 			}
 		}

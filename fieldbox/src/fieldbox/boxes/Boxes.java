@@ -76,12 +76,12 @@ public class Boxes {
 
 	public void start() {
 		RunLoop.main.getLoop()
-			    .connect(updater);
+			    .attach(updater);
 	}
 
 	public void stop() {
 		RunLoop.main.getLoop()
-			    .disconnect(updater);
+			    .detach(updater);
 	}
 
 	public Box root() {

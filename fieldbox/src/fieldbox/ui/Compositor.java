@@ -4,16 +4,17 @@ import field.graphics.*;
 import field.linalg.Vec2;
 import field.utility.Log;
 
-import java.util.*;
-import java.util.function.Consumer;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Created by marc on 3/24/14.
  */
 public class Compositor {
 
-	private final Window window;
+	private final FieldBoxWindow window;
 
+	boolean fadeup = false;
 
 	public class Layer {
 		private FBO fbo ;
@@ -48,16 +49,18 @@ public class Compositor {
 			shader.addSource(Shader.Type.fragment, "#version 410\n" +
 				    "layout(location=0) out vec4 _output;\n" +
 				    "uniform sampler2D te;\n" +
+				    "uniform float mainAlpha;\n" +
 				    "void main()\n" +
 				    "{\n" +
 				    "	vec4 t = texelFetch(te, ivec2(gl_FragCoord.xy), 0);" +
-				    "\t_output  = vec4(t.xyz, 1);\n" +
+				    "\t_output  = vec4(t.xyz, mainAlpha);\n" +
 				    "\n" +
 				    "}");
-			s.connect(mesh);
-			mesh.connect(shader);
+			s.attach(mesh);
+			shader.attach(new Uniform<Float>("mainAlpha", () -> fadeup ? 0.1f : 1f));
+			mesh.attach(shader);
 			guard = new Guard(() -> fbo, (i) -> true);
-			mesh.connect(guard);
+			mesh.attach(guard);
 		}
 
 		public void compositeWith(Layer underlayer, Scene s) {
@@ -94,14 +97,14 @@ public class Compositor {
 				    "\n" +
 				    "}");
 
-			shader.connect(new Uniform<Integer>("te", () -> fbo.specification.unit).setIntOnly(true));
-			shader.connect(new Uniform<Integer>("blur", () -> underlayer.fbo.specification.unit).setIntOnly(true));
+			shader.attach(new Uniform<Integer>("te", () -> fbo.specification.unit).setIntOnly(true));
+			shader.attach(new Uniform<Integer>("blur", () -> underlayer.fbo.specification.unit).setIntOnly(true));
 
-			s.connect(mesh);
-			mesh.connect(shader);
+			s.attach(mesh);
+			mesh.attach(shader);
 			guard = new Guard(() -> fbo, (i) -> true);
-			mesh.connect(guard);
-			mesh.connect(new Guard( () -> underlayer.fbo, (i) ->true));
+			mesh.attach(guard);
+			mesh.attach(new Guard(() -> underlayer.fbo, (i) -> true));
 		}
 
 		public void blurXInto(int taps, Scene s)
@@ -164,15 +167,13 @@ public class Compositor {
 				    "	_output  = vec4(t.xyz,1);\n" +
 				    "\n" +
 				    "}");
-			shader.connect(new Uniform<Vec2>("bounds", () -> new Vec2(fbo.specification.width-1, fbo.specification.height-1)));
-			s.connect(mesh);
-			mesh.connect(shader);
+			shader.attach(new Uniform<Vec2>("bounds", () -> new Vec2(fbo.specification.width-1, fbo.specification.height-1)));
+			s.attach(mesh);
+			mesh.attach(shader);
 			guard = new Guard(() -> fbo, (i) -> true);
-			mesh.connect(guard);
+			mesh.attach(guard);
 
 		}
-
-
 
 	}
 
@@ -180,20 +181,23 @@ public class Compositor {
 
 	Map<String, Layer> layers = new LinkedHashMap<>();
 
-	public Compositor(Window window) {
+	public Compositor(FieldBoxWindow window) {
 		this.window = window;
 		this.mainLayer = new Layer(0);
 		layers.put("__main__", mainLayer);
 	}
 
+	int fading = 0;
+
 	public void updateScene() {
+		fadeup = fading++<50;
 		if (GraphicsContext.isResizing) {
 			for (Layer l : layers.values()) {
 				if (l.fbo.specification.width != window.getWidth() || l.fbo.specification.height != window.getHeight()) {
 					l.fbo.finalize();
-					Map<Integer, Set<Consumer<Integer>>> sceneWas = l.fbo.display.getScene();
+					Scene sceneWas = l.fbo.scene();
 					l.fbo = newFBO(l.fbo.specification.unit);
-					l.fbo.display.setScene(sceneWas);
+					l.fbo.setScene(sceneWas);
 
 					Log.log("graphics.debug", " scene was :" + sceneWas);
 				}
@@ -202,6 +206,13 @@ public class Compositor {
 		for (Layer l : layers.values()) {
 			l.fbo.draw();
 		}
+
+		if (fadeup)
+		{
+			window.requestRepaint();
+		}
+
+
 	}
 
 	private FBO newFBO() {
@@ -210,7 +221,6 @@ public class Compositor {
 
 	private FBO newFBO(int unit) {
 		return new FBO(FBO.FBOSpecification.rgbaMultisample(unit, window.getWidth(), window.getHeight()));
-//		return new FBO(FBO.FBOSpecification.(unit, window.getWidth(), window.getHeight()));
 	}
 
 	public Layer getMainLayer() {

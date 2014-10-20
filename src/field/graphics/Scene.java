@@ -2,9 +2,17 @@ package field.graphics;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import field.utility.Dict;
+import field.utility.LinkedHashMapAndArrayList;
 import field.utility.Log;
 import field.utility.Pair;
+import fieldbox.boxes.Box;
+import fieldlinker.Linker;
+import fieldnashorn.annotations.HiddenInAutocomplete;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
@@ -20,7 +28,7 @@ import java.util.function.Consumer;
  * free to encoding a grouping thats useful to the application rather than something that's vital to reexpressing the semantics of OpenGL's decaying
  * state-machine just right.
  */
-public class Scene {
+public class Scene extends Box implements Linker.AsMap {
 
 	/**
 	 * Although we can build the Scene structure out of (int, Consumer<int>) tuples, it's more along the grain of Java's type system to use an
@@ -81,7 +89,7 @@ public class Scene {
 	 * A (int pass, Consumer<Integer>) tuple can be effectively cast as a Perform. The int says what pass the consumer should be run for, and the
 	 * consumer is called for that pass
 	 */
-	public boolean connect(int pass, Consumer<Integer> p) {
+	public boolean attach(int pass, Consumer<Integer> p) {
 		Set<Consumer<Integer>> c = scene.get(pass);
 		if (c == null) scene.put(pass, c = new LinkedHashSet<Consumer<Integer>>());
 		return c.add(p);
@@ -97,12 +105,11 @@ public class Scene {
 	 * not particularlly efficiently) called over and over again. This is good for rapidly iterating on a problem without having to worry about
 	 * tearing down resources that you constructed.
 	 */
-	public boolean connect(int pass, String tag, Consumer<Integer> p) {
+	public boolean attach(int pass, String tag, Consumer<Integer> p) {
 		Consumer<Integer> was = tagged.remove(tag);
-		if (was != null) disconnect(was);
+		if (was != null) detach(was);
 
-		Set<Consumer<Integer>> c = scene.get(pass);
-		if (c == null) scene.put(pass, c = new LinkedHashSet<Consumer<Integer>>());
+		Set<Consumer<Integer>> c = scene.computeIfAbsent(pass, k -> new LinkedHashSet<>());
 
 		tagged.put(tag, p);
 
@@ -110,11 +117,36 @@ public class Scene {
 	}
 
 	/**
+	 * The additional "tag" gives this consumer a name, so that it can be referred to later. Note that at any given time there can only be one
+	 * Perform or Consumer with any particular tag associated with a Scene, anything previously tagged with this scene is automatically
+	 * disconnected. This allows you write code in "idempotent" style: specifically you can have connect(...) calls that can be safely (although
+	 * not particularlly efficiently) called over and over again. This is good for rapidly iterating on a problem without having to worry about
+	 * tearing down resources that you constructed.
+	 */
+	public boolean attach(String tag, Perform p) {
+		Consumer<Integer> was = tagged.remove(tag);
+		if (was != null) detach(was);
+
+		boolean pp = false;
+		for (int pass : p.getPasses()) {
+			Set<Consumer<Integer>> c = scene.computeIfAbsent(pass, k -> new LinkedHashSet<>());
+			pp |= c.add(p);
+		}
+
+		tagged.put(tag, p);
+
+		return pp;
+	}
+
+	/**
 	 * Disconnects a Perform from this Scene. Care has been taken to ensure you can do this while the scene is being traversed.
 	 */
-	public void disconnect(Consumer<Integer> p) {
+	public void detach(Consumer<Integer> p) {
 
-		scene.values().stream().map(x -> x.remove(p)).count();
+		scene.values()
+		     .stream()
+		     .map(x -> x.remove(p))
+		     .count();
 
 	}
 
@@ -124,38 +156,55 @@ public class Scene {
 	 * <p>
 	 * returns true if there was something tagged "tag";
 	 */
-	public boolean disconnect(String tag) {
+	public boolean detach(String tag) {
 		Consumer<Integer> was = tagged.remove(tag);
-		if (was != null) disconnect(was);
+		if (was != null) detach(was);
 		return was != null;
 	}
 
 	/**
 	 * connects a Perform to this Scene. Care has been taken to ensure you can do this while the scene is being traversed.
 	 */
-	public boolean connect(Perform p) {
+	public boolean attach(Perform p) {
 		boolean m = false;
 		for (int i : p.getPasses())
-			m |= connect(i, p);
+			m |= attach(i, p);
 		return m;
 	}
 
+	static public Dict.Prop<LinkedHashMapAndArrayList<Perform>> passes = new Dict.Prop<LinkedHashMapAndArrayList<Perform>>("passes").toCannon();
+
 
 	/**
-	 * returns the current scene as a Map<Integer, Set<Consumer<Integer>>>
+	 * connects a Box to this Scene. Boxes can contain Performs, this operation is equivalent to connecting all the Performs in this box.
 	 */
-	public Map<Integer, Set<Consumer<Integer>>> getScene() {
-		return Collections.unmodifiableMap(scene);
+	@Override
+	public Box connect(Box b) {
+		Box p = super.connect(b);
+		return p;
 	}
 
-	/**
-	 * resets the scene to a particular Map<Integer, Set<Consumer<Integer>>>
-	 *
-	 * @param scene
-	 */
-	public void setScene(Map<Integer, Set<Consumer<Integer>>> scene) {
-		this.scene.clear();
-		this.scene.putAll(scene);
+
+	protected TreeMap<Integer, Set<Consumer<Integer>>> collectChildrenPasses() {
+
+
+		if (this.children()
+			.size() == 0) return null;
+
+		TreeMap<Integer, Set<Consumer<Integer>>> t = new TreeMap<>();
+
+		for (Box c : children()) {
+			LinkedHashMapAndArrayList<Perform> p = c.properties.get(passes);
+			if (p == null) continue;
+			for (Perform pp : p.values()) {
+				int[] ap = pp.getPasses();
+				for (int x : ap)
+					t.computeIfAbsent(x, k -> new LinkedHashSet<>())
+					 .add(pp);
+			}
+		}
+
+		return t;
 	}
 
 
@@ -173,38 +222,56 @@ public class Scene {
 	}
 
 	protected boolean update(int apoint, Callable<Boolean> a, int bpoint, Callable<Boolean> b) {
-		return update(new ArrayDeque<>(Arrays
-			    .asList(new Pair<Integer, Callable<Boolean>>(apoint, a), new Pair<Integer, Callable<Boolean>>(bpoint, b))));
+		return update(new ArrayDeque<>(Arrays.asList(new Pair<Integer, Callable<Boolean>>(apoint, a), new Pair<Integer, Callable<Boolean>>(bpoint, b))));
 	}
 
 	protected boolean update(Queue<Pair<Integer, Callable<Boolean>>> a) {
 		exceptions.clear();
 
-		int first = 0;
 		boolean ret = true;
-		for (Integer i : new LinkedHashSet<>(scene.keySet())) {
-			Log.log("graphics.trace", () -> this + " pass " + i + " -> " + scene.get(i));
-			while (!a.isEmpty() && i >= a.peek().first) ret = wrappedCall(a.poll().second);
 
-			ArrayList<Consumer<Integer>> previously = new ArrayList<>(scene.get(i));
+		try {
 
-			Iterator<Consumer<Integer>> ic = previously.iterator();
-			while (ic.hasNext()) {
-				Consumer<Integer> n = ic.next();
-				if (!wrappedCall(n, i)) scene.get(i).remove(n);
+			TreeMap<Integer, Set<Consumer<Integer>>> c1 = collectChildrenPasses();
+			if (c1==null) c1 =new TreeMap<>();
+
+			for (Map.Entry<Integer, Set<Consumer<Integer>>> c2 : scene.entrySet()) {
+				if (c1.get(c2.getKey()) == null) c1.put(c2.getKey(), c2.getValue());
+				else c1.get(c2.getKey())
+				       .addAll(c2.getValue());
 			}
 
-		}
+			TreeMap<Integer, Set<Consumer<Integer>>> scene = c1;
 
-		while (!a.isEmpty()) ret = wrappedCall(a.poll().second);
+			for (Integer i : new LinkedHashSet<>(scene.keySet())) {
+				Log.log("graphics.trace", () -> this + " pass " + i + " -> " + scene.get(i));
+				while (!a.isEmpty() && i >= a.peek().first) ret = wrappedCall(a.poll().second);
 
-		if (exceptions.size() > 0) {
-			System.err.println(" Exceptions thrown in scene update ");
-			System.err.println(" (Performs responsible have been removed from the scene) ");
-			System.err.println(" Details: ");
-			for (Throwable t : exceptions) {
-				t.printStackTrace();
+				ArrayList<Consumer<Integer>> previously = new ArrayList<>(scene.get(i));
+
+				Iterator<Consumer<Integer>> ic = previously.iterator();
+				while (ic.hasNext()) {
+					Consumer<Integer> n = ic.next();
+					if (!wrappedCall(n, i)) {
+						detach(n);
+					}
+				}
+
 			}
+
+			while (!a.isEmpty()) ret = wrappedCall(a.poll().second);
+
+			if (exceptions.size() > 0) {
+				System.err.println(" Exceptions thrown in scene update ");
+				System.err.println(" (Performs responsible have been removed from the scene, if they were directly attached) ");
+				System.err.println(" Details: ");
+				for (Throwable t : exceptions) {
+					t.printStackTrace();
+				}
+			}
+		} catch (NullPointerException e) {
+			e.printStackTrace();
+			System.exit(0);
 		}
 
 		return ret;
@@ -245,7 +312,8 @@ public class Scene {
 		String ret = "" + this + "\n";
 		String prefix = "   ";
 		for (Map.Entry<Integer, Set<Consumer<Integer>>> c : scene.entrySet()) {
-			String tag = tagged.inverse().get(c);
+			String tag = tagged.inverse()
+					   .get(c);
 			ret = ret + prefix + "" + c.getKey() + ":" + (tag == null ? "" : tag) + "\n";
 			prefix = prefix + " ";
 			for (Consumer<Integer> cc : c.getValue())
@@ -259,7 +327,8 @@ public class Scene {
 		prefix += "   ";
 		if (cc instanceof Scene) {
 			for (Map.Entry<Integer, Set<Consumer<Integer>>> c : ((Scene) cc).scene.entrySet()) {
-				String tag = tagged.inverse().get(c);
+				String tag = tagged.inverse()
+						   .get(c);
 				ret = ret + prefix + "" + c.getKey() + ":" + (tag == null ? "" : tag) + "\n";
 				prefix = prefix + " ";
 				for (Consumer<Integer> ccc : c.getValue())
@@ -285,5 +354,66 @@ public class Scene {
 			}
 		};
 	}
+
+
+	@Override
+	@HiddenInAutocomplete
+	public boolean asMap_isProperty(String p) {
+		if (knownNonProperties == null) knownNonProperties = computeKnownNonProperties();
+		if (knownNonProperties.contains(p)) return false;
+
+		return true;
+	}
+
+	protected Set<String> knownNonProperties;
+
+	protected Set<String> computeKnownNonProperties() {
+		Set<String> r = new LinkedHashSet<>();
+		Method[] m = this.getClass()
+				 .getMethods();
+		for (Method mm : m)
+			r.add(mm.getName());
+		Field[] f = this.getClass()
+				.getFields();
+		for (Field ff : f)
+			r.add(ff.getName());
+		return r;
+	}
+
+	@Override
+	@HiddenInAutocomplete
+	public Object asMap_call(Object a, Object b) {
+		throw new NotImplementedException();
+	}
+
+	@Override
+	@HiddenInAutocomplete
+	public Object asMap_get(String p) {
+		Consumer<Integer> t = tagged.get(p);
+		if (t == null) return super.asMap_get(p);
+		return t;
+	}
+
+	@Override
+	@HiddenInAutocomplete
+	public Object asMap_set(String p, Object o) {
+
+		o = Box.convert(o, Collections.singletonList(Perform.class));
+		if (o instanceof Perform) return attach(p, (Perform) o);
+		else return super.asMap_set(p, o);
+	}
+
+	@Override
+	@HiddenInAutocomplete
+	public Object asMap_new(Object a) {
+		throw new NotImplementedException();
+	}
+
+	@Override
+	@HiddenInAutocomplete
+	public Object asMap_new(Object a, Object b) {
+		throw new NotImplementedException();
+	}
+
 
 }

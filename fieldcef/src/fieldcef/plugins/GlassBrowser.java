@@ -3,6 +3,7 @@ package fieldcef.plugins;
 import com.badlogic.jglfw.Glfw;
 import field.graphics.RunLoop;
 import field.graphics.Window;
+import field.linalg.Vec2;
 import field.utility.Dict;
 import field.utility.Log;
 import field.utility.Rect;
@@ -56,8 +57,8 @@ public class GlassBrowser extends Box implements IO.Loaded {
 		Log.log("glassbrowser.debug", "initializing browser");
 		browser = new Browser();
 		browser.properties.put(Box.frame, new Rect(0, 0, maxw, maxh));
-		browser.properties.put(FLineDrawing.layer, "glass");
-		browser.properties.put(Drawing.windowSpace, true);
+		browser.properties.put(FLineDrawing.layer, "glass2");
+		browser.properties.put(Drawing.windowSpace, new Vec2(0,0));
 		browser.properties.put(Boxes.dontSave, true);
 		browser.properties.put(Box.hidden, true);
 		browser.connect(root);
@@ -71,7 +72,7 @@ public class GlassBrowser extends Box implements IO.Loaded {
 
 		long[] t = {0};
 		RunLoop.main.getLoop()
-			    .connect(x -> {
+			    .attach(x -> {
 				    if (t[0] == 0) t[0] = System.currentTimeMillis();
 				    if (System.currentTimeMillis() - t[0] > 5000) {
 					    boot();
@@ -112,10 +113,10 @@ public class GlassBrowser extends Box implements IO.Loaded {
 
 		tick = 0;
 		RunLoop.main.getLoop()
-			    .connect(x -> {
+			    .attach(x -> {
 				    tick++;
 				    if (browser.browser.getURL()
-						       .equals("http://localhost:8080/"+res)) {
+						       .equals("http://localhost:8080/" + res)) {
 					    inject2();
 					    return false;
 				    }
@@ -193,7 +194,7 @@ public class GlassBrowser extends Box implements IO.Loaded {
 	public void hide() {
 		tick = 0;
 		RunLoop.main.getLoop()
-			    .connect(x -> {
+			    .attach(x -> {
 				    if (tick == 5) {
 					    browser.properties.put(Box.hidden, true);
 					    Drawing.dirty(this);
@@ -215,8 +216,8 @@ public class GlassBrowser extends Box implements IO.Loaded {
 					    .findFirst()
 					    .get();
 		Rect f = browser.properties.get(Box.frame);
-		f.x = (window.getWidth() - f.w) / 2;
-		f.y = (window.getHeight() - f.h) / 2;
+		f.x = (int)((window.getWidth() - f.w) / 2);
+		f.y = (int)((window.getHeight() - f.h) / 2);
 		if (!browser.properties.isTrue(Box.hidden, false)) Drawing.dirty(this);
 	}
 

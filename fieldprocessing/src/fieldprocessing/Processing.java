@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static fieldbox.boxes.FLineDrawing.frameDrawing;
-import static fieldbox.boxes.StandardFLineDrawing.*;
+import static field.graphics.StandardFLineDrawing.*;
 
 /**
  * The Processing Plugin. Refer to Processing.__applet to get at the __applet.

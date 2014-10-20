@@ -2,8 +2,13 @@ package field.graphics;
 
 import field.utility.Dict;
 import field.utility.Log;
+import fieldlinker.Linker;
+import fieldnashorn.annotations.HiddenInAutocomplete;
 import org.lwjgl.opengl.*;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -23,9 +28,9 @@ import static org.lwjgl.opengl.GL20.*;
  * Assuming that all goes well shaders take three principle kinds of inputs: vertex attributes (make and set these with aux and nextVertex calls in
  * MeshBuilders), uniforms (make and set these with calls to Uniform and UniformBundle classes here) and input from earlier shaders.
  */
-public class Shader extends BaseScene<Shader.State> implements Scene.Perform {
+public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Linker.AsMap{
 
-	static public final Dict.Prop<Shader> currentShader = new Dict.Prop<>("currentShader");
+
 
 	static public class State extends BaseScene.Modifiable {
 		int name;
@@ -245,8 +250,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform {
 
 		if (name.valid) {
 			Log.log("graphics.trace", () -> " using program " + name.name);
-			GraphicsContext.put(currentShader, this);
-			GL20.glUseProgram(name.name);
+			GraphicsContext.stateTracker.shader.set(name.name);
 		}
 
 		return true;
@@ -254,8 +258,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform {
 
 	@Override
 	protected boolean perform1() {
-		GraphicsContext.remove(currentShader);
-		GL20.glUseProgram(0);
+		GraphicsContext.stateTracker.shader.set(0);
 		return true;
 	}
 
@@ -268,5 +271,66 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform {
 	@Override
 	public int[] getPasses() {
 		return new int[]{-2, 2};
+	}
+
+	UniformBundle defaultBundle = null;
+
+	protected UniformBundle getDefaultBundle()
+	{
+		if (defaultBundle!=null) return defaultBundle;
+		return defaultBundle = new UniformBundle();
+	}
+
+	@Override
+	@HiddenInAutocomplete
+	public boolean asMap_isProperty(String p) {
+		if (knownNonProperties == null) knownNonProperties = computeKnownNonProperties();
+		if (knownNonProperties.contains(p)) return false;
+
+		return true;
+	}
+
+	protected Set<String> knownNonProperties;
+	protected Set<String> computeKnownNonProperties() {
+		Set<String> r = new LinkedHashSet<>();
+		Method[] m = this.getClass()
+				 .getMethods();
+		for (Method mm : m)
+			r.add(mm.getName());
+		Field[] f = this.getClass()
+				.getFields();
+		for (Field ff : f)
+			r.add(ff.getName());
+		return r;
+	}
+
+	@Override
+	@HiddenInAutocomplete
+	public Object asMap_call(Object a, Object b) {
+		throw new NotImplementedException();
+	}
+
+	@Override
+	@HiddenInAutocomplete
+	public Object asMap_get(String p) {
+		return getDefaultBundle().get(new Dict.Prop(p));
+	}
+
+	@Override
+	@HiddenInAutocomplete
+	public Object asMap_set(String p, Object o) {
+		return getDefaultBundle().set(p, () -> o);
+	}
+
+	@Override
+	@HiddenInAutocomplete
+	public Object asMap_new(Object a) {
+		throw new NotImplementedException();
+	}
+
+	@Override
+	@HiddenInAutocomplete
+	public Object asMap_new(Object a, Object b) {
+		throw new NotImplementedException();
 	}
 }

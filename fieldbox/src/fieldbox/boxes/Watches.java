@@ -36,14 +36,12 @@ public class Watches extends Box  {
 
 				CompletableFuture<Boolean> stop = new CompletableFuture<Boolean>();
 
-				RunLoop.main.getLoop().connect(0, (x) -> {
+				RunLoop.main.getLoop().attach(0, (x) -> {
 					try {
-						if (this.queue.size()>0)
-							Log.log("debug.messages", " message queue :"+this.queue.size());
+						if (this.queue.size() > 0) Log.log("debug.messages", " message queue :" + this.queue.size());
 
-						while (this.queue.peek()!=null)
-						{
-							Pair<String, Quad<Dict.Prop, Box,  Object, Object>> m = this.queue.poll(1, TimeUnit.SECONDS);
+						while (this.queue.peek() != null) {
+							Pair<String, Quad<Dict.Prop, Box, Object, Object>> m = this.queue.poll(1, TimeUnit.SECONDS);
 							if (m != null && !stop.isDone()) to.accept(m.first, m.second);
 						}
 					} catch (InterruptedException e) {
@@ -74,7 +72,7 @@ public class Watches extends Box  {
 				if (!Util.safeEq(was, now))
 				{
 					fire(p, x, was, now, allWatches .get(p));
-					previous.put(p, now);
+					previous.put(p, now instanceof Mutable ? ((Mutable)now).duplicate() : now);
 				}
 			}
 		});

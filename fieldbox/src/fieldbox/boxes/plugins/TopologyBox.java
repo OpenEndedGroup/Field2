@@ -17,7 +17,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
-import static fieldbox.boxes.StandardFLineDrawing.*;
+import static field.graphics.StandardFLineDrawing.*;
 import static fieldbox.boxes.FLineDrawing.*;
 
 /**

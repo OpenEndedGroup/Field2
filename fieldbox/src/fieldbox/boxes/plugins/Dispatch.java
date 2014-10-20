@@ -1,9 +1,7 @@
 package fieldbox.boxes.plugins;
 
 import com.badlogic.jglfw.Glfw;
-import field.graphics.FLine;
-import field.graphics.FLinesAndJavaShapes;
-import field.graphics.RunLoop;
+import field.graphics.*;
 import field.graphics.Window;
 import field.linalg.Vec2;
 import field.linalg.Vec4;
@@ -17,7 +15,7 @@ import java.awt.geom.GeneralPath;
 import java.util.Optional;
 
 import static fieldbox.boxes.FLineDrawing.frameDrawing;
-import static fieldbox.boxes.StandardFLineDrawing.*;
+import static field.graphics.StandardFLineDrawing.*;
 
 /**
  * Adds: Hold down G to change the box-graph network. Also draws the current graph topology.
@@ -42,7 +40,7 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 
 			FLine f = new FLine();
 
-			breadthFirst(both()).filter(x -> x.properties.has(Box.frame)).forEach(x -> {
+			breadthFirst(both()).filter(x -> x.properties.has(Box.frame)).filter(x ->!x.properties.isTrue(Box.hidden, false)).forEach(x -> {
 
 				for (Box x2 : x.children()) {
 					if (x2.properties.has(Box.frame)) {
@@ -61,7 +59,7 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 
 			FLine f = new FLine();
 
-			breadthFirst(both()).filter(x -> x.properties.has(Box.frame)).filter(x -> x.properties.isTrue(Mouse.isSelected, false)).forEach(x -> {
+			breadthFirst(both()).filter(x -> x.properties.has(Box.frame)).filter(x ->!x.properties.isTrue(Box.hidden, false)).filter(x -> x.properties.isTrue(Mouse.isSelected, false)).forEach(x -> {
 
 				for (Box x2 : x.children()) {
 					if (x2.properties.has(Box.frame)) {
@@ -80,7 +78,7 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 
 	private Object allFrameHash() {
 		if (allFrameHashAt== RunLoop.tick) return allFrameHash;
-		allFrameHash = breadthFirst(both()).filter(x -> x.properties.has(Box.frame))
+		allFrameHash = breadthFirst(both()).filter(x -> x.properties.has(Box.frame)).filter(x ->!x.properties.isTrue(Box.hidden, false))
 			    .reduce(0L, (w, frame) -> 31 * w + allFrameHashSalt+(frame.properties.isTrue(Mouse.isSelected, false) ? 1 : 0) + frame.properties.get(Box.frame).hashCode(), (x, y) -> 31 * x + y);
 
 		allFrameHashAt = RunLoop.tick;
@@ -101,7 +99,7 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 		Vec2 point = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e.after.x, e.after.y)))
 			    .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
 
-		Optional<Box> hit = breadthFirst(both()).filter(b -> frame(b) != null).filter(b -> frame(b).intersects(point))
+		Optional<Box> hit = breadthFirst(both()).filter(b -> frame(b) != null).filter(x ->!x.properties.isTrue(Box.hidden, false)).filter(b -> frame(b).intersects(point))
 			    .sorted((a, b) -> Float.compare(order(frame(a)), order(frame(b)))).findFirst();
 
 		if (hit.isPresent()) {
@@ -117,7 +115,7 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 					Vec2 point = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e.after.x, e.after.y)))
 						    .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
 
-					Optional<Box> hit = breadthFirst(both()).filter(b -> frame(b) != null).filter(b -> frame(b).intersects(point))
+					Optional<Box> hit = breadthFirst(both()).filter(x ->!x.properties.isTrue(Box.hidden, false)).filter(b -> frame(b) != null).filter(b -> frame(b).intersects(point))
 						    .sorted((a, b) -> Float.compare(order(frame(a)), order(frame(b)))).findFirst();
 
 					if (hit.isPresent()) {

@@ -7,7 +7,7 @@ import fieldbox.boxes.*;
 
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
-import static fieldbox.boxes.StandardFLineDrawing.*;
+import static field.graphics.StandardFLineDrawing.*;
 import static fieldbox.boxes.FLineDrawing.*;
 
 /**

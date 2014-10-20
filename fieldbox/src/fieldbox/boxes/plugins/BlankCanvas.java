@@ -1,7 +1,6 @@
 package fieldbox.boxes.plugins;
 
 import field.graphics.FLine;
-import field.linalg.Vec2;
 import field.linalg.Vec4;
 import field.utility.Cached;
 import field.utility.Pair;
@@ -9,13 +8,11 @@ import field.utility.Rect;
 import fieldagent.Main;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Drawing;
-import fieldbox.boxes.FLineDrawing;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
-import static fieldbox.boxes.StandardFLineDrawing.*;
-import static fieldbox.boxes.FLineDrawing.*;
+
+import static fieldbox.boxes.FLineDrawing.frameDrawing;
+import static field.graphics.StandardFLineDrawing.*;
 
 /**
  * When there's nothing in the canvas, prompt users to create something
@@ -36,7 +33,7 @@ public class BlankCanvas extends Box {
 			FLine f = new FLine();
 
 			f.attributes.put(hasText, true);
-			f.moveTo(m.x + m.w / 2, m.y + m.h / 2 - 14);
+			f.moveTo(m.x + m.w / 4, m.y + m.h / 2 - 14);
 
 			String text = "Press N to create new box";
 
@@ -58,7 +55,7 @@ public class BlankCanvas extends Box {
 			FLine f = new FLine();
 
 			f.attributes.put(hasText, true);
-			f.moveTo(m.x + m.w / 2, m.y + m.h / 2 + 14);
+			f.moveTo(m.x + m.w / 4, m.y + m.h / 2 + 14);
 
 			String text = "Right-click "+ (Main.os==Main.OS.mac ? "/ ctrl-drag " : "") + "for menus";
 

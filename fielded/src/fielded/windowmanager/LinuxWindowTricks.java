@@ -106,7 +106,7 @@ public class LinuxWindowTricks extends Box {
 
 	public void afterOpen() {
 		long a = System.currentTimeMillis();
-		RunLoop.main.mainLoop.connect(i -> {
+		RunLoop.main.mainLoop.attach(i -> {
 
 			long b = System.currentTimeMillis();
 			if (b - a < 4000) return true;
