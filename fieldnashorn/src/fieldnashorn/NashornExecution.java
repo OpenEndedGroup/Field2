@@ -225,6 +225,8 @@ public class NashornExecution implements Execution.ExecutionSupport {
 		if (r1 != null) {
 			results.accept(r1);
 		}
+
+		this.box.find(Execution.completions, this.box.upwards()).flatMap( x -> x.values().stream()).forEach( x->x.completion(this.box, allText, line, ch, results));
 	}
 
 	@Override
@@ -233,6 +235,8 @@ public class NashornExecution implements Execution.ExecutionSupport {
 		if (r1 != null) {
 			results.accept(r1);
 		}
+
+		this.box.find(Execution.imports, this.box.upwards()).flatMap( x -> x.values().stream()).forEach( x->x.completion(this.box, allText, line, ch, results));
 	}
 
 	public void setTernSupport(TernSupport ternSupport) {
