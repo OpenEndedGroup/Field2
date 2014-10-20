@@ -202,9 +202,12 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	}
 
 	/**
-	 * returns breadth first Stream given a direction function.
+	 * returns breadth first Stream given a direction function. It is an error to call this when this box is not connected to anything (which is a common error --- calling this method at construction time).
 	 */
 	public Stream<Box> breadthFirst(Function<Box, Collection<Box>> map) {
+
+		if (this.all.size()==0) throw new IllegalArgumentException(" breadthFirst called on a box not connected to the box graph");
+
 		return new Lazy<Box>() {
 			LinkedHashSet<Box> ret = null;
 			Set<Box> thisLevel = null;
@@ -239,7 +242,6 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 		else return "bx[" + name + "]";
 	}
 
-	protected Set<String> knownNonProperties;
 
 	@Override
 	@HiddenInAutocomplete
@@ -253,6 +255,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 		return true;
 	}
 
+	protected Set<String> knownNonProperties;
 	protected Set<String> computeKnownNonProperties() {
 		Set<String> r = new LinkedHashSet<>();
 		Method[] m = this.getClass()
@@ -276,11 +279,12 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 						    .orElse(null);
 
 		if (ret instanceof Box.FunctionOfBox) {
-			return ((Supplier) (() -> ((Box.FunctionOfBox) ret).apply(this)));
+			final Object fret = ret;
+			return ((Supplier) (() -> ((Box.FunctionOfBox) fret).apply(this)));
 		}
 
 		if (ret == null && cannon.autoConstructor != null) {
-			properties.put(cannon, cannon.autoConstructor.get());
+			properties.put(cannon, ret = cannon.autoConstructor.get());
 		}
 
 		return ret;
@@ -326,7 +330,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 		return this;
 	}
 
-	public Object convert(Object value, List<Class> fit) {
+	static public Object convert(Object value, List<Class> fit) {
 		if (fit == null) return value;
 		if (fit.get(0)
 		       .isInstance(value)) return value;
@@ -441,7 +445,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 				    .getDocumentation() + "</span>");
 		}).filter(x -> x != null).collect(Collectors.toList());
 
-		List<Completion> l2 = JavaSupport.javaSupport.getCompletionsFor(this, prefix);
+		List<Completion> l2 = JavaSupport.javaSupport.getOptionCompletionsFor(this, prefix);
 
 		l1.addAll(l2.stream().filter(x -> {
 			for (Completion c : l1)
