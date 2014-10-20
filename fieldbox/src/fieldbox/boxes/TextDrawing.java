@@ -45,9 +45,9 @@ public class TextDrawing extends Box {
 			this.mesh = new MeshBuilder(mesh);
 			font = new DrawBitmapFont(Thread.currentThread().getContextClassLoader().getResource("fonts/" + name)
 				    .getFile(), this.mesh, 0, 5000);
-			mesh.connect(font.getTexture());
+			mesh.attach(font.getTexture());
 
-			layerLocal.get(layer).mainShader.connect(new Guard(mesh, (p) -> mesh.getVertexLimit() > 0));
+			layerLocal.get(layer).mainShader.attach(new Guard(mesh, (p) -> mesh.getVertexLimit() > 0));
 
 			Drawing drawing = first(Drawing.drawing, both()).orElseThrow(() -> new IllegalArgumentException(" where has drawing gone ?"));
 			drawing.addBracketable(this.mesh);
@@ -124,14 +124,14 @@ public class TextDrawing extends Box {
 			    "\n" +
 			    "}");
 
-		layer.mainShader.connect(new Uniform<Vec2>("translation", () -> drawing.getTranslation()));
-		layer.mainShader.connect(new Uniform<Vec2>("scale", () -> drawing.getScale()));
-		layer.mainShader.connect(new Uniform<Vec2>("bounds", () -> new Vec2(Window.getCurrentWidth(), Window.getCurrentHeight())));
-		layer.mainShader.connect(new Uniform<Float>("smoothing", () -> smoothing));
-		layer.mainShader.connect(new Uniform<Float>("gamma", () -> gamma));
-		layer.mainShader.connect(new Uniform<Float>("opacity", () -> 1.0f));
+		layer.mainShader.attach(new Uniform<Vec2>("translation", () -> drawing.getTranslationRounded()));
+		layer.mainShader.attach(new Uniform<Vec2>("scale", () -> drawing.getScale()));
+		layer.mainShader.attach(new Uniform<Vec2>("bounds", () -> new Vec2(Window.getCurrentWidth(), Window.getCurrentHeight())));
+		layer.mainShader.attach(new Uniform<Float>("smoothing", () -> smoothing));
+		layer.mainShader.attach(new Uniform<Float>("gamma", () -> gamma));
+		layer.mainShader.attach(new Uniform<Float>("opacity", () -> 1.0f));
 
-		window.getCompositor().getLayer(layerName).getScene().connect(layer.mainShader);
+		window.getCompositor().getLayer(layerName).getScene().attach(layer.mainShader);
 
 		return this;
 	}
