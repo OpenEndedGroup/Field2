@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="ninepatch-editor-1.26">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/ninepatch-editor-1.26.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

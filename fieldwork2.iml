@@ -17,6 +17,10 @@
     <orderEntry type="library" name="jglfw" level="project" />
     <orderEntry type="library" name="guava-16.0.1" level="project" />
     <orderEntry type="module" module-name="fieldbox" />
+    <orderEntry type="library" name="ninepatch-editor-1.26" level="project" />
+    <orderEntry type="library" name="poly2tri-examples-0.1.1-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="poly2tri-core-0.1.1-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="quickhull3d" level="project" />
   </component>
 </module>
 
