@@ -67,11 +67,11 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 
 	//todo: array names
 	private boolean setUniformNow() {
-		Shader currentShader = GraphicsContext.get(Shader.currentShader);
+		Integer name = GraphicsContext.stateTracker.shader.get();
 
-		if (currentShader == null) return true;
+		if (name == null) return true;
 
-		int name = currentShader.getOpenGLName();
+
 		int location = glGetUniformLocation(name, this.name);
 
 		if (location != -1) {

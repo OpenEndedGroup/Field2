@@ -48,9 +48,17 @@ public class UniformBundle implements Scene.Perform {
 	static public UniformBundle setUniform(Scene at) {
 		return (UniformBundle) at.scene.values().stream().flatMap(x -> x.stream()).filter(x -> x instanceof UniformBundle).findFirst().orElseGet(() -> {
 			UniformBundle ub = new UniformBundle();
-			at.connect(ub);
+			at.attach(ub);
 			return ub;
 		});
+	}
+
+	static public Object getUniformHere(Scene at, String name) {
+		return ((UniformBundle) at.scene.values().stream().flatMap(x -> x.stream()).filter(x -> x instanceof UniformBundle).findFirst().orElseGet(() -> {
+			UniformBundle ub = new UniformBundle();
+			at.attach(ub);
+			return ub;
+		})).get(new Dict.Prop(name));
 	}
 
 }

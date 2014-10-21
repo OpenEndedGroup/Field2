@@ -6,7 +6,10 @@ import field.utility.Dict;
 import field.utility.Log;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Drawing;
-import fielded.Execution;
+import fieldbox.execution.Completion;
+import fieldbox.execution.Execution;
+import fieldbox.execution.HandlesCompletion;
+import fieldbox.execution.JavaSupport;
 import jdk.internal.dynalink.beans.StaticClass;
 import jdk.nashorn.api.scripting.AbstractJSObject;
 import jdk.nashorn.internal.objects.ScriptFunctionImpl;
@@ -42,7 +45,7 @@ import java.util.stream.Collectors;
  * <p>
  * Todo: similar shim class for FLine drawing class
  */
-public class UnderscoreBox extends AbstractJSObject implements JavaSupport.HandlesCompletion {
+public class UnderscoreBox extends AbstractJSObject implements HandlesCompletion {
 
 	private final Box at;
 	private long tick;
@@ -193,21 +196,21 @@ public class UnderscoreBox extends AbstractJSObject implements JavaSupport.Handl
 	}
 
 	@Override
-	public List<Execution.Completion> getCompletionsFor(String prefix) {
+	public List<Completion> getCompletionsFor(String prefix) {
 		Set<String> apm = getAllPublicMethods();
-		List<Execution.Completion> l1 = keySet().stream().filter(x -> x.startsWith(prefix)).sorted().map(x -> {
+		List<Completion> l1 = keySet().stream().filter(x -> x.startsWith(prefix)).sorted().map(x -> {
 			Dict.Prop q = new Dict.Prop(x).findCannon();
 			if (q == null) {
 				return null;
-			} else return new Execution.Completion(-1, -1, x, "<span class='type'>" + Conversions
+			} else return new Completion(-1, -1, x, "<span class='type'>" + Conversions
 				    .fold(q.getTypeInformation(), t -> compress(t)) + "</span> <span class='doc'>" + q
 				    .getDocumentation() + "</span>");
 		}).filter(x -> x != null).collect(Collectors.toList());
 
-		List<Execution.Completion> l2 = JavaSupport.javaSupport.getCompletionsFor(at, prefix);
+		List<Completion> l2 = JavaSupport.javaSupport.getCompletionsFor(at, prefix);
 
 		l1.addAll(l2.stream().filter(x -> {
-			for (Execution.Completion c : l1)
+			for (Completion c : l1)
 				if (c.replacewith.equals(x.replacewith)) return false;
 			return true;
 		}).collect(Collectors.toList()));

@@ -34,7 +34,7 @@ public class FieldBox {
 		// TODO --- get from command line / previous
 		Options.parseCommandLine(s);
 
-		Open open = new Open("testConstraints.field2");
+		Open open = new Open(Options.getString("file", () -> "testIB.field2"));
 
 		// TODO --- save automatically on exit
 		fieldBox.go();

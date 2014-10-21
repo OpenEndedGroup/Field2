@@ -4,14 +4,12 @@ import field.utility.Cached;
 import field.utility.Dict;
 import field.utility.Pair;
 import fieldbox.boxes.Box;
-import fieldbox.boxes.Boxes;
 import fielded.Animatable;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
@@ -34,6 +32,10 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 
 		try {
 			engine.eval("fielded = Packages.fielded");
+			engine.eval("fieldbox = Packages.fieldbox");
+			engine.eval("field = Packages.field");
+			engine.eval("fieldnashorn = Packages.fieldnashorn");
+			engine.eval("fieldcef = Packages.fieldcef");
 
 		} catch (ScriptException e) {
 			e.printStackTrace();
@@ -133,7 +135,7 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 
 	}
 
-	private Animatable.AnimationElement noop() {
+	static public Animatable.AnimationElement noop() {
 		return new Animatable.AnimationElement() {
 			@Override
 			public Object middle(boolean isEnding) {
@@ -142,7 +144,7 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 		};
 	}
 
-	private Animatable.AnimationElement interpretReturn(Animatable.AnimationElement was, Object next) {
+	static public Animatable.AnimationElement interpretReturn(Animatable.AnimationElement was, Object next) {
 		if (next == null) return was;
 		if (next instanceof Animatable.AnimationElement) return (Animatable.AnimationElement) next;
 		Animatable.AnimationElement nextElement = Animatable.interpret(next, was);
@@ -159,8 +161,12 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 		return ex;
 	}, (x) -> x);
 
+//	void setupInitialBindings(ScriptContext context, Box first) {
+//		context.setAttribute("_", new UnderscoreBox(first), ScriptContext.ENGINE_SCOPE);
+//	}
+
 	void setupInitialBindings(ScriptContext context, Box first) {
-		context.setAttribute("_", new UnderscoreBox(first), ScriptContext.ENGINE_SCOPE);
+		context.setAttribute("_", first, ScriptContext.ENGINE_SCOPE);
 	}
 
 	@Override

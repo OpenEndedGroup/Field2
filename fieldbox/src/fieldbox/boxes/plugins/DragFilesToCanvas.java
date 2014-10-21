@@ -9,11 +9,10 @@ import fieldbox.boxes.Box;
 import fieldbox.boxes.Drawing;
 import fieldbox.boxes.Drops;
 import fieldbox.io.IO;
-import fielded.Execution;
+import fieldbox.execution.Execution;
 import fielded.RemoteEditor;
 
 import java.io.File;
-import java.lang.reflect.Field;
 
 /**
  * Plugin that lets you drag files onto the canvas. Files are now kept out of the workspace.

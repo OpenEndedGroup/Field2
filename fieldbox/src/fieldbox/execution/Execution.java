@@ -1,8 +1,10 @@
-package fielded;
+package fieldbox.execution;
 
 import field.utility.Dict;
+import field.utility.LinkedHashMapAndArrayList;
 import field.utility.Pair;
 import fieldbox.boxes.Box;
+import fielded.RemoteEditor;
 
 import java.util.List;
 import java.util.function.BiFunction;
@@ -14,7 +16,14 @@ import java.util.function.Function;
  */
 public class Execution extends Box {
 
+	public interface CompletionSupport
+	{
+		public void completion(Box inside, String allText, int line, int ch, Consumer<List<Completion>> results);
+	}
+
 	static public Dict.Prop<Execution> execution = new Dict.Prop<Execution>("execution");
+	static public Dict.Prop<LinkedHashMapAndArrayList<CompletionSupport>> completions = new Dict.Prop<>("completions").toCannon().type().doc("Functions that can return completions for code in the editor");
+	static public Dict.Prop<LinkedHashMapAndArrayList<CompletionSupport>> imports= new Dict.Prop<>("imports").toCannon().type().doc("Functions that can return import help for code in the editor");
 
 	private final BiFunction<Box, Dict.Prop<String>, ? extends ExecutionSupport> support;
 
@@ -23,28 +32,6 @@ public class Execution extends Box {
 	 * UI that's built around a default notion of "run"ing and "begin"ing a box.
 	 */
 	static public final Dict.Prop<String> code = new Dict.Prop<>("code");
-
-	/**
-	 * helper class for completion results
-	 */
-	static public class Completion {
-		public int start, end;
-		public String replacewith;
-		public String info;
-		public String header;
-
-		public Completion(int start, int end, String replacewith, String info) {
-			this.start = start;
-			this.end = end;
-			this.replacewith = replacewith;
-			this.info = info;
-		}
-
-		@Override
-		public String toString() {
-			return "comp<" + replacewith + " | " + info + ">";
-		}
-	}
 
 	/**
 	 * absolutely everything you need to support a language in Field

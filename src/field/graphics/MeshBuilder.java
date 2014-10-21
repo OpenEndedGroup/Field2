@@ -1,6 +1,5 @@
 package field.graphics;
 
-import com.sun.tools.doclets.internal.toolkit.builders.MethodBuilder;
 import field.linalg.Vec2;
 import field.linalg.Vec3;
 import field.linalg.Vec4;
@@ -568,6 +567,26 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	 */
 	public MeshBuilder nextLine(int start) {
 		return nextLine(start, 0);
+	}
+
+
+	/**
+	 * Appends an FLine into this meshbuilder. Note this operation is sensitive to the kind of Mesh that this MeshBuilder is targeting. If you append a line that isn't filled into a MeshBuilder for a triangle mesh, nothing will happen.
+	 *
+	 * This operation is uses bookmark
+	 */
+	public void append(FLine f)
+	{
+		int d = target.getElementDimension();
+		if (d==2)
+			StandardFLineDrawing.dispatchLine(f, null, this, null, Optional.empty(), null);
+		else if (d==3)
+			StandardFLineDrawing.dispatchLine(f, this, null, null, Optional.empty(), null);
+		else if (d==0)
+			StandardFLineDrawing.dispatchLine(f, null, null, this, Optional.empty(), null);
+		else if (d==4) // lines_with_adj
+			StandardFLineDrawing.dispatchLine(f, null, this, null, Optional.empty(), null);
+		else throw new IllegalArgumentException(" can't draw into a MeshBuilder with dimension <"+d+">");
 	}
 
 	private void writeAux(int vertexCursor) {

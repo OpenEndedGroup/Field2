@@ -1,17 +1,18 @@
 package fieldbox.boxes;
 
-import static fieldbox.boxes.StandardFLineDrawing.*;
-import static fieldbox.boxes.FLineDrawing.*;
 import field.graphics.FLine;
 import field.linalg.Vec4;
 import field.utility.*;
-import fielded.Execution;
+import fieldbox.execution.Execution;
 
 import java.awt.*;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
+
+import static field.graphics.StandardFLineDrawing.*;
+import static fieldbox.boxes.FLineDrawing.frameDrawing;
 
 /**
  * A TimeSlider is a (thin) box that executes (that is calls .begin() and .end() on) other boxes that it passes over when dragged horizontally

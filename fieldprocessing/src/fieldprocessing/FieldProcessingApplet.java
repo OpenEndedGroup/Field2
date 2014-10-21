@@ -4,7 +4,7 @@ import field.graphics.RunLoop;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Boxes;
 import fieldbox.boxes.Drawing;
-import fieldnashorn.IdempotencyMap;
+import field.utility.IdempotencyMap;
 import fieldprocessing.Processing.KeyHandler;
 import fieldprocessing.Processing.MouseHandler;
 import processing.core.PApplet;

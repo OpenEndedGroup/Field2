@@ -2,7 +2,6 @@ package fieldbox.boxes;
 
 import field.graphics.Window;
 import field.utility.Dict;
-import field.utility.Rect;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -46,10 +45,13 @@ public class Mouse {
 	static public final Dict.Prop<Collection<OnMouseExit>> onMouseExit = new Dict.Prop<>("onMouseExit").type().toCannon();
 
 	static public final Dict.Prop<Boolean> isSelected = new Dict.Prop<>("isSelected").type().toCannon();
+	static public final Dict.Prop<Boolean> isSticky= new Dict.Prop<>("isSticky").type().toCannon();
 
 	Map<Integer, Collection<Dragger>> ongoingDrags = new HashMap<Integer, Collection<Dragger>>();
 
 	public void dispatch(Box root, Window.Event<Window.MouseState> event) {
+
+		Box startAt = root.breadthFirst(root.both()).filter(x -> x.properties.isTrue(isSelected, false)).findFirst().orElseGet( ()-> root);
 
 		Set<Integer> pressed = Window.MouseState.buttonsPressed(event.before, event.after);
 		Set<Integer> released = Window.MouseState.buttonsReleased(event.before, event.after);
@@ -77,13 +79,13 @@ public class Mouse {
 		}
 
 		if (event.before.x != event.after.x || event.before.y != event.after.y) {
-			Set<Dragger> draggers = root.find(onMouseMove, root.both()).flatMap(x -> x.stream()).map(x -> x.onMouseMove(event))
+			Set<Dragger> draggers = startAt.find(onMouseMove, startAt.both()).flatMap(x -> x.stream()).map(x -> x.onMouseMove(event))
 				    .filter(x -> x != null).collect(Collectors.toSet());
 			ongoingDrags.computeIfAbsent(-1, (k) -> new LinkedHashSet<Dragger>()).addAll(draggers);
 		}
 
 		if (event.after.dwheely != 0.0 || event.after.dwheel != 0.0)
-			root.find(onMouseScroll, root.both()).flatMap(x -> x.stream()).forEach(x -> x.onMouseScroll(event));
+			startAt.find(onMouseScroll, startAt.both()).flatMap(x -> x.stream()).forEach(x -> x.onMouseScroll(event));
 
 
 		pressed.stream().forEach(p -> {
@@ -91,7 +93,7 @@ public class Mouse {
 
 			// change map to handle errors on x
 
-			root.find(onMouseDown, root.both()).map(x -> {
+			startAt.find(onMouseDown, root.both()).map(x -> {
 
 				System.out.println(" on mouse down order :"+x);
 

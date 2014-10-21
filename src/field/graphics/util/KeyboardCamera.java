@@ -66,7 +66,7 @@ public class KeyboardCamera implements Function<Window.Event<KeyboardState>, Boo
 
 	public KeyboardCamera(Camera target) {
 		this.target = target;
-		RunLoop.main.mainLoop.connect(0, (i) -> update());
+		RunLoop.main.mainLoop.attach(0, (i) -> update());
 	}
 
 	private void update() {

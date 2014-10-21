@@ -7,9 +7,8 @@ import field.utility.*;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Drawing;
 import fieldbox.boxes.Mouse;
-import fielded.Execution;
+import fieldbox.execution.Execution;
 import fielded.RemoteEditor;
-import processing.core.PApplet;
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,7 +18,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static fieldbox.boxes.FLineDrawing.frameDrawing;
-import static fieldbox.boxes.StandardFLineDrawing.*;
+import static field.graphics.StandardFLineDrawing.*;
 
 /**
  * The Processing Plugin. Refer to Processing.__applet to get at the __applet.
@@ -32,6 +31,7 @@ import static fieldbox.boxes.StandardFLineDrawing.*;
  * P.background(0) // sets background to black
  */
 public class Processing extends Box {
+
 
 	private ProcessingExecution processingExecution;
 	public FieldProcessingApplet __applet;

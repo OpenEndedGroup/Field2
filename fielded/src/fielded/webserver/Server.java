@@ -143,7 +143,7 @@ public class Server {
 			return payload;
 		});
 
-		RunLoop.main.mainLoop.connect(10, (p) -> update());
+		RunLoop.main.mainLoop.attach(10, (p) -> update());
 
 	}
 

@@ -3,6 +3,8 @@ package field.graphics;
 import com.badlogic.jglfw.Glfw;
 import com.badlogic.jglfw.GlfwCallback;
 import com.badlogic.jglfw.GlfwCallbackAdapter;
+import com.badlogic.jglfw.gl.GL;
+import field.graphics.util.KeyEventMapping;
 import field.linalg.Vec2;
 import field.utility.Dict;
 import field.utility.Log;
@@ -17,14 +19,15 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Function;
 
 import static com.badlogic.jglfw.Glfw.*;
-import static com.badlogic.jglfw.gl.GL.glViewport;
 
 /**
  * An Window with an associated OpenGL draw context, and a base Field graphics Scene
  */
 public class Window {
 
-	static public final Dict.Prop<Boolean> consumed = new Dict.Prop<>("consumed").type().doc("marks an event as handled elsewhere").toCannon();
+	static public final Dict.Prop<Boolean> consumed = new Dict.Prop<>("consumed").type()
+										     .doc("marks an event as handled elsewhere")
+										     .toCannon();
 
 	protected GraphicsContext graphicsContext;
 	protected long window;
@@ -36,7 +39,7 @@ public class Window {
 	public Window(int x, int y, int w, int h, String title) {
 		Windows.windows.init();
 
-		currentBounds = new Rect(x,y,w,h);
+		currentBounds = new Rect(x, y, w, h);
 
 		graphicsContext = GraphicsContext.newContext();
 
@@ -77,16 +80,18 @@ public class Window {
 //		addMouseHandler(Window::debugMouseTransition);
 //		addKeyboardHandler(Window::debugKeyboardTransition);
 
-		RunLoop.main.getLoop().connect(0, (i) -> loop());
+		RunLoop.main.getLoop()
+			    .attach(0, (i) -> loop());
 
-		ByteBuffer dest = ByteBuffer.allocateDirect(32*32*4);
-		for(int i=0;i<32*32*4;i++)
-			dest.put((byte)(Math.random()*255));
+		ByteBuffer dest = ByteBuffer.allocateDirect(32 * 32 * 4);
+		for (int i = 0; i < 32 * 32 * 4; i++)
+			dest.put((byte) (Math.random() * 255));
 
 		dest.rewind();
 //		Glfw.glfwSetCursor(window, Glfw.glfwCreateCursor(dest, 32,32,32,32));
 
-		Glfw.glfwSetInputMode(window, Glfw.GLFW_CURSOR, Glfw.GLFW_CURSOR_NORMAL);
+		Glfw.glfwSetInputMode(window, Glfw.GLFW_STICKY_KEYS, GL.GL_TRUE);
+		Glfw.glfwSetInputMode(window, Glfw.GLFW_STICKY_MOUSE_BUTTONS, GL.GL_TRUE);
 
 	}
 
@@ -112,8 +117,10 @@ public class Window {
 		int w = glfwGetWindowWidth(window);
 		int h = glfwGetWindowHeight(window);
 
+		GraphicsContext.stateTracker.viewport.set(new int[]{0,0,w,h});
+		GraphicsContext.stateTracker.scissor.set(new int[]{0,0,w,h});
+
 		if (w != this.w || h != this.h) {
-			glViewport(0, 0, w, h);
 			GraphicsContext.isResizing = true;
 			this.w = w;
 			this.h = h;
@@ -121,17 +128,15 @@ public class Window {
 			GraphicsContext.isResizing = false;
 		}
 
-		GL11.glClearColor(1, 0.25f, 0, 1);
-		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 		updateScene();
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 		currentWindow = null;
 
-		ByteBuffer dest = ByteBuffer.allocateDirect(32*32*4);
-		for(int i=0;i<32*32*4;i++)
-			dest.put((byte)(Math.random()*255));
+		ByteBuffer dest = ByteBuffer.allocateDirect(32 * 32 * 4);
+		for (int i = 0; i < 32 * 32 * 4; i++)
+			dest.put((byte) (Math.random() * 255));
 
 		dest.rewind();
 //		Glfw.glfwSetCursor(window, Glfw.glfwCreateCursor(dest, 32,32,32,32));
@@ -158,8 +163,7 @@ public class Window {
 		currentBounds = new Rect(x, y, w, h);
 	}
 
-	public Rect getBounds()
-	{
+	public Rect getBounds() {
 		return currentBounds;
 	}
 
@@ -179,7 +183,7 @@ public class Window {
 
 	/**
 	 * returns the Scene associated with this window.
-	 *
+	 * <p>
 	 * This is the principle entry point into this window
 	 */
 	public Scene scene() {
@@ -198,8 +202,7 @@ public class Window {
 		return window;
 	}
 
-	static public interface HasPosition
-	{
+	static public interface HasPosition {
 		public Optional<Vec2> position();
 	}
 
@@ -259,7 +262,7 @@ public class Window {
 
 		// currently we ignore sy
 		public MouseState withScroll(double sx, double sy) {
-			return new MouseState(buttonsDown, x, y, (float) sx, (float)sy, dx, dy, time, mods);
+			return new MouseState(buttonsDown, x, y, (float) sx, (float) sy, dx, dy, time, mods);
 		}
 
 		public MouseState withPosition(double x, double y) {
@@ -318,7 +321,7 @@ public class Window {
 
 		@Override
 		public Optional<Vec2> position() {
-			return Optional.of(new Vec2(x,y));
+			return Optional.of(new Vec2(x, y));
 		}
 	}
 
@@ -370,9 +373,9 @@ public class Window {
 			Set<Integer> keysDown = new LinkedHashSet<>(this.keysDown);
 			Map<Integer, Character> charsDown = new LinkedHashMap<>(this.charsDown);
 			if (down) {
-				charsDown.put((int)c, c);
+				charsDown.put((int) c, c);
 			} else {
-				charsDown.remove((int)c);
+				charsDown.remove((int) c);
 			}
 
 			return new KeyboardState(keysDown, charsDown, time);
@@ -447,10 +450,39 @@ public class Window {
 				    '}';
 		}
 
-		public Optional<Vec2> position()
-		{
-			if (mouseState==null) return Optional.empty();
+		public Optional<Vec2> position() {
+			if (mouseState == null) return Optional.empty();
 			return mouseState.position();
+		}
+
+		public KeyboardState cleanModifiers(boolean shift, boolean alt, boolean ctrl, boolean meta) {
+			Set<Integer> k = new LinkedHashSet<>(keysDown);
+			if (!shift) k.remove(GLFW_KEY_LEFT_SHIFT);
+			if (!shift) k.remove(GLFW_KEY_RIGHT_SHIFT);
+			if (!alt) k.remove(GLFW_KEY_LEFT_ALT);
+			if (!alt) k.remove(GLFW_KEY_RIGHT_ALT);
+			if (!ctrl) k.remove(GLFW_KEY_LEFT_CONTROL);
+			if (!ctrl) k.remove(GLFW_KEY_RIGHT_CONTROL);
+			if (!meta) k.remove(GLFW_KEY_LEFT_SUPER);
+			if (!meta) k.remove(GLFW_KEY_RIGHT_SUPER);
+
+			return new KeyboardState(k, charsDown, time);
+		}
+
+		public KeyboardState clean(long window) {
+			Set<Integer> k = new LinkedHashSet<>(keysDown);
+			Iterator<Integer> ii = k.iterator();
+			while (ii.hasNext()) {
+				Integer m = ii.next();
+				boolean notReally = glfwGetKey(window, m);
+				if (!notReally) {
+					Log.log("keyboard.debug", "Got an imposter :" + m +" "+ KeyEventMapping.lookup(m));
+					ii.remove();
+					charsDown.remove(m);
+				}
+			}
+
+			return new KeyboardState(k, charsDown, time);
 		}
 	}
 
@@ -467,7 +499,7 @@ public class Window {
 
 		@Override
 		public Optional<Vec2> position() {
-			if (mouseState==null) return Optional.empty();
+			if (mouseState == null) return Optional.empty();
 			return mouseState.position();
 		}
 	}
@@ -537,30 +569,37 @@ public class Window {
 		after.keyboardState = keyboardState;
 
 		if ((after.mods & Glfw.GLFW_MOD_SHIFT) != 0) after.keyboardState = after.keyboardState.withKey(Glfw.GLFW_KEY_LEFT_SHIFT, true);
-		else after.keyboardState = after.keyboardState.withKey(Glfw.GLFW_KEY_LEFT_SHIFT, false).withKey(Glfw.GLFW_KEY_RIGHT_SHIFT, false);
+		else after.keyboardState = after.keyboardState.withKey(Glfw.GLFW_KEY_LEFT_SHIFT, false)
+							      .withKey(Glfw.GLFW_KEY_RIGHT_SHIFT, false);
 		if ((after.mods & Glfw.GLFW_MOD_CONTROL) != 0) after.keyboardState = after.keyboardState.withKey(Glfw.GLFW_KEY_LEFT_CONTROL, true);
-		else after.keyboardState = after.keyboardState.withKey(Glfw.GLFW_KEY_LEFT_CONTROL, false).withKey(Glfw.GLFW_KEY_RIGHT_CONTROL, false);
+		else after.keyboardState = after.keyboardState.withKey(Glfw.GLFW_KEY_LEFT_CONTROL, false)
+							      .withKey(Glfw.GLFW_KEY_RIGHT_CONTROL, false);
 		if ((after.mods & Glfw.GLFW_MOD_ALT) != 0) after.keyboardState = after.keyboardState.withKey(Glfw.GLFW_KEY_LEFT_ALT, true);
-		else after.keyboardState = after.keyboardState.withKey(Glfw.GLFW_KEY_LEFT_ALT, false).withKey(Glfw.GLFW_KEY_RIGHT_ALT, false);
+		else after.keyboardState = after.keyboardState.withKey(Glfw.GLFW_KEY_LEFT_ALT, false)
+							      .withKey(Glfw.GLFW_KEY_RIGHT_ALT, false);
 		if ((after.mods & Glfw.GLFW_MOD_SUPER) != 0) after.keyboardState = after.keyboardState.withKey(Glfw.GLFW_KEY_LEFT_SUPER, true);
-		else after.keyboardState = after.keyboardState.withKey(Glfw.GLFW_KEY_LEFT_SUPER, false).withKey(Glfw.GLFW_KEY_RIGHT_SUPER, false);
+		else after.keyboardState = after.keyboardState.withKey(Glfw.GLFW_KEY_LEFT_SUPER, false)
+							      .withKey(Glfw.GLFW_KEY_RIGHT_SUPER, false);
 
 		Iterator<Function<Event<MouseState>, Boolean>> i = mouseHandlers.iterator();
 		Event<MouseState> event = new Event<>(before, after);
-		while (i.hasNext()) if (!i.next().apply(event)) i.remove();
+		while (i.hasNext()) if (!i.next()
+					  .apply(event)) i.remove();
 	}
 
 	private void fireKeyboardTransition(KeyboardState before, KeyboardState after) {
 		after.mouseState = mouseState;
 		Iterator<Function<Event<KeyboardState>, Boolean>> i = keyboardHandlers.iterator();
 		Event<KeyboardState> event = new Event<>(before, after);
-		while (i.hasNext()) if (!i.next().apply(event)) i.remove();
+		while (i.hasNext()) if (!i.next()
+					  .apply(event)) i.remove();
 	}
 
 	private void fireDrop(Drop drop) {
 		Iterator<Function<Event<Drop>, Boolean>> i = dropHandlers.iterator();
 		Event<Drop> event = new Event<>(null, drop);
-		while (i.hasNext()) if (!i.next().apply(event)) i.remove();
+		while (i.hasNext()) if (!i.next()
+					  .apply(event)) i.remove();
 	}
 
 
@@ -618,7 +657,6 @@ public class Window {
 			}
 
 
-
 			@Override
 			public void mouseButton(long window, int button, boolean pressed, int mods) {
 				if (window == Window.this.window) {
@@ -638,7 +676,7 @@ public class Window {
 				if (window == Window.this.window) {
 					MouseState next = mouseState.withScroll(scrollX, scrollY);
 					fireMouseTransition(mouseState, next);
-					next = mouseState.withScroll(0,0);
+					next = mouseState.withScroll(0, 0);
 					mouseState = next;
 				}
 			}
@@ -656,6 +694,15 @@ public class Window {
 			public void key(long window, int key, int scancode, int action, int mods) {
 				if (window == Window.this.window) {
 					KeyboardState next = keyboardState.withKey(key, action != GLFW_RELEASE);
+
+					boolean shift = (Glfw.glfwGetKey(window, Glfw.GLFW_KEY_LEFT_SHIFT)) || (Glfw.glfwGetKey(window, Glfw.GLFW_KEY_RIGHT_SHIFT));
+					boolean alt = (Glfw.glfwGetKey(window, Glfw.GLFW_KEY_LEFT_ALT)) || (Glfw.glfwGetKey(window, Glfw.GLFW_KEY_RIGHT_ALT));
+					boolean meta = (Glfw.glfwGetKey(window, Glfw.GLFW_KEY_LEFT_SUPER)) || (Glfw.glfwGetKey(window, Glfw.GLFW_KEY_RIGHT_SUPER));
+					boolean ctrl = (Glfw.glfwGetKey(window, Glfw.GLFW_KEY_LEFT_CONTROL)) || (Glfw.glfwGetKey(window, Glfw.GLFW_KEY_RIGHT_CONTROL));
+
+					next = next.cleanModifiers(shift, alt, ctrl, meta);
+					next = next.clean(window);
+
 					fireKeyboardTransition(keyboardState, next);
 					keyboardState = next;
 				}
@@ -665,9 +712,22 @@ public class Window {
 			public void character(long window, char character) {
 				if (window == Window.this.window) {
 					KeyboardState next = keyboardState.withChar(character, true);
+
+					boolean shift = (Glfw.glfwGetKey(window, Glfw.GLFW_KEY_LEFT_SHIFT)) || (Glfw.glfwGetKey(window, Glfw.GLFW_KEY_RIGHT_SHIFT));
+					boolean alt = (Glfw.glfwGetKey(window, Glfw.GLFW_KEY_LEFT_ALT)) || (Glfw.glfwGetKey(window, Glfw.GLFW_KEY_RIGHT_ALT));
+					boolean meta = (Glfw.glfwGetKey(window, Glfw.GLFW_KEY_LEFT_SUPER)) || (Glfw.glfwGetKey(window, Glfw.GLFW_KEY_RIGHT_SUPER));
+					boolean ctrl = (Glfw.glfwGetKey(window, Glfw.GLFW_KEY_LEFT_CONTROL)) || (Glfw.glfwGetKey(window, Glfw.GLFW_KEY_RIGHT_CONTROL));
+
+					next = next.cleanModifiers(shift, alt, ctrl, meta);
+
+					next = next.clean(window);
+
 					fireKeyboardTransition(keyboardState, next);
 					keyboardState = next;
 					next = keyboardState.withChar(character, false);
+
+					next = next.cleanModifiers(shift, alt, ctrl, meta);
+					next = next.clean(window);
 					fireKeyboardTransition(keyboardState, next);
 					keyboardState = next;
 				}
@@ -692,11 +752,12 @@ public class Window {
 			public void windowSize(long window, int width, int height) {
 				if (window == Window.this.window) {
 
-					System.out.println(" window size :"+width+" "+height);
+					System.out.println(" window size :" + width + " " + height);
 					currentBounds.w = width;
 					currentBounds.h = height;
 				}
 			}
+
 		};
 	}
 

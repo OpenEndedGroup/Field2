@@ -58,11 +58,35 @@ public class RunLoop {
 	}
 
 	public void once(Runnable r) {
-		mainLoop.connect(i -> {
+		mainLoop.attach(i -> {
 			r.run();
 			return false;
 		});
 	}
+
+	public void nTimes(Runnable p0, int n) {
+		mainLoop.attach(new Scene.Perform() {
+			int t = 0;
+
+			@Override
+			public boolean perform(int pass) {
+				p0.run();
+				return t++ < n;
+			}
+		});
+	}
+
+	public void delay(Runnable p0, int ms) {
+		long now = System.currentTimeMillis();
+		mainLoop.attach(pass -> {
+			if (System.currentTimeMillis() - now > ms) {
+				p0.run();
+				return false;
+			}
+			return true;
+		});
+	}
+
 
 	List<Runnable> onExit = new LinkedList<>();
 	AtomicBoolean exitStarted = new AtomicBoolean(false);
@@ -93,4 +117,5 @@ public class RunLoop {
 		// we add this to the start of the list, it will be run before anything that's already there.
 		onExit.add(0, r);
 	}
+
 }

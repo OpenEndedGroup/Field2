@@ -8,6 +8,7 @@ import fieldagent.Main;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Boxes;
 import fieldbox.boxes.Watches;
+import fieldbox.execution.Execution;
 import fielded.plugins.BridgeToTextEditor;
 import fielded.webserver.Server;
 
@@ -26,7 +27,7 @@ public class ServerSupport {
 	static public final Dict.Prop<Server> server = new Dict.Prop<Server>("server").type().toCannon().doc("The internal websocket-capable server");
 
 	static public List<String> playlist = Arrays
-		    .asList("messagebus.js", "instantiate.js", "changehooks.js", "status.js", "helpbox.js", "modal.js", "brackets.js", "output.js", "doubleshift.js", "JSHotkeyFunctions.js");
+		    .asList("messagebus.js", "instantiate.js", "kill.js", "changehooks.js", "status.js", "helpbox.js", "modal.js", "brackets.js", "output.js", "doubleshift.js", "JSHotkeyFunctions.js", "colorPicker.js");
 
 
 	public ServerSupport(Boxes boxes) {

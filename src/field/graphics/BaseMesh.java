@@ -171,6 +171,8 @@ public class BaseMesh extends Scene implements Scene.Perform {
 		return limitVertex;
 	}
 
+	public int getElementDimension() { return elements.getDimension(); };
+
 	public void setBuffer(int attribute, ArrayBuffer buffer) {
 		if (buffer.getSize() < limitVertex) buffers[attribute] = buffer.replaceWithSize(limitVertex);
 		buffers[attribute] = buffer;

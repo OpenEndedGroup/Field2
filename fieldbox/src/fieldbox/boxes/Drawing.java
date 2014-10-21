@@ -5,15 +5,16 @@ import field.linalg.Vec2;
 import field.linalg.Vec4;
 import field.utility.Dict;
 import field.utility.Rect;
+import field.utility.Util;
 import fieldbox.io.IO;
 import fieldbox.ui.FieldBoxWindow;
-import static fieldbox.boxes.StandardFLineDrawing.*;
-import static fieldbox.boxes.FLineDrawing.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static field.utility.Util.closeable;
+import static fieldbox.boxes.FLineDrawing.*;
+import static field.graphics.StandardFLineDrawing.*;
 
 /**
  * Fundamental drawing support for Field.
@@ -37,14 +38,23 @@ public class Drawing extends Box {
 		public void draw(Drawing context);
 	}
 
-	static public final Dict.Prop<Collection<Drawer>> drawers = new Dict.Prop<>("drawers").type().toCannon()
-		    .doc("a collection of things that will draw inside the OpenGL paint context. Currently FrameDrawer & FLineInteraction plug into the window at this low level");
-	static public final Dict.Prop<Collection<Drawer>> glassDrawers = new Dict.Prop<>("glassDrawers").type().toCannon()
-		    .doc("a collection of things that will draw inside the OpenGL paint context. Currently FrameDrawer & FLineInteraction plug into the window at this low level");
-	static public final Dict.Prop<Drawing> drawing = new Dict.Prop<>("drawing").type().toCannon().doc("the Drawing plugin");
-	static public final Dict.Prop<Boolean> needRepaint = new Dict.Prop<>("_needRepaint").type().toCannon();
-	static public final Dict.Prop<Boolean> windowSpace= new Dict.Prop<>("windowSpace").type().toCannon()
-		    .doc("set to true to make this box stick to the viewport when it pans around");
+	static public final Dict.Prop<Collection<Drawer>> drawers = new Dict.Prop<>("drawers").type()
+											      .toCannon()
+											      .doc("a collection of things that will draw inside the OpenGL paint context. Currently FrameDrawer & FLineInteraction plug into the window at this low level");
+	static public final Dict.Prop<Collection<Drawer>> lateDrawers = new Dict.Prop<>("lateDrawers").type()
+												      .toCannon()
+												      .doc("a collection of things that will draw inside the OpenGL paint context, after everything else has drawn. Viewport plugs in at this level.");
+	static public final Dict.Prop<Collection<Drawer>> glassDrawers = new Dict.Prop<>("glassDrawers").type()
+													.toCannon()
+													.doc("a collection of things that will draw inside the OpenGL paint context. Currently FrameDrawer & FLineInteraction plug into the window at this low level");
+	static public final Dict.Prop<Drawing> drawing = new Dict.Prop<>("drawing").type()
+										   .toCannon()
+										   .doc("the Drawing plugin");
+	static public final Dict.Prop<Boolean> needRepaint = new Dict.Prop<>("_needRepaint").type()
+											    .toCannon();
+	static public final Dict.Prop<Vec2> windowSpace = new Dict.Prop<>("windowSpace").type()
+											.toCannon()
+											.doc("set to make this box stick to the viewport when it pans around. The value is a <code>Vec2(x,y)</code>. <code>x=0, y=0</code> pins the top left of this box to the top left of the window; similarly <code>x=1, y=1</code> pins the bottom right. ");
 
 	static {
 		IO.persist(windowSpace);
@@ -76,7 +86,7 @@ public class Drawing extends Box {
 
 	public Box install(Box root, String layerName) {
 		FieldBoxWindow window = root.first(Boxes.window)
-			    .orElseThrow(() -> new IllegalArgumentException(" can't draw a box hierarchy with no window to draw it in !"));
+					    .orElseThrow(() -> new IllegalArgumentException(" can't draw a box hierarchy with no window to draw it in !"));
 
 		GraphicsContext graphicsContext = window.getGraphicsContext();
 
@@ -112,19 +122,22 @@ public class Drawing extends Box {
 			    "	_output.w *= opacity;\n" +
 			    "}");
 
-		layer.shader.connect(new Uniform<Vec2>("translation", translation));
-		layer.shader.connect(new Uniform<Vec2>("scale", scale));
-		layer.shader.connect(new Uniform<Vec2>("bounds", () -> new Vec2(Window.getCurrentWidth(), Window.getCurrentHeight())));
-		layer.shader.connect(new Uniform<Float>("opacity", () -> opacity));
+		layer.shader.attach(new Uniform<Vec2>("translation", this::getTranslationRounded));
+		layer.shader.attach(new Uniform<Vec2>("scale", scale));
+		layer.shader.attach(new Uniform<Vec2>("bounds", () -> new Vec2(Window.getCurrentWidth(), Window.getCurrentHeight())));
+		layer.shader.attach(new Uniform<Float>("opacity", () -> opacity));
 
-		window.getCompositor().getLayer(layerName).getScene().connect(layer.shader);
+		window.getCompositor()
+		      .getLayer(layerName)
+		      .getScene()
+		      .attach(layer.shader);
 
 		BaseMesh line = BaseMesh.lineList(1, 1);
-		layer.shader.connect(line);
+		layer.shader.attach(line);
 		BaseMesh mesh = BaseMesh.triangleList(1, 1);
-		layer.shader.connect(mesh);
+		layer.shader.attach(mesh);
 		BaseMesh point = BaseMesh.pointList(1);
-		layer.shader.connect(point);
+		layer.shader.attach(point);
 
 		layer._mesh = new MeshBuilder(mesh);
 		layer._line = new MeshBuilder(line);
@@ -136,9 +149,17 @@ public class Drawing extends Box {
 
 		this.properties.put(drawing, this);
 
-		if (layerName.equals("__main__")) graphicsContext.preQueue.add(() -> drawNow(root));
+		if (layerName.equals("__main__")) {
+			graphicsContext.preQueue.add(() -> drawNow(root));
+			window.getCompositor()
+			      .getLayer(layerName)
+			      .getScene()
+			      .attach(100, (x) -> lateDrawNow(root));
+		}
+
 		return this;
 	}
+
 
 	public MeshBuilder getLine() {
 		return getLine("__main__");
@@ -179,7 +200,8 @@ public class Drawing extends Box {
 		Rect frame = (Rect) box.properties.get(Box.frame);
 		if (frame == null) return false;
 
-		Optional<Drawing> drawing = (Optional<Drawing>) box.find(Drawing.drawing, box.both()).findFirst();
+		Optional<Drawing> drawing = (Optional<Drawing>) box.find(Drawing.drawing, box.both())
+								   .findFirst();
 		if (!drawing.isPresent()) return false;
 
 		Object o = event.after;
@@ -187,7 +209,8 @@ public class Drawing extends Box {
 			Optional<Vec2> o2 = ((Window.HasPosition) o).position();
 			if (!o2.isPresent()) return false;
 
-			return frame.intersects(drawing.get().windowSystemToDrawingSystem(o2.get()));
+			return frame.intersects(drawing.get()
+						       .windowSystemToDrawingSystem(o2.get()));
 		}
 
 		return false;
@@ -209,6 +232,21 @@ public class Drawing extends Box {
 	}
 
 	/**
+	 * to convert between OpenGL / Box / Drawing coordinates and event / mouse / pixel coordinates.
+	 */
+	public Vec2 drawingSystemToWindowSystem(Vec2 window) {
+		double y = window.y;
+		double x = window.x;
+
+		x += translation.x;
+		y += translation.y;
+		x = x / scale.x;
+		y = y / scale.y;
+
+		return new Vec2(x, y);
+	}
+
+	/**
 	 * to convert between event / mouse / pixel coordinates and OpenGL / Box / Drawing delta's.
 	 */
 	public Vec2 windowSystemToDrawingSystemDelta(Vec2 windowDelta) {
@@ -222,23 +260,72 @@ public class Drawing extends Box {
 	}
 
 	boolean insideDrawing = false;
+	Vec2 lastDimensions = null;
+	Vec2 nextDimensions = null;
 
 	public void drawNow(Box root) {
 		Boolean q = root.properties.remove(needRepaint);
 		if (q == null || !q) return;
 
-		if (translationNext != null) {
-			updateWindowSpaceBoxes(translation, translationNext);
+		find(Boxes.window, both()).findFirst()
+					  .ifPresent(x -> {
+						  nextDimensions = new Vec2(x.getWidth(), x.getHeight());
+					  });
 
-			translation.x = translationNext.x;
-			translation.y = translationNext.y;
+		if (translationNext != null || (lastDimensions != null && !Util.safeEq(lastDimensions, nextDimensions))) {
+			updateWindowSpaceBoxes(translation, translationNext == null ? translation : translationNext, lastDimensions == null ? nextDimensions : lastDimensions, nextDimensions);
+
+			System.out.println(" translation :" + translation + " " + translationNext);
+
+			translation.x = (translationNext == null ? translation : translationNext).x;
+			translation.y = (translationNext == null ? translation : translationNext).y;
 			translationNext = null;
 		}
 
 		try (AutoCloseable ignored = closeable(bracketableList)) {
 			insideDrawing = true;
-			root.find(drawers, root.both()).collect(Collectors.toList()).stream().flatMap(x -> x.stream()).collect(Collectors.toList())
-				    .stream().forEach(x -> x.draw(this));
+			root.find(drawers, root.both())
+			    .collect(Collectors.toList())
+			    .stream()
+			    .flatMap(x -> x.stream()).collect(Collectors.toList()) // avoid concurrent modification
+				    .stream()
+				    .forEach(x -> x.draw(this));
+		} catch (Exception e) {
+			System.err.println(" exception thrown during drawing ");
+			e.printStackTrace();
+		} finally {
+			insideDrawing = false;
+		}
+
+		find(Boxes.window, both()).findFirst()
+					  .ifPresent(x -> {
+						  lastDimensions = new Vec2(x.getWidth(), x.getHeight());
+					  });
+
+
+	}
+
+	private void updateWindowSpaceBoxes(Vec2 was, Vec2 now) {
+		this.breadthFirst(both())
+		    .filter(x -> x.properties.isTrue(windowSpace, false))
+		    .forEach(box -> {
+			    Rect f = box.properties.get(Box.frame);
+			    f = new Rect(f.x, f.y, f.w, f.h);
+			    f.x = (float) (f.x + was.x - now.x);
+			    f.y = (float) (f.y + was.y - now.y);
+			    box.properties.put(Box.frame, f);
+		    });
+	}
+
+	private void lateDrawNow(Box root) {
+		try {
+			insideDrawing = true;
+			root.find(lateDrawers, root.both())
+			    .collect(Collectors.toList())
+			    .stream()
+			    .flatMap(x -> x.stream()).collect(Collectors.toList()) // avoid concurrent modification
+				    .stream()
+				    .forEach(x -> x.draw(this));
 		} catch (Exception e) {
 			System.err.println(" exception thrown during drawing ");
 			e.printStackTrace();
@@ -247,14 +334,25 @@ public class Drawing extends Box {
 		}
 	}
 
-	private void updateWindowSpaceBoxes(Vec2 was, Vec2 now) {
-		this.breadthFirst(both()).filter(x -> x.properties.isTrue(windowSpace, false)).forEach( box -> {
-			Rect f = box.properties.get(Box.frame);
-			f = new Rect(f.x, f.y,f.w, f.h);
-			f.x  = (float) (f.x + was.x - now.x);
-			f.y  = (float) (f.y + was.y - now.y);
-			box.properties.put(Box.frame, f);
-		});
+
+	private void updateWindowSpaceBoxes(Vec2 translation, Vec2 translationNext, Vec2 dimensions, Vec2 dimensionsNext) {
+		this.breadthFirst(both())
+		    .filter(x -> x.properties.get(windowSpace) != null)
+		    .forEach(box -> {
+
+			    Vec2 v = box.properties.get(windowSpace);
+
+			    Rect f = box.properties.get(Box.frame);
+			    f = new Rect(f.x, f.y, f.w, f.h);
+
+			    System.out.println(" translation :" + translation + " " + translationNext + " " + dimensions + " " + dimensionsNext);
+
+
+			    f.x = f.x + (translation.x + dimensionsNext.x * v.x) - (translationNext.x + dimensions.x * v.x);
+			    f.y = f.y + (translation.y + dimensionsNext.y * v.y) - (translationNext.y + dimensions.y * v.y);
+			    box.properties.put(Box.frame, f);
+		    });
+>>>>>>> b77ab9ef6e8dfdae1296bdc3df2d531bdc6a2a89
 	}
 
 	/**
@@ -269,8 +367,25 @@ public class Drawing extends Box {
 	 * call this to request a redraw at the next available animation cycle
 	 */
 	static public void dirty(Box b) {
-		b.find(Boxes.root, b.both()).findFirst().map(x -> x.properties.put(needRepaint, true));
-		b.find(Boxes.window, b.both()).findFirst().ifPresent(x -> x.requestRepaint());
+		b.find(Boxes.root, b.both())
+		 .findFirst()
+		 .map(x -> x.properties.put(needRepaint, true));
+		b.find(Boxes.window, b.both())
+		 .findFirst()
+		 .ifPresent(x -> x.requestRepaint());
+	}
+
+	/**
+	 * call this to request another 'n' redraws at the next and subsequent available animation cycle
+	 */
+	static public void dirty(Box b, int n) {
+		b.find(Boxes.root, b.both())
+		 .findFirst()
+		 .map(x -> x.properties.put(needRepaint, true));
+		b.find(Boxes.window, b.both())
+		 .findFirst()
+		 .ifPresent(x -> x.requestRepaint());
+		RunLoop.main.nTimes(() -> dirty(b), n);
 	}
 
 	public Vec2 getScale() {
@@ -279,6 +394,10 @@ public class Drawing extends Box {
 
 	public Vec2 getTranslation() {
 		return new Vec2(translation);
+	}
+
+	public Vec2 getTranslationRounded() {
+		return new Vec2((int) translation.x, (int) translation.y);
 	}
 
 	/**
@@ -294,7 +413,8 @@ public class Drawing extends Box {
 	 * returns the current draw coordinates that are visible inside the window
 	 */
 	public Rect getCurrentViewBounds(Box b) {
-		FieldBoxWindow window = b.first(Boxes.window, b.both()).get();
+		FieldBoxWindow window = b.first(Boxes.window, b.both())
+					 .get();
 		return new Rect(-translation.x, -translation.y, window.getWidth() * scale.x, window.getHeight() * scale.y);
 	}
 
@@ -304,28 +424,30 @@ public class Drawing extends Box {
 	static public void notify(String text, Box from, int dur) {
 		from.properties.putToMap(frameDrawing, "__notificationText__", expires(box -> {
 
-			Drawing d = from.first(drawing, from.both()).get();
+			Drawing d = from.first(drawing, from.both())
+					.get();
 			Rect view = d.getCurrentViewBounds(from);
 			FLine f = new FLine();
-			f.moveTo(view.x + view.w / 2, view.y + view.h / 2-10);
+			f.moveTo(view.x + view.w / 2, view.y + view.h / 2 - 10);
 			f.nodes.get(0).attributes.put(StandardFLineDrawing.text, text);
 			f.nodes.get(0).attributes.put(textScale, 4);
 			f.attributes.put(color, new Vec4(1, 1, 1, 1f));
 			f.attributes.put(hasText, true);
-			f.attributes.put(layer, "glass");
+			f.attributes.put(layer, "glass2");
 
 			return f;
 		}, (int) (dur), 0.05f));
 		from.properties.putToMap(frameDrawing, "__notificationMask__", expires(box -> {
 
-			Drawing d = from.first(drawing, from.both()).get();
+			Drawing d = from.first(drawing, from.both())
+					.get();
 			Rect view = d.getCurrentViewBounds(from);
 			FLine f = new FLine();
 			int w = 20;
 			int h = 60;
-			f.rect(view.x - w, view.y + view.h / 2 - h-10, view.w + w * 2, h+25);
+			f.rect(view.x - w, view.y + view.h / 2 - h - 10, view.w + w * 2, h + 25);
 			f.attributes.put(color, new Vec4(0, 0, 0, -0.8f));
-			f.attributes.put(layer, "glass");
+			f.attributes.put(layer, "glass2");
 			f.attributes.put(filled, true);
 			return f;
 		}, dur, 0.05f));

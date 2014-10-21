@@ -54,11 +54,11 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform {
 	 */
 	public void upload(ByteBuffer upload, boolean stream) {
 		pendingUploads.incrementAndGet();
-		connect(new Transient(() -> {
+		attach(new Transient(() -> {
 			pendingUploads.decrementAndGet();
 			State s = GraphicsContext.get(this, null);
 
-			Log.log("graphics.trace", "state for texture in upload is "+s);
+			Log.log("graphics.trace", "state for texture in upload is " + s);
 
 			if (s == null) return;
 

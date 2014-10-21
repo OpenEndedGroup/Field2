@@ -29,7 +29,7 @@ public class Dict implements Serializable {
 				prop = p;
 			} else if (p.isCannon() && prop.isCannon() && p != prop) {
 				// should be an Error?
-				System.err.println(" WARNING: two competing canonical definitions of a Prop");
+				System.err.println(" WARNING: two competing canonical definitions of a Prop <" + p + ">");
 				if (p.typeInformation != null && prop.typeInformation == null) {
 					cannon.put(p.name, p);
 					prop = p;
@@ -50,7 +50,12 @@ public class Dict implements Serializable {
 			return cannon.get(p.name);
 		}
 
+		static public <T> Prop<T> findCannon(String p) {
+			return cannon.get(p);
+		}
+
 	}
+
 
 	static public class Prop<T> implements Serializable {
 		String name;
@@ -60,6 +65,9 @@ public class Dict implements Serializable {
 		private List<Class> typeInformation;
 		private Class definedInClass;
 		private String documentation;
+
+		public Supplier<T> autoConstructor;
+
 
 		public Prop(String name) {
 			this.name = name;
@@ -156,6 +164,11 @@ public class Dict implements Serializable {
 			return (Prop<T>) this;
 		}
 
+		public <T> Prop<T> autoConstructs(Supplier<T> t) {
+			this.autoConstructor = (Supplier) t;
+			return (Prop<T>) this;
+		}
+
 		public List<Class> getTypeInformation() {
 			return typeInformation == null ? null : new ArrayList<Class>(typeInformation);
 		}
@@ -165,10 +178,19 @@ public class Dict implements Serializable {
 		}
 	}
 
-	Map<Prop, Object> dictionary = new MapMaker().concurrencyLevel(2).makeMap();
+	Map<Prop, Object> dictionary = new MapMaker().concurrencyLevel(2)
+						     .makeMap();
 
 	@SuppressWarnings("unchecked")
 	public <T> T get(Prop<T> key) {
+		return (T) dictionary.get(key);
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> T getOrConstruct(Prop<T> key) {
+		if (key.findCannon().autoConstructor != null) {
+			return (T) dictionary.computeIfAbsent(key, k -> key.findCannon().autoConstructor.get());
+		}
 		return (T) dictionary.get(key);
 	}
 
@@ -201,7 +223,10 @@ public class Dict implements Serializable {
 	public Dict duplicate() {
 		Dict r = new Dict();
 
-		r.dictionary = new LinkedHashMap<Prop, Object>(dictionary);
+		r.dictionary = new LinkedHashMap<Prop, Object>(dictionary.size());
+		for (Map.Entry<Prop, Object> e : dictionary.entrySet()) {
+			r.dictionary.put(e.getKey(), e.getValue() instanceof Mutable ? ((Mutable) e.getValue()).duplicate() : e.getValue());
+		}
 		return r;
 	}
 
@@ -268,7 +293,7 @@ public class Dict implements Serializable {
 		for (Map.Entry<Prop, Object> e : d.dictionary.entrySet()) {
 			Object was = get(e.getKey());
 			put(e.getKey(), e.getValue());
-			if (was != null) r.put(e.getKey(), was);
+			if (was != null) r.put(e.getKey(), was instanceof Mutable ? ((Mutable) was).duplicate() : was);
 		}
 		return r;
 	}
@@ -281,7 +306,7 @@ public class Dict implements Serializable {
 			if (!dictionary.containsKey(e.getKey())) put(e.getKey(), e.getValue());
 			else {
 				Object r = collision.apply(e.getKey(), dictionary.get(e.getKey()), e.getValue());
-				if (r != null) put(e.getKey(), r);
+				if (r != null) put(e.getKey(), r instanceof Mutable ? ((Mutable) r).duplicate() : r);
 			}
 		}
 		return this;
@@ -295,7 +320,7 @@ public class Dict implements Serializable {
 		for (Map.Entry<Prop, Object> e : d.dictionary.entrySet()) {
 
 			if (filter.apply(e.getKey())) {
-				put(e.getKey(), e.getValue());
+				put(e.getKey(), e.getValue() instanceof Mutable ? ((Mutable) e.getValue()).duplicate() : e.getValue());
 			}
 		}
 		return this;
@@ -303,15 +328,41 @@ public class Dict implements Serializable {
 
 
 	public <T> Dict putToList(Prop<? extends Collection<T>> key, T value) {
-		Collection<T> c = (Collection<T>) dictionary.computeIfAbsent(key, (k) -> new ArrayList<T>());
-		c.add(value);
-		return this;
+
+		if (key.toCannon().autoConstructor != null) {
+			Collection<T> c = (Collection<T>) dictionary.computeIfAbsent(key, (k) -> key.toCannon().autoConstructor.get());
+			c.add(value);
+			return this;
+		} else {
+			Collection<T> c = (Collection<T>) dictionary.computeIfAbsent(key, (k) -> new ArrayList<T>());
+			c.add(value);
+			return this;
+		}
+	}
+
+	public <T> Dict putToListMap(Prop<? extends LinkedHashMapAndArrayList<T>> key, T value) {
+
+		if (key.toCannon().autoConstructor != null) {
+			Collection<T> c = (Collection<T>) dictionary.computeIfAbsent(key, (k) -> key.toCannon().autoConstructor.get());
+			c.add(value);
+			return this;
+		} else {
+			Collection<T> c = (Collection<T>) dictionary.computeIfAbsent(key, (k) -> new ArrayList<T>());
+			c.add(value);
+			return this;
+		}
 	}
 
 	public <K, T> Dict putToMap(Prop<? extends Map<String, T>> key, K tok, T value) {
-		Map<K, T> c = (Map<K, T>) dictionary.computeIfAbsent(key, (k) -> new LinkedHashMap<K, T>());
-		c.put(tok, value);
-		return this;
+		if (key.toCannon().autoConstructor != null) {
+			Map<K, T> c = (Map<K, T>) dictionary.computeIfAbsent(key, (k) -> key.toCannon().autoConstructor.get());
+			c.put(tok, value);
+			return this;
+		} else {
+			Map<K, T> c = (Map<K, T>) dictionary.computeIfAbsent(key, (k) -> new IdempotencyMap<T>(null));
+			c.put(tok, value);
+			return this;
+		}
 	}
 
 	public <K, T> T getFromMap(Prop<? extends Map<String, T>> key, K tok) {
@@ -358,8 +409,7 @@ public class Dict implements Serializable {
 		Set<Entry<Prop, Object>> e = dictionary.entrySet();
 		for (Entry<Prop, Object> ee : e) {
 			if (!ex.contains(ee.getKey().name))
-				start = start * 31L + (long) (/*ee.getValue() instanceof PyObject ? System.identityHashCode(ee.getValue()) :*/ ee
-					    .hashCode());
+				start = start * 31L + (long) (/*ee.getValue() instanceof PyObject ? System.identityHashCode(ee.getValue()) :*/ ee.hashCode());
 		}
 		return start;
 	}
@@ -373,7 +423,8 @@ public class Dict implements Serializable {
 		Iterator<Entry<Prop, Object>> is = es.iterator();
 		while (is.hasNext()) {
 			Entry<Prop, Object> n = is.next();
-			if (n.getValue().equals(c)) is.remove();
+			if (n.getValue()
+			     .equals(c)) is.remove();
 		}
 	}
 

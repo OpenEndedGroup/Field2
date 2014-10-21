@@ -5,8 +5,9 @@ import field.graphics.RunLoop;
 import field.linalg.Vec4;
 import field.utility.*;
 import fieldbox.boxes.*;
+import fieldbox.execution.Completion;
 import fieldbox.io.IO;
-import fielded.Execution;
+import fieldbox.execution.Execution;
 import fielded.RemoteEditor;
 
 import java.util.Collections;
@@ -16,7 +17,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import static fieldbox.boxes.StandardFLineDrawing.*;
+import static field.graphics.StandardFLineDrawing.*;
 import static fieldbox.boxes.FLineDrawing.*;
 
 
@@ -191,13 +192,13 @@ public class BridgeToTextEditor extends Box {
 				}
 
 				@Override
-				public void completion(String allText, int line, int ch, Consumer<List<Execution.Completion>> results) {
+				public void completion(String allText, int line, int ch, Consumer<List<Completion>> results) {
 					tern.completion(x -> delegateTo.sendJavaScript(x), "remoteFieldProcess", allText, line, ch);
 					results.accept(Collections.emptyList());
 				}
 
 				@Override
-				public void imports(String allText, int line, int ch, Consumer<List<Execution.Completion>> results) {
+				public void imports(String allText, int line, int ch, Consumer<List<Completion>> results) {
 				}
 
 				@Override

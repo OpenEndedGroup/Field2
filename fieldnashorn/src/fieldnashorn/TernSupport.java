@@ -3,7 +3,8 @@ package fieldnashorn;
 import field.utility.Log;
 import field.utility.Pair;
 import fieldbox.boxes.Box;
-import fielded.Execution;
+import fieldbox.execution.Completion;
+import fieldbox.execution.JavaSupport;
 import jdk.internal.dynalink.beans.StaticClass;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 
@@ -74,8 +75,8 @@ public class TernSupport {
 		}).start();
 	}
 
-	public List<Execution.Completion> completion(String boxName, String allText, int line, int ch) {
-		List<Execution.Completion> r = new ArrayList<>();
+	public List<Completion> completion(String boxName, String allText, int line, int ch) {
+		List<Completion> r = new ArrayList<>();
 
 
 		try {
@@ -85,9 +86,9 @@ public class TernSupport {
 				    "files:[{type:\"full\",name:\"" + boxName + ".js\",text:__someFile}]},\n" +
 				    "	function (e,r){\n" +
 				    "		for(var i=0;i<r.completions.length;i++)" +
-				    "			__completions.add(new fielded.Execution.Completion(r.start, r.end, r.completions[i].name, '<span class=type>'+r.completions[i].type.replace('->','&rarr;')+'&nbsp;&mdash;&nbsp;</span><span class=doc>'+r.completions[i].doc+'</span>'))" +
+				    "			__completions.add(new fieldbox.execution.Completion(r.start, r.end, r.completions[i].name, '<span class=type>'+r.completions[i].type.replace('->','&rarr;')+'&nbsp;&mdash;&nbsp;</span><span class=doc>'+r.completions[i].doc+'</span>'))" +
 				    "	})");
-			r.addAll((ArrayList<Execution.Completion>) engine.get("__completions"));
+			r.addAll((ArrayList<Completion>) engine.get("__completions"));
 
 			Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
 			Log.log("completion.debug", () -> {
@@ -151,9 +152,9 @@ public class TernSupport {
 						    .eval("_v=[]; _p = {}; Object.bindProperties(_p, _e); for(var _k in _p) _v.push(_k); Java.to(_v)");
 					Log.log("completion.debug", " auto eval completion got :" + Arrays.asList(retae));
 				} else if (e instanceof Box) {
-					e = new UnderscoreBox((Box) e);
-					List<Execution.Completion> fromJava = javaSupport.getCompletionsFor(e, right);
-					for (Execution.Completion x : fromJava) {
+//					e = new UnderscoreBox((Box) e);
+					List<Completion> fromJava = javaSupport.getCompletionsFor(e, right);
+					for (Completion x : fromJava) {
 						if (x.start == -1) x.start = c - right.length();
 						if (x.end == -1) x.end = c;
 					}
@@ -163,9 +164,9 @@ public class TernSupport {
 					e = ((StaticClass) e).getRepresentedClass();
 
 					Log.log("completion.debug", " asking java for completions for CLASS " + e);
-					List<Execution.Completion> fromJava = javaSupport.getCompletionsFor(e, right);
+					List<Completion> fromJava = javaSupport.getCompletionsFor(e, right);
 					Log.log("completion.debug", " got completions :" + fromJava);
-					for (Execution.Completion x : fromJava) {
+					for (Completion x : fromJava) {
 						if (x.start == -1) x.start = c - right.length();
 						if (x.end == -1) x.end = c;
 					}
@@ -173,9 +174,9 @@ public class TernSupport {
 					r.addAll(fromJava);
 				} else {
 					Log.log("completion.debug", " asking java for completions for " + e);
-					List<Execution.Completion> fromJava = javaSupport.getCompletionsFor(e, right);
+					List<Completion> fromJava = javaSupport.getCompletionsFor(e, right);
 					Log.log("completion.debug", " got completions :" + fromJava);
-					for (Execution.Completion x : fromJava) {
+					for (Completion x : fromJava) {
 						if (x.start == -1) x.start = c - right.length();
 						if (x.end == -1) x.end = c;
 					}
@@ -195,8 +196,8 @@ public class TernSupport {
 		return r;
 	}
 
-	public List<Execution.Completion> imports(String boxName, String allText, int line, int ch) {
-		List<Execution.Completion> r = new ArrayList<>();
+	public List<Completion> imports(String boxName, String allText, int line, int ch) {
+		List<Completion> r = new ArrayList<>();
 
 		try {
 			engine.put("__someFile", allText);
@@ -241,7 +242,7 @@ public class TernSupport {
 				for (Pair<String, String> p : possibleJavaClassesFor) {
 					int tail = p.first.lastIndexOf(".");
 
-					Execution.Completion ex = new Execution.Completion(c - left.length(), c, p.first
+					Completion ex = new Completion(c - left.length(), c, p.first
 						    .substring(tail + 1), p.second);
 					ex.header = "var " + p.first.substring(tail + 1) + " = Java.type('" + p.first + "')";
 					r.add(ex);

@@ -2,26 +2,19 @@ package fielded.plugins;
 
 import field.utility.Log;
 import fieldagent.Main;
-import fieldbox.boxes.Box;
-import fielded.Execution;
+import fieldbox.execution.Completion;
 import fielded.ServerSupport;
-import fieldnashorn.UnderscoreBox;
-import jdk.internal.dynalink.beans.StaticClass;
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
-import org.json.JSONString;
 import org.json.JSONStringer;
-import org.json.JSONWriter;
 
-import javax.script.Bindings;
-import javax.script.ScriptContext;
-import javax.script.ScriptException;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -30,10 +23,11 @@ import java.util.stream.Collectors;
 public class BridgedTernSupport {
 
 	public void inject(Consumer<String> engine) {
-		List<String> s = Arrays
-			    .asList(new String[]{"acorn.js", "acorn_loose.js", "walk.js", "defs.js", "signal.js", "infer.js", "tern.js", "comment.js", "condense.js"});
+		List<String> s = Arrays.asList(new String[]{"acorn.js", "acorn_loose.js", "walk.js", "defs.js", "signal.js", "infer.js", "tern.js", "comment.js", "condense.js"});
 
-		Collection<File> f = s.stream().map(x -> new File(fieldagent.Main.app + "/fielded/external/tern/" + x)).collect(Collectors.toList());
+		Collection<File> f = s.stream()
+				      .map(x -> new File(fieldagent.Main.app + "/fielded/external/tern/" + x))
+				      .collect(Collectors.toList());
 
 		engine.accept("self = {}");
 		engine.accept("self.tern = {}");
@@ -50,15 +44,16 @@ public class BridgedTernSupport {
 		engine.accept("delete __ecma5json");
 
 
-
-		for(String name : ServerSupport.playlist)
-		{
+		for (String name : ServerSupport.playlist) {
 			JSONStringer j = new JSONStringer();
 			Log.log("TERN", " quoting ");
 
-			j.object().key("at").value(readFile(Main.app+"/fielded/internal/"+name)).endObject();
+			j.object()
+			 .key("at")
+			 .value(readFile(Main.app + "/fielded/internal/" + name))
+			 .endObject();
 
-			Log.log("TERN", " injecting code mirror source file <"+name+">");
+			Log.log("TERN", " injecting code mirror source file <" + name + ">");
 			engine.accept("self.ternServer.addFile('" + name + "', " + j.toString() + ".at)");
 
 		}
@@ -81,13 +76,14 @@ public class BridgedTernSupport {
 		return "";
 	}
 
-	public List<Execution.Completion> completion(Consumer<String> engine, String boxName, String allText, int line, int ch) {
-		List<Execution.Completion> r = new ArrayList<>();
+	public List<Completion> completion(Consumer<String> engine, String boxName, String allText, int line, int ch) {
+		List<Completion> r = new ArrayList<>();
 
 
 		JSONStringer s = new JSONStringer();
 		s.object();
-		s.key("at").value(allText);
+		s.key("at")
+		 .value(allText);
 		s.endObject();
 
 		engine.accept("__someFile=" + s.toString() + ".at");

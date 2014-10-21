@@ -13,10 +13,11 @@ import static org.lwjgl.opengl.GL30.*;
  * A Frame Buffer Object is a very general off-screen rendering spot for OpenGL. You can create an FBO from an FBOSpecification (there are helper
  * static methods to help you avoid the mess of historic OpenGL enums, we'll grow these as necessary). They can have multiple layers, optional depth
  * buffers, optional stencils, multisampling, a variety of components and bit-depths and dimensions.
- *
+ * <p>
  * TODO: right now we're confined to the GL_TEXTURE2D case, although we know from experience that they layered case is very useful for stereo
  */
 public class FBO extends BaseScene<FBO.State> implements Scene.Perform {
+
 
 	static public class State extends BaseScene.Modifiable {
 		int name = -1;
@@ -69,7 +70,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform {
 
 	public final FBOSpecification specification;
 
-	public final Scene display = new Scene();
+	public Scene display = new Scene();
 
 	public FBO(FBOSpecification specification) {
 		this.specification = specification;
@@ -144,6 +145,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform {
 		State s = GraphicsContext.get(this, this::setup);
 		glBindFramebuffer(GL_FRAMEBUFFER, specification.multisample ? s.multisample : s.name);
 		glViewport(0, 0, specification.width, specification.height);
+		glScissor(0, 0, specification.width, specification.height);
 		display.updateAll();
 		if (specification.multisample) {
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, s.multisample);
@@ -161,6 +163,10 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform {
 
 	public Scene scene() {
 		return display;
+	}
+
+	public void setScene(Scene d) {
+		this.display = d;
 	}
 
 

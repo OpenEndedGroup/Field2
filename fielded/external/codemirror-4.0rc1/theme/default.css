@@ -2,7 +2,7 @@
 #multi.theme-default .tabset.active .list .active { color:var(highlight-fg); }
 #multi.theme-default .tabset.active .list .dirty { color:var(accent-foreground); }
 
-.cm-s-default { background: var(multi); color:var(fg); }
+.cm-s-default { background: #eee; color: #eee; }
 
 .cm-s-default span.cm-bracket {color: #aaa;}
 .cm-s-default span.cm-bracket1 {color: #aaa; }

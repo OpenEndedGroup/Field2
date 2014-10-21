@@ -7,7 +7,7 @@ package field.graphics;
  * 1. a setup() method called once and then 2. an upload() method called if and only if something has changed 3. a perform0() method called each
  * update cycle 4. optionally a perform1() method called at a later point in the update cycle
  * <p>
- * there's a type parameter <t_state extends BaseScene.Modifiable> that keeps track of that "something" in "someting has changed". It's returned by
+ * there's a type parameter <t_state extends BaseScene.Modifiable> that keeps track of that "something" in "something has changed". It's returned by
  * the setup method and passed into upload().
  */
 public abstract class BaseScene<t_state extends BaseScene.Modifiable> extends Scene implements Scene.Perform {
@@ -49,7 +49,7 @@ public abstract class BaseScene<t_state extends BaseScene.Modifiable> extends Sc
 	}
 
 	/**
-	 * it is the caller's responisbility to ensure that this is called per context. To do so, you can wrap all calls to this in
+	 * it is the caller's responsibility to ensure that this is called per context. To do so, you can wrap all calls to this in
 	 * GraphicsContext.preQueueInAllContexts(() -> ... and GraphicsContext.get(this, () -> ... )
 	 */
 	protected abstract t_state setup();

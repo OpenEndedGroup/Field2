@@ -1,12 +1,15 @@
 package fielded;
 
 import field.graphics.FLine;
+import field.graphics.StandardFLineDrawing;
 import field.linalg.Vec2;
 import field.linalg.Vec4;
 import field.message.MessageQueue;
 import field.utility.*;
 import fieldbox.FieldBox;
 import fieldbox.boxes.*;
+import fieldbox.execution.Completion;
+import fieldbox.execution.Execution;
 import fieldbox.io.IO;
 import fielded.webserver.RateLimitingQueue;
 import fielded.webserver.Server;
@@ -23,8 +26,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static fieldbox.boxes.FLineDrawing.*;
-import static fieldbox.boxes.StandardFLineDrawing.filled;
-import static fieldbox.boxes.StandardFLineDrawing.stroked;
+import static field.graphics.StandardFLineDrawing.filled;
+import static field.graphics.StandardFLineDrawing.stroked;
 
 /**
  * connects to that WebSocket and does things via those message buses
@@ -164,7 +167,11 @@ public class RemoteEditor extends Box {
 
 			Optional<Box> box = findBoxByID(p.getString("box"));
 
-			if (!box.isPresent()) System.err.println(" remote editor is talking about a box that isn't anywhere <" + p + ">");
+			if (!box.isPresent())
+			{
+				Log.log("remote.cookie", " remote editor is talking about a box that isn't anywhere <" + p + ">");
+				return payload;
+			}
 
 			String prop = p.getString("property");
 
@@ -394,7 +401,7 @@ public class RemoteEditor extends Box {
 
 				JSONStringer stringer = new JSONStringer();
 				stringer.array();
-				for (Execution.Completion res : responses) {
+				for (Completion res : responses) {
 					stringer.object();
 					stringer.key("start")
 						.value(res.start);
@@ -441,7 +448,7 @@ public class RemoteEditor extends Box {
 
 				JSONStringer stringer = new JSONStringer();
 				stringer.array();
-				for (Execution.Completion res : responses) {
+				for (Completion res : responses) {
 					stringer.object();
 					stringer.key("start")
 						.value(res.start);
@@ -871,6 +878,7 @@ public class RemoteEditor extends Box {
 				Box target = selection.iterator()
 						      .next();
 
+
 				Dict.Prop objectProp = target.find(defaultEditorProperty, target.upwards())
 							     .findFirst()
 							     .map(x -> (Dict.Prop) new Dict.Prop<String>(x).toCannon())
@@ -879,7 +887,8 @@ public class RemoteEditor extends Box {
 
 				Log.log("remoteeditor", " looking for a defaultEditorProperty on <" + target + "> <" + target.properties.get(defaultEditorProperty) + ">, got <" + objectProp + ">");
 
-				changeSelection(target, objectProp);
+				if (!(target==currentSelection && objectProp.equals(currentlyEditing)))
+					changeSelection(target, objectProp);
 			}
 		}
 		return true;

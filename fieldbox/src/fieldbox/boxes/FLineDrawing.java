@@ -3,7 +3,7 @@ package fieldbox.boxes;
 
 import field.graphics.FLine;
 import field.graphics.MeshBuilder;
-import static fieldbox.boxes.StandardFLineDrawing.*;
+import field.graphics.StandardFLineDrawing;
 import field.linalg.Vec2;
 import field.linalg.Vec3;
 import field.linalg.Vec4;
@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+
+import static field.graphics.StandardFLineDrawing.*;
 
 /**
  * Fundamental drawing support for Boxes
@@ -42,7 +44,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 	static public final Dict.Prop<Map<String, Function<Box, FLine>>> frameDrawing = new Dict.Prop<>("frameDrawing").type().toCannon()
 		    .doc("Functions that compute lines to be drawn along with this box");
 	static public final Dict.Prop<LinkedHashMapAndArrayList<Supplier<FLine>>> lines = new Dict.Prop<>("lines").type().toCannon()
-		    .doc("Geometry to be drawn along with this box");
+		    .doc("Geometry to be drawn along with this box").autoConstructs( () -> new LinkedHashMapAndArrayList<>());
 
 	static public final Dict.Prop<Boolean> dirty = new Dict.Prop<>("dirty").type().toCannon()
 		    .doc("set _.dirty=1 to cause a repaint of the window on the next animation cycle");
@@ -51,11 +53,11 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 	static public final Dict.Prop<String> layer = new Dict.Prop<>("layer").type().toCannon()
 		    .doc("which layer to draw to? Defaults to __main__, the other alternative right now is 'glass' to draw on the blur layer above Field");
 
-	public FLineDrawing() {
+	public FLineDrawing(Box root) {
 		this.properties.putToList(Drawing.drawers, this);
 
 		// allow things like _.dirty=1 to cause redraw next frame
-		this.first(Watches.watches).map(w -> w.addWatch(dirty, (x) -> {
+		root.first(Watches.watches).map(w -> w.addWatch(dirty, (x) -> {
 			if (Util.truthy(x.third)) {
 				x.second.properties.remove(x.first);
 				Drawing.dirty(x.second);

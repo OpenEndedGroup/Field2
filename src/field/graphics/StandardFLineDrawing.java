@@ -1,15 +1,13 @@
-package fieldbox.boxes;
+package field.graphics;
 
-import field.graphics.FLine;
-import field.graphics.MeshBuilder;
 import field.linalg.Vec2;
 import field.linalg.Vec4;
 import field.utility.Dict;
 import field.utility.Log;
+import fieldbox.boxes.TextDrawing;
 
 import java.awt.*;
-import java.awt.List;
-import java.util.*;
+import java.util.Optional;
 
 /**
  * Class that encapsulates the standard interpretation of FLine -> MeshBuilder (in particular the standard interpretation of the properties)
@@ -52,7 +50,7 @@ public class StandardFLineDrawing {
 		    .doc("a list of color spans for doing multi-color, multi-font runs of text");
 
 
-	static protected void dispatchLine(FLine fline, MeshBuilder mesh, MeshBuilder line, MeshBuilder points, Optional<TextDrawing> ot, String layerName) {
+	static public void dispatchLine(FLine fline, MeshBuilder mesh, MeshBuilder line, MeshBuilder points, Optional<TextDrawing> ot, String layerName) {
 
 		Log.log("drawing.trace", "dispatching line :" + fline);
 
@@ -65,21 +63,24 @@ public class StandardFLineDrawing {
 		fc.w *= op;
 		pc.w *= op;
 
-		line.aux(1, sc);
-		mesh.aux(1, fc);
-		points.aux(1, pc);
+		if (line!=null)
+			line.aux(1, sc);
+		if (mesh!=null)
+			mesh.aux(1, fc);
+		if (points!=null)
+			points.aux(1, pc);
 
 		BasicStroke s = fline.attributes.getOr(thicken, () -> null);
-		if (s != null) {
+		if (s != null && mesh!=null) {
 			mesh.aux(1, sc);
 			fline.renderLineToMeshByStroking(mesh, 20, s);
 			mesh.aux(1, fc);
 		} else {
-			if (fline.attributes.isTrue(stroked, true)) fline.renderToLine(line, 20);
+			if (fline.attributes.isTrue(stroked, true) && line!=null) fline.renderToLine(line, 20);
 		}
-		if (fline.attributes.isTrue(filled, false)) fline.renderToMesh(mesh, 20);
-		if (fline.attributes.isTrue(pointed, false)) fline.renderToPoints(points, 20);
-		if (fline.attributes.isTrue(hasText, false)) {
+		if (fline.attributes.isTrue(filled, false) && mesh!=null) fline.renderToMesh(mesh, 20);
+		if (fline.attributes.isTrue(pointed, false) && points!=null) fline.renderToPoints(points, 20);
+		if (fline.attributes.isTrue(hasText, false) && ot.isPresent()) {
 			fline.nodes.stream().filter(node -> node.attributes.has(text)).forEach(node -> {
 				String textToDraw = node.attributes.get(text);
 				float textScale = node.attributes.getFloat(StandardFLineDrawing.textScale, 1f) * 0.2f;

@@ -1,41 +1,54 @@
 package fieldbox.boxes.plugins;
 
 import field.graphics.FLine;
+import field.linalg.Vec2;
 import field.linalg.Vec4;
-import field.utility.Cached;
-import field.utility.Pair;
-import field.utility.Rect;
+import field.utility.*;
 import fieldbox.boxes.*;
 import fieldbox.ui.FieldBoxWindow;
 
-import static fieldbox.boxes.StandardFLineDrawing.color;
-import static fieldbox.boxes.StandardFLineDrawing.hasText;
-import static fieldbox.boxes.StandardFLineDrawing.text;
-import static fieldbox.boxes.StandardFLineDrawing.filled;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
+import static field.graphics.StandardFLineDrawing.*;
 
 /**
  * Created by marc on 8/8/14.
  */
 public class StatusBar extends Box {
 
+	static public Dict.Prop<StatusBar> statusBar = new Dict.Prop<StatusBar>("statusBar").type()
+											    .toCannon()
+											    .doc("The status-bar plugin");
+	static public Dict.Prop<Map<String, Supplier<String>>> statuses = new Dict.Prop<>("statuses").type()
+												     .toCannon()
+												     .autoConstructs(() -> new IdempotencyMap<>(Supplier.class))
+												     .doc("Add things here to the status bar, and call <code>_.statusBar.update()</code> to update/repaint");
 	int insetW = 10;
-	int insetH = 15;
+	int insetH = 10;
 	int height = 25;
 
-	public StatusBar(Box b)
-	{
+	public StatusBar(Box b) {
+
+		this.properties.put(statusBar, this);
+
+
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__updateStatusBarWidth__", () -> {
 
 			float w = this.properties.get(Box.frame).w;
 
-			FieldBoxWindow window = find(Boxes.window, both()).findFirst().get();
-			Drawing drawing = find(Drawing.drawing, both()).findFirst().get();
+			FieldBoxWindow window = find(Boxes.window, both()).findFirst()
+									  .get();
+			Drawing drawing = find(Drawing.drawing, both()).findFirst()
+								       .get();
 
 
-			float w2 = window.getWidth()-insetW*2;
+			float w2 = window.getWidth() - insetW * 2;
 
-			if (Math.abs(w-w2)>1)
-			{
+			if (Math.abs(w - w2) > 1) {
 				this.properties.get(Box.frame).w = w2;
 				Drawing.dirty(this);
 			}
@@ -55,7 +68,7 @@ public class StatusBar extends Box {
 			return true;
 		});
 
-		this.properties.put(Drawing.windowSpace, true);
+		this.properties.put(Drawing.windowSpace, new Vec2(0,1));
 
 		this.properties.put(Box.frame, new Rect(insetW, 0, 10, height));
 
@@ -91,10 +104,43 @@ public class StatusBar extends Box {
 			return f;
 		}, (box) -> new Pair(box.properties.get(frame), statusText())));
 
+
+		b.find(Watches.watches, both()).findFirst()
+					     .ifPresent(x -> x.addWatch(statuses, q -> {
+						     update();
+					     }));
 	}
+
+	String statusText = "";
 
 	private String statusText() {
-		return "-";
+		return statusText;
 	}
 
+
+	public void update() {
+		String s = "";
+		List<Map<String, Supplier<String>>> maps = breadthFirst(both()).filter(x -> x.properties.get(statuses) != null)
+									       .map(x -> x.properties.get(statuses))
+									       .collect(Collectors.toList());
+		for (Map<String, Supplier<String>> m : maps) {
+			Iterator<Map.Entry<String, Supplier<String>>> ii = m.entrySet()
+									    .iterator();
+			while (ii.hasNext()) {
+				String q = ii.next()
+					     .getValue()
+					     .get();
+				if (q == null) ii.remove();
+				else s += " " + q;
+			}
+		}
+
+		s = s.trim();
+
+		if (!statusText.equals(s)) {
+			statusText = s;
+			Drawing.dirty(this);
+		}
+
+	}
 }
