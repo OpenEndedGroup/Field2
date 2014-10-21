@@ -197,8 +197,8 @@ public class Drawing extends Box {
 	 * to convert between event / mouse / pixel coordinates and OpenGL / Box / Drawing coordinates.
 	 */
 	public Vec2 windowSystemToDrawingSystem(Vec2 window) {
-		float y = /*Window.getCurrentHeight() -*/ window.y;
-		float x = window.x;
+		double y = /*Window.getCurrentHeight() -*/ window.y;
+		double x = window.x;
 
 		x = x * scale.x;
 		y = y * scale.y;
@@ -212,8 +212,8 @@ public class Drawing extends Box {
 	 * to convert between event / mouse / pixel coordinates and OpenGL / Box / Drawing delta's.
 	 */
 	public Vec2 windowSystemToDrawingSystemDelta(Vec2 windowDelta) {
-		float y = /*-*/windowDelta.y;
-		float x = windowDelta.x;
+		double y = /*-*/windowDelta.y;
+		double x = windowDelta.x;
 
 		x = x * scale.x;
 		y = y * scale.y;
@@ -251,8 +251,8 @@ public class Drawing extends Box {
 		this.breadthFirst(both()).filter(x -> x.properties.isTrue(windowSpace, false)).forEach( box -> {
 			Rect f = box.properties.get(Box.frame);
 			f = new Rect(f.x, f.y,f.w, f.h);
-			f.x  = f.x + was.x - now.x;
-			f.y  = f.y + was.y - now.y;
+			f.x  = (float) (f.x + was.x - now.x);
+			f.y  = (float) (f.y + was.y - now.y);
 			box.properties.put(Box.frame, f);
 		});
 	}

@@ -156,11 +156,11 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 
 	static public float[][] rewriteToFloatMatrix(Object t) {
 
-		if (t instanceof Mat2) return new float[][]{{((Mat2) t).m00, ((Mat2) t).m10}, {((Mat2) t).m01, ((Mat2) t).m11}};
+		if (t instanceof Mat2) return new float[][]{{(float)((Mat2) t).m00, (float)((Mat2) t).m10}, {(float)((Mat2) t).m01, (float)((Mat2) t).m11}};
 		if (t instanceof Mat3)
-			return new float[][]{{((Mat3) t).m00, ((Mat3) t).m10, ((Mat3) t).m20}, {((Mat3) t).m01, ((Mat3) t).m11, ((Mat3) t).m21}, {((Mat3) t).m02, ((Mat3) t).m12, ((Mat3) t).m22}};
+			return new float[][]{{(float)((Mat3) t).m00, (float)((Mat3) t).m10, (float)((Mat3) t).m20}, {(float)((Mat3) t).m01, (float)((Mat3) t).m11, (float)((Mat3) t).m21}, {(float)((Mat3) t).m02, (float)((Mat3) t).m12, (float)((Mat3) t).m22}};
 		if (t instanceof Mat4)
-			return new float[][]{{((Mat4) t).m00, ((Mat4) t).m10, ((Mat4) t).m20, ((Mat4) t).m30}, {((Mat4) t).m01, ((Mat4) t).m11, ((Mat4) t).m21, ((Mat4) t).m31}, {((Mat4) t).m02, ((Mat4) t).m12, ((Mat4) t).m22, ((Mat4) t).m32}, {((Mat4) t).m03, ((Mat4) t).m13, ((Mat4) t).m23, ((Mat4) t).m33}};
+			return new float[][]{{(float)((Mat4) t).m00, (float)((Mat4) t).m10, (float)((Mat4) t).m20, (float)((Mat4) t).m30}, {(float)((Mat4) t).m01, (float)((Mat4) t).m11, (float)((Mat4) t).m21, (float)((Mat4) t).m31}, {(float)((Mat4) t).m02, (float)((Mat4) t).m12, (float)((Mat4) t).m22, (float)((Mat4) t).m32}, {(float)((Mat4) t).m03, (float)((Mat4) t).m13, (float)((Mat4) t).m23, (float)((Mat4) t).m33}};
 
 		return null;
 	}

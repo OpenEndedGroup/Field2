@@ -12,11 +12,11 @@ public class Rect implements Mutable<Rect> {
 	public float w;
 	public float h;
 
-	public Rect(float x,  float y, float w, float h) {
-		this.x = x;
-		this.y = y;
-		this.h = h;
-		this.w = w;
+	public Rect(double x,  double y, double w, double h) {
+		this.x = (float)x;
+		this.y = (float)y;
+		this.h = (float)h;
+		this.w = (float)w;
 	}
 
 	public static Rect union(Rect r, Rect rect) {

@@ -1,7 +1,7 @@
 package field.linalg;
 
 import java.io.Serializable;
-import java.nio.FloatBuffer;
+import java.nio.DoubleBuffer;
 
 /**
  * Created by marc on 3/12/14.
@@ -10,7 +10,7 @@ public class Mat2 implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	public float m00, m01, m10, m11;
+	public double m00, m01, m10, m11;
 
 	/**
 	 * Constructor for Mat2. The Mat2 is initialised to the identity.
@@ -55,13 +55,13 @@ public class Mat2 implements Serializable {
 	}
 
 	/**
-	 * Load from a float buffer. The buffer stores the Mat2 in column major
+	 * Load from a double buffer. The buffer stores the Mat2 in column major
 	 * (OpenGL) order.
 	 *
-	 * @param buf A float buffer to read from
+	 * @param buf A double buffer to read from
 	 * @return this
 	 */
-	public Mat2 load(FloatBuffer buf) {
+	public Mat2 load(DoubleBuffer buf) {
 
 		m00 = buf.get();
 		m01 = buf.get();
@@ -72,13 +72,13 @@ public class Mat2 implements Serializable {
 	}
 
 	/**
-	 * Load from a float buffer. The buffer stores the Mat2 in row major
+	 * Load from a double buffer. The buffer stores the Mat2 in row major
 	 * (mathematical) order.
 	 *
-	 * @param buf A float buffer to read from
+	 * @param buf A double buffer to read from
 	 * @return this
 	 */
-	public Mat2 loadTranspose(FloatBuffer buf) {
+	public Mat2 loadTranspose(DoubleBuffer buf) {
 
 		m00 = buf.get();
 		m10 = buf.get();
@@ -89,12 +89,12 @@ public class Mat2 implements Serializable {
 	}
 
 	/**
-	 * Store this Mat2 in a float buffer. The Mat2 is stored in column
+	 * Store this Mat2 in a double buffer. The Mat2 is stored in column
 	 * major (openGL) order.
 	 *
 	 * @param buf The buffer to store this Mat2 in
 	 */
-	public Mat2 store(FloatBuffer buf) {
+	public Mat2 store(DoubleBuffer buf) {
 		buf.put(m00);
 		buf.put(m01);
 		buf.put(m10);
@@ -103,12 +103,12 @@ public class Mat2 implements Serializable {
 	}
 
 	/**
-	 * Store this Mat2 in a float buffer. The Mat2 is stored in row
+	 * Store this Mat2 in a double buffer. The Mat2 is stored in row
 	 * major (maths) order.
 	 *
 	 * @param buf The buffer to store this Mat2 in
 	 */
-	public Mat2 storeTranspose(FloatBuffer buf) {
+	public Mat2 storeTranspose(DoubleBuffer buf) {
 		buf.put(m00);
 		buf.put(m10);
 		buf.put(m01);
@@ -166,10 +166,10 @@ public class Mat2 implements Serializable {
 	public static Mat2 mul(Mat2 left, Mat2 right, Mat2 dest) {
 		if (dest == null) dest = new Mat2();
 
-		float m00 = left.m00 * right.m00 + left.m10 * right.m01;
-		float m01 = left.m01 * right.m00 + left.m11 * right.m01;
-		float m10 = left.m00 * right.m10 + left.m10 * right.m11;
-		float m11 = left.m01 * right.m10 + left.m11 * right.m11;
+		double m00 = left.m00 * right.m00 + left.m10 * right.m01;
+		double m01 = left.m01 * right.m00 + left.m11 * right.m01;
+		double m10 = left.m00 * right.m10 + left.m10 * right.m11;
+		double m11 = left.m01 * right.m10 + left.m11 * right.m11;
 
 		dest.m00 = m00;
 		dest.m01 = m01;
@@ -191,8 +191,8 @@ public class Mat2 implements Serializable {
 	public static Vec2 transform(Mat2 left, Vec2 right, Vec2 dest) {
 		if (dest == null) dest = new Vec2();
 
-		float x = left.m00 * right.x + left.m10 * right.y;
-		float y = left.m01 * right.x + left.m11 * right.y;
+		double x = left.m00 * right.x + left.m10 * right.y;
+		double y = left.m01 * right.x + left.m11 * right.y;
 
 		dest.x = x;
 		dest.y = y;
@@ -229,8 +229,8 @@ public class Mat2 implements Serializable {
 	public static Mat2 transpose(Mat2 src, Mat2 dest) {
 		if (dest == null) dest = new Mat2();
 
-		float m01 = src.m10;
-		float m10 = src.m01;
+		double m01 = src.m10;
+		double m10 = src.m01;
 
 		dest.m01 = m01;
 		dest.m10 = m10;
@@ -259,14 +259,14 @@ public class Mat2 implements Serializable {
 		 *inv(A) = 1/det(A) * adj(A);
 		 */
 
-		float determinant = src.determinant();
+		double determinant = src.determinant();
 		if (determinant != 0) {
 			if (dest == null) dest = new Mat2();
-			float determinant_inv = 1f / determinant;
-			float t00 = src.m11 * determinant_inv;
-			float t01 = -src.m01 * determinant_inv;
-			float t11 = src.m00 * determinant_inv;
-			float t10 = -src.m10 * determinant_inv;
+			double determinant_inv = 1f / determinant;
+			double t00 = src.m11 * determinant_inv;
+			double t01 = -src.m01 * determinant_inv;
+			double t11 = src.m00 * determinant_inv;
+			double t10 = -src.m10 * determinant_inv;
 
 			dest.m00 = t00;
 			dest.m01 = t01;
@@ -363,7 +363,7 @@ public class Mat2 implements Serializable {
 		return src;
 	}
 
-	public float determinant() {
+	public double determinant() {
 		return m00 * m11 - m01 * m10;
 	}
 
@@ -374,20 +374,20 @@ public class Mat2 implements Serializable {
 
 		Mat2 mat2 = (Mat2) o;
 
-		if (Float.compare(mat2.m00, m00) != 0) return false;
-		if (Float.compare(mat2.m01, m01) != 0) return false;
-		if (Float.compare(mat2.m10, m10) != 0) return false;
-		if (Float.compare(mat2.m11, m11) != 0) return false;
+		if (Double.compare(mat2.m00, m00) != 0) return false;
+		if (Double.compare(mat2.m01, m01) != 0) return false;
+		if (Double.compare(mat2.m10, m10) != 0) return false;
+		if (Double.compare(mat2.m11, m11) != 0) return false;
 
 		return true;
 	}
 
 	@Override
 	public int hashCode() {
-		int result = (m00 != +0.0f ? Float.floatToIntBits(m00) : 0);
-		result = 31 * result + (m01 != +0.0f ? Float.floatToIntBits(m01) : 0);
-		result = 31 * result + (m10 != +0.0f ? Float.floatToIntBits(m10) : 0);
-		result = 31 * result + (m11 != +0.0f ? Float.floatToIntBits(m11) : 0);
-		return result;
+		long result = (m00 != +0.0f ? Double.doubleToLongBits(m00) : 0);
+		result = 31 * result + (m01 != +0.0f ? Double.doubleToLongBits(m01) : 0);
+		result = 31 * result + (m10 != +0.0f ? Double.doubleToLongBits(m10) : 0);
+		result = 31 * result + (m11 != +0.0f ? Double.doubleToLongBits(m11) : 0);
+		return (int)(result ^ (result >>> 32));
 	}
 }
