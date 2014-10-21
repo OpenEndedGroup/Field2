@@ -284,7 +284,7 @@ public class BaseMesh extends Scene implements Scene.Perform {
 	 * <p>
 	 * for example:
 	 * <p>
-	 * list = pointList(2) list.vertex().put([0,0,0]).put([1,1,1])
+	 * list = pointList(2).vertex().put([0,0,0]).put([1,1,1])
 	 * <p>
 	 * will give you a point list that draws two points, one at the origin, one at 1,1,1
 	 */
@@ -300,7 +300,7 @@ public class BaseMesh extends Scene implements Scene.Perform {
 	 * <p>
 	 * for example:
 	 * <p>
-	 * lines = lineList(3, 2) lines.vertex().put([0,0,0]).put([1,0,0]).put([1,1,0]) lines.elements().put([0,1]).put([1,2])
+	 * lines = lineList(3, 2).vertex().put([0,0,0]).put([1,0,0]).put([1,1,0]) lines.elements().put([0,1]).put([1,2])
 	 * <p>
 	 * will give an L shaped, two line segment shape.
 	 */
@@ -316,7 +316,7 @@ public class BaseMesh extends Scene implements Scene.Perform {
 	 * <p>
 	 * for example:
 	 * <p>
-	 * lines = lineAdjecencyList(3, 2) lines.vertex().put([0,0,0]).put([1,0,0]).put([1,1,0]) lines.elements().put([0, 0, 1, 2]).put([0, 1,2, 2])
+	 * lines = lineAdjecencyList(3, 2).vertex().put([0,0,0]).put([1,0,0]).put([1,1,0]) lines.elements().put([0, 0, 1, 2]).put([0, 1,2, 2])
 	 * <p>
 	 * will give an L shaped, two line segment shape.
 	 */
@@ -332,7 +332,7 @@ public class BaseMesh extends Scene implements Scene.Perform {
 	 * <p>
 	 * for example:
 	 * <p>
-	 * lines = triangleList(3, 2) lines.vertex().put([0,0,0]).put([1,0,0]).put([1,1,0]) lines.elements().put([0, 1, 2])
+	 * lines = triangleList(3, 2).vertex().put([0,0,0]).put([1,0,0]).put([1,1,0]) lines.elements().put([0, 1, 2])
 	 * <p>
 	 * will give an triangle.
 	 */
