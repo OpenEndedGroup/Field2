@@ -1,7 +1,9 @@
 package field.utility;
 
 import com.google.common.collect.MapMaker;
+import fieldlinker.Linker;
 import sun.reflect.CallerSensitive;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -16,8 +18,10 @@ import java.util.function.Supplier;
  * generics. It's used throughout Field (the type information is important because it enables the Conversions class which in turn allows us to massage
  * dynamic languages well while style exploiting Java's type system)
  */
-public class Dict implements Serializable {
+public class Dict implements Serializable, Linker.AsMap {
 	private static final long serialVersionUID = 4506062700963421662L;
+
+
 
 	static public class Canonical {
 		static protected Map<String, Prop> cannon = Collections.synchronizedMap(new HashMap<>());
@@ -433,4 +437,34 @@ public class Dict implements Serializable {
 	}
 
 
+
+	@Override
+	public boolean asMap_isProperty(String p) {
+		return has(new Prop(p));
+	}
+
+	@Override
+	public Object asMap_call(Object a, Object b) {
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public Object asMap_get(String p) {
+		return get(new Prop(p));
+	}
+
+	@Override
+	public Object asMap_set(String p, Object o) {
+		return put(new Prop(p), o);
+	}
+
+	@Override
+	public Object asMap_new(Object a) {
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public Object asMap_new(Object a, Object b) {
+		throw new NotImplementedException();
+	}
 }
