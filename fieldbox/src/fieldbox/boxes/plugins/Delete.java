@@ -35,6 +35,9 @@ public class Delete extends Box {
 				really.items.put(MarkingMenus.Position.N, new MarkingMenus.MenuItem("Really, delete "+count+" box"+(count==1 ? "" : "es")+"?", () -> {
 					Stream<Box> all = selected();
 					all.forEach(bb -> bb.disconnectFromAll());
+
+					find(Watches.watches, both()).forEach(w -> w.getQueue().accept("selection.changed", null));
+
 					Drawing.dirty(Delete.this);
 				}));
 
