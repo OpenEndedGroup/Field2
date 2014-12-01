@@ -2,9 +2,6 @@ package field.scratch;
 
 import java.lang.reflect.Method;
 
-/**
- * Created by marc on 3/13/14.
- */
 public class CancellerI {
 	private final Method m;
 
