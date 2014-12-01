@@ -250,7 +250,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	 * Adds some aux data associated with attribute "attribute" with dimension 2. "attribute" must be between 1 and 15 inclusive
 	 */
 	public MeshBuilder aux(int attribute, Vec2 x) {
-		aux.put(attribute, new float[]{x.x, x.y});
+		aux.put(attribute, new float[]{(float)x.x, (float)x.y});
 		ensureExists(attribute, 2, vertexCursor);
 		return this;
 	}
@@ -259,7 +259,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	 * Adds some aux data associated with attribute "attribute" with dimension 3. "attribute" must be between 1 and 15 inclusive
 	 */
 	public MeshBuilder aux(int attribute, Vec3 x) {
-		aux.put(attribute, new float[]{x.x, x.y, x.z});
+		aux.put(attribute, new float[]{(float)x.x, (float)x.y, (float)x.z});
 		ensureExists(attribute, 3, vertexCursor);
 		return this;
 	}
@@ -268,7 +268,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	 * Adds some aux data associated with attribute "attribute" with dimension 4. "attribute" must be between 1 and 15 inclusive
 	 */
 	public MeshBuilder aux(int attribute, Vec4 x) {
-		aux.put(attribute, new float[]{x.x, x.y, x.z, x.w});
+		aux.put(attribute, new float[]{(float)x.x, (float)x.y, (float)x.z, (float)x.w});
 		ensureExists(attribute, 4, vertexCursor);
 		return this;
 	}

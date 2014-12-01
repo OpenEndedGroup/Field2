@@ -25,6 +25,9 @@ public class DefaultMenus extends Box {
 	//TODO: consider being able to .toCommand("A command") Suppliers and FunctionOfBox's
 	static public final Dict.Prop<FunctionOfBox<Box>> newBox = new Dict.Prop<FunctionOfBox<Box>>("newBox").toCannon().doc("create a new box that's a peer of this one");
 
+	// this gets set if we sucessfully opened something
+	static public volatile boolean safeToSave = false;
+
 	private final Box root;
 	private final String filename;
 	boolean saveOnExit =  true;
@@ -73,7 +76,7 @@ public class DefaultMenus extends Box {
 		});
 
 		RunLoop.main.onExit(() -> {
-			if (saveOnExit)
+			if (saveOnExit && safeToSave)
 			if (this.breadthFirst(both()).filter(x -> x.properties.get(Box.frame)!=null).findFirst().isPresent())
 				save();
 		});

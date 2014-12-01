@@ -220,8 +220,8 @@ public class Drawing extends Box {
 	 * to convert between event / mouse / pixel coordinates and OpenGL / Box / Drawing coordinates.
 	 */
 	public Vec2 windowSystemToDrawingSystem(Vec2 window) {
-		float y = /*Window.getCurrentHeight() -*/ window.y;
-		float x = window.x;
+		double y = /*Window.getCurrentHeight() -*/ window.y;
+		double x = window.x;
 
 		x = x * scale.x;
 		y = y * scale.y;
@@ -235,8 +235,8 @@ public class Drawing extends Box {
 	 * to convert between OpenGL / Box / Drawing coordinates and event / mouse / pixel coordinates.
 	 */
 	public Vec2 drawingSystemToWindowSystem(Vec2 window) {
-		float y = window.y;
-		float x = window.x;
+		double y = window.y;
+		double x = window.x;
 
 		x += translation.x;
 		y += translation.y;
@@ -250,8 +250,8 @@ public class Drawing extends Box {
 	 * to convert between event / mouse / pixel coordinates and OpenGL / Box / Drawing delta's.
 	 */
 	public Vec2 windowSystemToDrawingSystemDelta(Vec2 windowDelta) {
-		float y = /*-*/windowDelta.y;
-		float x = windowDelta.x;
+		double y = /*-*/windowDelta.y;
+		double x = windowDelta.x;
 
 		x = x * scale.x;
 		y = y * scale.y;
@@ -305,6 +305,18 @@ public class Drawing extends Box {
 
 	}
 
+	private void updateWindowSpaceBoxes(Vec2 was, Vec2 now) {
+		this.breadthFirst(both())
+		    .filter(x -> x.properties.isTrue(windowSpace, false))
+		    .forEach(box -> {
+			    Rect f = box.properties.get(Box.frame);
+			    f = new Rect(f.x, f.y, f.w, f.h);
+			    f.x = (float) (f.x + was.x - now.x);
+			    f.y = (float) (f.y + was.y - now.y);
+			    box.properties.put(Box.frame, f);
+		    });
+	}
+
 	private void lateDrawNow(Box root) {
 		try {
 			insideDrawing = true;
@@ -336,8 +348,8 @@ public class Drawing extends Box {
 			    System.out.println(" translation :" + translation + " " + translationNext + " " + dimensions + " " + dimensionsNext);
 
 
-			    f.x = f.x + (translation.x + dimensionsNext.x * v.x) - (translationNext.x + dimensions.x * v.x);
-			    f.y = f.y + (translation.y + dimensionsNext.y * v.y) - (translationNext.y + dimensions.y * v.y);
+			    f.x = (float) (f.x + (translation.x + dimensionsNext.x * v.x) - (translationNext.x + dimensions.x * v.x));
+			    f.y = (float) (f.y + (translation.y + dimensionsNext.y * v.y) - (translationNext.y + dimensions.y * v.y));
 			    box.properties.put(Box.frame, f);
 		    });
 	}

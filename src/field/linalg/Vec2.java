@@ -1,7 +1,7 @@
 package field.linalg;
 
 import java.io.Serializable;
-import java.nio.FloatBuffer;
+import java.nio.DoubleBuffer;
 
 /**
  * A class representing a 2-vector (both a position and direction in 2-space).
@@ -10,7 +10,7 @@ public class Vec2 implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	public float x, y;
+	public double x, y;
 
 	/**
 	 * Constructor for Vector2f.
@@ -29,10 +29,6 @@ public class Vec2 implements Serializable {
 	/**
 	 * Constructor
 	 */
-	public Vec2(float x, float y) {
-		set(x, y);
-	}
-
 	public Vec2(double x, double y)
 	{
 		set(x, y);
@@ -43,20 +39,11 @@ public class Vec2 implements Serializable {
 	 * @param x
 	 * @param y
 	 */
-	public void set(float x, float y) {
+	public void set(double x, double y) {
 		this.x = x;
 		this.y = y;
 	}
 
-	/**
-	 * sets this Vec2 to be the value given by x,y
-	 * @param x
-	 * @param y
-	 */
-	public void set(double x, double y) {
-		this.x = (float)x;
-		this.y = (float)y;
-	}
 
 	/**
 	 * Load from another Vec2
@@ -73,15 +60,15 @@ public class Vec2 implements Serializable {
 	/**
 	 * @return the length squared of the vector
 	 */
-	public float lengthSquared() {
+	public double lengthSquared() {
 		return x * x + y * y;
 	}
 
 	/**
 	 * @return the length of the vector
 	 */
-	public final float length() {
-		return (float) Math.sqrt(lengthSquared());
+	public final double length() {
+		return (double) Math.sqrt(lengthSquared());
 	}
 
 	/**
@@ -90,9 +77,9 @@ public class Vec2 implements Serializable {
 	 * @return this
 	 */
 	public final Vec2 normalise() {
-		float len = length();
+		double len = length();
 		if (len != 0.0f) {
-			float l = 1.0f / len;
+			double l = 1.0f / len;
 			return scale(l);
 		}
 		return this;
@@ -105,7 +92,7 @@ public class Vec2 implements Serializable {
 	 * @param y the translation in y
 	 * @return this
 	 */
-	public Vec2 translate(float x, float y) {
+	public Vec2 translate(double x, double y) {
 		this.x += x;
 		this.y += y;
 		return this;
@@ -143,7 +130,7 @@ public class Vec2 implements Serializable {
 	 * @return the normalised vector
 	 */
 	public Vec2 normalise(Vec2 dest) {
-		float l = length();
+		double l = length();
 
 		if (dest == null) dest = new Vec2(x / l, y / l);
 		else dest.set(x / l, y / l);
@@ -159,7 +146,7 @@ public class Vec2 implements Serializable {
 	 * @param right The RHS vector
 	 * @return left dot right
 	 */
-	public static float dot(Vec2 left, Vec2 right) {
+	public static double dot(Vec2 left, Vec2 right) {
 		return left.x * right.x + left.y * right.y;
 	}
 
@@ -171,11 +158,11 @@ public class Vec2 implements Serializable {
 	 * @param b The other vector
 	 * @return the angle between the two vectors, in radians
 	 */
-	public static float angle(Vec2 a, Vec2 b) {
-		float dls = dot(a, b) / (a.length() * b.length());
+	public static double angle(Vec2 a, Vec2 b) {
+		double dls = dot(a, b) / (a.length() * b.length());
 		if (dls < -1f) dls = -1f;
 		else if (dls > 1.0f) dls = 1.0f;
-		return (float) Math.acos(dls);
+		return (double) Math.acos(dls);
 	}
 
 	/**
@@ -213,33 +200,33 @@ public class Vec2 implements Serializable {
 	}
 
 	/**
-	 * Store this Vec2 in a FloatBuffer
+	 * Store this Vec2 in a doubleBuffer
 	 *
 	 * @param buf The buffer to store it in, at the current position
 	 * @return this
 	 */
-	public Vec2 store(FloatBuffer buf) {
+	public Vec2 store(DoubleBuffer buf) {
 		buf.put(x);
 		buf.put(y);
 		return this;
 	}
 
 	/**
-	 * Load this Vec2 from a FloatBuffer
+	 * Load this Vec2 from a doubleBuffer
 	 *
 	 * @param buf The buffer to load it from, at the current position
 	 * @return this
 	 */
-	public Vec2 load(FloatBuffer buf) {
+	public Vec2 load(DoubleBuffer buf) {
 		x = buf.get();
 		y = buf.get();
 		return this;
 	}
 
 	/* (non-Javadoc)
-	 * @see org.lwjgl.vector.Vector#scale(float)
+	 * @see org.lwjgl.vector.Vector#scale(double)
 	 */
-	public Vec2 scale(float scale) {
+	public Vec2 scale(double scale) {
 
 		x *= scale;
 		y *= scale;
@@ -264,14 +251,14 @@ public class Vec2 implements Serializable {
 	/**
 	 * @return x
 	 */
-	public final float getX() {
+	public final double getX() {
 		return x;
 	}
 
 	/**
 	 * @return y
 	 */
-	public final float getY() {
+	public final double getY() {
 		return y;
 	}
 
@@ -280,7 +267,7 @@ public class Vec2 implements Serializable {
 	 *
 	 * @param x
 	 */
-	public final void setX(float x) {
+	public final void setX(double x) {
 		this.x = x;
 	}
 
@@ -289,7 +276,7 @@ public class Vec2 implements Serializable {
 	 *
 	 * @param y
 	 */
-	public final void setY(float y) {
+	public final void setY(double y) {
 		this.y = y;
 	}
 
@@ -300,17 +287,17 @@ public class Vec2 implements Serializable {
 
 		Vec2 vec2 = (Vec2) o;
 
-		if (Float.compare(vec2.x, x) != 0) return false;
-		if (Float.compare(vec2.y, y) != 0) return false;
+		if (Double.compare(vec2.x, x) != 0) return false;
+		if (Double.compare(vec2.y, y) != 0) return false;
 
 		return true;
 	}
 
 	@Override
 	public int hashCode() {
-		int result = (x != +0.0f ? Float.floatToIntBits(x) : 0);
-		result = 31 * result + (y != +0.0f ? Float.floatToIntBits(y) : 0);
-		return result;
+		long result = (x != +0.0f ? Double.doubleToLongBits(x) : 0);
+		result = 31 * result + (y != +0.0f ? Double.doubleToLongBits(y) : 0);
+		return (int)(result ^ (result >>> 32));
 	}
 
 	public double distanceFrom(Vec2 v) {
@@ -321,7 +308,7 @@ public class Vec2 implements Serializable {
 	 * blend two Vec2 to create a third. out can contain a pre-allocated return Vec2 or null
 	 */
 
-	static public Vec2 lerp(Vec2 a, Vec2 b, float alpha, Vec2 out)
+	static public Vec2 lerp(Vec2 a, Vec2 b, double alpha, Vec2 out)
 	{
 		if (out==null) out = new Vec2();
 
@@ -335,7 +322,7 @@ public class Vec2 implements Serializable {
 	/**
 	 * set this Vec2 to the blend of two Vec2
 	 */
-	public Vec2 lerp(Vec2 a, Vec2 b, float alpha)
+	public Vec2 lerp(Vec2 a, Vec2 b, double alpha)
 	{
 		this.x = a.x*alpha+b.x*(1-alpha);
 		this.y = a.y*alpha+b.y*(1-alpha);

@@ -9,7 +9,7 @@ import java.nio.FloatBuffer;
 public class Mat4 implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	public float m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23, m30, m31, m32, m33;
+	public double m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23, m30, m31, m32, m33;
 
 	/**
 	 * Construct a new matrix, initialized to the identity.
@@ -46,17 +46,17 @@ public class Mat4 implements Serializable {
 		if (s != 1 && q1 == null) scale(s);
 
 		if (q1 != null) {
-			m00 = (float) (s * (1.0 - 2.0 * q1.y * q1.y - 2.0 * q1.z * q1.z));
-			m10 = (float) (s * (2.0 * (q1.x * q1.y + q1.w * q1.z)));
-			m20 = (float) (s * (2.0 * (q1.x * q1.z - q1.w * q1.y)));
+			m00 =  (s * (1.0 - 2.0 * q1.y * q1.y - 2.0 * q1.z * q1.z));
+			m10 =  (s * (2.0 * (q1.x * q1.y + q1.w * q1.z)));
+			m20 =  (s * (2.0 * (q1.x * q1.z - q1.w * q1.y)));
 
-			m01 = (float) (s * (2.0 * (q1.x * q1.y - q1.w * q1.z)));
-			m11 = (float) (s * (1.0 - 2.0 * q1.x * q1.x - 2.0 * q1.z * q1.z));
-			m21 = (float) (s * (2.0 * (q1.y * q1.z + q1.w * q1.x)));
+			m01 =  (s * (2.0 * (q1.x * q1.y - q1.w * q1.z)));
+			m11 =  (s * (1.0 - 2.0 * q1.x * q1.x - 2.0 * q1.z * q1.z));
+			m21 =  (s * (2.0 * (q1.y * q1.z + q1.w * q1.x)));
 
-			m02 = (float) (s * (2.0 * (q1.x * q1.z + q1.w * q1.y)));
-			m12 = (float) (s * (2.0 * (q1.y * q1.z - q1.w * q1.x)));
-			m22 = (float) (s * (1.0 - 2.0 * q1.x * q1.x - 2.0 * q1.y * q1.y));
+			m02 =  (s * (2.0 * (q1.x * q1.z + q1.w * q1.y)));
+			m12 =  (s * (2.0 * (q1.y * q1.z - q1.w * q1.x)));
+			m22 =  (s * (1.0 - 2.0 * q1.x * q1.x - 2.0 * q1.y * q1.y));
 		}
 		if (t1 != null) {
 			m03 = t1.x;
@@ -285,22 +285,22 @@ public class Mat4 implements Serializable {
 	 * @param buf The buffer to store this Mat4 in
 	 */
 	public Mat4 store(FloatBuffer buf) {
-		buf.put(m00);
-		buf.put(m01);
-		buf.put(m02);
-		buf.put(m03);
-		buf.put(m10);
-		buf.put(m11);
-		buf.put(m12);
-		buf.put(m13);
-		buf.put(m20);
-		buf.put(m21);
-		buf.put(m22);
-		buf.put(m23);
-		buf.put(m30);
-		buf.put(m31);
-		buf.put(m32);
-		buf.put(m33);
+		buf.put((float)m00);
+		buf.put((float)m01);
+		buf.put((float)m02);
+		buf.put((float)m03);
+		buf.put((float)m10);
+		buf.put((float)m11);
+		buf.put((float)m12);
+		buf.put((float)m13);
+		buf.put((float)m20);
+		buf.put((float)m21);
+		buf.put((float)m22);
+		buf.put((float)m23);
+		buf.put((float)m30);
+		buf.put((float)m31);
+		buf.put((float)m32);
+		buf.put((float)m33);
 		return this;
 	}
 
@@ -311,22 +311,22 @@ public class Mat4 implements Serializable {
 	 * @param buf The buffer to store this Mat4 in
 	 */
 	public Mat4 storeTranspose(FloatBuffer buf) {
-		buf.put(m00);
-		buf.put(m10);
-		buf.put(m20);
-		buf.put(m30);
-		buf.put(m01);
-		buf.put(m11);
-		buf.put(m21);
-		buf.put(m31);
-		buf.put(m02);
-		buf.put(m12);
-		buf.put(m22);
-		buf.put(m32);
-		buf.put(m03);
-		buf.put(m13);
-		buf.put(m23);
-		buf.put(m33);
+		buf.put((float)m00);
+		buf.put((float)m10);
+		buf.put((float)m20);
+		buf.put((float)m30);
+		buf.put((float)m01);
+		buf.put((float)m11);
+		buf.put((float)m21);
+		buf.put((float)m31);
+		buf.put((float)m02);
+		buf.put((float)m12);
+		buf.put((float)m22);
+		buf.put((float)m32);
+		buf.put((float)m03);
+		buf.put((float)m13);
+		buf.put((float)m23);
+		buf.put((float)m33);
 		return this;
 	}
 
@@ -337,15 +337,15 @@ public class Mat4 implements Serializable {
 	 * @param buf The buffer to store this Mat4 in
 	 */
 	public Mat4 store3f(FloatBuffer buf) {
-		buf.put(m00);
-		buf.put(m01);
-		buf.put(m02);
-		buf.put(m10);
-		buf.put(m11);
-		buf.put(m12);
-		buf.put(m20);
-		buf.put(m21);
-		buf.put(m22);
+		buf.put((float)m00);
+		buf.put((float)m01);
+		buf.put((float)m02);
+		buf.put((float)m10);
+		buf.put((float)m11);
+		buf.put((float)m12);
+		buf.put((float)m20);
+		buf.put((float)m21);
+		buf.put((float)m22);
 		return this;
 	}
 
@@ -422,22 +422,22 @@ public class Mat4 implements Serializable {
 	public static Mat4 mul(Mat4 left, Mat4 right, Mat4 dest) {
 		if (dest == null) dest = new Mat4();
 
-		float m00 = left.m00 * right.m00 + left.m10 * right.m01 + left.m20 * right.m02 + left.m30 * right.m03;
-		float m01 = left.m01 * right.m00 + left.m11 * right.m01 + left.m21 * right.m02 + left.m31 * right.m03;
-		float m02 = left.m02 * right.m00 + left.m12 * right.m01 + left.m22 * right.m02 + left.m32 * right.m03;
-		float m03 = left.m03 * right.m00 + left.m13 * right.m01 + left.m23 * right.m02 + left.m33 * right.m03;
-		float m10 = left.m00 * right.m10 + left.m10 * right.m11 + left.m20 * right.m12 + left.m30 * right.m13;
-		float m11 = left.m01 * right.m10 + left.m11 * right.m11 + left.m21 * right.m12 + left.m31 * right.m13;
-		float m12 = left.m02 * right.m10 + left.m12 * right.m11 + left.m22 * right.m12 + left.m32 * right.m13;
-		float m13 = left.m03 * right.m10 + left.m13 * right.m11 + left.m23 * right.m12 + left.m33 * right.m13;
-		float m20 = left.m00 * right.m20 + left.m10 * right.m21 + left.m20 * right.m22 + left.m30 * right.m23;
-		float m21 = left.m01 * right.m20 + left.m11 * right.m21 + left.m21 * right.m22 + left.m31 * right.m23;
-		float m22 = left.m02 * right.m20 + left.m12 * right.m21 + left.m22 * right.m22 + left.m32 * right.m23;
-		float m23 = left.m03 * right.m20 + left.m13 * right.m21 + left.m23 * right.m22 + left.m33 * right.m23;
-		float m30 = left.m00 * right.m30 + left.m10 * right.m31 + left.m20 * right.m32 + left.m30 * right.m33;
-		float m31 = left.m01 * right.m30 + left.m11 * right.m31 + left.m21 * right.m32 + left.m31 * right.m33;
-		float m32 = left.m02 * right.m30 + left.m12 * right.m31 + left.m22 * right.m32 + left.m32 * right.m33;
-		float m33 = left.m03 * right.m30 + left.m13 * right.m31 + left.m23 * right.m32 + left.m33 * right.m33;
+		double m00 = left.m00 * right.m00 + left.m10 * right.m01 + left.m20 * right.m02 + left.m30 * right.m03;
+		double m01 = left.m01 * right.m00 + left.m11 * right.m01 + left.m21 * right.m02 + left.m31 * right.m03;
+		double m02 = left.m02 * right.m00 + left.m12 * right.m01 + left.m22 * right.m02 + left.m32 * right.m03;
+		double m03 = left.m03 * right.m00 + left.m13 * right.m01 + left.m23 * right.m02 + left.m33 * right.m03;
+		double m10 = left.m00 * right.m10 + left.m10 * right.m11 + left.m20 * right.m12 + left.m30 * right.m13;
+		double m11 = left.m01 * right.m10 + left.m11 * right.m11 + left.m21 * right.m12 + left.m31 * right.m13;
+		double m12 = left.m02 * right.m10 + left.m12 * right.m11 + left.m22 * right.m12 + left.m32 * right.m13;
+		double m13 = left.m03 * right.m10 + left.m13 * right.m11 + left.m23 * right.m12 + left.m33 * right.m13;
+		double m20 = left.m00 * right.m20 + left.m10 * right.m21 + left.m20 * right.m22 + left.m30 * right.m23;
+		double m21 = left.m01 * right.m20 + left.m11 * right.m21 + left.m21 * right.m22 + left.m31 * right.m23;
+		double m22 = left.m02 * right.m20 + left.m12 * right.m21 + left.m22 * right.m22 + left.m32 * right.m23;
+		double m23 = left.m03 * right.m20 + left.m13 * right.m21 + left.m23 * right.m22 + left.m33 * right.m23;
+		double m30 = left.m00 * right.m30 + left.m10 * right.m31 + left.m20 * right.m32 + left.m30 * right.m33;
+		double m31 = left.m01 * right.m30 + left.m11 * right.m31 + left.m21 * right.m32 + left.m31 * right.m33;
+		double m32 = left.m02 * right.m30 + left.m12 * right.m31 + left.m22 * right.m32 + left.m32 * right.m33;
+		double m33 = left.m03 * right.m30 + left.m13 * right.m31 + left.m23 * right.m32 + left.m33 * right.m33;
 
 		dest.m00 = m00;
 		dest.m01 = m01;
@@ -471,10 +471,10 @@ public class Mat4 implements Serializable {
 	public static Vec4 transform(Mat4 left, Vec4 right, Vec4 dest) {
 		if (dest == null) dest = new Vec4();
 
-		float x = left.m00 * right.x + left.m10 * right.y + left.m20 * right.z + left.m30 * right.w;
-		float y = left.m01 * right.x + left.m11 * right.y + left.m21 * right.z + left.m31 * right.w;
-		float z = left.m02 * right.x + left.m12 * right.y + left.m22 * right.z + left.m32 * right.w;
-		float w = left.m03 * right.x + left.m13 * right.y + left.m23 * right.z + left.m33 * right.w;
+		double x = left.m00 * right.x + left.m10 * right.y + left.m20 * right.z + left.m30 * right.w;
+		double y = left.m01 * right.x + left.m11 * right.y + left.m21 * right.z + left.m31 * right.w;
+		double z = left.m02 * right.x + left.m12 * right.y + left.m22 * right.z + left.m32 * right.w;
+		double w = left.m03 * right.x + left.m13 * right.y + left.m23 * right.z + left.m33 * right.w;
 
 		dest.x = x;
 		dest.y = y;
@@ -496,10 +496,10 @@ public class Mat4 implements Serializable {
 	public static Vec3 transform(Mat4 left, Vec3 right, Vec3 dest) {
 		if (dest == null) dest = new Vec3();
 
-		float x = left.m00 * right.x + left.m10 * right.y + left.m20 * right.z + left.m30 * 1;
-		float y = left.m01 * right.x + left.m11 * right.y + left.m21 * right.z + left.m31 * 1;
-		float z = left.m02 * right.x + left.m12 * right.y + left.m22 * right.z + left.m32 * 1;
-		float w = left.m03 * right.x + left.m13 * right.y + left.m23 * right.z + left.m33 * 1;
+		double x = left.m00 * right.x + left.m10 * right.y + left.m20 * right.z + left.m30 * 1;
+		double y = left.m01 * right.x + left.m11 * right.y + left.m21 * right.z + left.m31 * 1;
+		double z = left.m02 * right.x + left.m12 * right.y + left.m22 * right.z + left.m32 * 1;
+		double w = left.m03 * right.x + left.m13 * right.y + left.m23 * right.z + left.m33 * 1;
 
 		dest.x = x/w;
 		dest.y = y/w;
@@ -521,10 +521,10 @@ public class Mat4 implements Serializable {
 	public static Vec4 transform(Mat4 left, Vec3 right, Vec4 dest) {
 		if (dest == null) dest = new Vec4();
 
-		float x = left.m00 * right.x + left.m10 * right.y + left.m20 * right.z + left.m30 * 1;
-		float y = left.m01 * right.x + left.m11 * right.y + left.m21 * right.z + left.m31 * 1;
-		float z = left.m02 * right.x + left.m12 * right.y + left.m22 * right.z + left.m32 * 1;
-		float w = left.m03 * right.x + left.m13 * right.y + left.m23 * right.z + left.m33 * 1;
+		double x = left.m00 * right.x + left.m10 * right.y + left.m20 * right.z + left.m30 * 1;
+		double y = left.m01 * right.x + left.m11 * right.y + left.m21 * right.z + left.m31 * 1;
+		double z = left.m02 * right.x + left.m12 * right.y + left.m22 * right.z + left.m32 * 1;
+		double w = left.m03 * right.x + left.m13 * right.y + left.m23 * right.z + left.m33 * 1;
 
 		dest.x = x;
 		dest.y = y;
@@ -668,36 +668,36 @@ public class Mat4 implements Serializable {
 	 */
 	public static Mat4 rotate(float angle, Vec3 axis, Mat4 src, Mat4 dest) {
 		if (dest == null) dest = new Mat4();
-		float c = (float) Math.cos(angle);
-		float s = (float) Math.sin(angle);
-		float oneminusc = 1.0f - c;
-		float xy = axis.x * axis.y;
-		float yz = axis.y * axis.z;
-		float xz = axis.x * axis.z;
-		float xs = axis.x * s;
-		float ys = axis.y * s;
-		float zs = axis.z * s;
+		double c =  Math.cos(angle);
+		double s =  Math.sin(angle);
+		double oneminusc = 1.0f - c;
+		double xy = axis.x * axis.y;
+		double yz = axis.y * axis.z;
+		double xz = axis.x * axis.z;
+		double xs = axis.x * s;
+		double ys = axis.y * s;
+		double zs = axis.z * s;
 
-		float f00 = axis.x * axis.x * oneminusc + c;
-		float f01 = xy * oneminusc + zs;
-		float f02 = xz * oneminusc - ys;
+		double f00 = axis.x * axis.x * oneminusc + c;
+		double f01 = xy * oneminusc + zs;
+		double f02 = xz * oneminusc - ys;
 		// n[3] not used
-		float f10 = xy * oneminusc - zs;
-		float f11 = axis.y * axis.y * oneminusc + c;
-		float f12 = yz * oneminusc + xs;
+		double f10 = xy * oneminusc - zs;
+		double f11 = axis.y * axis.y * oneminusc + c;
+		double f12 = yz * oneminusc + xs;
 		// n[7] not used
-		float f20 = xz * oneminusc + ys;
-		float f21 = yz * oneminusc - xs;
-		float f22 = axis.z * axis.z * oneminusc + c;
+		double f20 = xz * oneminusc + ys;
+		double f21 = yz * oneminusc - xs;
+		double f22 = axis.z * axis.z * oneminusc + c;
 
-		float t00 = src.m00 * f00 + src.m10 * f01 + src.m20 * f02;
-		float t01 = src.m01 * f00 + src.m11 * f01 + src.m21 * f02;
-		float t02 = src.m02 * f00 + src.m12 * f01 + src.m22 * f02;
-		float t03 = src.m03 * f00 + src.m13 * f01 + src.m23 * f02;
-		float t10 = src.m00 * f10 + src.m10 * f11 + src.m20 * f12;
-		float t11 = src.m01 * f10 + src.m11 * f11 + src.m21 * f12;
-		float t12 = src.m02 * f10 + src.m12 * f11 + src.m22 * f12;
-		float t13 = src.m03 * f10 + src.m13 * f11 + src.m23 * f12;
+		double t00 = src.m00 * f00 + src.m10 * f01 + src.m20 * f02;
+		double t01 = src.m01 * f00 + src.m11 * f01 + src.m21 * f02;
+		double t02 = src.m02 * f00 + src.m12 * f01 + src.m22 * f02;
+		double t03 = src.m03 * f00 + src.m13 * f01 + src.m23 * f02;
+		double t10 = src.m00 * f10 + src.m10 * f11 + src.m20 * f12;
+		double t11 = src.m01 * f10 + src.m11 * f11 + src.m21 * f12;
+		double t12 = src.m02 * f10 + src.m12 * f11 + src.m22 * f12;
+		double t13 = src.m03 * f10 + src.m13 * f11 + src.m23 * f12;
 		dest.m20 = src.m00 * f20 + src.m10 * f21 + src.m20 * f22;
 		dest.m21 = src.m01 * f20 + src.m11 * f21 + src.m21 * f22;
 		dest.m22 = src.m02 * f20 + src.m12 * f21 + src.m22 * f22;
@@ -792,22 +792,22 @@ public class Mat4 implements Serializable {
 	 */
 	public static Mat4 transpose(Mat4 src, Mat4 dest) {
 		if (dest == null) dest = new Mat4();
-		float m00 = src.m00;
-		float m01 = src.m10;
-		float m02 = src.m20;
-		float m03 = src.m30;
-		float m10 = src.m01;
-		float m11 = src.m11;
-		float m12 = src.m21;
-		float m13 = src.m31;
-		float m20 = src.m02;
-		float m21 = src.m12;
-		float m22 = src.m22;
-		float m23 = src.m32;
-		float m30 = src.m03;
-		float m31 = src.m13;
-		float m32 = src.m23;
-		float m33 = src.m33;
+		double m00 = src.m00;
+		double m01 = src.m10;
+		double m02 = src.m20;
+		double m03 = src.m30;
+		double m10 = src.m01;
+		double m11 = src.m11;
+		double m12 = src.m21;
+		double m13 = src.m31;
+		double m20 = src.m02;
+		double m21 = src.m12;
+		double m22 = src.m22;
+		double m23 = src.m32;
+		double m30 = src.m03;
+		double m31 = src.m13;
+		double m32 = src.m23;
+		double m33 = src.m33;
 
 		dest.m00 = m00;
 		dest.m01 = m01;
@@ -832,8 +832,8 @@ public class Mat4 implements Serializable {
 	/**
 	 * @return the determinant of the matrix
 	 */
-	public float determinant() {
-		float f = m00 * ((m11 * m22 * m33 + m12 * m23 * m31 + m13 * m21 * m32) - m13 * m22 * m31 - m11 * m23 * m32 - m12 * m21 * m33);
+	public double determinant() {
+		double f = m00 * ((m11 * m22 * m33 + m12 * m23 * m31 + m13 * m21 * m32) - m13 * m22 * m31 - m11 * m23 * m32 - m12 * m21 * m33);
 		f -= m01 * ((m10 * m22 * m33 + m12 * m23 * m30 + m13 * m20 * m32) - m13 * m22 * m30 - m10 * m23 * m32 - m12 * m20 * m33);
 		f += m02 * ((m10 * m21 * m33 + m11 * m23 * m30 + m13 * m20 * m31) - m13 * m21 * m30 - m10 * m23 * m31 - m11 * m20 * m33);
 		f -= m03 * ((m10 * m21 * m32 + m11 * m22 * m30 + m12 * m20 * m31) - m12 * m21 * m30 - m10 * m22 * m31 - m11 * m20 * m32);
@@ -846,7 +846,7 @@ public class Mat4 implements Serializable {
 	 * @return result
 	 */
 
-	private static float determinant3x3(float t00, float t01, float t02, float t10, float t11, float t12, float t20, float t21, float t22) {
+	private static double determinant3x3(double t00, double t01, double t02, double t10, double t11, double t12, double t20, double t21, double t22) {
 		return t00 * (t11 * t22 - t12 * t21) + t01 * (t12 * t20 - t10 * t22) + t02 * (t10 * t21 - t11 * t20);
 	}
 
@@ -867,7 +867,7 @@ public class Mat4 implements Serializable {
 	 * @return The inverted Mat4 if successful, null otherwise
 	 */
 	public static Mat4 invert(Mat4 src, Mat4 dest) {
-		float determinant = src.determinant();
+		double determinant = src.determinant();
 
 		if (determinant != 0) {
 			/*
@@ -877,28 +877,28 @@ public class Mat4 implements Serializable {
 			 * m30 m31 m32 m33
 			 */
 			if (dest == null) dest = new Mat4();
-			float determinant_inv = 1f / determinant;
+			double determinant_inv = 1f / determinant;
 
 			// first row
-			float t00 = determinant3x3(src.m11, src.m12, src.m13, src.m21, src.m22, src.m23, src.m31, src.m32, src.m33);
-			float t01 = -determinant3x3(src.m10, src.m12, src.m13, src.m20, src.m22, src.m23, src.m30, src.m32, src.m33);
-			float t02 = determinant3x3(src.m10, src.m11, src.m13, src.m20, src.m21, src.m23, src.m30, src.m31, src.m33);
-			float t03 = -determinant3x3(src.m10, src.m11, src.m12, src.m20, src.m21, src.m22, src.m30, src.m31, src.m32);
+			double t00 = determinant3x3(src.m11, src.m12, src.m13, src.m21, src.m22, src.m23, src.m31, src.m32, src.m33);
+			double t01 = -determinant3x3(src.m10, src.m12, src.m13, src.m20, src.m22, src.m23, src.m30, src.m32, src.m33);
+			double t02 = determinant3x3(src.m10, src.m11, src.m13, src.m20, src.m21, src.m23, src.m30, src.m31, src.m33);
+			double t03 = -determinant3x3(src.m10, src.m11, src.m12, src.m20, src.m21, src.m22, src.m30, src.m31, src.m32);
 			// second row
-			float t10 = -determinant3x3(src.m01, src.m02, src.m03, src.m21, src.m22, src.m23, src.m31, src.m32, src.m33);
-			float t11 = determinant3x3(src.m00, src.m02, src.m03, src.m20, src.m22, src.m23, src.m30, src.m32, src.m33);
-			float t12 = -determinant3x3(src.m00, src.m01, src.m03, src.m20, src.m21, src.m23, src.m30, src.m31, src.m33);
-			float t13 = determinant3x3(src.m00, src.m01, src.m02, src.m20, src.m21, src.m22, src.m30, src.m31, src.m32);
+			double t10 = -determinant3x3(src.m01, src.m02, src.m03, src.m21, src.m22, src.m23, src.m31, src.m32, src.m33);
+			double t11 = determinant3x3(src.m00, src.m02, src.m03, src.m20, src.m22, src.m23, src.m30, src.m32, src.m33);
+			double t12 = -determinant3x3(src.m00, src.m01, src.m03, src.m20, src.m21, src.m23, src.m30, src.m31, src.m33);
+			double t13 = determinant3x3(src.m00, src.m01, src.m02, src.m20, src.m21, src.m22, src.m30, src.m31, src.m32);
 			// third row
-			float t20 = determinant3x3(src.m01, src.m02, src.m03, src.m11, src.m12, src.m13, src.m31, src.m32, src.m33);
-			float t21 = -determinant3x3(src.m00, src.m02, src.m03, src.m10, src.m12, src.m13, src.m30, src.m32, src.m33);
-			float t22 = determinant3x3(src.m00, src.m01, src.m03, src.m10, src.m11, src.m13, src.m30, src.m31, src.m33);
-			float t23 = -determinant3x3(src.m00, src.m01, src.m02, src.m10, src.m11, src.m12, src.m30, src.m31, src.m32);
+			double t20 = determinant3x3(src.m01, src.m02, src.m03, src.m11, src.m12, src.m13, src.m31, src.m32, src.m33);
+			double t21 = -determinant3x3(src.m00, src.m02, src.m03, src.m10, src.m12, src.m13, src.m30, src.m32, src.m33);
+			double t22 = determinant3x3(src.m00, src.m01, src.m03, src.m10, src.m11, src.m13, src.m30, src.m31, src.m33);
+			double t23 = -determinant3x3(src.m00, src.m01, src.m02, src.m10, src.m11, src.m12, src.m30, src.m31, src.m32);
 			// fourth row
-			float t30 = -determinant3x3(src.m01, src.m02, src.m03, src.m11, src.m12, src.m13, src.m21, src.m22, src.m23);
-			float t31 = determinant3x3(src.m00, src.m02, src.m03, src.m10, src.m12, src.m13, src.m20, src.m22, src.m23);
-			float t32 = -determinant3x3(src.m00, src.m01, src.m03, src.m10, src.m11, src.m13, src.m20, src.m21, src.m23);
-			float t33 = determinant3x3(src.m00, src.m01, src.m02, src.m10, src.m11, src.m12, src.m20, src.m21, src.m22);
+			double t30 = -determinant3x3(src.m01, src.m02, src.m03, src.m11, src.m12, src.m13, src.m21, src.m22, src.m23);
+			double t31 = determinant3x3(src.m00, src.m02, src.m03, src.m10, src.m12, src.m13, src.m20, src.m22, src.m23);
+			double t32 = -determinant3x3(src.m00, src.m01, src.m03, src.m10, src.m11, src.m13, src.m20, src.m21, src.m23);
+			double t33 = determinant3x3(src.m00, src.m01, src.m02, src.m10, src.m11, src.m12, src.m20, src.m21, src.m22);
 
 			// transpose and divide by the determinant
 			dest.m00 = t00 * determinant_inv;
@@ -977,44 +977,44 @@ public class Mat4 implements Serializable {
 
 		Mat4 mat4 = (Mat4) o;
 
-		if (Float.compare(mat4.m00, m00) != 0) return false;
-		if (Float.compare(mat4.m01, m01) != 0) return false;
-		if (Float.compare(mat4.m02, m02) != 0) return false;
-		if (Float.compare(mat4.m03, m03) != 0) return false;
-		if (Float.compare(mat4.m10, m10) != 0) return false;
-		if (Float.compare(mat4.m11, m11) != 0) return false;
-		if (Float.compare(mat4.m12, m12) != 0) return false;
-		if (Float.compare(mat4.m13, m13) != 0) return false;
-		if (Float.compare(mat4.m20, m20) != 0) return false;
-		if (Float.compare(mat4.m21, m21) != 0) return false;
-		if (Float.compare(mat4.m22, m22) != 0) return false;
-		if (Float.compare(mat4.m23, m23) != 0) return false;
-		if (Float.compare(mat4.m30, m30) != 0) return false;
-		if (Float.compare(mat4.m31, m31) != 0) return false;
-		if (Float.compare(mat4.m32, m32) != 0) return false;
-		if (Float.compare(mat4.m33, m33) != 0) return false;
+		if (Double.compare(mat4.m00, m00) != 0) return false;
+		if (Double.compare(mat4.m01, m01) != 0) return false;
+		if (Double.compare(mat4.m02, m02) != 0) return false;
+		if (Double.compare(mat4.m03, m03) != 0) return false;
+		if (Double.compare(mat4.m10, m10) != 0) return false;
+		if (Double.compare(mat4.m11, m11) != 0) return false;
+		if (Double.compare(mat4.m12, m12) != 0) return false;
+		if (Double.compare(mat4.m13, m13) != 0) return false;
+		if (Double.compare(mat4.m20, m20) != 0) return false;
+		if (Double.compare(mat4.m21, m21) != 0) return false;
+		if (Double.compare(mat4.m22, m22) != 0) return false;
+		if (Double.compare(mat4.m23, m23) != 0) return false;
+		if (Double.compare(mat4.m30, m30) != 0) return false;
+		if (Double.compare(mat4.m31, m31) != 0) return false;
+		if (Double.compare(mat4.m32, m32) != 0) return false;
+		if (Double.compare(mat4.m33, m33) != 0) return false;
 
 		return true;
 	}
 
 	@Override
 	public int hashCode() {
-		int result = (m00 != +0.0f ? Float.floatToIntBits(m00) : 0);
-		result = 31 * result + (m01 != +0.0f ? Float.floatToIntBits(m01) : 0);
-		result = 31 * result + (m02 != +0.0f ? Float.floatToIntBits(m02) : 0);
-		result = 31 * result + (m03 != +0.0f ? Float.floatToIntBits(m03) : 0);
-		result = 31 * result + (m10 != +0.0f ? Float.floatToIntBits(m10) : 0);
-		result = 31 * result + (m11 != +0.0f ? Float.floatToIntBits(m11) : 0);
-		result = 31 * result + (m12 != +0.0f ? Float.floatToIntBits(m12) : 0);
-		result = 31 * result + (m13 != +0.0f ? Float.floatToIntBits(m13) : 0);
-		result = 31 * result + (m20 != +0.0f ? Float.floatToIntBits(m20) : 0);
-		result = 31 * result + (m21 != +0.0f ? Float.floatToIntBits(m21) : 0);
-		result = 31 * result + (m22 != +0.0f ? Float.floatToIntBits(m22) : 0);
-		result = 31 * result + (m23 != +0.0f ? Float.floatToIntBits(m23) : 0);
-		result = 31 * result + (m30 != +0.0f ? Float.floatToIntBits(m30) : 0);
-		result = 31 * result + (m31 != +0.0f ? Float.floatToIntBits(m31) : 0);
-		result = 31 * result + (m32 != +0.0f ? Float.floatToIntBits(m32) : 0);
-		result = 31 * result + (m33 != +0.0f ? Float.floatToIntBits(m33) : 0);
-		return result;
+		long result = (m00 != +0.0f ? Double.doubleToLongBits(m00) : 0);
+		result = 31 * result + (m01 != +0.0f ? Double.doubleToLongBits(m01) : 0);
+		result = 31 * result + (m02 != +0.0f ? Double.doubleToLongBits(m02) : 0);
+		result = 31 * result + (m03 != +0.0f ? Double.doubleToLongBits(m03) : 0);
+		result = 31 * result + (m10 != +0.0f ? Double.doubleToLongBits(m10) : 0);
+		result = 31 * result + (m11 != +0.0f ? Double.doubleToLongBits(m11) : 0);
+		result = 31 * result + (m12 != +0.0f ? Double.doubleToLongBits(m12) : 0);
+		result = 31 * result + (m13 != +0.0f ? Double.doubleToLongBits(m13) : 0);
+		result = 31 * result + (m20 != +0.0f ? Double.doubleToLongBits(m20) : 0);
+		result = 31 * result + (m21 != +0.0f ? Double.doubleToLongBits(m21) : 0);
+		result = 31 * result + (m22 != +0.0f ? Double.doubleToLongBits(m22) : 0);
+		result = 31 * result + (m23 != +0.0f ? Double.doubleToLongBits(m23) : 0);
+		result = 31 * result + (m30 != +0.0f ? Double.doubleToLongBits(m30) : 0);
+		result = 31 * result + (m31 != +0.0f ? Double.doubleToLongBits(m31) : 0);
+		result = 31 * result + (m32 != +0.0f ? Double.doubleToLongBits(m32) : 0);
+		result = 31 * result + (m33 != +0.0f ? Double.doubleToLongBits(m33) : 0);
+		return (int)(result ^ (result >>> 32));
 	}
 }

@@ -18,5 +18,7 @@
     <orderEntry type="module" module-name="fieldbox" />
     <orderEntry type="module" module-name="fieldlinker" />
     <orderEntry type="module" module-name="fieldnashorn" />
+    <orderEntry type="library" name="quickhull3d (2)" level="project" />
+    <orderEntry type="library" name="poly2tri-core-0.1.1-SNAPSHOT (2)" level="project" />
   </component>
 </module>

@@ -37,7 +37,8 @@ public class KeyEventMapping {
 		keyCodes.put(KeyEvent.VK_SHIFT, Glfw.GLFW_KEY_LEFT_SHIFT);
 		keyCodes.put(KeyEvent.VK_ALT, Glfw.GLFW_KEY_LEFT_ALT);
 		keyCodes.put(KeyEvent.VK_META, Glfw.GLFW_KEY_LEFT_SUPER);
-		keyCodes.put(KeyEvent.VK_QUOTE, Glfw.GLFW_KEY_APOSTROPHE);
+//		keyCodes.put(KeyEvent.VK_QUOTE, Glfw.GLFW_KEY_APOSTROPHE);
+//		keyCodes.put(KeyEvent.VK_QUOTEDBL, Glfw.GLFW_KEY_APOSTROPHE);
 
 
 		glfwModifiers.add(Glfw.GLFW_KEY_LEFT_CONTROL);

@@ -13,6 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -313,13 +314,23 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 	@Override
 	@HiddenInAutocomplete
 	public Object asMap_get(String p) {
-		return getDefaultBundle().get(new Dict.Prop(p));
+		Uniform u = getDefaultBundle().get(new Dict.Prop(p));
+		if (u!=null)
+			return u.get();
+		else
+		{
+			return super.asMap_get(p);
+		}
 	}
 
 	@Override
 	@HiddenInAutocomplete
 	public Object asMap_set(String p, Object o) {
-		return getDefaultBundle().set(p, () -> o);
+		if (o instanceof Supplier)
+			return getDefaultBundle().set(p, (Supplier)o);
+		if (Uniform.isAccepableInstance(o))
+			return getDefaultBundle().set(p, () -> o);
+		return super.asMap_set(p, o);
 	}
 
 	@Override

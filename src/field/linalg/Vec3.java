@@ -1,6 +1,8 @@
 package field.linalg;
 
+import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
+import java.nio.DoubleBuffer;
 
 /**
  * A class representing a 3-vector (both a position and direction in 3-space).
@@ -10,7 +12,7 @@ public class Vec3 {
 
 	private static final long serialVersionUID = 1L;
 
-	public float x, y, z;
+	public double x, y, z;
 
 	/**
 	 * Constructor for Vec3.
@@ -23,7 +25,7 @@ public class Vec3 {
 	/**
 	 * Constructor
 	 */
-	public Vec3(float x, float y, float z) {
+	public Vec3(double x, double y, double z) {
 		set(x, y, z);
 	}
 
@@ -36,17 +38,17 @@ public class Vec3 {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.lwjgl.util.vector.WritableVector2f#set(float, float)
+	 * @see org.lwjgl.util.vector.WritableVector2f#set(double, double)
 	 */
-	public void set(float x, float y) {
+	public void set(double x, double y) {
 		this.x = x;
 		this.y = y;
 	}
 
 	/* (non-Javadoc)
-	 * @see org.lwjgl.util.vector.WritableVector3#set(float, float, float)
+	 * @see org.lwjgl.util.vector.WritableVector3#set(double, double, double)
 	 */
-	public void set(float x, float y, float z) {
+	public void set(double x, double y, double z) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
@@ -68,14 +70,14 @@ public class Vec3 {
 	/**
 	 * @return the length of the vector
 	 */
-	public final float length() {
-		return (float) Math.sqrt(lengthSquared());
+	public final double length() {
+		return (double) Math.sqrt(lengthSquared());
 	}
 
 	/**
 	 * @return the length squared of the vector
 	 */
-	public float lengthSquared() {
+	public double lengthSquared() {
 		return x * x + y * y + z * z;
 	}
 
@@ -86,7 +88,7 @@ public class Vec3 {
 	 * @param y the translation in y
 	 * @return this
 	 */
-	public Vec3 translate(float x, float y, float z) {
+	public Vec3 translate(double x, double y, double z) {
 		this.x += x;
 		this.y += y;
 		this.z += z;
@@ -106,6 +108,25 @@ public class Vec3 {
 		if (dest == null) return new Vec3(left.x + right.x, left.y + right.y, left.z + right.z);
 		else {
 			dest.set(left.x + right.x, left.y + right.y, left.z + right.z);
+			return dest;
+		}
+	}
+
+
+	/**
+	 * Add a Vec3 to another Vec3 times a scalar and place the result in a destination
+	 * vector.
+	 *
+	 * @param left  The LHS vector
+	 * @param w the weight
+	 * @param right The RHS vector
+	 * @param dest  The destination vector, or null if a new Vec3 is to be created
+	 * @return the sum of left and right in dest
+	 */
+	public static Vec3 add(Vec3 left, double w, Vec3 right, Vec3 dest) {
+		if (dest == null) return new Vec3(left.x + w*right.x, left.y + w*right.y, left.z + w*right.z);
+		else {
+			dest.set(left.x + w*right.x, left.y + w*right.y, left.z + w*right.z);
 			return dest;
 		}
 	}
@@ -179,7 +200,7 @@ public class Vec3 {
 	 * @return the normalised vector
 	 */
 	public Vec3 normalise(Vec3 dest) {
-		float l = length();
+		double l = length();
 
 		if (dest == null) dest = new Vec3(x / l, y / l, z / l);
 		else dest.set(x / l, y / l, z / l);
@@ -193,7 +214,7 @@ public class Vec3 {
 	 * @return this
 	 */
 	public Vec3 normalise() {
-		float l = length();
+		double l = length();
 
 		set(x / l, y / l, z / l);
 		return this;
@@ -207,7 +228,7 @@ public class Vec3 {
 	 * @param right The RHS vector
 	 * @return left dot right
 	 */
-	public static float dot(Vec3 left, Vec3 right) {
+	public static double dot(Vec3 left, Vec3 right) {
 		return left.x * right.x + left.y * right.y + left.z * right.z;
 	}
 
@@ -218,11 +239,11 @@ public class Vec3 {
 	 * @param b The other vector
 	 * @return the angle between the two vectors, in radians
 	 */
-	public static float angle(Vec3 a, Vec3 b) {
-		float dls = dot(a, b) / (a.length() * b.length());
+	public static double angle(Vec3 a, Vec3 b) {
+		double dls = dot(a, b) / (a.length() * b.length());
 		if (dls < -1f) dls = -1f;
 		else if (dls > 1.0f) dls = 1.0f;
-		return (float) Math.acos(dls);
+		return (double) Math.acos(dls);
 	}
 
 	public Vec3 load(FloatBuffer buf) {
@@ -232,7 +253,14 @@ public class Vec3 {
 		return this;
 	}
 
-	public Vec3 scale(float scale) {
+	public Vec3 load(DoubleBuffer buf) {
+		x = buf.get();
+		y = buf.get();
+		z = buf.get();
+		return this;
+	}
+
+	public Vec3 scale(double scale) {
 
 		x *= scale;
 		y *= scale;
@@ -244,9 +272,18 @@ public class Vec3 {
 
 	public Vec3 store(FloatBuffer buf) {
 
-		buf.put(x);
-		buf.put(y);
-		buf.put(z);
+		buf.put((float)x);
+		buf.put((float)y);
+		buf.put((float)z);
+
+		return this;
+	}
+
+	public Vec3 store(DoubleBuffer buf) {
+
+		buf.put((float)x);
+		buf.put((float)y);
+		buf.put((float)z);
 
 		return this;
 	}
@@ -267,14 +304,14 @@ public class Vec3 {
 	/**
 	 * @return x
 	 */
-	public final float getX() {
+	public final double getX() {
 		return x;
 	}
 
 	/**
 	 * @return y
 	 */
-	public final float getY() {
+	public final double getY() {
 		return y;
 	}
 
@@ -283,7 +320,7 @@ public class Vec3 {
 	 *
 	 * @param x
 	 */
-	public final void setX(float x) {
+	public final void setX(double x) {
 		this.x = x;
 	}
 
@@ -292,7 +329,7 @@ public class Vec3 {
 	 *
 	 * @param y
 	 */
-	public final void setY(float y) {
+	public final void setY(double y) {
 		this.y = y;
 	}
 
@@ -301,11 +338,11 @@ public class Vec3 {
 	 *
 	 * @param z
 	 */
-	public void setZ(float z) {
+	public void setZ(double z) {
 		this.z = z;
 	}
 
-	public float getZ() {
+	public double getZ() {
 		return z;
 	}
 
@@ -316,19 +353,19 @@ public class Vec3 {
 
 		Vec3 vec3 = (Vec3) o;
 
-		if (Float.compare(vec3.x, x) != 0) return false;
-		if (Float.compare(vec3.y, y) != 0) return false;
-		if (Float.compare(vec3.z, z) != 0) return false;
+		if (Double.compare(vec3.x, x) != 0) return false;
+		if (Double.compare(vec3.y, y) != 0) return false;
+		if (Double.compare(vec3.z, z) != 0) return false;
 
 		return true;
 	}
 
 	@Override
 	public int hashCode() {
-		int result = (x != +0.0f ? Float.floatToIntBits(x) : 0);
-		result = 31 * result + (y != +0.0f ? Float.floatToIntBits(y) : 0);
-		result = 31 * result + (z != +0.0f ? Float.floatToIntBits(z) : 0);
-		return result;
+		long result = (x != +0.0f ? Double.doubleToLongBits(x) : 0);
+		result = 31 * result + (y != +0.0f ? Double.doubleToLongBits(y) : 0);
+		result = 31 * result + (z != +0.0f ? Double.doubleToLongBits(z) : 0);
+		return (int)(result ^ (result >>> 32));
 	}
 
 	public double distanceFrom(Vec3 v) {
@@ -347,7 +384,7 @@ public class Vec3 {
 	 * blend two Vec3 to create a third. out can contain a pre-allocated return Vec3 or null
 	 */
 
-	static public Vec3 lerp(Vec3 a, Vec3 b, float alpha, Vec3 out)
+	static public Vec3 lerp(Vec3 a, Vec3 b, double alpha, Vec3 out)
 	{
 		if (out==null) out = new Vec3();
 
@@ -362,7 +399,7 @@ public class Vec3 {
 	/**
 	 * set this Vec3 to the blend of two Vec3
 	 */
-	public Vec3 lerp(Vec3 a, Vec3 b, float alpha)
+	public Vec3 lerp(Vec3 a, Vec3 b, double alpha)
 	{
 		this.x = a.x*alpha+b.x*(1-alpha);
 		this.y = a.y*alpha+b.y*(1-alpha);
@@ -370,4 +407,22 @@ public class Vec3 {
 
 		return this;
 	}
+
+	/**
+	 * copies this Vec3
+	 */
+	public Vec3 clone()
+	{
+		return new Vec3(this);
+	}
+
+
+	/**
+	 * Dot product of this and another Vec3
+	 */
+	public double dot(Vec3 a)
+	{
+		return Vec3.dot(this, a);
+	}
+
 }

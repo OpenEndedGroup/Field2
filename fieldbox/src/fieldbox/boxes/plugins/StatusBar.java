@@ -57,10 +57,11 @@ public class StatusBar extends Box {
 			float h = this.properties.get(Box.frame).h;
 
 
-			float y2 = window.getHeight() - insetH - h - drawing.getTranslation().y;
+			double y2 = window.getHeight()-insetH-h-drawing.getTranslation().y;
 
-			if (Math.abs(y - y2) > 1) {
-				this.properties.get(Box.frame).y = y2;
+			if (Math.abs(y-y2)>1)
+			{
+				this.properties.get(Box.frame).y = (float) y2;
 				Drawing.dirty(this);
 			}
 

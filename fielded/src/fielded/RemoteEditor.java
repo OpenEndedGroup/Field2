@@ -11,10 +11,12 @@ import fieldbox.boxes.*;
 import fieldbox.execution.Completion;
 import fieldbox.execution.Execution;
 import fieldbox.io.IO;
+import fieldbox.ui.FieldBoxWindow;
 import fielded.webserver.RateLimitingQueue;
 import fielded.webserver.Server;
 import fielded.windowmanager.LinuxWindowTricks;
 import org.json.JSONObject;
+import org.json.JSONString;
 import org.json.JSONStringer;
 
 import java.io.*;
@@ -25,9 +27,9 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static fieldbox.boxes.FLineDrawing.*;
 import static field.graphics.StandardFLineDrawing.filled;
 import static field.graphics.StandardFLineDrawing.stroked;
+import static fieldbox.boxes.FLineDrawing.*;
 
 /**
  * connects to that WebSocket and does things via those message buses
@@ -71,6 +73,8 @@ public class RemoteEditor extends Box {
 
 	public List<Consumer<String>> logStack = new ArrayList<>();
 	public List<Consumer<String>> errorStack = new ArrayList<>();
+
+	public HashMap<String, String> previousClipboards = new LinkedHashMap<>();
 
 	public RemoteEditor(Server server, String socketName, Watches watches, MessageQueue<Quad<Dict.Prop, Box, Object, Object>, String> queue) {
 		this.server = server;
@@ -160,6 +164,50 @@ public class RemoteEditor extends Box {
 			return payload;
 		});
 
+		server.addHandlerLast(Predicate.isEqual("clipboard.getNewClipboard"), () -> socketName, (s, socket, address, payload) -> {
+			Log.log("clipboardfix", "sync clipboard");
+			JSONObject p = (JSONObject) payload;
+			String returnAddress = p.getString("returnAddress");
+
+			FieldBoxWindow w = this.first(Boxes.window, both())
+					       .get();
+
+			String current = w.getCurrentClipboard();
+			Log.log("clipboardfix", "clipboard is "+current);
+
+			String was = previousClipboards.get(socketName);
+			if (was ==null || !was.equals(current) && current!=null)
+			{
+				Log.log("clipboardfix", "sending "+current);
+				previousClipboards.put(socketName, current);
+
+				current = JSONObject.quote(current);
+
+				s.send(socket, "_messageBus.publish('" + returnAddress + "', " + current + ")");
+			}
+			else {
+				previousClipboards.put(socketName, current);
+				s.send(socket, "_messageBus.publish('" + returnAddress + "', " + "null" + ")");
+			}
+
+
+
+			return payload;
+		});
+
+		server.addHandlerLast(Predicate.isEqual("clipboard.setClipboard"), () -> socketName, (s, socket, address, payload) -> {
+			Log.log("clipboardfix", "set clipboard to "+payload);
+			JSONObject p = (JSONObject) payload;
+
+			FieldBoxWindow w = this.first(Boxes.window, both())
+					       .get();
+
+			w.setCurrentClipboard(p.getString("value"));
+
+			String was = previousClipboards.put(socketName, p.getString("value"));
+
+			return payload;
+		});
 
 		server.addHandlerLast(Predicate.isEqual("store.cookie"), () -> socketName, (s, socket, address, payload) -> {
 
@@ -167,8 +215,7 @@ public class RemoteEditor extends Box {
 
 			Optional<Box> box = findBoxByID(p.getString("box"));
 
-			if (!box.isPresent())
-			{
+			if (!box.isPresent()) {
 				Log.log("remote.cookie", " remote editor is talking about a box that isn't anywhere <" + p + ">");
 				return payload;
 			}
@@ -887,8 +934,7 @@ public class RemoteEditor extends Box {
 
 				Log.log("remoteeditor", " looking for a defaultEditorProperty on <" + target + "> <" + target.properties.get(defaultEditorProperty) + ">, got <" + objectProp + ">");
 
-				if (!(target==currentSelection && objectProp.equals(currentlyEditing)))
-					changeSelection(target, objectProp);
+				if (!(target == currentSelection && objectProp.equals(currentlyEditing))) changeSelection(target, objectProp);
 			}
 		}
 		return true;

@@ -33,7 +33,11 @@ public class Keyboard {
 
 
 	public void dispatch(Box root, Window.Event<Window.KeyboardState> event) {
-		Set<Integer> pressed = Window.KeyboardState.keysPressed(event.before, event.after);
+
+		// this is the set of keys that have been newly pressed, but we'd like to respond to key repeats as well
+//		Set<Integer> pressed = Window.KeyboardState.keysPressed(event.before, event.after);
+		Set<Integer> pressed = event.after.keysDown;
+
 		Set<Character> typed = Window.KeyboardState.charsPressed(event.before, event.after);
 		Set<Integer> released = Window.KeyboardState.keysReleased(event.before, event.after);
 		Set<Integer> down = event.after.keysDown;

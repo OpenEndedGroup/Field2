@@ -55,7 +55,7 @@ public class SimpleVoronoi {
 	Triangulation dt = new Triangulation(initialTriangle);
 
 	public Pnt add(Vec2 location) {
-		Pnt site = new Pnt(location.x, location.y);
+		Pnt site = new Pnt((float)location.x, (float)location.y);
 		dt.delaunayPlace(site);
 		return site;
 	}

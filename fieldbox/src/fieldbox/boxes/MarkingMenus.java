@@ -131,7 +131,7 @@ public class MarkingMenus extends Box {
 
 		FLine textLine = new FLine();
 		textLine.attributes.put(hasText, true);
-		float maxHeight = 0;
+		double maxHeight = 0;
 
 		for (Map.Entry<Position, MenuItem> e : m.items.entrySet()) {
 			textLine.moveTo(center.x + e.getKey().pos.x * scale, center.y + e.getKey().pos.y * scale);
@@ -149,7 +149,7 @@ public class MarkingMenus extends Box {
 		List<Area> areas = new ArrayList<>();
 
 		for (Map.Entry<Position, MenuItem> e : m.items.entrySet()) {
-			float w = defaultFont.font.dimensions(e.getValue().label, 0.2f).x;
+			double  w = defaultFont.font.dimensions(e.getValue().label, 0.2f).x;
 
 			FLine label = new FLine();
 			label.rect(center.x + e.getKey().pos.x * scale - w / 2 - outset, center.y + e
@@ -244,7 +244,7 @@ public class MarkingMenus extends Box {
 		f.attributes.put(layer, "glass2");
 
 		for (Map.Entry<Position, MenuItem> e : m.items.entrySet()) {
-			float w = defaultFont.font.dimensions(e.getValue().label, 0.2f).x;
+			double  w = defaultFont.font.dimensions(e.getValue().label, 0.2f).x;
 
 			FLine label = new FLine();
 			label.rect(center.x + e.getKey().pos.x * scale - w / 2 - outset, center.y + e

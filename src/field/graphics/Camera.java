@@ -266,25 +266,25 @@ public class Camera {
 
 		float[] ret = new float[16];
 
-		ret[0 * 4 + 0] = side.x;
-		ret[1 * 4 + 0] = side.y;
-		ret[2 * 4 + 0] = side.z;
+		ret[0 * 4 + 0] = (float) side.x;
+		ret[1 * 4 + 0] = (float) side.y;
+		ret[2 * 4 + 0] = (float) side.z;
 
-		ret[0 * 4 + 1] = up.x;
-		ret[1 * 4 + 1] = up.y;
-		ret[2 * 4 + 1] = up.z;
+		ret[0 * 4 + 1] = (float) up.x;
+		ret[1 * 4 + 1] = (float) up.y;
+		ret[2 * 4 + 1] = (float) up.z;
 
-		ret[0 * 4 + 2] = -forward.x;
-		ret[1 * 4 + 2] = -forward.y;
-		ret[2 * 4 + 2] = -forward.z;
+		ret[0 * 4 + 2] = (float) -forward.x;
+		ret[1 * 4 + 2] = (float) -forward.y;
+		ret[2 * 4 + 2] = (float) -forward.z;
 
 		ret[3 * 4 + 3] = 1;
 
 		Mat4 m = new Mat4(ret);
 		Vec3 e = Mat4.transform(m, state.position(stereoSide), new Vec3());
-		ret[3 * 4 + 0] = -e.x;
-		ret[3 * 4 + 1] = -e.y;
-		ret[3 * 4 + 2] = -e.z;
+		ret[3 * 4 + 0] = (float) -e.x;
+		ret[3 * 4 + 1] = (float) -e.y;
+		ret[3 * 4 + 2] = (float) -e.z;
 
 		Mat4 q = new Mat4(ret);
 		q.transpose();

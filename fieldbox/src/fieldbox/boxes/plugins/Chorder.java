@@ -327,7 +327,7 @@ public class Chorder extends Box {
 	}
 
 	public Vec2 getLineIntersection(Vec2 p0, Vec2 p1, Vec2 p2, Vec2 p3) {
-		float s02_x, s02_y, s10_x, s10_y, s32_x, s32_y, s_numer, t_numer, denom, t;
+		double s02_x, s02_y, s10_x, s10_y, s32_x, s32_y, s_numer, t_numer, denom, t;
 		s10_x = p1.x - p0.x;
 		s10_y = p1.y - p0.y;
 		s32_x = p3.x - p2.x;

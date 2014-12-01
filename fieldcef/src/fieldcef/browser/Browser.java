@@ -307,20 +307,26 @@ public class Browser extends Box implements IO.Loaded {
 			}
 			else {
 				Log.log("keyboard", "skipping, assuming it will be a char");
+				if (c.size()==0)
+				return null;
 			}
 
-				int fk = k;
+			int fk = k;
 
 			KeyEvent ke = new KeyEvent(component, KeyEvent.KEY_PRESSED, 0, mod, fk, (char)fk);
 
 			Log.log("consumption", "consuming keyboard event :"+e);
 			e.properties.put(Window.consumed, true);
 
+			Log.log("keyboard", "Running key pressed / released "+ke);
+
 			browser.sendKeyEvent(ke);
 			Drawing.dirty(this);
 
 			KeyEvent ke3 = new KeyEvent(component, KeyEvent.KEY_RELEASED, 0, fmod, fk, KeyEvent.CHAR_UNDEFINED);
 			browser.sendKeyEvent(ke3);
+
+			int k2 = k;
 
 			return (e2, term) -> {
 

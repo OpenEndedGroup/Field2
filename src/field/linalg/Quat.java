@@ -1,7 +1,7 @@
 package field.linalg;
 
 import java.io.Serializable;
-import java.nio.FloatBuffer;
+import java.nio.DoubleBuffer;
 
 /**
  * Created by marc on 3/12/14.
@@ -10,7 +10,7 @@ public class Quat implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	public float x, y, z, w;
+	public double x, y, z, w;
 
 	/**
 	 * C'tor. The quaternion will be initialized to the identity.
@@ -41,22 +41,22 @@ public class Quat implements Serializable {
 	/**
 	 * C'tor
 	 */
-	public Quat(float x, float y, float z, float w) {
+	public Quat(double x, double y, double z, double w) {
 		set(x, y, z, w);
 	}
 
-	public void set(float x, float y) {
+	public void set(double x, double y) {
 		this.x = x;
 		this.y = y;
 	}
 
-	public void set(float x, float y, float z) {
+	public void set(double x, double y, double z) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
 	}
 
-	public void set(float x, float y, float z, float w) {
+	public void set(double x, double y, double z, double w) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
@@ -117,14 +117,14 @@ public class Quat implements Serializable {
 	/**
 	 * @return the length of the vector
 	 */
-	public final float length() {
-		return (float) Math.sqrt(lengthSquared());
+	public final double length() {
+		return (double) Math.sqrt(lengthSquared());
 	}
 
 	/**
 	 * @return the length squared of the quaternion
 	 */
-	public float lengthSquared() {
+	public double lengthSquared() {
 		return x * x + y * y + z * z + w * w;
 	}
 
@@ -137,7 +137,7 @@ public class Quat implements Serializable {
 	 * @return The normalised quaternion
 	 */
 	public static Quat normalise(Quat src, Quat dest) {
-		float inv_l = 1f / src.length();
+		double inv_l = 1f / src.length();
 
 		if (dest == null) dest = new Quat();
 
@@ -164,7 +164,7 @@ public class Quat implements Serializable {
 	 * @param right The RHS quat
 	 * @return left dot right
 	 */
-	public static float dot(Quat left, Quat right) {
+	public static double dot(Quat left, Quat right) {
 		return left.x * right.x + left.y * right.y + left.z * right.z + left.w * right.w;
 	}
 
@@ -203,7 +203,7 @@ public class Quat implements Serializable {
 		return negate(this, this);
 	}
 
-	public Quat load(FloatBuffer buf) {
+	public Quat load(DoubleBuffer buf) {
 		x = buf.get();
 		y = buf.get();
 		z = buf.get();
@@ -211,7 +211,7 @@ public class Quat implements Serializable {
 		return this;
 	}
 
-	public Quat scale(float scale) {
+	public Quat scale(double scale) {
 		return scale(scale, this, this);
 	}
 
@@ -223,7 +223,7 @@ public class Quat implements Serializable {
 	 * @param dest  The destination quaternion, or null if a new quaternion is to be created
 	 * @return The scaled quaternion
 	 */
-	public static Quat scale(float scale, Quat src, Quat dest) {
+	public static Quat scale(double scale, Quat src, Quat dest) {
 		if (dest == null) dest = new Quat();
 		dest.x = src.x * scale;
 		dest.y = src.y * scale;
@@ -232,7 +232,7 @@ public class Quat implements Serializable {
 		return dest;
 	}
 
-	public Quat store(FloatBuffer buf) {
+	public Quat store(DoubleBuffer buf) {
 		buf.put(x);
 		buf.put(y);
 		buf.put(z);
@@ -244,14 +244,14 @@ public class Quat implements Serializable {
 	/**
 	 * @return x
 	 */
-	public final float getX() {
+	public final double getX() {
 		return x;
 	}
 
 	/**
 	 * @return y
 	 */
-	public final float getY() {
+	public final double getY() {
 		return y;
 	}
 
@@ -260,7 +260,7 @@ public class Quat implements Serializable {
 	 *
 	 * @param x
 	 */
-	public final void setX(float x) {
+	public final void setX(double x) {
 		this.x = x;
 	}
 
@@ -269,7 +269,7 @@ public class Quat implements Serializable {
 	 *
 	 * @param y
 	 */
-	public final void setY(float y) {
+	public final void setY(double y) {
 		this.y = y;
 	}
 
@@ -278,11 +278,11 @@ public class Quat implements Serializable {
 	 *
 	 * @param z
 	 */
-	public void setZ(float z) {
+	public void setZ(double z) {
 		this.z = z;
 	}
 
-	public float getZ() {
+	public double getZ() {
 		return z;
 	}
 
@@ -291,11 +291,11 @@ public class Quat implements Serializable {
 	 *
 	 * @param w
 	 */
-	public void setW(float w) {
+	public void setW(double w) {
 		this.w = w;
 	}
 
-	public float getW() {
+	public double getW() {
 		return w;
 	}
 
@@ -338,7 +338,7 @@ public class Quat implements Serializable {
 	 * @param right the right quaternion
 	 */
 	public static Quat mulInverse(Quat left, Quat right, Quat dest) {
-		float n = right.lengthSquared();
+		double n = right.lengthSquared();
 		// zero-div may occur.
 		n = (n == 0.0 ? n : 1 / n);
 		// store on stack once for aliasing-safty
@@ -358,13 +358,13 @@ public class Quat implements Serializable {
 		x = a1.x;
 		y = a1.y;
 		z = a1.z;
-		float n = (float) Math.sqrt(x * x + y * y + z * z);
+		double n = (double) Math.sqrt(x * x + y * y + z * z);
 		// zero-div may occur.
-		float s = (float) (Math.sin(0.5 * a1.w) / n);
+		double s = (double) (Math.sin(0.5 * a1.w) / n);
 		x *= s;
 		y *= s;
 		z *= s;
-		w = (float) Math.cos(0.5 * a1.w);
+		w = (double) Math.cos(0.5 * a1.w);
 		return this;
 	}
 
@@ -374,17 +374,17 @@ public class Quat implements Serializable {
 	 *
 	 * @param a1 the axis-angle: (x,y,z) is the axis and a is the angle
 	 */
-	public final Quat setFromAxisAngle(Vec3 a1, float a) {
+	public final Quat setFromAxisAngle(Vec3 a1, double a) {
 		x = a1.x;
 		y = a1.y;
 		z = a1.z;
-		float n = (float) Math.sqrt(x * x + y * y + z * z);
+		double n = (double) Math.sqrt(x * x + y * y + z * z);
 		// zero-div may occur.
-		float s = (float) (Math.sin(0.5 * a) / n);
+		double s = (double) (Math.sin(0.5 * a) / n);
 		x *= s;
 		y *= s;
 		z *= s;
-		w = (float) Math.cos(0.5 * a);
+		w = (double) Math.cos(0.5 * a);
 		return this;
 	}
 
@@ -436,35 +436,35 @@ public class Quat implements Serializable {
 	/**
 	 * Private method to perform the matrix-to-quaternion conversion
 	 */
-	private Quat setFromMat(float m00, float m01, float m02, float m10, float m11, float m12, float m20, float m21, float m22) {
+	private Quat setFromMat(double m00, double m01, double m02, double m10, double m11, double m12, double m20, double m21, double m22) {
 
-		float s;
-		float tr = m00 + m11 + m22;
+		double s;
+		double tr = m00 + m11 + m22;
 		if (tr >= 0.0) {
-			s = (float) Math.sqrt(tr + 1.0);
+			s = (double) Math.sqrt(tr + 1.0);
 			w = s * 0.5f;
 			s = 0.5f / s;
 			x = (m21 - m12) * s;
 			y = (m02 - m20) * s;
 			z = (m10 - m01) * s;
 		} else {
-			float max = Math.max(Math.max(m00, m11), m22);
+			double max = Math.max(Math.max(m00, m11), m22);
 			if (max == m00) {
-				s = (float) Math.sqrt(m00 - (m11 + m22) + 1.0);
+				s = (double) Math.sqrt(m00 - (m11 + m22) + 1.0);
 				x = s * 0.5f;
 				s = 0.5f / s;
 				y = (m01 + m10) * s;
 				z = (m20 + m02) * s;
 				w = (m21 - m12) * s;
 			} else if (max == m11) {
-				s = (float) Math.sqrt(m11 - (m22 + m00) + 1.0);
+				s = (double) Math.sqrt(m11 - (m22 + m00) + 1.0);
 				y = s * 0.5f;
 				s = 0.5f / s;
 				z = (m12 + m21) * s;
 				x = (m01 + m10) * s;
 				w = (m02 - m20) * s;
 			} else {
-				s = (float) Math.sqrt(m22 - (m00 + m11) + 1.0);
+				s = (double) Math.sqrt(m22 - (m00 + m11) + 1.0);
 				z = s * 0.5f;
 				s = 0.5f / s;
 				x = (m20 + m02) * s;
@@ -482,21 +482,21 @@ public class Quat implements Serializable {
 
 		Quat that = (Quat) o;
 
-		if (Float.compare(that.w, w) != 0) return false;
-		if (Float.compare(that.x, x) != 0) return false;
-		if (Float.compare(that.y, y) != 0) return false;
-		if (Float.compare(that.z, z) != 0) return false;
+		if (Double.compare(that.w, w) != 0) return false;
+		if (Double.compare(that.x, x) != 0) return false;
+		if (Double.compare(that.y, y) != 0) return false;
+		if (Double.compare(that.z, z) != 0) return false;
 
 		return true;
 	}
 
 	@Override
 	public int hashCode() {
-		int result = (x != +0.0f ? Float.floatToIntBits(x) : 0);
-		result = 31 * result + (y != +0.0f ? Float.floatToIntBits(y) : 0);
-		result = 31 * result + (z != +0.0f ? Float.floatToIntBits(z) : 0);
-		result = 31 * result + (w != +0.0f ? Float.floatToIntBits(w) : 0);
-		return result;
+		long result = (x != +0.0f ? Double.doubleToLongBits(x) : 0);
+		result = 31 * result + (y != +0.0f ? Double.doubleToLongBits(y) : 0);
+		result = 31 * result + (z != +0.0f ? Double.doubleToLongBits(z) : 0);
+		result = 31 * result + (w != +0.0f ? Double.doubleToLongBits(w) : 0);
+		return (int)(result ^ (result >>> 32));
 	}
 
 }

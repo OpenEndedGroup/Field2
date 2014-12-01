@@ -41,17 +41,32 @@ function kill(cm, from, to, mayGrow, text) {
 
 
 function copy() {
+    _field.send("clipboard.setClipboard", {value:cm.getSelection()});
     addToRing(cm.getSelection())
 }
 
 function cut() {
+    _field.send("clipboard.setClipboard", {value:cm.getSelection()});
     kill(cm, cm.getCursor("start"), cm.getCursor("end"));
 }
 
+function getNewClipboard(contin)
+{
+	_field.sendWithReturn("clipboard.getNewClipboard", {}, contin);
+}
+
 function paste() {
-    var start = cm.getCursor();
-    cm.replaceRange(getFromRing(0), start, start, "paste");
-    cm.setSelection(start, cm.getCursor());
+	_field.log("about to paste")
+		var newText = getNewClipboard(function(newText){
+	_field.log("in continuation")
+			if (newText != null)
+				addToRing(newText)
+
+
+    	var start = cm.getCursor();
+  	  cm.replaceRange(getFromRing(0), start, start, "paste");
+	    cm.setSelection(start, cm.getCursor());
+		})
 }
 
 function pasteAgain() {

@@ -202,6 +202,22 @@ public class Window {
 	}
 
 	/**
+	 * gets the current clipboard (as a string);
+	 */
+	public String getCurrentClipboard()
+	{
+		return glfwGetClipboardString(window);
+	}
+
+	/**
+	 * sets the current clipboard (as a string);
+	 */
+	public void setCurrentClipboard(String s)
+	{
+		glfwSetClipboardString(window, s);
+	}
+
+	/**
 	 * returns the internal glfw window handle for this window. You'll only need this if you are going to do GLFW stuff to this window)
 	 */
 	public long getGLFWWindowReference() {
@@ -534,6 +550,14 @@ public class Window {
 
 	protected MouseState mouseState = new MouseState();
 	protected KeyboardState keyboardState = new KeyboardState();
+
+	/**
+	 * returns the last seen mouse state
+	 */
+	public MouseState getCurrentMouseState()
+	{
+		return mouseState;
+	}
 
 
 	Queue<Function<Event<KeyboardState>, Boolean>> keyboardHandlers = new LinkedBlockingQueue<>();

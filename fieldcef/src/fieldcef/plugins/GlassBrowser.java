@@ -88,9 +88,11 @@ public class GlassBrowser extends Box implements IO.Loaded {
 
 			if (selection().findFirst()
 				       .isPresent() && !e.properties.isTrue(Window.consumed, false)) {
-				if (e.after.keysDown.contains(Glfw.GLFW_KEY_SPACE) && e.after.isControlDown()) {
-					center();
-					runCommands();
+				if (e.after.keysDown.contains(Glfw.GLFW_KEY_SPACE) && e.after.isControlDown() && !e.before.keysDown.contains(Glfw.GLFW_KEY_SPACE)) {
+					if (!visible) {
+						center();
+						runCommands();
+					}
 				}
 			}
 
@@ -184,7 +186,10 @@ public class GlassBrowser extends Box implements IO.Loaded {
 
 	}
 
+	boolean visible = false;
+
 	public void show() {
+		visible = true;
 		browser.properties.put(Box.hidden, false);
 		browser.setFocus(true);
 		Drawing.dirty(browser);
@@ -192,6 +197,7 @@ public class GlassBrowser extends Box implements IO.Loaded {
 
 
 	public void hide() {
+		visible = false;
 		tick = 0;
 		RunLoop.main.getLoop()
 			    .attach(x -> {

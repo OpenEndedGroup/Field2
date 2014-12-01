@@ -27,7 +27,6 @@ public class IO {
 	static public final String EXECUTION = "{{execution}}";
 
 
-
 	/**
 	 * tag interface for boxes, method will be called after all boxes have been loaded (and all properties set)
 	 */
@@ -40,6 +39,13 @@ public class IO {
 	static Map<String, Filespec> knownFiles = new HashMap<String, Filespec>();
 
 	public static final Dict.Prop<String> id = new Dict.Prop<>("__id__");
+	public static final Dict.Prop<String> comment= new Dict.Prop<>("comment").toCannon().type().doc("A comment string that's easily searchable");
+
+	static
+	{
+		persist(id);
+		persist(comment);
+	}
 
 	public void addFilespec(String name, String defaultSuffix, String language) {
 		Filespec f = new Filespec();
@@ -471,6 +477,22 @@ public class IO {
 
 	static public void persist(Dict.Prop prop) {
 		knownProperties.add(prop.getName());
+	}
+
+
+	public static void uniqify(Box x) {
+		ArrayList<Dict.Prop> k = new ArrayList<>(x.properties.getMap()
+								     .keySet());
+		for (Dict.Prop kk : k) {
+			if (kk.getName()
+			      .startsWith("__filename__") || kk.getName()
+							       .startsWith("__datafilename__")) {
+				x.properties.remove(kk);
+			}
+		}
+
+		x.properties.put(IO.id, UUID.randomUUID()
+					    .toString());
 	}
 
 }

@@ -1,6 +1,6 @@
 package field.linalg;
 
-import java.nio.FloatBuffer;
+import java.nio.DoubleBuffer;
 
 /**
  * A class representing a 4-vector (useful for colors and homogeneous coordinates)
@@ -9,7 +9,7 @@ public class Vec4 {
 
 	private static final long serialVersionUID = 1L;
 
-	public float x, y, z, w;
+	public double x, y, z, w;
 
 	/**
 	 * Constructor for Vec4.
@@ -28,22 +28,22 @@ public class Vec4 {
 	/**
 	 * Constructor
 	 */
-	public Vec4(float x, float y, float z, float w) {
+	public Vec4(double x, double y, double z, double w) {
 		set(x, y, z, w);
 	}
 
-	public void set(float x, float y) {
+	public void set(double x, double y) {
 		this.x = x;
 		this.y = y;
 	}
 
-	public void set(float x, float y, float z) {
+	public void set(double x, double y, double z) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
 	}
 
-	public void set(float x, float y, float z, float w) {
+	public void set(double x, double y, double z, double w) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
@@ -67,7 +67,7 @@ public class Vec4 {
 	/**
 	 * @return the length squared of the vector
 	 */
-	public float lengthSquared() {
+	public double lengthSquared() {
 		return x * x + y * y + z * z + w * w;
 	}
 
@@ -78,7 +78,7 @@ public class Vec4 {
 	 * @param y the translation in y
 	 * @return this
 	 */
-	public Vec4 translate(float x, float y, float z, float w) {
+	public Vec4 translate(double x, double y, double z, double w) {
 		this.x += x;
 		this.y += y;
 		this.z += z;
@@ -154,8 +154,8 @@ public class Vec4 {
 	/**
 	 * @return the length of the vector
 	 */
-	public final float length() {
-		return (float) Math.sqrt(lengthSquared());
+	public final double length() {
+		return (double) Math.sqrt(lengthSquared());
 	}
 
 	/**
@@ -165,7 +165,7 @@ public class Vec4 {
 	 * @return the normalised vector
 	 */
 	public Vec4 normalise(Vec4 dest) {
-		float l = length();
+		double l = length();
 
 		if (dest == null) dest = new Vec4(x / l, y / l, z / l, w / l);
 		else dest.set(x / l, y / l, z / l, w / l);
@@ -181,7 +181,7 @@ public class Vec4 {
 	 * @param right The RHS vector
 	 * @return left dot right
 	 */
-	public static float dot(Vec4 left, Vec4 right) {
+	public static double dot(Vec4 left, Vec4 right) {
 		return left.x * right.x + left.y * right.y + left.z * right.z + left.w * right.w;
 	}
 
@@ -192,14 +192,14 @@ public class Vec4 {
 	 * @param b The other vector
 	 * @return the angle between the two vectors, in radians
 	 */
-	public static float angle(Vec4 a, Vec4 b) {
-		float dls = dot(a, b) / (a.length() * b.length());
+	public static double angle(Vec4 a, Vec4 b) {
+		double dls = dot(a, b) / (a.length() * b.length());
 		if (dls < -1f) dls = -1f;
 		else if (dls > 1.0f) dls = 1.0f;
-		return (float) Math.acos(dls);
+		return (double) Math.acos(dls);
 	}
 
-	public Vec4 load(FloatBuffer buf) {
+	public Vec4 load(DoubleBuffer buf) {
 		x = buf.get();
 		y = buf.get();
 		z = buf.get();
@@ -207,7 +207,7 @@ public class Vec4 {
 		return this;
 	}
 
-	public Vec4 scale(float scale) {
+	public Vec4 scale(double scale) {
 		x *= scale;
 		y *= scale;
 		z *= scale;
@@ -215,7 +215,7 @@ public class Vec4 {
 		return this;
 	}
 
-	public Vec4 store(FloatBuffer buf) {
+	public Vec4 store(DoubleBuffer buf) {
 
 		buf.put(x);
 		buf.put(y);
@@ -232,14 +232,14 @@ public class Vec4 {
 	/**
 	 * @return x
 	 */
-	public final float getX() {
+	public final double getX() {
 		return x;
 	}
 
 	/**
 	 * @return y
 	 */
-	public final float getY() {
+	public final double getY() {
 		return y;
 	}
 
@@ -248,7 +248,7 @@ public class Vec4 {
 	 *
 	 * @param x
 	 */
-	public final void setX(float x) {
+	public final void setX(double x) {
 		this.x = x;
 	}
 
@@ -257,7 +257,7 @@ public class Vec4 {
 	 *
 	 * @param y
 	 */
-	public final void setY(float y) {
+	public final void setY(double y) {
 		this.y = y;
 	}
 
@@ -266,7 +266,7 @@ public class Vec4 {
 	 *
 	 * @param z
 	 */
-	public void setZ(float z) {
+	public void setZ(double z) {
 		this.z = z;
 	}
 
@@ -274,7 +274,7 @@ public class Vec4 {
 	/* (Overrides)
 	 * @see org.lwjgl.vector.ReadableVector3f#getZ()
 	 */
-	public float getZ() {
+	public double getZ() {
 		return z;
 	}
 
@@ -283,11 +283,11 @@ public class Vec4 {
 	 *
 	 * @param w
 	 */
-	public void setW(float w) {
+	public void setW(double w) {
 		this.w = w;
 	}
 
-	public float getW() {
+	public double getW() {
 		return w;
 	}
 
@@ -298,21 +298,21 @@ public class Vec4 {
 
 		Vec4 vec4 = (Vec4) o;
 
-		if (Float.compare(vec4.w, w) != 0) return false;
-		if (Float.compare(vec4.x, x) != 0) return false;
-		if (Float.compare(vec4.y, y) != 0) return false;
-		if (Float.compare(vec4.z, z) != 0) return false;
+		if (Double.compare(vec4.w, w) != 0) return false;
+		if (Double.compare(vec4.x, x) != 0) return false;
+		if (Double.compare(vec4.y, y) != 0) return false;
+		if (Double.compare(vec4.z, z) != 0) return false;
 
 		return true;
 	}
 
 	@Override
 	public int hashCode() {
-		int result = (x != +0.0f ? Float.floatToIntBits(x) : 0);
-		result = 31 * result + (y != +0.0f ? Float.floatToIntBits(y) : 0);
-		result = 31 * result + (z != +0.0f ? Float.floatToIntBits(z) : 0);
-		result = 31 * result + (w != +0.0f ? Float.floatToIntBits(w) : 0);
-		return result;
+		long result = (x != +0.0f ? Double.doubleToLongBits(x) : 0);
+		result = 31 * result + (y != +0.0f ? Double.doubleToLongBits(y) : 0);
+		result = 31 * result + (z != +0.0f ? Double.doubleToLongBits(z) : 0);
+		result = 31 * result + (w != +0.0f ? Double.doubleToLongBits(w) : 0);
+		return (int)(result ^ (result >>> 32));
 	}
 
 	public double distanceFrom(Vec4 v) {

@@ -54,6 +54,9 @@ public class Open {
 	private int sizeY = AutoPersist.persist("window_sizeY", () -> 800, x -> Math.min(2560, Math.max(100, x)), (x) -> window == null ? x : (int) window.getBounds().h);
 
 	public Open(String filename) {
+
+		DefaultMenus.safeToSave = false;
+
 		this.filename = filename;
 		Log.log("startup", " -- Initializing window -- ");
 
@@ -176,6 +179,10 @@ public class Open {
 
 		new HotkeyMenus(boxes.root(), null).connect(boxes.root());
 
+		FileBrowser fb = new FileBrowser(boxes.root());
+		fb.loaded();
+		fb.connect(boxes.root());
+
 		/* cascade two blurs, a vertical and a horizontal together from the glass layer onto the base layer */
 		Compositor.Layer lx = window.getCompositor()
 					    .newLayer("__main__blurx", 0, 8);
@@ -253,7 +260,7 @@ public class Open {
 		     .connect(new TimeSlider());
 
 		// actually open the document that's stored on disk
-		doOpen();
+		doOpen(boxes.root(), filename);
 
 		Log.log("startup", " -- FieldBox finished initializing, loading plugins ... -- ");
 
@@ -270,17 +277,22 @@ public class Open {
 		ServiceLoader.load(jdk.internal.dynalink.linker.GuardingDynamicLinker.class, Bootstrap.class.getClassLoader())
 			     .spliterator()
 			     .forEachRemaining(x -> System.out.println(x));
+
+		DefaultMenus.safeToSave = true;
+
 	}
 
-	protected void doOpen() {
+	static public Set<Box> doOpen(Box root, String filename) {
 		Map<String, Box> special = new LinkedHashMap<>();
-		special.put(">>root<<", boxes.root());
+		special.put(">>root<<", root);
 
 		Set<Box> created = new LinkedHashSet<Box>();
 		IO.Document doc = FieldBox.fieldBox.io.readDocument(FieldBox.fieldBox.io.WORKSPACE + "/" + filename, special, created);
 		Log.println("io.debug", "created :" + created);
 
-		Drawing.dirty(boxes.root());
+		Drawing.dirty(root);
+
+		return created;
 
 	}
 
@@ -288,7 +300,7 @@ public class Open {
 	public boolean defaultGLPreamble(int pass) {
 		glViewport(0, 0, window.getFrameBufferWidth(), window.getFrameBufferHeight());
 		glScissor(0, 0, window.getFrameBufferWidth(), window.getFrameBufferHeight());
-		glClearColor(Colors.backgroundColor.x, Colors.backgroundColor.y, Colors.backgroundColor.z,1);
+		glClearColor((float)Colors.backgroundColor.x, (float)Colors.backgroundColor.y, (float)Colors.backgroundColor.z,1);
 		glClear(GL11.GL_COLOR_BUFFER_BIT);
 		glEnable(GL11.GL_BLEND);
 		glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
@@ -311,7 +323,7 @@ public class Open {
 	public boolean defaultGLPreambleTransparent(int pass) {
 		glViewport(0, 0, window.getFrameBufferWidth(), window.getFrameBufferHeight());
 		glScissor(0, 0, window.getFrameBufferWidth(), window.getFrameBufferHeight());
-		glClearColor(Colors.backgroundColor.x, Colors.backgroundColor.y, Colors.backgroundColor.z,0);
+		glClearColor((float)Colors.backgroundColor.x, (float)Colors.backgroundColor.y, (float)Colors.backgroundColor.z,0);
 		glClear(GL11.GL_COLOR_BUFFER_BIT);
 		glEnable(GL11.GL_BLEND);
 		glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);

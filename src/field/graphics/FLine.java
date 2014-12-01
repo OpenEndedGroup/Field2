@@ -81,7 +81,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 			this.to = new Vec3(n);
 		}
 
-		protected Node(float x, float y, float z) {
+		protected Node(double x, double y, double z) {
 			this.to = new Vec3(x, y, z);
 		}
 
@@ -277,27 +277,27 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 		mod++;
 	}
 
-	public FLine moveTo(float x, float y) {
+	public FLine moveTo(double x, double y) {
 		return add(new MoveTo(x, y, 0));
 	}
 
-	public FLine lineTo(float x, float y) {
+	public FLine lineTo(double x, double y) {
 		return add(new LineTo(x, y, 0));
 	}
 
-	public FLine moveTo(float x, float y, float z) {
+	public FLine moveTo(double x, double y, double z) {
 		return add(new MoveTo(x, y, z));
 	}
 
-	public FLine lineTo(float x, float y, float z) {
+	public FLine lineTo(double x, double y, double z) {
 		return add(new LineTo(x, y, z));
 	}
 
-	public FLine cubicTo(float c1x, float c1y, float c2x, float c2y, float x, float y) {
+	public FLine cubicTo(double c1x, double c1y, double c2x, double c2y, double x, double y) {
 		return add(new CubicTo(c1x, c1y, 0, c2x, c2y, 0, x, y, 0));
 	}
 
-	public FLine cubicTo(float c1x, float c1y, float c1z, float c2x, float c2y, float c2z, float x, float y, float z) {
+	public FLine cubicTo(double c1x, double c1y, double c1z, double c2x, double c2y, double c2z, double x, double y, double z) {
 		return add(new CubicTo(c1x, c1y, c1z, c2x, c2y, c2z, x, y, z));
 	}
 
@@ -305,7 +305,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 		return rect((float) r.x, (float) r.y, (float) r.w, (float) r.h);
 	}
 
-	public FLine rect(float x, float y, float w, float h) {
+	public FLine rect(double x, double y, double w, double h) {
 		this.moveTo(x, y);
 		this.lineTo(x + w, y);
 		this.lineTo(x + w, y + h);
@@ -314,8 +314,8 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 	}
 
 
-	public FLine circle(float x, float y, float r) {
-		float k = 0.5522847498f * r;
+	public FLine circle(double x, double y, double r) {
+		double k = 0.5522847498f * r;
 		this.moveTo(x, y - r);
 		this.cubicTo(x + k, y - r, x + r, y - k, x + r, y);
 		this.cubicTo(x + r, y + k, x + k, y + r, x, y + r);
@@ -351,7 +351,6 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 			end = on.bookmark();
 		}
 	}
-
 	WeakHashMap<MeshBuilder, BookmarkCache> cache = new WeakHashMap<>();
 	WeakHashMap<MeshBuilder, BookmarkCache> cache_thickening = new WeakHashMap<>();
 
@@ -657,7 +656,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 			super(to);
 		}
 
-		public MoveTo(float x, float y, float z) {
+		public MoveTo(double x, double y, double z) {
 			super(new Vec3(x, y, z));
 		}
 
@@ -683,7 +682,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 			super(to.x, to.y, 0);
 		}
 
-		public LineTo(float x, float y, float z) {
+		public LineTo(double  x, double  y, double  z) {
 			super(x, y, z);
 		}
 
@@ -711,7 +710,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 			this.c2 = new Vec3(c2.x, c2.y, 0);
 		}
 
-		public CubicTo(float c1x, float c1y, float c1z, float c2x, float c2y, float c2z, float x, float y, float z) {
+		public CubicTo(double  c1x, double  c1y, double  c1z, double  c2x, double  c2y, double  c2z, double  x, double  y, double  z) {
 			super(x, y, z);
 			this.c1 = new Vec3(c1x, c1y, c1z);
 			this.c2 = new Vec3(c2x, c2y, c2z);
@@ -733,14 +732,14 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 	}
 
 	@HiddenInAutocomplete
-	static public Vec2 evaluateCubicFrame(float ax, float ay, float c1x, float c1y, float c2x, float c2y, float bx, float by, float alpha, Vec2 out) {
+	static public Vec2 evaluateCubicFrame(double ax, double ay, double c1x, double c1y, double c2x, double c2y, double bx, double by, double alpha, Vec2 out) {
 		if (out == null) out = new Vec2();
 
-		float oma = 1 - alpha;
-		float oma2 = oma * oma;
-		float oma3 = oma2 * oma;
-		float alpha2 = alpha * alpha;
-		float alpha3 = alpha2 * alpha;
+		double oma = 1 - alpha;
+		double oma2 = oma * oma;
+		double oma3 = oma2 * oma;
+		double alpha2 = alpha * alpha;
+		double alpha3 = alpha2 * alpha;
 
 		out.x = ax * oma3 + 3 * c1x * alpha * oma2 + 3 * c2x * alpha2 * oma + bx * alpha3;
 		out.y = ay * oma3 + 3 * c1y * alpha * oma2 + 3 * c2y * alpha2 * oma + by * alpha3;
@@ -749,14 +748,14 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 	}
 
 	@HiddenInAutocomplete
-	static public Vec3 evaluateCubicFrame(float ax, float ay, float az, float c1x, float c1y, float c1z, float c2x, float c2y, float c2z, float bx, float by, float bz, float alpha, Vec3 out) {
+	static public Vec3 evaluateCubicFrame(double ax, double ay, double az, double c1x, double c1y, double c1z, double c2x, double c2y, double c2z, double bx, double by, double bz, double alpha, Vec3 out) {
 		if (out == null) out = new Vec3();
 
-		float oma = 1 - alpha;
-		float oma2 = oma * oma;
-		float oma3 = oma2 * oma;
-		float alpha2 = alpha * alpha;
-		float alpha3 = alpha2 * alpha;
+		double oma = 1 - alpha;
+		double oma2 = oma * oma;
+		double oma3 = oma2 * oma;
+		double alpha2 = alpha * alpha;
+		double alpha3 = alpha2 * alpha;
 
 		out.x = ax * oma3 + 3 * c1x * alpha * oma2 + 3 * c2x * alpha2 * oma + bx * alpha3;
 		out.y = ay * oma3 + 3 * c1y * alpha * oma2 + 3 * c2y * alpha2 * oma + by * alpha3;

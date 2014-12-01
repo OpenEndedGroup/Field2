@@ -7,6 +7,7 @@
       <module fileurl="file://$PROJECT_DIR$/fieldcef/fieldcef.iml" filepath="$PROJECT_DIR$/fieldcef/fieldcef.iml" />
       <module fileurl="file://$PROJECT_DIR$/fieldclojure/fieldclojure.iml" filepath="$PROJECT_DIR$/fieldclojure/fieldclojure.iml" />
       <module fileurl="file://$PROJECT_DIR$/fielded/fielded.iml" filepath="$PROJECT_DIR$/fielded/fielded.iml" />
+      <module fileurl="file://$PROJECT_DIR$/fieldjython/fieldjython.iml" filepath="$PROJECT_DIR$/fieldjython/fieldjython.iml" />
       <module fileurl="file://$PROJECT_DIR$/fieldlinker/fieldlinker.iml" filepath="$PROJECT_DIR$/fieldlinker/fieldlinker.iml" />
       <module fileurl="file://$PROJECT_DIR$/fieldnashorn/fieldnashorn.iml" filepath="$PROJECT_DIR$/fieldnashorn/fieldnashorn.iml" />
       <module fileurl="file://$PROJECT_DIR$/fieldprocessing/fieldprocessing.iml" filepath="$PROJECT_DIR$/fieldprocessing/fieldprocessing.iml" />
