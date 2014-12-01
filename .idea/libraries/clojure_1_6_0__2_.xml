@@ -6,6 +6,7 @@
     <JAVADOC />
     <SOURCES>
       <root url="jar://$PROJECT_DIR$/fieldclojure/resources/clojure-1.6.0-sources.jar!/" />
+      <root url="file://$PROJECT_DIR$/temp/clojure/src/jvm" />
     </SOURCES>
   </library>
 </component>
