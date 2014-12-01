@@ -163,13 +163,13 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 
 			boolean selected = box.properties.isTrue(Mouse.isSelected, false);
 
-			float ar = selected ? Colors.boxBackground1Selected.x : Colors.boxBackground1.x;
-			float ag = selected ? Colors.boxBackground1Selected.y : Colors.boxBackground1.y;
-			float ab = selected ? Colors.boxBackground1Selected.z : Colors.boxBackground1.z;
-			float br = selected ? Colors.boxBackground2Selected.x : Colors.boxBackground2.x;
-			float bg = selected ? Colors.boxBackground2Selected.y : Colors.boxBackground2.y;
-			float bb = selected ? Colors.boxBackground2Selected.z : Colors.boxBackground2.z;
-			float s = selected ? Colors.boxBackground1Selected.w : Colors.boxBackground1.w;
+			float ar = (float) (selected ? Colors.boxBackground1Selected.x : Colors.boxBackground1.x);
+			float ag = (float) (selected ? Colors.boxBackground1Selected.y : Colors.boxBackground1.y);
+			float ab = (float) (selected ? Colors.boxBackground1Selected.z : Colors.boxBackground1.z);
+			float br = (float) (selected ? Colors.boxBackground2Selected.x : Colors.boxBackground2.x);
+			float bg = (float) (selected ? Colors.boxBackground2Selected.y : Colors.boxBackground2.y);
+			float bb = (float) (selected ? Colors.boxBackground2Selected.z : Colors.boxBackground2.z);
+			float s = (float) (selected ? Colors.boxBackground1Selected.w : Colors.boxBackground1.w);
 
 			FLine f = new FLine();
 			f.moveTo(rect.x, rect.y);
