@@ -173,7 +173,7 @@ public class BaseMesh extends Scene implements Scene.Perform {
 		return limitVertex;
 	}
 
-	public int getElementDimension() { return elements.getDimension(); };
+	public int getElementDimension() { return elements.getDimension(); }
 
 	public void setBuffer(int attribute, ArrayBuffer buffer) {
 		if (buffer.getSize() < limitVertex) buffers[attribute] = buffer.replaceWithSize(limitVertex);
@@ -229,7 +229,7 @@ public class BaseMesh extends Scene implements Scene.Perform {
 			if (elements != null) work |= elements.clean(limitElement);
 
 			LinkedHashSet<Integer> notSeen = new LinkedHashSet<>();
-			notSeen.addAll(Arrays.asList(new Integer[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}));
+			notSeen.addAll(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15));
 
 			for (ArrayBuffer b : buffers)
 				if (b != null) {
