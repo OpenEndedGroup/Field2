@@ -1,9 +1,10 @@
-////This module displays a help box (next to the status box) that, when clicked pulls up a nifty little menu that displays all current key bindings.
+//This module displays a help box (next to the status box) that, when clicked pulls up a nifty little menu that displays all current key bindings.
+// it's currently disabled right now, since we're moving to having the editor in the same window as everything else (including a status bar)
 
 //helpBox
 var helpBox = $("<div class='Field-status' id = 'hbox'></div>")
-helpBox.appendTo($("body"))
 
+//helpBox.appendTo($("body"))
 helpBox.html("Commands &#8963;&#9251;")
 
 
