@@ -178,9 +178,9 @@ public class Open {
 
 		/* cascade two blurs, a vertical and a horizontal together from the glass layer onto the base layer */
 		Compositor.Layer lx = window.getCompositor()
-					    .newLayer("__main__blurx");
+					    .newLayer("__main__blurx", 0, 8);
 		Compositor.Layer ly = window.getCompositor()
-					    .newLayer("__main__blury", 1);
+					    .newLayer("__main__blury", 1, 8);
 		Compositor.Layer composited = window.getCompositor()
 						    .newLayer("__main__composited", 0);
 
@@ -205,9 +205,9 @@ public class Open {
 		      .compositeWith(ly, window.scene());
 
 		lx = window.getCompositor()
-			   .newLayer("__main__gblurx");
+			   .newLayer("__main__gblurx", 0, 8);
 		ly = window.getCompositor()
-			   .newLayer("__main__gblury", 1);
+			   .newLayer("__main__gblury", 1, 8);
 
 
 		composited.blurYInto(5, lx.getScene());
@@ -222,11 +222,12 @@ public class Open {
 		RunLoop.main.getLoop()
 			    .attach(10, Scene.strobe((i) -> {
 				    if (MeshBuilder.cacheHits + MeshBuilder.cacheMisses_internalHash + MeshBuilder.cacheMisses_cursor + MeshBuilder.cacheMisses_externalHash > 0) {
-					    Log.println("graphics.stats", " meshbuilder cache " + MeshBuilder.cacheHits + " | " + MeshBuilder.cacheMisses_cursor + " / " + MeshBuilder.cacheMisses_externalHash + " / " + MeshBuilder.cacheMisses_internalHash);
+					    Log.println("graphics.stats", " meshbuilder cache " + MeshBuilder.cacheHits + " | " + MeshBuilder.cacheMisses_cursor + " / " + MeshBuilder.cacheMisses_externalHash + " / " + MeshBuilder.cacheMisses_internalHash+" / " + MeshBuilder.cacheMisses_tooOld);
 					    MeshBuilder.cacheHits = 0;
 					    MeshBuilder.cacheMisses_cursor = 0;
 					    MeshBuilder.cacheMisses_externalHash = 0;
 					    MeshBuilder.cacheMisses_internalHash = 0;
+					    MeshBuilder.cacheMisses_tooOld = 0;
 				    }
 				    if (SimpleArrayBuffer.uploadBytes > 0) {
 					    Log.println("graphics.stats", " uploaded " + SimpleArrayBuffer.uploadBytes + " bytes to OpenGL");
@@ -283,11 +284,11 @@ public class Open {
 
 	}
 
-	static public Vec3 backgroundColor = new Vec3(0x2d / 255f, 0x31 / 255f, 0x33 / 255f);
 
 	public boolean defaultGLPreamble(int pass) {
-		glViewport(0, 0, window.getWidth(), window.getHeight());
-		glClearColor(backgroundColor.x, backgroundColor.y, backgroundColor.z,1);
+		glViewport(0, 0, window.getFrameBufferWidth(), window.getFrameBufferHeight());
+		glScissor(0, 0, window.getFrameBufferWidth(), window.getFrameBufferHeight());
+		glClearColor(Colors.backgroundColor.x, Colors.backgroundColor.y, Colors.backgroundColor.z,1);
 		glClear(GL11.GL_COLOR_BUFFER_BIT);
 		glEnable(GL11.GL_BLEND);
 		glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
@@ -298,7 +299,8 @@ public class Open {
 
 
 	public boolean defaultGLPreambleBackground(int pass) {
-		glViewport(0, 0, window.getWidth(), window.getHeight());
+		glViewport(0, 0, window.getFrameBufferWidth(), window.getFrameBufferHeight());
+		glScissor(0, 0, window.getFrameBufferWidth(), window.getFrameBufferHeight());
 		glEnable(GL11.GL_BLEND);
 		glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		glDisable(GL11.GL_DEPTH_TEST);
@@ -307,8 +309,9 @@ public class Open {
 	}
 
 	public boolean defaultGLPreambleTransparent(int pass) {
-		glViewport(0, 0, window.getWidth(), window.getHeight());
-		glClearColor(backgroundColor.x, backgroundColor.y, backgroundColor.z,0);
+		glViewport(0, 0, window.getFrameBufferWidth(), window.getFrameBufferHeight());
+		glScissor(0, 0, window.getFrameBufferWidth(), window.getFrameBufferHeight());
+		glClearColor(Colors.backgroundColor.x, Colors.backgroundColor.y, Colors.backgroundColor.z,0);
 		glClear(GL11.GL_COLOR_BUFFER_BIT);
 		glEnable(GL11.GL_BLEND);
 		glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);

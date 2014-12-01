@@ -35,6 +35,8 @@ public class Window {
 	protected int w;
 	protected int h;
 	private Rect currentBounds;
+	public final int retinaScaleFactor;
+
 
 	public Window(int x, int y, int w, int h, String title) {
 		Windows.windows.init();
@@ -93,9 +95,12 @@ public class Window {
 		Glfw.glfwSetInputMode(window, Glfw.GLFW_STICKY_KEYS, GL.GL_TRUE);
 		Glfw.glfwSetInputMode(window, Glfw.GLFW_STICKY_MOUSE_BUTTONS, GL.GL_TRUE);
 
+		retinaScaleFactor = 2;
+
 	}
 
 	static Window currentWindow = null;
+
 
 	public void loop() {
 
@@ -117,8 +122,9 @@ public class Window {
 		int w = glfwGetWindowWidth(window);
 		int h = glfwGetWindowHeight(window);
 
-		GraphicsContext.stateTracker.viewport.set(new int[]{0,0,w,h});
-		GraphicsContext.stateTracker.scissor.set(new int[]{0,0,w,h});
+
+		GraphicsContext.stateTracker.viewport.set(new int[]{0,0,w*retinaScaleFactor,h*retinaScaleFactor});
+		GraphicsContext.stateTracker.scissor.set(new int[]{0,0,w*retinaScaleFactor,h*retinaScaleFactor});
 
 		if (w != this.w || h != this.h) {
 			GraphicsContext.isResizing = true;
@@ -631,6 +637,14 @@ public class Window {
 
 	public int getHeight() {
 		return h;
+	}
+
+	public int getFrameBufferWidth() {
+		return w*retinaScaleFactor;
+	}
+
+	public int getFrameBufferHeight() {
+		return h*retinaScaleFactor;
 	}
 
 	static public int getCurrentWidth() {
