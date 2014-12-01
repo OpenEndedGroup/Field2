@@ -72,6 +72,8 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 		this.breadthFirst(this.both()).forEach(x -> {
 			Log.log("drawing.trace", "lines for "+x);
 
+			if (x.properties.isTrue(Box.hidden, false)) return;
+
 			Rect r = x.properties.get(frame);
 
 			Map<String, Function<Box, FLine>> drawing = x.properties.computeIfAbsent(frameDrawing, this::defaultdrawsLines);
@@ -146,7 +148,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 			f.lineTo(rect.x, rect.y + rect.h);
 			f.lineTo(rect.x, rect.y);
 
-			f.attributes.put(strokeColor, selected ? new Vec4(0, 0, 0, -1.0f) : new Vec4(0, 0, 0, 0.5f));
+			f.attributes.put(strokeColor, selected ? Colors.boxStrokeSelected : Colors.boxStroke);
 
 			f.attributes.put(thicken, new BasicStroke(selected ? 16 : 1.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
 
@@ -161,24 +163,25 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 
 			boolean selected = box.properties.isTrue(Mouse.isSelected, false);
 
-			float a = selected ? 0.9f / 3 : 0.8f / 3;
-			float b = selected ? 0.75f / 3 : 0.75f / 3;
-			float s = selected ? 0.5f : 0.6f;
-
-			a = 1;
-			b = 0.88f;
+			float ar = selected ? Colors.boxBackground1Selected.x : Colors.boxBackground1.x;
+			float ag = selected ? Colors.boxBackground1Selected.y : Colors.boxBackground1.y;
+			float ab = selected ? Colors.boxBackground1Selected.z : Colors.boxBackground1.z;
+			float br = selected ? Colors.boxBackground2Selected.x : Colors.boxBackground2.x;
+			float bg = selected ? Colors.boxBackground2Selected.y : Colors.boxBackground2.y;
+			float bb = selected ? Colors.boxBackground2Selected.z : Colors.boxBackground2.z;
+			float s = selected ? Colors.boxBackground1Selected.w : Colors.boxBackground1.w;
 
 			FLine f = new FLine();
 			f.moveTo(rect.x, rect.y);
-			f.nodes.get(f.nodes.size() - 1).attributes.put(fillColor, new Vec4(a, a, a, s));
+			f.nodes.get(f.nodes.size() - 1).attributes.put(fillColor, new Vec4(ar, ag, ab, s));
 			f.lineTo(rect.x + rect.w, rect.y);
-			f.nodes.get(f.nodes.size() - 1).attributes.put(fillColor, new Vec4(b, b, b, s));
+			f.nodes.get(f.nodes.size() - 1).attributes.put(fillColor, new Vec4(br, bg, bb, s));
 			f.lineTo(rect.x + rect.w, rect.y + rect.h);
-			f.nodes.get(f.nodes.size() - 1).attributes.put(fillColor, new Vec4(a, a, a, s));
+			f.nodes.get(f.nodes.size() - 1).attributes.put(fillColor, new Vec4((ar+br)/2, (ag+bg)/2, (ab+bb)/2, s));
 			f.lineTo(rect.x, rect.y + rect.h);
-			f.nodes.get(f.nodes.size() - 1).attributes.put(fillColor, new Vec4(a, a, a, s));
+			f.nodes.get(f.nodes.size() - 1).attributes.put(fillColor, new Vec4(ar, ag, ab, s));
 			f.lineTo(rect.x, rect.y);
-			f.nodes.get(f.nodes.size() - 1).attributes.put(fillColor, new Vec4(a, a, a, s));
+			f.nodes.get(f.nodes.size() - 1).attributes.put(fillColor, new Vec4(ar, ag, ab, s));
 
 			f.attributes.put(filled, true);
 
