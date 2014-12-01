@@ -22,14 +22,17 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	static public int cacheMisses_cursor = 0;
 	static public int cacheMisses_externalHash = 0;
 	static public int cacheMisses_internalHash = 0;
+	static public int cacheMisses_tooOld = 0;
+
 
 	public class Bookmark {
 		protected int vertexCursor = MeshBuilder.this.vertexCursor;
 		protected int elementCursor = MeshBuilder.this.elementCursor;
+		protected long buildNumber = MeshBuilder.this.buildNumber;
 
 		protected Object hash = computeHash();
-
 		public Object externalHash;
+
 
 		public int at() {
 			return MeshBuilder.this.vertexCursor - vertexCursor;
@@ -40,24 +43,36 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 		}
 
 		public boolean stillValid(Object externalHash) {
+
+			if (buildNumber<MeshBuilder.this.buildNumber-1) {
+					Log.log("cache", () -> " buildNumber, build was out of date "+buildNumber+" "+MeshBuilder.this.buildNumber);
+				cacheMisses_tooOld++;
+				return false;
+			}
+
+			this.buildNumber = MeshBuilder.this.buildNumber;
+
+				Log.log("cache", "evaluating cache " + MeshBuilder.this.vertexCursor + " / " + vertexCursor + "  " + MeshBuilder.this.elementCursor + " / " + elementCursor + " " + this.externalHash + "=" + externalHash + " " + computeHash() + "=" + this.hash);
+
 			if (MeshBuilder.this.vertexCursor != vertexCursor || MeshBuilder.this.elementCursor != elementCursor) {
-				Log.log("drawing.trace", () -> " CURSORS vertex cursor was :" + vertexCursor + " / " + MeshBuilder.this.vertexCursor + "  " + elementCursor + " / " + MeshBuilder.this.elementCursor);
+					Log.log("cache", () -> " CURSORS vertex cursor was :" + vertexCursor + " / " + MeshBuilder.this.vertexCursor + "  " + elementCursor + " / " + MeshBuilder.this.elementCursor);
 				cacheMisses_cursor++;
 				return false;
 			}
 			if (!Util.safeEq(this.externalHash, externalHash)) {
-				Log.log("drawing.trace", () -> " externalHash "+this.externalHash+" "+externalHash);
+					Log.log("cache", () -> " externalHash " + this.externalHash + " " + externalHash);
 				cacheMisses_externalHash++;
 				return false;
 			}
 
 			Object h2 = computeHash();
 			if (!h2.equals(hash)) {
-				Log.log("drawing.trace", () -> " internalHash "+h2+" "+hash);
+	Log.log("cache", () -> " internalHash " + h2 + " " + hash);
 				cacheMisses_internalHash++;
 				return false;
 			}
 			cacheHits++;
+			 Log.log("cache", "succeeded");
 			return true;
 		}
 
@@ -95,6 +110,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	}
 
 	int openCount = 0;
+	long buildNumber = 0;
 
 	// no shrinking yet, but when we do, we have to kill all bookmarks (at least all bookmarks above the trim line, which is impossible to compute right now)
 	int shrinkage = 0;
@@ -136,6 +152,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	private void doOpen() {
 		vertexCursor = 0;
 		elementCursor = 0;
+		buildNumber++;
 	}
 
 	private void doOpenAppend() {
@@ -170,7 +187,8 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	 * equivalent to a number of calls to aux(int attribute, float[] add) simultanously
 	 */
 	public MeshBuilder aux(Map<Integer, Object> add) {
-		Iterator<Map.Entry<Integer, Object>> m = add.entrySet().iterator();
+		Iterator<Map.Entry<Integer, Object>> m = add.entrySet()
+							    .iterator();
 		while (m.hasNext()) {
 			Map.Entry<Integer, Object> n = m.next();
 			float[] fa = toFloatArray(n.getValue());
@@ -291,7 +309,6 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	 */
 	public boolean skipTo(Bookmark from, Bookmark to, Object externalHash, Consumer<MeshBuilder> updator) {
 
-
 		if (!from.stillValid(externalHash) || from.getOuter() != this) {
 			from.reset(externalHash);
 			updator.accept(this);
@@ -392,6 +409,8 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	 * on
 	 */
 	public MeshBuilder nextElement(int v1, int v2, int v3) {
+
+
 		IntBuffer dest = ensureElementSize(3, elementCursor);
 		if (vertexCursor - 1 - v1 < 0)
 			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with start " + v1 + " > " + (vertexCursor - 1));
@@ -523,8 +542,10 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 
 
 		Set<Integer> auxes = new LinkedHashSet<>();
-		auxes.addAll(this.target.buffers().keySet());
-		auxes.addAll(source.target.buffers().keySet());
+		auxes.addAll(this.target.buffers()
+					.keySet());
+		auxes.addAll(source.target.buffers()
+					  .keySet());
 		auxes.remove(0);
 
 		for (Integer ii : auxes) {
@@ -556,7 +577,9 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	 * @return
 	 */
 	public MeshBuilder_tesselationSupport getTessSupport() {
-		return tessSupport == null ? (tessSupport = new MeshBuilder_tesselationSupport(this)) : tessSupport;
+
+		return new MeshBuilder_tesselationSupport(this);
+		//	return tessSupport == null ? (tessSupport = new MeshBuilder_tesselationSupport(this)) : tessSupport;
 	}
 
 	/**
@@ -571,28 +594,26 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 
 
 	/**
-	 * Appends an FLine into this meshbuilder. Note this operation is sensitive to the kind of Mesh that this MeshBuilder is targeting. If you append a line that isn't filled into a MeshBuilder for a triangle mesh, nothing will happen.
-	 *
+	 * Appends an FLine into this meshbuilder. Note this operation is sensitive to the kind of Mesh that this MeshBuilder is targeting. If you
+	 * append a line that isn't filled into a MeshBuilder for a triangle mesh, nothing will happen.
+	 * <p>
 	 * This operation is uses bookmark
 	 */
-	public void append(FLine f)
-	{
+	public void append(FLine f) {
 		int d = target.getElementDimension();
-		if (d==2)
+		if (d == 2) StandardFLineDrawing.dispatchLine(f, null, this, null, Optional.empty(), null);
+		else if (d == 3) StandardFLineDrawing.dispatchLine(f, this, null, null, Optional.empty(), null);
+		else if (d == 0) StandardFLineDrawing.dispatchLine(f, null, null, this, Optional.empty(), null);
+		else if (d == 4) // lines_with_adj
 			StandardFLineDrawing.dispatchLine(f, null, this, null, Optional.empty(), null);
-		else if (d==3)
-			StandardFLineDrawing.dispatchLine(f, this, null, null, Optional.empty(), null);
-		else if (d==0)
-			StandardFLineDrawing.dispatchLine(f, null, null, this, Optional.empty(), null);
-		else if (d==4) // lines_with_adj
-			StandardFLineDrawing.dispatchLine(f, null, this, null, Optional.empty(), null);
-		else throw new IllegalArgumentException(" can't draw into a MeshBuilder with dimension <"+d+">");
+		else throw new IllegalArgumentException(" can't draw into a MeshBuilder with dimension <" + d + ">");
 	}
 
 	private void writeAux(int vertexCursor) {
 
 		Map<Integer, ArrayBuffer> b = target.buffers();
-		Iterator<Map.Entry<Integer, ArrayBuffer>> m = b.entrySet().iterator();
+		Iterator<Map.Entry<Integer, ArrayBuffer>> m = b.entrySet()
+							       .iterator();
 
 		while (m.hasNext()) {
 			Map.Entry<Integer, ArrayBuffer> n = m.next();
@@ -600,7 +621,8 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 
 			float[] z = aux.get(n.getKey());
 			if (z == null) {
-				z = new float[n.getValue().getDimension()];
+				z = new float[n.getValue()
+					       .getDimension()];
 			}
 			ensureSize(n.getKey(), z.length, vertexCursor).put(z);
 		}
@@ -649,9 +671,16 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 
 	protected Object computeHash() {
 		// for now, at least
-		HashSet<Integer> q = new HashSet<>(target.buffers().keySet());
+		HashSet<Integer> q = new HashSet<>(target.buffers()
+							 .keySet());
 		q.remove(0);
 		return new Pair(shrinkage, q);
 	}
 
+	/**
+	 * returns the mesh that this builder is building
+	 */
+	public BaseMesh getTarget() {
+		return target;
+	}
 }
