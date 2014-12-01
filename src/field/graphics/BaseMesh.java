@@ -1,7 +1,9 @@
 package field.graphics;
 
+import field.linalg.Vec3;
 import field.utility.Log;
 
+import java.lang.reflect.Array;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.Arrays;
@@ -356,6 +358,39 @@ public class BaseMesh extends Scene implements Scene.Perform {
 		for (ArrayBuffer b : buffers)
 			b.destroy();
 		if (elements != null) elements.destroy();
+	}
+
+	/**
+	 * checks the contents of this mesh for validity and prints out information
+	 */
+	public void debugContents(String channel)
+	{
+		Log.log(channel, "debugContents for mesh "+this);
+		int vl = getVertexLimit();
+		int el = getElementLimit();
+		Log.log(channel, "VL :"+vl+" | "+el+" "+this.buffers[0].floats(true)+" / "+this.elements(true));
+		for(ArrayBuffer a : this.buffers)
+		{
+			if (a==null) continue;
+			Log.log(channel, "buffer "+a.getAttribute()+" "+a.getBinding()+" "+a.getDimension()+" "+a.getSize());
+		}
+
+
+		if (this.buffers[0]!=null)
+		{
+			Log.log(channel, "checking elements "+this);
+			IntBuffer a = this.elements(true);
+			FloatBuffer f = this.buffers[0].floats();
+
+			int st = this.elements.getDimension();
+
+			for(int q=0;q<el*st;q++)
+			{
+				Log.log(channel, (q/st)+" | "+a.get(q)+" -> "+(a.get(q)<vl ? new Vec3(f.position(3*a.get(q))) : "ILLEGAL"));
+				if ((q+1)%st==0)
+					Log.log(channel, ".");
+			}
+		}
 	}
 
 }
