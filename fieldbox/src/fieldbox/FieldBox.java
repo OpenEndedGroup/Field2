@@ -36,7 +36,6 @@ public class FieldBox {
 
 		Open open = new Open(Options.getString("file", () -> "testIB.field2"));
 
-		// TODO --- save automatically on exit
 		fieldBox.go();
 
 	}
