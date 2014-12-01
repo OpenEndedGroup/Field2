@@ -348,11 +348,10 @@ public class Drawing extends Box {
 			    System.out.println(" translation :" + translation + " " + translationNext + " " + dimensions + " " + dimensionsNext);
 
 
-			    f.x = f.x + (translation.x + dimensionsNext.x * v.x) - (translationNext.x + dimensions.x * v.x);
-			    f.y = f.y + (translation.y + dimensionsNext.y * v.y) - (translationNext.y + dimensions.y * v.y);
+			    f.x = (float) (f.x + (translation.x + dimensionsNext.x * v.x) - (translationNext.x + dimensions.x * v.x));
+			    f.y = (float) (f.y + (translation.y + dimensionsNext.y * v.y) - (translationNext.y + dimensions.y * v.y));
 			    box.properties.put(Box.frame, f);
 		    });
->>>>>>> b77ab9ef6e8dfdae1296bdc3df2d531bdc6a2a89
 	}
 
 	/**
