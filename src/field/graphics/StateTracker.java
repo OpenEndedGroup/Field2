@@ -23,10 +23,6 @@ public class StateTracker {
 		private T value;
 
 		public T set(T m) {
-			Log.log("viewport", "SET "+m);
-			if (m instanceof int[])
-				Log.log("viewport", " that's "+ ((int[])m)[0], ((int[])m)[1], ((int[])m)[2], ((int[])m)[3]);
-
 			T was = value;
 			value = m;
 			apply(value);
@@ -38,10 +34,6 @@ public class StateTracker {
 		 */
 		public Util.ExceptionlessAutoCloasable save() {
 			if (value == null) return () -> {};
-
-			Log.log("viewport", "returning save() for value "+value);
-			if (value instanceof int[])
-				Log.log("viewport", " that's "+ ((int[])value)[0], ((int[])value)[1], ((int[])value)[2], ((int[])value)[3]);
 
 			if (GraphicsContext.currentGraphicsContext == null) throw new IllegalStateException(" save() only valid inside draw method ");
 			T v = value;
@@ -77,9 +69,6 @@ public class StateTracker {
 	static public State<int[]> scissor = new State<int[]>() {
 		@Override
 		protected void apply(int[] value) {
-
-			Log.log("scissor", value[0], value[1], value[2], value[3]);
-
 			glScissor(value[0], value[1], value[2], value[3]);
 			glEnable(GL_SCISSOR_TEST);
 		}
@@ -116,15 +105,10 @@ public class StateTracker {
 		for (State s : allStates.values())
 			r.add(s.save());
 
-		Log.log("viewport", "states :"+r);
-
 		return () -> {
-
-			Log.log("viewport", "close called "+r);
 
 			r.forEach(x -> {
 				try {
-					Log.log("viewport", "calling close on :" + x);
 					x.close();
 				} catch (Exception e) {
 					e.printStackTrace();
