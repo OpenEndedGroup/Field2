@@ -73,13 +73,16 @@
 
 														 html {
 																 background: #2d3133;
+																 background: rgba(0,0,0,0);
 														 }
 
 														 body {
-																 background: #2d3133;
+//																 background: #2d3133;
+																 background: rgba(0,0,0,0);
 																 color: #aaa;
 																 font-size: 13px;
 																 font-family: "Source Sans Pro";
+																 margin:0px;
 														 }
 
 														 a {
@@ -703,7 +706,12 @@
 																 color: #aaa;
 														 }
 
-														 .CodeMirror-gutters { background: #2d3133; border-color:#2d3133; }
+														 .CodeMirror-gutters
+														 {
+														 	//background: #2d3133; border-color:#2d3133;
+														 	background: rgba(0,0,0,0);
+														 	border-color: rgba(255,255,255,0.1);
+														 	}
 
 														 .CodeMirror-gutter-wrapper
 														 {
