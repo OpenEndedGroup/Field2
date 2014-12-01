@@ -41,8 +41,9 @@ var currentmodal = null;
 										 setTimeout(function () {
 											 modal[0].close()
 											 modal.detach()
-												 cm.focus()
+											 cm.focus()
 										 }, 25)
+										 cm.focus()
 								 }.bind({"callback":completions[i].callback}))
 
 								 ol.append(label)
