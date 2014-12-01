@@ -40,15 +40,14 @@ public class HotkeyMenus extends Box {
 			return m;
 		});
 
-		properties.putToList(Keyboard.onKeyDown, (e, k) -> {
+		properties.putToList(Keyboard.onCharTyped, (e, k) -> {
 			Log.log("consumption", "new :"+e);
-			if (e.properties.isTrue(Window.consumed, false)) return null;
+			if (e.properties.isTrue(Window.consumed, false)) return;
 
-			if ( k == Glfw.GLFW_KEY_N)
+			if ( k == 'n')
 			{
 				newBox(convertCoordinateSystem(e.after.mouseState), root);
 			}
-			return null;
 		});
 
 		properties.put(newBox, (box) -> {
