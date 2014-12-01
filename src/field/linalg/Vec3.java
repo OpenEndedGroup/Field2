@@ -31,6 +31,10 @@ public class Vec3 {
 		set(to.x, to.y, to.z);
 	}
 
+	public Vec3(FloatBuffer f) {
+		set(f.get(), f.get(), f.get());
+	}
+
 	/* (non-Javadoc)
 	 * @see org.lwjgl.util.vector.WritableVector2f#set(float, float)
 	 */
