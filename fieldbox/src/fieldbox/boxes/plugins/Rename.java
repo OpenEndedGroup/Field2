@@ -1,14 +1,18 @@
 package fieldbox.boxes.plugins;
 
+import field.utility.Dict;
 import field.utility.Log;
 import field.utility.Pair;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Drawing;
 import fieldbox.boxes.Mouse;
+import fieldbox.io.IO;
 import fielded.RemoteEditor;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -43,7 +47,7 @@ public class Rename extends Box {
 						Consumer<String> feedback;
 
 						@Override
-							public void begin(RemoteEditor.SupportsPrompt prompt, String alternativeChosen/*, Consumer<String> feedback*/) {
+						public void begin(RemoteEditor.SupportsPrompt prompt, String alternativeChosen/*, Consumer<String> feedback*/) {
 							altWas = alternativeChosen;
 							this.feedback = feedback;
 						}
@@ -55,13 +59,31 @@ public class Rename extends Box {
 							if (altWas != null) selection().forEach(x -> {
 								x.properties.put(Box.name, altWas);
 								Drawing.dirty(x);
-								if (feedback!=null)
-								feedback.accept("Renamed to \"" + altWas + "\"");
+								if (feedback != null) feedback.accept("Renamed to \"" + altWas + "\"");
 							});
 						}
 					});
 				}
 			});
+
+			if (selection().filter(x -> x.properties.getMap()
+								.keySet()
+								.stream()
+								.filter(y -> y.getName()
+									      .startsWith("__filename__") || y.getName()
+													      .startsWith("__datafilename__"))
+								.count() > 0)
+				       .count() > 0)
+
+				m.put(new Pair<>("Reset filenames", "Removes any explicit or previously saves file associations with this box"), () -> {
+
+
+					selection().forEach(x -> {
+
+						IO.uniqify(x);
+					});
+
+				});
 
 
 			return m;
