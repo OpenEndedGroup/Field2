@@ -96,7 +96,7 @@ public class StatusBar extends Box {
 			FLine f = new FLine();
 			f.rect(rect);
 
-			f.attributes.put(color, new Vec4(0, 0, 0, 0.25f));
+			f.attributes.put(color, Colors.statusBarBackground);
 			f.attributes.put(filled, true);
 			f.nodes.get(f.nodes.size() - 1).attributes.put(text, statusText());
 
