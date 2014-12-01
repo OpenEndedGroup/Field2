@@ -82,13 +82,13 @@ public class Browser extends Box implements IO.Loaded {
 
 		this.root = root;
 
-		browser = CefSystem.cefSystem.makeBrowser(w, h, this::paint, this::message);
+		browser = CefSystem.cefSystem.makeBrowser(w*window.retinaScaleFactor, h*window.retinaScaleFactor, this::paint, this::message);
 
-		source = ByteBuffer.allocateDirect(w * h * 4);
+		source = ByteBuffer.allocateDirect(w * h * 4*window.retinaScaleFactor*window.retinaScaleFactor);
 		source.position(0)
 		      .limit(source.capacity());
 		sourceView = source.slice();
-		texture = new Texture(Texture.TextureSpecification.byte4(0, w, h, source, true));
+		texture = new Texture(Texture.TextureSpecification.byte4(0, w*window.retinaScaleFactor, h*window.retinaScaleFactor, source, true));
 
 		q = BaseMesh.triangleList(0, 0);
 		builder = new MeshBuilder(q);
@@ -153,6 +153,8 @@ public class Browser extends Box implements IO.Loaded {
 		});
 
 		properties.putToMap(FLineDrawing.frameDrawing, "__outline__", new Cached<Box, Object, FLine>((box, previously) -> {
+			if (true) return null;
+
 			Rect rect = box.properties.get(frame);
 			if (rect == null) return null;
 
@@ -168,9 +170,9 @@ public class Browser extends Box implements IO.Loaded {
 			f.lineTo(rect.x, rect.y + rect.h);
 			f.lineTo(rect.x, rect.y);
 
-			f.attributes.put(color, selected ? new Vec4(0, 0, 0, -1.0f) : new Vec4(0, 0, 0, 0.15f));
+			f.attributes.put(color, selected ? new Vec4(0, 0, 0, 0.15f) : new Vec4(0, 0, 0, 0.15f));
 			f.attributes.put(filled, false);
-			f.attributes.put(thicken, new BasicStroke(selected ? 16 : 1.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
+			f.attributes.put(thicken, new BasicStroke(selected ? 1.5f : 1.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
 
 			f.attributes.put(stroked, true);
 
@@ -206,7 +208,7 @@ public class Browser extends Box implements IO.Loaded {
 //				setFocus(true);
 			}
 
-			browser.sendMouseEvent(new MouseEvent(component, MouseEvent.MOUSE_PRESSED, 0, MouseEvent.getMaskForButton(button + 1), (int) (point.x - r.x), (int) (point.y - r.y), 1, false, button + 1));
+			browser.sendMouseEvent(new MouseEvent(component, MouseEvent.MOUSE_PRESSED, 0, MouseEvent.getMaskForButton(button + 1), (int) (point.x - r.x)*window.retinaScaleFactor, (int) (point.y - r.y)*window.retinaScaleFactor, 1, false, button + 1));
 
 			dragOngoing = true;
 
@@ -221,10 +223,10 @@ public class Browser extends Box implements IO.Loaded {
 					e2.properties.put(Window.consumed, true);
 
 				if (!term) {
-					browser.sendMouseEvent(new MouseEvent(component, MouseEvent.MOUSE_DRAGGED, 0, MouseEvent.getMaskForButton(button + 1), (int) (point2.x - r.x), (int) (point2.y - r.y), 1, false, button + 1));
+					browser.sendMouseEvent(new MouseEvent(component, MouseEvent.MOUSE_DRAGGED, 0, MouseEvent.getMaskForButton(button + 1), (int) (point2.x - r.x)*window.retinaScaleFactor, (int) (point2.y - r.y)*window.retinaScaleFactor, 1, false, button + 1));
 				}
 				else
-					browser.sendMouseEvent(new MouseEvent(component, MouseEvent.MOUSE_RELEASED, 0, MouseEvent.getMaskForButton(button + 1), (int) (point2.x - r.x), (int) (point2.y - r.y), 1, false, button + 1));
+					browser.sendMouseEvent(new MouseEvent(component, MouseEvent.MOUSE_RELEASED, 0, MouseEvent.getMaskForButton(button + 1), (int) (point2.x - r.x)*window.retinaScaleFactor, (int) (point2.y - r.y)*window.retinaScaleFactor, 1, false, button + 1));
 
 				dragOngoing = !term;
 
@@ -249,7 +251,7 @@ public class Browser extends Box implements IO.Loaded {
 					    .orElseThrow(() -> new IllegalArgumentException(" can't mouse around something without drawing support (to provide coordinate system)"));
 
 
-			browser.sendMouseEvent(new MouseEvent(component, MouseEvent.MOUSE_MOVED, 0, 0, (int) (point.x - r.x), (int) (point.y - r.y), 0, false));
+			browser.sendMouseEvent(new MouseEvent(component, MouseEvent.MOUSE_MOVED, 0, 0, (int) (point.x - r.x)*window.retinaScaleFactor, (int) (point.y - r.y)*window.retinaScaleFactor, 0, false));
 			return null;
 		});
 
@@ -492,6 +494,7 @@ public class Browser extends Box implements IO.Loaded {
 		builder.nextElement_quad(3, 2, 1, 0);
 		builder.close();
 
+
 		return null;
 	}, (box) -> new Triple<>(box.properties.getFloat(StandardFLineDrawing.opacity, 1), box.properties.get(Box.frame), box.properties.isTrue(FLineDrawing.hidden, false)));
 
@@ -523,6 +526,9 @@ public class Browser extends Box implements IO.Loaded {
 	boolean hasRepainted = false;
 
 	protected void update(float x, float y, float scale) {
+
+
+		browser.setZoomLevel(2*window.retinaScaleFactor);
 
 		if (this.dirty.getAndSet(false)) {
 			Log.log("cef.debug", " texture was dirty, uploading ");

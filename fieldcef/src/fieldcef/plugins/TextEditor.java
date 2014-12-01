@@ -52,17 +52,17 @@ public class TextEditor extends Box implements IO.Loaded {
 		Log.log("texteditor.debug", "initializing browser");
 
 		FieldBoxWindow window = this.find(Boxes.window, this.both())
-						    .findFirst()
-						    .get();
+					    .findFirst()
+					    .get();
 
-		maxh = window.getHeight()-25-10-10-10-50;
+		maxh = window.getHeight() - 25 - 10 - 10 - 10;
 
 		browser = new Browser();
-		browser.properties.put(Box.frame, new Rect(window.getWidth()-maxw-10, 10, maxw, maxh));
+		browser.properties.put(Box.frame, new Rect(window.getWidth() - maxw - 10, 10, maxw, maxh));
 		browser.properties.put(FLineDrawing.layer, "glass");
-		browser.properties.put(Drawing.windowSpace, new Vec2(1,0));
+		browser.properties.put(Drawing.windowSpace, new Vec2(1, 0));
 		browser.properties.put(Boxes.dontSave, true);
-		browser.properties.put(Box.hidden, false);
+		browser.properties.put(Box.hidden, true);
 		browser.properties.put(Mouse.isSticky, true);
 
 		browser.connect(root);
@@ -71,6 +71,7 @@ public class TextEditor extends Box implements IO.Loaded {
 		styles = findAndLoad(styleSheet, false);
 //		browser.properties.removeFromMap(FLineDrawing.frameDrawing, "__outline__");
 
+		Log.log("shy", "is this thing on?" + find(Watches.watches, both()).count());
 		long[] t = {0};
 		RunLoop.main.getLoop()
 			    .attach(x -> {
@@ -83,11 +84,25 @@ public class TextEditor extends Box implements IO.Loaded {
 				    return true;
 			    });
 
-//		find(Watches.watches, both()).map(w -> w.addWatch(Mouse.isSelected, q -> {
-//			if (q.second == browser) {
-//				browser.setFocus(q.fourth);
-//			}
-//		}));
+
+		find(Watches.watches, both()).forEach(w -> {
+
+			w.getQueue()
+			 .register(x -> x.equals("selection.changed"), c -> {
+				 Log.log("shy", "selection is now" + selection().count());
+
+				 if (selection().count() == 0) {
+					 browser.properties.put(Box.hidden, true);
+					 Drawing.dirty(this);
+				 } else {
+					 browser.properties.put(Box.hidden, false);
+					 Drawing.dirty(this);
+				 }
+
+			 });
+
+
+		});
 
 	}
 

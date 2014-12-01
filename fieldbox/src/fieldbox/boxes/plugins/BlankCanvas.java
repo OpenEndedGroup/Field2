@@ -33,7 +33,7 @@ public class BlankCanvas extends Box {
 			FLine f = new FLine();
 
 			f.attributes.put(hasText, true);
-			f.moveTo(m.x + m.w / 4, m.y + m.h / 2 - 14);
+			f.moveTo(m.x + m.w / 2, m.y + m.h / 2 - 14);
 
 			String text = "Press N to create new box";
 
@@ -55,7 +55,7 @@ public class BlankCanvas extends Box {
 			FLine f = new FLine();
 
 			f.attributes.put(hasText, true);
-			f.moveTo(m.x + m.w / 4, m.y + m.h / 2 + 14);
+			f.moveTo(m.x + m.w / 2, m.y + m.h / 2 + 14);
 
 			String text = "Right-click "+ (Main.os==Main.OS.mac ? "/ ctrl-drag " : "") + "for menus";
 
