@@ -2,7 +2,6 @@ package field.graphics.csg;
 
 import field.graphics.csg.CSG;
 import field.linalg.Vec3;
-import org.poly2tri.geometry.polygon.PolygonUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;

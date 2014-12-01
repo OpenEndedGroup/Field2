@@ -27,6 +27,7 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 
 	private final String name;
 	private Supplier<T> value;
+	private T mostRecentValue;
 
 	public Uniform(String name, Supplier<T> value) {
 		this.name = name;
@@ -41,6 +42,22 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 	public Uniform<T> setValue(Supplier<T> value) {
 		this.value = value;
 		return this;
+	}
+
+	/**
+	 * gets the value of this uniform most recently sent to the graphics system. Note: if this uniform is attached to the scene, but no shader cares about this uniform, this will always return null
+	 */
+	public T get()
+	{
+		return mostRecentValue;
+	}
+
+	/**
+	 * gets the value that would be sent to the graphics system right now
+	 */
+	public T evaluate()
+	{
+		return value.get();
 	}
 
 	FloatBuffer matrix3 = ByteBuffer.allocateDirect(4 * 3 * 3).order(ByteOrder.nativeOrder()).asFloatBuffer();
@@ -76,6 +93,7 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 
 		if (location != -1) {
 			T t = value.get();
+			mostRecentValue = t;
 			float[] tf = rewriteToFloatArray(t);
 			if (tf != null && !intOnly) {
 				if (tf.length == 1) glUniform1f(location, tf[0]);
@@ -163,6 +181,11 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 			return new float[][]{{(float)((Mat4) t).m00, (float)((Mat4) t).m10, (float)((Mat4) t).m20, (float)((Mat4) t).m30}, {(float)((Mat4) t).m01, (float)((Mat4) t).m11, (float)((Mat4) t).m21, (float)((Mat4) t).m31}, {(float)((Mat4) t).m02, (float)((Mat4) t).m12, (float)((Mat4) t).m22, (float)((Mat4) t).m32}, {(float)((Mat4) t).m03, (float)((Mat4) t).m13, (float)((Mat4) t).m23, (float)((Mat4) t).m33}};
 
 		return null;
+	}
+
+	static public boolean isAccepableInstance(Object o)
+	{
+		return o instanceof Number || o instanceof Vec2 || o instanceof Vec3 || o instanceof Vec4 || o instanceof Mat2 || o instanceof Mat3 || o instanceof Mat4 || (o instanceof Supplier || isAccepableInstance(((Supplier)o).get()));
 	}
 
 	@Override

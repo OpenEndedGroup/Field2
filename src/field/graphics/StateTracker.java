@@ -77,9 +77,6 @@ public class StateTracker {
 	static public State<int[]> scissor = new State<int[]>() {
 		@Override
 		protected void apply(int[] value) {
-
-			Log.log("scissor", value[0], value[1], value[2], value[3]);
-
 			glScissor(value[0], value[1], value[2], value[3]);
 			glEnable(GL_SCISSOR_TEST);
 		}

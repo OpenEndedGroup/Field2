@@ -25,6 +25,10 @@ public class UniformBundle implements Scene.Perform {
 		return uniforms.get(d);
 	}
 
+	public <T> Uniform<T> get(String d) {
+		return uniforms.get(new Dict.Prop<T>(d));
+	}
+
 	public <T> Uniform<T> set(Dict.Prop<T> d, Supplier<T> s) {
 		return uniforms.computeIfAbsent(d, (k) -> new Uniform<T>(d.getName(), s)).setValue(s);
 	}
