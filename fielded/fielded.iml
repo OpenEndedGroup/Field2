@@ -8,7 +8,7 @@
       <sourceFolder url="file://$MODULE_DIR$/external" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/internal" type="java-resource" />
     </content>
-    <orderEntry type="jdk" jdkName="1.8u5" jdkType="JavaSDK" />
+    <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="swt" level="project" />
     <orderEntry type="library" name="java_websocket" level="project" />
@@ -20,4 +20,3 @@
     <orderEntry type="module" module-name="fieldagent" />
   </component>
 </module>
-
