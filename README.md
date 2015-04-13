@@ -29,7 +29,7 @@ cd ((therepository))
 ./f fieldbox.FieldBox -file something.field2 -threaded 1 
 ```
 
-on OSX subsitute ```./f_mac``` for ```./f```. Note you may need to edit your ```./f``` script to point to the location of your JDK. Additionally you'll want to add `-retina 1` to your command line on Retina displays.
+on OSX subsitute ```./f_mac``` for ```./f```. Note you may need to edit your ```./f``` script to point to the location of your JDK. Additionally you'll want to add `-retina 1` to your command line on Retina displays (#39).
 
 ```fieldbox.FieldBox``` is the Java Class that's the main entry-point into Field2. 
  
