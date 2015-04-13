@@ -10,9 +10,9 @@ Welcome to the Field2 development repository. _This codebase is experimental and
 
  * Not strictly a prerequisite - ```Intellij IDEA``` (a java development environment) from http://www.jetbrains.com/idea/.
 
- * ```java``` itself. Either get a JDK 8 (not a JRE 8) from your Linux distribution or install one from Oracle. JDK 8u5 should be sufficient (the EA version 8u20 is good for running Field2 but, alas, JavaC crashes with an internal error while building).
+ * ```java``` itself. Either get a JDK 8 or 9 EA. 
 
-To build, either invest the time importing the code-base into Idea (very recommended), or edit fieldwork2.properties in the repository and and build using ```build.sh``` (this calls ```ant -f fieldwork2.xml```)
+To build, either invest the time importing the code-base into Idea (very recommended), or edit ```fieldwork2.properties``` in the repository and and build using ```build.sh``` (this calls ```ant -f fieldwork2.xml```)
 
 Statically-linked built versions of native dependencies are included in the repository (currently we have a version of GLFW 3.1, a fast jpeg loading library and LWJGL).
 
