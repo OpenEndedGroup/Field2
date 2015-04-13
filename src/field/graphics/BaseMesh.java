@@ -1,6 +1,5 @@
 package field.graphics;
 
-import field.linalg.Vec3;
 import field.utility.Log;
 
 import java.nio.FloatBuffer;
@@ -385,7 +384,7 @@ public class BaseMesh extends Scene implements Scene.Perform {
 
 			for(int q=0;q<el*st;q++)
 			{
-				Log.log(channel, (q/st)+" | "+a.get(q)+" -> "+(a.get(q)<vl ? new Vec3(f.position(3*a.get(q))) : "ILLEGAL"));
+				//Log.log(channel, (q/st)+" | "+a.get(q)+" -> "+(a.get(q)<vl ? new Vec3(f.position(3*a.get(q))) : "ILLEGAL"));
 				if ((q+1)%st==0)
 					Log.log(channel, ".");
 			}
