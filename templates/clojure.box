@@ -1,0 +1,18 @@
+{
+  "__id__" "_clojure"
+  "classpath" [
+    "./out/production/fieldclojure/"
+    "./out/production/fieldclojure/*"
+  ]
+  "name" "clojure.box"
+  "frame" #field/rect{
+    :x 272.07342529296875
+    :y 701.8601684570312
+    :w 200.0
+    :h 50.0
+  }
+  "_code_cookie" "{\"output\":\"appendRemoteOutputToLine(20, \\\"#'user/_->\\\\n#'user/_->\\\\n#'user/_->\\\", 'Field-remoteOutput-error', 'Field-remoteOutput', false)\\n\",\"currentpos\":{\"ch\":0,\"line\":20,\"xRel\":1,\"outside\":true},\"widgets\":[],\"brackets\":\"\"}"
+  "__filename__code" "{{templates}}clojure_code.clj"
+  "__datafilename__" "{{templates}}clojure.box"
+  "__boxclass__" "fieldclojure.FieldClojure"
+}
