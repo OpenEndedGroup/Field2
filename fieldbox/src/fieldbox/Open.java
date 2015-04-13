@@ -226,6 +226,8 @@ public class Open {
 
 		new KeyboardFocus(boxes.root()).connect(boxes.root());
 
+		new RevealInFinder(boxes.root()).connect(boxes.root());
+
 		if (ThreadSync.enabled)
 			new ThreadSyncFeedback(boxes.root()).connect(boxes.root());
 

@@ -185,11 +185,19 @@ public class DefaultMenus extends Box {
 		Map<Box, String> special = new LinkedHashMap<>();
 		special.put(root, ">>root<<");
 
-		IO.Document doc = FieldBox.fieldBox.io.compileDocument(root, special);
+		String path = "";
+		String fn = filename;
+		if (filename.contains("/")){
+
+			path = filename.substring(0, filename.lastIndexOf("/"));
+			fn = filename.substring(filename.lastIndexOf("/")+1);
+		}
+
+		IO.Document doc = FieldBox.fieldBox.io.compileDocument(path, root, special);
 
 		boolean error = false;
 		try {
-			FieldBox.fieldBox.io.writeOutDocument(FieldBox.fieldBox.io.WORKSPACE + "/" + filename, doc);
+			FieldBox.fieldBox.io.writeOutDocument(FieldBox.fieldBox.io.WORKSPACE + "/" + path+"/"+fn, doc);
 		} catch (IOException e) {
 			e.printStackTrace();
 			Drawing.notify("Error saving " + e.getMessage(), this, 200);

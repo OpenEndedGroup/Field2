@@ -154,10 +154,10 @@ public class IO {
 		knownProperties.add(FrameManipulation.lockWidth.getName());
 	}
 
-	public Document compileDocument(Box documentRoot, Map<Box, String> specialBoxes) {
+	public Document compileDocument(String defaultSubDirectory, Box documentRoot, Map<Box, String> specialBoxes) {
 		Document d = new Document();
 		d.externalList = documentRoot.breadthFirst(documentRoot.downwards())
-					     .map(box -> toExternal(box, specialBoxes))
+					     .map(box -> toExternal(defaultSubDirectory, box, specialBoxes))
 					     .filter(x -> x != null)
 					     .collect(Collectors.toList());
 		d.knownFiles = new LinkedHashMap<>(knownFiles);
@@ -395,7 +395,7 @@ public class IO {
 	}
 
 
-	protected External toExternal(Box box, Map<Box, String> specialBoxes) {
+	protected External toExternal(String defaultSubDirectory, Box box, Map<Box, String> specialBoxes) {
 		if (specialBoxes.containsKey(box)) return null;
 
 		if (box.properties.isTrue(Boxes.dontSave, false)) return null;
@@ -421,7 +421,7 @@ public class IO {
 					box.properties.put(new Dict.Prop<String>(
 								       "__filename__" + e.getKey()
 											 .getName()),
-							   extantFilename = makeFilenameFor(f,
+							   extantFilename = makeFilenameFor(defaultSubDirectory, f,
 											    box));
 				}
 				knownProperties.add("__filename__" + e.getKey()
@@ -433,7 +433,7 @@ public class IO {
 
 		ex.dataFile = box.properties.computeIfAbsent(
 			    new Dict.Prop<String>("__datafilename__"),
-			    (k) -> makeDataFilenameFor(ex, box));
+			    (k) -> makeDataFilenameFor(defaultSubDirectory, ex, box));
 		knownProperties.add("__datafilename__");
 		ex.box = box;
 		ex.id = box.properties.computeIfAbsent(id, (k) -> UUID.randomUUID()
@@ -527,14 +527,14 @@ public class IO {
 	}
 
 
-	private File filenameFor(String value) {
+	public File filenameFor(String value) {
 		if (value.startsWith(TEMPLATES)) {
 			return new File(templateDirectory,
-					safe(value.substring(TEMPLATES.length())));
+					/*safe*/(value.substring(TEMPLATES.length())));
 		}
 		if (value.startsWith(WORKSPACE)) {
 			return new File(defaultDirectory,
-					safe(value.substring(WORKSPACE.length())));
+					/*safe*/(value.substring(WORKSPACE.length())));
 		}
 		return new File(value);
 	}
@@ -544,30 +544,30 @@ public class IO {
 		return filename.replace("/", "_");
 	}
 
-	private String makeDataFilenameFor(External ex, Box box) {
+	private String makeDataFilenameFor(String defaultSubDirectory, External ex, Box box) {
 		if (ex.textFiles.size() > 0) {
 			return ex.textFiles.values()
 					   .iterator()
 					   .next() + ".box";
 		}
-		return makeFilenameFor(".box", "", box);
+		return makeFilenameFor(defaultSubDirectory, ".box", "", box);
 	}
 
-	private String makeFilenameFor(Filespec f, Box box) {
-		return makeFilenameFor(f.getDefaultSuffix(box), f.name, box);
+	private String makeFilenameFor(String defaultSubDirectory, Filespec f, Box box) {
+		return makeFilenameFor(defaultSubDirectory, f.getDefaultSuffix(box), safe(f.name), box);
 	}
 
-	private String makeFilenameFor(String defaultSuffix, String defaultName, Box box) {
+	private String makeFilenameFor(String defaultSubDirectory, String defaultSuffix, String defaultName, Box box) {
 		String name = box.properties.get(Box.name);
 		if (name == null) name = "untitled_box";
 
 		String suffix = "_" + defaultName + (defaultSuffix == null ? "" : defaultSuffix);
-		name = name + suffix;
+		name = safe(name + suffix);
 
 		int n = 0;
-		if (new File(defaultDirectory, name).exists()) {
+		if (new File(WORKSPACE+"/"+defaultSubDirectory, name).exists()) {
 			String n2 = name;
-			while (new File(defaultDirectory, n2).exists()) {
+			while (new File(WORKSPACE+"/"+defaultSubDirectory, n2).exists()) {
 				n2 = name.substring(0, name.length() - suffix.length()) + pad(
 					    n) + suffix;
 				n++;
@@ -576,13 +576,13 @@ public class IO {
 
 			// create it now, so that other calls to makeFilenameFor still create unique names
 			try {
-				new File(defaultDirectory, name).createNewFile();
+				new File(WORKSPACE+"/"+defaultSubDirectory, name).createNewFile();
 			} catch (IOException e) {
 			}
 
 		}
 
-		return WORKSPACE + name;
+		return WORKSPACE + (defaultSubDirectory.equals("") ? "" : (defaultSubDirectory+"/")) + name;
 	}
 
 
