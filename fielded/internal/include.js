@@ -3,6 +3,7 @@ LazyLoad.css("/field/filesystem/codemirror-4.4/lib/codemirror.css")
 LazyLoad.css("/field/filesystem/codemirror-4.4/theme/default.css")
 LazyLoad.js("/field/filesystem/codemirror-4.4/mode/javascript/javascript.js")
 LazyLoad.js("/field/filesystem/codemirror-4.4/mode/python/python.js")
+LazyLoad.js("/field/filesystem/codemirror-4.4/mode/glsl/glsl.js")
 LazyLoad.js("/field/filesystem/codemirror-4.4/mode/clojure/clojure.js")
 LazyLoad.js("/field/filesystem/codemirror-4.4/addon/fold/foldcode.js")
 LazyLoad.js("/field/filesystem/codemirror-4.4/addon/fold/foldgutter.js")
@@ -13,16 +14,23 @@ LazyLoad.js("/field/filesystem/codemirror-4.4/addon/edit/matchbrackets.js")
 LazyLoad.js("/field/filesystem/codemirror-4.4/addon/search/search.js")
 LazyLoad.js("/field/filesystem/codemirror-4.4/addon/search/searchcursor.js")
 LazyLoad.js("/field/filesystem/codemirror-4.4/addon/dialog/dialog.js")
+
 LazyLoad.js("/field/filesystem/raphael-min.js")
+
 LazyLoad.js("/field/filesystem/jquery-2.1.0.min.js")
 LazyLoad.js("/field/filesystem/jquery.color.js")
-LazyLoad.js("/field/filesystem/jquery.contextMenu.js")
-LazyLoad.css("/field/filesystem/jquery.contextMenu.css")
-LazyLoad.css("/field/filesystem/jquery.ui.js")
-LazyLoad.css("/field/filesystem/jquery.ui.position.js")
+
+//LazyLoad.js("/field/filesystem/jquery.contextMenu.js")
+//LazyLoad.css("/field/filesystem/jquery.contextMenu.css")
+
+LazyLoad.js("/field/filesystem/jquery.ui.js")
+LazyLoad.js("/field/filesystem/jquery.ui.position.js")
+
 LazyLoad.js("/field/filesystem/jquery.sizes.js")
 LazyLoad.js("/field/filesystem/underscore-min.js")
+
 LazyLoad.js("/field/filesystem/postal.min.js")
+
 LazyLoad.css("/field/filesystem/field-codemirror.css")
 LazyLoad.js("/field/filesystem/farbtastic/farbtastic.js")
 LazyLoad.css("/field/filesystem/farbtastic/farbtastic.css")
@@ -35,7 +43,9 @@ LazyLoad.js("/field/filesystem/codemirror-4.4/addon/dialog/dialog.js")
 LazyLoad.js("/field/filesystem/codemirror-4.4/addon/tern/tern.js")
 LazyLoad.js("/field/filesystem/codemirror-4.4/addon/hint/show-hint.js")
 
-LazyLoad.js("/field/filesystem/jquery.autosize.input.js", function () {_field.send("initialize.finished", _field.id)})
+LazyLoad.js("/field/filesystem/jquery.autosize.input.js", function () {
+    _field.send("initialize.finished", _field.id)
+})
 
 //LazyLoad.js("/field/filesystem/tern/acorn.js")
 //LazyLoad.js("/field/filesystem/tern/acorn_loose.js")

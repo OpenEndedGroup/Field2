@@ -1,7 +1,7 @@
 package fielded.plugins;
 
 import field.graphics.FLine;
-import field.graphics.RunLoop;
+import field.app.RunLoop;
 import field.linalg.Vec4;
 import field.utility.*;
 import fieldbox.boxes.*;
@@ -147,6 +147,11 @@ public class BridgeToTextEditor extends Box {
 				protected Util.ExceptionlessAutoCloasable previousPush = null;
 
 				@Override
+				public Object getBinding(String name) {
+					return null;
+				}
+
+				@Override
 				public void executeTextFragment(String textFragment, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
 
 					if (previousPush!=null) previousPush.close();;
@@ -166,7 +171,7 @@ public class BridgeToTextEditor extends Box {
 				}
 
 				@Override
-				public String begin(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
+				public String begin(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success, Map<String, Object> initiator) {
 					//TODO
 /*
 					System.out.println(" WRAPPED (begin)");

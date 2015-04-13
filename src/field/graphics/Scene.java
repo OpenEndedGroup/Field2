@@ -2,11 +2,9 @@ package field.graphics;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import field.utility.Dict;
-import field.utility.LinkedHashMapAndArrayList;
-import field.utility.Log;
-import field.utility.Pair;
+import field.utility.*;
 import fieldbox.boxes.Box;
+import fieldbox.execution.Completion;
 import fieldlinker.Linker;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -20,74 +18,37 @@ import java.util.function.Consumer;
 /**
  * The principle class of the Field Graphics "Scene List" structure.
  * <p>
- * A Scene is a list of Perform instances that can run at various passes of their choosing. Passes are ordered numerically and created on demand. By
- * convention geometry is drawn on pass 0.
+ * A Scene is a list of Perform instances that can run at various passes of their choosing. Passes are ordered numerically and created on demand. By convention geometry is drawn on pass 0.
  * <p>
- * For example a texture Perform might set OpenGL texture state at a pass "-1" and restore it at pass "1", thus it can be added as a sibling of a
- * Geometry object or as a Parent or as a Child and still run in the right order with respect to that piece of Geometry. The topology of the tree is
- * free to encoding a grouping thats useful to the application rather than something that's vital to reexpressing the semantics of OpenGL's decaying
- * state-machine just right.
+ * For example a texture Perform might set OpenGL texture state at a pass "-1" and restore it at pass "1", thus it can be added as a sibling of a Geometry object or as a Parent or as a Child and still
+ * run in the right order with respect to that piece of Geometry. The topology of the tree is free to encoding a grouping thats useful to the application rather than something that's vital to
+ * reexpressing the semantics of OpenGL's decaying state-machine just right.
  */
 public class Scene extends Box implements Linker.AsMap {
 
-	/**
-	 * Although we can build the Scene structure out of (int, Consumer<int>) tuples, it's more along the grain of Java's type system to use an
-	 * interface with both
-	 */
-	static public interface Perform extends Consumer<Integer> {
-		public boolean perform(int pass);
-
-		default public int[] getPasses() {
-			return new int[]{0};
-		}
-
-		default public void accept(Integer p) {
-			perform(p);
-		}
-	}
-
-	static public class Cancel extends RuntimeException {
-	}
-
-	static public class Transient implements Perform {
-		int[] passes;
-		Consumer<Integer> call;
-		LinkedHashSet<GraphicsContext> allContexts = new LinkedHashSet<>(GraphicsContext.allGraphicsContexts);
-
-		public Transient(Perform p) {
-			this.passes = p.getPasses();
-			this.call = (x) -> p.perform(x);
-		}
-
-		public Transient(Runnable p, int... passes) {
-			this.passes = passes;
-			this.call = (x) -> p.run();
-		}
-
-		public Transient(Consumer<Integer> m, int... passes) {
-			this.passes = passes;
-			this.call = (x) -> m.accept(x);
-		}
-
-		@Override
-		public boolean perform(int pass) {
-			if (allContexts.remove(GraphicsContext.getContext())) call.accept(pass);
-			return allContexts.size() > 0;
-		}
-
-		@Override
-		public int[] getPasses() {
-			return passes;
-		}
-	}
-
+	static public Dict.Prop<LinkedHashMapAndArrayList<Perform>> passes = new Dict.Prop<LinkedHashMapAndArrayList<Perform>>("passes").toCannon();
+	protected Set<String> knownNonProperties;
 	TreeMap<Integer, Set<Consumer<Integer>>> scene = new TreeMap<>();
-
 	BiMap<String, Consumer<Integer>> tagged = HashBiMap.create();
+	List<Throwable> exceptions = new ArrayList<Throwable>();
 
 	/**
-	 * A (int pass, Consumer<Integer>) tuple can be effectively cast as a Perform. The int says what pass the consumer should be run for, and the
-	 * consumer is called for that pass
+	 * utility, takes a consumer and returns a version that runs only once every "count" iterations
+	 */
+
+	static public <T> Consumer<T> strobe(Consumer<T> c, int count) {
+		return new Consumer<T>() {
+			int tick = 0;
+
+			@Override
+			public void accept(T t) {
+				if (tick++ % count == 0) c.accept(t);
+			}
+		};
+	}
+
+	/**
+	 * A (int pass, Consumer<Integer>) tuple can be effectively cast as a Perform. The int says what pass the consumer should be run for, and the consumer is called for that pass
 	 */
 	public boolean attach(int pass, Consumer<Integer> p) {
 		Set<Consumer<Integer>> c = scene.get(pass);
@@ -96,14 +57,12 @@ public class Scene extends Box implements Linker.AsMap {
 	}
 
 	/**
-	 * A (int pass, String tag, Consumer<Integer>) tuple can be effectively cast as a Perform. The int says what pass the consumer should be run
-	 * for, and the consumer is called for that pass.
+	 * A (int pass, String tag, Consumer<Integer>) tuple can be effectively cast as a Perform. The int says what pass the consumer should be run for, and the consumer is called for that pass.
 	 * <p>
-	 * The additional "tag" gives this consumer a name, so that it can be referred to later. Note that at any given time there can only be one
-	 * Perform or Consumer with any particular tag associated with a Scene, anything previously tagged with this scene is automatically
-	 * disconnected. This allows you write code in "idempotent" style: specifically you can have connect(...) calls that can be safely (although
-	 * not particularlly efficiently) called over and over again. This is good for rapidly iterating on a problem without having to worry about
-	 * tearing down resources that you constructed.
+	 * The additional "tag" gives this consumer a name, so that it can be referred to later. Note that at any given time there can only be one Perform or Consumer with any particular tag
+	 * associated with a Scene, anything previously tagged with this scene is automatically disconnected. This allows you write code in "idempotent" style: specifically you can have connect(...)
+	 * calls that can be safely (although not particularlly efficiently) called over and over again. This is good for rapidly iterating on a problem without having to worry about tearing down
+	 * resources that you constructed.
 	 */
 	public boolean attach(int pass, String tag, Consumer<Integer> p) {
 		Consumer<Integer> was = tagged.remove(tag);
@@ -117,11 +76,10 @@ public class Scene extends Box implements Linker.AsMap {
 	}
 
 	/**
-	 * The additional "tag" gives this consumer a name, so that it can be referred to later. Note that at any given time there can only be one
-	 * Perform or Consumer with any particular tag associated with a Scene, anything previously tagged with this scene is automatically
-	 * disconnected. This allows you write code in "idempotent" style: specifically you can have connect(...) calls that can be safely (although
-	 * not particularlly efficiently) called over and over again. This is good for rapidly iterating on a problem without having to worry about
-	 * tearing down resources that you constructed.
+	 * The additional "tag" gives this consumer a name, so that it can be referred to later. Note that at any given time there can only be one Perform or Consumer with any particular tag
+	 * associated with a Scene, anything previously tagged with this scene is automatically disconnected. This allows you write code in "idempotent" style: specifically you can have connect(...)
+	 * calls that can be safely (although not particularlly efficiently) called over and over again. This is good for rapidly iterating on a problem without having to worry about tearing down
+	 * resources that you constructed.
 	 */
 	public boolean attach(String tag, Perform p) {
 		Consumer<Integer> was = tagged.remove(tag);
@@ -150,7 +108,6 @@ public class Scene extends Box implements Linker.AsMap {
 
 	}
 
-
 	/**
 	 * Disconnects a Perform from this Scene. Care has been taken to ensure you can do this while the scene is being traversed.
 	 * <p>
@@ -171,9 +128,6 @@ public class Scene extends Box implements Linker.AsMap {
 			m |= attach(i, p);
 		return m;
 	}
-
-	static public Dict.Prop<LinkedHashMapAndArrayList<Perform>> passes = new Dict.Prop<LinkedHashMapAndArrayList<Perform>>("passes").toCannon();
-
 
 	/**
 	 * connects a Box to this Scene. Boxes can contain Performs, this operation is equivalent to connecting all the Performs in this box.
@@ -215,8 +169,6 @@ public class Scene extends Box implements Linker.AsMap {
 		update(new ArrayDeque<Pair<Integer, Callable<Boolean>>>());
 	}
 
-	List<Throwable> exceptions = new ArrayList<Throwable>();
-
 	protected boolean update(int midpoint, Callable<Boolean> middle) {
 		return update(new ArrayDeque<>(Arrays.asList(new Pair<Integer, Callable<Boolean>>(midpoint, middle))));
 	}
@@ -233,7 +185,7 @@ public class Scene extends Box implements Linker.AsMap {
 		try {
 
 			TreeMap<Integer, Set<Consumer<Integer>>> c1 = collectChildrenPasses();
-			if (c1==null) c1 =new TreeMap<>();
+			if (c1 == null) c1 = new TreeMap<>();
 
 			for (Map.Entry<Integer, Set<Consumer<Integer>>> c2 : scene.entrySet()) {
 				if (c1.get(c2.getKey()) == null) c1.put(c2.getKey(), c2.getValue());
@@ -277,7 +229,6 @@ public class Scene extends Box implements Linker.AsMap {
 		return ret;
 	}
 
-
 	public List<Throwable> getException() {
 		return exceptions;
 	}
@@ -291,6 +242,7 @@ public class Scene extends Box implements Linker.AsMap {
 		} catch (Throwable t) {
 			if (!(t instanceof Cancel)) exceptions.add(t);
 			return false;
+		} finally {
 		}
 	}
 
@@ -301,6 +253,7 @@ public class Scene extends Box implements Linker.AsMap {
 		} catch (Throwable t) {
 			if (!(t instanceof Cancel)) exceptions.add(t);
 			return false;
+		} finally {
 		}
 	}
 
@@ -315,9 +268,10 @@ public class Scene extends Box implements Linker.AsMap {
 			String tag = tagged.inverse()
 					   .get(c);
 			ret = ret + prefix + "" + c.getKey() + ":" + (tag == null ? "" : tag) + "\n";
-			prefix = prefix + " ";
+			prefix = prefix + "   ";
 			for (Consumer<Integer> cc : c.getValue())
 				ret = ret + "\n" + debugPrintScene(cc, prefix);
+			prefix = prefix.substring(3);
 		}
 		return ret;
 	}
@@ -333,28 +287,12 @@ public class Scene extends Box implements Linker.AsMap {
 				prefix = prefix + " ";
 				for (Consumer<Integer> ccc : c.getValue())
 					ret = ret + "\n" + debugPrintScene(ccc, prefix);
+				prefix = prefix.substring(3);
 			}
 
 		}
 		return ret;
 	}
-
-
-	/**
-	 * utility, takes a consumer and returns a version that runs only once every "count" iterations
-	 */
-
-	static public <T> Consumer<T> strobe(Consumer<T> c, int count) {
-		return new Consumer<T>() {
-			int tick = 0;
-
-			@Override
-			public void accept(T t) {
-				if (tick++ % count == 0) c.accept(t);
-			}
-		};
-	}
-
 
 	@Override
 	@HiddenInAutocomplete
@@ -364,8 +302,6 @@ public class Scene extends Box implements Linker.AsMap {
 
 		return true;
 	}
-
-	protected Set<String> knownNonProperties;
 
 	protected Set<String> computeKnownNonProperties() {
 		Set<String> r = new LinkedHashSet<>();
@@ -398,9 +334,12 @@ public class Scene extends Box implements Linker.AsMap {
 	@HiddenInAutocomplete
 	public Object asMap_set(String p, Object o) {
 
-		o = Box.convert(o, Collections.singletonList(Perform.class));
-		if (o instanceof Perform) return attach(p, (Perform) o);
-		else return super.asMap_set(p, o);
+		Log.log("doublescore", "converting to perform ? " + o);
+		o = Conversions.convert(o, Perform.class);
+		if (o instanceof Perform) {
+			Log.log("doublescore", "actually attaching a perform");
+			return attach(p, (Perform) o);
+		} else return super.asMap_set(p, o);
 	}
 
 	@Override
@@ -415,5 +354,135 @@ public class Scene extends Box implements Linker.AsMap {
 		throw new NotImplementedException();
 	}
 
+	@Override
+	public Object asMap_getElement(int element) {
+		return new PassShim(element);
+	}
 
+	@Override
+	public Object asMap_getElement(Object element) {
+		if (element instanceof Number) return new PassShim(((Number) element).intValue());
+		else return super.asMap_getElement(element);
+	}
+
+	@Override
+	public List<Completion> getCompletionsFor(String prefix) {
+		return super.getCompletionsFor(prefix);
+	}
+
+	/**
+	 * Although we can build the Scene structure out of (int, Consumer<int>) tuples, it's more along the grain of Java's type system to use an interface with both
+	 */
+	static public interface Perform extends Consumer<Integer> {
+		public boolean perform(int pass);
+
+		default public int[] getPasses() {
+			return new int[]{0};
+		}
+
+		default public void accept(Integer p) {
+			perform(p);
+		}
+	}
+
+	static public class Cancel extends RuntimeException {
+	}
+
+	static public class Transient implements Perform {
+		int[] passes;
+		Consumer<Integer> call;
+		LinkedHashSet<GraphicsContext> allContexts = new LinkedHashSet<>(GraphicsContext.allGraphicsContexts);
+		boolean onceOnly = false;
+
+		public Transient(Perform p) {
+			this.passes = p.getPasses();
+			this.call = (x) -> p.perform(x);
+		}
+
+		public Transient(Runnable p, int... passes) {
+			this.passes = passes;
+			this.call = (x) -> p.run();
+		}
+
+		public Transient(Consumer<Integer> m, int... passes) {
+			this.passes = passes;
+			this.call = (x) -> m.accept(x);
+		}
+
+		/**
+		 * by default this transient will wait until it has run once in all contexts
+		 */
+		public Transient setOnceOnly() {
+			onceOnly = true;
+			return this;
+		}
+
+		@Override
+		public boolean perform(int pass) {
+			if (allContexts.remove(GraphicsContext.getContext())) call.accept(pass);
+			return !onceOnly && allContexts.size() > 0;
+		}
+
+		@Override
+		public int[] getPasses() {
+			return passes;
+		}
+	}
+
+	public class PassShim implements Linker.AsMap {
+		int pass;
+
+		public PassShim(int pass) {
+			this.pass = pass;
+		}
+
+		@Override
+		public boolean asMap_isProperty(String p) {
+			return Scene.this.asMap_isProperty(p);
+		}
+
+		@Override
+		public Object asMap_call(Object a, Object b) {
+			return Scene.this.asMap_call(a, b);
+		}
+
+		@Override
+		public Object asMap_get(String p) {
+
+			if (p.equals("_"))
+				return new Subscope(this);
+
+			return Scene.this.asMap_get("__" + pass + "__" + p);
+		}
+
+		@Override
+		public Object asMap_set(String p, Object o) {
+			o = Conversions.convert(o, Perform.class);
+			if (o instanceof Perform)
+			{
+				return attach(pass, "__" + pass + "__"+p, (Perform) o);
+			}
+			else return Scene.super.asMap_set(p, o);
+		}
+
+		@Override
+		public Object asMap_new(Object a) {
+			throw new NotImplementedException();
+		}
+
+		@Override
+		public Object asMap_new(Object a, Object b) {
+			throw new NotImplementedException();
+		}
+
+		@Override
+		public Object asMap_getElement(int element) {
+			throw new NotImplementedException();
+		}
+
+		@Override
+		public Object asMap_setElement(int element, Object o) {
+			throw new NotImplementedException();
+		}
+	}
 }

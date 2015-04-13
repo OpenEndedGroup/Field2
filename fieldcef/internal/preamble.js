@@ -74,6 +74,9 @@
 
 
  goCommands = function() {
+
+ 			console.log(" inside preamble request commands ?");
+
 		 _field.sendWithReturn("request.commands", {},
 				 function(d, e) {
 						 var completions = []
@@ -157,10 +160,10 @@
 				 return m
 		 }
 
-		 console.log("alternative is " + d.alternative)
+//		 console.log("alternative is " + d.alternative)
 
 		 if (d.alternative) {
-				 console.log(" going with modal ");
+//				 console.log(" going with modal ");
 				 runModal(d.prompt, completionFunction, "Field-Modal", "", function (t) {
 						 _field.send("call.alternative", {
 								 command: this.call,

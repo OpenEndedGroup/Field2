@@ -3,9 +3,10 @@ package fieldbox.boxes.plugins;
 import field.utility.Dict;
 import field.utility.Log;
 import field.utility.Options;
+import fieldagent.Main;
 import fieldagent.Trampoline;
 import fieldbox.boxes.Box;
-import fieldbox.io.IO;
+import fieldbox.boxes.Callbacks;
 import us.bpsm.edn.EdnSyntaxException;
 import us.bpsm.edn.parser.Parseable;
 import us.bpsm.edn.parser.Parser;
@@ -127,6 +128,7 @@ public class PluginList {
 
 			try {
 				o.getValue().loaded();
+				Callbacks.load((Box) o.getValue());
 			} catch (Throwable e) {
 				System.out.println(" -- problem activating plugin \"" + o + "\", will continue on regardless -- ");
 				e.printStackTrace();
@@ -153,6 +155,9 @@ public class PluginList {
 
 		for (Object o : value) {
 			String m = o.toString();
+			if (m.startsWith("{app}"))
+				m = m.replace("{app}", Main.app+"/");
+
 			Log.log("startup", " extending classpath <" + m + ">");
 
 			if (m.endsWith("*")) {
@@ -177,6 +182,7 @@ public class PluginList {
 						}
 					}
 				} else Log.log("startup.error", " added a wildcard path <" + m + "> with no .jar files in it");
+				m = m.substring(0, m.length()-1);
 			}
 
 			if (!new File(m).exists())

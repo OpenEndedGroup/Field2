@@ -14,6 +14,7 @@ import fieldbox.ui.Cursors;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Plugin: Adds the ability to drag boxes around with the mouse and change their sizes with their edges. Provides textual feedback when this happens.
@@ -21,10 +22,6 @@ import java.util.List;
  * Also addes the ability to translate the canvas around with the middle mouse button (button 2).
  */
 public class FrameManipulation extends Box implements Mouse.OnMouseDown {
-
-	public enum DragTarget {
-		translate, left, top, right, bottom;
-	}
 
 	static public final Dict.Prop<Boolean> lockWidth = new Dict.Prop<>("lockWidth").type()
 										       .toCannon()
@@ -38,23 +35,114 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 	static public final Dict.Prop<Boolean> lockY = new Dict.Prop<>("lockY").type()
 									       .toCannon()
 									       .doc("set to true to disable changes to the y-position of this box via the mouse");
+	private final Box root;
 
 	public FrameManipulation(Box root) {
-		this.properties.putToList(Mouse.onMouseDown, this);
+		this.root = root;
+		this.properties.putToMap(Mouse.onMouseDown, "__frameManipulation__", this);
+		this.properties.putToMap(Mouse.onMouseMove, "__frameManipulation__", e -> {
+
+			Optional<Drawing> drawing = this.find(Drawing.drawing, both())
+							.findFirst();
+			Vec2 point = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e.after.x, e.after.y)))
+					    .orElseThrow(() -> new IllegalArgumentException(" can't mouse around something without drawing support (to provide coordinate system)"));
+
+			Optional<Box> hit = breadthFirst(both()).filter(b -> frame(b) != null)
+								.filter(b -> !b.properties.isTrue(Box.hidden, false))
+								.filter(b -> frame(b).intersects(point))
+								.sorted((a, b) -> Float.compare(order(frame(a)), order(frame(b))))
+								.findFirst();
+
+			if (hit.isPresent()) {
+				Box hitBox = hit.get();
+				List<DragTarget> targets = targetsFor(frame(hitBox), point, drawing.orElseThrow(() -> new IllegalArgumentException(
+										  " cant mouse around something without drawing support (to provide coordinate system)"))
+												   .getScale(), hitBox.properties.isTrue(lockWidth, false),
+								      hitBox.properties.isTrue(lockHeight, false));
+
+				find(Boxes.window, both()).findFirst()
+							  .ifPresent(x -> {
+								  if (targets.contains(DragTarget.bottom)) Cursors.arrowDown(x);
+								  else if (targets.contains(DragTarget.left)) Cursors.arrowLeft(x);
+								  else if (targets.contains(DragTarget.right)) Cursors.arrowRight(x);
+								  else if (targets.contains(DragTarget.top)) Cursors.arrowUp(x);
+								  else Cursors.clear(x);
+
+
+							  });
+			} else {
+				find(Boxes.window, both()).findFirst()
+							  .ifPresent(x -> {
+								  Cursors.clear(x);
+
+
+							  });
+			}
+			return null;
+		});
+	}
+
+	static public void continueTranslationFeedback(Box b, boolean endNow) {
+
+		Drawing q = b.find(Drawing.drawing, b.both())
+			     .findFirst()
+			     .get();
+
+		Rect view = q.getCurrentViewBounds(b);
+
+
+		b.properties.putToMap(FLineDrawing.frameDrawing, "__panning__", FLineDrawing.expires(box -> {
+
+			FLine f = new FLine();
+
+			for (int x = 100 * (int) (view.x / 100); x < view.x + view.w + 100; x += 100) {
+				f.moveTo(x, view.y - 100);
+				f.lineTo(x, view.y + view.h + 100);
+				if (x % 500 == 0) {
+					f.moveTo(x, view.y - 100);
+					f.lineTo(x, view.y + view.h + 100);
+				}
+			}
+			for (int x = 100 * (int) (view.y / 100); x < view.y + view.h + 100; x += 100) {
+				f.moveTo(view.x - 100, x);
+				f.lineTo(view.x + view.w + 100, x);
+				if (x % 500 == 0) {
+					f.moveTo(view.x - 100, x);
+					f.lineTo(view.x + view.w + 100, x);
+				}
+			}
+
+			f.attributes.put(StandardFLineDrawing.color, new Vec4(0, 0, 0, 0.25f));
+
+			return f;
+		}, 100));
+
+		b.properties.putToMap(FLineDrawing.frameDrawing, "__origin__", FLineDrawing.expires(box -> {
+
+			FLine f = new FLine();
+
+			f.moveTo(0, view.y - 100);
+			f.lineTo(0, view.y + view.h + 100);
+			f.moveTo(view.x - 100, 0);
+			f.lineTo(view.x + view.w + 100, 0);
+
+
+			f.attributes.put(StandardFLineDrawing.thicken, new BasicStroke(10));
+			f.attributes.put(StandardFLineDrawing.color, new Vec4(0, 0, 0, 0.25f));
+
+			return f;
+		}, 100));
+
+
 	}
 
 	@Override
 	public Mouse.Dragger onMouseDown(Window.Event<Window.MouseState> e, int button) {
 
-		Log.log("interaction.debug", "marquee, has this been consumed ? " + e + " " + e.properties + " " + System.identityHashCode(e));
-
 		// if this event has already been consumed by somebody else, then let's do nothing
 		if (e.properties.isTrue(Window.consumed, false)) {
-			Log.log("interactoin.debug", "yes it has");
 			return null;
 		}
-
-		Log.log("interaction.debug", "button was :" + button);
 
 		if (button == 0 || button == 1) return button0(e);
 		if (button == 2) return button2(e);
@@ -74,6 +162,8 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 							.sorted((a, b) -> Float.compare(order(frame(a)), order(frame(b))))
 							.findFirst();
 
+		startTranslationFeedback();
+
 		if (!hit.isPresent()) {
 
 			Drawing d = drawing.get();
@@ -84,17 +174,23 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 						       .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
 
 				if (drawing.isPresent()) {
-					Vec2 t = new Vec2(originalT).translate(deltaNow.x, deltaNow.y);
+					Vec2 t = new Vec2(originalT).add(deltaNow.x, deltaNow.y);
 
 					d.setTranslation(FrameManipulation.this, t);
+					continueTranslationFeedback(FrameManipulation.this, termination);
 				}
-				return true;
+				return !termination;
 			};
 		}
 		return null;
 	}
 
+	private void startTranslationFeedback() {
+		continueTranslationFeedback(this, false);
+	}
+
 	public Mouse.Dragger button0(Window.Event<Window.MouseState> e) {
+		System.out.println(" starting consumed by code ? " + e.properties.isTrue(Window.consumed, false));
 		Optional<Drawing> drawing = this.find(Drawing.drawing, both())
 						.findFirst();
 		Vec2 point = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e.after.x, e.after.y)))
@@ -106,52 +202,100 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 							.sorted((a, b) -> Float.compare(order(frame(a)), order(frame(b))))
 							.findFirst();
 
+
+		Log.log("selection", "hit box is " + hit.orElse(null));
+
 		return hit.map(hitBox -> {
+
+			Log.log("selection", "hit box is really hidden ? " + hitBox.properties.get(Box.hidden));
+
 			Drawing.dirty(hitBox);
 
-			boolean shift = e.after.keyboardState.keysDown.contains(Glfw.GLFW_KEY_LEFT_SHIFT) || e.after.keyboardState.keysDown.contains(Glfw.GLFW_KEY_RIGHT_SHIFT) || e.after.buttonsDown.contains(1);
+			boolean shift = e.after.keyboardState.keysDown.contains(Glfw.GLFW_KEY_LEFT_SHIFT) || e.after.keyboardState.keysDown.contains(
+				    Glfw.GLFW_KEY_RIGHT_SHIFT) || e.after.buttonsDown.contains(1);
 			boolean selected = hitBox.properties.isTrue(Mouse.isSelected, false);
 			Rect originalFrame = frame(hitBox);
 
 
-			if (!shift && !hitBox.properties.isTrue(Mouse.isSticky, false))
-				breadthFirst(both()).filter(x -> !x.properties.isTrue(Mouse.isSticky, false))
-						    .forEach(x -> x.properties.remove(Mouse.isSelected));
+			if (!e.after.keyboardState.isSuperDown()) Callbacks.transition(hitBox, Mouse.isSelected, true, false, Callbacks.onSelect, Callbacks.onDeselect);
 
-			hitBox.properties.put(Mouse.isSelected, true);
 
-			if (hitBox.properties.isTrue(Mouse.isSelected, false) && e.after.buttonsDown.contains(0)) {
+			if (/*hitBox.properties.isTrue(Mouse.isSelected, false) &&*/ e.after.buttonsDown.contains(0)) {
 				// what kind of drag might this be?
 
-				List<DragTarget> targets = targetsFor(frame(hitBox), point, drawing.orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"))
-												   .getScale(), hitBox.properties.isTrue(lockWidth, false), hitBox.properties.isTrue(lockHeight, false));
+				List<DragTarget> targets = targetsFor(frame(hitBox), point, drawing.orElseThrow(() -> new IllegalArgumentException(
+										  " cant mouse around something without drawing support (to provide coordinate system)"))
+												   .getScale(), hitBox.properties.isTrue(lockWidth, false),
+								      hitBox.properties.isTrue(lockHeight, false));
 
 
 				feedback(hitBox, originalFrame, originalFrame, -1);
 
-				find(Boxes.window, both()).findFirst()
-							  .ifPresent(x -> Cursors.arrow(x));
+				hitBox.properties.put(Mouse.isManipulated, true);
+
+				Set<Box> workingSet = breadthFirst(both()).filter(x -> (e.after.keyboardState.isSuperDown() && x == hitBox) || (!e.after.keyboardState.isSuperDown() &&
+										  x.properties.isTrue(Mouse.isSelected, false)))
+									  .filter(x -> !x.properties.isTrue(Mouse.isSticky, false) || x == hitBox)
+									  .filter(x -> x.properties.has(Box.frame))
+									  .filter(x -> x.properties.has(Box.name))
+									  .collect(Collectors.toSet());
+
+
+				System.out.println(" working set is :" + workingSet);
+
+				Set<Box> dependands = workingSet.stream()
+								.flatMap(x -> singleChildrenFor(x).stream())
+								.collect(Collectors.toSet());
+				System.out.println(" depends is :" + workingSet);
+
+				workingSet.addAll(dependands);
+
 
 				return (Mouse.Dragger) (drag, termination) -> {
+					System.out.println(" consumed by code ? " + drag.properties.isTrue(Window.consumed, false));
+
+					if (drag.properties.isTrue(Window.consumed, false)) return true;
+
+					Log.log("selection", "hit box is really hidden ? " + hitBox.properties.get(Box.hidden));
+
 					Vec2 delta = new Vec2(drag.after.dx, drag.after.dy);
 					Vec2 drawingDelta = drawing.map(x -> x.windowSystemToDrawingSystemDelta(delta))
-								   .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
+								   .orElseThrow(() -> new IllegalArgumentException(
+									       " cant mouse around something without drawing support (to provide coordinate system)"));
 
-					breadthFirst(both()).filter(x -> !x.properties.isTrue(Mouse.isSticky, false) || x==hitBox).filter(x -> x.properties.isTrue(Mouse.isSelected, false))
-							    .forEach(x -> {
-								    Rect r0 = frame(x);
-								    Rect r = transform(x, r0, targets, drawingDelta);
-								    x.properties.put(frame, r);
-								    feedback(hitBox, originalFrame, r, termination ? 60 : -1);
-								    Drawing.dirty(hitBox);
-							    });
+//					System.out.println(" delta :"+delta+" -> "+drawingDelta);
 
-					if (termination && frame(hitBox).equals(originalFrame) && selected) {
+					workingSet.stream()
+
+						  .forEach(x -> {
+							  Rect r0 = frame(x);
+							  Rect r = transform(x, r0, targets, drawingDelta);
+							  x.properties.put(frame, r);
+							  feedback(hitBox, originalFrame, r, termination ? 60 : -1);
+							  Drawing.dirty(hitBox);
+						  });
+
+					if (!e.after.keyboardState.isSuperDown()) if (termination && frame(hitBox).equals(originalFrame) && selected) {
 						hitBox.properties.put(Mouse.isSelected, false);
 						Drawing.dirty(hitBox);
 					}
 
 					if (termination) {
+
+						System.out.println(" comparing drags ? " + drag.after.x + " " + drag.after.y + "   " + e.after.x + " " + e.after.y + " " + hitBox);
+						if (!e.after.keyboardState.isSuperDown()) if (drag.after.x == e.after.x && drag.after.y == e.after.y) {
+							if (!shift && !hitBox.properties.isTrue(Mouse.isSticky, false)) breadthFirst(both()).filter(x -> !x.properties.isTrue(Mouse.isSticky, false))
+																	    .forEach(x -> Callbacks.transition(x, Mouse.isSelected,
+																					       false, false,
+																					       Callbacks.onSelect,
+																					       Callbacks.onDeselect));
+
+							Callbacks.transition(hitBox, Mouse.isSelected, true, false, Callbacks.onSelect, Callbacks.onDeselect);
+						}
+
+
+						breadthFirst(both()).forEach(x -> x.properties.remove(Mouse.isManipulated));
+
 						find(Boxes.window, both()).findFirst()
 									  .ifPresent(x -> Cursors.clear(x));
 					}
@@ -167,11 +311,10 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 				  if (e.after.keyboardState.isAltDown()) return null;
 
 				  boolean shift = e.after.keyboardState.keysDown.contains(Glfw.GLFW_KEY_LEFT_SHIFT) || e.after.keyboardState.keysDown.contains(Glfw.GLFW_KEY_RIGHT_SHIFT);
-				  if (!shift) breadthFirst(both()).forEach(x -> x.properties.remove(Mouse.isSelected));
+				  if (!shift) breadthFirst(both()).forEach(x -> Callbacks.transition(x, Mouse.isSelected, false, false, Callbacks.onSelect, Callbacks.onDeselect));
 
 				  Map<Box, Boolean> frozenAt = new LinkedHashMap<Box, Boolean>();
-				  breadthFirst(both())
-						      .forEach(x -> frozenAt.put(x, x.properties.isTrue(Mouse.isSelected, false)));
+				  breadthFirst(both()).forEach(x -> frozenAt.put(x, x.properties.isTrue(Mouse.isSelected, false)));
 
 				  Drawing.dirty(this);
 
@@ -181,7 +324,8 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 					  Vec2 delta = new Vec2(drag.after.dx, drag.after.dy);
 
 					  Vec2 drawingDelta = drawing.map(x -> x.windowSystemToDrawingSystemDelta(delta))
-								     .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
+								     .orElseThrow(() -> new IllegalArgumentException(
+										 " cant mouse around something without drawing support (to provide coordinate system)"));
 					  downAt.x += drawingDelta.x;
 					  downAt.y += drawingDelta.y;
 
@@ -193,10 +337,11 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 							  Rect f = frame(x);
 							  if (f == null) return;
 
-							  if (f.intersects(new Rect(Math.min(downAt.x, point.x), Math.min(downAt.y, point.y), Math.max(downAt.x, point.x) - Math.min(downAt.x, point.x), Math.max(downAt.y, point.y) - Math.min(downAt.y, point.y))) && (!x.properties.isTrue(Box.hidden, false))) {
-								  x.properties.put(Mouse.isSelected, true);
+							  if (f.intersects(new Rect(Math.min(downAt.x, point.x), Math.min(downAt.y, point.y), Math.max(downAt.x, point.x) - Math.min(downAt.x, point.x),
+										    Math.max(downAt.y, point.y) - Math.min(downAt.y, point.y))) && (!x.properties.isTrue(Box.hidden, false))) {
+								  Callbacks.transition(x, Mouse.isSelected, true, false, Callbacks.onSelect, Callbacks.onDeselect);
 							  } else {
-								  if (b == null || !b) x.properties.remove(Mouse.isSelected);
+								  if (b == null || !b) Callbacks.transition(x, Mouse.isSelected, false, false, Callbacks.onSelect, Callbacks.onDeselect);
 							  }
 						  });
 
@@ -224,6 +369,39 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 					  return true;
 				  };
 			  });
+	}
+
+	private Set<Box> singleChildrenFor(Box z) {
+
+		Set<Box> a = new LinkedHashSet<>();
+
+		a.add(z);
+
+		Set<Box> n;
+		do {
+			n = new LinkedHashSet<>();
+
+			for (Box zz : a) {
+				n.addAll(z.children()
+					  .stream()
+					  .filter(x -> {
+
+						  if (x.parents()
+						       .size() == 1) return true;
+						  if (x.parents()
+						       .size() == 2 && x.parents()
+									.contains(root)) return true;
+						  return false;
+
+					  })
+					  .filter(x -> !a.contains(x))
+					  .collect(Collectors.toList()));
+			}
+			a.addAll(n);
+		} while (n.size() > 0);
+
+		a.remove(z);
+		return a;
 	}
 
 	protected Rect frame(Box hitBox) {
@@ -261,6 +439,9 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 			if (b.properties.isTrue(lockX, false)) r = new Rect(was.x, r.y, r.w, r.h);
 			if (b.properties.isTrue(lockY, false)) r = new Rect(r.x, was.y, r.w, r.h);
 		}
+
+		r = Callbacks.frameChange(b, r);
+
 		return r;
 
 	}
@@ -283,7 +464,7 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 	}
 
 	protected void feedback(Box b, Rect r0, Rect r, int exp) {
-		if (b.properties.getFromMap(FLineDrawing.frameDrawing, "__feedback__") != null || exp == -1 || true)
+		if (!r0.equals(r) && (b.properties.getFromMap(FLineDrawing.frameDrawing, "__feedback__") != null || exp == -1 || true))
 			b.properties.putToMap(FLineDrawing.frameDrawing, "__feedback__", FLineDrawing.expires(box -> {
 				FLine f = new FLine();
 				f.attributes.put(StandardFLineDrawing.hasText, true);
@@ -315,6 +496,10 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 
 		Drawing.dirty(b);
 
+	}
+
+	public enum DragTarget {
+		translate, left, top, right, bottom;
 	}
 
 }

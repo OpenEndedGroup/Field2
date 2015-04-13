@@ -3,7 +3,6 @@ package fielded;
 import field.utility.Log;
 import field.utility.Pair;
 import fieldbox.boxes.Box;
-import fielded.webserver.Server;
 import org.json.JSONStringer;
 
 import java.util.*;
@@ -15,6 +14,9 @@ import java.util.stream.Collectors;
  */
 public class Commands {
 
+
+
+
 	public LinkedHashMap<String, Runnable> callTable = new LinkedHashMap<>();
 	public RemoteEditor.ExtendedCommand callTable_alternative = null;
 
@@ -23,13 +25,15 @@ public class Commands {
 		// now we need to ask everybody if they have any commands to offer based on the above.
 
 		//todo: handle no box case
-		List<Map.Entry<Pair<String, String>, Runnable>> commands = (List<Map.Entry<Pair<String, String>, Runnable>>) box.get()
-																.find(RemoteEditor.commands, box.get()
-																				.both())
-																.flatMap(m -> m.get()
-																	       .entrySet()
-																	       .stream())
-																.collect(Collectors.toList());
+		List<Map.Entry<Pair<String, String>, Runnable>> commands
+			    = (List<Map.Entry<Pair<String, String>, Runnable>>) box.get()
+										   .find(RemoteEditor.commands,
+											 box.get()
+											    .both())
+										   .flatMap(m -> m.get()
+												  .entrySet()
+												  .stream())
+										   .collect(Collectors.toList());
 
 		Log.log("remote.trace", " commands are :" + commands);
 

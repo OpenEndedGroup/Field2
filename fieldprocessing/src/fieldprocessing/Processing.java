@@ -1,24 +1,20 @@
 package fieldprocessing;
 
-import field.graphics.FLine;
-import field.graphics.RunLoop;
-import field.linalg.Vec4;
 import field.utility.*;
 import fieldbox.boxes.Box;
-import fieldbox.boxes.Drawing;
+import fieldbox.boxes.Boxes;
 import fieldbox.boxes.Mouse;
+import fieldbox.boxes.plugins.IsExecuting;
+import fieldbox.execution.Completion;
 import fieldbox.execution.Execution;
-import fielded.RemoteEditor;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
-
-import static fieldbox.boxes.FLineDrawing.frameDrawing;
-import static field.graphics.StandardFLineDrawing.*;
 
 /**
  * The Processing Plugin. Refer to Processing.__applet to get at the __applet.
@@ -30,16 +26,16 @@ import static field.graphics.StandardFLineDrawing.*;
  * <p>
  * P.background(0) // sets background to black
  */
-public class Processing extends Box {
+public class Processing extends Execution {
 
+	static public final Dict.Prop<FieldProcessingAppletDelgate> P = new Dict.Prop<FieldProcessingAppletDelgate>("P").toCannon().type().doc("the Processing Applet. e.g. _.P.background(0) sets the background to black.");
 
 	private ProcessingExecution processingExecution;
 	public FieldProcessingApplet __applet;
 	public static FieldProcessingAppletDelgate applet;
 
+	private List<Runnable> queue = new ArrayList<>();
 
-	// synchronized via Runloop.lock
-	public List<Runnable> queue = new ArrayList<>();
 
 	protected JFrame frame;
 
@@ -57,14 +53,15 @@ public class Processing extends Box {
 
 
 	public Processing(Box root) {
+		super(null);
 
 		Log.log("startup.processing", " processing plugin is starting up ");
 
 
 		frame = new JFrame("Field/Processing");
 		__applet = new FieldProcessingApplet(sizeX, sizeY, queue, this, s -> {
-			if (processingExecution.getLastErrorOutput()!=null)
-				processingExecution.getLastErrorOutput().accept(new Pair<>(-1, s));
+			if (getLastErrorOutput()!=null)
+				getLastErrorOutput().accept(new Pair<>(-1, s));
 		});
 
 		__applet.init();
@@ -76,77 +73,162 @@ public class Processing extends Box {
 
 		applet = new FieldProcessingAppletDelgate(__applet);
 
-		Execution delegate = root.find(Execution.execution, root.both()).findFirst()
-			    .orElseThrow(() -> new IllegalArgumentException(" can't instantiate Processing execution - no default execution found"));
-		processingExecution = new ProcessingExecution(delegate, queue);
+		this.properties.put(P, applet);
 
-		root.connect(processingExecution);
-
-		properties.put(RemoteEditor.commands, () -> {
-
-			Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
-			List<Box> selected = selection().collect(Collectors.toList());
-			if (selected.size() == 1) {
-				if (selected.get(0).properties.isTrue(ProcessingExecution.bridgedToProcessing, false)) {
-					m.put(new Pair<>("Remove bridge to Processing", "No longer will this box execute inside the Processing draw method"), () -> {
-						disconnectFromProcessing(selected.get(0));
-					});
-				} else {
-					m.put(new Pair<>("Bridge to Processing", "This box will execute inside the Processing draw method"), () -> {
-						connectToProcessing(selected.get(0));
-					});
-				}
-			}
-			return m;
-		});
 
 
 		Log.log("startup.processing", " searching for boxes that need processing support ");
 
-		// we delay this for one update cycle to make sure that everybody has loaded everything that they are going to load
-		RunLoop.main.once(() -> {
-			root.breadthFirst(both()).forEach(box -> {
-				if (box.properties.isTrue(ProcessingExecution.bridgedToProcessing, false)) {
-					connectToProcessing(box);
-				}
-			});
-		});
 
 		Log.log("startup.processing", " processing plugin has finished starting up ");
 
 
 	}
 
-	protected void connectToProcessing(Box box) {
-		processingExecution.connect(box);
-		box.properties.put(ProcessingExecution.bridgedToProcessing, true);
-
-		box.properties.putToMap(frameDrawing, "_processingBadge_", new Cached<Box, Object, FLine>((b, was) -> {
-
-			Rect rect = box.properties.get(Box.frame);
-			if (rect == null) return null;
-
-			FLine f = new FLine();
-			f.attributes.put(hasText, true);
-			f.attributes.put(fillColor, new Vec4(0, 0, 0.25f, 0.5f));
-			f.moveTo(rect.x + rect.w - 7, rect.y + rect.h - 5);
-			f.nodes.get(f.nodes.size() - 1).attributes.put(text, "P");
-
-			return f;
-
-		}, (b) -> new Pair(b.properties.get(ProcessingExecution.bridgedToProcessing), b.properties.get(Box.frame))));
-		Drawing.dirty(box);
-
-	}
-
-	protected void disconnectFromProcessing(Box box) {
-		processingExecution.disconnect(box);
-		box.properties.remove(ProcessingExecution.bridgedToProcessing);
-		box.properties.removeFromMap(frameDrawing, "_processingBadge_");
-	}
-
 	private Stream<Box> selection() {
 		return breadthFirst(both()).filter(x -> x.properties.isTrue(Mouse.isSelected, false));
 	}
+
+
+	public Execution.ExecutionSupport support(Box box, Dict.Prop<String> prop) {
+
+		return wrap(box, prop);
+	}
+
+	public Consumer<Pair<Integer, String>> lastErrorOutput;
+
+	public Consumer<Pair<Integer, String>> getLastErrorOutput() {
+		return lastErrorOutput;
+	}
+
+	private Execution.ExecutionSupport wrap(Box box, Dict.Prop<String> prop) {
+
+		return new Execution.ExecutionSupport() {
+
+			@Override
+			public void executeTextFragment(String textFragment, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
+				System.out.println(" WRAPPED :"+textFragment);
+				queue.add(() -> {
+					Execution delegateTo = box.find(Execution.execution, box.upwards())
+								  .findFirst()
+								  .orElseThrow(() -> new IllegalArgumentException(" can't instantiate Processing execution - no default execution found"));
+					Execution.ExecutionSupport s = delegateTo.support(box, prop);
+
+					s.executeTextFragment(textFragment, lineErrors, success);
+				});
+			}
+
+			@Override
+			public Object getBinding(String name) {
+				Execution delegateTo = box.find(Execution.execution, box.upwards())
+							  .findFirst()
+							  .orElseThrow(() -> new IllegalArgumentException(" can't instantiate Processing execution - no default execution found"));
+				Execution.ExecutionSupport s = delegateTo.support(box, prop);
+				return s.getBinding(name);
+			}
+
+			@Override
+			public void executeAndPrint(String textFragment, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
+				System.out.println(" WRAPPED :"+textFragment);
+				queue.add(() -> {
+					Execution delegateTo = box.find(Execution.execution, box.upwards())
+								  .findFirst()
+								  .orElseThrow(() -> new IllegalArgumentException(" can't instantiate Processing execution - no default execution found"));
+					Execution.ExecutionSupport s = delegateTo.support(box, prop);
+					s.executeAndPrint(textFragment, lineErrors, success);
+				});
+			}
+
+			@Override
+			public void executeAll(String allText, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
+				System.out.println(" WRAPPED :"+allText);
+				queue.add(() -> {
+					Execution delegateTo = box.find(Execution.execution, box.upwards())
+								  .findFirst()
+								  .orElseThrow(() -> new IllegalArgumentException(" can't instantiate Processing execution - no default execution found"));
+					Execution.ExecutionSupport s = delegateTo.support(box, prop);
+					s.executeAll(allText, lineErrors, success);
+				});
+			}
+
+			@Override
+			public String begin(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success, Map<String, Object> initiator) {
+
+				lastErrorOutput = lineErrors;
+				Execution delegateTo = box.find(Execution.execution, box.upwards())
+							  .findFirst()
+							  .orElseThrow(() -> new IllegalArgumentException(" can't instantiate Processing execution - no default execution found"));
+				Execution.ExecutionSupport s = delegateTo.support(box, prop);
+
+				String name = s.begin(lineErrors, success, initiator);
+				if (name==null) return null;
+				Supplier<Boolean> was = box.properties.removeFromMap(Boxes.insideRunLoop, name);
+				String newName = name.replace("main.", "processing.");
+				box.properties.putToMap(Boxes.insideRunLoop, newName, was);
+				box.first(IsExecuting.isExecuting).ifPresent(x -> x.accept(box, newName));
+
+				return name;
+			}
+
+			@Override
+			public void end(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
+				System.out.println(" WRAPPED (end)");
+				Execution delegateTo = box.find(Execution.execution, box.upwards())
+							  .findFirst()
+							  .orElseThrow(() -> new IllegalArgumentException(" can't instantiate Processing execution - no default execution found"));
+				Execution.ExecutionSupport s = delegateTo.support(box, prop);
+				s.end(lineErrors, success);
+			}
+
+			@Override
+			public void setConsoleOutput(Consumer<String> stdout, Consumer<String> stderr) {
+				System.out.println(" WRAPPED (stdout)");
+				Execution delegateTo = box.find(Execution.execution, box.upwards())
+							  .findFirst()
+							  .orElseThrow(() -> new IllegalArgumentException(" can't instantiate Processing execution - no default execution found"));
+				Execution.ExecutionSupport s = delegateTo.support(box, prop);
+				s.setConsoleOutput(stdout, stderr);
+			}
+
+			@Override
+			public void completion(String allText, int line, int ch, Consumer<List<Completion>> results) {
+				System.out.println(" WRAPPED (completion) "+allText);
+				Execution delegateTo = box.find(Execution.execution, box.upwards())
+							  .findFirst()
+							  .orElseThrow(() -> new IllegalArgumentException(" can't instantiate Processing execution - no default execution found"));
+				Execution.ExecutionSupport s = delegateTo.support(box, prop);
+				s.completion(allText, line, ch, results);
+			}
+
+			@Override
+			public void imports(String allText, int line, int ch, Consumer<List<Completion>> results) {
+				System.out.println(" WRAPPED (imports) "+allText);
+				Execution delegateTo = box.find(Execution.execution, box.upwards())
+							  .findFirst()
+							  .orElseThrow(() -> new IllegalArgumentException(" can't instantiate Processing execution - no default execution found"));
+				Execution.ExecutionSupport s = delegateTo.support(box, prop);
+				s.imports(allText, line, ch, results);
+			}
+
+			@Override
+			public String getCodeMirrorLanguageName() {
+				Execution delegateTo = box.find(Execution.execution, box.upwards())
+							  .findFirst()
+							  .orElseThrow(() -> new IllegalArgumentException(" can't instantiate Processing execution - no default execution found"));
+				Execution.ExecutionSupport s = delegateTo.support(box, prop);
+				return s.getCodeMirrorLanguageName();
+			}
+
+			@Override
+			public String getDefaultFileExtension() {
+				Execution delegateTo = box.find(Execution.execution, box.upwards())
+							  .findFirst()
+							  .orElseThrow(() -> new IllegalArgumentException(" can't instantiate Processing execution - no default execution found"));
+				Execution.ExecutionSupport s = delegateTo.support(box, prop);
+				return s.getDefaultFileExtension();
+			}
+		};
+	}
+
 
 }

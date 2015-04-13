@@ -1,6 +1,12 @@
 package fieldnashorn;
 
-import field.graphics.RunLoop;
+import field.app.RunLoop;
+import field.dynalink.beans.StaticClass;
+import field.nashorn.api.scripting.AbstractJSObject;
+import field.nashorn.internal.objects.ScriptFunctionImpl;
+import field.nashorn.internal.runtime.ConsString;
+import field.nashorn.internal.runtime.ScriptObject;
+import field.nashorn.internal.runtime.linker.JavaAdapterFactory;
 import field.utility.Conversions;
 import field.utility.Dict;
 import field.utility.Log;
@@ -10,24 +16,20 @@ import fieldbox.execution.Completion;
 import fieldbox.execution.Execution;
 import fieldbox.execution.HandlesCompletion;
 import fieldbox.execution.JavaSupport;
-import jdk.internal.dynalink.beans.StaticClass;
-import jdk.nashorn.api.scripting.AbstractJSObject;
-import jdk.nashorn.internal.objects.ScriptFunctionImpl;
-import jdk.nashorn.internal.runtime.ConsString;
-import jdk.nashorn.internal.runtime.ScriptObject;
-import jdk.nashorn.internal.runtime.linker.JavaAdapterFactory;
 
 import javax.script.ScriptContext;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
+ *
+ * NO LONGER NEEDED
+ *
  * A Nashorn/Javascript specific shim object to refer to the current box. In Field1 this was called _self. Here let's call it "_"
  * <p>
  * So, _ to talk about "this", the current box and _(something) as a notation to wrap a box. _() will execute all of the code in this box (watch for
@@ -110,7 +112,7 @@ public class UnderscoreBox extends AbstractJSObject implements HandlesCompletion
 			return at.find(new Dict.Prop(m), at.upwards()).findFirst().orElse(null);
 		}
 
-		Log.log("underscore.debug", " type information for cannon property "+m+" is " + cannon.getTypeInformation());
+//		Log.log("underscore.debug", " type information for cannon property "+m+" is " + cannon.getTypeInformation());
 		Object ret = at.find(cannon, at.upwards()).findFirst().orElse(null);
 
 		if (ret instanceof Box.FunctionOfBox) {
@@ -139,26 +141,26 @@ public class UnderscoreBox extends AbstractJSObject implements HandlesCompletion
 		if (value instanceof ConsString) value = ((ConsString)value).toString();
 
 
-		Log.log("underscore.debug", " underscore box set :" + name + " to " + value.getClass() + " <" + Function.class.getName() + ">");
+//		Log.log("underscore.debug", " underscore box set :" + name + " to " + value.getClass() + " <" + Function.class.getName() + ">");
 		Dict.Prop cannon = new Dict.Prop(name).toCannon();
 
-		Log.log("underscore.debug", " cannonical type information " + cannon.getTypeInformation());
+//		Log.log("underscore.debug", " cannonical type information " + cannon.getTypeInformation());
 
 		Object converted = convert(value, cannon.getTypeInformation());
 
 		at.properties.put(cannon, converted);
 
-		Log.log("underscore.debug", () -> {
-			Log.log("underscore.debug", " PROPERTIES NOW :");
-			for (Map.Entry<Dict.Prop, Object> q : at.properties.getMap().entrySet()) {
-				try {
-					Log.log("underscore.debug", "     " + q.getKey() + " = " + q.getValue());
-				} catch (NullPointerException e) {
-					//JDK bug JDK-8035426 --- sometimes Nashorn lambdas throw NPE's when they are .toString'd
-				}
-			}
-			return null;
-		});
+//		Log.log("underscore.debug", () -> {
+//			Log.log("underscore.debug", " PROPERTIES NOW :");
+//			for (Map.Entry<Dict.Prop, Object> q : at.properties.getMap().entrySet()) {
+//				try {
+//					Log.log("underscore.debug", "     " + q.getKey() + " = " + q.getValue());
+//				} catch (NullPointerException e) {
+//					//JDK bug JDK-8035426 --- sometimes Nashorn lambdas throw NPE's when they are .toString'd
+//				}
+//			}
+//			return null;
+//		});
 
 		if (tick != RunLoop.tick) {
 			Drawing.dirty(at);

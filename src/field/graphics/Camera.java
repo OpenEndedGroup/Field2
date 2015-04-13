@@ -11,7 +11,7 @@ import java.util.function.Function;
  * A (Perspective and stereo capable) Camera class for Field graphics.
  * <p>
  * The state of a camera is kept in a separate, serializable, immutable class called "state". In contemporary OpenGL all a camera is is something that
- * can produce two Mat4's which were customarily multiplied together anyway. The ModelView matrix, which rotates the world into the camera's
+ * can produce two Mat4's which were customarily multiplied together anyway. The view matrix, which rotates the world into the camera's
  * coordinate system and the projection matrix with projects that coordinate system into the screen's coordinate system. These are Mat4's not Mat3's,
  * even though we are 3d space because we can express projection matrices using homogeneous coordinates.
  *
@@ -96,7 +96,7 @@ public class Camera {
 		}
 
 		public Vec3 left() {
-			return Vec3.cross(up, ray(), new Vec3()).normalise(new Vec3());
+			return Vec3.cross(up, ray(), new Vec3()).normalise();
 		}
 
 		public Vec3 position() {
@@ -246,20 +246,45 @@ public class Camera {
 		m[6] = B;
 		m[11] = D;
 
-		System.out.println(" projection is :" + new Mat4(m));
 		return new Mat4(m);
 	}
 
-	public Mat4 modelView() {
-		return modelView(0);
+	/**
+	 * Projection matrix that can blend between orthographic and projection
+	 *
+	 * here state.near and state.far are measured from the look at point with +ve z pointing towards us. Therefore state.near>state.far for almost all applications.
+	 *
+	 * Experimental
+	 */
+	public Mat4 projectionMatrix2(float half_width) {
+		float[] m = new float[16];
+
+		float hw = half_width*state.aspect;
+		float hh = half_width;
+
+		float iez = (float) Math.tan((state.fov * Math.PI / 90) / Math.min(hw, hh));
+
+		m[0] = (float)(1/hw);
+		m[5] = (float)(1/hh);
+		m[8] = -state.sx/hw;
+		m[9] = -state.sy/hh;
+		m[10] = -(2-(state.near+state.far)*iez)/(state.near-state.far);
+		m[11] = -iez;
+		m[14] = ((state.near+state.far)-2*state.near*state.far*iez)/(state.near-state.far);
+		m[15] = 1;
+		return new Mat4(m);
 	}
 
-	public Mat4 modelView(float stereoSide) {
-		Vec3 forward = state.ray(stereoSide).normalise(new Vec3());
-		Vec3 up = state.up.normalise(new Vec3());
+	public Mat4 view() {
+		return view(0);
+	}
+
+	public Mat4 view(float stereoSide) {
+		Vec3 forward = state.ray(stereoSide).normalise();
+		Vec3 up = state.up.normalise();
 
 		/* Side = forward x up */
-		Vec3 side = Vec3.cross(forward, up, new Vec3()).normalise(new Vec3());
+		Vec3 side = Vec3.cross(forward, up, new Vec3()).normalise();
 
 		/* Recompute up as: up = side x forward */
 		up = Vec3.cross(side, forward, new Vec3());
@@ -288,23 +313,23 @@ public class Camera {
 
 		Mat4 q = new Mat4(ret);
 		q.transpose();
-		System.out.println(" model view is :" + new Mat4(q));
+//		System.out.println(" model view is :" + new Mat4(q));
 		return q;
 	}
 
-	public Mat4 modelViewLeft()
+	public Mat4 viewLeft()
 	{
-		return modelView(-1);
+		return view(-1);
 	}
 
-	public Mat4 modelViewRight()
+	public Mat4 viewRight()
 	{
-		return modelView(1);
+		return view(1);
 	}
 
-	public Mat4 modelViewCenter()
+	public Mat4 viewCenter()
 	{
-		return modelView(0);
+		return view(0);
 	}
 
 	public void advanceState(Function<State, State> s) {
@@ -312,7 +337,7 @@ public class Camera {
 	}
 
 	public void setState(State s) {
-		this.state = state;
+		this.state = s;
 	}
 
 	public State getState() {

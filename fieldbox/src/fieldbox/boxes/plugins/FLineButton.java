@@ -14,41 +14,46 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 
 /**
- * Helper class for an FLine interaction handler that has hover, press and drag
+ * Helper class for an FLine interaction handler that has hover, press and drag.
  */
 public class FLineButton {
 
-	private final FLine target;
-	private final Map<String, Object> hover;
-	private final Map<String, Object> press;
-	private final Handle handle;
-	private final Box box;
-	private final LinkedHashSet<String> implicated;
+	private FLine target;
+	private Map<String, Object> hover;
+	private Map<String, Object> press;
+	private Handle handle;
+	private Box box;
+	private LinkedHashSet<String> implicated;
 	private Dict original;
 	private Dict was;
 	private boolean during = false;
 
 	public interface Handle {
-		public void dragged(FLine target, Window.Event<Window.MouseState> event);
+		void dragged(FLine target, Window.Event<Window.MouseState> event);
 	}
 
-	public FLineButton(Box box, FLine target, Map<String, Object> hover, Map<String, Object> press, Handle h) {
-		this.box = box;
-		this.target = target;
-		this.hover = hover;
-		this.press = press;
-		this.handle = h;
+	public FLineButton() {
+	}
 
-		target.attributes.putToList(Mouse.onMouseEnter, this::enter);
-		target.attributes.putToList(Mouse.onMouseExit, this::exit);
-		target.attributes.putToList(Mouse.onMouseDown, this::down);
+	static public void attach(Box box, FLine target, Map<String, Object> hover, Map<String, Object> press, Handle h) {
+		FLineButton b = new FLineButton();
+
+		b.box = box;
+		b.target = target;
+		b.hover = hover;
+		b.press = press;
+		b.handle = h;
+
+		target.attributes.putToMap(Mouse.onMouseEnter, "__FLineButton__", b::enter);
+		target.attributes.putToMap(Mouse.onMouseExit, "__FLineButton__",  b::exit);
+		target.attributes.putToMap(Mouse.onMouseDown, "__FLineButton__",  b::down);
 
 
-		implicated = new LinkedHashSet<>();
-		implicated.addAll(hover.keySet());
-		implicated.addAll(press.keySet());
+		b.implicated = new LinkedHashSet<>();
+		b.implicated.addAll(hover.keySet());
+		b.implicated.addAll(press.keySet());
 
-		original = target.attributes.duplicate();
+		b.original = target.attributes.duplicate();
 	}
 
 	protected Mouse.Dragger enter(Window.Event<Window.MouseState> e) {
@@ -92,7 +97,7 @@ public class FLineButton {
 		FLineInteraction interaction = d.properties.get(FLineInteraction.interaction);
 		d.properties.put(Window.consumed, true);
 
-		Log.log("iteractive.debug", "DOWN !, consuming "+d+" "+d.properties+" "+System.identityHashCode(d)+" "+interaction);
+		Log.log("iteractive.debug", "DOWN !, consuming " + d + " " + d.properties + " " + System.identityHashCode(d) + " " + interaction);
 
 		during = true;
 
@@ -114,8 +119,9 @@ public class FLineButton {
 				during = false;
 
 				Vec2 point = interaction.convertCoordinateSystem(new Vec2(e.after.x, e.after.y));
-				if (target.attributes.get(FLineInteraction.projectedArea).apply(target).contains(point.x, point.y))
-				{
+				if (target.attributes.get(FLineInteraction.projectedArea)
+						     .apply(target)
+						     .contains(point.x, point.y)) {
 					enter(null);
 				}
 

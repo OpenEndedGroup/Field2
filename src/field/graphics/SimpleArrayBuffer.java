@@ -56,6 +56,10 @@ public class SimpleArrayBuffer implements ArrayBuffer {
 		Log.log("graphics.trace", "       clean " + state);
 		if (state == null) GraphicsContext.put(this, state = setup());
 		if (state.mod != mod || state.limit < limit) {
+
+
+			Log.log(" causing upload :"+state.mod+" "+mod+" || "+state.limit+" "+limit);
+
 			upload(state, limit);
 			state.mod = mod;
 			return true;
@@ -83,6 +87,24 @@ public class SimpleArrayBuffer implements ArrayBuffer {
 		return dimension;
 	}
 
+	public int getOpenGLNameInCurrentContext()
+	{
+		State s = GraphicsContext.get(this);
+		if (s==null)
+			throw new IllegalArgumentException("No state in this context");
+
+		return s.name;
+	}
+
+	public int getOpenGLNameInContext(GraphicsContext context)
+	{
+		State s = context.lookup(this);
+		if (s==null)
+			throw new IllegalArgumentException("No state in this context");
+
+		return s.name;
+	}
+
 	public void destroy() {
 		State s = GraphicsContext.get(this);
 		if (s != null) {
@@ -107,6 +129,7 @@ public class SimpleArrayBuffer implements ArrayBuffer {
 		State s = new State();
 
 		s.name = glGenBuffers();
+
 		glBindBuffer(binding, s.name);
 
 		if (divisor != 0) glVertexAttribDivisorARB(attribute, divisor);
@@ -126,6 +149,9 @@ public class SimpleArrayBuffer implements ArrayBuffer {
 	}
 
 	private void upload(State s, int limit) {
+
+		Log.log(" uploading :"+limit+" from "+this+"       "+dimension+" "+binding);
+
 		glBindBuffer(binding, s.name);
 		data.rewind();
 		data.limit(4 * limit * dimension);

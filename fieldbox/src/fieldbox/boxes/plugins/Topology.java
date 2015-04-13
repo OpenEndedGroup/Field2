@@ -41,7 +41,7 @@ public class Topology extends Box implements Mouse.OnMouseDown {
 
 	public Topology(Box root) {
 		this.root = root;
-		this.properties.putToList(Mouse.onMouseDown, this);
+		this.properties.putToMap(Mouse.onMouseDown, "__topology__", this);
 
 		root.properties.put(outward, (box) -> {
 			return new ArrayList<>(box.children()

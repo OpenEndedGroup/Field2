@@ -1,5 +1,6 @@
 package field.graphics;
 
+import field.utility.Conversions;
 import field.utility.Dict;
 import field.utility.Log;
 import fieldlinker.Linker;
@@ -8,6 +9,7 @@ import org.lwjgl.opengl.*;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -22,15 +24,13 @@ import static org.lwjgl.opengl.GL20.*;
 /**
  * An OpenGL Shader written in GL Shader Language (GLSL)
  * <p>
- * Much of the complexity of this class stems from the fact that an OpenGL program is linked from a variety of (sometimes optional, sometimes
- * reusable) parts. This class supports all of them. The rest of the complexity comes from the fact that both the compilation and the link stage can
- * fail.
+ * Much of the complexity of this class stems from the fact that an OpenGL program is linked from a variety of (sometimes optional, sometimes reusable) parts. This class supports all of them. The rest
+ * of the complexity comes from the fact that both the compilation and the link stage can fail.
  * <p>
- * Assuming that all goes well shaders take three principle kinds of inputs: vertex attributes (make and set these with aux and nextVertex calls in
- * MeshBuilders), uniforms (make and set these with calls to Uniform and UniformBundle classes here) and input from earlier shaders.
+ * Assuming that all goes well shaders take three principle kinds of inputs: vertex attributes (make and set these with aux and nextVertex calls in MeshBuilders), uniforms (make and set these with
+ * calls to Uniform and UniformBundle classes here) and input from earlier shaders.
  */
-public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Linker.AsMap{
-
+public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Linker.AsMap {
 
 
 	static public class State extends BaseScene.Modifiable {
@@ -40,7 +40,8 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 	}
 
 	public enum Type {
-		vertex(GL20.GL_VERTEX_SHADER), geometry(GL32.GL_GEOMETRY_SHADER), fragment(GL20.GL_FRAGMENT_SHADER), tessControl(GL40.GL_TESS_CONTROL_SHADER), tessEval(GL40.GL_TESS_EVALUATION_SHADER), compute(GL43.GL_COMPUTE_SHADER);
+		vertex(GL20.GL_VERTEX_SHADER), geometry(GL32.GL_GEOMETRY_SHADER), fragment(GL20.GL_FRAGMENT_SHADER), tessControl(GL40.GL_TESS_CONTROL_SHADER), tessEval(
+			    GL40.GL_TESS_EVALUATION_SHADER), compute(GL43.GL_COMPUTE_SHADER);
 
 		public int gl;
 
@@ -75,6 +76,15 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 			this.type = type;
 			this.source = source;
 			this.status = 0;
+		}
+
+		public Source setOnError(iErrorHandler onError) {
+			this.onError = onError;
+			return this;
+		}
+
+		public iErrorHandler getOnError() {
+			return onError;
 		}
 
 		public class State {
@@ -113,7 +123,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 					String ret = GL20.glGetShaderInfoLog(s.name, 10000);
 					Log.log("graphics.error", type + " program failed to compile");
 					Log.log("graphics.error", " log is <" + ret + ">");
-					Log.log("graphics.error", " shader source is <" + source + ">");
+					Log.log("graphics.error", " shader source is <" + source + ">, reporting to <" + onError + ">");
 					if (onError != null) {
 						onError.beginError();
 						String log = ret;
@@ -127,7 +137,8 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 								}
 							} catch (NumberFormatException e) {
 								try {
-									Matcher q = Pattern.compile(".*?\\((.*?)\\)").matcher(ll);
+									Matcher q = Pattern.compile(".*?\\((.*?)\\)")
+											   .matcher(ll);
 									q.find();
 									String g = q.group(1);
 									int ii = Integer.parseInt(g);
@@ -174,8 +185,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 		return s;
 	}
 
-	public Map<Type, Source> getSources()
-	{
+	public Map<Type, Source> getSources() {
 		return this.source;
 	}
 
@@ -186,13 +196,19 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 		// doesn't kill the shaders, because, technically they could be attached elsewhere
 	}
 
+	public Shader setOnError(iErrorHandler onError) {
+		this.onError = onError;
+		return this;
+	}
+
 	protected boolean perform0() {
 		boolean work = false;
 
 		Log.log("graphics.trace", () -> " checking :" + source.keySet());
 
 		for (Map.Entry<Type, Source> s : source.entrySet()) {
-			work |= s.getValue().clean();
+			work |= s.getValue()
+				 .clean();
 		}
 
 		State name = GraphicsContext.get(this);
@@ -238,8 +254,10 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 			int validateStatus = glGetProgrami(name.name, GL20.GL_VALIDATE_STATUS);
 			if (validateStatus == 0) {
 				String ret = GL20.glGetProgramInfoLog(name.name, 10000);
-				Log.log("graphics.warning", " program failed to validate (note, this can be benign). Log is "+ret);
-				if (onError != null) {
+				Log.log("graphics.warning", " program failed to validate (note, this can be benign). Log is " + ret);
+				if (!ret.trim()
+					.toLowerCase()
+					.equals("Validation Failed: No vertex array object bound.".toLowerCase())) if (onError != null) {
 					onError.beginError();
 					onError.errorOnLine(-1, ret);
 					onError.endError();
@@ -252,6 +270,8 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 		if (name.valid) {
 			Log.log("graphics.trace", () -> " using program " + name.name);
 			GraphicsContext.stateTracker.shader.set(name.name);
+		} else {
+			Log.log("graphics.trace", "WARNING: program not valid, not being used");
 		}
 
 		return true;
@@ -276,10 +296,11 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 
 	UniformBundle defaultBundle = null;
 
-	protected UniformBundle getDefaultBundle()
-	{
-		if (defaultBundle!=null) return defaultBundle;
-		return defaultBundle = new UniformBundle();
+	protected UniformBundle getDefaultBundle() {
+		if (defaultBundle != null) return defaultBundle;
+		defaultBundle = new UniformBundle();
+		this.attach(defaultBundle);
+		return defaultBundle;
 	}
 
 	@Override
@@ -292,6 +313,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 	}
 
 	protected Set<String> knownNonProperties;
+
 	protected Set<String> computeKnownNonProperties() {
 		Set<String> r = new LinkedHashSet<>();
 		Method[] m = this.getClass()
@@ -315,21 +337,40 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 	@HiddenInAutocomplete
 	public Object asMap_get(String p) {
 		Uniform u = getDefaultBundle().get(new Dict.Prop(p));
-		if (u!=null)
-			return u.get();
-		else
-		{
+		if (u != null) return u.get();
+		else {
 			return super.asMap_get(p);
+		}
+	}
+
+	static public Method supplier_get;
+	static private Object[] nothing = {};
+
+	static {
+		try {
+			supplier_get = Supplier.class.getDeclaredMethod("get");
+		} catch (NoSuchMethodException e) {
+			e.printStackTrace();
 		}
 	}
 
 	@Override
 	@HiddenInAutocomplete
 	public Object asMap_set(String p, Object o) {
-		if (o instanceof Supplier)
-			return getDefaultBundle().set(p, (Supplier)o);
-		if (Uniform.isAccepableInstance(o))
-			return getDefaultBundle().set(p, () -> o);
+		System.out.println(" asmap_set :"+o+" "+(o!=null ? o.getClass() : ""));
+		Object fo = Conversions.convert(o, Supplier.class);
+		if (fo instanceof Supplier) return getDefaultBundle().set(p, (Supplier) fo);
+		if (fo instanceof InvocationHandler) {
+			return getDefaultBundle().set(p, (Supplier) () -> {
+				try {
+					return ((InvocationHandler) fo).invoke(fo, supplier_get, nothing);
+				} catch (Throwable throwable) {
+					throwable.printStackTrace();
+				}
+				return null;
+			});
+		}
+		if (Uniform.isAccepableInstance(fo)) return getDefaultBundle().set(p, () -> fo);
 		return super.asMap_set(p, o);
 	}
 

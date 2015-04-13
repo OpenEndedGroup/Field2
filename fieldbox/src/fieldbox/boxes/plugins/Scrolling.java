@@ -4,6 +4,7 @@ import field.linalg.Vec2;
 import field.utility.Log;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Drawing;
+import fieldbox.boxes.FrameManipulation;
 import fieldbox.boxes.Mouse;
 import fieldbox.ui.FieldBoxWindow;
 
@@ -13,19 +14,25 @@ import fieldbox.ui.FieldBoxWindow;
 public class Scrolling extends Box {
 
 	public Scrolling(Box root_unused) {
-		this.properties.putToList(Mouse.onMouseScroll, e -> {
+		this.properties.putToMap(Mouse.onMouseScroll, "__scrolling__", e -> {
 
 			if (e.properties.isTrue(FieldBoxWindow.consumed, false)) return;
 
+			System.out.println(" I'm going ahead and scrolling ");
+
 			Log.log("scrolling", "not consumed");
 			if (e.after.dwheel != 0 || e.after.dwheely != 0) {
-				this.find(Drawing.drawing, this.both()).findFirst().ifPresent(x -> {
-					Vec2 t = x.getTranslation();
-					t.x += e.after.dwheel*4;
-					t.y += e.after.dwheely*4;
+				this.find(Drawing.drawing, this.both())
+				    .findFirst()
+				    .ifPresent(x -> {
+					    Vec2 t = x.getTranslation();
+					    t.x += e.after.dwheel * 8;
+					    t.y += e.after.dwheely * 8;
 
-					x.setTranslation(this, t);
-				});
+					    x.setTranslation(this, t);
+
+					    FrameManipulation.continueTranslationFeedback(root_unused, false);
+				    });
 			}
 		});
 	}

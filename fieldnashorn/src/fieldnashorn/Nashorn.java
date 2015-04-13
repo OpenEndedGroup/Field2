@@ -1,16 +1,18 @@
 package fieldnashorn;
 
+import field.nashorn.api.scripting.NashornScriptEngineFactory;
+import field.nashorn.api.scripting.ScriptObjectMirror;
 import field.utility.Cached;
 import field.utility.Dict;
+import field.utility.Log;
 import field.utility.Pair;
 import fieldbox.boxes.Box;
+import fieldbox.boxes.Boxes;
 import fielded.Animatable;
-import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
 
-import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
-import javax.script.ScriptException;
+import javax.script.*;
+import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
@@ -26,16 +28,31 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 	private TernSupport ternSupport;
 
 	NashornScriptEngineFactory factory = new NashornScriptEngineFactory();
-	ScriptEngine engine = factory.getScriptEngine(new String[]{"-scripting", "--global-per-engine"});
+	ScriptEngine engine;
+	private SimpleBindings global;
 
 	public Nashorn() {
 
+
+		engine = factory.getScriptEngine(new String[]{"-scripting", "--optimistic-types=true"});
+
+		global = new SimpleBindings();
 		try {
-			engine.eval("fielded = Packages.fielded");
-			engine.eval("fieldbox = Packages.fieldbox");
-			engine.eval("field = Packages.field");
-			engine.eval("fieldnashorn = Packages.fieldnashorn");
-			engine.eval("fieldcef = Packages.fieldcef");
+			global.put("__fieldglobal", engine.eval("({})"));
+			Log.log("bindings", "__fieldglobal set up to be :" + global.get("__fieldglobal"));
+		} catch (ScriptException e) {
+			e.printStackTrace();
+		}
+
+		engine.setBindings(global, ScriptContext.GLOBAL_SCOPE);
+
+
+		try {
+			engine.eval("__fieldglobal.fielded = Packages.fielded");
+			engine.eval("__fieldglobal.fieldbox = Packages.fieldbox");
+			engine.eval("__fieldglobal.field = Packages.field");
+			engine.eval("__fieldglobal.fieldnashorn = Packages.fieldnashorn");
+			engine.eval("__fieldglobal.fieldcef = Packages.fieldcef");
 
 		} catch (ScriptException e) {
 			e.printStackTrace();
@@ -152,21 +169,27 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 		return was;
 	}
 
+	Map<Box, ScriptEngine> bindingsPerBox = new WeakHashMap<Box, ScriptEngine>();
+
+
 	Cached<Pair<Box, Dict.Prop<String>>, Pair<Box, Dict.Prop<String>>, NashornExecution> cached = new Cached<>((next, was) -> {
-		ScriptContext b = engine.getContext();
+
+		ScriptEngine en = bindingsPerBox.computeIfAbsent(next.first, k -> factory.getScriptEngine(new String[]{"-scripting"}));
+
+		ScriptContext b = en.getContext();
+		en.setBindings(global, ScriptContext.GLOBAL_SCOPE);
+
 		setupInitialBindings(b, next.first);
-		NashornExecution ex = new NashornExecution(next.first, next.second, b, engine);
+
+		NashornExecution ex = new NashornExecution(next.first, next.second, b, en);
 		ex.setTernSupport(ternSupport);
 
 		return ex;
 	}, (x) -> x);
 
-//	void setupInitialBindings(ScriptContext context, Box first) {
-//		context.setAttribute("_", new UnderscoreBox(first), ScriptContext.ENGINE_SCOPE);
-//	}
-
 	void setupInitialBindings(ScriptContext context, Box first) {
 		context.setAttribute("_", first, ScriptContext.ENGINE_SCOPE);
+		context.setAttribute("__", first.find(Boxes.root, first.both()), ScriptContext.ENGINE_SCOPE);
 	}
 
 	@Override

@@ -4,7 +4,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import field.utility.Log;
 import field.utility.Util;
-import field.graphics.RunLoop;
+import field.app.RunLoop;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
@@ -27,6 +27,7 @@ public class Server {
 	private final WebSocketServer webSocketServer;
 
 	Deque<Handler> handlers = new LinkedList<>();
+	List<URIHandler> uriHandlers = new ArrayList<>();
 
 	BiMap<String, WebSocket> knownSockets = HashBiMap.create();
 
@@ -42,7 +43,16 @@ public class Server {
 		}
 	}
 
+	public interface URIHandler {
+		public NanoHTTPD.Response serve(String uri, NanoHTTPD.Method method, Map<String, String> headers, Map<String, String> parms, Map<String, String> files);
+	}
+
 	long uniq = 0;
+
+	static public ThreadLocal<WebSocket> currentWebSocket = new ThreadLocal();
+
+
+
 
 	public Server(int port, int websocketPort) throws IOException {
 
@@ -51,6 +61,7 @@ public class Server {
 			Response serve(String uri, Method method, Map<String, String> headers, Map<String, String> parms, Map<String, String> files) {
 
 				Log.log("server", "Serving "+uri);
+				Log.log("server", "will check:"+uriHandlers);
 
 				Object id = parms.get("id");
 
@@ -79,6 +90,13 @@ public class Server {
 						}
 					}
 					return new Response(Response.Status.NOT_FOUND, null, "couldn't find " + e);
+				}
+
+				for(URIHandler u : uriHandlers)
+				{
+					Response r = u.serve(uri, method, headers, parms, files);
+					if (r!=null)
+						return r;
 				}
 
 				return new Response(Response.Status.BAD_REQUEST, null, " couldn't understand request");
@@ -115,12 +133,16 @@ public class Server {
 						if (((HandlerInMainThread) h).will(Server.this, webSocket, address, payload)) {
 							final Object p = payload;
 							try {
-								payload = queue(() -> h.handle(Server.this, webSocket, address, p)).get();
+								payload = queue(() -> {
+									currentWebSocket.set(webSocket);
+									return h.handle(Server.this, webSocket, address, p);
+								}).get();
 							} catch (InterruptedException | ExecutionException e) {
 								Log.log("remote.error"," exception thrown by asynchronous websocket handler <" + h + "> while servicing <" + s + " / " + address + " -> " + originalPayload + " " + p, e);
 							}
 						}
 					} else {
+						currentWebSocket.set(webSocket);
 						payload = h.handle(Server.this, webSocket, address, payload);
 					}
 				}
@@ -147,11 +169,12 @@ public class Server {
 
 	}
 
-	public void addHandlerLast(Handler h) {
+	public Server addHandlerLast(Handler h) {
 		handlers.add(h);
+		return this;
 	}
 
-	public void addHandlerLast(Predicate<String> addressPredicate, Handler h) {
+	public Server addHandlerLast(Predicate<String> addressPredicate, Handler h) {
 		handlers.add(new HandlerInMainThread() {
 			@Override
 			public Object handle(Server server, WebSocket from, String address, Object payload) {
@@ -163,9 +186,10 @@ public class Server {
 				return addressPredicate.test(address);
 			}
 		});
+		return this;
 	}
 
-	public void addHandlerLast(Predicate<String> addressPredicate, Supplier<String> socketName, Handler h) {
+	public Server addHandlerLast(Predicate<String> addressPredicate, Supplier<String> socketName, Handler h) {
 		handlers.add(new HandlerInMainThread() {
 			@Override
 			public Object handle(Server server, WebSocket from, String address, Object payload) {
@@ -177,7 +201,15 @@ public class Server {
 				return addressPredicate.test(address) && Util.safeEq(knownSockets.inverse().get(from), socketName.get());
 			}
 		});
+		return this;
 	}
+
+	public Server addURIHandler(URIHandler h)
+	{
+		uriHandlers.add(h);
+		return this;
+	}
+
 
 	public void addHandlerFirst(Handler h) {
 		handlers.add(h);
@@ -249,7 +281,6 @@ public class Server {
 
 	public void send(WebSocket name, String message) {
 
-		//name.send(message);
 		queue(() -> name.send(message));
 	}
 

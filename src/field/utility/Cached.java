@@ -2,6 +2,7 @@ package field.utility;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 
 /**
@@ -61,5 +62,10 @@ public class Cached<t_check, t_witness, t_value> implements Function<t_check, t_
 		return this;
 	}
 
+
+	public Supplier<t_value> toSupplier(Supplier<t_check> q)
+	{
+		return () -> apply(q.get());
+	}
 
 }

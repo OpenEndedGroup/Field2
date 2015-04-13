@@ -27,16 +27,16 @@ public class FLineInteraction extends Box implements Drawing.Drawer, Mouse.OnMou
 		    .doc("the FLineInteraction Plugin");
 	static public final Dict.Prop<Cached<FLine, Object, Area>> projectedArea = new Dict.Prop<>("_projectedArea");
 	static public final Dict.Prop<Map<String, Function<Box, FLine>>> interactiveDrawing = new Dict.Prop<>("interactiveDrawing").type().toCannon()
-		    .doc("add lines to this property to make them interactive. OnMouseExit and OnMouseEnter attributes will be called appropriately");
+		    .doc("add lines to this property to make them interactive. onMouseExit and onMouseEnter attributes will be called appropriately. See FLineButton for a halper class.");
 	static public final Dict.Prop<LinkedHashMapAndArrayList<Supplier<FLine>>> interactiveLines = new Dict.Prop<>("interactiveLines").type()
 		    .toCannon()
-		    .doc("add lines to this property to make them interactive. OnMouseExit and OnMouseEnter attributes will be called appropriately");
+		    .doc("add lines to this property to make them interactive. onMouseExit and onMouseEnter attributes will be called appropriately. See FLineButton for a halper class.");
 
 	public FLineInteraction(Box root) {
 		properties.putToList(Drawing.drawers, this);
 		properties.put(interaction, this);
-		properties.putToList(Mouse.onMouseDown, this);
-		properties.putToList(Mouse.onMouseMove, this);
+		properties.putToMap(Mouse.onMouseDown, "__flineInteraction__", this);
+		properties.putToMap(Mouse.onMouseMove, "__flineInteraction__", this);
 	}
 
 	Set<FLine> all = null;
@@ -80,7 +80,7 @@ public class FLineInteraction extends Box implements Drawing.Drawer, Mouse.OnMou
 	}
 
 	public Area projectFLineToArea(FLine fline) {
-		Shape s = FLinesAndJavaShapes.flineToJavaShape(fline);
+		Shape s = FLinesAndJavaShapes.flineToJavaShape_notThickened(fline);
 		return new Area(s);
 	}
 
@@ -101,8 +101,6 @@ public class FLineInteraction extends Box implements Drawing.Drawer, Mouse.OnMou
 	@Override
 	public Mouse.Dragger onMouseDown(Window.Event<Window.MouseState> e, int button) {
 
-		Log.log("interaction.debug", " onMousedown in FLineIteraction ", e.properties+" "+e+" "+System.identityHashCode(e));
-
 		// if we haven't been drawn, then we can't interact
 
 		if (all == null) return null;
@@ -116,7 +114,7 @@ public class FLineInteraction extends Box implements Drawing.Drawer, Mouse.OnMou
 
 		List<Mouse.Dragger> draggers = all.stream().filter(f -> f.attributes.get(projectedArea) != null)
 			    .filter(f -> f.attributes.get(projectedArea).apply(f).contains(point.x, point.y))
-			    .flatMap(f -> f.attributes.getOr(Mouse.onMouseDown, Collections::emptyList).stream())
+			    .flatMap(f -> f.attributes.getOr(Mouse.onMouseDown, Collections::emptyMap).values().stream())
 			    .map(omd -> omd.onMouseDown(eMarked, button)).filter(x -> x != null).collect(Collectors.toList());
 
 
@@ -162,13 +160,13 @@ public class FLineInteraction extends Box implements Drawing.Drawer, Mouse.OnMou
 		previousIntersection = intersects;
 
 		List<Mouse.Dragger> draggers = intersects.stream()
-			    .flatMap(f -> f.attributes.getOr(Mouse.onMouseMove, Collections::emptyList).stream()).map(omd -> omd.onMouseMove(eMarked))
+			    .flatMap(f -> f.attributes.getOr(Mouse.onMouseMove, Collections::emptyMap).values().stream()).map(omd -> omd.onMouseMove(eMarked))
 			    .filter(x -> x != null).collect(Collectors.toList());
 
-		draggers.addAll(enter.stream().flatMap(f -> f.attributes.getOr(Mouse.onMouseEnter, Collections::emptyList).stream())
+		draggers.addAll(enter.stream().flatMap(f -> f.attributes.getOr(Mouse.onMouseEnter, Collections::emptyMap).values().stream())
 			    .map(omd -> omd.onMouseEnter(eMarked)).filter(x -> x != null).collect(Collectors.toList()));
 
-		exit.stream().flatMap(f -> f.attributes.getOr(Mouse.onMouseExit, Collections::emptyList).stream())
+		exit.stream().flatMap(f -> f.attributes.getOr(Mouse.onMouseExit, Collections::emptyMap).values().stream())
 			    .forEach(omd -> omd.onMouseExit(eMarked));
 
 

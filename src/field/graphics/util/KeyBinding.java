@@ -1,13 +1,20 @@
 package field.graphics.util;
 
+import com.badlogic.jglfw.Glfw;
 import field.graphics.Window;
 
 import javax.xml.crypto.dsig.keyinfo.KeyName;
+import java.lang.reflect.Field;
 
 /**
  * Helper class for containing a key binding. Currently used in the camera class.
  */
 public class KeyBinding {
+
+	static public final String[] n_alt = {"alt"};
+	static public final String[] n_shift = {"shift"};
+	static public final String[] n_command = {"command", "meta", "super"};
+	static public final String[] n_control = {"control", "ctrl"};
 
 	static public class KeyName
 	{
@@ -18,6 +25,61 @@ public class KeyBinding {
 
 		int key;
 
+		public KeyName(String name)
+		{
+			name = name.toLowerCase();
+			for(String a : n_alt)
+			{
+				if (name.contains(a))
+				{
+					name = name.replace(a, "");
+					alt = true;
+				}
+			}
+			for(String a : n_shift)
+			{
+				if (name.contains(a))
+				{
+					name = name.replace(a, "");
+					shift = true;
+				}
+			}
+			for(String a : n_command)
+			{
+				if (name.contains(a))
+				{
+					name = name.replace(a, "");
+					supper = true;
+				}
+			}
+			for(String a : n_control)
+			{
+				if (name.contains(a))
+				{
+					name = name.replace(a, "");
+					control = true;
+				}
+			}
+			name = name.replace("-", "");
+			name = name.trim();
+			Field[] ff = Glfw.class.getFields();
+			for(Field f : ff)
+			{
+				if (f.getName().startsWith("GLFW_KEY_"))
+				{
+					if (f.getName().replace("GLFW_KEY_", "").toLowerCase().equals(name))
+					{
+						try {
+							this.key = (int) f.get(null);
+							break;
+						} catch (IllegalAccessException e) {
+						}
+					}
+				}
+			}
+			if (this.key==0)
+				throw new IllegalArgumentException(" no such key called "+name);
+		}
 		public KeyName(int key, boolean shift, boolean alt, boolean control, boolean supper)
 		{
 			this.key = key;

@@ -2,10 +2,7 @@ package field.graphics;
 
 import field.linalg.Vec3;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 
 public class PathFlattener {
@@ -39,10 +36,11 @@ public class PathFlattener {
 
 		while (cursor.hasNext()) {
 			Vec3[] v = cursor.next();
+//			System.out.println(" cursor :"+ Arrays.asList(v)+" "+index);
 			if (v.length==4) {
-				emitCubicFrame(index-1, index, v[0], v[1], v[2], v[3]);
+				emitCubicFrame(index, index+1, v[0], v[1], v[2], v[3]);
 			} else if (v.length==2) {
-				emitLinearFrame(index - 1, index, v[0], v[1]);
+				emitLinearFrame(index, index+1, v[0], v[1]);
 			}
 			index++;
 		}
@@ -154,7 +152,7 @@ public class PathFlattener {
 			Vec3 c21 = new Vec3();
 			Vec3 m = new Vec3();
 
-			FLinesAndJavaShapes.splitCubicFrame3(a, c1 = new Vec3(c1), c2 = new Vec3(c2), b, 0.5f, c12, m, c21, tmp);
+			FLinesAndJavaShapes.splitCubicFrame(a, c1 = new Vec3(c1), c2 = new Vec3(c2), b, 0.5f, c12, m, c21, tmp);
 
 			double mp = dotStart + (dotEnd - dotStart) * 0.5f;
 

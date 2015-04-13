@@ -110,17 +110,66 @@ public class GraphicsSupport extends Box {
 	protected Shader newShaderFromBox(Box b) {
 		Shader s = new Shader();
 		String vs = b.properties
-			    .computeIfAbsent(vertex, k -> "#version 150\n" + "\n" + "in vec3 position;\n" + "\n" + "uniform mat4 _projMatrix;\n" + "uniform mat4 _viewMatrix;\n" + "\n" + "out vec4 vertexColor;\n" + "in vec4 s_Color;\n" + "\n" + "void main()\n" + "{\n" + "\tgl_Position = _projMatrix * (_viewMatrix * vec4(position, 1.0));\n" + "\n" + "\tvertexColor = s_Color;\n" + "}");
+			    .computeIfAbsent(vertex, k -> "#version 410\n" +
+					"layout(location=0) in vec3 position;\n" +
+					"\n" +
+					"out vec4 vertexColor;\n" +
+					"in vec4 s_Color;\n" +
+					"\n" +
+					"void main()\n" +
+					"{\n" +
+					"\tgl_Position = ( vec4(position, 1.0));\n" +
+					"\n" +
+					"\tvertexColor = s_Color;\n" +
+					"}");
 		String fs = b.properties
-			    .computeIfAbsent(fragment, k -> "#version 150\n" + "\n" + "in vec4 vertexColor;\n" + "out vec4 _output;\n" + "\n" + "void main()\n" + "{\n" + "\t_output  = vertexColor+vec4(0.1, 0.1, 0.1, 0.1);\n" + "}\n");
+			    .computeIfAbsent(fragment, k -> "#version 410\n" +
+					"\n" +
+					"layout(location=0) out vec4 _output;\n" +
+					"\n" +
+					"void main()\n" +
+					"{\n" +
+					"\t_output  = vec4(1,1,1,0.1);\n" +
+					"}");
 		String gs = b.properties.computeIfAbsent(geometry, k -> "");
 
-		s.addSource(Shader.Type.vertex, vs);
-		if (gs.trim().length() > 0) s.addSource(Shader.Type.geometry, gs);
-		s.addSource(Shader.Type.fragment, fs);
+		s.addSource(Shader.Type.vertex, vs).setOnError(errorHandler(b, "vertex shader"));
+		if (gs.trim().length() > 0) s.addSource(Shader.Type.geometry, gs).setOnError(errorHandler(b, "geometry shader"));;
+		s.addSource(Shader.Type.fragment, fs).setOnError(errorHandler(b, "fragment shader"));;
 
 		b.properties.putToList(_shaders, s);
 
+		s.setOnError(errorHandler(b, "shader"));
+
 		return s;
+	}
+
+	private Shader.iErrorHandler errorHandler(Box b, String shader) {
+		return new Shader.iErrorHandler() {
+			@Override
+			public void beginError() {
+
+			}
+
+			@Override
+			public void errorOnLine(int line, String error) {
+
+				System.out.println(" HAS ERROR :"+b.first(RemoteEditor.outputErrorFactory).isPresent());
+
+				b.first(RemoteEditor.outputErrorFactory)
+				 .orElse((x) -> (is -> System.err.println("error (without remote editor attached) :" + is))).apply(b).accept(new Pair<>(line, "Error on "+shader+" reload: "+error));
+			}
+
+			@Override
+			public void endError() {
+
+			}
+
+			@Override
+			public void noError() {
+				b.first(RemoteEditor.outputFactory)
+				 .orElse((x) -> (is -> System.out.println("message (without remote editor attached) :" + is))).apply(b).accept(shader+" reloaded correctly");
+			}
+		};
 	}
 }

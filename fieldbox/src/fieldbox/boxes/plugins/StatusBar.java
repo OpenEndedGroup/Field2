@@ -109,6 +109,9 @@ public class StatusBar extends Box {
 					     .ifPresent(x -> x.addWatch(statuses, q -> {
 						     update();
 					     }));
+
+		this.properties.putToMap(statuses, "_default_", () -> "[ctrl] menus [alt] execution [command] modify [g] attach [n] new");
+
 	}
 
 	String statusText = "";
@@ -131,7 +134,7 @@ public class StatusBar extends Box {
 					     .getValue()
 					     .get();
 				if (q == null) ii.remove();
-				else s += " " + q;
+				else s += (s.length()>0 ? " | " : "")+ q;
 			}
 		}
 

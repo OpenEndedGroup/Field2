@@ -1,7 +1,7 @@
 package fieldcef.plugins;
 
 import com.badlogic.jglfw.Glfw;
-import field.graphics.RunLoop;
+import field.app.RunLoop;
 import field.graphics.Window;
 import field.linalg.Vec2;
 import field.utility.Dict;
@@ -23,6 +23,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -65,6 +66,7 @@ public class GlassBrowser extends Box implements IO.Loaded {
 		browser.loaded();
 		this.properties.put(Boxes.dontSave, true);
 		styles = findAndLoad(styleSheet, false);
+		browser.properties.put(Box.name, "GLASS");
 
 
 //		boot();
@@ -84,10 +86,9 @@ public class GlassBrowser extends Box implements IO.Loaded {
 
 
 		// I've been looking forward to this for a while
-		this.properties.putToList(Keyboard.onKeyDown, (e, k) -> {
+		this.properties.putToMap(Keyboard.onKeyDown, "__glassbrowser__", (e, k) -> {
 
-			if (selection().findFirst()
-				       .isPresent() && !e.properties.isTrue(Window.consumed, false)) {
+			if (!e.properties.isTrue(Window.consumed, false)) {
 				if (e.after.keysDown.contains(Glfw.GLFW_KEY_SPACE) && e.after.isControlDown() && !e.before.keysDown.contains(Glfw.GLFW_KEY_SPACE)) {
 					if (!visible) {
 						center();
@@ -141,13 +142,14 @@ public class GlassBrowser extends Box implements IO.Loaded {
 		hide();
 
 		browser.addHandler(x -> x.equals("focus"), (address, payload, ret) -> {
+
 			if (ignoreHide > 0) ignoreHide--;
 			else hide();
 			ret.accept("OK");
 		});
 
 		browser.addHandler(x -> x.equals("request.commands"), (address, paylod, ret) -> {
-			commandHelper.requestCommands(selection().findFirst(), null, null, ret, -1, -1);
+			commandHelper.requestCommands(Optional.of(selection().findFirst().orElse(this)), null, null, ret, -1, -1);
 		});
 
 		browser.addHandler(x -> x.equals("call.command"), (address, payload, ret) -> {
@@ -189,6 +191,17 @@ public class GlassBrowser extends Box implements IO.Loaded {
 	boolean visible = false;
 
 	public void show() {
+
+		Drawing d = first(Drawing.drawing, both()).orElse(null);
+
+		float safety = 500;
+
+		Rect viewBounds = d.getCurrentViewBounds(this);
+
+		Rect vb = new Rect(viewBounds.x+viewBounds.w/2-maxw/2, viewBounds.y+viewBounds.h/2-maxh/2, maxw, maxh);
+
+		browser.properties.put(Box.frame, vb);
+
 		visible = true;
 		browser.properties.put(Box.hidden, false);
 		browser.setFocus(true);
@@ -197,18 +210,24 @@ public class GlassBrowser extends Box implements IO.Loaded {
 
 
 	public void hide() {
+		Log.log("selection", "hidding now");
 		visible = false;
 		tick = 0;
 		RunLoop.main.getLoop()
 			    .attach(x -> {
 				    if (tick == 5) {
+					    browser.setFocus(false);
 					    browser.properties.put(Box.hidden, true);
+					    browser.properties.put(Mouse.isSelected, false);
+					    Log.log("selection", "hidding now, again");
 					    Drawing.dirty(this);
 				    }
 				    tick++;
 				    return tick != 5;
 			    });
 		browser.setFocus(false);
+		browser.properties.put(Mouse.isSelected, false);
+		browser.properties.put(Box.hidden, true);
 		Drawing.dirty(browser);
 	}
 

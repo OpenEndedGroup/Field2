@@ -132,8 +132,7 @@ public class Quat implements Serializable {
 	 * Normalise the source quaternion and place the result in another quaternion.
 	 *
 	 * @param src  The source quaternion
-	 * @param dest The destination quaternion, or null if a new quaternion is to be
-	 *             created
+	 * @param dest The destination quaternion, or null if a new quaternion is to be created
 	 * @return The normalised quaternion
 	 */
 	public static Quat normalise(Quat src, Quat dest) {
@@ -149,8 +148,7 @@ public class Quat implements Serializable {
 	/**
 	 * Normalise this quaternion and place the result in another quaternion.
 	 *
-	 * @param dest The destination quaternion, or null if a new quaternion is to be
-	 *             created
+	 * @param dest The destination quaternion, or null if a new quaternion is to be created
 	 * @return the normalised quaternion
 	 */
 	public Quat normalise(Quat dest) {
@@ -171,8 +169,7 @@ public class Quat implements Serializable {
 	/**
 	 * Calculate the conjugate of this quaternion and put it into the given one
 	 *
-	 * @param dest The quaternion which should be set to the conjugate of this
-	 *             quaternion
+	 * @param dest The quaternion which should be set to the conjugate of this quaternion
 	 */
 	public Quat negate(Quat dest) {
 		return negate(this, dest);
@@ -182,8 +179,7 @@ public class Quat implements Serializable {
 	 * Calculate the conjugate of this quaternion and put it into the given one
 	 *
 	 * @param src  The source quaternion
-	 * @param dest The quaternion which should be set to the conjugate of this
-	 *             quaternion
+	 * @param dest The quaternion which should be set to the conjugate of this quaternion
 	 */
 	public static Quat negate(Quat src, Quat dest) {
 		if (dest == null) dest = new Quat();
@@ -306,33 +302,42 @@ public class Quat implements Serializable {
 
 	/**
 	 * Returns a vector that is 'v' rotated by this quaternion
+	 *
 	 * @param v the Vec3 to rotate
 	 * @return a new Vec3
 	 */
 
-	public Vec3 rotate(Vec3 v)
-	{
+	public Vec3 rotate(Vec3 v) {
 		return Mat4.transform(new Mat4(this, null, 1), v, new Vec3());
 	}
 
 	/**
-	 * Sets the value of this quaternion to the quaternion product of
-	 * quaternions left and right (this = left * right). Note that this is safe
-	 * for aliasing (e.g. this can be left or right).
+	 * Returns a vector that is 'v' rotated by this quaternion
+	 *
+	 * @param v the Vec2 to rotate
+	 * @return a new Vec2
+	 *
+	 */
+
+	public Vec3 rotate(Vec2 v) {
+		return Mat4.transform(new Mat4(this, null, 1), v.toVec3(), new Vec3());
+	}
+
+	/**
+	 * Sets the value of this quaternion to the quaternion product of quaternions left and right (this = left * right). Note that this is safe for aliasing (e.g. this can be left or right).
 	 *
 	 * @param left  the first quaternion
 	 * @param right the second quaternion
 	 */
 	public static Quat mul(Quat left, Quat right, Quat dest) {
 		if (dest == null) dest = new Quat();
-		dest.set(left.x * right.w + left.w * right.x + left.y * right.z - left.z * right.y, left.y * right.w + left.w * right.y + left.z * right.x - left.x * right.z, left.z * right.w + left.w * right.z + left.x * right.y - left.y * right.x, left.w * right.w - left.x * right.x - left.y * right.y - left.z * right.z);
+		dest.set(left.x * right.w + left.w * right.x + left.y * right.z - left.z * right.y, left.y * right.w + left.w * right.y + left.z * right.x - left.x * right.z,
+			 left.z * right.w + left.w * right.z + left.x * right.y - left.y * right.x, left.w * right.w - left.x * right.x - left.y * right.y - left.z * right.z);
 		return dest;
 	}
 
 	/**
-	 * Multiplies quaternion left by the inverse of quaternion right and places
-	 * the value into this quaternion. The value of both argument quaternions is
-	 * preservered (this = left * right^-1).
+	 * Multiplies quaternion left by the inverse of quaternion right and places the value into this quaternion. The value of both argument quaternions is preservered (this = left * right^-1).
 	 *
 	 * @param left  the left quaternion
 	 * @param right the right quaternion
@@ -343,14 +348,14 @@ public class Quat implements Serializable {
 		n = (n == 0.0 ? n : 1 / n);
 		// store on stack once for aliasing-safty
 		if (dest == null) dest = new Quat();
-		dest.set((left.x * right.w - left.w * right.x - left.y * right.z + left.z * right.y) * n, (left.y * right.w - left.w * right.y - left.z * right.x + left.x * right.z) * n, (left.z * right.w - left.w * right.z - left.x * right.y + left.y * right.x) * n, (left.w * right.w + left.x * right.x + left.y * right.y + left.z * right.z) * n);
+		dest.set((left.x * right.w - left.w * right.x - left.y * right.z + left.z * right.y) * n, (left.y * right.w - left.w * right.y - left.z * right.x + left.x * right.z) * n,
+			 (left.z * right.w - left.w * right.z - left.x * right.y + left.y * right.x) * n, (left.w * right.w + left.x * right.x + left.y * right.y + left.z * right.z) * n);
 
 		return dest;
 	}
 
 	/**
-	 * Sets the value of this quaternion to the equivalent rotation of the
-	 * Axis-Angle argument.
+	 * Sets the value of this quaternion to the equivalent rotation of the Axis-Angle argument.
 	 *
 	 * @param a1 the axis-angle: (x,y,z) is the axis and w is the angle
 	 */
@@ -369,8 +374,91 @@ public class Quat implements Serializable {
 	}
 
 	/**
-	 * Sets the value of this quaternion to the equivalent rotation of the
-	 * Axis-Angle argument.
+	 * Sets the value of this quaternion to a rotation that takes the vector 'from' and rotates it to the vector 'to'
+	 */
+	public final Quat setFromTwoVec3(Vec3 to, Vec3 from) {
+		to = new Vec3(to).normalise();
+		from = new Vec3(from).normalise();
+		Quat qfrom = new Quat(from.x, from.y, from.z, 0);
+		Quat qto = new Quat(-to.x, -to.y, -to.z, 0);
+
+		Quat.mul(qfrom, qto, this);
+		this.normalize(this);
+		this.sqrt();
+		return this;
+
+	}
+
+	/**
+	 * Sets the value of this quaternion to the normalized value of quaternion q1.
+	 *
+	 * @param q1 the quaternion to be normalized.
+	 * @return this (mutated)
+	 */
+	public final Quat normalize(Quat q1) {
+		double norm = (q1.x * q1.x + q1.y * q1.y + q1.z * q1.z + q1.w * q1.w);
+
+		if (norm > 0.0f) {
+			norm = 1.0f / (float) Math.sqrt(norm);
+			this.x = norm * q1.x;
+			this.y = norm * q1.y;
+			this.z = norm * q1.z;
+			this.w = norm * q1.w;
+		} else {
+			this.x = (float) 0.0;
+			this.y = (float) 0.0;
+			this.z = (float) 0.0;
+			this.w = (float) 0.0;
+		}
+		return this;
+	}
+
+	public Quat sqrt() {
+		return pow(0.5f);
+	}
+
+	public Quat pow(float p) {
+		ln();
+		x *= p;
+		y *= p;
+		z *= p;
+		return exp();
+	}
+
+	public Quat exp() {
+		double omega = mag();
+		double sinc_omega = BaseMath.sinc(omega);
+
+		this.w = (float) Math.cos(omega);
+		this.x = (float) (this.x * sinc_omega);
+		this.y = (float) (this.y * sinc_omega);
+		this.z = (float) (this.z * sinc_omega);
+		this.normalize(this);
+		return this;
+	}
+
+	public double mag() {
+		return Math.sqrt(x * x + y * y + z * z + w * w);
+	}
+
+	public Quat ln() {
+
+		float EPSILON = 1e-10f;
+		float omega = (float) BaseMath.acos(w);
+		w = 0;
+
+		float sinc = (float) BaseMath.sinc(omega);
+		if (Math.abs(sinc) < EPSILON) sinc = EPSILON;
+
+		x /= sinc;
+		y /= sinc;
+		z /= sinc;
+
+		return this;
+	}
+
+	/**
+	 * Sets the value of this quaternion to the equivalent rotation of the Axis-Angle argument.
 	 *
 	 * @param a1 the axis-angle: (x,y,z) is the axis and a is the angle
 	 */
@@ -389,8 +477,7 @@ public class Quat implements Serializable {
 	}
 
 	/**
-	 * Sets the value of this quaternion using the rotational component of the
-	 * passed matrix.
+	 * Sets the value of this quaternion using the rotational component of the passed matrix.
 	 *
 	 * @param m The matrix
 	 * @return this
@@ -400,8 +487,7 @@ public class Quat implements Serializable {
 	}
 
 	/**
-	 * Sets the value of the source quaternion using the rotational component of the
-	 * passed matrix.
+	 * Sets the value of the source quaternion using the rotational component of the passed matrix.
 	 *
 	 * @param m The source matrix
 	 * @param q The destination quaternion, or null if a new quaternion is to be created
@@ -412,8 +498,7 @@ public class Quat implements Serializable {
 	}
 
 	/**
-	 * Sets the value of this quaternion using the rotational component of the
-	 * passed matrix.
+	 * Sets the value of this quaternion using the rotational component of the passed matrix.
 	 *
 	 * @param m The source matrix
 	 */
@@ -422,8 +507,7 @@ public class Quat implements Serializable {
 	}
 
 	/**
-	 * Sets the value of the source quaternion using the rotational component of the
-	 * passed matrix.
+	 * Sets the value of the source quaternion using the rotational component of the passed matrix.
 	 *
 	 * @param m The source matrix
 	 * @param q The destination quaternion, or null if a new quaternion is to be created
@@ -496,7 +580,7 @@ public class Quat implements Serializable {
 		result = 31 * result + (y != +0.0f ? Double.doubleToLongBits(y) : 0);
 		result = 31 * result + (z != +0.0f ? Double.doubleToLongBits(z) : 0);
 		result = 31 * result + (w != +0.0f ? Double.doubleToLongBits(w) : 0);
-		return (int)(result ^ (result >>> 32));
+		return (int) (result ^ (result >>> 32));
 	}
 
 }

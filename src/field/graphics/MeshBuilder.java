@@ -476,7 +476,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 			if (vertexCursor - 1 - (end - 1) < 0)
 				throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with end " + start + " > " + (vertexCursor - 1));
 
-			for (int a = start; a > end; a--) {
+			for (int a = start-1; a > end; a--) {
 				dest.put(vertexCursor - 1 - a);
 				dest.put(vertexCursor - 1 - (a - 1));
 				elementCursor++;
@@ -597,7 +597,6 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	 * Appends an FLine into this meshbuilder. Note this operation is sensitive to the kind of Mesh that this MeshBuilder is targeting. If you
 	 * append a line that isn't filled into a MeshBuilder for a triangle mesh, nothing will happen.
 	 * <p>
-	 * This operation is uses bookmark
 	 */
 	public void append(FLine f) {
 		int d = target.getElementDimension();

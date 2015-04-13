@@ -1,197 +1,284 @@
 package fieldcef.plugins;
 
-import field.graphics.RunLoop;
- import field.utility.Dict;
- import field.utility.Log;
- import field.utility.Rect;
- import fieldagent.Main;
- import fieldbox.boxes.*;
- import fieldbox.io.IO;
- import fieldcef.browser.Browser;
- import fielded.Commands;
- import fielded.ServerSupport;
- import fielded.webserver.Server;
+import field.app.RunLoop;
+import field.utility.*;
+import fieldagent.Main;
+import fieldbox.boxes.Box;
+import fieldbox.boxes.Boxes;
+import fieldbox.boxes.Drawing;
+import fieldbox.boxes.Mouse;
+import fieldbox.boxes.plugins.Templates;
+import fieldbox.execution.Completion;
+import fieldbox.execution.Execution;
+import fieldbox.io.IO;
+import fieldcef.browser.Browser;
+import fielded.ServerSupport;
+import fielded.webserver.Server;
 
- import java.io.BufferedReader;
- import java.io.File;
- import java.io.FileReader;
- import java.io.IOException;
- import java.util.Arrays;
- import java.util.List;
- import java.util.UUID;
- import java.util.stream.Stream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 /**
-  * An OutputBox is a box that just lets you print html to it. This is a plugin that lets you make them.
-  */
- public class OutputBox extends Box implements IO.Loaded {
-
-	 static public final Dict.Prop<FunctionOfBox<Box>> newOutput = new Dict.Prop<FunctionOfBox<Box>>("newOutput").type()
-														     .toCannon()
-														     .doc("creates a new HTML output box, parented to this box");
-
-	 private final Box root;
-
-	 List<String> playlist = Arrays.asList("preamble.js", "jquery-2.1.0.min.js", "jquery.autosize.input.js", "modal.js");
-	 String styleSheet = "field-codemirror.css";
-
-	 public Browser browser;
-	 public String styles;
-
-	 public OutputBox(Box root) {
-		 this.root = root;
-		 this.properties.put(newOutput, x -> make(400, 300, x));
-	 }
-
-	 int tick = 0;
-
-	 Commands commandHelper = new Commands();
-
-	 @Override
-	 public void loaded() {
-
-	 }
-
-	 public Box make(int w, int h, Box b) {
-		 Log.log("OutputBox.debug", "initializing browser");
-		 browser = new Browser();
-
-		 Rect f = b.properties.get(frame);
-
-		 float inset = 10;
-		 browser.properties.put(Box.frame, new Rect(f.x + f.w - inset, f.y + f.h - inset, w, h));
-		 browser.properties.put(Boxes.dontSave, true);
-		 b.connect(browser);
-		 browser.loaded();
-		 this.properties.put(Boxes.dontSave, true);
-		 styles = findAndLoad(styleSheet, false);
-
-		 long[] t = {0};
-
-		 boot();
+ * An OutputBox is a box that just lets you print html to it. This is a plugin that lets you make them.
+ */
+public class OutputBox extends Box implements IO.Loaded {
 
 
-		 find(Watches.watches, both()).findFirst()
-					      .ifPresent(watch -> watch.addWatch(Box.frame, q -> {
-						      if (q.second.equals(b)) {
-							      float dx = q.fourth.x + q.fourth.w - q.third.x - q.third.w;
-							      float dy = q.fourth.y + q.fourth.h - q.third.y - q.third.h;
+	static public final Dict.Prop<FunctionOfBoxValued<TemplateMap<Browser>>> output = new Dict.Prop<>("output").type().doc("_.output.blah.print('something') will print to (and, if necessary, create) an html output box")
+														   .toCannon();
 
-							      if (Math.abs(dx) > 0 || Math.abs(dy) > 0) {
-								      Rect fr = browser.properties.get(Box.frame);
+	private final Box root;
 
-								      fr.x += dx;
-								      fr.y += dy;
+	List<String> playlist = Arrays.asList("preamble.js", "jquery-2.1.0.min.js", "jquery.autosize.input.js", "modal.js");
+	String styleSheet = "field-codemirror.css";
 
-								      browser.properties.put(Box.frame, fr);
-								      Drawing.dirty(browser);
-							      }
+	public String styles;
 
-						      }
-					      }));
+	public OutputBox(Box root) {
+		this.root = root;
 
-		 return browser;
-	 }
+		this.properties.put(output, (box) -> new TemplateMap<Browser>(box, "output", Browser.class, x -> make(400, 300, x)).makeCallable((map, param) -> {
+			((Browser) map.asMap_get("default")).print("" + param);
+			return null;
+		}));
 
-	 public void boot() {
-		 Server s = this.find(ServerSupport.server, both())
-				.findFirst()
-				.orElseThrow(() -> new IllegalArgumentException(" Server not found "));
+	}
 
+	int tick = 0;
 
-		 String bootstrap = "<html class='outputbox' style='background:rgba(0,0,0,0.2);'><head><style>" + styles + "</style></head><body class='outputbox' style='background:rgba(0,0,0,0.02);'></body></html>";
-		 String res = UUID.randomUUID()
-				  .toString();
-		 s.setFixedResource("/" + res, bootstrap);
-		 browser.properties.put(browser.url, "http://localhost:8080/" + res);
+	@Override
+	public void loaded() {
+
+	}
 
 
-		 tick = 0;
-		 RunLoop.main.getLoop()
-			     .attach(x -> {
-				     tick++;
-				     if (browser.browser.getURL()
-							.equals("http://localhost:8080/" + res)) {
-					     inject2();
-					     return false;
-				     }
-				     Log.log("glassBrowser.boot", "WAITING url:" + browser.browser.getURL());
-				     Drawing.dirty(this);
-				     return tick < 100;
-			     });
+	protected Browser make(int w, int h, Box b) {
+		Log.log("OutputBox.debug", "initializing browser");
 
-		 Drawing.dirty(this);
-	 }
+		Browser browser = (Browser)find(Templates.templateChild, both()).findFirst()
+								       .map(x -> x.apply(b, "html output"))
+								       .orElseGet(() -> new Browser());
 
-	 int ignoreHide = 0;
+		Rect f = b.properties.get(frame);
 
-	 public void inject2() {
-		 Log.log("glassbrowser.debug", "inject 2 is happening");
-		 for (String s : playlist) {
-			 Log.log("glassbrowser.debug", "executing :" + s);
-			 browser.executeJavaScript(findAndLoad(s, true));
-		 }
-		 //		 hide();
+		float inset = 10;
+		browser.properties.put(Box.frame, new Rect(f.x + f.w - inset, f.y + f.h - inset, w, h));
+		browser.properties.put(Boxes.dontSave, true);
+		b.connect(browser);
+		browser.loaded();
+		this.properties.put(Boxes.dontSave, true);
 
-	 }
-	 //
-	 //	 public void show() {
-	 //		 browser.properties.put(Box.hidden, false);
-	 //		 browser.setFocus(true);
-	 //		 Drawing.dirty(browser);
-	 //	 }
-	 //
-	 //
-	 //	 public void hide() {
-	 //		 tick = 0;
-	 //		 RunLoop.main.getLoop()
-	 //			     .connect(x -> {
-	 //				     if (tick == 5) {
-	 //					     browser.properties.put(Box.hidden, true);
-	 //					     Drawing.dirty(this);
-	 //				     }
-	 //				     tick++;
-	 //				     return tick != 5;
-	 //			     });
-	 //		 browser.setFocus(false);
-	 //		 Drawing.dirty(browser);
-	 //	 }
+		browser.properties.put(Box.name, "outputbox");
+		styles = findAndLoad(styleSheet, false);
 
-	 //	 public void runCommands() {
-	 //		 browser.executeJavaScript("goCommands()");
-	 //		 show();
-	 //	 }
+		long[] t = {0};
+
+		boot(browser);
 
 
-	 private static String readFile(String s, boolean append) {
-		 try (BufferedReader r = new BufferedReader(new FileReader(new File(s)))) {
-			 String line = "";
-			 while (r.ready()) {
-				 line += r.readLine() + "\n";
-			 }
-
-			 if (append) line += "\n//# sourceURL=" + s;
-			 return line;
-
-		 } catch (IOException e) {
-			 e.printStackTrace();
-		 }
-		 return "";
-	 }
+		browser.pauseForBoot();
 
 
-	 private String findAndLoad(String f, boolean append) {
+		TextEditorExecution ed = new TextEditorExecution(browser);
+		ed.connect(browser);
 
-		 String[] roots = {Main.app + "/fielded/internal/", Main.app + "/fielded/external/", Main.app + "/fieldcef/internal"};
-		 for (String s : roots) {
-			 if (new File(s + "/" + f).exists()) return readFile(s + "/" + f, append);
-		 }
-		 Log.log("glassbrowser.error", "Couldnt' find file in playlist :" + f);
-		 return null;
-	 }
+		return browser;
+	}
 
-	 private Stream<Box> selection() {
-		 return breadthFirst(both()).filter(x -> x.properties.isTrue(Mouse.isSelected, false));
-	 }
+	String postamble = "</body></html>";
 
- }
+	public void boot(Browser browser) {
+		Server s = this.find(ServerSupport.server, both())
+			       .findFirst()
+			       .orElseThrow(() -> new IllegalArgumentException(" Server not found "));
+
+
+		String bootstrap
+			    = "<html class='outputbox' style='background:rgba(0,0,0,0.2);padding:8px;'><head><style>" + styles + "</style></head><body class='outputbox' style='background:rgba(0,0,0,0.02);'>" + postamble;
+		String res = UUID.randomUUID()
+				 .toString();
+		s.setFixedResource("/" + res, bootstrap);
+		browser.properties.put(browser.url, "http://localhost:8080/" + res);
+
+
+		tick = 0;
+		RunLoop.main.getLoop()
+			    .attach(x -> {
+				    tick++;
+				    if (browser.browser.getURL()
+						       .equals("http://localhost:8080/" + res)) {
+
+					    inject2(browser);
+//					    try {
+//						    Callbacks.call(browser, Callbacks.main, null);
+//					    }
+//					    catch(Throwable e)
+//					    {
+//						    e.printStackTrace();
+//					    };
+					    return false;
+				    }
+				    Log.log("glassBrowser.boot", "WAITING url:" + browser.browser.getURL());
+				    Drawing.dirty(this);
+
+
+
+				    return tick < 100;
+			    });
+
+		Drawing.dirty(this);
+	}
+
+	int ignoreHide = 0;
+
+	public void inject2(Browser browser) {
+		Log.log("glassbrowser.debug", "inject 2 is happening");
+		for (String s : playlist) {
+			Log.log("glassbrowser.debug", "executing :" + s);
+			browser.executeJavaScript(findAndLoad(s, true));
+		}
+		//		 hide();
+
+		browser.finishBooting();
+
+	}
+
+
+	private static String readFile(String s, boolean append) {
+		try (BufferedReader r = new BufferedReader(new FileReader(new File(s)))) {
+			String line = "";
+			while (r.ready()) {
+				line += r.readLine() + "\n";
+			}
+
+			if (append) line += "\n//# sourceURL=" + s;
+			return line;
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return "";
+	}
+
+
+	private String findAndLoad(String f, boolean append) {
+
+		String[] roots = {Main.app + "/fielded/internal/", Main.app + "/fielded/external/", Main.app + "/fieldcef/internal"};
+		for (String s : roots) {
+			if (new File(s + "/" + f).exists()) return readFile(s + "/" + f, append);
+		}
+		Log.log("glassbrowser.error", "Couldnt' find file in playlist :" + f);
+		return null;
+	}
+
+	private Stream<Box> selection() {
+		return breadthFirst(both()).filter(x -> x.properties.isTrue(Mouse.isSelected, false));
+	}
+
+
+	public class TextEditorExecution extends Execution {
+
+		private final Browser delegate;
+		private List<Runnable> queue;
+
+		public TextEditorExecution(Browser delegate) {
+			super(null);
+
+			this.properties.put(Boxes.dontSave, true);
+			this.delegate= delegate;
+
+		}
+
+		@Override
+		public Execution.ExecutionSupport support(Box box, Dict.Prop<String> prop) {
+			if (box instanceof Browser) return null;
+
+			return wrap(box);
+		}
+
+		private Execution.ExecutionSupport wrap(Box box) {
+
+			return new Execution.ExecutionSupport() {
+
+				protected Util.ExceptionlessAutoCloasable previousPush = null;
+
+				@Override
+				public Object getBinding(String name) {
+					return null;
+				}
+
+				@Override
+				public void executeTextFragment(String textFragment, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
+
+					System.out.println(" TEE is executing :"+textFragment);
+
+					delegate.executeJavaScript(textFragment);
+				}
+
+				@Override
+				public void executeAndPrint(String textFragment, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
+					executeTextFragment(textFragment, lineErrors, success);
+				}
+
+				@Override
+				public void executeAll(String allText, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
+					executeTextFragment(allText, lineErrors, success);
+				}
+
+				@Override
+				public String begin(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success, Map<String, Object> initiator) {
+					//TODO
+/*
+					System.out.println(" WRAPPED (begin)");
+					String name = s.begin(lineErrors, success);
+					if (name == null) return null;
+					Supplier<Boolean> was = box.properties.removeFromMap(Boxes.insideRunLoop, name);
+					String newName = name.replace("main.", "editor.");
+					box.properties.putToMap(Boxes.insideRunLoop, newName, was);
+					box.first(IsExecuting.isExecuting).ifPresent(x -> x.accept(box, newName));
+
+					return name;
+					*/
+					return null;
+				}
+
+				@Override
+				public void end(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
+					//TODO
+				}
+
+				@Override
+				public void setConsoleOutput(Consumer<String> stdout, Consumer<String> stderr) {
+				}
+
+				@Override
+				public void completion(String allText, int line, int ch, Consumer<List<Completion>> results) {
+//					tern.completion(x -> delegateTo.sendJavaScript(x), "remoteFieldProcess", allText, line, ch);
+//					results.accept(Collections.emptyList());
+				}
+
+				@Override
+				public void imports(String allText, int line, int ch, Consumer<List<Completion>> results) {
+				}
+
+				@Override
+				public String getCodeMirrorLanguageName() {
+					return "javascript";
+				}
+
+				@Override
+				public String getDefaultFileExtension() {
+					return ".js";
+				}
+			};
+		}
+	}
+}

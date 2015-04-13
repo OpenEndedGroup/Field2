@@ -35,7 +35,7 @@
             }
 
             _field.socket.onmessage = function (e) {
-                console.log(" socket responding to message <" + e.data + ">");
+                //console.log(" socket responding to message <" + e.data + ">");
 
                 if (ArrayBuffer.prototype.isPrototypeOf(e.data)) {
                     _field.arraybuffer = e.data
@@ -63,9 +63,7 @@
             }
         }
 
-
-
-         // and, we're off
+        // and, we're off
         _field.evalRequestWS( ///ID///)
     </script>
 

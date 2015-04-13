@@ -53,7 +53,7 @@ public class DrawBitmapFont {
 			BitmapFontData.Glyph g = data.getGlyph(ca[i]);
 
 			if (i < ca.length - 1) {
-				v.x += (g.xadvance + g.getKerning(ca[i + 1])) * scale;
+				v.x += (g.xadvance -32 + g.getKerning(ca[i + 1])) * scale;
 			}
 			else
 			{
@@ -75,7 +75,7 @@ public class DrawBitmapFont {
 
 //		System.out.println(" looked up hash for "+text+" "+origin+" "+scale+" and got "+m+" "+System.identityHashCode(m));
 
-		float smoothing = Math.min(1, Math.max(0.02f, scale));
+		float smoothing = Math.min(4, Math.max(0.02f, scale));
 
 		target.skipTo(m.first, m.second, hash, () -> {
 
@@ -112,7 +112,7 @@ public class DrawBitmapFont {
 				target.nextElement_quad(0, 1, 2, 3);
 
 				if (i < ca.length - 1) {
-					at.x += (g.xadvance + g.getKerning(ca[i + 1])) * scale;
+					at.x += (g.xadvance -32+ g.getKerning(ca[i + 1])) * scale;
 				}
 			}
 		});	}

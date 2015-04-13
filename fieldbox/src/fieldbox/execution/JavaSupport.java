@@ -6,17 +6,19 @@ import com.thoughtworks.qdox.model.JavaClass;
 import com.thoughtworks.qdox.model.JavaField;
 import com.thoughtworks.qdox.model.JavaMethod;
 import com.thoughtworks.qdox.parser.ParseException;
-import field.graphics.RunLoop;
+import field.app.RunLoop;
 import field.utility.Log;
 import field.utility.Pair;
+import fieldagent.Trampoline;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 import fieldnashorn.annotations.JavaDocOnly;
+import fieldnashorn.annotations.SafeToToString;
 import fieldnashorn.annotations.StopAutocompleteHere;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.AccessibleObject;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
@@ -54,8 +56,10 @@ public class JavaSupport {
 		// we defer this to the main loop (and _then_ punt it off to a separate thread) in order for the majority of Field internal classes to be loaded (for example, the graphics system)
 		RunLoop.main.once( () -> {
 			RunLoop.workerPool.submit(() -> {
+				Log.log("jar.indexer", "has started up" );
 				try {
-					URL[] paths = ((URLClassLoader) classLoader).getURLs();
+					List<URL> paths = ((Trampoline.ExtensibleClassloader) classLoader).collectURLS();
+					Log.log("jar.indexer", "will index paths:"+paths+" from classloader "+classLoader);
 					for (URL path : paths) {
 						Log.log("jar.indexer", "will index path " + path);
 						RunLoop.workerPool.submit(() -> {
@@ -113,20 +117,68 @@ public class JavaSupport {
 		});
 	}
 
+	// TODO: handle project jigsaw modules
 	private Map<String, String> indexClasses(URL path) {
 		String f = path.getFile();
 		if (f.endsWith(".jar")) return indexClasses_jar(f);
-		else if (new File(f).exists()) return indexClasses_tree(f);
+		else if (new File(f).exists()) {
+			return indexClasses_tree(f);
+		}
+		else
+		Log.log("indexer", "path "+path+" "+f+" does not exist");
 		return Collections.emptyMap();
 	}
 
 	// TODO: not implemented yet
 	private Map<String, String> indexClasses_tree(String f) {
-		return Collections.emptyMap();
+
+		Map<String, String> ret = new LinkedHashMap<>();
+
+		try {
+			Files.walkFileTree(FileSystems.getDefault()
+						      .getPath(f), new FileVisitor<Path>() {
+				@Override
+				public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+					return FileVisitResult.CONTINUE;
+				}
+
+				@Override
+				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+					String name = file.toString();
+
+					if (name.endsWith(".class"))
+					{
+						String tail = name.substring(f.length()+(f.endsWith("/") ? 0 : 1), name.length());
+						tail = tail.replace("//", "/");
+						tail = tail.replace("//", "/");
+						tail = tail.replace('/','.');
+						tail = tail.replace(".class", "");
+						tail = tail.replace("$", ".");
+						ret.put(tail, f);
+					}
+
+					return FileVisitResult.CONTINUE;
+				}
+
+				@Override
+				public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+					return FileVisitResult.CONTINUE;
+				}
+
+				@Override
+				public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+					return FileVisitResult.CONTINUE;
+				}
+			});
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return ret;
 
 	}
 
 	private Map<String, String> indexClasses_jar(String f) {
+		if (!new File(f).exists()) return Collections.emptyMap();
 		try {
 			return new JarFile(f).stream().filter(e -> e.getName().endsWith(".class"))
 				    .map(e -> e.getName().replace('/', '.').replace(".class", "")).collect(Collectors.toMap(x -> x, x -> f));
@@ -169,29 +221,57 @@ public class JavaSupport {
 
 				if (c.getAnnotation(HiddenInAutocomplete.class) == null) {
 
+
+
 					for (JavaField m : j.getFields()) {
 						if (hasAnnotation(m.getAnnotations(), HiddenInAutocomplete.class)) continue;
 						if (docOnly && m.getComment().trim().length() < 1) continue;
+
+						String val = "";
+						if (hasAnnotation(m.getAnnotations(), SafeToToString.class) || m.getType().isPrimitive())
+						{
+							try
+							{
+								val = "= <b>"+access(c.getDeclaredField(m.getName())).get(o)+"</b> &nbsp;";
+							}
+							catch(Throwable t)
+							{
+								t.printStackTrace();
+							}
+						}
+
 						if ((prefix.equals("") || m.getName().startsWith(prefix)) && m.getModifiers()
 							    .contains("public") && (!staticsOnly || m.getModifiers().contains("static"))) {
-							r.add(new Completion(-1, -1, m.getName(), "<span class=type>" + compress(m
-								    .getName(), m.getDeclarationSignature(true)) + "</span>" + (m
-								    .getComment() != null ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + m
-								    .getComment() + "</span>" : "")));
+							add(val.length() > 0, r, new Completion(-1, -1, m.getName(), val + "<span class=type>" + compress(m.getName(), m.getDeclarationSignature(
+								    true)) + "</span>" + (m.getComment() != null ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + m.getComment() + "</span>" : "")));
 						}
 					}
 					for (JavaMethod m : j.getMethods()) {
 						if (hasAnnotation(m.getAnnotations(), HiddenInAutocomplete.class)) continue;
 						if (docOnly && m.getComment().trim().length() < 1) continue;
+
+						String val = "";
+						if (hasAnnotation(m.getAnnotations(), SafeToToString.class))
+						{
+							try
+							{
+								val = "= <b>"+access(c.getDeclaredMethod(m.getName())).invoke(o)+"</b> &nbsp;";
+							}
+							catch(Throwable t)
+							{
+								t.printStackTrace();
+							}
+						}
+
 						if ((prefix.equals("") || m.getName().startsWith(prefix)) && m.getModifiers()
 							    .contains("public") && (!staticsOnly || m.getModifiers().contains("static"))) {
-							r.add(new Completion(-1, -1, m.getName(), "<span class=type>" + compress(m
-								    .getName(), m.getDeclarationSignature(true)) + "</span>" + (m
-								    .getComment() != null ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + m
-								    .getComment() + "</span>" : "")));
+							add(val.length() > 0, r, new Completion(-1, -1, m.getName(), val + "<span class=type>" + compress(m.getName(), m.getDeclarationSignature(
+								    true)) + "</span>" + (m.getComment() != null ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + m.getComment() + "</span>" : "")));
 						}
 					}
 				}
+
+
 				c = c.getSuperclass();
 				if (c == null) break;
 				j = builder.getClassByName(c.getName());
@@ -208,6 +288,19 @@ public class JavaSupport {
 			t.printStackTrace();
 		}
 		return r;
+	}
+
+	private <T extends AccessibleObject> T access(T object) {
+		object.setAccessible(true);
+		return object;
+	}
+
+	private <T> void add(boolean first, List<T> l, T x) {
+
+		if (first)
+			l.add(0, x);
+		else
+			l.add(x);
 	}
 
 	private boolean hasAnnotation(List<JavaAnnotation> annotations, Class hiddenInAutocompleteClass) {

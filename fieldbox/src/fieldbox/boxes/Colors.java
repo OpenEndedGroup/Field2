@@ -14,6 +14,11 @@ public class Colors {
 	static public Vec4 boxBackground1 = new Vec4(1f,1f,1f,0.5f);
 	static public Vec4 boxBackground2= new Vec4(0.8f,0.8f,0.8f,0.5f);
 
+	static public Vec3 executionColor = new Vec3(0.2f, 0.5f, 0.3f);
+
+	static public Vec4 boxTextBackground1=new Vec4(0.55, 0.55, 0.55, 0.8);
+	static public Vec4 boxTextBackground2=new Vec4(0.685,0.685,0.685,0.8);
+
 	static public Vec4 boxStroke = new Vec4(0, 0, 0, 0.25f);
 	static public Vec4 boxStrokeSelected = new Vec4(0, 0, 0, -1.0f);
 

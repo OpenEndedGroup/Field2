@@ -2,6 +2,7 @@ package fieldbox.boxes.plugins;
 
 import field.graphics.FLine;
 import field.graphics.GraphicsContext;
+import field.graphics.ProvidesGraphicsContext;
 import field.graphics.Scene;
 import field.linalg.Vec2;
 import field.linalg.Vec4;
@@ -16,8 +17,10 @@ import static field.graphics.StandardFLineDrawing.*;
 
 /**
  * A box that has a 3d drawing canvas inside it
+ *
+ * // todo -
  */
-public class Viewport extends Box implements IO.Loaded{
+public class Viewport extends Box implements IO.Loaded, ProvidesGraphicsContext {
 
 	static public final Dict.Prop<Scene> scene = new Dict.Prop<Scene>("scene").type().toCannon().doc("The Scene that's inside this viewport");
 
@@ -101,11 +104,12 @@ public class Viewport extends Box implements IO.Loaded{
 			int h = window.getHeight();
 			int w = window.getWidth();
 
-			int[] v = new int[]{(int)tl.x, (int)(h-bl.y), (int)(bl.x-tl.x+2), (int)(bl.y-tl.y+2)};
+			int[] v = new int[]{(int)tl.x*2, (int)(h-bl.y)*2, (int)(bl.x-tl.x+2)*2, (int)(bl.y-tl.y+2)*2};
 
-			Log.log("viewport", "Drawing! "+tl+" "+bl);
+//			Log.log("viewport", "Drawing! "+tl+" "+bl);
 
 			GraphicsContext.stateTracker.scissor.set(v);
+			GraphicsContext.stateTracker.viewport.set(v);
 
 			Scene scene = this.properties.get(Viewport.scene);
 			scene.updateAll();
@@ -113,14 +117,19 @@ public class Viewport extends Box implements IO.Loaded{
 //			glClearColor(0,0,0,0.2f);
 //			glClear(GL_COLOR_BUFFER_BIT);
 
-			Log.log("viewport", "complete "+s);
+//			Log.log("viewport", "complete "+s);
 		}
-		Log.log("viewport", "working? ");
+//		Log.log("viewport", "working? ");
 
 	}
 
 	@Override
 	public String toString() {
 		return super.toString()+"/viewport";
+	}
+
+	@Override
+	public GraphicsContext getGraphicsContext() {
+		return this.find(Boxes.window, both()).findFirst().get().getGraphicsContext();
 	}
 }

@@ -10,13 +10,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Offers a marking menu for aligning boxes
+ * Offers a marking menuSpecs for aligning boxes
  */
 public class Alignment extends Box {
 
 	public Alignment(Box root) {
 
-		properties.put(MarkingMenus.menu, (event) -> {
+		properties.put(MarkingMenus.menuSpecs, (event) -> {
 			MarkingMenus.MenuSpecification m = new MarkingMenus.MenuSpecification();
 			m.items.put(MarkingMenus.Position.W, new MarkingMenus.MenuItem("Left", this::left));
 			m.items.put(MarkingMenus.Position.E2, new MarkingMenus.MenuItem("Abut", this::abut));

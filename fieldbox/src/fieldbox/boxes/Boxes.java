@@ -1,6 +1,6 @@
 package fieldbox.boxes;
 
-import field.graphics.RunLoop;
+import field.app.RunLoop;
 import field.graphics.Scene;
 import field.utility.Dict;
 import fieldbox.io.IO;
@@ -41,6 +41,13 @@ public class Boxes {
 		origin = new Box();
 		origin.properties.put(root, origin);
 		origin.properties.put(Box.name, "<<root>>");
+
+		// set these up so that they will appear in autocomplete
+
+		origin.properties.getOrConstruct(Callbacks.onDelete);
+		origin.properties.getOrConstruct(Callbacks.onLoad);
+		origin.properties.getOrConstruct(Callbacks.onFrameChanged);
+
 	}
 
 	protected Set<Box> population = Collections.emptySet();
@@ -86,6 +93,26 @@ public class Boxes {
 
 	public Box root() {
 		return origin;
+	}
+
+	static public String debugPrintBoxGraph(Box origin)
+	{
+		String r = "";
+		r += "children\n"+_debugPrintBoxGraphChildren(origin, 0);
+		r += "\nparents\n"+_debugPrintBoxGraphParents(origin, 0);
+		return r;
+	}
+
+	static private String indent(int x) {
+		String q = "";
+		while (q.length() < x) q = ":" + q;
+		return q;
+	}
+	static private String _debugPrintBoxGraphChildren(Box root, int indent) {
+		return indent(indent)+root+"\n"+root.children().stream().map(x -> _debugPrintBoxGraphChildren(x, indent+2)).reduce((a,b) -> a+"\n"+b).orElseGet(() -> "--");
+	}
+	static private String _debugPrintBoxGraphParents(Box root, int indent) {
+		return indent(indent)+root+"\n"+root.children().stream().map(x -> _debugPrintBoxGraphParents(x, indent+2)).reduce((a,b) -> a+"\n"+b).orElseGet(() -> "--");
 	}
 
 }

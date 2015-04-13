@@ -2,7 +2,7 @@ package field.graphics.util;
 
 import com.badlogic.jglfw.Glfw;
 import field.graphics.Camera;
-import field.graphics.RunLoop;
+import field.app.RunLoop;
 import field.graphics.Window;
 
 import java.util.LinkedHashMap;
@@ -19,6 +19,7 @@ import static field.graphics.Window.KeyboardState;
 public class KeyboardCamera implements Function<Window.Event<KeyboardState>, Boolean> {
 
 	private final Camera target;
+	private final Window w;
 
 	public class Applicator {
 		float amount;
@@ -32,48 +33,59 @@ public class KeyboardCamera implements Function<Window.Event<KeyboardState>, Boo
 
 	Map<KeyBinding.KeyName, Applicator> bindings = new LinkedHashMap<>();
 
-	float rotationAmount = 0.01f;
-	float translationAmount = 0.01f;
-	float decay = 0.99f;
-	float onset = 0.9f;
+	float rotationAmount = 0.02f;
+	float translationAmount = 0.02f;
+	float decay = 0.9f;
+	float onset = 0.4f;
 
 	public void standardMap() {
-		bindings.put(new KeyBinding.KeyName(Glfw.GLFW_KEY_PAGE_UP, false, false, false, false), new Applicator(0, (state, amount) -> state
-			    .lookUp(rotationAmount)));
-		bindings.put(new KeyBinding.KeyName(Glfw.GLFW_KEY_PAGE_UP, true, false, false, false), new Applicator(0, (state, amount) -> state
-			    .orbitUp(rotationAmount)));
+		bindings.put(new KeyBinding.KeyName("page_up"), new Applicator(0, (state, amount) -> state
+			    .lookUp(rotationAmount*amount)));
+		bindings.put(new KeyBinding.KeyName("shift-page_up"), new Applicator(0, (state, amount) -> state
+			    .orbitUp(rotationAmount*amount)));
 		bindings.put(new KeyBinding.KeyName(Glfw.GLFW_KEY_PAGE_DOWN, false, false, false, false), new Applicator(0, (state, amount) -> state
-			    .lookUp(-rotationAmount)));
+			    .lookUp(rotationAmount*-amount)));
 		bindings.put(new KeyBinding.KeyName(Glfw.GLFW_KEY_PAGE_DOWN, true, false, false, false), new Applicator(0, (state, amount) -> state
-			    .orbitUp(-rotationAmount)));
+			    .orbitUp(rotationAmount*-amount)));
 		bindings.put(new KeyBinding.KeyName(Glfw.GLFW_KEY_LEFT, false, false, false, false), new Applicator(0, (state, amount) -> state
-			    .lookLeft(-rotationAmount)));
+			    .lookLeft(rotationAmount*amount)));
 		bindings.put(new KeyBinding.KeyName(Glfw.GLFW_KEY_LEFT, true, false, false, false), new Applicator(0, (state, amount) -> state
-			    .orbitLeft(-rotationAmount)));
+			    .orbitLeft(rotationAmount*amount)));
 		bindings.put(new KeyBinding.KeyName(Glfw.GLFW_KEY_RIGHT, false, false, false, false), new Applicator(0, (state, amount) -> state
-			    .lookLeft(rotationAmount)));
+			    .lookLeft(-rotationAmount*amount)));
 		bindings.put(new KeyBinding.KeyName(Glfw.GLFW_KEY_RIGHT, true, false, false, false), new Applicator(0, (state, amount) -> state
-			    .orbitLeft(rotationAmount)));
+			    .orbitLeft(-rotationAmount*amount)));
 		bindings.put(new KeyBinding.KeyName(Glfw.GLFW_KEY_UP, false, false, false, false), new Applicator(0, (state, amount) -> state
-			    .translateIn(translationAmount)));
+			    .translateIn(translationAmount*amount)));
 		bindings.put(new KeyBinding.KeyName(Glfw.GLFW_KEY_UP, true, false, false, false), new Applicator(0, (state, amount) -> state
-			    .dollyIn(translationAmount)));
+			    .dollyIn(translationAmount*amount)));
 		bindings.put(new KeyBinding.KeyName(Glfw.GLFW_KEY_DOWN, false, false, false, false), new Applicator(0, (state, amount) -> state
-			    .translateIn(-translationAmount)));
+			    .translateIn(-translationAmount*amount)));
 		bindings.put(new KeyBinding.KeyName(Glfw.GLFW_KEY_DOWN, true, false, false, false), new Applicator(0, (state, amount) -> state
-			    .dollyIn(-translationAmount)));
+			    .dollyIn(-translationAmount*amount)));
 	}
 
-	public KeyboardCamera(Camera target) {
+	public KeyboardCamera(Camera target, Window w) {
 		this.target = target;
+		this.w = w;
+
 		RunLoop.main.mainLoop.attach(0, (i) -> update());
+		w.addKeyboardHandler(this);
 	}
 
 	private void update() {
+
+		if (currentState==null) return;
+
+		currentState = currentState.clean(w.getGLFWWindowReference());
+
+
 		bindings.entrySet().forEach((k) -> {
 			if (currentState != null && k.getKey().matches(currentState)) {
+//				Log.log("kc", k.getKey()+" down "+k.getValue().amount);
 				k.getValue().amount = k.getValue().amount * onset + (1 - onset) * 1;
 			} else {
+//				Log.log("kc", k.getKey() + " up " + k.getValue().amount);
 				k.getValue().amount *= decay;
 			}
 
@@ -86,6 +98,9 @@ public class KeyboardCamera implements Function<Window.Event<KeyboardState>, Boo
 
 	@Override
 	public Boolean apply(Window.Event<KeyboardState> keyboardStateEvent) {
+
+//		Log.log("sticky", "keyboard camera actually got a key event :"+keyboardStateEvent);
+
 		currentState = keyboardStateEvent.after;
 		return true;
 	}

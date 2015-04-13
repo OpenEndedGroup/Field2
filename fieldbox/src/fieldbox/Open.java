@@ -1,11 +1,13 @@
 package fieldbox;
 
+import field.app.RunLoop;
+import field.app.ThreadSync;
+import field.dynalink.linker.GuardingDynamicLinker;
 import field.graphics.MeshBuilder;
-import field.graphics.RunLoop;
 import field.graphics.Scene;
 import field.graphics.SimpleArrayBuffer;
-import field.linalg.Vec3;
 import field.utility.AutoPersist;
+import field.utility.Dict;
 import field.utility.Log;
 import fieldbox.boxes.*;
 import fieldbox.boxes.plugins.*;
@@ -14,8 +16,9 @@ import fieldbox.io.IO;
 import fieldbox.ui.Compositor;
 import fieldbox.ui.FieldBoxWindow;
 import fielded.ServerSupport;
+import fielded.boxbrowser.BoxBrowser;
+import fieldlinker.Linker;
 import fieldnashorn.Nashorn;
-import jdk.nashorn.internal.runtime.linker.Bootstrap;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 
@@ -32,6 +35,8 @@ import static org.lwjgl.opengl.GL11.*;
  * optionally initialize them connected to something else
  */
 public class Open {
+
+	static public final Dict.Prop<String> fieldFilename = new Dict.Prop<>("fieldFilename").toCannon().type().doc("the name of the field sheet that we are currently in");
 
 	private FieldBoxWindow window;
 	private final Boxes boxes;
@@ -55,6 +60,13 @@ public class Open {
 
 	public Open(String filename) {
 
+//		Log.log("startup", "linkers are :", Bootstrap.class.getClassLoader());
+		Log.log("startup", "trouble is :"+GuardingDynamicLinker.class+" "+ Linker.class);
+		Log.log("startup", "trouble is :"+GuardingDynamicLinker.class.getClassLoader()+" "+ Linker.class.getClassLoader());
+//		ServiceLoader.load(GuardingDynamicLinker.class, Thread.currentThread().getContextClassLoader())
+//			     .spliterator()
+//			     .forEachRemaining(x -> System.out.println(x));
+
 		DefaultMenus.safeToSave = false;
 
 		this.filename = filename;
@@ -65,6 +77,9 @@ public class Open {
 			plugins = pluginList.read(System.getProperty("user.home") + "/.field/plugins.edn", true);
 
 			if (plugins != null) pluginList.interpretClassPathAndOptions(plugins);
+
+			FieldBox.fieldBox.io.setPluginList(pluginList);
+
 		} catch (IOException e) {
 			e.printStackTrace();
 			pluginList = null;
@@ -72,7 +87,7 @@ public class Open {
 
 		window = new FieldBoxWindow(50, 50, sizeX, sizeY, filename);
 
-		window.scene()
+		window.scene
 		      .attach(-5, this::defaultGLPreambleBackground);
 		window.mainLayer()
 		      .attach(-5, this::defaultGLPreamble);
@@ -136,6 +151,8 @@ public class Open {
 		});
 
 
+		boxes.root().properties.put(fieldFilename, filename);
+
 		// MarkingMenus must come before FrameManipulation, so FrameManipulation can handle selection state modification before MarkingMenus run
 		markingMenus = (MarkingMenus) new MarkingMenus(boxes.root()).connect(boxes.root());
 
@@ -179,8 +196,40 @@ public class Open {
 
 		new HotkeyMenus(boxes.root(), null).connect(boxes.root());
 
+		new Typing(boxes.root()).connect(boxes.root());
+
+		new RunCommand(boxes.root()).connect(boxes.root());
+
+		new Auto(boxes.root()).connect(boxes.root());
+
+		new FrameChangedHash(boxes.root()).connect(boxes.root());
+
+		new Directionality(boxes.root()).connect(boxes.root());
+
+		new Handles(boxes.root()).connect(boxes.root());
+
+		new Create(boxes.root()).connect(boxes.root());
+
+		new DragToCopy(boxes.root()).connect(boxes.root());
+
+		new Pseudo(boxes.root()).connect(boxes.root());
+
+		new Taps(boxes.root()).connect(boxes.root());
+
+		new Image(boxes.root()).connect(boxes.root());
+
+		new BoxBrowser(boxes.root()).connect(boxes.root());
+
+		new Templates(boxes.root()).connect(boxes.root());
+
+		new Notifications(boxes.root()).connect(boxes.root());
+
+		new KeyboardFocus(boxes.root()).connect(boxes.root());
+
+		if (ThreadSync.enabled)
+			new ThreadSyncFeedback(boxes.root()).connect(boxes.root());
+
 		FileBrowser fb = new FileBrowser(boxes.root());
-		fb.loaded();
 		fb.connect(boxes.root());
 
 		/* cascade two blurs, a vertical and a horizontal together from the glass layer onto the base layer */
@@ -199,17 +248,23 @@ public class Open {
 		      .blurYInto(5, lx.getScene());
 		lx.blurXInto(5, ly.getScene());
 
+		lx.addDependancy(window.getCompositor().getMainLayer());
+		ly.addDependancy(lx);
+
 		window.getCompositor()
 		      .getMainLayer()
-		      .drawInto(window.scene());
+		      .drawInto(window.scene);
 
 		window.getCompositor()
 		      .getLayer("glass")
 		      .compositeWith(ly, composited.getScene());
 
+		composited.addDependancy(window.getCompositor().getLayer("glass"));
+		composited.addDependancy(ly);
+
 		window.getCompositor()
 		      .getLayer("glass")
-		      .compositeWith(ly, window.scene());
+		      .compositeWith(ly, window.scene);
 
 		lx = window.getCompositor()
 			   .newLayer("__main__gblurx", 0, 8);
@@ -220,9 +275,12 @@ public class Open {
 		composited.blurYInto(5, lx.getScene());
 		lx.blurXInto(5, ly.getScene());
 
+		lx.addDependancy(composited);
+		ly.addDependancy(lx);
+
 		window.getCompositor()
 		      .getLayer("glass2")
-		      .compositeWith(ly, window.scene());
+		      .compositeWith(ly, window.scene);
 
 
 		/* reports on how much data we're sending to OpenGL and how much the MeshBuilder caching system is getting us. This is useful for noticing when we're repainting excessively or our cache is suddenly blown completely */
@@ -262,6 +320,11 @@ public class Open {
 		// actually open the document that's stored on disk
 		doOpen(boxes.root(), filename);
 
+		// call loaded on everything above root
+		Log.log("startup", "calling .loaded on plugins");
+		boxes.root().breadthFirst(boxes.root().upwards()).filter(x -> x instanceof IO.Loaded).forEach(
+			    x -> ((IO.Loaded) x).loaded());
+
 		Log.log("startup", " -- FieldBox finished initializing, loading plugins ... -- ");
 
 		// initialize the plugins
@@ -273,10 +336,7 @@ public class Open {
 		// start the runloop
 		boxes.start();
 
-		Log.log("startup", "linkers are :", Bootstrap.class.getClassLoader());
-		ServiceLoader.load(jdk.internal.dynalink.linker.GuardingDynamicLinker.class, Bootstrap.class.getClassLoader())
-			     .spliterator()
-			     .forEachRemaining(x -> System.out.println(x));
+
 
 		DefaultMenus.safeToSave = true;
 

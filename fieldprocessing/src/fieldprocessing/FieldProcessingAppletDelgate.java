@@ -1074,7 +1074,7 @@ public class FieldProcessingAppletDelgate {
 	 * Saves an image from the display window. Images are saved in TIFF, TARGA, JPEG, and PNG format depending on the extension within the
 	 * <b>filename</b> parameter. For example, "image.tif" will have a TIFF image and "image.png" will save a PNG image. If no extension is
 	 * included in the filename, the image will save in TIFF format and <b>.tif</b> will be added to the name. These files are saved to the
-	 * sketch's folder, which may be opened by selecting "Show sketch folder" from the "Sketch" menu. It is not possible to use <b>save()</b>
+	 * sketch's folder, which may be opened by selecting "Show sketch folder" from the "Sketch" menuSpecs. It is not possible to use <b>save()</b>
 	 * while running the program in a web browser. <br/> images saved from the main drawing window will be opaque. To save images without a
 	 * background, use <b>createGraphics()</b>.
 	 * <p>
@@ -1103,7 +1103,7 @@ public class FieldProcessingAppletDelgate {
 	 * <b>saveFrame()</b> is called without parameters, it will save the files as screen-0000.tif, screen-0001.tif, etc. It is possible to specify
 	 * the name of the sequence with the <b>filename</b> parameter and make the choice of saving TIFF, TARGA, PNG, or JPEG files with the
 	 * <b>ext</b> parameter. These image sequences can be loaded into programs such as Apple's QuickTime software and made into movies. These
-	 * files are saved to the sketch's folder, which may be opened by selecting "Show sketch folder" from the "Sketch" menu.<br /> <br /> It is
+	 * files are saved to the sketch's folder, which may be opened by selecting "Show sketch folder" from the "Sketch" menuSpecs.<br /> <br /> It is
 	 * not possible to use saveXxxxx() functions inside a web browser unless the sketch is <a href="http://wiki.processing.org/w/Sign_an_Applet">signed
 	 * __applet</A>. To save a file back to a server, see the <a href="http://wiki.processing.org/w/Saving_files_to_a_web-server">save to web</A>
 	 * code snippet on the Processing Wiki.<br/> <br/ > All images saved from the main drawing window will be opaque. To save images without a
@@ -2297,7 +2297,7 @@ public class FieldProcessingAppletDelgate {
 	 * ( begin auto-generated from loadFont.xml )
 	 * <p>
 	 * Loads a font into a variable of type <b>PFont</b>. To load correctly, fonts must be located in the data directory of the current sketch. To
-	 * create a font to use with Processing, select "Create Font..." from the Tools menu. This will create a font in the format Processing
+	 * create a font to use with Processing, select "Create Font..." from the Tools menuSpecs. This will create a font in the format Processing
 	 * requires and also adds it to the current sketch's data directory.<br /> <br /> Like <b>loadImage()</b> and other functions that load data,
 	 * the <b>loadFont()</b> function should not be used inside <b>draw()</b>, because it will slow down the sketch considerably, as the font will
 	 * be re-loaded from the disk (or network) on each frame.<br /> <br /> For most renderers, Processing displays fonts using the .vlw font
@@ -2331,7 +2331,7 @@ public class FieldProcessingAppletDelgate {
 	 * <p>
 	 * Dynamically converts a font to the format used by Processing from either a font name that's installed on the computer, or from a .ttf or
 	 * .otf file inside the sketches "data" folder. This function is an advanced feature for precise control. On most occasions you should create
-	 * fonts through selecting "Create Font..." from the Tools menu. <br /><br /> Use the <b>PFont.list()</b> method to first determine the names
+	 * fonts through selecting "Create Font..." from the Tools menuSpecs. <br /><br /> Use the <b>PFont.list()</b> method to first determine the names
 	 * for the fonts recognized by the computer and are compatible with this function. Because of limitations in Java, not all fonts can be used
 	 * and some might work with one operating system and not others. When sharing a sketch with other people or posting it on the web, you may
 	 * need to include a .ttf or .otf version of your font in the data directory of the sketch because other people might not have the font
@@ -2781,7 +2781,7 @@ public class FieldProcessingAppletDelgate {
 	 * ( begin auto-generated from saveBytes.xml )
 	 * <p>
 	 * Opposite of <b>loadBytes()</b>, will write an entire array of bytes to a file. The data is saved in binary format. This file is saved to
-	 * the sketch's folder, which is opened by selecting "Show sketch folder" from the "Sketch" menu.<br /> <br /> It is not possible to use
+	 * the sketch's folder, which is opened by selecting "Show sketch folder" from the "Sketch" menuSpecs.<br /> <br /> It is not possible to use
 	 * saveXxxxx() functions inside a web browser unless the sketch is <a href="http://wiki.processing.org/w/Sign_an_Applet">signed __applet</A>. To
 	 * save a file back to a server, see the <a href="http://wiki.processing.org/w/Saving_files_to_a_web-server">save to web</A> code snippet on
 	 * the Processing Wiki.
@@ -2821,7 +2821,7 @@ public class FieldProcessingAppletDelgate {
 	 * ( begin auto-generated from saveStrings.xml )
 	 * <p>
 	 * Writes an array of strings to a file, one line per string. This file is saved to the sketch's folder, which is opened by selecting "Show
-	 * sketch folder" from the "Sketch" menu.<br /> <br /> It is not possible to use saveXxxxx() functions inside a web browser unless the sketch
+	 * sketch folder" from the "Sketch" menuSpecs.<br /> <br /> It is not possible to use saveXxxxx() functions inside a web browser unless the sketch
 	 * is <a href="http://wiki.processing.org/w/Sign_an_Applet">signed __applet</A>. To save a file back to a server, see the <a
 	 * href="http://wiki.processing.org/w/Saving_files_to_a_web-server">save to web</A> code snippet on the Processing Wiki.<br/> <br/ > Starting
 	 * with Processing 1.0, all files loaded and saved by the Processing API use UTF-8 encoding. In previous releases, the default encoding for
@@ -3853,9 +3853,7 @@ public class FieldProcessingAppletDelgate {
 		return PApplet.parseFloat(what, otherwise);
 	}
 
-	public float[] parseByte(byte[] what) {
-		return PApplet.parseByte(what);
-	}
+
 
 	public float[] parseFloat(int[] what) {
 		return PApplet.parseFloat(what);
@@ -5614,7 +5612,7 @@ public class FieldProcessingAppletDelgate {
 	 * ( begin auto-generated from image.xml )
 	 * <p>
 	 * Displays images to the screen. The images must be in the sketch's "data" directory to load correctly. Select "Add file..." from the
-	 * "Sketch" menu to add the image. Processing currently works with GIF, JPEG, and Targa images. The <b>img</b> parameter specifies the image
+	 * "Sketch" menuSpecs to add the image. Processing currently works with GIF, JPEG, and Targa images. The <b>img</b> parameter specifies the image
 	 * to display and the <b>x</b> and <b>y</b> parameters define the location of the image from its upper-left corner. The image is displayed at
 	 * its original size unless the <b>width</b> and <b>height</b> parameters specify a different size.<br /> <br /> The <b>imageMode()</b>
 	 * function changes the way the parameters work. For example, a call to <b>imageMode(CORNERS)</b> will change the <b>width</b> and
@@ -5701,7 +5699,7 @@ public class FieldProcessingAppletDelgate {
 	 * ( begin auto-generated from shape.xml )
 	 * <p>
 	 * Displays shapes to the screen. The shapes must be in the sketch's "data" directory to load correctly. Select "Add file..." from the
-	 * "Sketch" menu to add the shape. Processing currently works with SVG shapes only. The <b>sh</b> parameter specifies the shape to display and
+	 * "Sketch" menuSpecs to add the shape. Processing currently works with SVG shapes only. The <b>sh</b> parameter specifies the shape to display and
 	 * the <b>x</b> and <b>y</b> parameters define the location of the shape from its upper-left corner. The shape is displayed at its original
 	 * size unless the <b>width</b> and <b>height</b> parameters specify a different size. The <b>shapeMode()</b> function changes the way the
 	 * parameters work. A call to <b>shapeMode(CORNERS)</b>, for example, will change the width and height parameters to define the x and y values

@@ -1,6 +1,6 @@
 package field.utility;
 
-import field.graphics.RunLoop;
+import field.app.RunLoop;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -59,7 +59,12 @@ public class Options {
 
 				if (i < arg.length - 1) {
 					String v = arg[i + 1];
-					options.o.put(new Dict.Prop<String>(q), v);
+
+					Number n = toNumber(v);
+					if (n!=null)
+						options.o.put(new Dict.Prop<Number>(q), n);
+					else
+						options.o.put(new Dict.Prop<String>(q), v);
 				}
 			}
 		}

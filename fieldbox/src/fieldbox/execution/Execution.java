@@ -7,6 +7,8 @@ import fieldbox.boxes.Box;
 import fielded.RemoteEditor;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Stack;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -19,6 +21,7 @@ public class Execution extends Box {
 	public interface CompletionSupport
 	{
 		public void completion(Box inside, String allText, int line, int ch, Consumer<List<Completion>> results);
+
 	}
 
 	static public Dict.Prop<Execution> execution = new Dict.Prop<Execution>("execution");
@@ -34,6 +37,18 @@ public class Execution extends Box {
 	static public final Dict.Prop<String> code = new Dict.Prop<>("code");
 
 	/**
+	 * pushed and popped inside all eval's and executes
+	 */
+	static public InheritableThreadLocal<Stack<Box>> context = new InheritableThreadLocal<Stack<Box>>(){
+		@Override
+		protected Stack<Box> initialValue() {
+			return new Stack<>();
+		}
+	};
+
+
+
+	/**
 	 * absolutely everything you need to support a language in Field
 	 */
 	static public interface ExecutionSupport {
@@ -44,7 +59,7 @@ public class Execution extends Box {
 
 		public void executeAll(String allText, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success);
 
-		public String begin(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success);
+		public String begin(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success, Map<String, Object> initiator);
 
 		public void end(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success);
 
@@ -58,19 +73,21 @@ public class Execution extends Box {
 
 		public String getDefaultFileExtension();
 
+		public Object getBinding(String name);
+
 		default public void setFilenameForStacktraces(String name)
 		{
 
 		}
 
-		default public void begin(Box box) {
+		default public void begin(Box box, Map<String, Object> initiator) {
 
 			Function<Box, Consumer<Pair<Integer, String>>> ef = box.first(RemoteEditor.outputErrorFactory)
 				    .orElse((x) -> (is -> System.err.println("error (without remote editor attached) :" + is)));
 			Function<Box, Consumer<String>> of = box.first(RemoteEditor.outputFactory)
 				    .orElse(x -> (is -> System.out.println("output (without remote editor attached) :" + is)));
 
-			begin(ef.apply(box), of.apply(box));
+			begin(ef.apply(box), of.apply(box), initiator);
 		}
 
 		default public void executeTextFragment(String allText, Box box) {

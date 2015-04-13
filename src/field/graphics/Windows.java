@@ -3,6 +3,7 @@ package field.graphics;
 import com.badlogic.jglfw.Glfw;
 import com.badlogic.jglfw.GlfwCallback;
 import com.badlogic.jglfw.GlfwCallbackAdapter;
+import field.app.RunLoop;
 import field.utility.Log;
 import fieldagent.Main;
 
@@ -41,11 +42,13 @@ public class Windows {
 	Deque<Runnable> events = new ConcurrentLinkedDeque<>();
 
 	protected boolean events(int p) {
+		RunLoop.main.shouldSleep.remove(Windows.this);
+
 		if (events.size()>0) Log.log("event.debug", "events :"+events.size());
 		while (!events.isEmpty())
 		{
 			try {
-				events.pop()
+				events.removeFirst()
 				      .run();
 			}
 			catch(Throwable t)
@@ -79,7 +82,10 @@ public class Windows {
 				};
 
 				if (RunLoop.main.isMainThread()) r.run();
-				else events.push(r);
+				else {
+					events.addLast(r);
+					RunLoop.main.shouldSleep.add(Windows.this);
+				}
 			}
 
 			@Override
@@ -91,7 +97,10 @@ public class Windows {
 				};
 
 				if (RunLoop.main.isMainThread()) r.run();
-				else events.push(r);
+				else {
+					events.addLast(r);
+					RunLoop.main.shouldSleep.add(Windows.this);
+				}
 			}
 
 			@Override
@@ -103,7 +112,10 @@ public class Windows {
 				};
 
 				if (RunLoop.main.isMainThread()) r.run();
-				else events.push(r);
+				else {
+					events.addLast(r);
+					RunLoop.main.shouldSleep.add(Windows.this);
+				}
 			}
 
 
@@ -140,7 +152,10 @@ public class Windows {
 				};
 
 				if (RunLoop.main.isMainThread()) r.run();
-				else events.push(r);
+				else {
+					events.addLast(r);
+					RunLoop.main.shouldSleep.add(Windows.this);
+				}
 			}
 
 
@@ -152,8 +167,13 @@ public class Windows {
 					if (a != null) a.scroll(window, scrollX, scrollY);
 				};
 
-				if (RunLoop.main.isMainThread()) r.run();
-				else events.push(r);
+				if (RunLoop.main.isMainThread()) {
+					r.run();
+				}
+				else {
+					events.addLast(r);
+					RunLoop.main.shouldSleep.add(Windows.this);
+				}
 			}
 
 
@@ -166,11 +186,15 @@ public class Windows {
 				};
 
 				if (RunLoop.main.isMainThread()) r.run();
-				else events.push(r);
+				else {
+					events.addLast(r);
+					RunLoop.main.shouldSleep.add(Windows.this);
+				}
 			}
 
 			@Override
 			public void key(long window, int key, int scancode, int action, int mods) {
+				Log.log("finalkey", key+" "+scancode+" "+action+" "+mods);
 				Runnable r = () -> {
 					checkClassLoader();
 					GlfwCallback a = adaptors.get(window);
@@ -178,7 +202,10 @@ public class Windows {
 				};
 
 				if (RunLoop.main.isMainThread()) r.run();
-				else events.push(r);
+				else {
+					events.addLast(r);
+					RunLoop.main.shouldSleep.add(Windows.this);
+				}
 			}
 
 			@Override
@@ -190,7 +217,10 @@ public class Windows {
 				};
 
 				if (RunLoop.main.isMainThread()) r.run();
-				else events.push(r);
+				else {
+					events.addLast(r);
+					RunLoop.main.shouldSleep.add(Windows.this);
+				}
 			}
 
 			@Override
@@ -203,7 +233,10 @@ public class Windows {
 				};
 
 				if (RunLoop.main.isMainThread()) r.run();
-				else events.push(r);
+				else {
+					events.addLast(r);
+					RunLoop.main.shouldSleep.add(Windows.this);
+				}
 			}
 
 
@@ -216,7 +249,10 @@ public class Windows {
 				};
 
 				if (RunLoop.main.isMainThread()) r.run();
-				else events.push(r);
+				else {
+					events.addLast(r);
+					RunLoop.main.shouldSleep.add(Windows.this);
+				}
 				return true;
 			}
 
@@ -229,7 +265,10 @@ public class Windows {
 				};
 
 				if (RunLoop.main.isMainThread()) r.run();
-				else events.push(r);
+				else {
+					events.addLast(r);
+					RunLoop.main.shouldSleep.add(Windows.this);
+				}
 			}
 
 			@Override
@@ -241,7 +280,10 @@ public class Windows {
 				};
 
 				if (RunLoop.main.isMainThread()) r.run();
-				else events.push(r);
+				else {
+					events.addLast(r);
+					RunLoop.main.shouldSleep.add(Windows.this);
+				}
 			}
 		};
 	}

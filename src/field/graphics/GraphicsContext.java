@@ -70,6 +70,11 @@ public class GraphicsContext {
 		return (T) currentGraphicsContext.context.get(o);
 	}
 
+	public <T> T lookup(Object o)
+	{
+		return (T) context.get(o);
+	}
+
 	static public <T> T get(Object o, Supplier<T> initializer) {
 		T t = (T) currentGraphicsContext.context.get(o);
 		if (t == null) currentGraphicsContext.context.put(o, t = initializer.get());

@@ -13,7 +13,6 @@ _messageBus.subscribe("toField_debounce.#", function (d, e) {
     _field.send(e.topic.replace("toField_debounce.", ""), d)
 }).withDebounce(500)
 
-
 function generateUUID() {
     var d = new Date().getTime();
     var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {

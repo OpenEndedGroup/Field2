@@ -3,9 +3,12 @@ package fieldbox.boxes;
 import field.graphics.FLine;
 import field.linalg.Vec4;
 import field.utility.*;
+import fieldbox.boxes.plugins.Initiators;
 import fieldbox.execution.Execution;
+import fieldlinker.Linker;
 
 import java.awt.*;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -90,10 +93,13 @@ public class TimeSlider extends Box {
 	protected void perform(Rect was, Rect now) {
 
 		Stream<Box> off = population().filter(x -> x.properties.get(frame).intersectsX(was.x))
-			    .filter(x -> !x.properties.get(frame).intersectsX(now.x));
+			    .filter(x -> !x.properties.get(frame)
+						      .intersectsX(now.x));
 		Stream<Box> on = population().filter(x -> !x.properties.get(frame).intersectsX(was.x))
-			    .filter(x -> x.properties.get(frame).intersectsX(now.x));
-		Stream<Box> skipForward = population().filter(x -> x.properties.get(frame).inside(was.x, now.x));
+			    .filter(x -> x.properties.get(frame)
+						     .intersectsX(now.x));
+		Stream<Box> skipForward = population().filter(x -> x.properties.get(frame)
+									       .inside(was.x, now.x));
 		Stream<Box> skipBackward = population().filter(x -> x.properties.get(frame).inside(now.x, was.x));
 
 		off(off);
@@ -113,9 +119,19 @@ public class TimeSlider extends Box {
 	protected void on(Stream<Box> on) {
 		on.forEach(b -> {
 			Log.log("debug.execution", " -- BEGIN :"+b);
-			b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).begin(b));
+			b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).begin(b, initiator(b)));
 		});
 
+	}
+
+	/**
+	 * builds the initiator object for this "begin" call. This can be used to get at the object that caused this "animation" to begin.
+	 * @param b
+	 */
+	protected Map<String, Object> initiator(Box b) {
+		Linker.AsMap init = Initiators.get(b, () -> this.properties.get(Box.frame).x, () -> this.properties.get(Box.frame).y);
+		init.asMap_set("slider", this);
+		return Collections.singletonMap("_t", init);
 	}
 
 	/**
@@ -124,7 +140,7 @@ public class TimeSlider extends Box {
 	protected void skipForward(Stream<Box> skipForward) {
 		skipForward.forEach(b -> {
 			Log.log("debug.execution", " -- FORWARD :"+b);
-			b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).begin(b));
+			b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).begin(b, initiator(b)));
 			b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).end(b));
 		});
 	}
@@ -135,7 +151,7 @@ public class TimeSlider extends Box {
 	protected void skipBackward(Stream<Box> skipBackward) {
 		skipBackward.forEach(b -> {
 			Log.log("debug.execution", " -- backward :"+b);
-			b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).begin(b));
+			b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).begin(b, initiator(b)));
 			b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).end(b));
 		});
 
@@ -157,6 +173,7 @@ public class TimeSlider extends Box {
 			if (rect == null) return null;
 
 			boolean selected = box.properties.isTrue(Mouse.isSelected, false);
+			boolean manipulated = box.properties.isTrue(Mouse.isManipulated, false);
 
 			FLine f = new FLine();
 			rect.inset(-0.5f);
@@ -164,7 +181,7 @@ public class TimeSlider extends Box {
 			f.moveTo(rect.x, rect.y);
 			f.lineTo(rect.x, rect.y + rect.h);
 
-			f.attributes.put(strokeColor, selected ? new Vec4(1, 0, 0, -1.0f) : new Vec4(0.5f, 0, 0, 0.5f));
+			f.attributes.put(strokeColor, selected ? new Vec4(1, 0, 0, -1.0f) : new Vec4(0.5f, manipulated ? 0.5f: 0, 0, 0.5f));
 
 			f.attributes.put(thicken, new BasicStroke(selected ? 2.5f : 2.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
 
@@ -188,21 +205,17 @@ public class TimeSlider extends Box {
 
 			FLine f = new FLine();
 			f.moveTo(rect.x, rect.y);
-			f.nodes.get(f.nodes.size() - 1).attributes.put(fillColor, new Vec4(a, 0, 0, s));
+			f.nodes.get(f.nodes.size() - 1).attributes.put(color, new Vec4(a, 0, 0, s));
 			f.lineTo(rect.x + rect.w, rect.y);
-			f.nodes.get(f.nodes.size() - 1).attributes.put(fillColor, new Vec4(b, 0, 0, s));
+			f.nodes.get(f.nodes.size() - 1).attributes.put(color, new Vec4(b, 0, 0, s));
 			f.lineTo(rect.x + rect.w, rect.y + rect.h);
-			f.nodes.get(f.nodes.size() - 1).attributes.put(fillColor, new Vec4(a, 0, 0, s));
+			f.nodes.get(f.nodes.size() - 1).attributes.put(color, new Vec4(a, 0, 0, s));
 			f.lineTo(rect.x, rect.y + rect.h);
-			f.nodes.get(f.nodes.size() - 1).attributes.put(fillColor, new Vec4(a, 0, 0, s));
+			f.nodes.get(f.nodes.size() - 1).attributes.put(color, new Vec4(a, 0, 0, s));
 			f.lineTo(rect.x, rect.y);
-			f.nodes.get(f.nodes.size() - 1).attributes.put(fillColor, new Vec4(a, 0, 0, s));
+			f.nodes.get(f.nodes.size() - 1).attributes.put(color, new Vec4(a, 0, 0, s));
 
 			f.attributes.put(filled, true);
-
-			Map<Integer, String> customFill = new LinkedHashMap<Integer, String>();
-			customFill.put(1, "fillColor");
-			f.setAuxProperties(customFill);
 
 
 			return f;

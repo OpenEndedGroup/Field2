@@ -25,14 +25,14 @@ public abstract class Lazy<T> {
 	}
 
 	public Stream<T> stream() {
-		return StreamSupport.stream(Spliterators.spliterator(internal, estimatedSize, Spliterator.IMMUTABLE), false);
+		return StreamSupport.stream(Spliterators.spliteratorUnknownSize(internal, Spliterator.IMMUTABLE | Spliterator.ORDERED), false);
 	}
 
 	protected abstract Iterator<T> initialize();
 
 	Iterator<T> future = null;
 
-	private Iterator<T> internal =new Iterator() {
+	private Iterator internal =new Iterator() {
 		@Override public boolean hasNext () {
 			if (future == null) future = pull();
 			if (future == null) return false;
@@ -45,8 +45,22 @@ public abstract class Lazy<T> {
 		}
 
 		@Override public T next () {
-			if (!hasNext()) return null;
-			return future.next();
+			if (future==null) {
+				if (!hasNext()) return null;
+				T r = future.next();
+//				System.out.println(" next returning 1:"+r);
+				return r;
+			}
+			if (!future.hasNext())
+			{
+				if (!hasNext()) return null;
+				T r = future.next();
+//				System.out.println(" next returning 2:"+r);
+				return r;
+			}
+			T r = future.next();
+//			System.out.println(" next returning 3:"+r);
+			return r;
 		}
 	};
 

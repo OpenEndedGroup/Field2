@@ -58,4 +58,14 @@ public class Testy implements Linker.AsMap {
 	public Object asMap_new(Object a, Object b) {
 		return null;
 	}
+
+	@Override
+	public Object asMap_getElement(int element) {
+		return null;
+	}
+
+	@Override
+	public Object asMap_setElement(int element, Object o) {
+		return null;
+	}
 }

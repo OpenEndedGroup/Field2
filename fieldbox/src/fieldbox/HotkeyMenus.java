@@ -1,17 +1,15 @@
 package fieldbox;
 
-import com.badlogic.jglfw.Glfw;
 import field.graphics.Window;
 import field.linalg.Vec2;
 import field.utility.Dict;
-import field.utility.Log;
 import field.utility.Pair;
 import field.utility.Rect;
-import fieldbox.boxes.*;
-import fieldbox.io.IO;
+import fieldbox.boxes.Box;
+import fieldbox.boxes.Drawing;
+import fieldbox.boxes.Keyboard;
 import fielded.RemoteEditor;
 
-import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -40,8 +38,8 @@ public class HotkeyMenus extends Box {
 			return m;
 		});
 
-		properties.putToList(Keyboard.onCharTyped, (e, k) -> {
-			Log.log("consumption", "new :"+e);
+		properties.putToMap(Keyboard.onCharTyped, "__hotkeymenus__", (e, k) -> {
+//			Log.log("consumption", "new :"+e+" "+e.properties.isTrue(Window.consumed, false));
 			if (e.properties.isTrue(Window.consumed, false)) return;
 
 			if ( k == 'n')

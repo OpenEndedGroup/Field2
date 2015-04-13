@@ -2,6 +2,8 @@ package fieldbox.boxes;
 
 import field.graphics.Window;
 import field.utility.Dict;
+import field.utility.IdempotencyMap;
+import field.utility.Util;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,8 +30,8 @@ public class Keyboard {
 
 	Map<Integer, Collection<Hold>> ongoingDrags = new HashMap<Integer, Collection<Hold>>();
 
-	static public final Dict.Prop<Collection<OnKeyDown>> onKeyDown = new Dict.Prop<>("onKeyDown").type().toCannon();
-	static public final Dict.Prop<Collection<OnCharTyped>> onCharTyped = new Dict.Prop<>("onCharTyped").type().toCannon();
+	static public final Dict.Prop<Map<String, OnKeyDown>> onKeyDown = new Dict.Prop<>("onKeyDown").type().toCannon().autoConstructs(() -> new IdempotencyMap<>(OnKeyDown.class));
+	static public final Dict.Prop<Map<String, OnCharTyped>> onCharTyped = new Dict.Prop<>("onCharTyped").type().toCannon().autoConstructs(() -> new IdempotencyMap<>(OnCharTyped.class));
 
 
 	public void dispatch(Box root, Window.Event<Window.KeyboardState> event) {
@@ -63,18 +65,25 @@ public class Keyboard {
 			}
 		}
 
+		Util.Errors errors = new Util.Errors();
 		pressed.stream().forEach(p -> {
 			Collection<Hold> hold = ongoingDrags.computeIfAbsent(p, (x) -> new ArrayList<>());
 
 			// change map to handle errors on x
 
-			root.find(onKeyDown, root.both()).flatMap(x -> x.stream()).map(x -> x.onKeyDown(event, p)).filter(x -> x != null)
+			root.find(onKeyDown, root.both()).flatMap(x -> x.values().stream()).map(Util.wrap(x -> x.onKeyDown(event, p), errors, null, Hold.class)).filter(x -> x != null)
 				    .collect(Collectors.toCollection(() -> hold));
 		});
 
 		typed.stream().forEach(p -> {
-			root.find(onCharTyped, root.both()).flatMap(x -> x.stream()).forEach(x -> x.onCharTyped(event, p));
+			root.find(onCharTyped, root.both()).flatMap(x -> x.values().stream()).forEach(x -> x.onCharTyped(event, p));
 		});
+		if (errors.hasErrors()) {
+			errors.getErrors()
+			      .forEach(x -> {
+				      x.first.printStackTrace();
+			      });
+		}
 
 	}
 }

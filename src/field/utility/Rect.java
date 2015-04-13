@@ -3,7 +3,7 @@ package field.utility;
 import field.linalg.Vec2;
 
 /**
- * Created by marc on 3/18/14.
+ * A 2D Rectangle
  */
 public class Rect implements Mutable<Rect> {
 
@@ -98,8 +98,14 @@ public class Rect implements Mutable<Rect> {
 		return this.x>=start && this.x+this.w<end;
 	}
 
+	public Vec2 convert(double x, double y)
+	{
+		return new Vec2(this.x+x*this.w, this.y+y*this.h);
+	}
+
 	@Override
 	public Rect duplicate() {
 		return new Rect(x,y,w,h);
 	}
+
 }

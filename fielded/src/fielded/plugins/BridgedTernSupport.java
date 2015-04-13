@@ -46,14 +46,14 @@ public class BridgedTernSupport {
 
 		for (String name : ServerSupport.playlist) {
 			JSONStringer j = new JSONStringer();
-			Log.log("TERN", " quoting ");
+//			Log.log("TERN", " quoting ");
 
 			j.object()
 			 .key("at")
 			 .value(readFile(Main.app + "/fielded/internal/" + name))
 			 .endObject();
 
-			Log.log("TERN", " injecting code mirror source file <" + name + ">");
+//			Log.log("TERN", " injecting code mirror source file <" + name + ">");
 			engine.accept("self.ternServer.addFile('" + name + "', " + j.toString() + ".at)");
 
 		}

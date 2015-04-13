@@ -7,14 +7,13 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLStreamHandlerFactory;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by marc on 7/1/14.
@@ -136,7 +135,7 @@ public class Trampoline {
 
 
 		LinkedHashSet<String> blacklist_prefix = new LinkedHashSet<String>(Arrays
-			    .asList("fieldlinker", "fieldagent", "java", "sun", "jdk", "javax", "sunw", "apple", "com.apple", "org.cef"));
+			    .asList("fieldagent", "java", "sun", "jdk", "javax", "sunw", "apple", "com.apple", "org.cef"));
 
 		protected boolean shouldLoad(String name) {
 
@@ -158,6 +157,7 @@ public class Trampoline {
 		}
 
 		public URL getResource(String name) {
+
 			URL url = findResource(name);
 
 			// if local search failed, delegate to parent
@@ -170,9 +170,34 @@ public class Trampoline {
 
 			return url;
 		}
+
+		public List<URL> collectURLS()
+		{
+			List<URL> u = new ArrayList<>();
+
+			URLClassLoader l = this;
+			while(l!=null)
+			{
+				u.addAll(Arrays.asList(l.getURLs()));
+
+				if (l.getParent() instanceof URLClassLoader)
+				{
+					l = (URLClassLoader) l.getParent();
+				}
+				else l = null;
+			}
+			return u;
+
+		}
 	}
 
 	static public void main(String[] a) {
+
+		try {
+			Thread.sleep(4000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 
 		if (a.length == 0) {
 			System.err.println(" No main.class specified. Add one to the command line");
@@ -200,11 +225,44 @@ public class Trampoline {
 	}
 
 	static public void addURL(URL n) {
+
 		ClassLoader c = Thread.currentThread().getContextClassLoader();
 		try {
 			c.getClass().getMethod("addURL", URL.class).invoke(c, n);
 		} catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
 			e.printStackTrace();
+		}
+
+		String s = n.getPath();
+		if (new File(s).isDirectory()) {
+			System.out.println(" extending library path by <" + s + ">");
+
+			System.setProperty("java.library.path", System.getProperty("java.library.path") + File.pathSeparator + s);
+			System.setProperty("jna.library.path", System.getProperty("jna.library.path") + File.pathSeparator + s);
+
+//		System.out.println(" library paths now "+System.getProperty("java.library.path")+" and "+System.getProperty("jna.library.path"));
+			// This enables the java.library.path to be modified at runtime
+			// From a Sun engineer at
+			// http://forums.sun.com/thread.jspa?threadID=707176
+
+			try {
+				Field field = ClassLoader.class.getDeclaredField("usr_paths");
+				field.setAccessible(true);
+				String[] paths = (String[]) field.get(null);
+				for (int i = 0; i < paths.length; i++) {
+					if (s.equals(paths[i])) {
+						return;
+					}
+				}
+				String[] tmp = new String[paths.length + 1];
+				System.arraycopy(paths, 0, tmp, 0, paths.length);
+				tmp[paths.length] = s;
+				field.set(null, tmp);
+			} catch (IllegalAccessException e) {
+				throw new IllegalArgumentException("Failed to get permissions to set library path");
+			} catch (NoSuchFieldException e) {
+				throw new IllegalArgumentException("Failed to get field handle to set library path");
+			}
 		}
 	}
 }

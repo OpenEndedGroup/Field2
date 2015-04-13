@@ -2,7 +2,7 @@ package fieldbox.ui;
 
 import com.badlogic.jglfw.GlfwCallback;
 import field.graphics.GraphicsContext;
-import field.graphics.RunLoop;
+import field.app.RunLoop;
 import field.graphics.Scene;
 import field.graphics.Window;
 import field.utility.Log;
@@ -53,11 +53,11 @@ public class FieldBoxWindow extends Window {
 	protected void updateScene() {
 		GraphicsContext.enterContext(graphicsContext);
 		try {
-			Log.log("graphics.trace", () -> "scene is ...\n" + mainScene.debugPrintScene());
+			Log.log("graphics.trace", () -> "scene is ...\n" + scene.debugPrintScene());
 
 			compositor.updateScene();
 
-			mainScene.updateAll();
+			scene.updateAll();
 		} finally {
 			GraphicsContext.exitContext(graphicsContext);
 		}

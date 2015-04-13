@@ -21,7 +21,7 @@ public class TextUtils {
 	 */
 	static public String html(String s)
 	{
-		return s.replace("<", "&lt;").replace(">", "&rt;").replace("&", "&amp;");
+		return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
 	}
 
 

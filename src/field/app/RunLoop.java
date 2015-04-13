@@ -1,7 +1,8 @@
-package field.graphics;
+package field.app;
 
-import java.util.LinkedList;
-import java.util.List;
+import field.graphics.Scene;
+
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -36,6 +37,8 @@ public class RunLoop {
 		return Thread.currentThread() == mainThread;
 	}
 
+	public Set<Object> shouldSleep = Collections.synchronizedSet(new LinkedHashSet<>());
+
 	public void enterMainLoop() {
 		mainThread = Thread.currentThread();
 		while (true) {
@@ -44,9 +47,11 @@ public class RunLoop {
 
 				if (lock.tryLock(1, TimeUnit.DAYS)) {
 					mainLoop.updateAll();
+					ThreadSync.get().serviceAndCull();
 				} else {
 				}
-				Thread.sleep(1);
+				if (shouldSleep.size()==0)
+					Thread.sleep(5);
 			} catch (Throwable t) {
 				System.err.println(" exception thrown in main loop");
 				t.printStackTrace();

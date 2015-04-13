@@ -2,7 +2,7 @@ package fieldbox.boxes;
 
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;
-import field.graphics.RunLoop;
+import field.app.RunLoop;
 import field.message.MessageQueue;
 import field.utility.*;
 

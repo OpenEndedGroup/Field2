@@ -1,4 +1,3 @@
-
 function escapeHtml(str) {
     var div = document.createElement('div');
     div.appendChild(document.createTextNode(str));
@@ -29,17 +28,19 @@ function appendRemoteOutputToLine(line, text, checkClass, lineClass, append) {
     if (found != null) {
         console.log(" reusing previous element ")
         d = found.node
+        d.lastOutputAt = new Date().valueOf();
 
         $(d).removeClass(checkClass)
         $(d).removeClass(lineClass)
         $(d).addClass(lineClass)
 
 //        $(d).append("\n" + escapeHtml(text.trim()))
-		$(d).append("\n" + text.trim())
+        $(d).append("\n" + text.trim())
 
-        $(d).animate({
-            scrollTop: $(d)[0].scrollHeight
-        }, 0)
+//        $(d).animate({
+//            scrollTop: $(d)[0].scrollHeight
+//        }, 0)
+
         $(d).css({
             opacity: 1
         })
@@ -51,18 +52,31 @@ function appendRemoteOutputToLine(line, text, checkClass, lineClass, append) {
         console.log(" making new element ")
         d = $("<div class='" + lineClass + "'><div class='Field-closebox'>&#x2715;</div><div class='Field-expandBox'>&#x21A7;</div>" + text.trim() + "</div>")[0]
         console.log(d)
+        d.lastOutputAt = new Date().valueOf();
+
         bm = cm.addLineWidget(lh, d, {
             showIfHidden: true,
             handleMouseEvents: false
         })
+        d.bm = bm
 
-		console.log(" transient ? "+text.trim().length)
-        if (text.trim().length<2)
-        {
-	        console.log(" transient ");
-	        $(d).animate({opacity:0.0, "max-height":"0%"}, {"duration":400, "progress":function(){console.log($(d).height()); bm.changed()}, "done":function() {bm.clear(); updateAllBrackets(); }});
+        console.log(" transient ? " + text.trim().length)
+        if (text.trim().length < 1 || text.trim() == "&#10003;") {
+            console.log(" transient ");
+            $(d).animate({opacity: 0.0, "max-height": "0%"}, {
+                "duration": 400, "progress": function () {
+                    console.log($(d).height());
+                    bm.changed()
+                }, "done": function () {
+                    bm.clear();
+                    updateAllBrackets();
+                }
+            });
         }
 
+//        $(d).animate({
+//            scrollTop: $(d)[0].scrollHeight
+//        }, 0)
 
     }
 
@@ -154,6 +168,18 @@ _messageBus.subscribe("box.output", function (d, e) {
     box = d.box
     if (cm.currentbox === box) {
         appendRemoteOutputToLine(cm.lineCount() - 1, d.message, "Field-remoteOutput-error", "Field-remoteOutput", true)
+    } else {
+    }
+    if (boxOutputs[box] === undefined)
+        boxOutputs[box] = d.message
+    else
+        boxOutputs[box] += "\n" + d.message
+})
+
+_messageBus.subscribe("box.error", function (d, e) {
+    box = d.box
+    if (cm.currentbox === box) {
+        appendRemoteOutputToLine(cm.lineCount() - 1, d.message, "Field-remoteOutput", "Field-remoteOutput-error", true)
     } else {
     }
     if (boxOutputs[box] === undefined)

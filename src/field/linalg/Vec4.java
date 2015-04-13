@@ -1,11 +1,13 @@
 package field.linalg;
 
+import java.io.Serializable;
 import java.nio.DoubleBuffer;
+import java.util.function.Supplier;
 
 /**
  * A class representing a 4-vector (useful for colors and homogeneous coordinates)
  */
-public class Vec4 {
+public class Vec4 implements Supplier<Vec4>, Serializable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -23,6 +25,13 @@ public class Vec4 {
 	 */
 	public Vec4(Vec4 src) {
 		set(src);
+	}
+
+	/**
+	 * Constructor
+	 */
+	public Vec4(Vec3 src, double w) {
+		set(src.x, src.y, src.z, w);
 	}
 
 	/**
@@ -319,4 +328,15 @@ public class Vec4 {
 		return Math.sqrt((v.x-x)*(v.x-x)+(v.y-y)*(v.y-y)+(v.z-z)*(v.z-z)+(v.w-w)*(v.w-w));
 	}
 
+	@Override
+	public Vec4 get() {
+		return this;
+	}
+
+	/**
+	 * returns new Vec3(x,y,z) from this Vec4
+	 */
+	public Vec3 toVec3() {
+		return new Vec3(x,y,z);
+	}
 }

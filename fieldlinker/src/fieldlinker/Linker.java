@@ -1,13 +1,16 @@
 package fieldlinker;
 
-import jdk.internal.dynalink.CallSiteDescriptor;
-import jdk.internal.dynalink.linker.*;
-import jdk.internal.dynalink.support.Guards;
+
+import field.dynalink.CallSiteDescriptor;
+import field.dynalink.linker.*;
+import field.dynalink.support.Guards;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.util.Arrays;
+import java.util.Collections;
 
 /**
  *
@@ -29,11 +32,21 @@ public class Linker implements GuardingDynamicLinker, GuardingTypeConverterFacto
 		public Object asMap_new(Object a);
 
 		public Object asMap_new(Object a, Object b);
+
+		public Object asMap_getElement(int element);
+
+		public default Object asMap_getElement(Object element) { throw new NotImplementedException(); };
+
+		public Object asMap_setElement(int element, Object o);
+
+		public default Object asMap_call(Object o) {
+			return asMap_call(o, Collections.EMPTY_MAP);
+		}
 	}
 
 
 	public Linker() {
-		System.err.println(" linker has been instantiated " + disabled+" "+debug);
+		System.err.println(" linker has been instantiated " + disabled + " " + debug);
 	}
 
 	@Override
@@ -55,6 +68,13 @@ public class Linker implements GuardingDynamicLinker, GuardingTypeConverterFacto
 			String propertyName = linkRequest.getCallSiteDescriptor()
 							 .getNameToken(CallSiteDescriptor.NAME_OPERAND);
 
+			if (debug)
+			{
+				System.err.println(" rec is of type "+(rec==null ? null : rec.getClass())+" / "+(rec instanceof AsMap));
+				if (rec instanceof AsMap)
+					System.err.println(" rec admits to having property :"+((AsMap) rec).asMap_isProperty(propertyName));
+			}
+
 			if (rec instanceof AsMap && ((AsMap) rec).asMap_isProperty(propertyName)) {
 
 				System.err.println(" linking AsMap/get " + rec);
@@ -67,7 +87,7 @@ public class Linker implements GuardingDynamicLinker, GuardingTypeConverterFacto
 			}
 		} else if (linkRequest.getCallSiteDescriptor()
 				      .getNameToken(CallSiteDescriptor.OPERATOR)
-				      .equals("call")) {
+				      .equals("call") && linkRequest.getArguments().length == 3) {
 
 			Object rec = linkRequest.getReceiver();
 
@@ -80,7 +100,20 @@ public class Linker implements GuardingDynamicLinker, GuardingTypeConverterFacto
 			}
 		} else if (linkRequest.getCallSiteDescriptor()
 				      .getNameToken(CallSiteDescriptor.OPERATOR)
-				      .equals("new") && linkRequest.getArguments().length==2) {
+				      .equals("call") && linkRequest.getArguments().length == 2) {
+
+			Object rec = linkRequest.getReceiver();
+
+			if (rec instanceof AsMap) {
+
+				System.err.println(" linking AsMap/call " + rec);
+				MethodHandle get = MethodHandles.lookup()
+								.findVirtual(rec.getClass(), "asMap_call", MethodType.methodType(Object.class, Object.class));
+				return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
+			}
+		} else if (linkRequest.getCallSiteDescriptor()
+				      .getNameToken(CallSiteDescriptor.OPERATOR)
+				      .equals("new") && linkRequest.getArguments().length == 2) {
 
 			Object rec = linkRequest.getReceiver();
 
@@ -93,7 +126,7 @@ public class Linker implements GuardingDynamicLinker, GuardingTypeConverterFacto
 			}
 		} else if (linkRequest.getCallSiteDescriptor()
 				      .getNameToken(CallSiteDescriptor.OPERATOR)
-				      .equals("new") && linkRequest.getArguments().length==3) {
+				      .equals("new") && linkRequest.getArguments().length == 3) {
 
 			Object rec = linkRequest.getReceiver();
 
@@ -105,8 +138,8 @@ public class Linker implements GuardingDynamicLinker, GuardingTypeConverterFacto
 				return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
 			}
 		} else if (linkRequest.getCallSiteDescriptor()
-				 .getNameToken(CallSiteDescriptor.OPERATOR)
-				 .equals("getMethod|getProp|getElem")) {
+				      .getNameToken(CallSiteDescriptor.OPERATOR)
+				      .equals("getMethod|getProp|getElem")) {
 
 			// this is a method lookup, it's possible we'd want to do something different here, for now, it's exactly the same
 
@@ -140,6 +173,56 @@ public class Linker implements GuardingDynamicLinker, GuardingTypeConverterFacto
 				get = MethodHandles.insertArguments(get, 1, propertyName);
 
 				return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
+			}
+
+		} else if (linkRequest.getCallSiteDescriptor()
+				      .getNameToken(CallSiteDescriptor.OPERATOR)
+				      .equals("getElem|getProp|getMethod")) {
+			Object rec = linkRequest.getReceiver();
+
+			if (linkRequest.getArguments().length==2) {
+
+				if (linkRequest.getArguments()[1].getClass().isPrimitive())
+
+				{
+
+					if (rec instanceof AsMap) {
+						System.err.println(" linking AsMap/property get " + rec);
+						MethodHandle get = MethodHandles.lookup()
+										.findVirtual(rec.getClass(), "asMap_getElement", MethodType.methodType(Object.class, Integer.TYPE));
+
+						return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
+
+					}
+				}
+				else
+				{
+					if (rec instanceof AsMap) {
+						System.err.println(" linking AsMap/property get " + rec);
+						MethodHandle get = MethodHandles.lookup()
+										.findVirtual(rec.getClass(), "asMap_getElement", MethodType.methodType(Object.class, Object.class));
+
+
+						return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
+
+					}
+
+				}
+			}
+			else
+			{
+				String propertyName = linkRequest.getCallSiteDescriptor()
+								 .getNameToken(CallSiteDescriptor.NAME_OPERAND);
+				if (rec instanceof AsMap) {
+					System.err.println(" linking AsMap/property get " + rec);
+					MethodHandle get = MethodHandles.lookup()
+									.findVirtual(rec.getClass(), "asMap_getElement", MethodType.methodType(Object.class, Object.class));
+
+					get = MethodHandles.insertArguments(get, 1, propertyName);
+
+					return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
+
+				}
 			}
 
 		}

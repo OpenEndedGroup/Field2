@@ -59,7 +59,7 @@ public class MainFrameOpenGL extends JFrame {
 		//
 		//     CefClient is a connector to all possible events which come from the
 		//     CefBrowser instances. Those events could be simple things like the
-		//     change of the browser title or more complex ones like context menu
+		//     change of the browser title or more complex ones like context menuSpecs
 		//     events. By assigning handlers to CefClient you can control the
 		//     behavior of the browser. See browser.detailed.MainFrame for an example
 		//     of how to use these handlers.

@@ -1,22 +1,11 @@
 package fieldnashorn;
 
 import field.graphics.FLine;
+import field.nashorn.api.scripting.JSObject;
 import field.utility.Dict;
 import field.utility.Log;
 import fieldnashorn.annotations.HiddenInAutocomplete;
-import jdk.internal.dynalink.beans.StaticClass;
-import jdk.nashorn.api.scripting.JSObject;
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
-import jdk.nashorn.api.scripting.ScriptUtils;
-import jdk.nashorn.internal.runtime.ScriptObject;
-import jdk.nashorn.internal.runtime.linker.InvokeByName;
-import jdk.nashorn.internal.runtime.linker.JavaAdapterFactory;
 
-import static field.utility.Log.*;
-
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;

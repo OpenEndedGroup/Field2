@@ -1,25 +1,22 @@
 package fieldbox.boxes;
 
-import field.graphics.RunLoop;
+import field.app.RunLoop;
+import field.nashorn.internal.runtime.ConsString;
 import field.utility.*;
 import fieldbox.DefaultMenus;
 import fieldbox.execution.Completion;
+import fieldbox.execution.Execution;
 import fieldbox.execution.HandlesCompletion;
+import fieldbox.execution.JavaSupport;
 import fieldbox.io.IO;
 import fieldlinker.Linker;
-import fieldbox.execution.JavaSupport;
 import fieldnashorn.annotations.HiddenInAutocomplete;
-import jdk.internal.dynalink.beans.StaticClass;
-import jdk.nashorn.api.scripting.ScriptUtils;
-import jdk.nashorn.internal.objects.ScriptFunctionImpl;
-import jdk.nashorn.internal.runtime.ConsString;
-import jdk.nashorn.internal.runtime.ScriptObject;
-import jdk.nashorn.internal.runtime.linker.JavaAdapterFactory;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -32,12 +29,10 @@ import java.util.stream.Stream;
  * <p>
  * A Box has properties and it's in a graph structure.
  * <p>
- * Specifically this is a directed, ordered, cyclic graph structure. It's not a multi-graph --- Boxes can only be connected 0 or 1 times. Parent /
- * Child relationships are ordered and the order is maintained. And the graph can have cycles (it's typically visited in breadth-first without
- * cycles).
+ * Specifically this is a directed, ordered, cyclic graph structure. It's not a multi-graph --- Boxes can only be connected 0 or 1 times. Parent / Child relationships are ordered and the order is
+ * maintained. And the graph can have cycles (it's typically visited in breadth-first without cycles).
  * <p>
- * Much of the time properties are looked up in the graph in breadth first fashion either "upwards" (towards parents) or less-often downwards
- * (collecting over all children).
+ * Much of the time properties are looked up in the graph in breadth first fashion either "upwards" (towards parents) or less-often downwards (collecting over all children).
  */
 public class Box implements Linker.AsMap, HandlesCompletion {
 
@@ -47,27 +42,58 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	static public final Dict.Prop<Rect> frame = new Dict.Prop<>("frame").type()
 									    .toCannon()
 									    .doc("the rectangle that this box occupies");
-	// not currently implemented everywhere
 	static public final Dict.Prop<Boolean> hidden = new Dict.Prop<>("hidden").type()
 										 .toCannon()
 										 .doc("set this to true to hide this box (but be careful, for if it's hidden, how will you get it back again?)");
 
+	static public final Dict.Prop<Boolean> decorative = new Dict.Prop<>("decorative").type()
+											 .toCannon()
+											 .doc("boxes like arrows and text have this set");
 
-	/**
-	 * Marker interface, marks functions as taking a box as a parameter. Allows us to finesse the dispatch of functions stored in properties
-	 */
-	static public interface FunctionOfBox<T> extends Function<Box, T> {
-	}
+	static public final Dict.Prop<Boolean> undeletable = new Dict.Prop<>("undeletable").type()
+											   .toCannon()
+											   .doc("set this to true to make this box not deletable by conventional means");
 
+	public final Dict properties = new Dict();
 	public Set<Box> parents = new LinkedHashSet<>();
 	public Set<Box> children = new LinkedHashSet<>();
 	public Deque<Box> all = new ArrayDeque<>();
-
-	public final Dict properties = new Dict();
+	protected Set<String> knownNonProperties;
+	private String __cachedSimpleName = null;
+	private long tick = 0;
 
 	public Box() {
-		properties.put(IO.id, UUID.randomUUID()
-					  .toString());
+		properties.put(IO.id, newID());
+	}
+
+	static public String newID() {
+		// ensure CallLogic is loaded
+		Dict.Prop<IdempotencyMap<Supplier<Object>>> ignored = Callbacks.main;
+		return "_" + UUID.randomUUID()
+				 .toString()
+				 .replace("-", "_");
+	}
+
+
+
+	static public String compress(String signature) {
+		signature = " " + signature;
+
+		Pattern p = Pattern.compile("([A-Za-z]*?)[\\.\\$]([A-Za-z]*?)");
+		Matcher m = p.matcher(signature);
+
+		while (m.find()) {
+			signature = m.replaceAll("$2");
+			m = p.matcher(signature);
+		}
+
+		signature = signature.replace(" public ", " ");
+		signature = signature.replace(" final ", " ");
+		signature = signature.replace(" void ", " ");
+		signature = signature.replace("  ", " ");
+		signature = signature.replace("  ", " ");
+
+		return signature.trim();
 	}
 
 	/**
@@ -75,8 +101,18 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	 */
 	public Box connect(Box b) {
 		if (children.add(b)) all.addLast(b);
+		else {
+			// restore ordering to LinkedHashSet
+			children.remove(b);
+			children.add(b);
+		}
 
 		if (b.parents.add(this)) b.all.addFirst(this);
+		else {
+			// restore ordering to LinkedHashSet
+			b.parents.remove(this);
+			b.parents.add(this);
+		}
 
 		return this;
 	}
@@ -193,7 +229,6 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 		return Box::_children;
 	}
 
-
 	/**
 	 * returns direction for downwards and upwards (children and then parents) (e.g breadthFirst(Box::children))
 	 */
@@ -202,17 +237,19 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	}
 
 	/**
-	 * returns breadth first Stream given a direction function. It is an error to call this when this box is not connected to anything (which is a common error --- calling this method at construction time).
+	 * returns breadth first Stream given a direction function. It is an error to call this when this box is not connected to anything (which is a common error --- calling this method at
+	 * construction time).
 	 */
 	public Stream<Box> breadthFirst(Function<Box, Collection<Box>> map) {
 
-		if (this.all.size()==0) throw new IllegalArgumentException(" breadthFirst called on a box not connected to the box graph");
+		if (this.all.size() == 0) Log.log("box.warning", " breadthFirst called on a box not connected to the box graph");
 
 		return new Lazy<Box>() {
 			LinkedHashSet<Box> ret = null;
 			Set<Box> thisLevel = null;
 
 			protected Iterator<Box> initialize() {
+
 				ret = new LinkedHashSet<>();
 				ret.add(Box.this);
 				thisLevel = ret;
@@ -228,6 +265,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 				nextLevel.removeAll(ret);
 				ret.addAll(nextLevel);
 				thisLevel = nextLevel;
+
 				return thisLevel.iterator();
 			}
 		}.reset()
@@ -237,8 +275,8 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	@Override
 	public String toString() {
 		String name = properties.get(Box.name);
-		if (name == null) return "bx[" + this.getClass()
-						     .getSimpleName() + "]";
+		if (name == null) return "bx[" + (__cachedSimpleName == null ? __cachedSimpleName = this.getClass()
+													.getSimpleName() : __cachedSimpleName) + "]";
 		else return "bx[" + name + "]";
 	}
 
@@ -246,6 +284,11 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	@Override
 	@HiddenInAutocomplete
 	public boolean asMap_isProperty(String p) {
+
+		if (p == null) return false;
+
+		if (p.equals("_")) return true;
+
 		if (Dict.Canonical.findCannon(p) != null) return true;
 
 		if (knownNonProperties == null) knownNonProperties = computeKnownNonProperties();
@@ -255,7 +298,6 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 		return true;
 	}
 
-	protected Set<String> knownNonProperties;
 	protected Set<String> computeKnownNonProperties() {
 		Set<String> r = new LinkedHashSet<>();
 		Method[] m = this.getClass()
@@ -273,24 +315,47 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	@HiddenInAutocomplete
 	public Object asMap_get(String m) {
 
+		if (m == null) return null;
+
+		if (m.equals("_")) return new Subscope(this);
+
 		Dict.Prop cannon = new Dict.Prop(m).toCannon();
 
-		Object ret = find(cannon, upwards()).findFirst()
-						    .orElse(null);
+		Object ret=null;
+
+		if (!properties.has(cannon) && cannon.autoConstructor != null) {
+			ret = cannon.autoConstructor.get();
+			if (ret!=null)
+				properties.put(cannon, ret);
+
+		}
+		if (ret==null)
+			ret = find(cannon, upwards()).findFirst()
+							    .orElse(null);
 
 		if (ret instanceof Box.FunctionOfBox) {
 			final Object fret = ret;
 			return ((Supplier) (() -> ((Box.FunctionOfBox) fret).apply(this)));
 		}
 
-		if (ret == null && cannon.autoConstructor != null) {
-			properties.put(cannon, ret = cannon.autoConstructor.get());
+		if (ret instanceof Box.BiFunctionOfBoxAnd) {
+			final Object fret = ret;
+			return ((Function) ((c) -> ((Box.BiFunctionOfBoxAnd) fret).apply(this, c)));
 		}
+
+		if (ret instanceof Box.TriFunctionOfBoxAnd) {
+			final Object fret = ret;
+			return ((BiFunction) ((a, b) -> ((Box.TriFunctionOfBoxAnd) fret).apply(this, a, b)));
+		}
+
+		if (ret instanceof Box.FunctionOfBoxValued) {
+			return ((Box.FunctionOfBoxValued) ret).apply(this);
+		}
+
+
 
 		return ret;
 	}
-
-	private long tick = 0;
 
 	@Override
 	@HiddenInAutocomplete
@@ -300,27 +365,27 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 		if (value instanceof ConsString) value = ((ConsString) value).toString();
 
 
-		Log.log("underscore.debug", " underscore box set :" + name + " to " + value.getClass() + " <" + Function.class.getName() + ">");
+//		Log.log("underscore.debug", " underscore box set :" + name + " to " + value.getClass() + " <" + Function.class.getName() + ">");
 		Dict.Prop cannon = new Dict.Prop(name).toCannon();
 
-		Log.log("underscore.debug", " cannonical type information " + cannon.getTypeInformation());
+//		Log.log("underscore.debug", " cannonical type information " + cannon.getTypeInformation());
 
-		Object converted = convert(value, cannon.getTypeInformation());
+		Object converted = Conversions.convert(value, cannon.getTypeInformation());
 
 		properties.put(cannon, converted);
 
-		Log.log("underscore.debug", () -> {
-			Log.log("underscore.debug", " PROPERTIES NOW :");
-			for (Map.Entry<Dict.Prop, Object> q : properties.getMap()
-									.entrySet()) {
-				try {
-					Log.log("underscore.debug", "     " + q.getKey() + " = " + q.getValue());
-				} catch (NullPointerException e) {
-					//JDK bug JDK-8035426 --- sometimes Nashorn lambdas throw NPE's when they are .toString'd
-				}
-			}
-			return null;
-		});
+//		Log.log("underscore.debug", () -> {
+//			Log.log("underscore.debug", " PROPERTIES NOW :");
+//			for (Map.Entry<Dict.Prop, Object> q : properties.getMap()
+//									.entrySet()) {
+//				try {
+//					Log.log("underscore.debug", "     " + q.getKey() + " = " + q.getValue());
+//				} catch (NullPointerException e) {
+//					JDK bug JDK-8035426 --- sometimes Nashorn lambdas throw NPE's when they are .toString'd
+//				}
+//			}
+//			return null;
+//		});
 
 		if (tick != RunLoop.tick) {
 			Drawing.dirty(this);
@@ -330,71 +395,11 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 		return this;
 	}
 
-	static public Object convert(Object value, List<Class> fit) {
-		if (fit == null) return value;
-		if (fit.get(0)
-		       .isInstance(value)) return value;
-
-		// promote non-arrays to arrays
-		if (List.class.isAssignableFrom(fit.get(0))) {
-			if (!(value instanceof List)) {
-				return Collections.singletonList(convert(value, fit.subList(1, fit.size())));
-			} else {
-				return value;
-			}
-		} else if (Map.class.isAssignableFrom(fit.get(0)) && String.class.isAssignableFrom(fit.get(1))) {
-			// promote non-Map<String, V> to Map<String, V>
-			if (!(value instanceof Map)) {
-				return Collections.singletonMap("" + value + ":" + System.identityHashCode(value), convert(value, fit.subList(2, fit.size())));
-			} else {
-				return value;
-			}
-
-		} else if (Collection.class.isAssignableFrom(fit.get(0))) {
-			if (!(value instanceof Collection)) {
-				return Collections.singletonList(convert(value, fit.subList(1, fit.size())));
-			} else {
-				return value;
-			}
-
-		}
-
-		if (value instanceof ScriptFunctionImpl) {
-			StaticClass adapterClassFor = JavaAdapterFactory.getAdapterClassFor(new Class[]{fit.get(0)}, (ScriptObject) value, MethodHandles.lookup());
-			try {
-				return adapterClassFor.getRepresentedClass()
-						      .newInstance();
-			} catch (InstantiationException e) {
-				Log.log("underscore.error", " problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0), e);
-			} catch (IllegalAccessException e) {
-				Log.log("underscore.error", " problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0), e);
-			}
-		}
-
-		return value;
-	}
-
 	@Override
 	public Object asMap_call(Object a, Object b) {
-		System.err.println(" call called :" + a + " " + b + " " + (b instanceof Map ? ((Map) b).keySet() : b.getClass()
-														    .getSuperclass() + " " + Arrays.asList(b.getClass()
-																			    .getInterfaces())));
-		boolean success = false;
-		try {
-			Map<?, ?> m = (Map<?, ?>) ScriptUtils.convert(b, Map.class);
-			for (Map.Entry<?, ?> e : m.entrySet()) {
-				asMap_set("" + e.getKey(), e.getValue());
-			}
-			success = true;
-		} catch (UnsupportedOperationException e) {
 
-		}
-		if (!success) {
-			throw new IllegalArgumentException(" can't understand parameter :" + b);
-		}
-		return this;
+		return Callbacks.call(this, a, b);
 	}
-
 
 	@Override
 	public Object asMap_new(Object a) {
@@ -432,33 +437,72 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	}
 
 	@Override
-	public List<Completion> getCompletionsFor(String prefix) {
-		Set<String> s1 = this.breadthFirst(this.upwards()).map(x -> x.properties.getMap().keySet()).flatMap(x -> x.stream()).map(x -> x.getName())
-				   .filter(x -> !x.startsWith("_")).collect(Collectors.toSet());
+	public Object asMap_getElement(int element) {
+		throw new NotImplementedException();
+	}
 
-		List<Completion> l1 = s1.stream().filter(x -> x.startsWith(prefix)).sorted().map(x -> {
-			Dict.Prop q = new Dict.Prop(x).findCannon();
-			if (q == null) {
-				return null;
-			} else return new Completion(-1, -1, x, "<span class='type'>" + Conversions
-				    .fold(q.getTypeInformation(), t -> compress(t)) + "</span> <span class='doc'>" + q
-				    .getDocumentation() + "</span>");
-		}).filter(x -> x != null).collect(Collectors.toList());
+	@Override
+	public Object asMap_getElement(Object element) {
+		return new XPathSupport(this).get(""+element);
+	}
+
+	@Override
+	public Object asMap_setElement(int element, Object v) {
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public List<Completion> getCompletionsFor(String prefix) {
+
+		Log.log("completion.debug", "inside getCompletionsFor (box) " + prefix);
+
+		Set<String> s1 = new LinkedHashSet<>();
+
+		try {
+			s1 = this.breadthFirst(this.upwards())
+				 .map(x -> x.properties.getMap()
+						       .keySet())
+				 .flatMap(x -> x.stream())
+				 .map(x -> x.getName())
+				 .filter(x -> !x.startsWith("_"))
+				 .collect(Collectors.toSet());
+		} catch (IllegalArgumentException e) {// skip error about unconnected boxes
+		}
+
+
+		List<Completion> l1 = s1.stream()
+					.filter(x -> x.startsWith(prefix))
+					.sorted()
+					.map(x -> {
+						Dict.Prop q = new Dict.Prop(x).findCannon();
+						if (q == null) {
+							return null;
+						} else return new Completion(-1, -1, x, "<span class='type'>" + Conversions.fold(q.getTypeInformation(), t -> compress(
+							    t)) + "</span> <span class='doc'>" + q.getDocumentation() + "</span>");
+					})
+					.filter(x -> x != null)
+					.collect(Collectors.toList());
 
 		List<Completion> l2 = JavaSupport.javaSupport.getOptionCompletionsFor(this, prefix);
 
-		l1.addAll(l2.stream().filter(x -> {
-			for (Completion c : l1)
-				if (c.replacewith.equals(x.replacewith)) return false;
-			return true;
-		}).collect(Collectors.toList()));
+		l1.addAll(l2.stream()
+			    .filter(x -> {
+				    for (Completion c : l1)
+					    if (c.replacewith.equals(x.replacewith)) return false;
+				    return true;
+			    })
+			    .collect(Collectors.toList()));
+
+
+		Log.log("completion.debug", "returning " + l1 + " as completions");
+
 		return l1;
 	}
 
-
 	protected Set<String> getAllPublicMethods() {
 		Set<String> m1 = new LinkedHashSet<>();
-		Method[] m = this.getClass().getDeclaredMethods();
+		Method[] m = this.getClass()
+				 .getDeclaredMethods();
 		for (Method mm : m) {
 			if (mm.isAccessible()) {
 				m1.add(mm.getName());
@@ -467,23 +511,259 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 		return m1;
 	}
 
-	static public String compress(String signature) {
-		signature = " " + signature;
+	/**
+	 * Marker interface, marks functions as taking a box as a parameter. Allows us to finesse the dispatch of functions stored in properties
+	 */
+	static public interface FunctionOfBox<T> extends Function<Box, T> {
+	}
 
-		Pattern p = Pattern.compile("([A-Za-z]*?)[\\.\\$]([A-Za-z]*?)");
-		Matcher m = p.matcher(signature);
+	/**
+	 * Marker interface, marks functions as taking a box as a parameter. Allows us to finesse the dispatch of functions stored in properties. Unlike FunctionOfBox this function is called before
+	 * being returned
+	 */
+	static public interface FunctionOfBoxValued<T> extends Function<Box, T> {
+	}
 
-		while (m.find()) {
-			signature = m.replaceAll("$2");
-			m = p.matcher(signature);
+
+	/**
+	 * Marker interface, marks functions as taking a box and something else as a parameter. Allows us to finesse the dispatch of functions stored in properties
+	 */
+	static public interface BiFunctionOfBoxAnd<T, R> extends BiFunction<Box, T, R> {
+	}
+
+	/**
+	 * Marker interface, marks functions as taking a box and something else as a parameter. Allows us to finesse the dispatch of functions stored in properties
+	 */
+	static public interface TriFunctionOfBoxAnd<T1, T2, R> {
+		public R apply(Box b, T1 t, T2 u);
+	}
+
+	static public class Subscope implements Linker.AsMap {
+		protected Box prefix;
+		protected Linker.AsMap delegateTo;
+
+		public Subscope(Linker.AsMap from) {
+
+			this.prefix = ((Box) Execution.context.get()
+							      .peek());
+			this.delegateTo = from;
 		}
 
-		signature = signature.replace(" public ", " ");
-		signature = signature.replace(" final ", " ");
-		signature = signature.replace(" void ", " ");
-		signature = signature.replace("  ", " ");
-		signature = signature.replace("  ", " ");
+		public Subscope(Box prefixFrom, Box from) {
+			this.prefix = prefixFrom;
+			this.delegateTo = from;
+		}
 
-		return signature.trim();
+
+		@Override
+		public boolean asMap_isProperty(String p) {
+			return delegateTo.asMap_isProperty(prefix.properties.get(IO.id) + p);
+		}
+
+		@Override
+		public Object asMap_call(Object a, Object b) {
+			return delegateTo.asMap_call(a, b);
+		}
+
+		@Override
+		public Object asMap_get(String p) {
+			return delegateTo.asMap_get(prefix.properties.get(IO.id) + p);
+		}
+
+		@Override
+		public Object asMap_set(String p, Object o) {
+
+			Log.log("doublescore", "asMap_set to be :" + prefix.properties.get(IO.id) + p + "=>" + o + " delegating to " + delegateTo);
+
+			return delegateTo.asMap_set(prefix.properties.get(IO.id) + p, o);
+		}
+
+		@Override
+		public Object asMap_new(Object a) {
+			return delegateTo.asMap_new(a);
+		}
+
+		@Override
+		public Object asMap_new(Object a, Object b) {
+			return delegateTo.asMap_new(a, b);
+		}
+
+		@Override
+		public Object asMap_getElement(int element) {
+			throw new NotImplementedException();
+		}
+
+		@Override
+		public Object asMap_setElement(int element, Object o) {
+			throw new NotImplementedException();
+		}
+	}
+
+
+	static public class CollectedMap<T> implements Linker.AsMap {
+		private final Dict.Prop<IdempotencyMap<T>> storageProperty;
+		private final Box from;
+		private Function<Box, IdempotencyMap<T>> autoconstructor;
+		private BiFunction<CollectedMap<T>, Object, Object> calling;
+
+		public CollectedMap(Dict.Prop<IdempotencyMap<T>> storageProperty, Box from, Function<Box, IdempotencyMap<T>> autoconstructor) {
+			this.storageProperty = storageProperty;
+			this.from = from;
+			this.autoconstructor = autoconstructor;
+		}
+
+		@Override
+		public boolean asMap_isProperty(String p) {
+			return true;
+		}
+
+		@Override
+		public Object asMap_call(Object a, Object b) {
+			if (calling == null) throw new NotImplementedException();
+			return calling.apply(this, b);
+		}
+
+		@Override
+		public Object asMap_call(Object a) {
+			if (calling == null) throw new NotImplementedException();
+			return calling.apply(this, a);
+		}
+
+		@Override
+		public Object asMap_get(String p) {
+			T q = from.breadthFirst(from.upwards())
+				  .map(x -> x.properties.get(storageProperty))
+				  .filter(x -> x != null)
+				  .filter(x -> x.containsKey(p))
+				  .findFirst()
+				  .map(x -> x.get(p))
+				  .orElseGet(() -> null);
+			if (q != null) return q;
+
+			return from.properties.computeIfAbsent(storageProperty, (k) -> autoconstructor.apply(from))
+					      .get(p);
+		}
+
+		@Override
+		public Object asMap_set(String p, Object o) {
+			return from.properties.computeIfAbsent(storageProperty, (k) -> autoconstructor.apply(from))
+					      .asMap_set(p, o);
+		}
+
+		@Override
+		public Object asMap_new(Object a) {
+			return from.properties.getOrConstruct(storageProperty)
+					      .asMap_new(a);
+		}
+
+		@Override
+		public Object asMap_new(Object a, Object b) {
+			return from.properties.getOrConstruct(storageProperty)
+					      .asMap_new(a, b);
+		}
+
+		@Override
+		public Object asMap_getElement(int element) {
+			throw new NotImplementedException();
+		}
+
+		@Override
+		public Object asMap_setElement(int element, Object o) {
+			throw new NotImplementedException();
+		}
+
+		public CollectedMap<T> makeCallable(BiFunction<CollectedMap<T>, Object, Object> calling) {
+			this.calling = calling;
+			return this;
+		}
+	}
+
+
+	static public class TemplateMap<T extends Box> implements Linker.AsMap {
+
+
+		private final String namePrefix;
+		private final Box startFrom;
+		private final Class<T> clazz;
+		private Function<Box, T> autoconstructor;
+
+		private BiFunction<TemplateMap<T>, Object, Object> calling;
+
+		public TemplateMap(Box startFrom, String namePrefix, Class<T> clazz, Function<Box, T> autoconstructor)
+		{
+			this.startFrom = startFrom;
+			this.namePrefix = namePrefix;
+			this.clazz = clazz;
+			this.autoconstructor = autoconstructor;
+		}
+
+		@Override
+		public boolean asMap_isProperty(String p) {
+			return true;
+		}
+
+		@Override
+		public Object asMap_call(Object a, Object b) {
+			if (calling == null) throw new NotImplementedException();
+			return calling.apply(this, b);
+		}
+
+		@Override
+		public Object asMap_call(Object a) {
+			if (calling == null) throw new NotImplementedException();
+			return calling.apply(this, a);
+		}
+
+		@Override
+		public Object asMap_get(String p) {
+
+			Optional<Box> q = startFrom.breadthFirst(startFrom.upwards())
+						       .flatMap(x -> x.children()
+								      .stream()
+								      .filter(bx -> clazz.isInstance(bx) && bx.properties.getOr(Box.name, () -> "")
+															 .equals(namePrefix + ":" + p)))
+						       .findFirst();
+
+
+			if (q.isPresent()) return q.get();
+
+			Box b = autoconstructor.apply(startFrom);
+			b.properties.put(Box.name, namePrefix+":"+p);
+			if (!clazz.isInstance(b)) throw new IllegalArgumentException(" autoconstructor didn't return an object of the correct class <"+b.getClass()+"> <"+clazz+">");
+
+			startFrom.connect(b);
+
+			return b;
+		}
+
+		@Override
+		public Object asMap_set(String p, Object o) {
+			return null;
+		}
+
+		@Override
+		public Object asMap_new(Object a) {
+			return null;
+		}
+
+		@Override
+		public Object asMap_new(Object a, Object b) {
+			return null;
+		}
+
+		@Override
+		public Object asMap_getElement(int element) {
+			return null;
+		}
+
+		@Override
+		public Object asMap_setElement(int element, Object o) {
+			return null;
+		}
+
+		public TemplateMap<T> makeCallable(BiFunction<TemplateMap<T>, Object, Object> calling) {
+			this.calling = calling;
+			return this;
+		}
 	}
 }

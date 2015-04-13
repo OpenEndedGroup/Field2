@@ -9,11 +9,13 @@ import java.util.function.*;
  */
 public class Curry {
 
+	@FunctionalInterface
 	public interface Function3<A, B, C, D>
 	{
 		public D apply(A a, B b, C c);
 	}
 
+	@FunctionalInterface
 	public interface Function4<A, B, C, D, E>
 	{
 		public E apply(A a, B b, C c, D d);

@@ -5,9 +5,9 @@ package field.graphics;
  */
 public class FullScreenWindow extends Window {
 
-	public FullScreenWindow()
+	public FullScreenWindow(int x, int y, int w, int h, String title)
 	{
-		super(0,0,1024, 1024, null);
+		super(x,y,w,h, title);
 
 	}
 

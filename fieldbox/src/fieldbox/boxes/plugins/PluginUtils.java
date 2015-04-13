@@ -1,6 +1,5 @@
 package fieldbox.boxes.plugins;
 
-import com.sun.istack.internal.Nullable;
 import field.utility.Pair;
 import fieldbox.boxes.Box;
 import fielded.RemoteEditor;
@@ -25,7 +24,7 @@ public class PluginUtils {
 	/**
 	 * Adds a command to a box (it will keep all previously added commands as well. This command will only appear if check() returns true.
 	 */
-	static public void makeCommand(Box destination, String commandName, String documentation, Runnable doit, @Nullable Supplier<Boolean> check)
+	static public void makeCommand(Box destination, String commandName, String documentation, Runnable doit, Supplier<Boolean> check)
 	{
 		Supplier<Map<Pair<String, String>, Runnable>> previously = destination.properties.get(RemoteEditor.commands);
 		destination.properties.put(RemoteEditor.commands, () -> {

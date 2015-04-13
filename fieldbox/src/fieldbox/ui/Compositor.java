@@ -2,10 +2,15 @@ package fieldbox.ui;
 
 import field.graphics.*;
 import field.linalg.Vec2;
+import field.utility.Dict;
 import field.utility.Log;
+import field.utility.Options;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Created by marc on 3/24/14.
@@ -15,11 +20,135 @@ public class Compositor {
 	private final FieldBoxWindow window;
 
 	boolean fadeup = false;
+	boolean resizing = true;
+
+	Layer mainLayer;
+	Map<String, Layer> layers = new LinkedHashMap<>();
+	int fading = 0;
+
+	public Compositor(FieldBoxWindow window) {
+		this.window = window;
+		this.mainLayer = new Layer(0);
+		layers.put("__main__", mainLayer);
+	}
+
+	public void updateScene() {
+		fadeup = fading++ < 50;
+		if (GraphicsContext.isResizing) {
+			for (Layer l : layers.values()) {
+				if (l.fbo.specification.width * l.res != window.getWidth() || l.fbo.specification.height * l.res != window.getHeight()) {
+					l.fbo.finalize();
+					Scene sceneWas = l.fbo.scene();
+					l.fbo = newFBO(l.fbo.specification.unit, l.res);
+					l.fbo.setScene(sceneWas);
+					resizing= true;
+					Log.log("graphics.debug", " scene was :" + sceneWas);
+				}
+			}
+		}
+
+		for (Layer l : layers.values()) {
+			l.needsRedrawing = Math.max(-1, l.needsRedrawing - 1);
+			if (resizing)
+				l.fbo.draw();
+			else
+			if (l.needsRedrawing > -1 || fadeup) {
+				Log.log("drawing", " drawing dependancies of " + l);
+				l.drawDependancies();
+				Log.log("drawing", " drawing because dirty " + l);
+				l.fbo.draw();
+			}
+		}
+
+		if (fadeup) {
+			window.requestRepaint();
+		}
+		resizing = false;
+	}
+
+	private FBO newFBO() {
+		return newFBO(0);
+	}
+
+	private FBO newFBO(int unit) {
+		if (Options.dict().isTrue(new Dict.Prop<Boolean>("multisample"), true)) return new FBO(FBO.FBOSpecification.rgbaMultisample(unit, window.getFrameBufferWidth(), window.getFrameBufferHeight()));
+		return new FBO(FBO.FBOSpecification.rgba(unit, window.getFrameBufferWidth(), window.getFrameBufferHeight()));
+	}
+
+	private FBO newFBO(int unit, int res) {
+
+		if (res > 1) {
+			return new FBO(FBO.FBOSpecification.rgba(unit, window.getFrameBufferWidth() / res, window.getFrameBufferHeight() / res));
+
+		} else {
+			if (Options.dict().isTrue(new Dict.Prop<Boolean>("multisample"), false))
+				return new FBO(FBO.FBOSpecification.rgbaMultisample(unit, window.getFrameBufferWidth() / res, window.getFrameBufferHeight() / res));
+			return new FBO(FBO.FBOSpecification.rgba(unit, window.getFrameBufferWidth() / res, window.getFrameBufferHeight() / res));
+		}
+	}
+
+	public Layer getMainLayer() {
+		return getLayer("__main__");
+	}
+
+	public Layer newLayer(String name) {
+		return newLayer(name, 0);
+	}
+
+	public Layer newLayer(String name, int unit) {
+		Layer layer = new Layer(unit).setName(name);
+		layers.put(name, layer);
+		return layer;
+	}
+
+	public Layer newLayer(String name, int unit, int res) {
+		Layer layer = new Layer(unit, res).setName(name);
+		layers.put(name, layer);
+		return layer;
+	}
+
+	public Layer getLayer(String name) {
+		return layers.get(name);
+	}
+
+	static public class Cache<T> {
+		private final Function<T, Long> getMod;
+		private final Consumer<T> update;
+		T target;
+		long mod;
+		boolean lock = false;
+
+		public Cache(T target, Function<T, Long> getMod, Consumer<T> update) {
+			this.target = target;
+			this.mod = getMod.apply(target) - 1;
+			this.getMod = getMod;
+			this.update = update;
+		}
+
+		public void update() {
+			if (lock) return;
+			try {
+				lock = true;
+				long m = getMod.apply(target);
+				if (m != mod) {
+					update.accept(target);
+					mod = getMod.apply(target);
+				}
+			} finally {
+				lock = false;
+			}
+		}
+	}
 
 	public class Layer {
+		public Map<Layer, Cache<Layer>> dependsOn = new HashMap<>();
+		protected int needsRedrawing = 100;
+		protected long mod;
+		int res;
+		String name;
 		private FBO fbo;
 		private Guard guard;
-		int res;
+
 
 		public Layer(int unit) {
 			fbo = newFBO(unit);
@@ -29,6 +158,36 @@ public class Compositor {
 		public Layer(int unit, int res) {
 			fbo = newFBO(unit, res);
 			this.res = res;
+		}
+
+		public Layer setName(String name) {
+			this.name = name;
+			return this;
+		}
+
+		public void addDependancy(Layer l) {
+			// javaC / IDEA need these casts
+			dependsOn.put(l, new Cache(l, (Function<Layer, Long>) x -> x.mod, (Consumer<Layer>) x -> {
+				x.drawDependancies();
+				Log.log("drawing", "layer:" + x);
+				x.fbo.draw();
+				x.mod++;
+			}));
+			l.dependsOn.put(this, new Cache(this, (Function<Layer, Long>) x -> x.mod, (Consumer<Layer>) x -> {
+				x.drawDependancies();
+				Log.log("drawing", "layer2:" + x);
+				x.fbo.draw();
+				x.mod++;
+			}));
+		}
+
+		public void drawDependancies() {
+			dependsOn.values()
+				 .forEach(x -> x.update());
+		}
+
+		public void dirty() {
+			needsRedrawing = 1;
 		}
 
 		public Scene getScene() {
@@ -103,9 +262,6 @@ public class Compositor {
 				    "	vec4 tb = texture(blur, tc);" +
 				    "	float miz = pow(ta.w, 0.1);" +
 				    "	float m2 = pow(ta.w, 0.85);" +
-				    //"	_output  = vec4((ta.xyz+(tb.xyz-vec3(0.85))*0.4), mix);\n" +
-				    //"	_output  = vec4(ta.xyz*mix+(1-mix)*tb.xyz, mix);\n" +
-//				    "_output = vec4(tb.xyz*(1-m2)*ta.xyz+m2*ta.xyz, mix);"+
 				    "_output = mix(vec4(tb.xyz+ta.xyz, 0), vec4(tb.xyz*ta.xyz+ta.xyz*m2, 1), miz);" +
 				    "\n" +
 				    "}");
@@ -196,79 +352,10 @@ public class Compositor {
 
 		}
 
-	}
-
-	Layer mainLayer;
-
-	Map<String, Layer> layers = new LinkedHashMap<>();
-
-	public Compositor(FieldBoxWindow window) {
-		this.window = window;
-		this.mainLayer = new Layer(0);
-		layers.put("__main__", mainLayer);
-	}
-
-	int fading = 0;
-
-	public void updateScene() {
-		fadeup = fading++ < 50;
-		if (GraphicsContext.isResizing) {
-			for (Layer l : layers.values()) {
-				if (l.fbo.specification.width * l.res != window.getWidth() || l.fbo.specification.height * l.res != window.getHeight()) {
-					l.fbo.finalize();
-					Scene sceneWas = l.fbo.scene();
-					l.fbo = newFBO(l.fbo.specification.unit, l.res);
-					l.fbo.setScene(sceneWas);
-
-					Log.log("graphics.debug", " scene was :" + sceneWas);
-				}
-			}
+		@Override
+		public String toString() {
+			return "layer<" + name + ":" + mod + ">";
 		}
-		for (Layer l : layers.values()) {
-			l.fbo.draw();
-		}
-
-		if (fadeup) {
-			window.requestRepaint();
-		}
-
-
-	}
-
-	private FBO newFBO() {
-		return newFBO(0);
-	}
-
-	private FBO newFBO(int unit) {
-		return new FBO(FBO.FBOSpecification.rgbaMultisample(unit, window.getFrameBufferWidth(), window.getFrameBufferHeight()));
-	}
-
-	private FBO newFBO(int unit, int res) {
-		return new FBO(FBO.FBOSpecification.rgbaMultisample(unit, window.getFrameBufferWidth() / res, window.getFrameBufferHeight() / res));
-	}
-
-	public Layer getMainLayer() {
-		return getLayer("__main__");
-	}
-
-	public Layer newLayer(String name) {
-		return newLayer(name, 0);
-	}
-
-	public Layer newLayer(String name, int unit) {
-		Layer layer = new Layer(unit);
-		layers.put(name, layer);
-		return layer;
-	}
-
-	public Layer newLayer(String name, int unit, int res) {
-		Layer layer = new Layer(unit, res);
-		layers.put(name, layer);
-		return layer;
-	}
-
-	public Layer getLayer(String name) {
-		return layers.get(name);
 	}
 
 }

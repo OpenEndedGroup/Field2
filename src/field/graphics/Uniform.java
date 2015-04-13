@@ -1,6 +1,7 @@
 package field.graphics;
 
 import field.linalg.*;
+import field.utility.Log;
 import org.apache.commons.math3.geometry.euclidean.oned.Vector1D;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
@@ -112,6 +113,8 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 						throw new IllegalArgumentException(" bad dimension after conversion to int array " + t + " -> " + ti.length);
 				} else {
 					float[][] tm = rewriteToFloatMatrix(t);
+
+
 					if (tm != null && !intOnly) {
 						if (tm.length == 3) {
 							matrix3.rewind();
@@ -148,7 +151,8 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 	static public float[] rewriteToFloatArray(Object t) {
 
 		if (t instanceof float[]) return (float[]) t;
-		if (t instanceof Float) return new float[]{((Number) t).floatValue()};
+		if (t instanceof Number) return new float[]{((Number) t).floatValue()};
+		if (t instanceof Boolean) return new float[]{((Boolean) t).booleanValue() ? 1f : 0f};
 
 		if (t instanceof Vector1D) return new float[]{(float) ((Vector1D) t).getX()};
 		if (t instanceof Vector2D) return new float[]{(float) ((Vector2D) t).getX(), (float) ((Vector2D) t).getY()};
@@ -185,7 +189,13 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 
 	static public boolean isAccepableInstance(Object o)
 	{
-		return o instanceof Number || o instanceof Vec2 || o instanceof Vec3 || o instanceof Vec4 || o instanceof Mat2 || o instanceof Mat3 || o instanceof Mat4 || (o instanceof Supplier || isAccepableInstance(((Supplier)o).get()));
+		try {
+			return o instanceof Number || o instanceof Vec2 || o instanceof Vec3 || o instanceof Vec4 || o instanceof Mat2 || o instanceof Mat3 || o instanceof Mat4 || (o instanceof Supplier || isAccepableInstance(((Supplier) o).get()));
+		}
+		catch(ClassCastException e)
+		{
+			return false;
+		}
 	}
 
 	@Override

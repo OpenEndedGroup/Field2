@@ -1,13 +1,14 @@
 package field.utility;
 
 import field.graphics.Bracketable;
+import field.nashorn.internal.runtime.Undefined;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Every project needs a Util class with statics in it. Here it is.
@@ -75,4 +76,67 @@ public class Util {
 			return ((Boolean)x).booleanValue();
 		return x!=null;
 	}
+
+	static public class Errors
+	{
+		List<Pair<Throwable, Object>> errors = new ArrayList<>();
+
+		public boolean hasErrors()
+		{
+			return errors.size()>0;
+		}
+
+		public List<Pair<Throwable, Object>> getErrors()
+		{
+			return errors;
+		}
+
+		public void clear()
+		{
+			errors.clear();
+		}
+
+		public <T, R> void add(Throwable t, Object originator) {
+			errors.add(new Pair<>(t, originator));
+		}
+	}
+
+	public static <T, R> Function<T, R> wrap(Function<T, R> a, Errors error, R def, Class convertReturn)
+	{
+		return x -> {
+			try {
+				Object q = a.apply(x);
+
+				if (convertReturn!=null)
+					q = Conversions.convert(q,convertReturn);
+
+
+				if (q instanceof Undefined)
+					return null;
+
+				return (R)q;
+			}
+			catch(Throwable t)
+			{
+				t.printStackTrace();
+				error.add(t, a);
+				return def;
+			}
+		};
+	}
+
+	public static <T> Consumer<T> wrap(Consumer<T> a, Errors error)
+	{
+		return x -> {
+			try {
+				a.accept(x);
+			}
+			catch(Throwable t)
+			{
+				t.printStackTrace();
+				error.add(t, new Pair(a, x));
+			}
+		};
+	}
+
 }

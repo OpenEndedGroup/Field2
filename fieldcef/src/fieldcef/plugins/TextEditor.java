@@ -1,6 +1,8 @@
 package fieldcef.plugins;
 
-import field.graphics.RunLoop;
+import com.badlogic.jglfw.Glfw;
+import field.app.RunLoop;
+import field.graphics.Window;
 import field.linalg.Vec2;
 import field.utility.Dict;
 import field.utility.Log;
@@ -18,6 +20,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 /**
@@ -55,15 +58,25 @@ public class TextEditor extends Box implements IO.Loaded {
 					    .findFirst()
 					    .get();
 
-		maxh = window.getHeight() - 25 - 10 - 10 - 10;
+		maxh = window.getHeight() - 25 - 10 - 10 - 2;
 
 		browser = new Browser();
 		browser.properties.put(Box.frame, new Rect(window.getWidth() - maxw - 10, 10, maxw, maxh));
+
+//		browser.properties.put(Box.frame, new Rect(window.getWidth() - maxw - 10, 10, maxw, 100));
+
+		this.properties.put(FLineDrawing.layer, "glass");
+
 		browser.properties.put(FLineDrawing.layer, "glass");
 		browser.properties.put(Drawing.windowSpace, new Vec2(1, 0));
 		browser.properties.put(Boxes.dontSave, true);
 		browser.properties.put(Box.hidden, true);
 		browser.properties.put(Mouse.isSticky, true);
+		browser.properties.put(FrameManipulation.lockHeight, true);
+		browser.properties.put(FrameManipulation.lockWidth, true);
+		browser.properties.put(FrameManipulation.lockX, true);
+		browser.properties.put(FrameManipulation.lockY, true);
+		browser.properties.put(Box.undeletable, true);
 
 		browser.connect(root);
 		browser.loaded();
@@ -104,6 +117,30 @@ public class TextEditor extends Box implements IO.Loaded {
 
 		});
 
+		first(Boxes.window, both()).ifPresent(x -> x.addKeyboardHandler(event -> {
+			Set<Integer> kpressed = Window.KeyboardState.keysPressed(event.before, event.after);
+			if (kpressed.contains(Glfw.GLFW_KEY_LEFT_SHIFT) || kpressed.contains(Glfw.GLFW_KEY_RIGHT_SHIFT)) {
+				if (event.after.keysDown.size() == 1) trigger();
+			}
+
+			return true;
+		}));
+
+	}
+
+	long lastTriggerAt = -1;
+
+	public void trigger() {
+		long now = System.currentTimeMillis();
+		if (now - lastTriggerAt < 500) {
+			if (!browser.getFocus())
+				browser.executeJavaScript_queued("_messageBus.publish('focus', {})");
+			else
+				browser.executeJavaScript_queued("_messageBus.publish('de" +
+									     "focus', {})");
+			browser.setFocus(!browser.getFocus());
+		}
+		lastTriggerAt = now;
 	}
 
 	public void boot() {

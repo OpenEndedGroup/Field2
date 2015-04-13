@@ -35,7 +35,6 @@ public class TextDrawing extends Box {
 
 	Map<String, PerLayer> layerLocal = new LinkedHashMap<>();
 
-
 	public class FontSupport {
 		public final MeshBuilder mesh;
 		public final DrawBitmapFont font;
@@ -115,9 +114,9 @@ public class TextDrawing extends Box {
 			    "\n" +
 			    "void main()\n" +
 			    "{\n" +
-			    "\tfloat w = min(0.5, 0.5*0.5/vtc.z);\n" +
+			    "\tfloat w = min(0.4, 0.1/vtc.z);\n" +
 			    "\n" +
-			    "\tvec4 current = texture(te, vtc.xy*(1/512.0),0);\n" +
+			    "\tvec4 current = texture(te, vtc.xy*(1/1024.0),0);\n" +
 			    "\tfloat currenta = smoothstep(0.5-w, 0.5+w, current.r);\n" +
 			    "\tcurrenta = pow(currenta, 1/gamma);\n" +
 			    "\t_output  = vec4(1,1,1,currenta*opacity)*vertexColor;\n" +
@@ -137,7 +136,7 @@ public class TextDrawing extends Box {
 	}
 
 	public FontSupport getDefaultFont() {
-		return getFontSupport("source-sans-pro-regular.fnt");
+		return getFontSupport("source-sans-pro-regular-92.fnt");
 	}
 
 	public FontSupport getFontSupport(String filename) {

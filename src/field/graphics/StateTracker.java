@@ -62,6 +62,7 @@ public class StateTracker {
 	static public State<int[]> viewport = new State<int[]>() {
 		@Override
 		protected void apply(int[] value) {
+			Log.log("graphics.trace", "setting viewport to "+value[0]+" "+value[1]+" "+value[2]+" "+value[3]);
 			glViewport(value[0], value[1], value[2], value[3]);
 		}
 	};
@@ -69,6 +70,7 @@ public class StateTracker {
 	static public State<int[]> scissor = new State<int[]>() {
 		@Override
 		protected void apply(int[] value) {
+			Log.log("graphics.trace", "setting scissor to "+value[0]+" "+value[1]+" "+value[2]+" "+value[3]);
 			glScissor(value[0], value[1], value[2], value[3]);
 			glEnable(GL_SCISSOR_TEST);
 		}
@@ -77,6 +79,7 @@ public class StateTracker {
 	static public State<Integer> shader = new State<Integer>() {
 		@Override
 		protected void apply(Integer value) {
+			Log.log("graphics.trace", "setting program to "+value);
 			GL20.glUseProgram(value);
 		}
 	};

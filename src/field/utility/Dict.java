@@ -21,8 +21,6 @@ import java.util.function.Supplier;
 public class Dict implements Serializable, Linker.AsMap {
 	private static final long serialVersionUID = 4506062700963421662L;
 
-
-
 	static public class Canonical {
 		static protected Map<String, Prop> cannon = Collections.synchronizedMap(new HashMap<>());
 
@@ -147,14 +145,22 @@ public class Dict implements Serializable, Linker.AsMap {
 			try {
 				f = c.getField(name);
 			} catch (NoSuchFieldException e) {
-				if (name.startsWith("_")) try {
-					f = c.getField(name.substring(1));
-				} catch (NoSuchFieldException e1) {
-					if (name.startsWith("__")) try {
+
+				try {
+					f = c.getField("_"+name);
+				} catch (NoSuchFieldException e3) {
+					if (name.startsWith("_")) try {
 						f = c.getField(name.substring(1));
-					} catch (NoSuchFieldException e2) {
+					} catch (NoSuchFieldException e1) {
+						if (name.startsWith("__")) try {
+							f = c.getField(name.substring(1));
+						} catch (NoSuchFieldException e2) {
+						}
 					}
+
 				}
+
+
 			}
 			if (f == null)
 				throw new IllegalStateException(" cannot type a Dict.Prop<T> that we can't find. Name is :" + name + " class is :" + c);
@@ -172,6 +178,7 @@ public class Dict implements Serializable, Linker.AsMap {
 			this.autoConstructor = (Supplier) t;
 			return (Prop<T>) this;
 		}
+
 
 		public List<Class> getTypeInformation() {
 			return typeInformation == null ? null : new ArrayList<Class>(typeInformation);
@@ -192,10 +199,12 @@ public class Dict implements Serializable, Linker.AsMap {
 
 	@SuppressWarnings("unchecked")
 	public <T> T getOrConstruct(Prop<T> key) {
-		if (key.findCannon().autoConstructor != null) {
-			return (T) dictionary.computeIfAbsent(key, k -> key.findCannon().autoConstructor.get());
+
+		Prop<T> cc = key.findCannon();
+		if (cc!=null && cc.autoConstructor != null) {
+			return (T) dictionary.computeIfAbsent(key, k -> cc.autoConstructor.get());
 		}
-		return (T) dictionary.get(key);
+		return get(key);
 	}
 
 	public <T> T getOr(Prop<T> key, Supplier<T> def) {
@@ -216,6 +225,7 @@ public class Dict implements Serializable, Linker.AsMap {
 	public float getFloat(Prop<? extends Number> n, float def) {
 		Object x = get(n);
 		if (x instanceof Float[]) return ((Float[]) x)[0].floatValue();
+		if (x instanceof Boolean) return ((Boolean)x).booleanValue() ? 1 : 0f;
 		if (x instanceof float[]) return ((float[]) x)[0];
 
 		Number gotten = (Number) x;
@@ -285,6 +295,8 @@ public class Dict implements Serializable, Linker.AsMap {
 
 
 	public <T> Dict put(Prop<T> key, T value) {
+		if (value==null) return this;
+
 		dictionary.put(key, value);
 		return this;
 	}
@@ -344,14 +356,27 @@ public class Dict implements Serializable, Linker.AsMap {
 		}
 	}
 
-	public <T> Dict putToListMap(Prop<? extends LinkedHashMapAndArrayList<T>> key, T value) {
+	public <T> Dict putToList(Prop<? extends Collection<T>> key, T value, Supplier<? extends Collection<T>> def) {
 
 		if (key.toCannon().autoConstructor != null) {
 			Collection<T> c = (Collection<T>) dictionary.computeIfAbsent(key, (k) -> key.toCannon().autoConstructor.get());
 			c.add(value);
 			return this;
 		} else {
-			Collection<T> c = (Collection<T>) dictionary.computeIfAbsent(key, (k) -> new ArrayList<T>());
+			Collection<T> c = (Collection<T>) dictionary.computeIfAbsent(key, (k) -> def.get());
+			c.add(value);
+			return this;
+		}
+	}
+
+	public <T> Dict putToListMap(Prop<? extends LinkedHashMapAndArrayList<T>> key, T value) {
+
+		if (key.toCannon().autoConstructor != null) {
+			LinkedHashMapAndArrayList<T> c = (LinkedHashMapAndArrayList<T>) dictionary.computeIfAbsent(key, (k) -> key.toCannon().autoConstructor.get());
+			c.add(value);
+			return this;
+		} else {
+			LinkedHashMapAndArrayList<T> c = (LinkedHashMapAndArrayList<T>) dictionary.computeIfAbsent(key, (k) -> new ArrayList<T>());
 			c.add(value);
 			return this;
 		}
@@ -422,6 +447,16 @@ public class Dict implements Serializable, Linker.AsMap {
 		return dictionary.containsKey(context);
 	}
 
+	/**
+	 * null-safe equals.
+	 */
+	public <T> boolean equals(Prop<T> context, T v)
+	{
+		Object d = dictionary.get(context);
+		if (d==null) return v==null;
+		return d.equals(v);
+	}
+
 	public void removeValue(Object c) {
 		Set<Entry<Prop, Object>> es = dictionary.entrySet();
 		Iterator<Entry<Prop, Object>> is = es.iterator();
@@ -440,7 +475,8 @@ public class Dict implements Serializable, Linker.AsMap {
 
 	@Override
 	public boolean asMap_isProperty(String p) {
-		return has(new Prop(p));
+//		return has(new Prop(p));
+		return true;
 	}
 
 	@Override
@@ -455,7 +491,10 @@ public class Dict implements Serializable, Linker.AsMap {
 
 	@Override
 	public Object asMap_set(String p, Object o) {
-		return put(new Prop(p), o);
+		System.err.println(" -- asmap set :"+p+" -> "+o+" -- ");
+		Dict r = put(new Prop(p), o);
+		System.err.println(" -- asmap now :"+this);
+		return r;
 	}
 
 	@Override
@@ -467,4 +506,14 @@ public class Dict implements Serializable, Linker.AsMap {
 	public Object asMap_new(Object a, Object b) {
 		throw new NotImplementedException();
 	}
+	@Override
+	public Object asMap_getElement(int element) {
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public Object asMap_setElement(int element, Object v) {
+		throw new NotImplementedException();
+	}
+
 }

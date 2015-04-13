@@ -1,7 +1,7 @@
 package fielded.windowmanager;
 
 import com.badlogic.jglfw.Glfw;
-import field.graphics.RunLoop;
+import field.app.RunLoop;
 import field.graphics.Window;
 import field.utility.Dict;
 import field.utility.Log;

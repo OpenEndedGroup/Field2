@@ -2,6 +2,8 @@ package fieldbox.boxes;
 
 import field.graphics.Window;
 import field.utility.Dict;
+import field.utility.IdempotencyMap;
+import field.utility.Util;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -9,58 +11,57 @@ import java.util.stream.Collectors;
 /**
  * Entry-point from GLFW based Window.Event<Window.MouseState> into Field.
  * <p>
- * Boxes can add to properties "onMouseDown", "onMouseMove", "onMouseEnter" and "onMouseExit" to listen to these events. Optionally these can return
- * Draggers that will continue to be notified until corresponding mouse up events.
+ * Boxes can add to properties "onMouseDown", "onMouseMove", "onMouseEnter" and "onMouseExit" to listen to these events. Optionally these can return Draggers that will continue to be notified until
+ * corresponding mouse up events.
  */
 public class Mouse {
 
-	public interface Dragger {
-		public boolean update(Window.Event<Window.MouseState> e, boolean termination);
-	}
-
-	public interface OnMouseDown {
-		public Dragger onMouseDown(Window.Event<Window.MouseState> e, int button);
-	}
-
-	public interface OnMouseScroll {
-		public void onMouseScroll(Window.Event<Window.MouseState> e);
-	}
-
-	public interface OnMouseMove {
-		public Dragger onMouseMove(Window.Event<Window.MouseState> e);
-	}
-
-	public interface OnMouseEnter {
-		public Dragger onMouseEnter(Window.Event<Window.MouseState> e);
-	}
-
-	public interface OnMouseExit {
-		public void onMouseExit(Window.Event<Window.MouseState> e);
-	}
-
-	static public final Dict.Prop<Collection<OnMouseDown>> onMouseDown = new Dict.Prop<>("onMouseDown").type().toCannon();
-	static public final Dict.Prop<Collection<OnMouseMove>> onMouseMove = new Dict.Prop<>("onMouseMove").type().toCannon();
-	static public final Dict.Prop<Collection<OnMouseEnter>> onMouseEnter = new Dict.Prop<>("onMouseEnter").type().toCannon();
-	static public final Dict.Prop<Collection<OnMouseScroll>> onMouseScroll = new Dict.Prop<>("onMouseScroll").type().toCannon();
-	static public final Dict.Prop<Collection<OnMouseExit>> onMouseExit = new Dict.Prop<>("onMouseExit").type().toCannon();
-
-	static public final Dict.Prop<Boolean> isSelected = new Dict.Prop<>("isSelected").type().toCannon();
-	static public final Dict.Prop<Boolean> isSticky= new Dict.Prop<>("isSticky").type().toCannon();
-
+	static public final Dict.Prop<Map<String, OnMouseDown>> onMouseDown = new Dict.Prop<>("onMouseDown").type()
+													    .toCannon()
+													    .autoConstructs(() -> new IdempotencyMap<>(OnMouseDown.class));
+	static public final Dict.Prop<Map<String, OnMouseMove>> onMouseMove = new Dict.Prop<>("onMouseMove").type()
+													    .toCannon()
+													    .autoConstructs(() -> new IdempotencyMap<>(OnMouseMove.class));
+	static public final Dict.Prop<Map<String, OnMouseEnter>> onMouseEnter = new Dict.Prop<>("onMouseEnter").type()
+													       .toCannon()
+													       .autoConstructs(() -> new IdempotencyMap<>(OnMouseEnter.class));
+	static public final Dict.Prop<Map<String, OnMouseScroll>> onMouseScroll = new Dict.Prop<>("onMouseScroll").type()
+														  .toCannon()
+														  .autoConstructs(() -> new IdempotencyMap<>(OnMouseScroll.class));
+	static public final Dict.Prop<Map<String, OnMouseExit>> onMouseExit = new Dict.Prop<>("onMouseExit").type()
+													    .toCannon()
+													    .autoConstructs(() -> new IdempotencyMap<>(OnMouseExit.class));
+	static public final Dict.Prop<Boolean> isSelected = new Dict.Prop<>("isSelected").type()
+											 .toCannon();
+	static public final Dict.Prop<Boolean> isManipulated = new Dict.Prop<>("isManipulated").type()
+											       .toCannon();
+	static public final Dict.Prop<Boolean> isSticky = new Dict.Prop<>("isSticky").type()
+										     .toCannon();
 	Map<Integer, Collection<Dragger>> ongoingDrags = new HashMap<Integer, Collection<Dragger>>();
 
 	public void dispatch(Box root, Window.Event<Window.MouseState> event) {
 
-		Box startAt = root.breadthFirst(root.both()).filter(x -> x.properties.isTrue(isSelected, false)).findFirst().orElseGet( ()-> root);
+		Box startAt = root.breadthFirst(root.both())
+				  .filter(x -> x.properties.isTrue(isSelected, false) && !x.properties.isTrue(Mouse.isSticky, false))
+				  .findFirst()
+				  .orElseGet(() -> root);
+
+		System.out.println(" start at :"+startAt
+		);
 
 		Set<Integer> pressed = Window.MouseState.buttonsPressed(event.before, event.after);
 		Set<Integer> released = Window.MouseState.buttonsReleased(event.before, event.after);
 		Set<Integer> down = event.after.buttonsDown;
 
-		released.stream().map(r -> ongoingDrags.remove(r)).filter(x -> x != null).forEach(drags -> {
-			drags.stream().filter(d -> d!=null).forEach(dragger -> dragger.update(event, true));
-			drags.clear();
-		});
+		released.stream()
+			.map(r -> ongoingDrags.remove(r))
+			.filter(x -> x != null)
+			.forEach(drags -> {
+				drags.stream()
+				     .filter(d -> d != null)
+				     .forEach(dragger -> dragger.update(event, true));
+				drags.clear();
+			});
 
 		for (Collection<Dragger> d : ongoingDrags.values()) {
 			Iterator<Dragger> dd = d.iterator();
@@ -78,30 +79,80 @@ public class Mouse {
 			}
 		}
 
+		Util.Errors errors = new Util.Errors();
+
+
 		if (event.before.x != event.after.x || event.before.y != event.after.y) {
-			Set<Dragger> draggers = startAt.find(onMouseMove, startAt.both()).flatMap(x -> x.stream()).map(x -> x.onMouseMove(event))
-				    .filter(x -> x != null).collect(Collectors.toSet());
-			ongoingDrags.computeIfAbsent(-1, (k) -> new LinkedHashSet<Dragger>()).addAll(draggers);
+			Set<Dragger> draggers = startAt.find(onMouseMove, startAt.both())
+						       .flatMap(x -> x.values()
+								      .stream())
+						       .map(Util.wrap(x -> x.onMouseMove(event), errors, null, null))
+						       .filter(x -> x != null)
+						       .collect(Collectors.toSet());
+			ongoingDrags.computeIfAbsent(-1, (k) -> new LinkedHashSet<Dragger>())
+				    .addAll(draggers);
 		}
 
-		if (event.after.dwheely != 0.0 || event.after.dwheel != 0.0)
-			startAt.find(onMouseScroll, startAt.both()).flatMap(x -> x.stream()).forEach(x -> x.onMouseScroll(event));
+
+		if (event.after.dwheely != 0.0 || event.after.dwheel != 0.0) startAt.breadthFirst(startAt.both())
+										    .map(x -> {
+//					System.out.println(" mapped :" + x);
+											    return x;
+
+										    })
+										    .map(x -> x.properties.get(onMouseScroll))
+										    .filter(x -> x != null)
+										    .flatMap(x -> x.values()
+												   .stream())
+										    .forEach(Util.wrap(x -> x.onMouseScroll(event), errors));
 
 
-		pressed.stream().forEach(p -> {
-			Collection<Dragger> dragger = ongoingDrags.computeIfAbsent(p, (x) -> new ArrayList<>());
+		pressed.stream()
+		       .forEach(p -> {
+			       Collection<Dragger> dragger = ongoingDrags.computeIfAbsent(p, (x) -> new ArrayList<>());
 
-			// change map to handle errors on x
+			       System.out.println(" -- starting from "+startAt+" ::::::::::::::::::::::::::::::::::::::::::::");
+			       startAt.find(onMouseDown, startAt.both())
+					   .map(x -> {
+						   System.out.println(" -- looking at :"+x);
+						   return x;
+					   })
+				      .flatMap(x -> x.values()
+						     .stream())
+				      .map(Util.wrap(x -> x.onMouseDown(event, p), errors, null, Dragger.class))
+				      .filter(x -> x != null)
+				      .collect(Collectors.toCollection(() -> dragger));
+		       });
 
-			startAt.find(onMouseDown, root.both()).map(x -> {
+		if (errors.hasErrors()) {
+			errors.getErrors()
+			      .forEach(x -> {
+				      x.first.printStackTrace();
+			      });
+		}
 
-				System.out.println(" on mouse down order :"+x);
+	}
+	public interface Dragger {
+		public boolean update(Window.Event<Window.MouseState> e, boolean termination);
+	}
 
-				return x;
-			}).flatMap(x -> x.stream()).map(x -> x.onMouseDown(event, p)).filter(x -> x != null)
-				    .collect(Collectors.toCollection(() -> dragger));
-		});
 
+	public interface OnMouseDown {
+		public Dragger onMouseDown(Window.Event<Window.MouseState> e, int button);
+	}
+	public interface OnMouseScroll {
+		public void onMouseScroll(Window.Event<Window.MouseState> e);
+	}
+	public interface OnMouseMove {
+		public Dragger onMouseMove(Window.Event<Window.MouseState> e);
+	}
+
+	public interface OnMouseEnter {
+		public Dragger onMouseEnter(Window.Event<Window.MouseState> e);
+	}
+
+	public interface OnMouseExit {
+		public void onMouseExit(Window.Event<Window.MouseState> e);
 	}
 
 

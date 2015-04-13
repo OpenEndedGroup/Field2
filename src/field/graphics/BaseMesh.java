@@ -3,7 +3,6 @@ package field.graphics;
 import field.linalg.Vec3;
 import field.utility.Log;
 
-import java.lang.reflect.Array;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.Arrays;
@@ -32,7 +31,7 @@ public class BaseMesh extends Scene implements Scene.Perform {
 	 * return a view onto the vertex storage for this mesh. Write your vertex data into this FloatBuffer
 	 */
 	public FloatBuffer vertex(boolean readOnly) {
-		return buffer(0, 3).floats(false);
+		return buffer(0, 3).floats(readOnly);
 	}
 
 	/**
@@ -173,7 +172,7 @@ public class BaseMesh extends Scene implements Scene.Perform {
 		return limitVertex;
 	}
 
-	public int getElementDimension() { return elements.getDimension(); }
+	public int getElementDimension() { return elements==null ? 0 : elements.getDimension(); }
 
 	public void setBuffer(int attribute, ArrayBuffer buffer) {
 		if (buffer.getSize() < limitVertex) buffers[attribute] = buffer.replaceWithSize(limitVertex);
@@ -248,7 +247,6 @@ public class BaseMesh extends Scene implements Scene.Perform {
 			super.update(0, this::performNow);
 
 			glBindVertexArray(0);
-
 		}
 		return true;
 	}
@@ -268,6 +266,7 @@ public class BaseMesh extends Scene implements Scene.Perform {
 				if (primitiveSize == 0) {
 					glDrawArrays(primitiveType, 0, limitVertex);
 				} else {
+					Log.log("graphics.trace", () -> "drawing "+primitiveType+" "+limitElement+" "+primitiveSize);
 					glDrawElements(primitiveType, limitElement * primitiveSize, GL_UNSIGNED_INT, 0);
 				}
 				return true;
@@ -393,4 +392,8 @@ public class BaseMesh extends Scene implements Scene.Perform {
 		}
 	}
 
+	@Override
+	public String toString() {
+		return "BaseMesh:"+(this.elements==null ? null : this.elements.getDimension())+"/"+(this.elements==null ? null : (this.elements.ints(true).limit()/this.elements.getDimension()))+" "+(this.vertex(true).limit()/3);
+	}
 }

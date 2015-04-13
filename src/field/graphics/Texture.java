@@ -14,7 +14,7 @@ import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL21.GL_PIXEL_UNPACK_BUFFER;
-import static org.lwjgl.opengl.GL30.glGenerateMipmap;
+import static org.lwjgl.opengl.GL30.*;
 import static org.lwjgl.opengl.GL42.glTexStorage2D;
 
 
@@ -23,8 +23,7 @@ import static org.lwjgl.opengl.GL42.glTexStorage2D;
  * <p>
  * Handles async double-buffered PBO texture upload by default.
  * <p>
- * Follows the same pattern as FBO --- create a texture by picking one of the growing number of static helpers in TextureSpecification that mask the complexity
- * of OpenGL enums
+ * Follows the same pattern as FBO --- create a texture by picking one of the growing number of static helpers in TextureSpecification that mask the complexity of OpenGL enums
  */
 public class Texture extends BaseScene<Texture.State> implements Scene.Perform {
 
@@ -34,6 +33,8 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform {
 		protected int pboA;
 		protected int pboB;
 		protected int pbo;
+
+		int x0, x1, y0, y1;
 
 		protected ByteBuffer old;
 	}
@@ -46,11 +47,12 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform {
 
 	int mod = 0;
 
+	boolean isDoubleBuffered = true;
+
 	AtomicInteger pendingUploads = new AtomicInteger(0);
 
 	/**
-	 * schedules an upload from this bytebuffer to this texture during the next drawn. Set stream to true to hint to OpenGL that you mean to keep
-	 * on doing this.
+	 * schedules an upload from this bytebuffer to this texture during the next drawn. Set stream to true to hint to OpenGL that you mean to keep on doing this.
 	 */
 	public void upload(ByteBuffer upload, boolean stream) {
 		pendingUploads.incrementAndGet();
@@ -59,14 +61,19 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform {
 			State s = GraphicsContext.get(this, null);
 
 			Log.log("graphics.trace", "state for texture in upload is " + s);
+			Log.log("texture.trace", "upload, part 1, for texture " + this + " " + s + " " + upload.capacity());
 
 			if (s == null) return;
 
+			s.x0 = 0;
+			s.x1 = specification.width;
+			s.y0 = 0;
+			s.y1 = specification.height;
+
 			Log.log("graphics.trace", "uploading ");
-			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, s.pboA);
+			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, isDoubleBuffered ? (stream ? s.pboA : s.pboB) : s.pbo);
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 			glPixelStorei(GL_UNPACK_ROW_LENGTH, specification.width);
-			glBufferData(GL_PIXEL_UNPACK_BUFFER, specification.elementSize * specification.width * specification.height, stream ? GL15.GL_STREAM_DRAW : GL15.GL_STATIC_DRAW);
 			s.old = GL15.glMapBuffer(GL21.GL_PIXEL_UNPACK_BUFFER, GL15.GL_WRITE_ONLY, s.old);
 			s.old.rewind();
 			upload.rewind();
@@ -79,11 +86,54 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform {
 			GL15.glBindBuffer(GL21.GL_PIXEL_UNPACK_BUFFER, 0);
 			Log.log("graphics.trace", "uploaded part 1");
 			s.mod++;
-		}, -2));
+		}, -2).setOnceOnly());
 	}
 
-	public int getPendingUploads()
-	{
+	/**
+	 * schedules an upload from this bytebuffer to this texture during the next drawn. Set stream to true to hint to OpenGL that you mean to keep on doing this.
+	 */
+	public void upload(ByteBuffer upload, boolean stream, int x0, int y0, int x1, int y1) {
+		pendingUploads.incrementAndGet();
+		attach(new Transient(() -> {
+			pendingUploads.decrementAndGet();
+			State s = GraphicsContext.get(this, null);
+
+
+			Log.log("graphics.trace", "state for texture in upload is " + s);
+			Log.log("texture.trace", "upload, part 1, for texture " + this + " " + s + " " + upload.capacity());
+
+			if (s == null) return;
+			s.x0 = x0;
+			s.x1 = x1;
+			s.y0 = y0;
+			s.y1 = y1;
+			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, isDoubleBuffered ? (stream ? s.pboA : s.pboB) : s.pbo);
+			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+			glPixelStorei(GL_UNPACK_ROW_LENGTH, specification.width);
+
+			int start = specification.elementSize * (specification.width * y0 + x0);
+			int end = specification.elementSize * (specification.width * (y1 - 1) + x1);
+			s.old = glMapBufferRange(GL21.GL_PIXEL_UNPACK_BUFFER, start, end - start, GL30.GL_MAP_WRITE_BIT | GL30.GL_MAP_INVALIDATE_RANGE_BIT | GL30.GL_MAP_UNSYNCHRONIZED_BIT, s.old);
+
+			s.old.position(0);
+			upload.position(start);
+			upload.limit(end);
+			s.old.limit(end - start);
+
+			s.old.put(upload);
+
+			upload.clear();
+			upload.rewind();
+			s.old.clear();
+			s.old.rewind();
+			GL15.glUnmapBuffer(GL21.GL_PIXEL_UNPACK_BUFFER);
+			GL15.glBindBuffer(GL21.GL_PIXEL_UNPACK_BUFFER, 0);
+			Log.log("graphics.trace", "uploaded part 1");
+			s.mod++;
+		}, -2).setOnceOnly());
+	}
+
+	public int getPendingUploads() {
 		return pendingUploads.get();
 	}
 
@@ -91,7 +141,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform {
 
 		State s = GraphicsContext.get(this);
 
-		Log.log("graphics.trace", "activating texture :"+specification.unit+" = "+s.name);
+		Log.log("graphics.trace", "activating texture :" + specification.unit + " = " + s.name);
 
 		glActiveTexture(GL_TEXTURE0 + specification.unit);
 		glBindTexture(specification.target, s.name);
@@ -100,11 +150,25 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform {
 	}
 
 
+	public int getOpenGLNameInCurrentContext() {
+		State s = GraphicsContext.get(this);
+		if (s == null) throw new IllegalArgumentException("No state in this context");
+
+		return s.name;
+	}
+
+	public int getOpenGLNameInContext(GraphicsContext context) {
+		State s = context.lookup(this);
+		if (s == null) throw new IllegalArgumentException("No state in this context");
+
+		return s.name;
+	}
+
 	protected State setup() {
 		State s = new State();
 		s.name = glGenTextures();
 		s.pboA = glGenBuffers();
-		s.pboB = glGenBuffers();
+		if (isDoubleBuffered) s.pboB = glGenBuffers();
 		s.pbo = s.pboA;
 
 		glActiveTexture(GL_TEXTURE0 + specification.unit);
@@ -124,13 +188,28 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform {
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, specification.width);
 
-		glTexStorage2D(specification.target, specification.highQuality ? (int) (Math
-			    .floor(Math.log(Math.max(specification.width, specification.height)) / Math
-					.log(2)) + 1) : 1, specification.internalFormat, specification.width, specification.height);
+		glTexStorage2D(specification.target, specification.highQuality ? (int) (Math.floor(Math.log(Math.max(specification.width, specification.height)) / Math.log(2)) + 1) : 1,
+			       specification.internalFormat, specification.width, specification.height);
 		glTexSubImage2D(specification.target, 0, 0, 0, specification.width, specification.height, specification.format, specification.type, specification.pixels);
 		if (specification.highQuality) {
 			glGenerateMipmap(specification.target);
 		}
+
+
+		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, s.pbo);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, specification.width);
+		glBufferData(GL_PIXEL_UNPACK_BUFFER, specification.elementSize * specification.width * specification.height, GL15.GL_STREAM_DRAW);
+
+		if (isDoubleBuffered) {
+			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, s.pboB);
+			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+			glPixelStorei(GL_UNPACK_ROW_LENGTH, specification.width);
+			glBufferData(GL_PIXEL_UNPACK_BUFFER, specification.elementSize * specification.width * specification.height, GL15.GL_STREAM_DRAW);
+
+		}
+		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
 		return s;
 	}
 
@@ -163,6 +242,10 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform {
 			return new TextureSpecification(unit, GL_TEXTURE_2D, GL_RGB8, width, height, GL_RGB, GL_UNSIGNED_BYTE, 3, source, mips);
 		}
 
+		static public TextureSpecification byte1(int unit, int width, int height, ByteBuffer source, boolean mips) {
+			return new TextureSpecification(unit, GL_TEXTURE_2D, GL_R8, width, height, GL_RED, GL_UNSIGNED_BYTE, 1, source, mips);
+		}
+
 		static public TextureSpecification fromJpeg(int unit, String filename, boolean mips) {
 			int[] wh = FastJPEG.j.dimensions(filename);
 			ByteBuffer data = ByteBuffer.allocateDirect(3 * wh[0] * wh[1]);
@@ -181,28 +264,55 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform {
 		static public TextureSpecification float4_1d(int unit, int width, ByteBuffer source, boolean mips) {
 			return new TextureSpecification(unit, GL_TEXTURE_1D, GL30.GL_RGBA32F, width, 1, GL_RGBA, GL_FLOAT, 16, source, mips);
 		}
+
+		@Override
+		public String toString() {
+			return "TextureSpecification{" +
+				    "unit=" + unit +
+				    ", target=" + target +
+				    ", internalFormat=" + internalFormat +
+				    ", width=" + width +
+				    ", height=" + height +
+				    ", format=" + format +
+				    ", type=" + type +
+				    ", elementSize=" + elementSize +
+				    ", highQuality=" + highQuality +
+				    ", pixels=" + pixels +
+				    '}';
+		}
 	}
 
 	protected int upload(State s) {
 
 		Log.log("graphics.trace", "finishing upload part 2");
+		Log.log("texture.trace", "finishing upload part 2" + " " + specification);
+
 		glActiveTexture(GL_TEXTURE0 + specification.unit);
 		glBindTexture(specification.target, s.name);
-		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, s.pbo);
+		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, isDoubleBuffered ? s.pboB : s.pbo);
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, specification.width);
-		glTexSubImage2D(specification.target, 0, 0, 0, specification.width, specification.height, specification.format, specification.type, 0);
+
+		int top = specification.elementSize*s.y0*specification.width;
+		glTexSubImage2D(specification.target, 0, 0, s.y0, specification.width, s.y1-s.y0-1, specification.format, specification.type, top);
+
 		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 		if (specification.highQuality) {
 			glGenerateMipmap(specification.target);
 		}
 		long b = System.currentTimeMillis();
 
-		int q = s.pboA;
-		s.pboA = s.pboB;
-		s.pboB = q;
-
+		if (isDoubleBuffered) {
+			int q = s.pboA;
+			s.pboA = s.pboB;
+			s.pboB = q;
+		}
 		return mod;
+	}
+
+	public Texture setIsDoubleBuffered(boolean isDoubleBuffered) {
+		this.isDoubleBuffered = isDoubleBuffered;
+		return this;
 	}
 
 	@Override
@@ -214,6 +324,6 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform {
 	protected void deallocate(State s) {
 		glDeleteTextures(s.name);
 		glDeleteBuffers(s.pboA);
-		glDeleteBuffers(s.pboB);
+		if (isDoubleBuffered) glDeleteBuffers(s.pboB);
 	}
 }

@@ -50,10 +50,11 @@ public class IsExecuting extends Box {
 				}
 
 				FLine f = new FLine();
-				f.rect(rect.x, rect.y, rect.w, rect.h);
+				int i=-3;
+				f.rect(rect.x+i, rect.y+i, rect.w-i*2, rect.h-i*2);
 				f.attributes.put(filled, true);
-				f.attributes.put(fillColor, new Vec4(0.2f, 0.5f, 0.3f, -0.2f));
-				f.attributes.put(color, new Vec4(0.2f, 0.5f, 0.3f, 0.8f));
+				f.attributes.put(fillColor, new Vec4(Colors.executionColor, -0.2f));
+				f.attributes.put(color, new Vec4(Colors.executionColor, 0.8f));
 
 				return f;
 

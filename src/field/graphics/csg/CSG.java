@@ -38,6 +38,8 @@ package field.graphics.csg;
  * <info@michaelhoffer.de>.
  */
 
+import field.graphics.FLine;
+import field.graphics.FLinesAndJavaShapes;
 import field.graphics.MeshBuilder;
 import field.linalg.Vec3;
 import quickhull3d.Point3d;
@@ -131,8 +133,7 @@ public class CSG {
 			polygonStream = polygons.stream();
 		}
 
-		csg.polygons = polygonStream.
-							map((Polygon p) -> p.clone())
+		csg.polygons = polygonStream.map((Polygon p) -> p.clone())
 					    .collect(Collectors.toList());
 
 		return csg;
@@ -736,12 +737,25 @@ public class CSG {
 
 
 	public void toMeshBuilder(MeshBuilder builder) {
-		try(MeshBuilder b = builder.open()) {
+		try (MeshBuilder b = builder.open()) {
 			this.polygons.stream()
 				     .forEach(p -> b.nextContour(p.vertices.stream()
-										 .map(x -> x.pos)
-										 .collect(Collectors.toList())));
+									   .map(x -> x.pos)
+									   .collect(Collectors.toList())));
 		}
+	}
+
+	public void toFLine(FLine f)
+	{
+		this.polygons.stream().forEach(p -> {
+			f.data("ml*", p.vertices.stream().map(x -> x.pos).iterator());
+		});
+	}
+
+	static public CSG fromFLine(FLine f)
+	{
+		List<FLine> segments = new FLinesAndJavaShapes().segment(f);
+		return CSG.fromPolygons(segments.stream().map(l -> new FLinesAndJavaShapes().positions(l, 0.1f)).map(x->new Polygon(x.stream().map(p -> new Vertex(p, new Vec3(0,0,0))).collect(Collectors.toList()))).collect(Collectors.toList()));
 	}
 
 

@@ -2,7 +2,6 @@ package field.utility;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.sun.istack.internal.Nullable;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -26,7 +25,6 @@ public class Log {
 
 	// we default to logging everything
 	static protected
-	@Nullable
 	BiConsumer<String, Object> _fallthrough = Log::println;
 
 	// Use --------------------------------
@@ -100,7 +98,7 @@ public class Log {
 	/**
 	 * sets the default action for messages that are not matched by anything (by default the default action is "println")
 	 */
-	static public void fallthrough(@Nullable BiConsumer<String, Object> b) {
+	static public void fallthrough(BiConsumer<String, Object> b) {
 		_fallthrough = b;
 	}
 

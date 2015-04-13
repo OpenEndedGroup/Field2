@@ -1,4 +1,5 @@
-// CEF has problems with access the native clipboard. So here we'll duplicate some of the emacs mode kill ring functionality, dress it up like command-c,v,x, and, later on, sync it with the native clipboard via our websocket
+// CEF has problems with access the native clipboard. So here we'll duplicate some of the emacs mode kill ring functionality, dress it up like
+// command-c,v,x, and, later on, sync it with the native clipboard via our websocket
 var killRing = [];
 
 function addToRing(str) {
@@ -39,34 +40,31 @@ function kill(cm, from, to, mayGrow, text) {
     else lastKill = null;
 }
 
-
 function copy() {
-    _field.send("clipboard.setClipboard", {value:cm.getSelection()});
+    _field.send("clipboard.setClipboard", {value: cm.getSelection()});
     addToRing(cm.getSelection())
 }
 
 function cut() {
-    _field.send("clipboard.setClipboard", {value:cm.getSelection()});
+    _field.send("clipboard.setClipboard", {value: cm.getSelection()});
     kill(cm, cm.getCursor("start"), cm.getCursor("end"));
 }
 
-function getNewClipboard(contin)
-{
-	_field.sendWithReturn("clipboard.getNewClipboard", {}, contin);
+function getNewClipboard(contin) {
+    _field.sendWithReturn("clipboard.getNewClipboard", {}, contin);
 }
 
 function paste() {
-	_field.log("about to paste")
-		var newText = getNewClipboard(function(newText){
-	_field.log("in continuation")
-			if (newText != null)
-				addToRing(newText)
+    _field.log("about to paste")
+    var newText = getNewClipboard(function (newText) {
+        _field.log("in continuation")
+        if (newText != null)
+            addToRing(newText)
 
-
-    	var start = cm.getCursor();
-  	  cm.replaceRange(getFromRing(0), start, start, "paste");
-	    cm.setSelection(start, cm.getCursor());
-		})
+        var start = cm.getCursor();
+        cm.replaceRange(getFromRing(0), start, start, "paste");
+        cm.setSelection(start, cm.getCursor());
+    })
 }
 
 function pasteAgain() {
