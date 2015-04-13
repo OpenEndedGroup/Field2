@@ -10,17 +10,11 @@ Welcome to the Field2 development repository. _This codebase is experimental and
 
  * Not strictly a prerequisite - ```Intellij IDEA``` (a java development environment) from http://www.jetbrains.com/idea/.
 
- * ```java``` itself. Either get a JDK 8 (not a JRE 8) from your Linux distribution or install one from Oracle. JDK 8u5 should be sufficient (the EA version 8u20 is good for running Field2 but, alas, JavaC crashes with an internal error while building).
+ * ```java``` itself. Either get a JDK 8 or 9 EA. 
 
-To build, either invest the time importing the code-base into Idea (very recommended), or edit fieldwork2.properties in the repository and and build using ```ant -f fieldwork2.xml```
+To build, either invest the time importing the code-base into Idea (very recommended), or edit ```fieldwork2.properties``` in the repository and and build using ```build.sh``` (this calls ```ant -f fieldwork2.xml```)
 
 Statically-linked built versions of native dependencies are included in the repository (currently we have a version of GLFW 3.1, a fast jpeg loading library and LWJGL).
-
-To run Field2 we have the following dependencies:
-
- * ```wmctrl``` (a window manager tool) installed via ```sudo apt-get install wmctrl```
-
- * ```chrome developer "channel"``` (a version of Chrome with leading-edge features), installed from [here](https://www.google.com/chrome/browser/?platform=linux&extra=devchannel). You'll need to turn "experimental web platform features" and "experimental javascript features" on at the chrome://flags configuration page.
 
 Then, assuming an error-free build:
 
@@ -29,7 +23,7 @@ cd ((therepository))
 ./f fieldbox.FieldBox -file something.field2 -threaded 1 
 ```
 
-on OSX subsitute ```./f_mac``` for ```./f```. Note you may need to edit your ```./f``` script to point to the location of your JDK. Additionally you'll want to add `-retina 1` to your command line on Retina displays (#39).
+on OSX subsitute ```./f_mac``` for ```./f```. Note you may need to edit your ```./f``` script to point to the location of your JDK. Additionally you'll want to add `-retina 1` to your command line on Retina displays issue #39 .
 
 ```fieldbox.FieldBox``` is the Java Class that's the main entry-point into Field2. 
  
