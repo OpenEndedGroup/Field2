@@ -2,46 +2,53 @@ var lineNumbers = $(".CodeMirror-linenumbers").get(0)
 
 raph = Raphael(lineNumbers, "100%", "100%")
 
+function executeBracket(bra) {
+    bra.attr({
+        fill: "#afc"
+    }).animate({
+        fill: "#fff"
+    }, 500)
+
+    anchorLine = Math.max(cm.getLineNumber(bra.h1), cm.getLineNumber(bra.h2))
+
+    c = cm.getCursor()
+
+    fragment = cm.getDoc().getRange({
+        line: cm.getLineNumber(bra.h1),
+        ch: 0
+    }, {
+        line: cm.getLineNumber(bra.h2) + 1,
+        ch: 0
+    })
+
+    //       fragment = cm.getSelections()[0]
+
+    _field.sendWithReturn("execution.fragment", {
+        box: cm.currentbox,
+        property: cm.currentproperty,
+        text: fragment,
+        lineoffset: cm.getLineNumber(bra.h1)
+    }, function (d, e) {
+        if (d.type == 'error')
+            appendRemoteOutputToLine(anchorLine, d.line + " : " + d.message, "Field-remoteOutput", "Field-remoteOutput-error", 1)
+        else
+            appendRemoteOutputToLine(anchorLine, d.message, "Field-remoteOutput-error", "Field-remoteOutput", 1)
+    });
+}
 function executeCurrentBracket() {
     if (currentBracket != null) {
+        executeBracket(currentBracket)
 
-        currentBracket.attr({
-            fill: "#afc"
-        }).animate({
-            fill: "#fff"
-        }, 500)
-
-        anchorLine = Math.max(cm.getLineNumber(currentBracket.h1), cm.getLineNumber(currentBracket.h2) + 1)
-
-        c = cm.getCursor()
-        cm.setSelection({
-            line: cm.getLineNumber(currentBracket.h1),
-            ch: 0
-        }, {
-            line: cm.getLineNumber(currentBracket.h2) + 1,
-            ch: 0
-        })
-
-        fragment = cm.getSelections()[0]
-
-        _field.sendWithReturn("execution.fragment", {
-            box: cm.currentbox,
-            property: cm.currentproperty,
-            text: fragment
-        }, function(d, e) {
-            if (d.type == 'error')
-                appendRemoteOutputToLine(anchorLine, d.line + " : " + d.message, "Field-remoteOutput", "Field-remoteOutput-error", 1)
-            else
-                appendRemoteOutputToLine(anchorLine, d.message, "Field-remoteOutput-error", "Field-remoteOutput", 1)
-        });
     }
 }
 
 function rectForLineHandle(lh) {
     var y = cm.getLineNumber(lh);
+
     if (y > -1) {
         z = cm.charCoords({
-            line: y
+            line: y,
+            ch: 1
         });
 
         li = cm.lineInfo(lh)
@@ -65,7 +72,8 @@ function rectForLineHandle(lh) {
 function pathStringForTwoLineHandles(lh1, lh2, level) {
     r1 = rectForLineHandle(lh1)
     r2 = rectForLineHandle(lh2)
-    console.log("rect for line " + cm.getLineNumber(lh1) + " is " + r1.bottom + " " + r1.top)
+//    console.log("rect for line1 " + cm.getLineNumber(lh1) + " is " + r1.bottom + " " + r1.top)
+//    console.log("rect for line2 " + cm.getLineNumber(lh2) + " is " + r2.bottom + " " + r2.top)
     if (r1 && r2) {
         sz = (r2.bottom - r1.top) / 8
         sz = -18 + level * 7
@@ -77,8 +85,10 @@ function pathStringForTwoLineHandles(lh1, lh2, level) {
         w2 = 48
         w3 = 10 + sz - 10
         w3 = sz;
-        //								return "M" + w2 + "," + r1.top + "L" + w + "," + r1.top + "C" + (-8 + w3) + "," + r1.top + "," + (20 + w3) + "," + ((r1.top + r2.bottom) / 2) + "," + w3 + "," + ((r1.top + r2.bottom) / 2) + "C" + (20 + w3) + "," + ((r1.top + r2.bottom) / 2) + "," + (-8 + w3) + "," + r2.bottom + "," + w + "," + r2.bottom + "L" + w2 + "," + r2.bottom;
-        //						 return "M"+w2+","+r1.top+"L"+w+","+r1.top+"L"+w+","+r2.bottom+"L"+w2+","+r2.bottom;
+        //								return "M" + w2 + "," + r1.top + "L" + w + "," + r1.top + "C" + (-8 + w3) + "," + r1.top + "," + (20 + w3)
+        // + "," + ((r1.top + r2.bottom) / 2) + "," + w3 + "," + ((r1.top + r2.bottom) / 2) + "C" + (20 + w3) + "," + ((r1.top + r2.bottom) / 2) +
+        // "," + (-8 + w3) + "," + r2.bottom + "," + w + "," + r2.bottom + "L" + w2 + "," + r2.bottom; return
+        // "M"+w2+","+r1.top+"L"+w+","+r1.top+"L"+w+","+r2.bottom+"L"+w2+","+r2.bottom;
 
         rr = -10;
 
@@ -88,7 +98,6 @@ function pathStringForTwoLineHandles(lh1, lh2, level) {
 }
 
 raph.clear()
-
 
 function makePathForHandles(h1, h2, level) {
     f = findPathForLines(h1, h2)
@@ -123,20 +132,20 @@ function makePathForHandles(h1, h2, level) {
             'stroke-dasharray': '.'
         })
 
-        path.mouseover(function() {
+        path.mouseover(function () {
             path.attr({
                 "stroke-opacity": 1.0,
                 stroke: "#fff"
             })
         })
-        path.mouseout(function() {
+        path.mouseout(function () {
             path.attr({
                 "stroke-opacity": 0.0,
                 stroke: "#000"
             })
         })
-        path.mousedown(function(e) {
-            console.log("down?", e, e.altDown)
+        path.mousedown(function (e) {
+            console.log("down?" + e.altKey + " " + e.button)
             if (e.altKey) {
                 currentBracket = path;
                 executeCurrentBracket();
@@ -147,10 +156,10 @@ function makePathForHandles(h1, h2, level) {
         path.h2 = h2
         path.isHandleDecorator = 1
 
-        h1.on("delete", function(x) {
+        h1.on("delete", function (x) {
             path.remove()
         })
-        h2.on("delete", function(x) {
+        h2.on("delete", function (x) {
             path.remove()
         })
 
@@ -162,7 +171,7 @@ function makePathForHandles(h1, h2, level) {
 function serializeAllBrackets() {
     ret = ""
     updateAllBrackets()
-    raph.forEach(function(e) {
+    raph.forEach(function (e) {
         if ("isHandleDecorator" in e) {
             ret += "makePathForHandles(cm.getLineHandle(" + cm.getLineNumber(e.h1) + "), cm.getLineHandle(" + cm.getLineNumber(e.h2) + "), " + e.level + ")\n"
         }
@@ -172,7 +181,7 @@ function serializeAllBrackets() {
 
 function findPathForLines(h1, h2) {
     var found;
-    raph.forEach(function(e) {
+    raph.forEach(function (e) {
         if ("isHandleDecorator" in e) {
             if (cm.getLineNumber(e.h1) == h1 && cm.getLineNumber(e.h2) == h2)
                 found = e
@@ -186,10 +195,11 @@ function recurSortConflictsOf(at, level) {
     var b = (cm.getLineNumber(at.h2))
     at.level = level
     at.deltWith = 1
-    raph.forEach(function(e) {
+    raph.forEach(function (e) {
         if ("isHandleDecorator" in e && e.deltWith == 0 && e != at) {
             var a2 = (cm.getLineNumber(e.h1))
             var b2 = (cm.getLineNumber(e.h2))
+
             if (a2 <= b && b2 >= a) {
                 recurSortConflictsOf(e, level + 1);
             }
@@ -198,31 +208,58 @@ function recurSortConflictsOf(at, level) {
 }
 
 function sortConflicts() {
-    raph.forEach(function(e) {
+    raph.forEach(function (e) {
         if ("isHandleDecorator" in e)
             e.deltWith = 0
+        e.kill = 0
     })
-    raph.forEach(function(e) {
+    raph.forEach(function (e) {
         if ("isHandleDecorator" in e && e.deltWith == 0) {
             recurSortConflictsOf(e, 0);
         }
     })
-    raph.forEach(function(e) {
+    raph.forEach(function (e) {
         if ("isHandleDecorator" in e) {
             console.log("bracket level is " + e.level);
         }
     })
-}
 
+    raph.forEach(function (e) {
+        var a = (cm.getLineNumber(e.h1))
+        var b = (cm.getLineNumber(e.h2))
+        raph.forEach(function (e2) {
+            if ("isHandleDecorator" in e && e != e2) {
+                var a2 = (cm.getLineNumber(e2.h1))
+                var b2 = (cm.getLineNumber(e2.h2))
+                if (a == a2 && b == b2) {
+                    if (e.level > e2.level) {
+                        e.kill = 1
+                    }
+                    else {
+                        e2.kill = 1
+                    }
+                }
+            }
+        })
+    });
+    raph.forEach(function (e) {
+        if ("isHandleDecorator" in e) {
+            if (e.kill == 1) {
+                e.remove();
+            }
+        }
+    })
+
+}
 
 function findEnclosingPathForLine(line) {
     var found = null;
-    raph.forEach(function(e) {
+    raph.forEach(function (e) {
         if ("isHandleDecorator" in e) {
             if (cm.getLineNumber(e.h1) <= line && cm.getLineNumber(e.h2) >= line) {
                 if (found == null)
                     found = e
-                else if (Math.abs(cm.getLineNumber(found.h1) - cm.getLineNumber(found.h2)) > Math.abs(cm.getLineNumber(e.h1) - cm.getLineNumber(e.h1)))
+                else if (Math.abs(cm.getLineNumber(found.h1) - cm.getLineNumber(found.h2)) > Math.abs(cm.getLineNumber(e.h1) - cm.getLineNumber(e.h2)))
                     found = e
             }
         }
@@ -234,12 +271,19 @@ raph.clear()
 
 var currentBracket = null;
 
+// while dragging
+var ignoreBracketChanges = false;
+
 function updateAllBrackets() {
+    if (ignoreBracketChanges) return;
 
     sortConflicts();
-    raph.forEach(function(e) {
+    raph.forEach(function (e) {
         if ("isHandleDecorator" in e) {
             var ps = pathStringForTwoLineHandles(e.h1, e.h2, e.level)
+
+            console.log("PS " + ps);
+
             if (ps) {
                 e.attr({
                     path: ps,
@@ -262,7 +306,7 @@ function updateAllBrackets() {
             "stroke-opacity": 1.0
         })
         f.attr({
-            'stroke-dasharray': '-'
+            'stroke-dasharray': ''
         })
         currentBracket = f
     } else {
@@ -273,24 +317,55 @@ function updateAllBrackets() {
 
 updateAllBrackets()
 
-cm.on("change", function(x, c) {
+var currentErrorLine = null;
+
+cm.on("change", function (x, c) {
     updateAllBrackets()
+    if (currentErrorLine) {
+        cm.removeLineClass(currentErrorLine, "background")
+        currentErrorLine = null;
+    }
 })
 
-cm.on("cursorActivity", function(x, c) {
+_messageBus.subscribe("error.line", function (d, e) {
+    if (d.line) {
+        if (currentErrorLine) {
+            cm.removeLineClass(currentErrorLine, "background")
+            currentErrorLine = null;
+        }
+        currentErrorLine = cm.addLineClass(d.line - 1, "background", "FieldError-line");
+    }
+});
+
+cm.on("cursorActivity", function (x, c) {
     var f = findEnclosingPathForLine(cm.getCursor().line)
     if (f != currentBracket) {
         updateAllBrackets();
     }
 })
 
-cm.on("fold", function(x, c) {
+cm.on("fold", function (x, c) {
     updateAllBrackets()
 })
-cm.on("unfold", function(x, c) {
+cm.on("unfold", function (x, c) {
     updateAllBrackets()
 })
 
-$(window).resize(function() {
+$(window).resize(function () {
     updateAllBrackets()
 })
+
+globalCommands.push({
+    "name": "Remove current bracket",
+    "info": "Deletes the bracket that the cursor is currently inside",
+    "callback": function () {
+        updateAllBrackets();
+        if (currentBracket != null)
+            currentBracket.remove();
+    },
+    "guard": function () {
+        updateAllBrackets();
+        console.log("currentbracket? " + currentBracket);
+        return currentBracket != null;
+    }
+});

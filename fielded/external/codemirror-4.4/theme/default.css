@@ -17,19 +17,19 @@
 .cm-s-default span.cm-bracket0, .cm-s-default span.cm-bracket-mismatched { color:#f88; background:#733; }
 
 .cm-s-default span.cm-symbol {color: #ccc;}
-.cm-s-default span.cm-variable {color: #ccc;}
+.cm-s-default span.cm-variable {color: #dcb;}
 .cm-s-default span.cm-variable-2 {color: #acf}
 .cm-s-default span.cm-string {color: #add}
 .cm-s-default span.cm-string-2 {color: #add;}
-.cm-s-default span.cm-number {color: #ccc;}
+.cm-s-default span.cm-number {color: #fba;}
 .cm-s-default span.cm-def {color:#acf;}
 .cm-s-default span.cm-builtin {color: #aec;}
 .cm-s-default span.cm-header {color: #aec;}
-.cm-s-default span.cm-property {color: #aaa; }
-.cm-s-default span.cm-operator {color: #aaa; }
-.cm-s-default span.cm-keyword {color: #aec; }
+.cm-s-default span.cm-property {color: #aab; }
+.cm-s-default span.cm-operator {color: #cba; }
+.cm-s-default span.cm-keyword {color: #dba; }
 .cm-s-default span.cm-qualifier {color: #aec; }
-.cm-s-default span.cm-attribute {color: #aec; }
+.cm-s-default span.cm-attribute {color: #aef; }
 .cm-s-default span.cm-meta {color: #aec; }
 .cm-s-default span.cm-atom { color: #caf; }
 .cm-s-default span.cm-tag {color: #acf;}
