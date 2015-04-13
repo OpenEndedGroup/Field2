@@ -38,7 +38,7 @@ class CefRendererBrowserAWT extends CefBrowser_N {
 		context_ = context;
 		parent_ = parent;
 
-		// Disabling lightweight of popup menu is required because
+		// Disabling lightweight of popup menuSpecs is required because
 		// otherwise it will be displayed behind the content of canvas_
 		JPopupMenu.setDefaultLightWeightPopupEnabled(false);
 		ToolTipManager.sharedInstance().setLightWeightPopupEnabled(false);

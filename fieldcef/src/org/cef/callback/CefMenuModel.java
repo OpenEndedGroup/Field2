@@ -34,7 +34,7 @@ public interface CefMenuModel {
 		public static final int MENU_ID_PRINT = 131;
 		public static final int MENU_ID_VIEW_SOURCE = 132;
 
-		// All user-defined menu IDs should come between MENU_ID_USER_FIRST and
+		// All user-defined menuSpecs IDs should come between MENU_ID_USER_FIRST and
 		// MENU_ID_USER_LAST to avoid overlapping the Chromium and CEF ID ranges
 		// defined in the tools/gritsettings/resource_ids file.
 		public static final int MENU_ID_USER_FIRST = 26500;
@@ -42,7 +42,7 @@ public interface CefMenuModel {
 	}
 
 	/**
-	 * Supported menu item types.
+	 * Supported menuSpecs item types.
 	 */
 	public enum MenuItemType {
 		MENUITEMTYPE_NONE,
@@ -54,63 +54,63 @@ public interface CefMenuModel {
 	}
 
 	/**
-	 * Clears the menu. Returns true on success.
+	 * Clears the menuSpecs. Returns true on success.
 	 */
 	boolean clear();
 
 	/**
-	 * Returns the number of items in this menu.
+	 * Returns the number of items in this menuSpecs.
 	 */
 	int getCount();
 
 	/**
-	 * Add a separator to the menu. Returns true on success.
+	 * Add a separator to the menuSpecs. Returns true on success.
 	 */
 	boolean addSeparator();
 
 	/**
-	 * Add an item to the menu. Returns true on success.
+	 * Add an item to the menuSpecs. Returns true on success.
 	 */
 	boolean addItem(int command_id, String label);
 
 	/**
-	 * Add a check item to the menu. Returns true on success.
+	 * Add a check item to the menuSpecs. Returns true on success.
 	 */
 	boolean addCheckItem(int command_id, String label);
 
 	/**
-	 * Add a radio item to the menu. Only a single item with the specified |group_id| can be checked at a time. Returns true on success.
+	 * Add a radio item to the menuSpecs. Only a single item with the specified |group_id| can be checked at a time. Returns true on success.
 	 */
 	boolean addRadioItem(int command_id, String label, int group_id);
 
 	/**
-	 * Add a sub-menu to the menu. The new sub-menu is returned.
+	 * Add a sub-menuSpecs to the menuSpecs. The new sub-menuSpecs is returned.
 	 */
 	CefMenuModel addSubMenu(int command_id, String label);
 
 	/**
-	 * Insert a separator in the menu at the specified |index|. Returns true on success.
+	 * Insert a separator in the menuSpecs at the specified |index|. Returns true on success.
 	 */
 	boolean insertSeparatorAt(int index);
 
 	/**
-	 * Insert an item in the menu at the specified |index|. Returns true on success.
+	 * Insert an item in the menuSpecs at the specified |index|. Returns true on success.
 	 */
 	boolean insertItemAt(int index, int command_id, String label);
 
 	/**
-	 * Insert a check item in the menu at the specified |index|. Returns true on success.
+	 * Insert a check item in the menuSpecs at the specified |index|. Returns true on success.
 	 */
 	boolean insertCheckItemAt(int index, int command_id, String label);
 
 	/**
-	 * Insert a radio item in the menu at the specified |index|. Only a single item with the specified |group_id| can be checked at a time.
+	 * Insert a radio item in the menuSpecs at the specified |index|. Only a single item with the specified |group_id| can be checked at a time.
 	 * Returns true on success.
 	 */
 	boolean insertRadioItemAt(int index, int command_id, String label, int group_id);
 
 	/**
-	 * Insert a sub-menu in the menu at the specified |index|. The new sub-menu is returned.
+	 * Insert a sub-menuSpecs in the menuSpecs at the specified |index|. The new sub-menuSpecs is returned.
 	 */
 	CefMenuModel insertSubMenuAt(int index, int command_id, String label);
 
@@ -125,7 +125,7 @@ public interface CefMenuModel {
 	boolean removeAt(int index);
 
 	/**
-	 * Returns the index associated with the specified |command_id| or -1 if not found due to the command id not existing in the menu.
+	 * Returns the index associated with the specified |command_id| or -1 if not found due to the command id not existing in the menuSpecs.
 	 */
 	int getIndexOf(int command_id);
 

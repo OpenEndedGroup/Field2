@@ -9,7 +9,7 @@ import org.cef.callback.CefContextMenuParams;
 import org.cef.callback.CefMenuModel;
 
 /**
- * An abstract adapter class for receiving context menu events. The methods in this class are empty. This class exists as convenience for creating
+ * An abstract adapter class for receiving context menuSpecs events. The methods in this class are empty. This class exists as convenience for creating
  * handler objects.
  */
 public abstract class CefContextMenuHandlerAdapter implements CefContextMenuHandler {

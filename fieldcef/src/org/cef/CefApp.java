@@ -4,7 +4,6 @@
 
 package org.cef;
 
-import field.utility.Log;
 import org.cef.callback.CefSchemeHandlerFactory;
 import org.cef.handler.CefAppHandler;
 import org.cef.handler.CefAppHandlerAdapter;
@@ -22,6 +21,8 @@ import java.util.concurrent.locks.ReentrantLock;
  * Exposes static methods for managing the global CEF context.
  */
 public class CefApp extends CefAppHandlerAdapter {
+
+
 	/**
 	 * According the singleton pattern, this attribute keeps one single object of this class.
 	 */
@@ -51,6 +52,9 @@ public class CefApp extends CefAppHandlerAdapter {
 		}
 		System.out.println(" load library jcef ");
 		System.loadLibrary("jcef");
+
+
+
 		if (appHandler_ == null) {
 			appHandler_ = this;
 		}
@@ -72,6 +76,11 @@ public class CefApp extends CefAppHandlerAdapter {
 
 	public static synchronized CefApp getInstance(String[] args) throws UnsatisfiedLinkError {
 		if (self == null) {
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 			self = new CefApp(args);
 		}
 		return self;
@@ -161,7 +170,9 @@ public class CefApp extends CefAppHandlerAdapter {
 				try {
 					super.start();
 					// start thread and wait until CEF is up and running
+					System.err.println(" waiting until initialization has finished ");
 					cefInitialized.awaitUninterruptibly();
+					System.err.println(" initialization claims to be finished ");
 				} finally {
 					lock.unlock();
 				}
@@ -170,11 +181,13 @@ public class CefApp extends CefAppHandlerAdapter {
 
 		@Override
 		public void run() {
+			Thread.currentThread().setName("jcef context thread created by us");
 			// synchronize startup with starting process
 			lock.lock();
 			try {
 				// (1) Initialize native system.
 				initialize();
+				System.err.println(" initialization has finished ");
 				cefInitialized.signal();
 
 				/*
@@ -197,6 +210,7 @@ public class CefApp extends CefAppHandlerAdapter {
 				boolean doLoop = true;
 				while (doLoop) {
 					N_DoMessageLoopWork();
+
 					try {
 						doLoop = !cefShutdown.await(33, TimeUnit.MILLISECONDS);
 					} catch (Exception e) {
@@ -235,7 +249,9 @@ public class CefApp extends CefAppHandlerAdapter {
 		String library_path = getJcefLibPath();
 		System.out.println("initialize on " + Thread.currentThread() +
 			    " with library path " + library_path);
+		System.err.println(" calling N_initialize <"+appHandler_+">");
 		isInitialized_ = N_Initialize(library_path, appHandler_);
+		System.err.println(" survived call to N_initialize ");
 	}
 
 	/**

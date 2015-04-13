@@ -5,12 +5,12 @@
 package org.cef.callback;
 
 /**
- * Provides information about the context menu state. The methods of this class can only be accessed on browser process the UI thread.
+ * Provides information about the context menuSpecs state. The methods of this class can only be accessed on browser process the UI thread.
  */
 public interface CefContextMenuParams {
 
 	/**
-	 * Supported context menu type flags.
+	 * Supported context menuSpecs type flags.
 	 */
 	public static final class TypeFlags {
 		public final static int CM_TYPEFLAG_NONE = 0;      //!< No node is selected.
@@ -23,7 +23,7 @@ public interface CefContextMenuParams {
 	}
 
 	/**
-	 * Supported context menu media types.
+	 * Supported context menuSpecs media types.
 	 */
 	public enum MediaType {
 		CM_MEDIATYPE_NONE,    //!< No special node is in context.
@@ -35,7 +35,7 @@ public interface CefContextMenuParams {
 	}
 
 	/**
-	 * Supported context menu media state bit flags.
+	 * Supported context menuSpecs media state bit flags.
 	 */
 	public static final class MediaStateFlags {
 		public final static int CM_MEDIAFLAG_NONE = 0;
@@ -52,7 +52,7 @@ public interface CefContextMenuParams {
 	}
 
 	/**
-	 * Supported context menu edit state bit flags.
+	 * Supported context menuSpecs edit state bit flags.
 	 */
 	public static final class EditStateFlags {
 		public final static int CM_EDITFLAG_NONE = 0;
@@ -67,22 +67,22 @@ public interface CefContextMenuParams {
 	}
 
 	/**
-	 * Returns the X coordinate of the mouse where the context menu was invoked. Coords are relative to the associated RenderView's origin.
+	 * Returns the X coordinate of the mouse where the context menuSpecs was invoked. Coords are relative to the associated RenderView's origin.
 	 */
 	int getXCoord();
 
 	/**
-	 * Returns the Y coordinate of the mouse where the context menu was invoked. Coords are relative to the associated RenderView's origin.
+	 * Returns the Y coordinate of the mouse where the context menuSpecs was invoked. Coords are relative to the associated RenderView's origin.
 	 */
 	int getYCoord();
 
 	/**
-	 * Returns flags representing the type of node that the context menu was invoked on. See TypeFlags for supported values
+	 * Returns flags representing the type of node that the context menuSpecs was invoked on. See TypeFlags for supported values
 	 */
 	int getTypeFlags();
 
 	/**
-	 * Returns the URL of the link, if any, that encloses the node that the context menu was invoked on.
+	 * Returns the URL of the link, if any, that encloses the node that the context menuSpecs was invoked on.
 	 */
 	String getLinkUrl();
 
@@ -92,62 +92,62 @@ public interface CefContextMenuParams {
 	String getUnfilteredLinkUrl();
 
 	/**
-	 * Returns the source URL, if any, for the element that the context menu was invoked on. Example of elements with source URLs are img, audio,
+	 * Returns the source URL, if any, for the element that the context menuSpecs was invoked on. Example of elements with source URLs are img, audio,
 	 * and video.
 	 */
 	String getSourceUrl();
 
 	/**
-	 * Returns true if the context menu was invoked on an image which has non-empty contents.
+	 * Returns true if the context menuSpecs was invoked on an image which has non-empty contents.
 	 */
 	boolean hasImageContents();
 
 	/**
-	 * Returns the URL of the top level page that the context menu was invoked on.
+	 * Returns the URL of the top level page that the context menuSpecs was invoked on.
 	 */
 	String getPageUrl();
 
 	/**
-	 * Returns the URL of the subframe that the context menu was invoked on.
+	 * Returns the URL of the subframe that the context menuSpecs was invoked on.
 	 */
 	String getFrameUrl();
 
 	/**
-	 * Returns the character encoding of the subframe that the context menu was invoked on.
+	 * Returns the character encoding of the subframe that the context menuSpecs was invoked on.
 	 */
 	String getFrameCharset();
 
 	/**
-	 * Returns the type of context node that the context menu was invoked on.
+	 * Returns the type of context node that the context menuSpecs was invoked on.
 	 */
 	MediaType getMediaType();
 
 	/**
-	 * Returns flags representing the actions supported by the media element, if any, that the context menu was invoked on. See MediaStateFlags
+	 * Returns flags representing the actions supported by the media element, if any, that the context menuSpecs was invoked on. See MediaStateFlags
 	 * for possible values.
 	 */
 	int getMediaStateFlags();
 
 	/**
-	 * Returns the text of the selection, if any, that the context menu was invoked on.
+	 * Returns the text of the selection, if any, that the context menuSpecs was invoked on.
 	 */
 
 	String getSelectionText();
 
 	/**
-	 * Returns true if the context menu was invoked on an editable node.
+	 * Returns true if the context menuSpecs was invoked on an editable node.
 	 */
 
 	boolean isEditable();
 
 	/**
-	 * Returns true if the context menu was invoked on an editable node where speech-input is enabled.
+	 * Returns true if the context menuSpecs was invoked on an editable node where speech-input is enabled.
 	 */
 
 	boolean isSpeechInputEnabled();
 
 	/**
-	 * Returns flags representing the actions supported by the editable node, if any, that the context menu was invoked on. See EditStateFlags for
+	 * Returns flags representing the actions supported by the editable node, if any, that the context menuSpecs was invoked on. See EditStateFlags for
 	 * possible values.
 	 */
 	int getEditStateFlags();

@@ -9,7 +9,7 @@ import org.cef.callback.CefContextMenuParams;
 import org.cef.callback.CefMenuModel;
 
 /**
- * Implement this interface to handle context menu events. The methods of this class will be called on the UI thread.
+ * Implement this interface to handle context menuSpecs events. The methods of this class will be called on the UI thread.
  */
 public interface CefContextMenuHandler {
 
@@ -34,16 +34,16 @@ public interface CefContextMenuHandler {
 	}
 
 	/**
-	 * Called before a context menu is displayed.
+	 * Called before a context menuSpecs is displayed.
 	 *
 	 * @param browser The corresponding browser.
-	 * @param params  provides information about the context menu state.
-	 * @param model   can be cleared to show no context menu or modified to show a custom menu.
+	 * @param params  provides information about the context menuSpecs state.
+	 * @param model   can be cleared to show no context menuSpecs or modified to show a custom menuSpecs.
 	 */
 	public void onBeforeContextMenu(CefBrowser browser, CefContextMenuParams params, CefMenuModel model);
 
 	/**
-	 * Called to execute a command selected from the context menu. Return true if the command was handled or false for the default implementation.
+	 * Called to execute a command selected from the context menuSpecs. Return true if the command was handled or false for the default implementation.
 	 * See cef_menu_id_t for the command ids that have default implementations. All user-defined command ids should be between MENU_ID_USER_FIRST
 	 * and
 	 *
@@ -56,7 +56,7 @@ public interface CefContextMenuHandler {
 	public boolean onContextMenuCommand(CefBrowser browser, CefContextMenuParams params, int commandId, int eventFlags);
 
 	/**
-	 * Called when the context menu is dismissed irregardless of whether the menu was empty or a command was selected.
+	 * Called when the context menuSpecs is dismissed irregardless of whether the menuSpecs was empty or a command was selected.
 	 *
 	 * @param browser The corresponding browser.
 	 */
