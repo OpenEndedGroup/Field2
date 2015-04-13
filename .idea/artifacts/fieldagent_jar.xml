@@ -4,10 +4,7 @@
     <root id="archive" name="fieldagent.jar">
       <element id="module-output" name="fieldagent" />
       <element id="directory" name="META-INF">
-        <element id="file-copy" path="$PROJECT_DIR$/fieldagent/META-INF/MANIFEST.MF" />
-        <element id="directory" name="services">
-          <element id="file-copy" path="$PROJECT_DIR$/fieldlinker/META-INF/services/jdk.internal.dynalink.linker.GuardingDynamicLinker" />
-        </element>
+        <element id="file-copy" path="$PROJECT_DIR$/fieldagent/resources/META-INF/MANIFEST.MF" />
       </element>
     </root>
   </artifact>

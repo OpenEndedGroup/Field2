@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_fieldprocessing" default="compile.module.fieldprocessing">
+  <dirname property="module.fieldprocessing.basedir" file="${ant.file.module_fieldprocessing}"/>
+  
+  <property name="module.jdk.home.fieldprocessing" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.fieldprocessing" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.fieldprocessing" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.fieldprocessing" value="-encoding UTF-8 -source 8 -target 1.8 ${compiler.args}"/>
+  
+  <property name="fieldprocessing.output.dir" value="${module.fieldprocessing.basedir}/../out/production/fieldprocessing"/>
+  <property name="fieldprocessing.testoutput.dir" value="${module.fieldprocessing.basedir}/../out/test/fieldprocessing"/>
+  
+  <path id="fieldprocessing.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="fieldprocessing.module.production.classpath">
+    <path refid="${module.jdk.classpath.fieldprocessing}"/>
+    <pathelement location="${fieldwork2.output.dir}"/>
+    <path refid="library.core.classpath"/>
+    <pathelement location="${fieldlinker.output.dir}"/>
+    <path refid="library.nashorn-local.classpath"/>
+  </path>
+  
+  <path id="fieldprocessing.runtime.production.module.classpath">
+    <pathelement location="${fieldprocessing.output.dir}"/>
+    <path refid="fieldwork2.runtime.production.module.classpath"/>
+    <path refid="library.core.classpath"/>
+    <path refid="fieldlinker.runtime.production.module.classpath"/>
+    <path refid="library.nashorn-local.classpath"/>
+  </path>
+  
+  <path id="fieldprocessing.module.classpath">
+    <path refid="${module.jdk.classpath.fieldprocessing}"/>
+    <pathelement location="${fieldprocessing.output.dir}"/>
+    <pathelement location="${fieldwork2.testoutput.dir}"/>
+    <pathelement location="${fieldwork2.output.dir}"/>
+    <path refid="library.core.classpath"/>
+    <pathelement location="${fieldlinker.testoutput.dir}"/>
+    <pathelement location="${fieldlinker.output.dir}"/>
+    <path refid="library.nashorn-local.classpath"/>
+  </path>
+  
+  <path id="fieldprocessing.runtime.module.classpath">
+    <pathelement location="${fieldprocessing.testoutput.dir}"/>
+    <pathelement location="${fieldprocessing.output.dir}"/>
+    <path refid="fieldwork2.runtime.module.classpath"/>
+    <path refid="library.core.classpath"/>
+    <path refid="fieldlinker.runtime.module.classpath"/>
+    <path refid="library.nashorn-local.classpath"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.fieldprocessing">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.fieldprocessing">
+    <patternset refid="excluded.from.module.fieldprocessing"/>
+  </patternset>
+  
+  <path id="fieldprocessing.module.sourcepath">
+    <dirset dir="${module.fieldprocessing.basedir}">
+      <include name="src"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.fieldprocessing" depends="compile.module.fieldprocessing.production,compile.module.fieldprocessing.tests" description="Compile module fieldprocessing"/>
+  
+  <target name="compile.module.fieldprocessing.production" depends="compile.module.fieldwork2,compile.module.fieldlinker" description="Compile module fieldprocessing; production classes">
+    <mkdir dir="${fieldprocessing.output.dir}"/>
+    <javac destdir="${fieldprocessing.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.fieldprocessing}/javac">
+      <compilerarg line="${compiler.args.fieldprocessing}"/>
+      <bootclasspath refid="fieldprocessing.module.bootclasspath"/>
+      <classpath refid="fieldprocessing.module.production.classpath"/>
+      <src refid="fieldprocessing.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.fieldprocessing"/>
+    </javac>
+    
+    <copy todir="${fieldprocessing.output.dir}">
+      <fileset dir="${module.fieldprocessing.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.fieldprocessing.tests" depends="compile.module.fieldprocessing.production" description="compile module fieldprocessing; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.fieldprocessing" description="cleanup module">
+    <delete dir="${fieldprocessing.output.dir}"/>
+    <delete dir="${fieldprocessing.testoutput.dir}"/>
+  </target>
+</project>

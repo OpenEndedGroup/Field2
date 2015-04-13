@@ -18,5 +18,6 @@
     <orderEntry type="module" module-name="fieldnashorn" />
     <orderEntry type="library" name="jglfw" level="project" />
     <orderEntry type="module" module-name="fieldagent" />
+    <orderEntry type="library" name="nashorn-local" level="project" />
   </component>
 </module>

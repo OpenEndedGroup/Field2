@@ -16,6 +16,6 @@
     <orderEntry type="module" module-name="fielded" />
     <orderEntry type="library" name="java_websocket" level="project" />
     <orderEntry type="module" module-name="fieldlinker" />
+    <orderEntry type="library" name="nashorn-local" level="project" />
   </component>
 </module>
-

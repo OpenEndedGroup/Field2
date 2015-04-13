@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_fieldjython" default="compile.module.fieldjython">
+  <dirname property="module.fieldjython.basedir" file="${ant.file.module_fieldjython}"/>
+  
+  <property name="module.jdk.home.fieldjython" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.fieldjython" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.fieldjython" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.fieldjython" value="-encoding UTF-8 -source 8 -target 1.8 ${compiler.args}"/>
+  
+  <property name="fieldjython.output.dir" value="${module.fieldjython.basedir}/../out/production/fieldjython"/>
+  <property name="fieldjython.testoutput.dir" value="${module.fieldjython.basedir}/../out/test/fieldjython"/>
+  
+  <path id="fieldjython.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="fieldjython.module.production.classpath">
+    <path refid="${module.jdk.classpath.fieldjython}"/>
+    <path refid="library.jython-standalone-2.7-b3.classpath"/>
+    <pathelement location="${fieldwork2.output.dir}"/>
+    <pathelement location="${fieldlinker.output.dir}"/>
+    <path refid="library.nashorn-local.classpath"/>
+  </path>
+  
+  <path id="fieldjython.runtime.production.module.classpath">
+    <pathelement location="${fieldjython.output.dir}"/>
+    <path refid="library.jython-standalone-2.7-b3.classpath"/>
+    <path refid="fieldwork2.runtime.production.module.classpath"/>
+    <path refid="fieldlinker.runtime.production.module.classpath"/>
+    <path refid="library.nashorn-local.classpath"/>
+  </path>
+  
+  <path id="fieldjython.module.classpath">
+    <path refid="${module.jdk.classpath.fieldjython}"/>
+    <pathelement location="${fieldjython.output.dir}"/>
+    <path refid="library.jython-standalone-2.7-b3.classpath"/>
+    <pathelement location="${fieldwork2.testoutput.dir}"/>
+    <pathelement location="${fieldwork2.output.dir}"/>
+    <pathelement location="${fieldlinker.testoutput.dir}"/>
+    <pathelement location="${fieldlinker.output.dir}"/>
+    <path refid="library.nashorn-local.classpath"/>
+  </path>
+  
+  <path id="fieldjython.runtime.module.classpath">
+    <pathelement location="${fieldjython.testoutput.dir}"/>
+    <pathelement location="${fieldjython.output.dir}"/>
+    <path refid="library.jython-standalone-2.7-b3.classpath"/>
+    <path refid="fieldwork2.runtime.module.classpath"/>
+    <path refid="fieldlinker.runtime.module.classpath"/>
+    <path refid="library.nashorn-local.classpath"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.fieldjython">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.fieldjython">
+    <patternset refid="excluded.from.module.fieldjython"/>
+  </patternset>
+  
+  <path id="fieldjython.module.sourcepath">
+    <dirset dir="${module.fieldjython.basedir}">
+      <include name="src"/>
+      <include name="lib"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.fieldjython" depends="compile.module.fieldjython.production,compile.module.fieldjython.tests" description="Compile module fieldjython"/>
+  
+  <target name="compile.module.fieldjython.production" depends="compile.module.fieldwork2,compile.module.fieldlinker" description="Compile module fieldjython; production classes">
+    <mkdir dir="${fieldjython.output.dir}"/>
+    <javac destdir="${fieldjython.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.fieldjython}/javac">
+      <compilerarg line="${compiler.args.fieldjython}"/>
+      <bootclasspath refid="fieldjython.module.bootclasspath"/>
+      <classpath refid="fieldjython.module.production.classpath"/>
+      <src refid="fieldjython.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.fieldjython"/>
+    </javac>
+    
+    <copy todir="${fieldjython.output.dir}">
+      <fileset dir="${module.fieldjython.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.fieldjython.basedir}/lib">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.fieldjython.tests" depends="compile.module.fieldjython.production" description="compile module fieldjython; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.fieldjython" description="cleanup module">
+    <delete dir="${fieldjython.output.dir}"/>
+    <delete dir="${fieldjython.testoutput.dir}"/>
+  </target>
+</project>

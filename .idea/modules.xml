@@ -10,9 +10,9 @@
       <module fileurl="file://$PROJECT_DIR$/fieldjython/fieldjython.iml" filepath="$PROJECT_DIR$/fieldjython/fieldjython.iml" />
       <module fileurl="file://$PROJECT_DIR$/fieldlinker/fieldlinker.iml" filepath="$PROJECT_DIR$/fieldlinker/fieldlinker.iml" />
       <module fileurl="file://$PROJECT_DIR$/fieldnashorn/fieldnashorn.iml" filepath="$PROJECT_DIR$/fieldnashorn/fieldnashorn.iml" />
+      <module fileurl="file://$PROJECT_DIR$/fieldopencl/fieldopencl.iml" filepath="$PROJECT_DIR$/fieldopencl/fieldopencl.iml" />
       <module fileurl="file://$PROJECT_DIR$/fieldprocessing/fieldprocessing.iml" filepath="$PROJECT_DIR$/fieldprocessing/fieldprocessing.iml" />
       <module fileurl="file://$PROJECT_DIR$/fieldwork2.iml" filepath="$PROJECT_DIR$/fieldwork2.iml" />
     </modules>
   </component>
 </project>
-

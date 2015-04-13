@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_fieldlinker" default="compile.module.fieldlinker">
+  <dirname property="module.fieldlinker.basedir" file="${ant.file.module_fieldlinker}"/>
+  
+  <property name="module.jdk.home.fieldlinker" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.fieldlinker" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.fieldlinker" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.fieldlinker" value="-encoding UTF-8 -source 8 -target 1.8 ${compiler.args}"/>
+  
+  <property name="fieldlinker.output.dir" value="${module.fieldlinker.basedir}/../out/production/fieldlinker"/>
+  <property name="fieldlinker.testoutput.dir" value="${module.fieldlinker.basedir}/../out/test/fieldlinker"/>
+  
+  <path id="fieldlinker.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="fieldlinker.module.production.classpath">
+    <path refid="${module.jdk.classpath.fieldlinker}"/>
+    <path refid="library.nashorn-local.classpath"/>
+  </path>
+  
+  <path id="fieldlinker.runtime.production.module.classpath">
+    <pathelement location="${fieldlinker.output.dir}"/>
+    <path refid="library.nashorn-local.classpath"/>
+  </path>
+  
+  <path id="fieldlinker.module.classpath">
+    <path refid="${module.jdk.classpath.fieldlinker}"/>
+    <pathelement location="${fieldlinker.output.dir}"/>
+    <path refid="library.nashorn-local.classpath"/>
+  </path>
+  
+  <path id="fieldlinker.runtime.module.classpath">
+    <pathelement location="${fieldlinker.testoutput.dir}"/>
+    <pathelement location="${fieldlinker.output.dir}"/>
+    <path refid="library.nashorn-local.classpath"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.fieldlinker">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.fieldlinker">
+    <patternset refid="excluded.from.module.fieldlinker"/>
+  </patternset>
+  
+  <path id="fieldlinker.module.sourcepath">
+    <dirset dir="${module.fieldlinker.basedir}">
+      <include name="src"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.fieldlinker" depends="compile.module.fieldlinker.production,compile.module.fieldlinker.tests" description="Compile module fieldlinker"/>
+  
+  <target name="compile.module.fieldlinker.production" description="Compile module fieldlinker; production classes">
+    <mkdir dir="${fieldlinker.output.dir}"/>
+    <javac destdir="${fieldlinker.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.fieldlinker}/javac">
+      <compilerarg line="${compiler.args.fieldlinker}"/>
+      <bootclasspath refid="fieldlinker.module.bootclasspath"/>
+      <classpath refid="fieldlinker.module.production.classpath"/>
+      <src refid="fieldlinker.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.fieldlinker"/>
+    </javac>
+    
+    <copy todir="${fieldlinker.output.dir}">
+      <fileset dir="${module.fieldlinker.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.fieldlinker.tests" depends="compile.module.fieldlinker.production" description="compile module fieldlinker; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.fieldlinker" description="cleanup module">
+    <delete dir="${fieldlinker.output.dir}"/>
+    <delete dir="${fieldlinker.testoutput.dir}"/>
+  </target>
+</project>

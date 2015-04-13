@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_fieldclojure" default="compile.module.fieldclojure">
+  <dirname property="module.fieldclojure.basedir" file="${ant.file.module_fieldclojure}"/>
+  
+  <property name="module.jdk.home.fieldclojure" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.fieldclojure" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.fieldclojure" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.fieldclojure" value="-encoding UTF-8 -source 8 -target 1.8 ${compiler.args}"/>
+  
+  <property name="fieldclojure.output.dir" value="${module.fieldclojure.basedir}/../out/production/fieldclojure"/>
+  <property name="fieldclojure.testoutput.dir" value="${module.fieldclojure.basedir}/../out/test/fieldclojure"/>
+  
+  <path id="fieldclojure.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="fieldclojure.module.production.classpath">
+    <path refid="${module.jdk.classpath.fieldclojure}"/>
+    <pathelement location="${fieldwork2.output.dir}"/>
+    <pathelement location="${fieldlinker.output.dir}"/>
+    <pathelement location="${basedir}/fieldclojure/resources/clojure-1.7.0-alpha4.jar"/>
+    <path refid="library.nashorn-local.classpath"/>
+  </path>
+  
+  <path id="fieldclojure.runtime.production.module.classpath">
+    <pathelement location="${fieldclojure.output.dir}"/>
+    <path refid="fieldwork2.runtime.production.module.classpath"/>
+    <path refid="fieldlinker.runtime.production.module.classpath"/>
+    <pathelement location="${basedir}/fieldclojure/resources/clojure-1.7.0-alpha4.jar"/>
+    <path refid="library.nashorn-local.classpath"/>
+  </path>
+  
+  <path id="fieldclojure.module.classpath">
+    <path refid="${module.jdk.classpath.fieldclojure}"/>
+    <pathelement location="${fieldclojure.output.dir}"/>
+    <pathelement location="${fieldwork2.testoutput.dir}"/>
+    <pathelement location="${fieldwork2.output.dir}"/>
+    <pathelement location="${fieldlinker.testoutput.dir}"/>
+    <pathelement location="${fieldlinker.output.dir}"/>
+    <pathelement location="${basedir}/fieldclojure/resources/clojure-1.7.0-alpha4.jar"/>
+    <path refid="library.nashorn-local.classpath"/>
+  </path>
+  
+  <path id="fieldclojure.runtime.module.classpath">
+    <pathelement location="${fieldclojure.testoutput.dir}"/>
+    <pathelement location="${fieldclojure.output.dir}"/>
+    <path refid="fieldwork2.runtime.module.classpath"/>
+    <path refid="fieldlinker.runtime.module.classpath"/>
+    <pathelement location="${basedir}/fieldclojure/resources/clojure-1.7.0-alpha4.jar"/>
+    <path refid="library.nashorn-local.classpath"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.fieldclojure">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.fieldclojure">
+    <patternset refid="excluded.from.module.fieldclojure"/>
+  </patternset>
+  
+  <path id="fieldclojure.module.sourcepath">
+    <dirset dir="${module.fieldclojure.basedir}">
+      <include name="src"/>
+      <include name="resources"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.fieldclojure" depends="compile.module.fieldclojure.production,compile.module.fieldclojure.tests" description="Compile module fieldclojure"/>
+  
+  <target name="compile.module.fieldclojure.production" depends="compile.module.fieldwork2,compile.module.fieldlinker" description="Compile module fieldclojure; production classes">
+    <mkdir dir="${fieldclojure.output.dir}"/>
+    <javac destdir="${fieldclojure.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.fieldclojure}/javac">
+      <compilerarg line="${compiler.args.fieldclojure}"/>
+      <bootclasspath refid="fieldclojure.module.bootclasspath"/>
+      <classpath refid="fieldclojure.module.production.classpath"/>
+      <src refid="fieldclojure.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.fieldclojure"/>
+    </javac>
+    
+    <copy todir="${fieldclojure.output.dir}">
+      <fileset dir="${module.fieldclojure.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.fieldclojure.basedir}/resources">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.fieldclojure.tests" depends="compile.module.fieldclojure.production" description="compile module fieldclojure; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.fieldclojure" description="cleanup module">
+    <delete dir="${fieldclojure.output.dir}"/>
+    <delete dir="${fieldclojure.testoutput.dir}"/>
+  </target>
+</project>

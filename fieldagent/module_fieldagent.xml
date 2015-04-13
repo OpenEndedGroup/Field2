@@ -17,20 +17,28 @@
   
   <path id="fieldagent.module.production.classpath">
     <path refid="${module.jdk.classpath.fieldagent}"/>
+    <path refid="library.guava-16.0.1.classpath"/>
+    <path refid="library.nashorn-local.classpath"/>
   </path>
   
   <path id="fieldagent.runtime.production.module.classpath">
     <pathelement location="${fieldagent.output.dir}"/>
+    <path refid="library.guava-16.0.1.classpath"/>
+    <path refid="library.nashorn-local.classpath"/>
   </path>
   
   <path id="fieldagent.module.classpath">
     <path refid="${module.jdk.classpath.fieldagent}"/>
     <pathelement location="${fieldagent.output.dir}"/>
+    <path refid="library.guava-16.0.1.classpath"/>
+    <path refid="library.nashorn-local.classpath"/>
   </path>
   
   <path id="fieldagent.runtime.module.classpath">
     <pathelement location="${fieldagent.testoutput.dir}"/>
     <pathelement location="${fieldagent.output.dir}"/>
+    <path refid="library.guava-16.0.1.classpath"/>
+    <path refid="library.nashorn-local.classpath"/>
   </path>
   
   
@@ -45,31 +53,36 @@
   <path id="fieldagent.module.sourcepath">
     <dirset dir="${module.fieldagent.basedir}">
       <include name="src"/>
+      <include name="resources"/>
     </dirset>
   </path>
   
   
   <target name="compile.module.fieldagent" depends="compile.module.fieldagent.production,compile.module.fieldagent.tests" description="Compile module fieldagent"/>
   
-  <target name="compile.module.fieldagent.production" depends="register.custom.compilers" description="Compile module fieldagent; production classes">
+  <target name="compile.module.fieldagent.production" description="Compile module fieldagent; production classes">
     <mkdir dir="${fieldagent.output.dir}"/>
-    <javac2 destdir="${fieldagent.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.fieldagent}/javac">
+    <javac destdir="${fieldagent.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.fieldagent}/javac">
       <compilerarg line="${compiler.args.fieldagent}"/>
       <bootclasspath refid="fieldagent.module.bootclasspath"/>
       <classpath refid="fieldagent.module.production.classpath"/>
       <src refid="fieldagent.module.sourcepath"/>
       <patternset refid="excluded.from.compilation.fieldagent"/>
-    </javac2>
+    </javac>
     
     <copy todir="${fieldagent.output.dir}">
       <fileset dir="${module.fieldagent.basedir}/src">
         <patternset refid="compiler.resources"/>
         <type type="file"/>
       </fileset>
+      <fileset dir="${module.fieldagent.basedir}/resources">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
     </copy>
   </target>
   
-  <target name="compile.module.fieldagent.tests" depends="register.custom.compilers,compile.module.fieldagent.production" description="compile module fieldagent; test classes" unless="skip.tests"/>
+  <target name="compile.module.fieldagent.tests" depends="compile.module.fieldagent.production" description="compile module fieldagent; test classes" unless="skip.tests"/>
   
   <target name="clean.module.fieldagent" description="cleanup module">
     <delete dir="${fieldagent.output.dir}"/>

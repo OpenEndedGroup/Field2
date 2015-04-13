@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_fieldwork2" default="compile.module.fieldwork2">
+  <dirname property="module.fieldwork2.basedir" file="${ant.file.module_fieldwork2}"/>
+  
+  <property name="module.jdk.home.fieldwork2" value="${jdk.home.1.9_(2)}"/>
+  <property name="module.jdk.bin.fieldwork2" value="${jdk.bin.1.9_(2)}"/>
+  <property name="module.jdk.classpath.fieldwork2" value="jdk.classpath.1.9_(2)"/>
+  
+  <property name="compiler.args.fieldwork2" value="-encoding UTF-8 -source 8 -target 1.8 ${compiler.args}"/>
+  
+  <property name="fieldwork2.output.dir" value="${module.fieldwork2.basedir}/out/production/fieldwork2"/>
+  <property name="fieldwork2.testoutput.dir" value="${module.fieldwork2.basedir}/out/test/fieldwork2"/>
+  
+  <path id="fieldwork2.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="fieldwork2.module.production.classpath">
+    <path refid="${module.jdk.classpath.fieldwork2}"/>
+    <path refid="library.lwjgl.classpath"/>
+    <path refid="library.edn-java-0.4.4.classpath"/>
+    <path refid="library.jglfw.classpath"/>
+    <path refid="library.guava-16.0.1.classpath"/>
+    <pathelement location="${fieldagent.output.dir}"/>
+    <path refid="library.cassowary.classpath"/>
+    <pathelement location="${fieldlinker.output.dir}"/>
+    <path refid="library.qdox-2.0-m1.classpath"/>
+    <path refid="library.java_websocket.classpath"/>
+    <path refid="library.nashorn-local.classpath"/>
+    <path refid="library.commons-jxpath-1.3-sources.classpath"/>
+    <path refid="library.swt.classpath"/>
+    <path refid="library.commons-math3-3.2.classpath"/>
+    <path refid="library.commons-math3-3.2-sources.classpath"/>
+    <path refid="library.quickhull3d_(2).classpath"/>
+    <path refid="library.poly2tri-core-0.1.1-snapshot_(2).classpath"/>
+    <path refid="library.jpen-2.classpath"/>
+  </path>
+  
+  <path id="fieldwork2.runtime.production.module.classpath">
+    <pathelement location="${fieldwork2.output.dir}"/>
+    <path refid="library.lwjgl.classpath"/>
+    <path refid="library.edn-java-0.4.4.classpath"/>
+    <path refid="library.jglfw.classpath"/>
+    <path refid="library.guava-16.0.1.classpath"/>
+    <path refid="fieldagent.runtime.production.module.classpath"/>
+    <path refid="library.cassowary.classpath"/>
+    <path refid="fieldlinker.runtime.production.module.classpath"/>
+    <path refid="library.qdox-2.0-m1.classpath"/>
+    <path refid="library.java_websocket.classpath"/>
+    <path refid="library.nashorn-local.classpath"/>
+    <path refid="library.commons-jxpath-1.3-sources.classpath"/>
+    <path refid="library.swt.classpath"/>
+    <path refid="library.commons-math3-3.2.classpath"/>
+    <path refid="library.commons-math3-3.2-sources.classpath"/>
+    <path refid="library.quickhull3d_(2).classpath"/>
+    <path refid="library.poly2tri-core-0.1.1-snapshot_(2).classpath"/>
+    <path refid="library.jpen-2.classpath"/>
+  </path>
+  
+  <path id="fieldwork2.module.classpath">
+    <path refid="${module.jdk.classpath.fieldwork2}"/>
+    <pathelement location="${fieldwork2.output.dir}"/>
+    <path refid="library.lwjgl.classpath"/>
+    <path refid="library.edn-java-0.4.4.classpath"/>
+    <path refid="library.jglfw.classpath"/>
+    <path refid="library.guava-16.0.1.classpath"/>
+    <pathelement location="${fieldagent.testoutput.dir}"/>
+    <pathelement location="${fieldagent.output.dir}"/>
+    <path refid="library.cassowary.classpath"/>
+    <pathelement location="${fieldlinker.testoutput.dir}"/>
+    <pathelement location="${fieldlinker.output.dir}"/>
+    <path refid="library.qdox-2.0-m1.classpath"/>
+    <path refid="library.java_websocket.classpath"/>
+    <path refid="library.nashorn-local.classpath"/>
+    <path refid="library.commons-jxpath-1.3-sources.classpath"/>
+    <path refid="library.swt.classpath"/>
+    <path refid="library.commons-math3-3.2.classpath"/>
+    <path refid="library.commons-math3-3.2-sources.classpath"/>
+    <path refid="library.quickhull3d_(2).classpath"/>
+    <path refid="library.poly2tri-core-0.1.1-snapshot_(2).classpath"/>
+    <path refid="library.jpen-2.classpath"/>
+  </path>
+  
+  <path id="fieldwork2.runtime.module.classpath">
+    <pathelement location="${fieldwork2.testoutput.dir}"/>
+    <pathelement location="${fieldwork2.output.dir}"/>
+    <path refid="library.lwjgl.classpath"/>
+    <path refid="library.edn-java-0.4.4.classpath"/>
+    <path refid="library.jglfw.classpath"/>
+    <path refid="library.guava-16.0.1.classpath"/>
+    <path refid="fieldagent.runtime.module.classpath"/>
+    <path refid="library.cassowary.classpath"/>
+    <path refid="fieldlinker.runtime.module.classpath"/>
+    <path refid="library.qdox-2.0-m1.classpath"/>
+    <path refid="library.java_websocket.classpath"/>
+    <path refid="library.nashorn-local.classpath"/>
+    <path refid="library.commons-jxpath-1.3-sources.classpath"/>
+    <path refid="library.swt.classpath"/>
+    <path refid="library.commons-math3-3.2.classpath"/>
+    <path refid="library.commons-math3-3.2-sources.classpath"/>
+    <path refid="library.quickhull3d_(2).classpath"/>
+    <path refid="library.poly2tri-core-0.1.1-snapshot_(2).classpath"/>
+    <path refid="library.jpen-2.classpath"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.fieldbox">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  <patternset id="excluded.from.module.fieldcef">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  <patternset id="excluded.from.module.fielded">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  <patternset id="excluded.from.module.fieldnashorn">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  <patternset id="excluded.from.module.fieldwork2">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.fieldwork2">
+    <patternset refid="excluded.from.module.fieldbox"/>
+    <patternset refid="excluded.from.module.fieldcef"/>
+    <patternset refid="excluded.from.module.fielded"/>
+    <patternset refid="excluded.from.module.fieldnashorn"/>
+    <patternset refid="excluded.from.module.fieldwork2"/>
+  </patternset>
+  
+  <path id="fieldwork2.module.sourcepath">
+    <dirset dir="${module.fieldwork2.basedir}/fieldbox">
+      <include name="src"/>
+      <include name="resources"/>
+    </dirset>
+    <dirset dir="${module.fieldwork2.basedir}/fieldcef">
+      <include name="src"/>
+      <include name="internal"/>
+    </dirset>
+    <dirset dir="${module.fieldwork2.basedir}/fielded">
+      <include name="src"/>
+      <include name="external/JSON-java"/>
+      <include name="external"/>
+      <include name="internal"/>
+    </dirset>
+    <dirset dir="${module.fieldwork2.basedir}/fieldnashorn">
+      <include name="src"/>
+      <include name="external"/>
+    </dirset>
+    <dirset dir="${module.fieldwork2.basedir}">
+      <include name="src"/>
+      <include name="lib"/>
+      <include name="templates"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.fieldwork2" depends="compile.module.fieldwork2.production,compile.module.fieldwork2.tests" description="Compile modules fieldwork2"/>
+  
+  <target name="compile.module.fieldwork2.production" depends="compile.module.fieldagent,compile.module.fieldlinker" description="Compile modules fieldwork2; production classes">
+    <mkdir dir="${fieldwork2.output.dir}"/>
+    <javac destdir="${fieldwork2.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.fieldwork2}/javac">
+      <compilerarg line="${compiler.args.fieldwork2}"/>
+      <bootclasspath refid="fieldwork2.module.bootclasspath"/>
+      <classpath refid="fieldwork2.module.production.classpath"/>
+      <src refid="fieldwork2.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.fieldwork2"/>
+    </javac>
+    
+    <copy todir="${fieldwork2.output.dir}">
+      <fileset dir="${module.fieldwork2.basedir}/fieldbox/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.fieldwork2.basedir}/fieldbox/resources">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.fieldwork2.basedir}/fieldcef/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.fieldwork2.basedir}/fieldcef/internal">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.fieldwork2.basedir}/fielded/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.fieldwork2.basedir}/fielded/external/JSON-java">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.fieldwork2.basedir}/fielded/external">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.fieldwork2.basedir}/fielded/internal">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.fieldwork2.basedir}/fieldnashorn/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.fieldwork2.basedir}/fieldnashorn/external">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.fieldwork2.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.fieldwork2.basedir}/lib">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.fieldwork2.basedir}/templates">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.fieldwork2.tests" depends="compile.module.fieldwork2.production" description="compile modules fieldwork2; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.fieldwork2" description="cleanup module">
+    <delete dir="${fieldwork2.output.dir}"/>
+    <delete dir="${fieldwork2.testoutput.dir}"/>
+  </target>
+</project>

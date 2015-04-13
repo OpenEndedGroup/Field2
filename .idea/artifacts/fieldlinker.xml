@@ -5,7 +5,7 @@
       <element id="module-output" name="fieldlinker" />
       <element id="directory" name="META-INF">
         <element id="directory" name="services">
-          <element id="file-copy" path="$PROJECT_DIR$/fieldlinker/META-INF/services/jdk.internal.dynalink.linker.GuardingDynamicLinker" />
+          <element id="file-copy" path="$PROJECT_DIR$/fieldlinker/META-INF/services/field.dynalink.linker.GuardingDynamicLinker" />
         </element>
       </element>
     </root>

@@ -13,6 +13,7 @@
     <orderEntry type="module" module-name="fieldbox" />
     <orderEntry type="module" module-name="fielded" />
     <orderEntry type="module" module-name="fieldlinker" />
+    <orderEntry type="module" module-name="fieldnashorn" />
+    <orderEntry type="library" name="nashorn-local" level="project" />
   </component>
 </module>
-
