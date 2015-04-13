@@ -8,7 +8,7 @@ Welcome to the Field2 development repository. _This codebase is experimental and
 
  * ```ant``` (a java build system) installed via ```sudo apt-get install ant```
 
- * ```Intellij IDEA``` (a java development environment) from http://www.jetbrains.com/idea/ (you can use the community addition until we can figure out an educational license.
+ * Not strictly a prerequisite - ```Intellij IDEA``` (a java development environment) from http://www.jetbrains.com/idea/.
 
  * ```java``` itself. Either get a JDK 8 (not a JRE 8) from your Linux distribution or install one from Oracle. JDK 8u5 should be sufficient (the EA version 8u20 is good for running Field2 but, alas, JavaC crashes with an internal error while building).
 
