@@ -29,7 +29,7 @@ _field.sendWithReturn("request.completions", {
 								}
 						}
 
-	for (var i = 0; i < __extraCompletions.length; i++) {
+					for (var i = 0; i < __extraCompletions.length; i++) {
 								if (__extraCompletions[i][2].contains(e)) {
 										pattern = new RegExp("(" + e + ")");
 										matched = __extraCompletions[i][2].replace(pattern, "<span class='matched'>$1</span>");

@@ -39,6 +39,7 @@ public class Vec3 implements Supplier<Vec3>, Serializable, Mutable<Vec3> {
 		set(f.get(), f.get(), f.get());
 	}
 
+
 	public Vec3(FloatBuffer f, int index)
 	{
 		set(f.get(index), f.get(index+1), f.get(index+2));
