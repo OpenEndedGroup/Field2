@@ -23,7 +23,7 @@ cd ((therepository))
 ./f fieldbox.FieldBox -file something.field2 -threaded 1 
 ```
 
-on OSX subsitute ```./f_mac``` for ```./f```. Note you may need to edit your ```./f``` script to point to the location of your JDK. Additionally you'll want to add `-retina 1` to your command line on Retina displays issue #39 .
+on OSX subsitute ```./f_mac``` for ```./f```. Note you may need to edit your ```./f``` script to point to the location of your JDK. Additionally you'll want to add `-retina 1` to your command line on Retina displays (issue #39) .
 
 ```fieldbox.FieldBox``` is the Java Class that's the main entry-point into Field2. 
  
@@ -34,15 +34,15 @@ In case of confusion, search the issues here and email marc (marc@openendedgroup
 We've just checked in a Plugin API. Field will write an example to ```~/.field/plugins.edn``` on first run. Edit this to extend the classpath, set options and tell Field to add plugins. So, for example, to run the Processing Plugin, I have a file that reads something like this:
 
 ```clojure
-{:classpath ["/Users/marc/fieldwork2/out/production/fieldprocessing/" "/Users/marc/Downloads/Processing.app/Contents/Java/core/library/core.jar"] } ; adds the core Processing jar to Field and the place where you are building fieldprocessing
-{:plugin fieldprocessing.Processing} ; tells Field to initialize the Processing plugin 
+; {:classpath [ "/Users/marc/Downloads/Processing.app/Contents/Java/core/library/core.jar"] } ; adds the core Processing jar to Field and the place where you are building fieldprocessing
+; {:plugin fieldprocessing.Processing} ; tells Field to initialize the Processing plugin 
 
 {:plugin fieldcef.plugins.GlassBrowser}
 {:plugin fieldcef.plugins.TextEditor}
 {:plugin fieldcef.plugins.OutputBox}
 ```
 
-Edit the _two paths_ to point to where you are building Field2 and where you have downloaded Processing 2 to (```.../marc/fieldwork2/...``` and ```.../marc/Downloads/Processing.app/...```).
+Edit that path to point to where you are building Field2 and where you have downloaded Processing 2 to (```.../marc/fieldwork2/...``` and ```.../marc/Downloads/Processing.app/...```).
 
 Those last three lines (that include plugins from the `fieldcef` module) are optional, but greatly increase the functionality of Field. We'll be making them core shortly.
 
