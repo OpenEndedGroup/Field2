@@ -49,6 +49,8 @@ public class FileBrowser extends Box implements IO.Loaded {
 
 		this.root = root;
 
+		Log.log("INSERT", "FileBrowser is alive");
+		System.err.println(" but logging is dead");
 
 		properties.put(RemoteEditor.commands, () -> {
 
@@ -306,6 +308,7 @@ public class FileBrowser extends Box implements IO.Loaded {
 
 	@Override
 	public void loaded() {
+		Log.log("INSERT", "has loaded");
 		parse();
 	}
 
@@ -329,6 +332,8 @@ public class FileBrowser extends Box implements IO.Loaded {
 	}
 
 	public void parse() {
+
+		Log.log("INSERT", "has loaded");
 		String dir = fieldbox.FieldBox.fieldBox.io.getDefaultDirectory();
 		parse(dir, false);
 		dir = fieldbox.FieldBox.fieldBox.io.getTemplateDirectory();
@@ -336,14 +341,18 @@ public class FileBrowser extends Box implements IO.Loaded {
 	}
 	public void parse(String dir, boolean copyOnly)
 	{
+		Log.log("INSERT", "parsing directory :"+dir);
 
 		File[] boxes = new File(dir).listFiles(x -> x.getName()
 							     .endsWith(".box"));
 		if (boxes != null) {
 
+			Log.log("INSERT", "boxes are :"+Arrays.asList(boxes));
+
 			for (File from : boxes)
 				RunLoop.workerPool.submit(() -> {
 
+					Log.log("INSERT", from);
 					FieldBox ff = newFieldBox(from);
 					ff.copyOnly = copyOnly;
 					synchronized (files) {
@@ -357,9 +366,11 @@ public class FileBrowser extends Box implements IO.Loaded {
 										       .equals(".field"));
 
 		if (sheets != null) {
+			Log.log("INSERT", "sheets are :"+Arrays.asList(sheets));
 			for (File from : sheets) {
 				sheetsInFlight.incrementAndGet();
 				RunLoop.workerPool.submit(() -> {
+					Log.log("INSERT", from);
 
 					try {
 						FieldFile ff = newFieldFile(from);
@@ -423,8 +434,7 @@ public class FileBrowser extends Box implements IO.Loaded {
 						} catch (NoSuchFieldException e) {
 						}
 					} catch (ClassNotFoundException e) {
-						// it can still be loaded, because boxes can extend the classpath
-						return null;
+
 					}
 
 				}

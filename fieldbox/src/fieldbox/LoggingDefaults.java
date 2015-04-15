@@ -10,6 +10,7 @@ public class LoggingDefaults {
 	public static void initialize() {
 
 		Log.on("auto", Log::green);
+		Log.on("INSERT", Log::green);
 		Log.on("tap", Log::green);
 		Log.on("remote.trace", Log::green);
 		Log.on("server", Log::green);
