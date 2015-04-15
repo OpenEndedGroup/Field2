@@ -13,6 +13,7 @@ import fieldbox.io.IO;
 import fieldbox.ui.FieldBoxWindow;
 import fieldcef.browser.Browser;
 import fielded.Commands;
+import fieldnashorn.annotations.HiddenInAutocomplete;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -39,7 +40,10 @@ public class TextEditor extends Box implements IO.Loaded {
 	// we'll need to make sure that this is centered on larger screens
 	int maxw = 800;
 	int maxh = 900;
+
+	@HiddenInAutocomplete
 	public Browser browser;
+	@HiddenInAutocomplete
 	public String styles;
 
 	public TextEditor(Box root) {
@@ -51,6 +55,7 @@ public class TextEditor extends Box implements IO.Loaded {
 
 	Commands commandHelper = new Commands();
 
+	@HiddenInAutocomplete
 	public void loaded() {
 		Log.log("texteditor.debug", "initializing browser");
 
@@ -130,6 +135,7 @@ public class TextEditor extends Box implements IO.Loaded {
 
 	long lastTriggerAt = -1;
 
+	@HiddenInAutocomplete
 	public void trigger() {
 		long now = System.currentTimeMillis();
 		if (now - lastTriggerAt < 500) {
@@ -143,6 +149,7 @@ public class TextEditor extends Box implements IO.Loaded {
 		lastTriggerAt = now;
 	}
 
+	@HiddenInAutocomplete
 	public void boot() {
 		browser.properties.put(browser.url, "http://localhost:8080/init");
 		Drawing.dirty(this);
@@ -150,6 +157,7 @@ public class TextEditor extends Box implements IO.Loaded {
 
 	int ignoreHide = 0;
 
+	@HiddenInAutocomplete
 	public void show() {
 		browser.properties.put(Box.hidden, false);
 		browser.setFocus(true);
@@ -157,6 +165,7 @@ public class TextEditor extends Box implements IO.Loaded {
 	}
 
 
+	@HiddenInAutocomplete
 	public void hide() {
 		tick = 0;
 		RunLoop.main.getLoop()
@@ -172,11 +181,13 @@ public class TextEditor extends Box implements IO.Loaded {
 		Drawing.dirty(browser);
 	}
 
+	@HiddenInAutocomplete
 	public void runCommands() {
 		browser.executeJavaScript("goCommands()");
 		show();
 	}
 
+	@HiddenInAutocomplete
 	public void center() {
 		FieldBoxWindow window = this.find(Boxes.window, both())
 					    .findFirst()
@@ -188,6 +199,7 @@ public class TextEditor extends Box implements IO.Loaded {
 	}
 
 
+	@HiddenInAutocomplete
 	private static String readFile(String s, boolean append) {
 		try (BufferedReader r = new BufferedReader(new FileReader(new File(s)))) {
 			String line = "";
@@ -205,6 +217,7 @@ public class TextEditor extends Box implements IO.Loaded {
 	}
 
 
+	@HiddenInAutocomplete
 	private String findAndLoad(String f, boolean append) {
 
 		String[] roots = {Main.app + "/fielded/internal/", Main.app + "/fielded/external/", Main.app + "/fieldcef/internal"};
@@ -215,8 +228,26 @@ public class TextEditor extends Box implements IO.Loaded {
 		return null;
 	}
 
+	@HiddenInAutocomplete
 	private Stream<Box> selection() {
 		return breadthFirst(both()).filter(x -> x.properties.isTrue(Mouse.isSelected, false));
+	}
+
+
+	/**
+	 * Injects css into the text editor. For example '_.textEditor.injectCSS("body {font-size:20px;}"' will give you a markedly bigger font.
+	 */
+	public void injectCSS(String css)
+	{
+		browser.injectCSS(css);
+	}
+
+	/**
+	 * Executes some javascript directly in the text editor. For larger amounts of TextEditor coding, mark a box as "Bridge to Editor" with the command menu.
+	 */
+	public void executeJavaScript(String js)
+	{
+		browser.executeJavaScript_queued(js);
 	}
 
 }

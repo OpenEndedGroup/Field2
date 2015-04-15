@@ -747,4 +747,12 @@ public class Browser extends Box implements IO.Loaded {
 		public void handle(String address, JSONObject payload, Consumer<String> reply);
 	}
 
+	public void injectCSS(String css)
+	{
+		executeJavaScript_queued("var css = document.createElement(\"style\");\n" +
+						     "css.type = \"text/css\";\n" +
+						     "css.innerHTML = \""+css+"\";\n" +
+						     "document.body.appendChild(css);");
+	}
+
 }
