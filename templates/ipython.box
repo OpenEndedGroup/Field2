@@ -1,8 +1,9 @@
 {
-  "__id__" "_clojure"
+  "__id__" "_ipython"
   "classpath" [
-    "./out/production/fieldipython/"
-    "./out/production/fieldipython/*"
+    "/usr/local/share/java/zmq.jar"
+    "{app}/out/production/fieldipython/"
+    "{app}/out/production/fieldipython/*"
   ]
   "name" "ipython"
   "frame" #field/rect{
