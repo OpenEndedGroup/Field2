@@ -62,8 +62,8 @@ function paste() {
             addToRing(newText)
 
         var start = cm.getCursor();
-        cm.replaceRange(getFromRing(0), start, start, "paste");
-        cm.setSelection(start, cm.getCursor());
+        cm.replaceRange(getFromRing(0), cm.getCursor("start"), cm.getCursor("end"), "paste");
+        cm.setSelection(start, cm.getCursor("end"));
     })
 }
 

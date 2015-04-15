@@ -37,9 +37,9 @@ function appendRemoteOutputToLine(line, text, checkClass, lineClass, append) {
 //        $(d).append("\n" + escapeHtml(text.trim()))
         $(d).append("\n" + text.trim())
 
-//        $(d).animate({
-//            scrollTop: $(d)[0].scrollHeight
-//        }, 0)
+        $(d).animate({
+            scrollTop: $(d)[0].scrollHeight
+        }, 0)
 
         $(d).css({
             opacity: 1
