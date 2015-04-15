@@ -169,6 +169,10 @@
     <pathelement location="${basedir}/fielded/lib/swt.jar"/>
   </path>
   
+  <path id="library.zmq.classpath">
+    <pathelement location="${basedir}/../../../usr/local/share/java/zmq.jar"/>
+  </path>
+  
   
   <!-- Global Libraries -->
   
@@ -182,6 +186,8 @@
   
   <import file="${basedir}/fieldclojure/module_fieldclojure.xml"/>
   
+  <import file="${basedir}/fieldipython/module_fieldipython.xml"/>
+  
   <import file="${basedir}/fieldjython/module_fieldjython.xml"/>
   
   <import file="${basedir}/fieldopencl/module_fieldopencl.xml"/>
@@ -192,9 +198,9 @@
     <!-- Perform any build initialization in this target -->
   </target>
   
-  <target name="clean" depends="clean.module.fieldagent, clean.module.fieldlinker, clean.module.fieldwork2, clean.module.fieldclojure, clean.module.fieldjython, clean.module.fieldopencl, clean.module.fieldprocessing" description="cleanup all"/>
+  <target name="clean" depends="clean.module.fieldagent, clean.module.fieldlinker, clean.module.fieldwork2, clean.module.fieldclojure, clean.module.fieldipython, clean.module.fieldjython, clean.module.fieldopencl, clean.module.fieldprocessing" description="cleanup all"/>
   
-  <target name="build.modules" depends="init, clean, compile.module.fieldagent, compile.module.fieldlinker, compile.module.fieldwork2, compile.module.fieldclojure, compile.module.fieldjython, compile.module.fieldopencl, compile.module.fieldprocessing" description="build all modules"/>
+  <target name="build.modules" depends="init, clean, compile.module.fieldagent, compile.module.fieldlinker, compile.module.fieldwork2, compile.module.fieldclojure, compile.module.fieldipython, compile.module.fieldjython, compile.module.fieldopencl, compile.module.fieldprocessing" description="build all modules"/>
   
   <target name="init.artifacts">
     <property name="artifacts.temp.dir" value="${basedir}/__artifacts_temp"/>
