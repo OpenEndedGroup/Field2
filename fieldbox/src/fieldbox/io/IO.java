@@ -558,6 +558,9 @@ public class IO {
 	}
 
 	private String makeFilenameFor(String defaultSubDirectory, String defaultSuffix, String defaultName, Box box) {
+
+		System.out.println(" makeFilenameFor "+defaultSubDirectory+" "+defaultSuffix+" "+defaultName+" "+box);
+
 		String name = box.properties.get(Box.name);
 		if (name == null) name = "untitled_box";
 
@@ -565,9 +568,9 @@ public class IO {
 		name = safe(name + suffix);
 
 		int n = 0;
-		if (new File(WORKSPACE+"/"+defaultSubDirectory, name).exists()) {
+		if (filenameFor(WORKSPACE+"/"+defaultSubDirectory+"/"+name).exists()) {
 			String n2 = name;
-			while (new File(WORKSPACE+"/"+defaultSubDirectory, n2).exists()) {
+			while (filenameFor(WORKSPACE+"/"+defaultSubDirectory+"/"+n2).exists()) {
 				n2 = name.substring(0, name.length() - suffix.length()) + pad(
 					    n) + suffix;
 				n++;
@@ -576,12 +579,13 @@ public class IO {
 
 			// create it now, so that other calls to makeFilenameFor still create unique names
 			try {
-				new File(WORKSPACE+"/"+defaultSubDirectory, name).createNewFile();
+				filenameFor(WORKSPACE+"/"+defaultSubDirectory+"/"+name).createNewFile();
 			} catch (IOException e) {
 			}
 
 		}
 
+		System.out.println("      is "+(WORKSPACE + (defaultSubDirectory.equals("") ? "" : (defaultSubDirectory+"/")) + name));
 		return WORKSPACE + (defaultSubDirectory.equals("") ? "" : (defaultSubDirectory+"/")) + name;
 	}
 
