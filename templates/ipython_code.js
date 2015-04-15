@@ -1,20 +1,23 @@
-(defprotocol IBoxAccess
-	"helpful methods for accessing '_', the Field box hierarchy"
-	(x_-> [this k] "Looks up a key in the box hierarchy")
-	(x_<- [this k v] "Sets a key here in the box hierarchy"))
 
-(extend-type fieldlinker.Linker$AsMap
-	IBoxAccess
-	(x_-> [this k] (.asMap_get this (name k)))
-	(x_<- [this k v] (.asMap_set this (name k) v)))
+# This box will attempt to connect to the most recently opened ipython notebook session (when this box is loaded)
 
-(defn _<- 
-	([this k v] (x_<- this k v))
-	([k v] (x_<- _ k v))
-	([this k1 k2 & more] 
-	 (if (satisfies? IBoxAccess this)
-		 (apply _<- (x_-> this k1) k2 more)
-		 (apply _<- (x_-> _ k1) k2 more))))
+# -------------------------
+# We can't right now sign messages sent to the kernel the way that ipython wants, so you need to add this line to your ipython_notebook_config.py file (found, typically, ~/.ipython/profile_default/ipython_notebook_config.py)
+# c.Session.key = b''
 
-(defn _-> ([this k] (x_-> this k))
-	([k] (x_-> _ k)))
+# then you can do things like this                                                                                     
+%pylab inline
+x = np.linspace(0, 10, 1000)
+
+fig, ax = plt.subplots()
+lines = ax.plot(x, np.sin(x))
+print lines
+
+# completion and inspection (ctrl-.) work just fine as well
+
+
+
+
+
+
+
