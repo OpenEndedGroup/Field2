@@ -102,7 +102,7 @@ public class Taps extends Box implements IO.Loaded {
 		r.forEach(x -> x.run());
 
 
-		if (!editorLoaded) {
+		if (!editorLoaded && first(Watches.watches).isPresent()) {
 			Optional<RemoteEditor> first = this.first(RemoteEditor.editor, both());
 			Log.log("tap", "is the editor loaded yet ? " + first);
 
