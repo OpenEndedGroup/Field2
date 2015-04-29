@@ -53,6 +53,10 @@ public class Window implements ProvidesGraphicsContext {
 	private Rect currentBounds;
 
 	public Window(int x, int y, int w, int h, String title) {
+		this(x,y, w,h,title, true);
+	}
+
+	public Window(int x, int y, int w, int h, String title, boolean permitRetina) {
 		Windows.windows.init();
 
 		currentBounds = new Rect(x, y, w, h);
@@ -92,10 +96,6 @@ public class Window implements ProvidesGraphicsContext {
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 		glfwSwapBuffers(window);
 
-
-//		addMouseHandler(Window::debugMouseTransition);
-//		addKeyboardHandler(Window::debugKeyboardTransition);
-
 		RunLoop.main.getLoop()
 			    .attach(0, (i) -> loop());
 
@@ -109,7 +109,7 @@ public class Window implements ProvidesGraphicsContext {
 		Glfw.glfwSetInputMode(window, Glfw.GLFW_STICKY_KEYS, GL.GL_TRUE);
 		Glfw.glfwSetInputMode(window, Glfw.GLFW_STICKY_MOUSE_BUTTONS, GL.GL_TRUE);
 
-		retinaScaleFactor = (int) (Options.dict().getFloat(new Dict.Prop<Number>("retina"), 0f)+1);
+		retinaScaleFactor = permitRetina ? (int) (Options.dict().getFloat(new Dict.Prop<Number>("retina"), 0f)+1) : 1;
 
 		windowOpenedAt = RunLoop.tick;
 
@@ -147,6 +147,8 @@ public class Window implements ProvidesGraphicsContext {
 	}
 
 	static public int getCurrentHeight() {
+
+
 		if (currentWindow == null) throw new IllegalArgumentException(" no window mouseState ");
 		return currentWindow.h;
 	}
