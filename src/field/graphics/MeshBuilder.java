@@ -347,6 +347,20 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	}
 
 	/**
+	 * Adds a vertex to this MeshBuilder
+	 */
+	public MeshBuilder nextVertex(Vec3 a) {
+		return nextVertex((float)a.x, (float)a.y, (float)a.z);
+	}
+	/**
+	 * Adds a vertex to this MeshBuilder
+	 */
+	public MeshBuilder nextVertex(Vec2 a) {
+		return nextVertex((float)a.x, (float)a.y, 0);
+	}
+
+
+	/**
 	 * Adds a element of type "line with adjacency" to this MeshBuilder. Line with adjancey is an OpenGL element that is a line segment with two
 	 * other associated vertices (typically the previous and next vertices, but shaders are free to interpret these however they'd like to)
 	 * <p>
