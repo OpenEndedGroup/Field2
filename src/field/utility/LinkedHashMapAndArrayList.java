@@ -2,11 +2,8 @@ package field.utility;
 
 import com.google.common.collect.MapMaker;
 
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
-import java.util.function.UnaryOperator;
-import java.util.stream.Stream;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class LinkedHashMapAndArrayList<V> extends LinkedHashMap<String, V> {
 
@@ -18,12 +15,17 @@ public class LinkedHashMapAndArrayList<V> extends LinkedHashMap<String, V> {
 	{
 		while(containsKey("__internal_"+(++uniq)));
 		keys.put(vraw, "__internal_"+uniq);
-		super.put("__internal_"+(++uniq), massage(vraw));
+		_put("__internal_"+(++uniq), massage(vraw));
 	}
 
 	@Override
 	public V put(String key, Object value) {
-		return super.put(key, massage(value));
+		return _put(key, massage(value));
+	}
+
+	protected V _put(String key, V v)
+	{
+		return super.put(key, v);
 	}
 
 	protected V massage(Object vraw) {
