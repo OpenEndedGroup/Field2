@@ -218,8 +218,6 @@ public class OutputBox extends Box implements IO.Loaded {
 				@Override
 				public void executeTextFragment(String textFragment, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
 
-					System.out.println(" TEE is executing :"+textFragment);
-
 					delegate.executeJavaScript(textFragment);
 				}
 
