@@ -10,10 +10,12 @@ import fieldnashorn.annotations.HiddenInAutocomplete;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * The principle class of the Field Graphics "Scene List" structure.
@@ -330,9 +332,47 @@ public class Scene extends Box implements Linker.AsMap {
 		return t;
 	}
 
+
+	static public Method supplier_get;
+	static private Object[] nothing = {};
+
+	static {
+		try {
+			supplier_get = Supplier.class.getDeclaredMethod("get");
+		} catch (NoSuchMethodException e) {
+			e.printStackTrace();
+		}
+	}
+
+	UniformBundle defaultBundle = null;
+
+	protected UniformBundle getDefaultBundle() {
+		if (defaultBundle != null) return defaultBundle;
+		defaultBundle = new UniformBundle();
+		this.attach(defaultBundle);
+		return defaultBundle;
+	}
+
+
 	@Override
 	@HiddenInAutocomplete
 	public Object asMap_set(String p, Object o) {
+
+
+		Object fo = Conversions.convert(o, Supplier.class);
+		if (fo instanceof Supplier) return getDefaultBundle().set(p, (Supplier) fo);
+		if (fo instanceof InvocationHandler) {
+			return getDefaultBundle().set(p, (Supplier) () -> {
+				try {
+					return ((InvocationHandler) fo).invoke(fo, supplier_get, nothing);
+				} catch (Throwable throwable) {
+					throwable.printStackTrace();
+				}
+				return null;
+			});
+		}
+
+		if (Uniform.isAccepableInstance(fo)) return getDefaultBundle().set(p, () -> fo).setIntOnly(fo instanceof Integer);
 
 		Log.log("doublescore", "converting to perform ? " + o);
 		o = Conversions.convert(o, Perform.class);
