@@ -33,10 +33,11 @@ public class KeyboardCamera implements Function<Window.Event<KeyboardState>, Boo
 
 	Map<KeyBinding.KeyName, Applicator> bindings = new LinkedHashMap<>();
 
-	float rotationAmount = 0.02f;
-	float translationAmount = 0.02f;
-	float decay = 0.9f;
-	float onset = 0.4f;
+	public float rotationAmount = 0.02f;
+	public float translationAmount = 0.02f;
+
+	public float decay = 0.9f;
+	public float onset = 0.4f;
 
 	public void standardMap() {
 		bindings.put(new KeyBinding.KeyName("page_up"), new Applicator(0, (state, amount) -> state
