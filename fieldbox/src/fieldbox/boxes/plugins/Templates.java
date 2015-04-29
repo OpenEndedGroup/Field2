@@ -8,6 +8,8 @@ import fieldbox.boxes.Callbacks;
 import fieldbox.boxes.Drawing;
 import fieldbox.io.IO;
 
+import java.util.Optional;
+
 /**
  * Created by marc on 3/24/15.
  */
@@ -15,6 +17,9 @@ public class Templates extends Box {
 
 	static public final Dict.Prop<Box.BiFunctionOfBoxAnd<String, Box>> templateChild = new Dict.Prop<Box.BiFunctionOfBoxAnd<Class, Box>>("templateChild").toCannon()
 																			     .doc("_.templateChild(\"template\") create a new box that's a child of this one, copied from 'template'");
+	static public final Dict.Prop<Box.TriFunctionOfBoxAnd<String, String, Box>> ensureChildTemplated= new Dict.Prop<Box.BiFunctionOfBoxAnd<Class, Box>>("ensureChildTemplated").toCannon()
+																			     .doc("_.ensureChildTemplated(\"template\", \"a\") create a new box that's a child of this one, copied from 'template', called 'a'. If there's already something called 'a', just return that");
+
 	private final Box root;
 
 	public Templates(Box root) {
@@ -39,6 +44,38 @@ public class Templates extends Box {
 			return c;
 
 		});
+		properties.put(ensureChildTemplated, (box, template, name) -> {
+
+
+			Optional<Box> f = box.children()
+					     .stream()
+					     .filter(x -> x.properties.equals(Box.name, name))
+					     .findFirst();
+
+			return f.orElseGet(() -> {
+
+				String path = fieldbox.FieldBox.fieldBox.io.findTemplateCalled(template);
+
+				System.err.println(" about to load :" + path);
+
+				Box c = loadBox(path, box.properties.get(Box.frame)
+								   .convert(0.9, 0.9));
+
+				System.out.println(" loaded box :" + c + " of class " + c.getClass());
+
+				c.properties.put(Box.name, name);
+
+				IO.uniqifyIfNecessary(root, c);
+
+				box.connect(c);
+
+				return c;
+
+			});
+
+
+		});
+
 	}
 
 	private Box loadBox(String f, Vec2 position) {
