@@ -1,5 +1,6 @@
 package fieldbox.boxes.plugins;
 
+import field.app.RunLoop;
 import field.utility.Dict;
 import field.utility.Log;
 import field.utility.Triple;
@@ -46,18 +47,9 @@ public class Auto extends Box implements IO.Loaded {
 	@Override
 	public void loaded() {
 
-
-		System.out.println(" atuo is loading up ["+System.identityHashCode(this)+"]");
-		System.out.println(" previously run is :"+done);
-
 		Log.log("auto", "loaded called");
 
 		List<Triple<Box, Float, Number>> run = breadthFirst(both()).filter(x -> x.properties.has(auto))
-									    .map(x -> {
-
-										    Log.log("auto", "filtered by having auto :" + x);
-										    return x;
-									    })
 									    .filter(x -> !done.containsKey(x))
 									    .filter(x -> x.properties.getFloat(auto, 0) > 0)
 									    .map(x -> new Triple<>(x, x.properties.get(Box.frame).y, x.properties.get(auto)))
@@ -65,9 +57,6 @@ public class Auto extends Box implements IO.Loaded {
 
 		// mark everything as done right now, in case there are exceptions.
 		run.forEach(x -> done.put(x.first, System.currentTimeMillis()));
-
-		System.out.println(" loading :"+run);
-		System.out.println(" next previous is :"+done);
 
 		Collections.sort(run, (a, b) -> {
 			if (a.third.doubleValue() < b.third.doubleValue()) return 1;
@@ -80,11 +69,15 @@ public class Auto extends Box implements IO.Loaded {
 		});
 
 		for (Triple<Box, Float, Number> t : run) {
-			System.out.println(" auto load is running :" + t);
-			t.first.find(Chorder.begin, both())
-			       .findFirst()
-			       .get()
-			       .apply(t.first);
+
+			RunLoop.main.delay(() -> {
+				t.first.find(Chorder.begin, both())
+				       .findFirst()
+				       .get()
+				       .apply(t.first);
+
+			}, 1000);
+
 		}
 	}
 }
