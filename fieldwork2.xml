@@ -170,7 +170,7 @@
   </path>
   
   <path id="library.zmq.classpath">
-    <pathelement location="${basedir}/../../../usr/local/share/java/zmq.jar"/>
+    <pathelement location="/usr/local/share/java/zmq.jar"/>
   </path>
   
   
