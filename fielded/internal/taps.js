@@ -53,7 +53,7 @@ insertTapHere = function (ty, w, h) {
     return tap;
 }
 
-cm.on("changes", function (x, c) {
+cm.on("change", function (x, c) {
 
     setTimeout(function () {
 
@@ -65,12 +65,12 @@ cm.on("changes", function (x, c) {
 
         for (var i = 0; i < all.size(); i++) {
             var n = $(all[i]).data('canvasID');
-            namePos.push({name: n, x: 0, y: 0});
+            namePos.push({name: n, x: $(all[i]).offset().left, y: $(all[i]).offset().top, w: $(all[i]).width(), h: $(all[i]).height()});
         }
 
         var activeSet = {active: namePos};
 
-        _messageBus.publish("toField_debounce.taps.activeset", activeSet);
+        _messageBus.publish("toField.taps.activeset", activeSet);
     }, 100)
 
 })
