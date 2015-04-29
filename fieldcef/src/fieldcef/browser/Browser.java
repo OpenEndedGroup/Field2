@@ -184,7 +184,7 @@ public class Browser extends Box implements IO.Loaded {
 			    "   vtc =tc;\n" +
 			    "}");
 
-												
+
 		shader.addSource(Shader.Type.fragment, "#version 410\n" +
 			    "layout(location=0) out vec4 _output;\n" +
 			    "in vec4 vtc;\n" +
@@ -705,29 +705,12 @@ public class Browser extends Box implements IO.Loaded {
 
 	}
 
-	public void setFocus(boolean f) {
-		if (f != focussed) Drawing.dirty(this);
-		focussed = f;
-		browser.setFocus(f);
-		if (f) {
-			System.out.println(" :: >> claiming focus for text editor");
-			find(KeyboardFocus._keyboardFocus, both()).findFirst()
-								  .get()
-								  .claimFocus(this);
-		} else {
-			find(KeyboardFocus._keyboardFocus, both()).findFirst()
-								  .get()
-								  .disclaimFocus(this);
-
-		}
-	}
-
 	public void printHTML(String text) {
 		executeJavaScript_queued("$(document.body).append('" + TextUtils.html(text) + "');" + scrollDown());
 	}
 
 	public void print(String text) {
-		executeJavaScript_queued("$(document.body).append('<pre style=\"padding:3px;margin:3px;\">" + TextUtils.html(text.replace("'", "\"")) + "</pre>');" + scrollDown());
+		executeJavaScript_queued("$(document.body).append('<pre style=\"padding:3px;margin:3px;\">" + TextUtils.quoteNoOuter(text.replace("'", "\"")) + "</pre>');" + scrollDown());
 	}
 
 	public void clear() {
@@ -743,16 +726,31 @@ public class Browser extends Box implements IO.Loaded {
 		return focussed;
 	}
 
-	public interface Handler {
-		public void handle(String address, JSONObject payload, Consumer<String> reply);
+	public void setFocus(boolean f) {
+		if (f != focussed) Drawing.dirty(this);
+		focussed = f;
+		browser.setFocus(f);
+		if (f) {
+			find(KeyboardFocus._keyboardFocus, both()).findFirst()
+								  .get()
+								  .claimFocus(this);
+		} else {
+			find(KeyboardFocus._keyboardFocus, both()).findFirst()
+								  .get()
+								  .disclaimFocus(this);
+
+		}
 	}
 
-	public void injectCSS(String css)
-	{
+	public void injectCSS(String css) {
 		executeJavaScript_queued("var css = document.createElement(\"style\");\n" +
 						     "css.type = \"text/css\";\n" +
-						     "css.innerHTML = \""+css+"\";\n" +
+						     "css.innerHTML = \"" + css + "\";\n" +
 						     "document.body.appendChild(css);");
+	}
+
+	public interface Handler {
+		public void handle(String address, JSONObject payload, Consumer<String> reply);
 	}
 
 }
