@@ -4,6 +4,7 @@ import field.app.RunLoop;
 import field.nashorn.internal.runtime.ConsString;
 import field.utility.*;
 import fieldbox.DefaultMenus;
+import fieldbox.boxes.plugins.Missing;
 import fieldbox.execution.Completion;
 import fieldbox.execution.Execution;
 import fieldbox.execution.HandlesCompletion;
@@ -330,8 +331,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 
 		}
 		if (ret==null)
-			ret = find(cannon, upwards()).findFirst()
-							    .orElse(null);
+			ret = Missing.findFrom(this, cannon);
 
 		if (ret instanceof Box.FunctionOfBox) {
 			final Object fret = ret;
@@ -372,7 +372,8 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 
 		Object converted = Conversions.convert(value, cannon.getTypeInformation());
 
-		properties.put(cannon, converted);
+		Missing.setTo(this, cannon, converted);
+//		properties.put(cannon, converted);
 
 //		Log.log("underscore.debug", () -> {
 //			Log.log("underscore.debug", " PROPERTIES NOW :");
@@ -408,8 +409,6 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 		FunctionOfBox<Box> b = find(DefaultMenus.newBox, both()).findFirst()
 									.get();
 		Box b2 = b.apply(this);
-		// we need a deeper copy than putAll can provide right now (Set, List and Map for example);
-		//b2.properties.putAll(this.properties);
 
 		b2.asMap_call(null, a);
 		return b2;
@@ -429,8 +428,6 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 			FunctionOfBox<Box> b = find(DefaultMenus.newBox, both()).findFirst()
 										.get();
 			return b.apply(this);
-			// we need a deeper copy than putAll can provide right now (Set, List and Map for example);
-			//b2.properties.putAll(this.properties);
 		});
 		b2.asMap_call(null, a);
 		return b2;
@@ -443,7 +440,9 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 
 	@Override
 	public Object asMap_getElement(Object element) {
-		return new XPathSupport(this).get(""+element);
+//
+//		return new XPathSupport(this).get(""+element);
+		return asMap_get(""+element);
 	}
 
 	@Override
