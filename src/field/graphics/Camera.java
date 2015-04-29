@@ -110,6 +110,7 @@ public class Camera {
 		public State copy() {
 			State s = new State();
 			s.io_disparity = this.io_disparity;
+			s.io_disparity_per_distance = this.io_disparity_per_distance;
 			s.io_frustra = this.io_frustra;
 			s.aspect = this.aspect;
 			s.far = this.far;
@@ -280,6 +281,7 @@ public class Camera {
 	}
 
 	public Mat4 view(float stereoSide) {
+
 		Vec3 forward = state.ray(stereoSide).normalise();
 		Vec3 up = state.up.normalise();
 
