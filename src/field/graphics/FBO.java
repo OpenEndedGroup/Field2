@@ -1,5 +1,7 @@
 package field.graphics;
 
+import field.utility.Util;
+
 import java.nio.ByteBuffer;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -142,23 +144,28 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform {
 	}
 
 	public boolean draw() {
-		State s = GraphicsContext.get(this, this::setup);
-		glBindFramebuffer(GL_FRAMEBUFFER, specification.multisample ? s.multisample : s.name);
-		glViewport(0, 0, specification.width, specification.height);
-		glScissor(0, 0, specification.width, specification.height);
-		display.updateAll();
-		if (specification.multisample) {
-			glBindFramebuffer(GL_READ_FRAMEBUFFER, s.multisample);
-			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, s.name);
-			for (int i = 0; i < s.text.length; i++) {
-				glDrawBuffer(GL_COLOR_ATTACHMENT0 + i);
-				glReadBuffer(GL_COLOR_ATTACHMENT0 + i);
-				glBlitFramebuffer(0, 0, specification.width, specification.height, 0, 0, specification.width, specification.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-			}
-		}
+		try(Util.ExceptionlessAutoCloasable st = GraphicsContext.stateTracker.save()) {
+			State s = GraphicsContext.get(this, this::setup);
+			glBindFramebuffer(GL_FRAMEBUFFER, specification.multisample ? s.multisample : s.name);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		return true;
+			int[] v = {0, 0, specification.width, specification.height};
+			GraphicsContext.stateTracker.scissor.set(v);
+			GraphicsContext.stateTracker.viewport.set(v);
+
+			display.updateAll();
+			if (specification.multisample) {
+				glBindFramebuffer(GL_READ_FRAMEBUFFER, s.multisample);
+				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, s.name);
+				for (int i = 0; i < s.text.length; i++) {
+					glDrawBuffer(GL_COLOR_ATTACHMENT0 + i);
+					glReadBuffer(GL_COLOR_ATTACHMENT0 + i);
+					glBlitFramebuffer(0, 0, specification.width, specification.height, 0, 0, specification.width, specification.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+				}
+			}
+
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			return true;
+		}
 	}
 
 	public Scene scene() {
