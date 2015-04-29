@@ -15,6 +15,7 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -109,6 +110,8 @@ public class Image extends Box {
 		public int w;
 		public int h;
 
+		public Consumer<TextureLoader> updator = null;
+
 		public TextureLoader(String filename) {
 			this.filename = filename;
 			int[] d = j.dimensions(filename);
@@ -132,6 +135,32 @@ public class Image extends Box {
 
 			PerLayer pl = layerLocal.computeIfAbsent("__main__", (k) -> new PerLayer());
 			pl.mainShader.attach(mesh);
+
+			mesh.attach(-100, (x) -> {
+				if (updator!=null) updator.accept(this);
+			});
+		}
+
+		public void makeLive(Consumer<TextureLoader> updator)
+		{
+			this.updator = updator;
+		}
+
+		public void pinTo(Box source, Vec2 centerOffset, Vec2 scale, Rect crop)
+		{
+			makeLive( x -> {
+
+				Rect f = source.properties.get(Box.frame);
+
+
+				double aw = w*scale.x;
+				double ah = h*scale.y;
+
+				double ax = aw/2+f.x+f.w/2+centerOffset.x;
+				double ay = ah/2+f.y+f.h/2+centerOffset.y;
+
+				geometry(new Rect(ax-aw/2, ay-ah/2, aw, ah), crop);
+			});
 		}
 
 		public void reload(String s)
