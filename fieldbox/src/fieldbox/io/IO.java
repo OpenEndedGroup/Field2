@@ -308,10 +308,16 @@ public class IO {
 
 		String read = readFromFile(dataFile);
 		if (read != null) {
-			Map<?, ?> m = (Map) serializeFromString(read);
-			for (Map.Entry<?, ?> entry : m.entrySet()) {
-				ex.box.properties.put(new Dict.Prop((String) entry.getKey()),
-						      entry.getValue());
+			try {
+				Map<?, ?> m = (Map) serializeFromString(read);
+				for (Map.Entry<?, ?> entry : m.entrySet()) {
+					ex.box.properties.put(new Dict.Prop((String) entry.getKey()), entry.getValue());
+				}
+			}
+			catch(Exception e)
+			{
+				Log.log("io.error", "trouble loading external "+dataFile+". Corrupt file?");
+				e.printStackTrace();
 			}
 		}
 
