@@ -35,10 +35,17 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 	static public final Dict.Prop<Boolean> lockY = new Dict.Prop<>("lockY").type()
 									       .toCannon()
 									       .doc("set to true to disable changes to the y-position of this box via the mouse");
+
+	static public final Dict.Prop<FunctionOfBoxValued<List<Box>>> selection = new Dict.Prop<>("selection").toCannon()
+													     .type()
+													     .doc("the list of boxes that are selected");
+
 	private final Box root;
 
 	public FrameManipulation(Box root) {
 		this.root = root;
+		this.properties.put(selection, x -> breadthFirst(both()).filter(q -> (q.properties.isTrue(Mouse.isSelected, false) && !q.properties.isTrue(Mouse.isSticky, false)))
+									.collect(Collectors.toList()));
 		this.properties.putToMap(Mouse.onMouseDown, "__frameManipulation__", this);
 		this.properties.putToMap(Mouse.onMouseMove, "__frameManipulation__", e -> {
 
@@ -144,7 +151,7 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 			return null;
 		}
 
-		if (button == 0 || button == 1) return button0(e);
+		if (button == 0 /*|| button == 1*/) return button0(e);
 		if (button == 2) return button2(e);
 
 		return null;
@@ -233,8 +240,8 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 
 				hitBox.properties.put(Mouse.isManipulated, true);
 
-				Set<Box> workingSet = breadthFirst(both()).filter(x -> (e.after.keyboardState.isSuperDown() && x == hitBox) || (!e.after.keyboardState.isSuperDown() &&
-										  x.properties.isTrue(Mouse.isSelected, false)))
+				Set<Box> workingSet = breadthFirst(both()).filter(
+					    x -> (e.after.keyboardState.isSuperDown() && x == hitBox) || (!e.after.keyboardState.isSuperDown() && x.properties.isTrue(Mouse.isSelected, false)))
 									  .filter(x -> !x.properties.isTrue(Mouse.isSticky, false) || x == hitBox)
 									  .filter(x -> x.properties.has(Box.frame))
 									  .filter(x -> x.properties.has(Box.name))
