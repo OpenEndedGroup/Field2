@@ -3,6 +3,9 @@ package fieldbox.boxes.plugins;
 import com.sun.jdi.*;
 import com.sun.jdi.connect.AttachingConnector;
 import com.sun.jdi.connect.Connector;
+import com.sun.jdi.event.BreakpointEvent;
+import com.sun.jdi.event.EventSet;
+import com.sun.jdi.request.BreakpointRequest;
 import field.utility.Log;
 
 import java.io.DataInputStream;
@@ -78,7 +81,6 @@ public class Hotswapper {
 			try {
 				h.connect("localhost", "5005", "");
 
-
 				Log.log("watching", "here we go");
 				List<ReferenceType> found = h.vm.allClasses()
 								.stream()
@@ -100,29 +102,24 @@ public class Hotswapper {
 				Log.log("watching", "found " + found);
 				if (found.size() > 0) {
 					for(int i=0;i<found.size();i++) {
+						System.out.println("watching.fields" + found.get(i)
+											    .allFields());
+
+
 						Log.log("watching.fields", found.get(i)
 										.allFields());
 						try {
 							Log.log("watching.lines", found.get(i)
 										       .allLineLocations());
-						} catch (AbsentInformationException e) {
-							Log.log("watching.lines", "not available");
-						}
-						try {
-							Log.log("watching.lines", found.get(i)
-										       .locationsOfLine(0));
-						} catch (AbsentInformationException e) {
-							Log.log("watching.lines", "not available");
-						}
-						try {
-							Log.log("watching.lines", found.get(i)
-										       .locationsOfLine(1));
-						} catch (AbsentInformationException e) {
-							Log.log("watching.lines", "not available");
-						}
-						try {
-							Log.log("watching.lines", found.get(i)
-										       .locationsOfLine(2));
+
+
+							found.get(i).allLineLocations().stream().forEach(x -> {
+								BreakpointRequest b = h.vm.eventRequestManager()
+													  .createBreakpointRequest(x);
+								b.setSuspendPolicy(BreakpointRequest.SUSPEND_EVENT_THREAD);
+								b.putProperty("for location", x.toString());
+								b.setEnabled(true);
+							});
 						} catch (AbsentInformationException e) {
 							Log.log("watching.lines", "not available");
 						}
@@ -136,17 +133,69 @@ public class Hotswapper {
 					}
 				}
 
+				new Thread(() -> {
+					while(true) {
+						try {
+							EventSet e = h.vm.eventQueue()
+									      .remove();
+							e.forEach(x -> {
+								System.out.println("EVENT :"+x);
+
+								if (x instanceof BreakpointEvent)
+								{
+									System.out.println(" --- frames are ?");
+									try {
+										System.out.println("     frames :" + ((BreakpointEvent) x).thread()
+																	  .frames());
+										System.out.println("     frames :" + ((BreakpointEvent) x).thread()
+																	  .frames().get(0).visibleVariables());
+										((BreakpointEvent) x).thread()
+																	  .frames().get(0).visibleVariables().forEach(y -> {
+											System.out.println("  " + y);
+											System.out.println("   " + y.typeName());
+											try {
+												System.out.println("   "+y.type());
+											} catch (ClassNotLoadedException e1) {
+												e1.printStackTrace();
+											}
+											System.out.println("   "+y.getClass());
+
+											try {
+												System.out.println("   " + ((BreakpointEvent) x).thread()
+																		.frames()
+																		.get(0)
+																		.getValue(y));
+											} catch (IncompatibleThreadStateException e1) {
+												e1.printStackTrace();
+											}
+										});
+									} catch (IncompatibleThreadStateException e1) {
+										e1.printStackTrace();
+									} catch (AbsentInformationException e1) {
+										e1.printStackTrace();
+									}
+
+								}
+
+							});
+
+							e.resume();
+						}catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+					}
+				}).start();
 
 
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
 		} finally {
-			try {
-				h.disconnect();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+//			try {
+//				h.disconnect();
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			}
 		}
 	}
 
@@ -215,6 +264,7 @@ public class Hotswapper {
 		if (!vm.canRedefineClasses()) {
 			throw new Exception("JVM doesn't support class replacement");
 		}
+
 
 		Log.log("reload", "supports class redefinition");
 
