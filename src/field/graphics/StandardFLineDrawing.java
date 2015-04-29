@@ -56,6 +56,9 @@ public class StandardFLineDrawing {
 	static public final Dict.Prop<Number> textScale = new Dict.Prop<>("textScale").type()
 										      .toCannon()
 										      .doc("the scale of the text on this node. Defaults to 0.2f, the size of the labels on the boxes in Field");
+	static public final Dict.Prop<Number> textAlign = new Dict.Prop<>("textAlign").type()
+										      .toCannon()
+										      .doc("0.5 centers the text, 0 is left justified, 1 is right");
 	static public final Dict.Prop<String> font = new Dict.Prop<>("font").type()
 									    .toCannon()
 									    .doc("the (distance bitmap) font for Field text");
@@ -118,11 +121,12 @@ public class StandardFLineDrawing {
 				   .forEach(node -> {
 					   String textToDraw = node.attributes.get(text);
 					   float textScale = node.attributes.getFloat(StandardFLineDrawing.textScale, 1f) * 0.15f;
+					   float align = node.attributes.getFloat(StandardFLineDrawing.textAlign, 0.5f);
 					   ot.map(t -> t.getFontSupport(fline.attributes.getOr(font, () -> "source-sans-pro-regular-92.fnt"), layerName))
 					     .ifPresent(fs -> {
 						     Vec2 v = fs.font.dimensions(textToDraw, textScale);
 						     fs.mesh.aux(1, fc);
-						     fs.font.draw(textToDraw, new Vec2(node.to.x - v.x / 2, node.to.y), textScale, fline);
+						     fs.font.draw(textToDraw, new Vec2(node.to.x - align*v.x, node.to.y), textScale, fline);
 					     });
 				   });
 
