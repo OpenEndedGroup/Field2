@@ -91,6 +91,15 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 		}, (box) -> new Pair<>(box.properties.get(frame), box.properties.isTrue(Mouse.isSelected, false)));
 	}
 
+	static public Supplier<FLine> boxOrigin(Supplier<FLine> wrap, Vec2 origin, Box inside) {
+		return new Cached<Box, Object, FLine>((box, previously) -> {
+			Rect frame = box.properties.get(Box.frame);
+			Vec2 o = new Vec2(frame.x + frame.w * origin.x, frame.y + frame.h * origin.y);
+			return wrap.get()
+				   .byTransforming((pos) -> new Vec3(pos.x + o.x, pos.y + o.y, pos.z));
+		}, (box) -> new Pair<>(box.properties.get(frame), box.properties.isTrue(Mouse.isSelected, false))).toSupplier(() -> inside);
+	}
+
 	static public Function<Box, FLine> boxScale(Function<Box, FLine> wrap) {
 		return new Cached<Box, Object, FLine>((box, previously) -> {
 			Rect frame = box.properties.get(Box.frame);
@@ -100,6 +109,17 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 				   .byTransforming((pos) -> new Vec3(frame.x + pos.x * frame.w, frame.y + pos.y * frame.h, pos.z));
 		}, (box) -> new Pair<>(box.properties.get(frame), box.properties.isTrue(Mouse.isSelected, false)));
 	}
+
+	static public Function<Box, FLine> windowOrigin(Function<Box, FLine> wrap) {
+		return new Cached<Box, Object, FLine>((box, previously) -> {
+
+			Rect v = box.find(Drawing.drawing, box.both()).findFirst().get().getCurrentViewBounds(box);
+
+			return wrap.apply(box)
+				   .byTransforming((pos) -> new Vec3(v.x+v.w/2+pos.x, v.y+v.h/2+pos.y, pos.z));
+		}, (box) -> box.find(Drawing.drawing, box.both()).findFirst().get().getCurrentViewBounds(box));
+	}
+
 
 	static public Supplier<FLine> camera(Supplier<FLine> wrap, Camera camera, Vec2 scale, Vec2 center) {
 		Mat4 p = camera.projectionMatrix(0);
@@ -142,9 +162,10 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 			String l = f.attributes.getOr(layer, () -> "__main__");
 			f.attributes.multiply(opacity, 1, counter[0] / (float) updates);
 			f.modify();
-			Drawing.dirty(box, l);
-			if (--counter[0]<0) done.run();
-			return counter[0] < 0 ? null : f;
+			if (counter[0]>=0)
+				Drawing.dirty(box, l);
+			if (--counter[0]==0) done.run();
+			return counter[0] == 0 ? null : f;
 		};
 	}
 
@@ -156,8 +177,9 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 			String l = f.attributes.getOr(layer, () -> "__main__");
 			f.attributes.multiply(opacity, 1, (float) Math.pow(counter[0] / (float) updates, power));
 			f.modify();
-			Drawing.dirty(box, l);
-			return counter[0]-- < 0 ? null : f;
+			if (counter[0]>=0)
+				Drawing.dirty(box, l);
+			return --counter[0] == 0 ? null : f;
 		};
 	}
 
