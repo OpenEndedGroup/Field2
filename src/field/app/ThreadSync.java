@@ -4,11 +4,13 @@ import com.google.common.collect.MapMaker;
 import field.nashorn.internal.runtime.Undefined;
 import field.utility.Dict;
 import field.utility.Options;
+import field.utility.Util;
 
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * Yield with (an unbounded but recycled number of) threads.
@@ -314,6 +316,11 @@ public class ThreadSync {
 		public volatile boolean wasPaused = false;
 
 		public Object tag;
+	}
+
+	public Stream<Fiber> findByTag(Object tag)
+	{
+		return live.stream().filter(x -> Util.safeEq(x, tag));
 	}
 
 }
