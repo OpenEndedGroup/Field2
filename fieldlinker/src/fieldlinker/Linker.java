@@ -168,7 +168,7 @@ public class Linker implements GuardingDynamicLinker, GuardingTypeConverterFacto
 
 				System.err.println(" linking AsMap/set " + rec);
 				MethodHandle get = MethodHandles.lookup()
-								.findVirtual(rec.getClass(), "asMap_set", MethodType.methodType(Object.class, String.class, Object.class));
+								.findVirtual(implementingClassFor(rec.getClass()), "asMap_set", MethodType.methodType(Object.class, String.class, Object.class));
 
 				get = MethodHandles.insertArguments(get, 1, propertyName);
 
@@ -228,6 +228,16 @@ public class Linker implements GuardingDynamicLinker, GuardingTypeConverterFacto
 		}
 
 		return null;
+	}
+
+	private Class<?> implementingClassFor(Class<? extends Object> aClass) {
+		if (aClass==null) return null;
+
+		Class<?>[] ii = aClass.getInterfaces();
+		for(Class c : ii)
+			if (c==AsMap.class) return aClass;
+
+		return implementingClassFor(aClass.getSuperclass());
 	}
 
 	@Override
