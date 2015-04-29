@@ -1,15 +1,14 @@
 package fieldbox.boxes.plugins;
 
-import field.linalg.Vec2;
+import field.graphics.FLine;
+import field.graphics.StandardFLineDrawing;
+import field.linalg.Vec4;
 import field.utility.Dict;
 import field.utility.Log;
 import field.utility.Rect;
-import fieldbox.DefaultMenus;
-import fieldbox.boxes.Box;
-import fieldbox.boxes.Boxes;
-import fieldbox.boxes.Mouse;
-import fieldbox.boxes.Watches;
+import fieldbox.boxes.*;
 import fieldbox.io.IO;
+import fieldcef.plugins.TextEditor;
 import fielded.RemoteEditor;
 import fielded.webserver.Server;
 import org.java_websocket.WebSocket;
@@ -17,6 +16,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -47,10 +47,12 @@ public class Taps extends Box implements IO.Loaded {
 	public void loaded() {
 		properties.put(tap, (x, string) -> {
 
-			Box c = x.first(DefaultMenus.ensureChildOfClass)
-				 .get()
-				 .apply(x, string, Box.class);// todo, templates?
+//			Box c = x.first(DefaultMenus.ensureChildOfClass)
+//				 .get()
+//				 .apply(x, string, Box.class);// todo, templates?
 
+
+			Box c = x.first(Templates.ensureChildTemplated).get().apply(x, "tap-"+string.substring(0, string.lastIndexOf(":")), string);
 
 			// do something with 'c' -> function
 
@@ -102,7 +104,7 @@ public class Taps extends Box implements IO.Loaded {
 		r.forEach(x -> x.run());
 
 
-		if (!editorLoaded && first(Watches.watches).isPresent()) {
+		if (!editorLoaded && first(Watches.watches, both()).isPresent()) {
 			Optional<RemoteEditor> first = this.first(RemoteEditor.editor, both());
 			Log.log("tap", "is the editor loaded yet ? " + first);
 
@@ -133,11 +135,11 @@ public class Taps extends Box implements IO.Loaded {
 
 						      JSONObject p = (JSONObject) payload;
 						      JSONArray active = p.getJSONArray("active");
-						      Map<String, Vec2> names = new LinkedHashMap<>();
+						      Map<String, Rect> names = new LinkedHashMap<>();
 						      for (int i = 0; i < active.length(); i++) {
 							      JSONObject o = (JSONObject) active.get(i);
 							      String name = o.getString("name");
-							      names.put(name, new Vec2(o.getDouble("x"), o.getDouble("y")));
+							      names.put(name, new Rect(o.getDouble("x"), o.getDouble("y"), o.getDouble("w"), o.getDouble("h")));
 						      }
 
 
@@ -162,8 +164,9 @@ public class Taps extends Box implements IO.Loaded {
 							     });
 					      }); return payload;
 				      });
-// snoop editor changed to set active / unactive.
-				Watches watches = first(Watches.watches).orElseThrow(() -> new IllegalArgumentException(" need Watches for server support"));
+
+				// snoop editor changed to set active / unactive.
+				Watches watches = first(Watches.watches, both()).orElseThrow(() -> new IllegalArgumentException(" need Watches for server support"));
 
 				watches.addWatch(Mouse.isSelected, (changed) -> {
 					selectionHasChanged = true;
@@ -192,8 +195,11 @@ public class Taps extends Box implements IO.Loaded {
 	}
 
 
-	private void updatePosition(Binding binding, Vec2 at) {
-		binding.editorPosition = new Rect(at.x, at.y, 5, 5);
+	private void updatePosition(Binding binding, Rect at) {
+		if (binding.editorPosition==null || !binding.editorPosition.equals(at) && binding.target!=null)
+			Drawing.dirty(binding.target);
+
+		binding.editorPosition = new Rect(at.x, at.y, at.w, at.h);
 
 		// todo, callback
 	}
@@ -231,8 +237,50 @@ public class Taps extends Box implements IO.Loaded {
 		}
 
 		public void execute(String javascript) {
-			server.send(lastSocket, javascript);
+			if (lastSocket!=null) server.send(lastSocket, javascript);
 		}
+
+
+		public Function<Box, FLine> connective()
+		{
+			TextEditor t = inside.find(TextEditor.textEditor, inside.both())
+							   .findFirst().get();
+			return (x) -> {
+
+				if (editorPosition==null)
+					return new FLine(); // check current editable
+
+
+				Rect f0 = t.browser.properties.get(Box.frame).duplicate();
+				Rect f1 = target.properties.get(Box.frame);
+
+				f0.x += editorPosition.x;
+				f0.y += editorPosition.y;
+
+
+				f0 = f0.inset(5);
+				f1 = f1.inset(5);
+
+
+				FLine f = new FLine();
+
+				f.moveTo(f0.x, f0.y);
+				f.lineTo(f1.x, f1.y);
+				f.moveTo(f0.x+editorPosition.w, f0.y);
+				f.lineTo(f1.x+f1.w, f1.y);
+				f.moveTo(f0.x+editorPosition.w, f0.y+editorPosition.h);
+				f.lineTo(f1.x+f1.w, f1.y+f1.h);
+				f.moveTo(f0.x, f0.y+editorPosition.h);
+				f.lineTo(f1.x, f1.y+f1.h);
+
+				f.attributes.put(StandardFLineDrawing.color, new Vec4(0,0,0,0.1));
+
+				return f;
+
+
+			};
+		}
+
 
 	}
 
