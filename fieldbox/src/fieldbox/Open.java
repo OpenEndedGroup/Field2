@@ -228,6 +228,8 @@ public class Open {
 
 		new RevealInFinder(boxes.root()).connect(boxes.root());
 
+		new Channels(boxes.root()).connect(boxes.root());
+
 		if (ThreadSync.enabled)
 			new ThreadSyncFeedback(boxes.root()).connect(boxes.root());
 
