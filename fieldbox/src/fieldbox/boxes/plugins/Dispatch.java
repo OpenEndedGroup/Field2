@@ -17,6 +17,7 @@ import fieldbox.boxes.Mouse;
 
 import java.awt.*;
 import java.awt.geom.Area;
+import java.util.ArrayList;
 import java.util.Optional;
 
 import static field.graphics.StandardFLineDrawing.*;
@@ -186,7 +187,11 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 	protected void completeDrag(Box start, Box box) {
 		this.properties.removeFromMap(frameDrawing, "__ongoingDrag__");
 
+		ArrayList<Box> s = new ArrayList<>(box.parents());
+		box.parents.clear();
 		start.connect(box);
+		box.parents.addAll(s);
+
 		allFrameHashSalt++;
 
 		Drawing.dirty(start);
