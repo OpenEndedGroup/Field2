@@ -7,7 +7,7 @@ public class FullScreenWindow extends Window {
 
 	public FullScreenWindow(int x, int y, int w, int h, String title)
 	{
-		super(x,y,w,h, title);
+		super(x,y,w,h, title, true);
 
 	}
 

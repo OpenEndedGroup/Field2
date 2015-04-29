@@ -64,6 +64,8 @@ public class KeyboardCamera implements Function<Window.Event<KeyboardState>, Boo
 			    .translateIn(-translationAmount*amount)));
 		bindings.put(new KeyBinding.KeyName(Glfw.GLFW_KEY_DOWN, true, false, false, false), new Applicator(0, (state, amount) -> state
 			    .dollyIn(-translationAmount*amount)));
+
+
 	}
 
 	public KeyboardCamera(Camera target, Window w) {
