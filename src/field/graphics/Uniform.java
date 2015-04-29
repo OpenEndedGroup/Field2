@@ -1,7 +1,6 @@
 package field.graphics;
 
 import field.linalg.*;
-import field.utility.Log;
 import org.apache.commons.math3.geometry.euclidean.oned.Vector1D;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
@@ -88,7 +87,6 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 		Integer name = GraphicsContext.stateTracker.shader.get();
 
 		if (name == null) return true;
-
 
 		int location = glGetUniformLocation(name, this.name);
 
