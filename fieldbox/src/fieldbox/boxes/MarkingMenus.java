@@ -14,6 +14,7 @@ import java.awt.geom.Area;
 import java.util.*;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static field.graphics.StandardFLineDrawing.*;
 import static field.utility.Log.log;
@@ -50,9 +51,7 @@ public class MarkingMenus extends Box {
 
 			if (event.properties.isTrue(Window.consumed, false)) return null;
 
-			Box startAt = breadthFirst(both()).filter(x -> x.properties.isTrue(Mouse.isSelected, false) && !x.properties.isTrue(Mouse.isSticky, false))
-							  .findFirst()
-							  .orElseGet(() -> root);
+			Box startAt = Intersects.startAt(event, root);
 
 			MenuSpecification m = startAt.find(menuSpecs, upwards())
 						     .filter(x -> x != null)
@@ -107,6 +106,17 @@ public class MarkingMenus extends Box {
 			log("debug.markingmenus", "merged spec and got :" + m.items.keySet());
 
 			if (m.items.size() > 0) {
+				event.properties.put(Window.consumed, true);
+
+				List<Box> sel = breadthFirst(both()).filter(q -> (q.properties.isTrue(Mouse.isSelected, false) && !q.properties.isTrue(Mouse.isSticky, false)))
+									.collect(Collectors.toList());
+
+				if (sel.size()==0 && startAt!=root)
+				{
+					startAt.properties.put(Mouse.isSelected, true);
+					Drawing.dirty(startAt);
+				}
+
 				return runMenu(this, convertCoordinateSystem(this, new Vec2(event.after.x, event.after.y)), m);
 			} else {
 				log("debug.markingmenus", " no menuSpecs for event ");

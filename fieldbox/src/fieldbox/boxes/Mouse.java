@@ -41,10 +41,7 @@ public class Mouse {
 
 	public void dispatch(Box root, Window.Event<Window.MouseState> event) {
 
-		Box startAt = root.breadthFirst(root.both())
-				  .filter(x -> x.properties.isTrue(isSelected, false) && !x.properties.isTrue(Mouse.isSticky, false))
-				  .findFirst()
-				  .orElseGet(() -> root);
+		Box startAt = Intersects.startAt(event, root);
 
 		System.out.println(" start at :"+startAt
 		);
