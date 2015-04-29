@@ -5,6 +5,7 @@ import field.graphics.StandardFLineDrawing;
 import field.linalg.Vec2;
 import field.linalg.Vec4;
 import field.utility.Dict;
+import field.utility.IdempotencyMap;
 import field.utility.Rect;
 import fieldbox.boxes.*;
 
@@ -14,21 +15,38 @@ import java.util.UUID;
 import static field.graphics.StandardFLineDrawing.*;
 
 /**
- * Created by marc on 4/6/15.
  */
 public class Notifications extends Box {
 
-	static public final Dict.Prop<Box.BiFunctionOfBoxAnd<String, Boolean>> badge = new Dict.Prop<>("badge").toCannon(); // TODO
+	static public final Dict.Prop<Box.BiFunctionOfBoxAnd<String, String>> badge = new Dict.Prop<>("badge").toCannon(); // TODO
+	static public final Dict.Prop<FunctionOfBoxValued<IdempotencyMap>> badges = new Dict.Prop<>("badges").toCannon(); // TODO
 
 	static public final Dict.Prop<ArrayList<String>> _badgeList = new Dict.Prop<>("_badgeList");
 
 	public Notifications(Box root_unused) {
 		this.properties.put(badge, this::badge);
+		this.properties.put(badges, x -> {
+			IdempotencyMap<String> s = new IdempotencyMap<String>(String.class)
+			{
+				protected String _put(String key, String v)
+				{
+					badge(x, v, key, () -> this.remove(key), -1);
+					return super._put(key, v);
+				}
+			};
+
+			return s;
+		});
 	}
 
-	protected boolean badge(Box box, String text) {
-		String id = UUID.randomUUID()
-				.toString();
+
+
+	protected String badge(Box box, String text) {
+		String prefix =  UUID.randomUUID()
+		    .toString();
+		return badge(box, text, prefix, () -> {}, 300);
+	}
+	protected String badge(Box box, String text, String id, Runnable exit, int duration) {
 		box.properties.putToList(_badgeList, id, ArrayList::new);
 		box.properties.putToMap(FLineDrawing.frameDrawing, "__badge__" + id, FLineDrawing.expires(x -> {
 			int i = box.properties.get(_badgeList)
@@ -47,8 +65,9 @@ public class Notifications extends Box {
 
 			return f;
 
-		}, 30, () -> {
+		}, duration, () -> {
 			box.properties.removeFromCollection(_badgeList, id);
+			exit.run();
 		}));
 
 		TextDrawing td = first(TextDrawing.textDrawing, both()).get();
@@ -75,12 +94,10 @@ public class Notifications extends Box {
 			f.attributes.put(fillColor, new Vec4(Colors.statusBarBackground));
 			f.attributes.put(strokeColor, new Vec4(0, 0, 0, 1f));
 
-//			f.attributes.put(layer, "glass");
-
 			return f;
-		}, 30));
+		}, duration));
 
-		return true;
+		return id;
 	}
 
 }
