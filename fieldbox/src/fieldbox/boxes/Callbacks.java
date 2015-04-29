@@ -6,6 +6,7 @@ import field.utility.IdempotencyMap;
 import field.utility.Log;
 import field.utility.Rect;
 import fieldbox.execution.Execution;
+import fielded.DisabledRangeHelper;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -183,7 +184,8 @@ public class Callbacks {
 							     .filter(x -> x == box)
 							     .count() > 1 && !box.properties.isTrue(new Dict.Prop("recur"), false)) return null;
 
-					String code = box.properties.get(Execution.code);
+//					String code = box.properties.get(Execution.code);
+					String code = DisabledRangeHelper.getStringWithDisabledRanges(box, Execution.code, "/* -- start -- ", "-- end -- */");
 					if (code != null) box.first(Execution.execution)
 							     .ifPresent(x -> x.support(box, Execution.code)
 									      .executeAll(code, box));
@@ -260,7 +262,8 @@ public class Callbacks {
 							     .filter(x -> x == box)
 							     .count() > 1 && !box.properties.isTrue(new Dict.Prop("recur"), false)) return null;
 
-					String code = box.properties.get(Execution.code);
+//					String code = box.properties.get(Execution.code);
+					String code = DisabledRangeHelper.getStringWithDisabledRanges(box, Execution.code, "/* -- start -- ", "-- end -- */");
 					if (code != null) box.first(Execution.execution)
 							     .ifPresent(x -> x.support(box, Execution.code)
 									      .executeAll(code, box));

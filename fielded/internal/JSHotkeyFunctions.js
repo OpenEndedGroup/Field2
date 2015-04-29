@@ -71,12 +71,10 @@ function Autocomplete() {
 }
 
 function Commands() {
-//	console.log(" about to go commands");
     goCommands();
 }
 
 function Current_Bracket() {
-//	console.log(" ctrl left ! ", currentBracket);
     executeCurrentBracket()
     cm.setCursor(c);
 }
@@ -98,9 +96,6 @@ function Import() {
             completionFunction = function (e) {
                 var m = []
                 for (var i = 0; i < completions.length; i++) {
-
-//									console.log("A :"+completions[i]+":");
-//									console.log("B :"+completions[i].replaceWith+":");
 
                     if (completions[i].replaceWith.indexOf(e) > -1) {
                         pattern = new RegExp("(" + e + ")");
@@ -156,7 +151,8 @@ function Run_All() {
     _field.sendWithReturn("execution.all", {
         box: cm.currentbox,
         property: cm.currentproperty,
-        text: fragment
+        text: fragment,
+        disabledRanges: "["+allDisabledBracketRanges()+"]"
     }, function (d, e) {
         if (d.type == 'error') {
             _messageBus.publish("error.line", d);
@@ -174,7 +170,8 @@ function Run_Begin() {
     _field.sendWithReturn("execution.begin", {
         box: cm.currentbox,
         property: cm.currentproperty,
-        text: fragment
+        text: fragment,
+        disabledRanges: "["+allDisabledBracketRanges()+"]"
     }, function (d, e) {
         if (d.type == 'error') {
             _messageBus.publish("error.line", d);

@@ -162,6 +162,10 @@ public class RemoteEditor extends Box {
 
 			boxFeedback(box, new Vec4(0, 0, 0, 0.2f));
 
+			String disabledRanges = p.getString("disabledRanges");
+
+			box.get().properties.put(new Dict.Prop<List<Pair<Integer, Integer>>>("_"+prop+"_disabled"), parseDisabledRanges(disabledRanges));
+
 			return payload;
 		});
 
@@ -302,6 +306,14 @@ public class RemoteEditor extends Box {
 			String text = p.getString("text");
 
 			if (text == null) throw new IllegalArgumentException(" can't execute no text ");
+
+			List<Pair<Integer, Integer>> dis = parseDisabledRanges(p.getString("disabledRanges"));
+
+			if (dis!=null)
+			{
+				text = DisabledRangeHelper.rewriteWithDisabledRanges(text, "/* -- start -- ", "-- end -- */", dis);
+			}
+
 
 			String returnAddress = p.getString("returnAddress");
 
@@ -668,6 +680,11 @@ public class RemoteEditor extends Box {
 
 	}
 
+	private List<Pair<Integer, Integer>> parseDisabledRanges(String disabledRanges) {
+		if (disabledRanges==null) return null;
+		return DisabledRangeHelper.parseDisabledRanges(disabledRanges);
+	}
+
 	protected ExtendedCommand wrapCommandForHotkeys(String text) {
 		return new ExtendedCommand() {
 			public SupportsPrompt p;
@@ -908,13 +925,16 @@ public class RemoteEditor extends Box {
 					buildMessage.put("languageName", cmln);
 					support.setFilenameForStacktraces("" + currentSelection);
 				} else {
-					// this can happen when we're editing something that isn't 'code'
-					String cmln = FieldBox.fieldBox.io.getLanguageForProperty(editingProperty);
-					Log.log("remote.general", "langage :" + cmln);
-					buildMessage.put("languageName", cmln);
 				}
 			}
+			else
+			{
+				// this can happen when we're editing something that isn't 'code'
+				String cmln = FieldBox.fieldBox.io.getLanguageForProperty(editingProperty);
+				Log.log("remote.general", "langage :" + cmln);
+				buildMessage.put("languageName", cmln);
 
+			}
 			Log.log("remote.trace", " message will be sent " + buildMessage.toString());
 
 			Log.log("remote.trace", () -> "\n " + currentSelection.properties.get(new Dict.Prop<JSONObject>("_" + editingProperty.getName() + "_cookie")) + "\n");
@@ -961,9 +981,9 @@ public class RemoteEditor extends Box {
 
 	public Execution getExecution(Box box, Dict.Prop<String> prop) {
 
-		return box.breadthFirst(box.both()).filter(x -> x.properties.has(Execution.execution)).map(x -> x.properties.get(Execution.execution)).filter(x -> x != null).filter(
+		return box.breadthFirst(box.upwards()).filter(x -> x.properties.has(Execution.execution)).map(x -> x.properties.get(Execution.execution)).filter(x -> x != null).filter(
 			    x -> x.support(box, prop) != null).findFirst()
-					  .orElseThrow(() -> new IllegalArgumentException("no execution found for box " + box));
+					  .orElseGet(() -> null);
 
 
 	}

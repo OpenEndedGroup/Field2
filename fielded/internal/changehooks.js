@@ -1,25 +1,26 @@
 cm.on("change", function (cm, change) {
     console.log(cm)
     console.log(change)
-    // debounce send to field
+
     if (cm.currentbox && cm.currentproperty)
     {
         _messageBus.publish("toField.text.updated", {
             box: cm.currentbox,
             property: cm.currentproperty,
-            text: cm.getValue()
+            text: cm.getValue(),
+            disabledRanges: "["+allDisabledBracketRanges()+"]"
         })
 
-                cookie = {}
-                cookie.brackets = serializeAllBrackets()
-                cookie.output = serializeAllOutput()
-                cookie.currentpos = cm.getCursor()
-                cookie.widgets = serializeAllWidgets()
-                _messageBus.publish("toField.store.cookie", {
-                    box: cm.currentbox,
-                    property: cm.currentproperty,
-                    "cookie": cookie
-                })
+				cookie = {}
+				cookie.brackets = serializeAllBrackets()
+				cookie.output = serializeAllOutput()
+				cookie.currentpos = cm.getCursor()
+				cookie.widgets = serializeAllWidgets()
+				_messageBus.publish("toField.store.cookie", {
+						box: cm.currentbox,
+						property: cm.currentproperty,
+						"cookie": cookie
+				})
     }
 })
 

@@ -14,6 +14,7 @@ import fieldbox.execution.Completion;
 import fieldbox.execution.Execution;
 import fieldbox.io.IO;
 import fielded.Animatable;
+import fielded.DisabledRangeHelper;
 import fielded.RemoteEditor;
 
 import javax.script.ScriptContext;
@@ -200,8 +201,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 		initiator.entrySet().forEach(x -> context.setAttribute(x.getKey(), x.getValue(), ScriptContext.ENGINE_SCOPE));
 
-		String allText = box.first(property)
-				    .orElse("");
+		String allText = DisabledRangeHelper.getStringWithDisabledRanges(box, property, "/*", "*/");
 
 		executeAndReturn(allText, lineErrors, success, false);
 		Object _r = context.getBindings(ScriptContext.ENGINE_SCOPE)

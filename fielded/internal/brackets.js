@@ -38,7 +38,6 @@ function executeBracket(bra) {
 function executeCurrentBracket() {
     if (currentBracket != null) {
         executeBracket(currentBracket)
-
     }
 }
 
@@ -72,8 +71,7 @@ function rectForLineHandle(lh) {
 function pathStringForTwoLineHandles(lh1, lh2, level) {
     r1 = rectForLineHandle(lh1)
     r2 = rectForLineHandle(lh2)
-//    console.log("rect for line1 " + cm.getLineNumber(lh1) + " is " + r1.bottom + " " + r1.top)
-//    console.log("rect for line2 " + cm.getLineNumber(lh2) + " is " + r2.bottom + " " + r2.top)
+
     if (r1 && r2) {
         sz = (r2.bottom - r1.top) / 8
         sz = -18 + level * 7
@@ -99,7 +97,7 @@ function pathStringForTwoLineHandles(lh1, lh2, level) {
 
 raph.clear()
 
-function makePathForHandles(h1, h2, level) {
+function makePathForHandles(h1, h2, level, disabled) {
     f = findPathForLines(h1, h2)
     if (f) return f;
 
@@ -108,11 +106,12 @@ function makePathForHandles(h1, h2, level) {
         var path = raph.path()
         console.log(path)
         path.attr({
-            "stroke-opacity": 0.0
+            "stroke-opacity": 0.25
         })
         path.attr({
-            "fill-opacity": 0.25
+            "fill-opacity": (disabled ? 0.1 : 0.25)
         })
+        path.attr({"stroke-dasharray": disabled ? ". " : ""})
         path.attr({
             fill: "#fff"
         })
@@ -128,20 +127,15 @@ function makePathForHandles(h1, h2, level) {
         path.attr({
             path: ps
         })
-        path.attr({
-            'stroke-dasharray': '.'
-        })
 
         path.mouseover(function () {
             path.attr({
                 "stroke-opacity": 1.0,
-                stroke: "#fff"
             })
         })
         path.mouseout(function () {
             path.attr({
-                "stroke-opacity": 0.0,
-                stroke: "#000"
+                "stroke-opacity": 0.25,
             })
         })
         path.mousedown(function (e) {
@@ -173,11 +167,22 @@ function serializeAllBrackets() {
     updateAllBrackets()
     raph.forEach(function (e) {
         if ("isHandleDecorator" in e) {
-            ret += "makePathForHandles(cm.getLineHandle(" + cm.getLineNumber(e.h1) + "), cm.getLineHandle(" + cm.getLineNumber(e.h2) + "), " + e.level + ")\n"
+            ret += "makePathForHandles(cm.getLineHandle(" + cm.getLineNumber(e.h1) + "), cm.getLineHandle(" + cm.getLineNumber(e.h2) + "), " + e.level + ", "+e.disabled+")\n"
         }
     })
     return ret
 }
+
+function allDisabledBracketRanges() {
+    ret = ""
+    updateAllBrackets()
+    raph.forEach(function (e) {
+    			if (e.disabled)
+            ret += "["+cm.getLineNumber(e.h1)+", "+cm.getLineNumber(e.h2)+"], ";
+    })
+    return ret
+}
+
 
 function findPathForLines(h1, h2) {
     var found;
@@ -287,8 +292,7 @@ function updateAllBrackets() {
             if (ps) {
                 e.attr({
                     path: ps,
-                    "stroke-opacity": 0.0,
-                    'stroke-dasharray': ''
+                    "stroke-opacity": 0.25,
                 })
             } else {
                 e.attr({
@@ -304,9 +308,6 @@ function updateAllBrackets() {
     if (f != null) {
         f.attr({
             "stroke-opacity": 1.0
-        })
-        f.attr({
-            'stroke-dasharray': ''
         })
         currentBracket = f
     } else {
@@ -369,3 +370,41 @@ globalCommands.push({
         return currentBracket != null;
     }
 });
+
+globalCommands.push({
+    "name": "Disable current bracket",
+    "info": "Comments out the current bracket, preventing execution with alt-0 and .begin()",
+    "callback": function () {
+        updateAllBrackets();
+        if (currentBracket!=null)
+        {
+        	currentBracket.disabled=true;
+	        currentBracket.attr({"stroke-dasharray": (currentBracket.disabled ? "- " : "")})
+	        currentBracket.attr({"fill-opacity": (currentBracket.disabled ? 0.1 : 0.25)})
+	        currentBracket.attr({"stroke": (currentBracket.disabled ? "#fff" : "#000")})
+        }
+    },
+    "guard": function () {
+        updateAllBrackets();
+        return currentBracket != null && !currentBracket.disabled;
+    }
+});
+globalCommands.push({
+    "name": "Enable current bracket",
+    "info": "un-Comments out the current bracket, allowing execution with alt-0 and .begin()",
+    "callback": function () {
+        updateAllBrackets();
+        if (currentBracket!=null)
+        {
+        	currentBracket.disabled=false;
+	        currentBracket.attr({"stroke-dasharray": (currentBracket.disabled ? "- " : "")})
+	        currentBracket.attr({"fill-opacity": (currentBracket.disabled ? 0.1 : 0.25)})
+	        currentBracket.attr({"stroke": (currentBracket.disabled ? "#fff" : "#000")})
+        }
+    },
+    "guard": function () {
+        updateAllBrackets();
+        return currentBracket != null && currentBracket.disabled;
+    }
+});
+
