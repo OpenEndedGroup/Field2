@@ -62,7 +62,8 @@ public class Drawing extends Box {
 	Vec2 nextDimensions = null;
 	private Vec2 translation = new Vec2(0, 0);
 	private Vec2 translationNext = null;
-	private Vec2 scale = new Vec2(1, 1);
+	private Vec2 scale = new Vec2(1,1);
+	private Vec2 boxScale = new Vec2(1,1);
 	private float opacity = 1f;
 
 	public Drawing() {
@@ -206,7 +207,7 @@ public class Drawing extends Box {
 			    "}");
 
 		layer.shader.attach(new Uniform<Vec2>("translation", this::getTranslationRounded));
-		layer.shader.attach(new Uniform<Vec2>("scale", scale));
+		layer.shader.attach(new Uniform<Vec2>("scale", () -> new Vec2(scale.x*boxScale.x, scale.y*boxScale.y)));
 		layer.shader.attach(new Uniform<Vec2>("bounds", () -> new Vec2(Window.getCurrentWidth(), Window.getCurrentHeight())));
 		layer.shader.attach(new Uniform<Float>("opacity", () -> opacity));
 
@@ -277,7 +278,7 @@ public class Drawing extends Box {
 			    "}");
 
 		layer.pointShader.attach(new Uniform<Vec2>("translation", this::getTranslationRounded));
-		layer.pointShader.attach(new Uniform<Vec2>("scale", scale));
+		layer.pointShader.attach(new Uniform<Vec2>("scale", () -> new Vec2(scale.x*boxScale.x, scale.y*boxScale.y)));
 		layer.pointShader.attach(new Uniform<Vec2>("bounds", () -> new Vec2(Window.getCurrentWidth(), Window.getCurrentHeight())));
 		layer.pointShader.attach(new Uniform<Float>("opacity", () -> opacity));
 
@@ -376,8 +377,8 @@ public class Drawing extends Box {
 
 		x += translation.x;
 		y += translation.y;
-		x = x * scale.x;
-		y = y * scale.y;
+		x = x * scale.x * boxScale.x;
+		y = y * scale.y * boxScale.y;
 
 		return new Vec2(x, y);
 	}
@@ -389,8 +390,8 @@ public class Drawing extends Box {
 		double y = /*-*/windowDelta.y;
 		double x = windowDelta.x;
 
-		x = x / scale.x;
-		y = y / scale.y;
+		x = x / (scale.x*boxScale.x);
+		y = y / (scale.y*boxScale.y);
 
 		return new Vec2(x, y);
 	}
