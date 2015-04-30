@@ -7,6 +7,7 @@
     <SOURCES>
       <root url="file://$USER_HOME$/temp/nashorn/src/jdk.scripting.nashorn/share/classes" />
       <root url="file://$USER_HOME$/temp/nashorn/src/jdk.scripting.nashorn/share/classes" />
+      <root url="file://$USER_HOME$/temp/nashorn/src/jdk.scripting.nashorn/share/classes" />
     </SOURCES>
   </library>
 </component>
