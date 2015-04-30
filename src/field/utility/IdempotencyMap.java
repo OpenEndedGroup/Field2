@@ -124,4 +124,11 @@ public class IdempotencyMap<T> extends LinkedHashMapAndArrayList<T> implements M
 	public Object asMap_setElement(int i, Object o) {
 		return new NotImplementedException();
 	}
+
+	@Override
+	public boolean asMap_delete(Object p)
+	{
+		return remove(p)!=null;
+	}
+
 }

@@ -1,15 +1,15 @@
 package fieldlinker;
 
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 /**
  * Created by marc on 8/13/14.
  */
 public class Testy implements Linker.AsMap {
+
+	@Override
+	public boolean asMap_delete(Object o) {
+		return false;
+	}
 
 	@Override
 	public Object asMap_call(Object a, Object b) {

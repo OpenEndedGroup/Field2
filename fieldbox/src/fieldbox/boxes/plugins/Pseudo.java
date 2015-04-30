@@ -101,6 +101,16 @@ public class Pseudo extends Box {
 		}
 
 		@Override
+		public boolean asMap_delete(Object o) {
+			Box q = (Box)asMap_get("" + o);
+			if (q!=null)
+			{
+				return q.properties.asMap_delete(o);
+			}
+			return false;
+		}
+
+		@Override
 		public Object asMap_get(String s) {
 			Dict.Prop p = new Dict.Prop(s);
 			return on.breadthFirst(on.upwards())

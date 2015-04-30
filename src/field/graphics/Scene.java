@@ -506,6 +506,11 @@ public class Scene extends Box implements Linker.AsMap {
 		}
 
 		@Override
+		public boolean asMap_delete(Object o) {
+			return Scene.this.asMap_delete("__"+pass+"__"+o);
+		}
+
+		@Override
 		public Object asMap_new(Object a) {
 			throw new NotImplementedException();
 		}

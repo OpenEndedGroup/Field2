@@ -24,6 +24,15 @@ public abstract class AsMapDelegator implements Linker.AsMap {
 		return delegateTo().asMap_isProperty(p);
 	}
 
+	@Override
+	public boolean asMap_delete(Object o) {
+		if (o==null) return false;
+
+		String p = o.toString();
+		if (knownNonProperties.contains(p)) return false;
+
+		return delegateTo().asMap_delete(o);
+	}
 
 	protected Set<String> computeKnownNonProperties(Class clazz) {
 		Set<String> r = new LinkedHashSet<>();

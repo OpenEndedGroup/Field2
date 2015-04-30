@@ -490,6 +490,9 @@ public class Dict implements Serializable, Linker.AsMap {
 	}
 
 	@Override
+	public boolean asMap_delete(Object o) {return remove(new Prop(""+o))!=null;}
+
+	@Override
 	public Object asMap_set(String p, Object o) {
 		System.err.println(" -- asmap set :"+p+" -> "+o+" -- ");
 		Dict r = put(new Prop(p), o);

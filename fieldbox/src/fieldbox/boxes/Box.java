@@ -358,6 +358,16 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	}
 
 	@Override
+	public boolean asMap_delete(Object o) {
+
+		System.err.println(" delete for box is :"+o);
+
+		//TODO: Missing.delete ?
+
+		return properties.asMap_delete(o);
+	}
+
+	@Override
 	@HiddenInAutocomplete
 	public Object asMap_set(String name, Object value) {
 
@@ -373,20 +383,6 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 		Object converted = Conversions.convert(value, cannon.getTypeInformation());
 
 		Missing.setTo(this, cannon, converted);
-//		properties.put(cannon, converted);
-
-//		Log.log("underscore.debug", () -> {
-//			Log.log("underscore.debug", " PROPERTIES NOW :");
-//			for (Map.Entry<Dict.Prop, Object> q : properties.getMap()
-//									.entrySet()) {
-//				try {
-//					Log.log("underscore.debug", "     " + q.getKey() + " = " + q.getValue());
-//				} catch (NullPointerException e) {
-//					JDK bug JDK-8035426 --- sometimes Nashorn lambdas throw NPE's when they are .toString'd
-//				}
-//			}
-//			return null;
-//		});
 
 		if (tick != RunLoop.tick) {
 			Drawing.dirty(this);
@@ -569,6 +565,12 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 			return delegateTo.asMap_get(prefix.properties.get(IO.id) + p);
 		}
 
+
+		@Override
+		public boolean asMap_delete(Object o) {
+			return delegateTo.asMap_delete(prefix.properties.get(IO.id)+o);
+		}
+
 		@Override
 		public Object asMap_set(String p, Object o) {
 
@@ -641,6 +643,11 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 
 			return from.properties.computeIfAbsent(storageProperty, (k) -> autoconstructor.apply(from))
 					      .get(p);
+		}
+
+		@Override
+		public boolean asMap_delete(Object o) {
+			return false;
 		}
 
 		@Override
@@ -733,6 +740,11 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 			startFrom.connect(b);
 
 			return b;
+		}
+
+		@Override
+		public boolean asMap_delete(Object o) {
+			return false;
 		}
 
 		@Override

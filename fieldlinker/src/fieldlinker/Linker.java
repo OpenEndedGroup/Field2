@@ -4,6 +4,7 @@ package fieldlinker;
 import field.dynalink.CallSiteDescriptor;
 import field.dynalink.linker.*;
 import field.dynalink.support.Guards;
+import field.nashorn.api.scripting.extensions.CustomDelete;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.lang.invoke.MethodHandle;
@@ -20,7 +21,7 @@ public class Linker implements GuardingDynamicLinker, GuardingTypeConverterFacto
 	boolean disabled = System.getProperty("noLinker") != null;
 	boolean debug = System.getProperty("debugLinker") != null;
 
-	public interface AsMap {
+	public interface AsMap extends CustomDelete {
 		public boolean asMap_isProperty(String p);
 
 		public Object asMap_call(Object a, Object b);

@@ -762,7 +762,7 @@ public class Window implements ProvidesGraphicsContext {
 		}
 	}
 
-	static public class Event<T> extends AsMapDelegator{
+	static public class Event<T> extends AsMapDelegator {
 		public final T before;
 		public final T after;
 

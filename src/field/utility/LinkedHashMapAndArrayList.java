@@ -2,6 +2,7 @@ package field.utility;
 
 import com.google.common.collect.MapMaker;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -15,7 +16,7 @@ public class LinkedHashMapAndArrayList<V> extends LinkedHashMap<String, V> {
 	{
 		while(containsKey("__internal_"+(++uniq)));
 		keys.put(vraw, "__internal_"+uniq);
-		_put("__internal_"+(++uniq), massage(vraw));
+		_put("__internal_" + (++uniq), massage(vraw));
 	}
 
 	@Override
@@ -38,7 +39,21 @@ public class LinkedHashMapAndArrayList<V> extends LinkedHashMap<String, V> {
 		V q = super.remove(v);
 		V q2 = super.remove(keys.remove(v));
 		Log.log("lhmaal_remove", "now "+this);
+
+		_removed(v);
+
 		return q!=null ? q : q2;
+	}
+
+	@Override
+	public void clear() {
+		ArrayList<V> val = new ArrayList<>(values());
+		super.clear();
+		val.forEach(x -> _removed(x));
+	}
+
+	protected void _removed(Object v) {
+
 	}
 
 }

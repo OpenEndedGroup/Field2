@@ -1056,31 +1056,23 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 		if (value instanceof ConsString) value = ((ConsString) value).toString();
 
 
-//		Log.log("underscore.debug", " underscore box set :" + name + " to " + value.getClass() + " <" + Function.class.getName() + ">");
 		Dict.Prop cannon = new Dict.Prop(name).toCannon();
-
-//		Log.log("underscore.debug", " cannonical type information " + cannon.getTypeInformation());
 
 		Object converted = convert(value, cannon.getTypeInformation());
 
 		attributes.put(cannon, converted);
 
-//		Log.log("underscore.debug", () -> {
-//			Log.log("underscore.debug", " PROPERTIES NOW :");
-//			for (Map.Entry<Dict.Prop, Object> q : attributes.getMap()
-//									.entrySet()) {
-//				try {
-//					Log.log("underscore.debug", "     " + q.getKey() + " = " + q.getValue());
-//				} catch (NullPointerException e) {
-//					//JDK bug JDK-8035426 --- sometimes Nashorn lambdas throw NPE's when they are .toString'd
-//				}
-//			}
-//			return null;
-//		});
 
 		modify();
 
 		return this;
+	}
+
+	@Override
+	@HiddenInAutocomplete
+	public boolean asMap_delete(Object o) {
+		modify();
+		return attributes.asMap_delete(o);
 	}
 
 	@HiddenInAutocomplete
@@ -1224,6 +1216,11 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 			}
 
 			return ret;
+		}
+
+		@Override
+		public boolean asMap_delete(Object o) {
+			return attributes.asMap_delete(o);
 		}
 
 		@Override
