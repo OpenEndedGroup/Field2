@@ -48,6 +48,16 @@ public class Channels extends Box {
 			return null;
 		}
 
+		public boolean asMap_delete(Object prop)
+		{
+			Dict.Prop p = new Dict.Prop(""+prop);
+			Box locatedAt = on.breadthFirst(on.upwards())
+					  .filter(x -> x.properties.has(p))
+					  .findFirst()
+					  .orElseGet(() -> on);
+			return locatedAt.properties.remove(new Dict.Prop("_"+prop+"_info"))!=null;
+		}
+
 		@Override
 		public Object asMap_get(String s) {
 			Dict.Prop p = new Dict.Prop(s);
