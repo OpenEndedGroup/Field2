@@ -75,7 +75,6 @@ function pathStringForTwoLineHandles(lh1, lh2, level) {
     if (r1 && r2) {
         sz = (r2.bottom - r1.top) / 8
         sz = -18 + level * 7
-        console.log(" sz is " + sz + " " + level);
         r2.bottom -= 8
         r1.top -= 8
 
@@ -104,7 +103,6 @@ function makePathForHandles(h1, h2, level, disabled) {
     ps = pathStringForTwoLineHandles(h1, h2, level)
     if (ps) {
         var path = raph.path()
-        console.log(path)
         path.attr({
             "stroke-opacity": 0.25
         })
@@ -139,7 +137,6 @@ function makePathForHandles(h1, h2, level, disabled) {
             })
         })
         path.mousedown(function (e) {
-            console.log("down?" + e.altKey + " " + e.button)
             if (e.altKey) {
                 currentBracket = path;
                 executeCurrentBracket();
@@ -225,7 +222,7 @@ function sortConflicts() {
     })
     raph.forEach(function (e) {
         if ("isHandleDecorator" in e) {
-            console.log("bracket level is " + e.level);
+//            console.log("bracket level is " + e.level);
         }
     })
 
@@ -287,7 +284,6 @@ function updateAllBrackets() {
         if ("isHandleDecorator" in e) {
             var ps = pathStringForTwoLineHandles(e.h1, e.h2, e.level)
 
-            console.log("PS " + ps);
 
             if (ps) {
                 e.attr({
@@ -366,7 +362,6 @@ globalCommands.push({
     },
     "guard": function () {
         updateAllBrackets();
-        console.log("currentbracket? " + currentBracket);
         return currentBracket != null;
     }
 });

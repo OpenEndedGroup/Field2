@@ -68,9 +68,6 @@ public class KeyEventMapping {
 		keyCodes.put(KeyEvent.VK_SPACE, Glfw.GLFW_KEY_SPACE);
 		keyCodes.put(KeyEvent.VK_PERIOD, Glfw.GLFW_KEY_PERIOD);
 
-//		forceTyped.put(Glfw.GLFW_KEY_C, 'c');
-//		forceTyped.put(Glfw.GLFW_KEY_V, 'v');
-//		forceTyped.put(Glfw.GLFW_KEY_F, 'f');
 
 		glfwModifiers.add(Glfw.GLFW_KEY_LEFT_CONTROL);
 		glfwModifiers.add(Glfw.GLFW_KEY_RIGHT_CONTROL);

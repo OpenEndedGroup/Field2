@@ -14,7 +14,7 @@ public class LoggingDefaults {
 		Log.on("nashorn.general", Log::green);
 		Log.on("INSERT", Log::green);
 		Log.on("tap.*", Log::green);
-		Log.on("remote.trace", Log::green);
+//		Log.on("remote.trace", Log::green);
 		Log.on("server", Log::green);
 		Log.on("python.debug", Log::green);
 		Log.on("calllogic", Log::green);

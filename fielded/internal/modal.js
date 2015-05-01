@@ -11,13 +11,10 @@ function runModal(placeholder, getcompletionsfunction, cssclass, initialText, al
     if (initialText)
         inputBox.val(initialText);
 
-    console.log();
 
     function updateCompletions() {
         $(ol).empty();
-        console.log("text is currently " + inputBox.val());
         var completions = getcompletionsfunction(inputBox.val());
-        console.log(completions);
 
         for (var i = 0; i < completions.length; i++) {
             var num = "";
@@ -54,7 +51,6 @@ function runModal(placeholder, getcompletionsfunction, cssclass, initialText, al
     updateCompletions();
 
     inputBox.on("input", function (x) {
-        console.log(this.value);
         updateCompletions()
     });
 
@@ -72,7 +68,6 @@ function runModal(placeholder, getcompletionsfunction, cssclass, initialText, al
             }, 25)
         }
         else if (allowAlternative) {
-            console.log(" value is " + value);
             allowAlternative(inputBox.val());
             event.preventDefault();
             setTimeout(function () {
@@ -89,10 +84,8 @@ function runModal(placeholder, getcompletionsfunction, cssclass, initialText, al
 
     }
 
-//				 console.log("allowAlternative = "+allowAlternative)
 
     inputBox.on("keydown", function (x) {
-        console.log(x.keyCode);
         if (x.keyCode == 13) {
             highlightRunAndClose(this.value, 0, x, this.allowAlternative)
         }
@@ -123,7 +116,6 @@ function runModal(placeholder, getcompletionsfunction, cssclass, initialText, al
 function runModalAtCursor(placeholder, completeme, initialText) {
     var m = runModal(placeholder, completeme, "Field-modal-positioned", initialText);
     var cc = cm.cursorCoords();
-    console.log(cc);
     var h = $(m).height();
     if (cc.bottom > $(window).height() / 2)
         $(m).css("top", Math.max(100, cc.bottom - h));
@@ -132,10 +124,8 @@ function runModalAtCursor(placeholder, completeme, initialText) {
     }
 
     var p = $(m).position();
-    console.log(" checking height :" + p.top + " " + h + " " + $(window).height());
     if (p.top + h > $(window).height() - 40) {
         h = $(window).height() - p.top - 100;
-        console.log(" set height to be " + h);
         $($(m).children()[1]).height(h)
     }
     $(m).css("left", cc.right)

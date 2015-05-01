@@ -91,7 +91,7 @@ public class TextEditor extends Box implements IO.Loaded {
 		long[] t = {0};
 		RunLoop.main.getLoop()
 			    .attach(x -> {
-				    if (t[0] == 0) t[0] = System.currentTimeMillis();
+				    if (t[0] == 0) t[0] =  System.currentTimeMillis();
 				    if (System.currentTimeMillis() - t[0] > 1000) {
 					    boot();
 

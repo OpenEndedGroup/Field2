@@ -1,8 +1,8 @@
 var _messageBus = postal.channel("main")
 
 postal.addWireTap(function (d, e) {
-    console.log(d);
-    console.log(JSON.stringify(e, null, 4));
+//    console.log(d);
+//    console.log(JSON.stringify(e, null, 4));
 });
 
 _messageBus.subscribe("toField.#", function (d, e) {

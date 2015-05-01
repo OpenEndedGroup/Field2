@@ -163,17 +163,12 @@ insertFloatSlider = function (selection_start, selection_end) {
 
     var marks = canvas.mark;
 
-    console.log(" canvas is ", canvas);
-    console.log(" marks ", marks.find());
 
     get = function () {
-        console.log("inside get ", cm.getDoc().getRange(marks.find().from, marks.find().to))
         f = parseFloat(cm.getDoc().getRange(marks.find().from, marks.find().to));
-        console.log(" to float is :", f);
         return f;
     }
     set = function (o, p, x) {
-        console.log("inside set ", marks.find().from, marks.find().to, x)
 
         ff = {line: marks.find().from.line, ch: marks.find().from.ch}
         ff.ch += 1;
@@ -188,7 +183,7 @@ insertFloatSlider = function (selection_start, selection_end) {
             if (f != null) {
                 executeBracket(f)
             }
-            console.log(" replaced range ");
+
         }
 
         return x;
@@ -208,10 +203,6 @@ insertFloatSlider = function (selection_start, selection_end) {
         // todo, add guard to make sure that this text hasn't changed....
         return "insertFloatSlider({'line':" + fl + ",'ch':" + fc + "},{'line':" + tl + ",'ch':" + tc + "})";
     })
-    console.log("set data to be ", $(canvas.div).data("serialization"))
-    console.log("can we find it ?", $('*').filter(function () {
-        return $(this).data('serialization') !== undefined;
-    }))
     updateAllBrackets();
 
     return canvas;
@@ -239,7 +230,7 @@ insertFloatSliderAtSelection = function () {
         insertFloatSlider(selection_start, selection_end);
     }
     else {
-        console.log(" can't go over selection " + r);
+
     }
 }
 

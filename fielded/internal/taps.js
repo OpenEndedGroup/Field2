@@ -18,7 +18,7 @@ insertTap = function (selection_start, selection_end, uid, w, h) {
         text: fragment,
         lineoffset: -1
     }, function (d, e) {
-        console.log("executed tap creation, got :" + e);
+
     });
 
     var marks = canvas.mark;

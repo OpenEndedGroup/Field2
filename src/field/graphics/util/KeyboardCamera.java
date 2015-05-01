@@ -85,10 +85,8 @@ public class KeyboardCamera implements Function<Window.Event<KeyboardState>, Boo
 
 		bindings.entrySet().forEach((k) -> {
 			if (currentState != null && k.getKey().matches(currentState)) {
-//				Log.log("kc", k.getKey()+" down "+k.getValue().amount);
 				k.getValue().amount = k.getValue().amount * onset + (1 - onset) * 1;
 			} else {
-//				Log.log("kc", k.getKey() + " up " + k.getValue().amount);
 				k.getValue().amount *= decay;
 			}
 

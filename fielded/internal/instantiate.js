@@ -25,7 +25,6 @@ function fuzzy(pat) {
 }
 
 function replacer() {
-    console.log(arguments);
     prefix = arguments[arguments.length - 1].substring(0, arguments[arguments.length - 1]);
     for (var i = 1; i < arguments.length - 2; i += 2) {
         prefix += "<span class='matched'>" + arguments[i] + "</span>" + arguments[i + 1];

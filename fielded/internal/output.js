@@ -26,7 +26,6 @@ function appendRemoteOutputToLine(line, text, checkClass, lineClass, append) {
     var bm;
 
     if (found != null) {
-        console.log(" reusing previous element ")
         d = found.node
         d.lastOutputAt = new Date().valueOf();
 
@@ -49,9 +48,7 @@ function appendRemoteOutputToLine(line, text, checkClass, lineClass, append) {
         }, 500)
         found.changed()
     } else {
-        console.log(" making new element ")
         d = $("<div class='" + lineClass + "'><div class='Field-closebox'>&#x2715;</div><div class='Field-expandBox'>&#x21A7;</div>" + text.trim() + "</div>")[0]
-        console.log(d)
         d.lastOutputAt = new Date().valueOf();
 
         bm = cm.addLineWidget(lh, d, {
@@ -60,12 +57,9 @@ function appendRemoteOutputToLine(line, text, checkClass, lineClass, append) {
         })
         d.bm = bm
 
-        console.log(" transient ? " + text.trim().length)
         if (text.trim().length < 1 || text.trim() == "&#10003;") {
-            console.log(" transient ");
             $(d).animate({opacity: 0.0, "max-height": "0%"}, {
                 "duration": 400, "progress": function () {
-                    console.log($(d).height());
                     bm.changed()
                 }, "done": function () {
                     bm.clear();
@@ -102,7 +96,6 @@ function appendRemoteOutputToLine(line, text, checkClass, lineClass, append) {
             $(this).css("color", "#fff")
         })
         expandBox.click(function () {
-            console.log("expandbox click " + thisDiv.maxSize().height)
             if (thisDiv.maxSize().height > 2000) {
                 thisDiv.css("max-height", "50")
                 expandBox.html("&#x21A7;")

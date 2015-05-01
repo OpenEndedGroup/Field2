@@ -68,9 +68,7 @@ public class BrowserKeyboardHacks {
 			if (mapper.isForcedTyped(mm)!=null && mod!=0)
 			{
 				KeyEvent ke = new KeyEvent(component, KeyEvent.KEY_TYPED, 0, mod, KeyEvent.VK_UNDEFINED, (char) mapper.isForcedTyped(mm));
-//				Log.log("keyboard2", "FIRE FORCED CHAR PRESS" + ke);
-
-//				Log.log("keyboard", "consuming keyboard event :" + e);
+				System.out.println(" forced typed :"+(char) mapper.isForcedTyped(mm));
 				e.properties.put(Window.consumed, true);
 				target.sendKeyEvent(ke);
 				keysDown.add(mm);
@@ -84,14 +82,11 @@ public class BrowserKeyboardHacks {
 			if (translated != null) {
 
 				KeyEvent ke = new KeyEvent(component, KeyEvent.KEY_PRESSED, 0, mod, translated, (char) translated.intValue());
-//				Log.log("keyboard2", "FIRE KEY PRESSED" + ke);
-
-//				Log.log("keyboard", "consuming keyboard event :" + e);
+				System.out.println(" sent :"+mod+" "+translated+" "+(char)translated.intValue());
 				e.properties.put(Window.consumed, true);
 				target.sendKeyEvent(ke);
 
 				ke = new KeyEvent(component, KeyEvent.KEY_RELEASED, 0, fmod, translated, (char) translated.intValue());
-//				Log.log("keyboard2", "FIRE KEY RELEASED" + ke);
 				e.properties.put(Window.consumed, true);
 				target.sendKeyEvent(ke);
 
@@ -151,8 +146,13 @@ public class BrowserKeyboardHacks {
 
 		for(Character cc : c) {
 			KeyEvent ke = new KeyEvent(component, KeyEvent.KEY_TYPED, 0, mod, KeyEvent.VK_UNDEFINED, cc);
-//			Log.log("keyboard2", "FIRE CHAR :"+ke);
+			System.out.println("fire char :"+mod+" "+cc);
 			e.properties.put(Window.consumed, true);
+
+			if (e.after.isAltDown()) continue;
+			if (e.after
+				    .isControlDown()) continue;
+
 			target.sendKeyEvent(ke);
 		}
 

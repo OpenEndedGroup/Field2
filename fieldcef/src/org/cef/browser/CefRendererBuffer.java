@@ -23,11 +23,10 @@ class CefRendererBuffer implements CefRenderer {
 
 	@Override
 	public void render() {
-		System.out.println("Render");
+
 	}
 
 	@Override
 	public void onPaint(boolean popup, Rectangle[] dirtyRects, ByteBuffer buffer, int width, int height) {
-		System.out.println("Paint");
 	}
 }

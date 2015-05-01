@@ -42,8 +42,10 @@ public class Window implements ProvidesGraphicsContext {
 	private final CannonicalModifierKeys modifiers;
 	protected GraphicsContext graphicsContext;
 	protected long window;
+
 	protected int w;
 	protected int h;
+
 	protected MouseState mouseState = new MouseState();
 	protected KeyboardState keyboardState = new KeyboardState();
 	int tick = 0;

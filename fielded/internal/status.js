@@ -2,7 +2,6 @@ var statusBox = $("<div class='Field-status'></div")
 //statusBox.appendTo($("body"))
 statusBox.html("<span class='highlighted'>Connected</span> Field remote session")
 
-console.log(statusBox.text())
 
 statusBox.css("opacity", "0.3")
 statusBox.css("opacity", "1")

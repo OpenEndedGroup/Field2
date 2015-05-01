@@ -13,7 +13,6 @@ import org.cef.handler.CefMessageRouterHandler;
 
 import java.awt.*;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -56,13 +55,11 @@ public class CefSystem {
 
 			@Override
 			public boolean runModal(CefBrowser browser) {
-				Log.log("cef.debug", "runModal "+browser);
 				return true;
 			}
 
 			@Override
 			public boolean doClose(CefBrowser browser) {
-				Log.log("cef.debug", "doClose "+browser);
 				return true;
 			}
 
@@ -90,13 +87,13 @@ public class CefSystem {
 
 			@Override
 			public void onStatusMessage(CefBrowser browser, String value) {
-				Log.log("cef.debug", "Status change :" + browser + " -> " + value);
+//				Log.log("cef.debug", "Status change :" + browser + " -> " + value);
 
 			}
 
 			@Override
 			public boolean onConsoleMessage(CefBrowser browser, String message, String source, int line) {
-				Log.log("cef.console", " CONSOLE :" + browser + " " + message + " " + source + " " + line);
+//				Log.log("cef.console", " CONSOLE :" + browser + " " + message + " " + source + " " + line);
 				return false;
 			}
 		});
@@ -185,12 +182,11 @@ public class CefSystem {
 		CefRenderer cefRenderer = new CefRenderer() {
 			@Override
 			public void render() {
-				System.out.println("render?");
+
 			}
 
 			@Override
 			public void onPaint(boolean popup, Rectangle[] dirtyRects, ByteBuffer buffer, int width, int height) {
-				Log.log("cef.debug", "Painting rectangles " + dirtyRects.length + " " + Arrays.asList(dirtyRects) + " -> " + buffer);
 				callback.onPaint(popup, dirtyRects, buffer, width, height);
 			}
 		};

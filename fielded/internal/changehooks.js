@@ -1,6 +1,4 @@
 cm.on("change", function (cm, change) {
-    console.log(cm)
-    console.log(change)
 
     if (cm.currentbox && cm.currentproperty)
     {
@@ -103,11 +101,11 @@ _messageBus.subscribe("selection.changed", function (d, e) {
             cm.scrollIntoView({line: 0, ch: 0}, 100);
             cm.setCursor(d.cookie.currentpos);
             cm.scrollIntoView(null, 100);
-            console.log(" scrollde into view?");
+
         }
 
         if (d.cookie.widgets) {
-            console.log(" evaluating widget cookies ");
+
             for (var i = 0; i < d.cookie.widgets.length; i++) {
                 eval(d.cookie.widgets[i]);
             }

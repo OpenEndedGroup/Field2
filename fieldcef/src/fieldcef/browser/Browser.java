@@ -292,9 +292,6 @@ public class Browser extends Box implements IO.Loaded {
 				Vec2 point2 = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e2.after.x, e2.after.y)))
 						     .orElseThrow(() -> new IllegalArgumentException(" can't mouse around something without drawing support (to provide coordinate system)"));
 
-				System.out.println(" dragging inside browser ? !" + isSelected() + " " + properties.isTrue(Box.hidden, false));
-
-//				if (isSelected())
 				e2.properties.put(Window.consumed, true);
 
 				if (!term) {
@@ -345,8 +342,6 @@ public class Browser extends Box implements IO.Loaded {
 
 			e.properties.put(Window.consumed, true);
 
-			System.out.println(" I'm consuming a mouse scroll, I really am");
-
 
 			Optional<Drawing> drawing = this.find(Drawing.drawing, both())
 							.findFirst();
@@ -362,6 +357,9 @@ public class Browser extends Box implements IO.Loaded {
 			browser.sendMouseWheelEvent(new MouseWheelEvent(component, MouseWheelEvent.MOUSE_WHEEL, KeyEvent.SHIFT_DOWN_MASK, 0, (int) (point.x - r.x) * window.retinaScaleFactor,
 									(int) (point.y - r.y) * window.retinaScaleFactor, (int) (point.x - r.x) * window.retinaScaleFactor,
 									(int) (point.y - r.y) * window.retinaScaleFactor, 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, 1, (int) dx, dx));
+
+
+
 		});
 
 		this.properties.putToMap(Keyboard.onKeyDown, "__browser__", (e, k) -> {
@@ -427,7 +425,6 @@ public class Browser extends Box implements IO.Loaded {
 		});
 
 		this.properties.putToMap(Keyboard.onCharTyped, "__browser__", (e, k) -> {
-
 
 			System.err.println(" keyboard pressed ;" + isSelected() + " " + focussed);
 
@@ -580,7 +577,6 @@ public class Browser extends Box implements IO.Loaded {
 		if (damage == null) damage = new Rect(x0, y0, x1 - x0, y1 - y0);
 		else damage = damage.union(new Rect(x0, y0, x1 - x0, y1 - y0));
 
-		System.out.println(" damage :" + damage);
 
 	}
 
@@ -710,6 +706,9 @@ public class Browser extends Box implements IO.Loaded {
 	}
 
 	public void print(String text) {
+		executeJavaScript_queued("$(document.body).append('<pre style=\"padding:3px;margin:3px;\">" + TextUtils.quoteNoOuter(text.replace("'", "\"")) + "</pre>');" + scrollDown());
+	}
+	public void println(String text) {
 		executeJavaScript_queued("$(document.body).append('<pre style=\"padding:3px;margin:3px;\">" + TextUtils.quoteNoOuter(text.replace("'", "\"")) + "</pre>');" + scrollDown());
 	}
 
