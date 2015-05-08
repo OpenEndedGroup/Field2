@@ -2,7 +2,6 @@ package fieldbox.boxes.plugins;
 
 import field.app.RunLoop;
 import field.utility.Dict;
-import field.utility.Log;
 import field.utility.Triple;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Callbacks;
@@ -31,8 +30,6 @@ public class Auto extends Box implements IO.Loaded {
 
 		root.properties.put(auto, 0); // makes property appear in autocomplete for everyone
 
-		System.out.println(" atuo is starting up ");
-
 		done = new HashMap<>();
 
 		properties.putToMap(Callbacks.onLoad, "__autoload__", (b) -> {
@@ -46,8 +43,6 @@ public class Auto extends Box implements IO.Loaded {
 
 	@Override
 	public void loaded() {
-
-		Log.log("auto", "loaded called");
 
 		List<Triple<Box, Float, Number>> run = breadthFirst(both()).filter(x -> x.properties.has(auto))
 									    .filter(x -> !done.containsKey(x))

@@ -50,7 +50,6 @@ public class FileBrowser extends Box implements IO.Loaded {
 		this.root = root;
 
 		Log.log("INSERT", "FileBrowser is alive");
-		System.err.println(" but logging is dead");
 
 		properties.put(RemoteEditor.commands, () -> {
 

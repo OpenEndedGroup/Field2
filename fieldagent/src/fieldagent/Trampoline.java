@@ -235,8 +235,6 @@ public class Trampoline {
 
 		String s = n.getPath();
 		if (new File(s).isDirectory()) {
-			System.out.println(" extending library path by <" + s + ">");
-
 			System.setProperty("java.library.path", System.getProperty("java.library.path") + File.pathSeparator + s);
 			System.setProperty("jna.library.path", System.getProperty("jna.library.path") + File.pathSeparator + s);
 

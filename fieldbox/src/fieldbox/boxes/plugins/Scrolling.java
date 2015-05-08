@@ -18,8 +18,6 @@ public class Scrolling extends Box {
 
 			if (e.properties.isTrue(FieldBoxWindow.consumed, false)) return;
 
-			System.out.println(" I'm going ahead and scrolling ");
-
 			Log.log("scrolling", "not consumed");
 			if (e.after.dwheel != 0 || e.after.dwheely != 0) {
 				this.find(Drawing.drawing, this.both())

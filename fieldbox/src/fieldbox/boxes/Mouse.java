@@ -43,9 +43,6 @@ public class Mouse {
 
 		Box startAt = Intersects.startAt(event, root);
 
-		System.out.println(" start at :"+startAt
-		);
-
 		Set<Integer> pressed = Window.MouseState.buttonsPressed(event.before, event.after);
 		Set<Integer> released = Window.MouseState.buttonsReleased(event.before, event.after);
 		Set<Integer> down = event.after.buttonsDown;
