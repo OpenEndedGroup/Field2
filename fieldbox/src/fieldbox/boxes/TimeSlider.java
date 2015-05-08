@@ -48,7 +48,7 @@ public class TimeSlider extends Box {
 	protected boolean swiper() {
 
 		if (was == null) {
-			was = this.properties.get(frame);
+			was = this.properties.get(frame).duplicate();
 		} else {
 			Rect now = this.properties.get(frame);
 			if (now.x == was.w) {
@@ -56,7 +56,7 @@ public class TimeSlider extends Box {
 			} else {
 				perform(was, now);
 			}
-			was = now;
+			was = now.duplicate();
 		}
 
 		return true;
