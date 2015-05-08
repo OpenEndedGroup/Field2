@@ -1,6 +1,7 @@
 package field.graphics;
 
 import field.utility.Util;
+import fieldnashorn.annotations.HiddenInAutocomplete;
 
 import java.nio.ByteBuffer;
 
@@ -176,6 +177,16 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform {
 		this.display = d;
 	}
 
+	@HiddenInAutocomplete
+	public int getOpenGLFrameBufferName()
+	{
+		State s = GraphicsContext.get(this, this::setup);
+		if (s==null)
+		{
+			throw new NullPointerException("FBO not initialized in this context");
+		}
+		return s.name;
+	}
 
 	@Override
 	protected boolean perform0() {
