@@ -139,6 +139,14 @@ public class Camera {
 			return s;
 		}
 
+		public State roll(float r) {
+			State s = copy();
+			Quat q = new Quat().setFromAxisAngle(ray(), r);
+			s.up = q.rotate(up);
+			return s;
+		}
+
+
 		public State lookLeft(float r) {
 			State s = copy();
 			s.target = Vec3.add(position, new Quat().setFromAxisAngle(up, r).rotate(ray().scale(1)), new Vec3());
