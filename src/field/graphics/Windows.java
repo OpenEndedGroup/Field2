@@ -285,7 +285,25 @@ public class Windows {
 					RunLoop.main.shouldSleep.add(Windows.this);
 				}
 			}
+
+			@Override
+			public void framebufferSize(long window, int w, int h) {
+				Runnable r = () -> {
+					checkClassLoader();
+					GlfwCallback a = adaptors.get(window);
+					if (a != null) a.framebufferSize(window, w, h);
+				};
+
+				if (RunLoop.main.isMainThread()) r.run();
+				else {
+					events.addLast(r);
+					RunLoop.main.shouldSleep.add(Windows.this);
+				}
+
+			}
 		};
+
+
 	}
 
 	private void checkClassLoader() {

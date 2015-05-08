@@ -154,13 +154,13 @@ public class Browser extends Box implements IO.Loaded {
 			      .orElseThrow(() -> new IllegalArgumentException(" can't install text-drawing into something without drawing support"));
 
 
-		browser = CefSystem.cefSystem.makeBrowser(w * window.retinaScaleFactor, h * window.retinaScaleFactor, this::paint, this::message);
+		browser = CefSystem.cefSystem.makeBrowser(w * window.getRetinaScaleFactor(), h * window.getRetinaScaleFactor(), this::paint, this::message);
 		keyboardHacks = new BrowserKeyboardHacks(browser);
-		source = ByteBuffer.allocateDirect(w * h * 4 * window.retinaScaleFactor * window.retinaScaleFactor);
+		source = ByteBuffer.allocateDirect(w * h * 4 * window.getRetinaScaleFactor() * window.getRetinaScaleFactor());
 		source.position(0)
 		      .limit(source.capacity());
 		sourceView = source.slice();
-		texture = new Texture(Texture.TextureSpecification.byte4(0, w * window.retinaScaleFactor, h * window.retinaScaleFactor, source, false)).setIsDoubleBuffered(false);
+		texture = new Texture(Texture.TextureSpecification.byte4(0, w * window.getRetinaScaleFactor(), h * window.getRetinaScaleFactor(), source, false)).setIsDoubleBuffered(false);
 
 		q = BaseMesh.triangleList(0, 0);
 		builder = new MeshBuilder(q);
@@ -283,7 +283,7 @@ public class Browser extends Box implements IO.Loaded {
 
 			browser.sendMouseEvent(
 				    new MouseEvent(component, MouseEvent.MOUSE_PRESSED, 0, MouseEvent.getMaskForButton(button + 1) | (e.after.keyboardState.isAltDown() ? KeyEvent.ALT_DOWN_MASK : 0),
-						   (int) (point.x - r.x) * window.retinaScaleFactor, (int) (point.y - r.y) * window.retinaScaleFactor, 1, false, button + 1));
+						   (int) (point.x - r.x) * window.getRetinaScaleFactor(), (int) (point.y - r.y) * window.getRetinaScaleFactor(), 1, false, button + 1));
 
 			dragOngoing = true;
 
@@ -296,11 +296,11 @@ public class Browser extends Box implements IO.Loaded {
 
 				if (!term) {
 					browser.sendMouseEvent(
-						    new MouseEvent(component, MouseEvent.MOUSE_DRAGGED, 0, MouseEvent.getMaskForButton(button + 1), (int) (point2.x - r.x) * window.retinaScaleFactor,
-								   (int) (point2.y - r.y) * window.retinaScaleFactor, 1, false, button + 1));
+						    new MouseEvent(component, MouseEvent.MOUSE_DRAGGED, 0, MouseEvent.getMaskForButton(button + 1), (int) (point2.x - r.x) * window.getRetinaScaleFactor(),
+								   (int) (point2.y - r.y) * window.getRetinaScaleFactor(), 1, false, button + 1));
 				} else browser.sendMouseEvent(
-					    new MouseEvent(component, MouseEvent.MOUSE_RELEASED, 0, MouseEvent.getMaskForButton(button + 1), (int) (point2.x - r.x) * window.retinaScaleFactor,
-							   (int) (point2.y - r.y) * window.retinaScaleFactor, 1, false, button + 1));
+					    new MouseEvent(component, MouseEvent.MOUSE_RELEASED, 0, MouseEvent.getMaskForButton(button + 1), (int) (point2.x - r.x) * window.getRetinaScaleFactor(),
+							   (int) (point2.y - r.y) * window.getRetinaScaleFactor(), 1, false, button + 1));
 
 				dragOngoing = !term;
 
@@ -326,7 +326,7 @@ public class Browser extends Box implements IO.Loaded {
 
 
 			browser.sendMouseEvent(
-				    new MouseEvent(component, MouseEvent.MOUSE_MOVED, 0, 0, (int) (point.x - r.x) * window.retinaScaleFactor, (int) (point.y - r.y) * window.retinaScaleFactor, 0,
+				    new MouseEvent(component, MouseEvent.MOUSE_MOVED, 0, 0, (int) (point.x - r.x) * window.getRetinaScaleFactor(), (int) (point.y - r.y) * window.getRetinaScaleFactor(), 0,
 						   false));
 			return null;
 		});
@@ -350,13 +350,13 @@ public class Browser extends Box implements IO.Loaded {
 
 
 			float dy = e.after.dwheely * 8;
-			browser.sendMouseWheelEvent(new MouseWheelEvent(component, MouseWheelEvent.MOUSE_WHEEL, 0, 0, (int) (point.x - r.x) * window.retinaScaleFactor,
-									(int) (point.y - r.y) * window.retinaScaleFactor, (int) (point.x - r.x) * window.retinaScaleFactor,
-									(int) (point.y - r.y) * window.retinaScaleFactor, 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, 1, (int) dy, dy));
+			browser.sendMouseWheelEvent(new MouseWheelEvent(component, MouseWheelEvent.MOUSE_WHEEL, 0, 0, (int) (point.x - r.x) * window.getRetinaScaleFactor(),
+									(int) (point.y - r.y) * window.getRetinaScaleFactor(), (int) (point.x - r.x) * window.getRetinaScaleFactor(),
+									(int) (point.y - r.y) * window.getRetinaScaleFactor(), 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, 1, (int) dy, dy));
 			float dx = e.after.dwheel * 8;
-			browser.sendMouseWheelEvent(new MouseWheelEvent(component, MouseWheelEvent.MOUSE_WHEEL, KeyEvent.SHIFT_DOWN_MASK, 0, (int) (point.x - r.x) * window.retinaScaleFactor,
-									(int) (point.y - r.y) * window.retinaScaleFactor, (int) (point.x - r.x) * window.retinaScaleFactor,
-									(int) (point.y - r.y) * window.retinaScaleFactor, 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, 1, (int) dx, dx));
+			browser.sendMouseWheelEvent(new MouseWheelEvent(component, MouseWheelEvent.MOUSE_WHEEL, KeyEvent.SHIFT_DOWN_MASK, 0, (int) (point.x - r.x) * window.getRetinaScaleFactor(),
+									(int) (point.y - r.y) * window.getRetinaScaleFactor(), (int) (point.x - r.x) * window.getRetinaScaleFactor(),
+									(int) (point.y - r.y) * window.getRetinaScaleFactor(), 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, 1, (int) dx, dx));
 
 
 
@@ -636,7 +636,7 @@ public class Browser extends Box implements IO.Loaded {
 	protected void update(float x, float y, float scale) {
 
 
-		if (check-- > 0) browser.setZoomLevel(2 * window.retinaScaleFactor);
+		if (check-- > 0) browser.setZoomLevel(2 * window.getRetinaScaleFactor());
 
 		if (paused) return;
 

@@ -89,4 +89,10 @@ public class GlfwCallbacks implements GlfwCallback {
 		for (int i = 0, n = processors.size(); i < n; i++)
 			processors.get(i).drop(window, paths);
 	}
+    
+    public void framebufferSize(long window, int w, int h) {
+        for (int i = 0, n = processors.size(); i < n; i++)
+            processors.get(i).framebufferSize(window, w, h);
+    }
+
 }

@@ -938,6 +938,16 @@ public static final int GLFW_DISCONNECTED           =0x00040002;
 		glfwSetCursor((GLFWwindow*)window, (GLFWcursor*)cursor);
 	*/
 	
+    public static native int glfwGetFramebufferWidth(long window); /*
+                                                                     int width, height;
+                                                                     glfwGetFramebufferSize(window, &width, &height);
+                                                                     return width;
+                                                                     */
+    public static native int glfwGetFramebufferHeight(long window); /*
+                                                                     int width, height;
+                                                                     glfwGetFramebufferSize(window, &width, &height);
+                                                                     return height;
+                                                                     */
 	
 	// Not used in JAva
 //	private static native void glfwSetWindowUserPointer(); /*

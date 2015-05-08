@@ -60,7 +60,11 @@ public class GlfwCallbackAdapter implements GlfwCallback {
 
 	@Override
 	public void drop(long window, String[] files){
-		
 	}
 
+    @Override
+    public void framebufferSize(long window, int width, int height){
+    }
+
+    
 }

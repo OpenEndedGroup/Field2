@@ -1010,3 +1010,17 @@ JNIEXPORT void JNICALL Java_com_badlogic_jglfw_Glfw_glfwSetCursor(JNIEnv* env, j
 
 }
 
+JNIEXPORT jint JNICALL Java_com_badlogic_jglfw_Glfw_glfwGetFramebufferWidth(JNIEnv* env, jclass clazz, jlong window, jlong cursor) {
+
+                                                                     int width, height;
+                                                                     glfwGetFramebufferSize((GLFWwindow*)window, &width, &height);
+                                                                     return width;
+
+}
+
+JNIEXPORT jint JNICALL Java_com_badlogic_jglfw_Glfw_glfwGetFramebufferHeight(JNIEnv* env, jclass clazz, jlong window, jlong cursor) {
+
+                                                                     int width, height;
+                                                                     glfwGetFramebufferSize((GLFWwindow*)window, &width, &height);
+                                                                     return height;
+															       }

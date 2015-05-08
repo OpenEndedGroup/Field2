@@ -117,4 +117,9 @@ public interface GlfwCallback {
 	 * @param files the array of paths
 	 */
 	public void drop(long window, String[] files);
+    
+    /**
+     * Called when the framebuffer size changes
+     */
+    public void framebufferSize(long window, int width, int height);
 }

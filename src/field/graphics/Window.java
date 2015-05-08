@@ -30,7 +30,7 @@ public class Window implements ProvidesGraphicsContext {
 										     .doc("marks an event as handled elsewhere")
 										     .toCannon();
 	static Window currentWindow = null;
-	public final int retinaScaleFactor;
+	private final int retinaScaleFactor;
 	/**
 	 * the Scene associated with this window.
 	 * <p>
@@ -79,6 +79,8 @@ public class Window implements ProvidesGraphicsContext {
 		this.h = h;
 
 		window = glfwCreateWindow(w, h, title, 0, 0);
+
+		glfwSetWindowPos(window, x, y);
 
 		Windows.windows.register(window, makeCallback());
 		glfwShowWindow(window);
@@ -162,6 +164,8 @@ public class Window implements ProvidesGraphicsContext {
 			return;
 		}
 
+		needsRepainting = false;
+
 		currentWindow = this;
 		glfwMakeContextCurrent(window);
 		glfwSwapInterval(1);
@@ -176,8 +180,8 @@ public class Window implements ProvidesGraphicsContext {
 		int h = glfwGetWindowHeight(window);
 
 
-		GraphicsContext.stateTracker.viewport.set(new int[]{0, 0, w * retinaScaleFactor, h * retinaScaleFactor});
-		GraphicsContext.stateTracker.scissor.set(new int[]{0, 0, w * retinaScaleFactor, h * retinaScaleFactor});
+		GraphicsContext.stateTracker.viewport.set(new int[]{0, 0, w * getRetinaScaleFactor(), h * getRetinaScaleFactor()});
+		GraphicsContext.stateTracker.scissor.set(new int[]{0, 0, w * getRetinaScaleFactor(), h * getRetinaScaleFactor()});
 
 		if (w != this.w || h != this.h) {
 			GraphicsContext.isResizing = true;
@@ -207,12 +211,48 @@ public class Window implements ProvidesGraphicsContext {
 
 	}
 
+	protected boolean disabled = false;
+	protected boolean lazyRepainting = false;
+	protected boolean needsRepainting = false;
+
+	/**
+	 * stops this canvas from repainting, under any conditions
+	 */
+	public void disable()
+	{
+		disabled = true;
+	}
+
+	/**
+	 * allows this canvas to repaint
+	 */
+	public void enable()
+	{
+		disabled = false;
+	}
+
+	/**
+	 * sets whether this canvas updates and repaints constantly (every animation cycle) or only once when repaint has been called
+	 */
+	public void setLazyRepainting(boolean b)
+	{
+		lazyRepainting = b;
+	}
+
+	/**
+	 * requests that this canvas repaints itself this animation cycle. Note, that you should almost certainly setLazyRepainting(true) before you call this, otherwise the canvas will update every cycle whether you call this or not.
+	 */
+	public void requestRepaint()
+	{
+		needsRepainting = true;
+	}
+
 	/**
 	 * By default, we are animated, and we draw every frame. Some subclasses (notably FieldBoxWindow) will finesse this down a bit, but a standard graphics window has a traditional
 	 * "draw-every-frame" draw loop
 	 */
 	protected boolean needsRepainting() {
-		return true;
+		return !disabled && (!lazyRepainting || needsRepainting);
 	}
 
 	public void setTitle(String title) {
@@ -227,8 +267,13 @@ public class Window implements ProvidesGraphicsContext {
 		currentBounds = new Rect(x, y, w, h);
 	}
 
+
 	public Rect getBounds() {
 		return currentBounds;
+	}
+
+	public Rect getFramebufferBounds() {
+		return new Rect(currentBounds.x, currentBounds.y, getFrameBufferWidth(), getFrameBufferHeight());
 	}
 
 	protected void updateScene() {
@@ -349,11 +394,13 @@ public class Window implements ProvidesGraphicsContext {
 	}
 
 	public int getFrameBufferWidth() {
-		return w * retinaScaleFactor;
+		return glfwGetFramebufferWidth(window);
+		//return w * retinaScaleFactor;
 	}
 
 	public int getFrameBufferHeight() {
-		return h * retinaScaleFactor;
+		return glfwGetFramebufferHeight(window);
+		//return h * retinaScaleFactor;
 	}
 
 	protected GlfwCallback makeCallback() {
@@ -468,7 +515,16 @@ public class Window implements ProvidesGraphicsContext {
 				}
 			}
 
+			@Override
+			public void framebufferSize(long window, int width, int height) {
+
+			}
 		};
+	}
+
+	public int getRetinaScaleFactor() {
+		return glfwGetFramebufferWidth(window)/glfwGetWindowWidth(window);
+//		return retinaScaleFactor;
 	}
 
 	static public interface HasPosition {
