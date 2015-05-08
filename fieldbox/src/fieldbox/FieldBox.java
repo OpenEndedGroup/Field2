@@ -14,7 +14,7 @@ public class FieldBox {
 
 	static public final FieldBox fieldBox = new FieldBox();
 
-	public final IO io = new IO(System.getProperty("user.home")+"/Documents/FirstNewFieldWorkspace/");
+	public final IO io = new IO(Options.getDirectory("workspace",() -> System.getProperty("user.home")+"/Documents/FirstNewFieldWorkspace/"));
 
 	{
 		io.addFilespec("code", io.EXECUTION, io.EXECUTION);
