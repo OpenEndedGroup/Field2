@@ -158,7 +158,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	}
 
 	private Object engineeval(String textFragment, ScriptContext context, Consumer<Throwable> exception) throws ScriptException {
-		if (ThreadSync.enabled) {
+		if (ThreadSync.enabled && Thread.currentThread()==ThreadSync.get().mainThread) {
 			try {
 				ThreadSync.Fiber f = ThreadSync.get()
 							      .run(() -> {
