@@ -132,6 +132,18 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 						((Runnable) o).run();
 						return null;
 					}
+
+					@Override
+					public Object beginning(boolean isEnding) {
+						return middle(isEnding);
+					}
+
+					@Override
+					public Object end(boolean isEnding) {
+						return middle(isEnding);
+					}
+
+
 				};
 			}
 			return was;
@@ -145,6 +157,17 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 					public Object middle(boolean isEnding) {
 						return ((Supplier) o).get();
 					}
+
+					@Override
+					public Object beginning(boolean isEnding) {
+						return middle(isEnding);
+					}
+
+					@Override
+					public Object end(boolean isEnding) {
+						return middle(isEnding);
+					}
+
 				};
 			}
 			return was;
