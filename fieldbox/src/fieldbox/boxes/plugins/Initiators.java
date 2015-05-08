@@ -58,7 +58,7 @@ public class Initiators {
 			double d = x.get()
 				    .doubleValue();
 			Rect f = forBox.properties.get(Box.frame);
-			return (d - f.x) / f.w;
+			return Math.max(0, Math.min(1, (d - f.x) / f.w));
 		}
 
 		@Override
@@ -72,6 +72,13 @@ public class Initiators {
 			}
 			if (m.equals("t")) {
 				return asMap_call(null);
+			}
+			if (m.equals("rawt")) {
+				double d = x.get()
+					    .doubleValue();
+				Rect f = forBox.properties.get(Box.frame);
+				return (d - f.x) / f.w;
+
 			}
 			return super.asMap_get(m);
 		}
@@ -98,7 +105,7 @@ public class Initiators {
 			double d = x.get()
 				    .doubleValue();
 			Rect f = forBox.properties.get(Box.frame);
-			return (d - f.x) / f.w;
+			return Math.max(0, Math.min(1, (d - f.x) / f.w));
 		}
 
 		@Override
@@ -127,11 +134,24 @@ public class Initiators {
 						 .doubleValue() - xn, y.get()
 								       .doubleValue() - yn);
 			}
-
 			if (m.equals("t")) {
 				return asMap_call(null);
 			}
 			if (m.equals("s")) {
+				double d = y.get()
+					    .doubleValue();
+				Rect f = forBox.properties.get(Box.frame);
+				return Math.max(0, Math.max(1, (d - f.y) / f.h));
+			}
+			if (m.equals("rawt") || m.equals("raw"))
+			{
+				double d = x.get()
+					    .doubleValue();
+				Rect f = forBox.properties.get(Box.frame);
+				return (d - f.x) / f.w;
+			}
+			if (m.equals("raws"))
+			{
 				double d = y.get()
 					    .doubleValue();
 				Rect f = forBox.properties.get(Box.frame);
