@@ -352,19 +352,12 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 			return ((Box.FunctionOfBoxValued) ret).apply(this);
 		}
 
-
-
 		return ret;
 	}
 
 	@Override
 	public boolean asMap_delete(Object o) {
-
-		System.err.println(" delete for box is :"+o);
-
-		//TODO: Missing.delete ?
-
-		return properties.asMap_delete(o);
+		return Missing.delete(this, new Dict.Prop(""+o))!=null;
 	}
 
 	@Override

@@ -9,9 +9,12 @@ import fieldbox.boxes.*;
 import fieldbox.io.IO;
 
 import java.awt.*;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static field.graphics.StandardFLineDrawing.*;
 import static fieldbox.boxes.FLineDrawing.frameDrawing;
@@ -32,6 +35,9 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 	static public final Dict.Prop<BoxRef> tail = new Dict.Prop<>("tail").type()
 									    .toCannon()
 									    .doc("the tail of this topology arrow box");
+
+	static public final Dict.Prop<FunctionOfBoxValued<Collection<Missing.Log>>> logThrough = new Dict.Prop<>("logThrough").type().toCannon().doc("property transcript filtered to include only property access that's <i>through</i> this connection");
+
 	static {
 		// these properties need to be saved in our document
 		IO.persist(head);
@@ -101,6 +107,11 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 			}
 			return null;
 		});
+		this.properties.put(logThrough, x -> {
+			Predicate<Missing.Log> p = Missing.across(this.head(), this.tail());
+			return Missing.getLog().stream().filter(p).collect(Collectors.toList());
+		});
+
 	}
 
 	protected Map<String, Function<Box, FLine>> defaultdrawsLines(Dict.Prop<Map<String, Function<Box, FLine>>> k) {

@@ -230,6 +230,8 @@ public class Open {
 
 		new Channels(boxes.root()).connect(boxes.root());
 
+		new MissingStream(boxes.root()).connect(boxes.root());
+
 		if (ThreadSync.enabled)
 			new ThreadSyncFeedback(boxes.root()).connect(boxes.root());
 
