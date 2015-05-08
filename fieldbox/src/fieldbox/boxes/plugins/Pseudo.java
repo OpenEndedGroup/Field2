@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  */
 public class Pseudo extends Box {
 
-	static public Dict.Prop<FunctionOfBoxValued<First>> where = new Dict.Prop<FunctionOfBoxValued<First>>("where").doc(" _.where.x returns the box that contains the property _.x")
+	static public Dict.Prop<FunctionOfBoxValued<First>> where = new Dict.Prop<FunctionOfBoxValued<First>>("where").doc(" _.where.x returns the box that contains the property _.x. _.where.x=someOtherBox can be used to move properties around.")
 														      .toCannon()
 														      .type();
 	static public Dict.Prop<FunctionOfBoxValued<All>> all = new Dict.Prop<FunctionOfBoxValued<All>>("all").doc(" _.all.x returns all values of x above this box")
@@ -58,6 +58,12 @@ public class Pseudo extends Box {
 														.type()
 														.autoConstructs(() -> new IdempotencyMap<>(Runnable.class));
 
+	static public Dict.Prop<FunctionOfBoxValued<Replacer>> replace = new Dict.Prop<FunctionOfBoxValued<Replacer>>("replace").doc(
+		    "_.replace.x = 10 replaces the value of 'x' where it is found (e.g. here or some parent).")
+														.toCannon()
+														.type();
+
+
 	public Pseudo(Box r) {
 		this.properties.put(where, First::new);
 		this.properties.put(all, All::new);
@@ -68,6 +74,7 @@ public class Pseudo extends Box {
 		this.properties.put(queue, Queue::new);
 		this.properties.put(peek, Peek::new);
 		this.properties.put(yieldUntil, Until::new);
+		this.properties.put(replace, Replacer::new);
 
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__next__", () -> {
 			r.breadthFirst(r.downwards())
@@ -174,6 +181,23 @@ public class Pseudo extends Box {
 				 .collect(Collectors.toList());
 		}
 
+	}
+
+
+	static public class Replacer extends First implements AsMap {
+
+		public Replacer(Box on) {
+			super(on);
+		}
+
+
+		@Override
+		public Object asMap_set(String s, Object v) {
+			Box at = (Box) super.asMap_get(s);
+			if (at==null) return null;
+
+			return at.properties.put(new Dict.Prop(""+s), v);
+		}
 	}
 
 	static public class Queue extends First implements AsMap {
