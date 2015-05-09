@@ -192,7 +192,7 @@ public class Open {
 
 		new Alignment(boxes.root()).connect(boxes.root());
 
-		new StatusBar(boxes.root()).connect(boxes.root());
+//		new StatusBar(boxes.root()).connect(boxes.root());
 
 		new HotkeyMenus(boxes.root(), null).connect(boxes.root());
 

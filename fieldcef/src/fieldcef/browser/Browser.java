@@ -90,11 +90,12 @@ public class Browser extends Box implements IO.Loaded {
 
 		Rect r = now.properties.get(Box.frame);
 		float op = now.properties.getFloat(StandardFLineDrawing.opacity, 1);
-		if (now.properties.isTrue(FLineDrawing.hidden, false)) {
-			builder.open();
-			builder.close();
-			return null;
-		}
+
+//		if (now.properties.isTrue(FLineDrawing.hidden, false)) {
+//			builder.open();
+//			builder.close();
+//			return null;
+//		}
 
 		builder.open();
 		builder.aux(5, 0, 0, op);
@@ -111,6 +112,7 @@ public class Browser extends Box implements IO.Loaded {
 
 		return null;
 	}, (box) -> new Triple<>(box.properties.getFloat(StandardFLineDrawing.opacity, 1), box.properties.get(Box.frame), box.properties.isTrue(FLineDrawing.hidden, false)));
+
 	private Shader shader;
 	private ByteBuffer sourceView;
 	private FieldBoxWindow window;
@@ -155,6 +157,7 @@ public class Browser extends Box implements IO.Loaded {
 
 
 		browser = CefSystem.cefSystem.makeBrowser(w * window.getRetinaScaleFactor(), h * window.getRetinaScaleFactor(), this::paint, this::message);
+
 		keyboardHacks = new BrowserKeyboardHacks(browser);
 		source = ByteBuffer.allocateDirect(w * h * 4 * window.getRetinaScaleFactor() * window.getRetinaScaleFactor());
 		source.position(0)
@@ -256,6 +259,7 @@ public class Browser extends Box implements IO.Loaded {
 				return new Point(0, 0);
 			}
 		};
+
 
 		this.properties.putToMap(Mouse.onMouseDown, "__browser__", (e, button) -> {
 
@@ -427,6 +431,7 @@ public class Browser extends Box implements IO.Loaded {
 		this.properties.putToMap(Keyboard.onCharTyped, "__browser__", (e, k) -> {
 
 			System.err.println(" keyboard pressed ;" + isSelected() + " " + focussed);
+
 
 			if (!isSelected() && !focussed) return;
 			if (properties.isTrue(Box.hidden, false)) return;
@@ -640,14 +645,14 @@ public class Browser extends Box implements IO.Loaded {
 
 		if (paused) return;
 
-		if (this.dirty.getAndSet(false)) {
+		if (this.dirty.getAndSet(false) && damage!=null) {
 			Log.log("cef.debug", " texture was dirty, uploading ");
 //			texture.upload(source, true);
 			texture.upload(source, true, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (damage.h + damage.y));
 			Drawing.dirty(this);
 			again = 4;
 			hasRepainted = true;
-		} else if (again > 0) {
+		} else if (again > 0  && damage!=null) {
 			Log.log("cef.debug", " texture was dirty " + again + " call, uploading ");
 			texture.upload(source, true, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (damage.h + damage.y));
 //			texture.upload(source, true);
@@ -751,5 +756,6 @@ public class Browser extends Box implements IO.Loaded {
 	public interface Handler {
 		public void handle(String address, JSONObject payload, Consumer<String> reply);
 	}
+
 
 }
