@@ -203,7 +203,9 @@ function Run_End() {
 function Run_Selection() {
     anchorLine = Math.max(cm.listSelections()[0].anchor.line, cm.listSelections()[0].head.line)
 
-    if (cm.listSelections()[0].anchor.line == cm.listSelections()[0].head.line && cm.listSelections()[0].anchor.pos == cm.listSelections()[0].head.pos) {
+console.log("Run_Selection() "+cm.listSelections()[0].anchor.line+" "+cm.listSelections()[0].head.line+" "+cm.listSelections()[0].anchor.ch+" "+cm.listSelections()[0].head.ch);
+
+    if (cm.listSelections()[0].anchor.line == cm.listSelections()[0].head.line && cm.listSelections()[0].anchor.ch == cm.listSelections()[0].head.ch) {
         fragment = cm.getLine(cm.listSelections()[0].anchor.line)
 
         lh1 = cm.listSelections()[0].head
@@ -226,7 +228,11 @@ function Run_Selection() {
             // record an execution here?
         }
 
-    } else {
+    } else if (cm.listSelections()[0].anchor.line == cm.listSelections()[0].head.line)
+       {
+      	 fragment = cm.getSelections()[0]
+       }
+       else {
         fragment = cm.getSelections()[0]
 
         lh1 = cm.listSelections()[0].head
