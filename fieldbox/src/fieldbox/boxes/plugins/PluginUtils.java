@@ -2,7 +2,7 @@ package fieldbox.boxes.plugins;
 
 import field.utility.Pair;
 import fieldbox.boxes.Box;
-import fielded.RemoteEditor;
+import fielded.Commands;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -26,8 +26,8 @@ public class PluginUtils {
 	 */
 	static public void makeCommand(Box destination, String commandName, String documentation, Runnable doit, Supplier<Boolean> check)
 	{
-		Supplier<Map<Pair<String, String>, Runnable>> previously = destination.properties.get(RemoteEditor.commands);
-		destination.properties.put(RemoteEditor.commands, () -> {
+		Supplier<Map<Pair<String, String>, Runnable>> previously = destination.properties.get(Commands.commands);
+		destination.properties.put(Commands.commands, () -> {
 
 			Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
 			if (check==null || check.get()) {

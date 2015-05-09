@@ -5,7 +5,7 @@ import field.utility.Log;
 import field.utility.Pair;
 import fieldagent.Trampoline;
 import fieldbox.boxes.Box;
-import fielded.RemoteEditor;
+import fielded.Commands;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -48,7 +48,7 @@ public class Reload extends Box {
 		}).start();
 
 
-		properties.put(RemoteEditor.commands, () -> {
+		properties.put(Commands.commands, () -> {
 			Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
 
 

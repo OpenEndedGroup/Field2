@@ -1,22 +1,14 @@
 package fieldbox.boxes.plugins;
 
-import com.google.common.reflect.Invokable;
-import com.sun.corba.se.impl.activation.CommandHandler;
 import field.utility.Dict;
 import field.utility.Log;
-import field.utility.Pair;
+import field.utility.Triple;
 import fieldbox.boxes.Box;
 import fielded.Commands;
 import fielded.RemoteEditor;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * Plugin offers _.runCommand("match") and associated functionality.
@@ -40,37 +32,22 @@ public class RunCommand extends Box {
 		Log.log("run.command", box + " " + of);
 
 		Pattern p = Pattern.compile(of);
-		List<Map.Entry<Pair<String, String>, Runnable>> commands = box.find(RemoteEditor.commands, box.both())
-									      .flatMap(m -> m.get()
-											     .entrySet()
-											     .stream())
-									      .map(x -> {
-										      Log.log("run.command", "found :" + x);
-										      return x;
-									      })
-									      .filter(x -> p.matcher(x.getKey().first)
-											    .matches())
-									      .map(x -> {
-										      Log.log("run.command", "filtered :" + x);
-										      return x;
-
-									      })
-									      .collect(Collectors.toList());
+		List<Triple<String, String, Runnable>> commands = Commands.getCommandsAndDocs(box);
 
 		Log.log("run.command", "command size is " + commands.size());
 		if (commands.size() == 0) return false;
 
 		// Nashorn doesn't like a lambda here
 
-		commands.forEach(r -> {
-			if (r.getValue() instanceof RemoteEditor.ExtendedCommand) {
-				((RemoteEditor.ExtendedCommand) r.getValue()).begin((pr, o, a) -> {
+		commands.stream().filter(x -> x.first.toLowerCase().equals(of.toLowerCase())).forEach(r -> {
+			if (r.third instanceof RemoteEditor.ExtendedCommand) {
+				((RemoteEditor.ExtendedCommand) r.third).begin((pr, o, a) -> {
 					a.begin(null, null); // SHOULD BE AN ARG
 					a.run();
 				}, null);
-				((RemoteEditor.ExtendedCommand) r.getValue()).run();
+				((RemoteEditor.ExtendedCommand) r.third).run();
 			} else {
-				r.getValue()
+				r.third
 				 .run();
 			}
 		});

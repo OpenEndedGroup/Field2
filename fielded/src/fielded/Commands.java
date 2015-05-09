@@ -1,21 +1,32 @@
 package fielded;
 
-import field.utility.Log;
-import field.utility.Pair;
+import field.utility.*;
 import fieldbox.boxes.Box;
 import org.json.JSONStringer;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
  * Helper class for the commands system
  */
-public class Commands {
+public class Commands extends Box {
 
 
+	static public final Dict.Prop<Supplier<Map<Pair<String, String>, Runnable>>> commands = new Dict.Prop<>("commands").type()
+															   .doc("commands injected into the editor as ctrl-space menuSpecs")
+															   .toCannon();
 
+	static public final Dict.Prop<IdempotencyMap<FunctionOfBox<Void>>> command = new Dict.Prop<>("command").type()
+													       .toCannon()
+													       .doc("commands for this box (and all boxes below)")
+													       .autoConstructs(() -> new IdempotencyMap<>(Box.FunctionOfBox.class));
+	static public final Dict.Prop<IdempotencyMap<String>> commandDoc = new Dict.Prop<>("commandDoc").type()
+													       .toCannon()
+													       .doc("documentation for commands for this box (and all boxes below)")
+													       .autoConstructs(() -> new IdempotencyMap<>(Box.FunctionOfBox.class));
 
 	public LinkedHashMap<String, Runnable> callTable = new LinkedHashMap<>();
 	public RemoteEditor.ExtendedCommand callTable_alternative = null;
@@ -25,30 +36,22 @@ public class Commands {
 		// now we need to ask everybody if they have any commands to offer based on the above.
 
 		//todo: handle no box case
-		List<Map.Entry<Pair<String, String>, Runnable>> commands
-			    = (List<Map.Entry<Pair<String, String>, Runnable>>) box.get()
-										   .find(RemoteEditor.commands,
-											 box.get()
-											    .both())
-										   .flatMap(m -> m.get()
-												  .entrySet()
-												  .stream())
-										   .collect(Collectors.toList());
+		List<Triple<String, String, Runnable>> commands = getCommandsAndDocs(box.get());
 
 		Log.log("remote.trace", " commands are :" + commands);
 
 		JSONStringer stringer = new JSONStringer();
 		stringer.array();
 		callTable.clear();
-		for (Map.Entry<Pair<String, String>, Runnable> r : commands) {
+		for (Triple<String, String, Runnable> r : commands) {
 			String u = UUID.randomUUID()
 				       .toString();
-			callTable.put(u, r.getValue());
+			callTable.put(u, r.third);
 			stringer.object();
 			stringer.key("name")
-				.value(r.getKey().first);
+				.value(r.first);
 			stringer.key("info")
-				.value(r.getKey().second);
+				.value(r.second);
 			stringer.key("call")
 				.value(u);
 			stringer.endObject();
@@ -61,6 +64,49 @@ public class Commands {
 
 		ret.accept(stringer.toString());
 
+	}
+
+	public static List<Triple<String, String, Runnable>> getCommandsAndDocs(Box box) {
+		List<Triple<String, String, Runnable>> commands = (List<Triple<String, String, Runnable>>) box
+																.find(Commands.commands, box
+																			    .both())
+																.flatMap(m -> m.get()
+																	       .entrySet()
+																	       .stream()).map(
+					x -> new Triple<>(x.getKey().first, x.getKey().second, x.getValue()))
+																.collect(Collectors.toList());
+
+
+		IdempotencyMap<FunctionOfBox<Void>> map = box
+							     .find(command, box
+									       .upwards())
+							     .reduce(new IdempotencyMap<FunctionOfBox<Void>>(FunctionOfBox.class), (a1, a2) -> {
+								     IdempotencyMap<FunctionOfBox<Void>> q = new IdempotencyMap<>(FunctionOfBox.class);
+								     q.putAll(a1);
+								     q.putAll(a2);
+								     return q;
+							     });
+		IdempotencyMap<String> mapDoc = box
+							     .find(commandDoc, box
+									       .upwards())
+							     .reduce(new IdempotencyMap<String>(String.class), (a1, a2) -> {
+								     IdempotencyMap<String> q = new IdempotencyMap<>(String.class);
+								     q.putAll(a1);
+								     q.putAll(a2);
+								     return q;
+							     });
+
+		map.entrySet()
+		   .forEach(x -> {
+			   String name = rewriteCamelCase(x.getKey());
+			   String doc = mapDoc.getOrDefault(x.getKey(), "");
+			   commands.add(new Triple<String, String, Runnable>(name, doc, () -> x.getValue().apply(box)));
+		   });
+		return commands;
+	}
+
+	static private String rewriteCamelCase(String key) {
+		return key.replace("_"," ");
 	}
 
 	public RemoteEditor.SupportsPrompt supportsPrompt(Consumer<String> ret) {

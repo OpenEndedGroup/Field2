@@ -1,18 +1,16 @@
 package fieldbox.boxes.plugins;
 
-import field.utility.Dict;
 import field.utility.Log;
 import field.utility.Pair;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Drawing;
 import fieldbox.boxes.Mouse;
 import fieldbox.io.IO;
+import fielded.Commands;
 import fielded.RemoteEditor;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -25,7 +23,7 @@ import java.util.stream.Stream;
 public class Rename extends Box {
 
 	public Rename(Box root_unused) {
-		properties.put(RemoteEditor.commands, () -> {
+		properties.put(Commands.commands, () -> {
 
 			Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
 			m.put(new Pair<>("Rename box", "Sets name of box"), new RemoteEditor.ExtendedCommand() {

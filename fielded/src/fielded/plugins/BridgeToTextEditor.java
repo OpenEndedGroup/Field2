@@ -8,6 +8,7 @@ import fieldbox.boxes.*;
 import fieldbox.execution.Completion;
 import fieldbox.io.IO;
 import fieldbox.execution.Execution;
+import fielded.Commands;
 import fielded.RemoteEditor;
 
 import java.util.Collections;
@@ -48,7 +49,7 @@ public class BridgeToTextEditor extends Box {
 
 		root.connect(teExecution);
 
-		properties.put(RemoteEditor.commands, () -> {
+		properties.put(Commands.commands, () -> {
 
 			Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
 			List<Box> selected = selection().collect(Collectors.toList());

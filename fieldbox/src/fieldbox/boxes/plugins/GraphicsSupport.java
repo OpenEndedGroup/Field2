@@ -6,6 +6,7 @@ import field.utility.Pair;
 import fieldbox.FieldBox;
 import fieldbox.boxes.Box;
 import fieldbox.execution.Execution;
+import fielded.Commands;
 import fielded.RemoteEditor;
 
 import java.util.LinkedHashMap;
@@ -39,7 +40,7 @@ public class GraphicsSupport extends Box {
 	public GraphicsSupport(Box root_unused) {
 
 
-		properties.put(RemoteEditor.commands, () -> {
+		properties.put(Commands.commands, () -> {
 			Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
 			RemoteEditor ed = this.find(RemoteEditor.editor, both()).findFirst().get();
 

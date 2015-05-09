@@ -12,7 +12,7 @@ import fieldbox.boxes.Drawing;
 import fieldbox.boxes.MarkingMenus;
 import fieldbox.boxes.Mouse;
 import fieldbox.io.IO;
-import fielded.RemoteEditor;
+import fielded.Commands;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -72,7 +72,7 @@ public class DefaultMenus extends Box {
 			return null;
 		});
 
-		properties.put(RemoteEditor.commands, () -> {
+		properties.put(Commands.commands, () -> {
 
 			Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
 			m.put(new Pair<>("Save all", "Saves this document"), DefaultMenus.this::save);

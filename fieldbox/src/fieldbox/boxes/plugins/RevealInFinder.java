@@ -7,7 +7,7 @@ import fieldbox.FieldBox;
 import fieldbox.Open;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Mouse;
-import fielded.RemoteEditor;
+import fielded.Commands;
 
 import javax.script.ScriptException;
 import java.io.File;
@@ -23,7 +23,7 @@ public class RevealInFinder extends Box {
 	public RevealInFinder(Box root) {
 		if (!Main.os.equals(Main.OS.mac)) return;
 
-		root.properties.put(RemoteEditor.commands, () -> {
+		root.properties.put(Commands.commands, () -> {
 
 			Map<Pair<String, String>, Runnable> r = new HashMap<>();
 

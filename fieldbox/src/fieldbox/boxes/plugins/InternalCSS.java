@@ -5,6 +5,7 @@ import field.utility.Pair;
 import fieldbox.FieldBox;
 import fieldbox.boxes.Box;
 import fieldbox.io.IO;
+import fielded.Commands;
 import fielded.RemoteEditor;
 
 import java.util.LinkedHashMap;
@@ -25,7 +26,7 @@ public class InternalCSS extends Box {
 
 	public InternalCSS()
 	{
-		properties.put(RemoteEditor.commands, () -> {
+		properties.put(Commands.commands, () -> {
 			Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
 			RemoteEditor ed = this.find(RemoteEditor.editor, both()).findFirst().get();
 

@@ -37,9 +37,7 @@ import static fieldbox.boxes.FLineDrawing.*;
  */
 public class RemoteEditor extends Box {
 
-	static public final Dict.Prop<Supplier<Map<Pair<String, String>, Runnable>>> commands = new Dict.Prop<>("commands").type()
-															   .doc("commands injected into the editor as ctrl-space menuSpecs")
-															   .toCannon();
+
 	static public final Dict.Prop<Supplier<Map<Pair<String, String>, Runnable>>> hotkeyCommands = new Dict.Prop<>("hotkeyCommands").type()
 																       .doc("commands injected into the editor as hotkey menuSpecs")
 																       .toCannon();
@@ -554,7 +552,7 @@ public class RemoteEditor extends Box {
 			JSONObject p = (JSONObject) payload;
 			String command = p.getString("command");
 
-			find(RemoteEditor.commands, both()).flatMap(m -> m.get()
+			find(Commands.commands, both()).flatMap(m -> m.get()
 									  .entrySet()
 									  .stream())
 							   .filter(m -> m.getKey().first.trim()
@@ -607,7 +605,7 @@ public class RemoteEditor extends Box {
 			//todo: handle no box case
 
 			List<Map.Entry<Pair<String, String>, Runnable>> commands = box.get()
-										      .find(RemoteEditor.commands, box.get()
+										      .find(Commands.commands, box.get()
 														      .both())
 										      .flatMap(m -> m.get()
 												     .entrySet()

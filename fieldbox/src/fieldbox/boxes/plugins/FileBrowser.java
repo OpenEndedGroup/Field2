@@ -14,6 +14,7 @@ import fieldbox.Open;
 import fieldbox.boxes.*;
 import fieldbox.io.IO;
 import fieldbox.ui.FieldBoxWindow;
+import fielded.Commands;
 import fielded.RemoteEditor;
 
 import java.io.File;
@@ -51,7 +52,7 @@ public class FileBrowser extends Box implements IO.Loaded {
 
 		Log.log("INSERT", "FileBrowser is alive");
 
-		properties.put(RemoteEditor.commands, () -> {
+		properties.put(Commands.commands, () -> {
 
 			Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
 			m.put(new Pair<>("Copy from Workspace", "Copies boxes or whole files from the workspace into this document"), new RemoteEditor.ExtendedCommand() {
