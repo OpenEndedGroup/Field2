@@ -84,7 +84,7 @@ public class TextEditor extends Box implements IO.Loaded {
 		browser = new Browser();
 		browser.properties.put(Box.frame, new Rect(window.getWidth() - maxw - 10, 10, maxw, 1500/*maxh*/));
 
-		maxhOnCreation = maxh;
+		maxhOnCreation = 1500;
 
 		browser.pauseForBoot();
 
