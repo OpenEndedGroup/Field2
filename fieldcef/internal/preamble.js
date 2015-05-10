@@ -75,9 +75,7 @@
 
  goCommands = function() {
 
- 			console.log(" inside preamble request commands ?");
-
-		 _field.sendWithReturn("request.commands", {},
+ 		 _field.sendWithReturn("request.commands", {},
 				 function(d, e) {
 						 var completions = []
 						 for (var i = 0; i < d.length; i++) {
