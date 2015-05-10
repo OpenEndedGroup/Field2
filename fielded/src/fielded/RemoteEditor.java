@@ -961,8 +961,14 @@ public class RemoteEditor extends Box {
 				Box target = selection.iterator()
 						      .next();
 
+				Dict.Prop objectProp;
 
-				Dict.Prop objectProp = target.find(defaultEditorProperty, target.upwards())
+				if (currentlyEditing!=null && target.properties.has(currentlyEditing))
+				{
+					objectProp = currentlyEditing;
+				}
+				else
+					objectProp = target.find(defaultEditorProperty, target.upwards())
 							     .findFirst()
 							     .map(x -> (Dict.Prop) new Dict.Prop<String>(x).toCannon())
 							     .orElseGet(() -> (Dict.Prop) Execution.code);
