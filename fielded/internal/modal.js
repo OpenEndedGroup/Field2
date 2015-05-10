@@ -1,9 +1,25 @@
 var currentmodal = null;
 
 function runModal(placeholder, getcompletionsfunction, cssclass, initialText, allowAlternative) {
-    var modal = $("<dialog class='" + cssclass + "'><input spellcheck='false' data-autosize-input='{ \"space\": 10 }' autocomplete='off' placeholder='" + placeholder + "' class='Field-textBox' type='text' name='main'></input><ol></ol></dialog>");
+
+		var w = $(".CodeMirror").width()
+		var h = $(".CodeMirror").height()
+
+		var mx= h - 100;
+
+		var shift = ($(window).height()-h)/2
+		var shiftx = ($(window).width()-w)/2
+
+    var modal = $("<dialog class='" + cssclass +"'><input spellcheck='false' data-autosize-input='{ \"space\": 10 }' autocomplete='off' placeholder='" + placeholder + "' class='Field-textBox' type='text' name='main'></input><ol style='max-height:"+mx+"'></ol></dialog>");
 
     modal.appendTo($("body"));
+
+		modal.css("top", -shift);
+		modal.css("bottom", shift);
+
+		modal.css("left", -shiftx);
+		modal.css("right", shiftx);
+
 
     var inputBox = modal.find("input");
     var ol = modal.find("ol");
@@ -117,15 +133,15 @@ function runModalAtCursor(placeholder, completeme, initialText) {
     var m = runModal(placeholder, completeme, "Field-modal-positioned", initialText);
     var cc = cm.cursorCoords();
     var h = $(m).height();
-    if (cc.bottom > $(window).height() / 2)
+    if (cc.bottom > $(".CodeMirror").height() / 2)
         $(m).css("top", Math.max(100, cc.bottom - h));
     else {
         $(m).css("top", cc.bottom)
     }
 
     var p = $(m).position();
-    if (p.top + h > $(window).height() - 40) {
-        h = $(window).height() - p.top - 100;
+    if (p.top + h > $(".CodeMirror").height() - 40) {
+        h = $(".CodeMirror").height() - p.top - 100;
         $($(m).children()[1]).height(h)
     }
     $(m).css("left", cc.right)

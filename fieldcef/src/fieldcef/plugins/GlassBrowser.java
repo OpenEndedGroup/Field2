@@ -3,7 +3,6 @@ package fieldcef.plugins;
 import com.badlogic.jglfw.Glfw;
 import field.app.RunLoop;
 import field.graphics.Window;
-import field.linalg.Vec2;
 import field.utility.Dict;
 import field.utility.Log;
 import field.utility.Rect;
@@ -48,7 +47,8 @@ public class GlassBrowser extends Box implements IO.Loaded {
 	public String styles;
 
 	public GlassBrowser(Box root) {
-		this.properties.put(glassBrowser, this);this.root = root;
+		this.properties.put(glassBrowser, this);
+		this.root = root;
 	}
 	int tick = 0;
 
@@ -59,7 +59,7 @@ public class GlassBrowser extends Box implements IO.Loaded {
 		browser = new Browser();
 		browser.properties.put(Box.frame, new Rect(0, 0, maxw, maxh));
 		browser.properties.put(FLineDrawing.layer, "glass2");
-		browser.properties.put(Drawing.windowSpace, new Vec2(0,0));
+//		browser.properties.put(Drawing.windowSpace, new Vec2(0,0));
 		browser.properties.put(Boxes.dontSave, true);
 		browser.properties.put(Box.hidden, true);
 		browser.connect(root);
@@ -107,7 +107,7 @@ public class GlassBrowser extends Box implements IO.Loaded {
 			       .orElseThrow(() -> new IllegalArgumentException(" Server not found "));
 
 
-		String bootstrap = "<html style='background:rgba(0,0,0,0.02);'><head><style>" + styles + "</style></head><body style='background:rgba(0,0,0,0.02);'></body></html>";
+		String bootstrap = "<html style='background:rgba(0,0,0,0.02);'><head><style>" + styles + "</style></head><body class='CodeMirror' style='background:rgba(0,0,0,0.02);'></body></html>";
 		String res =  UUID.randomUUID()
 							    .toString();
 		s.setFixedResource("/" + res, bootstrap);
@@ -198,9 +198,10 @@ public class GlassBrowser extends Box implements IO.Loaded {
 
 		Rect viewBounds = d.getCurrentViewBounds(this);
 
-		Rect vb = new Rect(viewBounds.x+viewBounds.w/2-maxw/2, viewBounds.y+viewBounds.h/2-maxh/2, maxw, maxh);
-
-		browser.properties.put(Box.frame, vb);
+//		Rect vb = new Rect(viewBounds.x+viewBounds.w/2-maxw/2, viewBounds.y+viewBounds.h/2-maxh/2, maxw, maxh);
+//		Rect vb = new Rect(viewBounds.x+viewBounds.w/2-maxw/2, viewBounds.y+viewBounds.h/2-maxh/2, maxw, maxh);
+		browser.properties.put(Box.frame, viewBounds);
+//		center();
 
 		visible = true;
 		browser.properties.put(Box.hidden, false);
@@ -240,9 +241,21 @@ public class GlassBrowser extends Box implements IO.Loaded {
 		FieldBoxWindow window = this.find(Boxes.window, both())
 					    .findFirst()
 					    .get();
-		Rect f = browser.properties.get(Box.frame);
-		f.x = (int)((window.getWidth() - f.w) / 2);
+		Rect f = browser.properties.get(Box.frame).duplicate();
 		f.y = (int)((window.getHeight() - f.h) / 2);
+//		f.x = 0;
+//		f.y = 0;
+//		f.w = window.getWidth();
+//		f.h = window.getHeight();
+		f.x = (int)((window.getWidth() - f.w) / 2);
+
+		browser.properties.put(Box.frame, f);
+
+		browser.executeJavaScript("$(\".CodeMirror\").css(\"height\", " + (window.getHeight()) + ")");
+		browser.executeJavaScript("$(\".CodeMirror\").css(\"width\", " + window.getWidth() + ")");
+		browser.executeJavaScript("$(\"body\").css(\"height\", " + (window.getHeight()) + ")");
+		browser.executeJavaScript("$(\"body\").css(\"width\", " + window.getWidth()+")");
+
 		if (!browser.properties.isTrue(Box.hidden, false)) Drawing.dirty(this);
 	}
 
