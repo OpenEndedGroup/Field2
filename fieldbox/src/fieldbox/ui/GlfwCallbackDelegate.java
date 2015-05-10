@@ -87,4 +87,9 @@ public class GlfwCallbackDelegate implements GlfwCallback {
 	{
 		delegate.drop(l, strings);
 	}
+
+	@Override
+	public void framebufferSize(long window, int width, int height) {
+		delegate.framebufferSize(window, width, height);
+	}
 }
