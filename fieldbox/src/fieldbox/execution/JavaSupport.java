@@ -129,7 +129,6 @@ public class JavaSupport {
 		return Collections.emptyMap();
 	}
 
-	// TODO: not implemented yet
 	private Map<String, String> indexClasses_tree(String f) {
 
 		Map<String, String> ret = new LinkedHashMap<>();

@@ -364,37 +364,44 @@ public class Open {
 
 
 	public boolean defaultGLPreamble(int pass) {
+
+
 		glViewport(0, 0, window.getFrameBufferWidth(), window.getFrameBufferHeight());
 		glScissor(0, 0, window.getFrameBufferWidth(), window.getFrameBufferHeight());
-		glClearColor((float)Colors.backgroundColor.x, (float)Colors.backgroundColor.y, (float)Colors.backgroundColor.z,1);
+		glClearColor((float) Colors.backgroundColor.x, (float) Colors.backgroundColor.y, (float) Colors.backgroundColor.z, 1);
 		glClear(GL11.GL_COLOR_BUFFER_BIT);
 		glEnable(GL11.GL_BLEND);
 		glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		glDisable(GL11.GL_DEPTH_TEST);
 		glEnable(GL13.GL_MULTISAMPLE);
+
 		return true;
 	}
 
 
 	public boolean defaultGLPreambleBackground(int pass) {
+
 		glViewport(0, 0, window.getFrameBufferWidth(), window.getFrameBufferHeight());
 		glScissor(0, 0, window.getFrameBufferWidth(), window.getFrameBufferHeight());
 		glEnable(GL11.GL_BLEND);
 		glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		glDisable(GL11.GL_DEPTH_TEST);
 		glEnable(GL13.GL_MULTISAMPLE);
+
 		return true;
 	}
 
 	public boolean defaultGLPreambleTransparent(int pass) {
+
 		glViewport(0, 0, window.getFrameBufferWidth(), window.getFrameBufferHeight());
 		glScissor(0, 0, window.getFrameBufferWidth(), window.getFrameBufferHeight());
-		glClearColor((float)Colors.backgroundColor.x, (float)Colors.backgroundColor.y, (float)Colors.backgroundColor.z,0);
+		glClearColor((float) Colors.backgroundColor.x, (float) Colors.backgroundColor.y, (float) Colors.backgroundColor.z, 0);
 		glClear(GL11.GL_COLOR_BUFFER_BIT);
 		glEnable(GL11.GL_BLEND);
 		glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		glDisable(GL11.GL_DEPTH_TEST);
 		glEnable(GL13.GL_MULTISAMPLE);
+
 		return true;
 	}
 }
