@@ -1,6 +1,10 @@
 package field.graphics;
 
+import field.utility.Dict;
 import field.utility.Log;
+import field.utility.Options;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GLContext;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -55,8 +59,11 @@ public class GraphicsContext {
 	static public void enterContext(GraphicsContext c) {
 		Log.log("graphics.trace", ">> graphics context begin ");
 		currentGraphicsContext = c;
-		for (Runnable r : currentGraphicsContext.preQueue)
+		for (Runnable r : currentGraphicsContext.preQueue) {
+			GraphicsContext.checkError(() -> ""+r);
 			r.run();
+			GraphicsContext.checkError(() -> ""+r);
+		}
 	}
 
 	static public void exitContext(GraphicsContext c) {
@@ -112,6 +119,20 @@ public class GraphicsContext {
 
 	public static <T> T remove(Object key) {
 		return (T) currentGraphicsContext.context.remove(key);
+	}
+
+	static public final boolean noChecks = Options.dict().isTrue(new Dict.Prop("noChecks"), false);
+
+	public static void checkError() {
+		if (noChecks) return;
+		checkError(() -> "");
+	}
+
+	public static void checkError(Supplier<String> message) {
+		if (noChecks) return;
+		int e = GL11.glGetError();
+		if (e!=0)
+			throw new IllegalStateException("GLERROR:"+ GLContext.translateGLErrorString(e)+" -- "+message.get());
 	}
 
 	static public class Sticky implements Runnable {
