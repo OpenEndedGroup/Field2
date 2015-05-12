@@ -43,7 +43,7 @@ public class FileBrowser extends Box implements IO.Loaded {
 	private final Box root;
 	LinkedHashMap<String, FieldFile> files = new LinkedHashMap<>();
 	LinkedHashMap<String, FieldBox> boxes = new LinkedHashMap<>();
-	AtomicInteger sheetsInFlight = new AtomicInteger();
+	static AtomicInteger sheetsInFlight = new AtomicInteger();
 	long allFrameHashSalt = 0;
 
 	public FileBrowser(Box root) {
@@ -93,7 +93,7 @@ public class FileBrowser extends Box implements IO.Loaded {
 
 //						     Log.log("insertbox", "box: " + f.name);
 
-						     Set<FieldFile> ui = f.usedIn();
+						     Set<FieldFile> ui = f.usedIn(files);
 						     m.put(new Pair<>(f.name+ " " + (f.customClass != null ? "<b>custom</b>" : ""), ("used in " + ui.size() + " file" + (ui.size() == 1 ? "" : "s"))), () -> {
 
 							     // doit
@@ -165,7 +165,7 @@ public class FileBrowser extends Box implements IO.Loaded {
 
 //						     Log.log("insertbox", "box: " + f.name);
 
-						     Set<FieldFile> ui = f.usedIn();
+						     Set<FieldFile> ui = f.usedIn(files);
 						     m.put(new Pair<>(f.name + " " + (f.customClass != null ? "<b>custom</b>" : ""), ("used in " + ui.size() + " file" + (ui.size() == 1 ? "" : "s")+" "+(f.copyOnly ? "<i>(Template)</i>" : ""))),
 							   () -> {
 
@@ -256,7 +256,7 @@ public class FileBrowser extends Box implements IO.Loaded {
 				    Log.log("updatebox", "looked for " + x.properties.get(IO.id) + " in " + boxes.keySet() + " got " + q);
 
 				    if (q == null) return;
-				    Set<FieldFile> uses = q.usedIn();
+				    Set<FieldFile> uses = q.usedIn(files);
 
 //				    Log.log("updatebox", "box " + x.properties.get(Box.name) + " is used in " + in.size());
 
@@ -387,13 +387,21 @@ public class FileBrowser extends Box implements IO.Loaded {
 		}
 	}
 
-	private FieldBox newFieldBox(File from) {
+	static public FieldBox newFieldBox(File from) {
+		return newFieldBox(from, false);
+	}
+
+	static public FieldBox newFieldBox(File from, boolean retainText) {
 		FieldBox f = new FieldBox();
 
 		List<String> all = readCompletely(from);
 		if (all == null) return null;
 
 		f.filename = from;
+		if (retainText)
+		{
+			f.allText = all;
+		}
 
 		for (String s : all) {
 			if (s.trim()
@@ -420,7 +428,6 @@ public class FileBrowser extends Box implements IO.Loaded {
 					    .trim();
 				c = c.substring(1, c.length() - 1);
 				if (!c.equals("fieldbox.boxes.Box")) {
-//					Log.log("insertbox", "setting custom class to be " + c);
 					f.setCustomClass(c);
 
 					try {
@@ -445,13 +452,11 @@ public class FileBrowser extends Box implements IO.Loaded {
 		return f;
 	}
 
-	private FieldFile newFieldFile(File from) {
-//		Log.log("insertbox", "reading field file called " + from);
+	static public FieldFile newFieldFile(File from) {
 		FieldFile f = new FieldFile();
 
 		List<String> all = readCompletely(from);
 		if (all == null) {
-//			Log.log("insertbox", "problem reading it " + from);
 			return null;
 		}
 
@@ -472,7 +477,7 @@ public class FileBrowser extends Box implements IO.Loaded {
 		return f;
 	}
 
-	private List<String> readCompletely(File from) {
+	static private List<String> readCompletely(File from) {
 		try {
 			return Files.readAllLines(from.toPath());
 		} catch (IOException e) {
@@ -484,12 +489,12 @@ public class FileBrowser extends Box implements IO.Loaded {
 		return breadthFirst(both()).filter(x -> x.properties.isTrue(Mouse.isSelected, false));
 	}
 
-	public class FieldFile {
-		String name;
-		String id;
-		boolean copyOnly = false;
+	static public class FieldFile {
+		public String name;
+		public String id;
+		public boolean copyOnly = false;
 
-		Set<String> boxes = new LinkedHashSet<>();
+		public Set<String> boxes = new LinkedHashSet<>();
 
 		@Override
 		public boolean equals(Object o) {
@@ -510,14 +515,15 @@ public class FileBrowser extends Box implements IO.Loaded {
 
 	}
 
-	public class FieldBox {
-		String id;
-		String name;
-		String comment;
-		String principleText;
-		File filename;
+	static public class FieldBox {
+		public String id;
+		public String name;
+		public String comment;
+		public String principleText;
+		public List<String> allText;
+		public File filename;
 
-		String customClass = null;
+		public String customClass = null;
 		boolean copyOnly = false;
 
 
@@ -543,7 +549,7 @@ public class FileBrowser extends Box implements IO.Loaded {
 			return id != null ? id.hashCode() : 0;
 		}
 
-		public Set<FieldFile> usedIn() {
+		public Set<FieldFile> usedIn(LinkedHashMap<String, FieldFile> files) {
 //			Log.log("insertbox", "used in :" + sheetsInFlight.get() + " / " + id);
 			if (sheetsInFlight.get() > 0) return Collections.emptySet();
 

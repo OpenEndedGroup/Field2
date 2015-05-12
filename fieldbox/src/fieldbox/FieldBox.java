@@ -14,12 +14,8 @@ public class FieldBox {
 
 	static public final FieldBox fieldBox = new FieldBox();
 
-	public final IO io = new IO(Options.getDirectory("workspace",() -> System.getProperty("user.home")+"/Documents/FirstNewFieldWorkspace/"));
+	public IO io;
 
-	{
-		io.addFilespec("code", io.EXECUTION, io.EXECUTION);
-		LoggingDefaults.initialize();
-	}
 
 	public void go() {
 		RunLoop.main.enterMainLoop();
@@ -33,6 +29,11 @@ public class FieldBox {
 
 		// TODO --- get from command line / previous
 		Options.parseCommandLine(s);
+
+
+		fieldBox.io = new IO(Options.getDirectory("workspace",() -> System.getProperty("user.home")+"/Documents/FirstNewFieldWorkspace/"));
+		fieldBox.io.addFilespec("code", IO.EXECUTION, IO.EXECUTION);
+		LoggingDefaults.initialize();
 
 		Open open = new Open(Options.getString("file", () -> "testIB.field2"));
 
