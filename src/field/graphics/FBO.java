@@ -214,7 +214,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform {
 
 			State s = GraphicsContext.get(this, this::setup);
 
-			glBindFramebuffer(GL_FRAMEBUFFER, specification.multisample ? s.multisample : s.name);
+			GraphicsContext.stateTracker.fbo.set(specification.multisample ? s.multisample : s.name);
 
 			int[] v = {0, 0, specification.width, specification.height};
 
@@ -233,10 +233,12 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform {
 					glReadBuffer(GL_COLOR_ATTACHMENT0 + i);
 					glBlitFramebuffer(0, 0, specification.width, specification.height, 0, 0, specification.width, specification.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 				}
+				glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 			}
 
 
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 
 			return true;
 		}

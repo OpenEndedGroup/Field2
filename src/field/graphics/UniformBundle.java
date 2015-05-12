@@ -45,7 +45,7 @@ public class UniformBundle implements Scene.Perform {
 
 	@Override
 	public int[] getPasses() {
-		return new int[]{-1};
+		return new int[]{-1, 1};
 	}
 
 

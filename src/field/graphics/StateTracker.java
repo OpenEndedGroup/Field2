@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER;
+import static org.lwjgl.opengl.GL30.glBindFramebuffer;
 
 /**
  * Some OpenGL state needs to be tracked (given the slowness and deprecation of glPush/PopAttrib. Most of glPushAttrib referred to old fixed function stuff that we don't use any more; but there are
@@ -40,6 +42,20 @@ public class StateTracker {
 			GL20.glUseProgram(value);
 		}
 	};
+	static public State<Integer> fbo = new State<Integer>() {
+		@Override
+		protected void apply(Integer value) {
+			glBindFramebuffer(GL_FRAMEBUFFER, value == null ? 0 : value);
+		}
+	};
+	static public State<int[]> blendState = new State<int[]>()
+	{
+		@Override
+		protected void apply(int[] value) {
+			glBlendFunc(value[0], value[1]);
+		}
+	};
+
 	static LinkedHashMap<String, State> allStates = new LinkedHashMap<>();
 
 	protected StateTracker() {

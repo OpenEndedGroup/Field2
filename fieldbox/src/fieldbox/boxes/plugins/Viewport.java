@@ -106,7 +106,6 @@ public class Viewport extends Box implements IO.Loaded, ProvidesGraphicsContext 
 
 			int[] v = new int[]{(int)tl.x*2, (int)(h-bl.y)*2, (int)(bl.x-tl.x+2)*2, (int)(bl.y-tl.y+2)*2};
 
-//			Log.log("viewport", "Drawing! "+tl+" "+bl);
 
 			GraphicsContext.stateTracker.scissor.set(v);
 			GraphicsContext.stateTracker.viewport.set(v);
@@ -114,12 +113,7 @@ public class Viewport extends Box implements IO.Loaded, ProvidesGraphicsContext 
 			Scene scene = this.properties.get(Viewport.scene);
 			scene.updateAll();
 
-//			glClearColor(0,0,0,0.2f);
-//			glClear(GL_COLOR_BUFFER_BIT);
-
-//			Log.log("viewport", "complete "+s);
 		}
-//		Log.log("viewport", "working? ");
 
 	}
 

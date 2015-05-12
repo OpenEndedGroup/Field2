@@ -362,8 +362,6 @@ public class Scene extends Box implements Linker.AsMap {
 	@Override
 	@HiddenInAutocomplete
 	public Object asMap_set(String p, Object o) {
-
-
 		Object fo = Conversions.convert(o, Supplier.class);
 		if (fo instanceof Supplier) return getDefaultBundle().set(p, (Supplier) fo);
 		if (fo instanceof InvocationHandler) {
@@ -379,10 +377,8 @@ public class Scene extends Box implements Linker.AsMap {
 
 		if (Uniform.isAccepableInstance(fo)) return getDefaultBundle().set(p, () -> fo).setIntOnly(fo instanceof Integer);
 
-		Log.log("doublescore", "converting to perform ? " + o);
 		o = Conversions.convert(o, Perform.class);
 		if (o instanceof Perform) {
-			Log.log("doublescore", "actually attaching a perform");
 			return attach(p, (Perform) o);
 		} else return super.asMap_set(p, o);
 	}

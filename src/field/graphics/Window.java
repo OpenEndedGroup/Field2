@@ -175,7 +175,9 @@ public class Window implements ProvidesGraphicsContext {
 
 		GraphicsContext.stateTracker.viewport.set(new int[]{0, 0, w * getRetinaScaleFactor(), h * getRetinaScaleFactor()});
 		GraphicsContext.stateTracker.scissor.set(new int[]{0, 0, w * getRetinaScaleFactor(), h * getRetinaScaleFactor()});
-
+		GraphicsContext.stateTracker.fbo.set(0);
+		GraphicsContext.stateTracker.shader.set(0);
+		GraphicsContext.stateTracker.blendState.set(new int[]{GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA});
 
 
 		if (w != this.w || h != this.h) {

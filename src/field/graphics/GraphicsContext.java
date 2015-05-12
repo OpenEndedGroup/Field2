@@ -37,6 +37,7 @@ public class GraphicsContext {
 	static List<GraphicsContext> allGraphicsContexts = new ArrayList<GraphicsContext>();
 
 	static public StateTracker stateTracker = new StateTracker();
+	public final UniformCache uniformCache = new UniformCache();
 
 	protected WeakHashMap<Object, Object> context = new WeakHashMap<>();
 

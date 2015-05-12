@@ -1,6 +1,8 @@
 package field.graphics;
 
 
+import field.utility.Util;
+
 /**
  * this Base class codifies a general pattern for Scene.Perform classes:
  * <p>
@@ -17,7 +19,11 @@ public abstract class BaseScene<t_state extends BaseScene.Modifiable> extends Sc
 
 	protected BaseScene() {
 		// its generally important that things get initialized as early as possible (and, furthermore, not in some random spot in the Scene update)
-		GraphicsContext.preQueueInAllContexts(() -> GraphicsContext.put(this, setup()));
+		GraphicsContext.preQueueInAllContexts(() -> {
+			try(Util.ExceptionlessAutoCloasable st = GraphicsContext.stateTracker.save()) {
+				GraphicsContext.put(this, setup());
+			}
+		});
 	}
 
 	protected int mod = 0;
