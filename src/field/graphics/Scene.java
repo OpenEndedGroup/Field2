@@ -180,6 +180,7 @@ public class Scene extends Box implements Linker.AsMap {
 	}
 
 	protected boolean update(Queue<Pair<Integer, Callable<Boolean>>> a) {
+		GraphicsContext.checkError(() -> "on entry ");
 		exceptions.clear();
 
 		boolean ret = true;
@@ -206,9 +207,11 @@ public class Scene extends Box implements Linker.AsMap {
 				Iterator<Consumer<Integer>> ic = previously.iterator();
 				while (ic.hasNext()) {
 					Consumer<Integer> n = ic.next();
+					GraphicsContext.checkError(() -> "on "+n);
 					if (!wrappedCall(n, i)) {
 						detach(n);
 					}
+					GraphicsContext.checkError(() -> "on "+n);
 				}
 
 			}
@@ -245,6 +248,7 @@ public class Scene extends Box implements Linker.AsMap {
 			if (!(t instanceof Cancel)) exceptions.add(t);
 			return false;
 		} finally {
+			GraphicsContext.checkError(() -> "error on "+c);
 		}
 	}
 
@@ -256,6 +260,7 @@ public class Scene extends Box implements Linker.AsMap {
 			if (!(t instanceof Cancel)) exceptions.add(t);
 			return false;
 		} finally {
+			GraphicsContext.checkError(() -> "error on "+middle);
 		}
 	}
 

@@ -10,7 +10,6 @@ import field.graphics.util.KeyEventMapping;
 import field.linalg.Vec2;
 import field.utility.*;
 import fieldlinker.Linker;
-import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GLContext;
 
@@ -40,6 +39,7 @@ public class Window implements ProvidesGraphicsContext {
 	public final Scene scene = new Scene();
 	private final long windowOpenedAt;
 	private final CannonicalModifierKeys modifiers;
+	private final GLContext glcontext;
 	protected GraphicsContext graphicsContext;
 	protected long window;
 
@@ -90,11 +90,7 @@ public class Window implements ProvidesGraphicsContext {
 
 		glfwWindowShouldClose(window);
 
-		try {
-			GLContext.useContext(this);
-		} catch (LWJGLException e) {
-			e.printStackTrace();
-		}
+		glcontext = GLContext.createFromCurrent();
 
 		GL11.glClearColor(0.25f, 0.25f, 0.25f, 1);
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
@@ -170,11 +166,8 @@ public class Window implements ProvidesGraphicsContext {
 		glfwMakeContextCurrent(window);
 		glfwSwapInterval(1);
 
-		try {
-			GLContext.useContext(this);
-		} catch (LWJGLException e) {
-			e.printStackTrace();
-		}
+		glcontext.makeCurrent(0);
+		GraphicsContext.checkError(() -> "initially");
 
 		int w = glfwGetWindowWidth(window);
 		int h = glfwGetWindowHeight(window);
@@ -182,6 +175,8 @@ public class Window implements ProvidesGraphicsContext {
 
 		GraphicsContext.stateTracker.viewport.set(new int[]{0, 0, w * getRetinaScaleFactor(), h * getRetinaScaleFactor()});
 		GraphicsContext.stateTracker.scissor.set(new int[]{0, 0, w * getRetinaScaleFactor(), h * getRetinaScaleFactor()});
+
+
 
 		if (w != this.w || h != this.h) {
 			GraphicsContext.isResizing = true;
@@ -191,7 +186,9 @@ public class Window implements ProvidesGraphicsContext {
 			GraphicsContext.isResizing = false;
 		}
 
+
 		updateScene();
+
 
 		/*
 			boolean lshift = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT);
@@ -205,7 +202,9 @@ public class Window implements ProvidesGraphicsContext {
 			Log.log("finalkey", lshift+" "+rshift+":"+lopt+" "+ropt+":"+lcommand+" "+rcommand+":"+lctrl+":"+rctrl);
 */
 
+
 		glfwSwapBuffers(window);
+
 		glfwPollEvents();
 		currentWindow = null;
 

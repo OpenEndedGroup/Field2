@@ -1,11 +1,14 @@
 package field.graphics;
 
 import field.utility.Log;
+import org.lwjgl.opengl.ARBTextureStorage;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL21;
 import org.lwjgl.opengl.GL30;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -15,7 +18,6 @@ import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL21.GL_PIXEL_UNPACK_BUFFER;
 import static org.lwjgl.opengl.GL30.*;
-import static org.lwjgl.opengl.GL42.glTexStorage2D;
 
 
 /**
@@ -25,7 +27,7 @@ import static org.lwjgl.opengl.GL42.glTexStorage2D;
  * <p>
  * Follows the same pattern as FBO --- create a texture by picking one of the growing number of static helpers in TextureSpecification that mask the complexity of OpenGL enums
  */
-public class Texture extends BaseScene<Texture.State> implements Scene.Perform {
+public class Texture extends BaseScene<Texture.State> implements Scene.Perform, OffersUniform<Integer> {
 
 	public class State extends BaseScene.Modifiable {
 		protected int name = -1;
@@ -165,14 +167,21 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform {
 	}
 
 	protected State setup() {
+
+
+
 		State s = new State();
 		s.name = glGenTextures();
 		s.pboA = glGenBuffers();
 		if (isDoubleBuffered) s.pboB = glGenBuffers();
 		s.pbo = s.pboA;
 
+
+
 		glActiveTexture(GL_TEXTURE0 + specification.unit);
 		glBindTexture(specification.target, s.name);
+
+
 
 		if (!specification.highQuality) {
 			glTexParameteri(specification.target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -183,23 +192,39 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform {
 		} else {
 			glTexParameteri(specification.target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(specification.target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
 		}
+
+
 
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, specification.width);
 
-		glTexStorage2D(specification.target, specification.highQuality ? (int) (Math.floor(Math.log(Math.max(specification.width, specification.height)) / Math.log(2)) + 1) : 1,
+
+
+		ARBTextureStorage.glTexStorage2D(specification.target, specification.highQuality ? (int) (Math.floor(Math.log(Math.max(specification.width, specification.height)) / Math.log(2)) + 1) : 1,
 			       specification.internalFormat, specification.width, specification.height);
+
+
+
 		glTexSubImage2D(specification.target, 0, 0, 0, specification.width, specification.height, specification.format, specification.type, specification.pixels);
 		if (specification.highQuality) {
 			glGenerateMipmap(specification.target);
 		}
 
 
+
 		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, s.pbo);
+
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, specification.width);
+
 		glBufferData(GL_PIXEL_UNPACK_BUFFER, specification.elementSize * specification.width * specification.height, GL15.GL_STREAM_DRAW);
+
 
 		if (isDoubleBuffered) {
 			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, s.pboB);
@@ -210,8 +235,12 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform {
 		}
 		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
+
+
 		return s;
 	}
+
+
 
 	static public class TextureSpecification {
 		public final int unit;
@@ -253,6 +282,21 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform {
 			return new TextureSpecification(unit, GL_TEXTURE_2D, GL_RGB8, wh[0], wh[1], GL_RGB, GL_UNSIGNED_BYTE, 3, data, mips);
 		}
 
+		static public TextureSpecification from1DRGBAFloatBuffer(int unit, int length, FloatBuffer source) {
+			ByteBuffer data = ByteBuffer.allocateDirect(4*4*length).order(ByteOrder.nativeOrder());
+			data.asFloatBuffer().put(source);
+			data.rewind();
+			return new TextureSpecification(unit, GL_TEXTURE_2D, GL30.GL_RGBA32F, length, 1, GL_RGBA, GL_FLOAT, 16, data, false);
+		}
+
+		static public TextureSpecification from1DFloatBuffer(int unit, int length, FloatBuffer source) {
+			ByteBuffer data = ByteBuffer.allocateDirect(4*length);
+			data.asFloatBuffer().put(source);
+			data.rewind();
+			return new TextureSpecification(unit, GL_TEXTURE_2D, GL30.GL_R32F, length, 1, GL_RED, GL_FLOAT, 4, data, false);
+		}
+
+
 		static public TextureSpecification byte4(int unit, int width, int height, ByteBuffer source, boolean mips) {
 			return new TextureSpecification(unit, GL_TEXTURE_2D, GL_RGBA8, width, height, GL_RGBA, GL_UNSIGNED_BYTE, 4, source, mips);
 		}
@@ -287,14 +331,17 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform {
 		Log.log("graphics.trace", "finishing upload part 2");
 		Log.log("texture.trace", "finishing upload part 2" + " " + specification);
 
+
 		glActiveTexture(GL_TEXTURE0 + specification.unit);
 		glBindTexture(specification.target, s.name);
 		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, isDoubleBuffered ? s.pboB : s.pbo);
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, specification.width);
 
+
 		int top = specification.elementSize*s.y0*specification.width;
-		glTexSubImage2D(specification.target, 0, 0, s.y0, specification.width, s.y1-s.y0-1, specification.format, specification.type, top);
+		glTexSubImage2D(specification.target, 0, 0, s.y0, specification.width, s.y1 - s.y0 - 1, specification.format, specification.type, top);
+
 
 		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 		if (specification.highQuality) {
@@ -307,6 +354,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform {
 			s.pboA = s.pboB;
 			s.pboB = q;
 		}
+
 		return mod;
 	}
 
@@ -325,5 +373,13 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform {
 		glDeleteTextures(s.name);
 		glDeleteBuffers(s.pboA);
 		if (isDoubleBuffered) glDeleteBuffers(s.pboB);
+	}
+
+	@Override
+	public Integer getUniform() {
+		State s = GraphicsContext.get(this);
+		if (s==null) return null;
+return s.name;
+
 	}
 }

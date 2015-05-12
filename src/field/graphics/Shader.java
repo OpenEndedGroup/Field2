@@ -371,6 +371,13 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 			});
 		}
 		if (Uniform.isAccepableInstance(fo)) return getDefaultBundle().set(p, () -> fo);
+
+		if (o instanceof  OffersUniform)
+		{
+			getDefaultBundle().set(p, () -> ((OffersUniform)o).getUniform());
+			// fall through
+		}
+
 		return super.asMap_set(p, o);
 	}
 

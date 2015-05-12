@@ -85,71 +85,90 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 	//todo: array names
 	private boolean setUniformNow() {
 		Integer name = GraphicsContext.stateTracker.shader.get();
+		GraphicsContext.checkError(() -> "while setting :"+name+" / "+this.name);
 
-		if (name == null) return true;
+		try {
+			if (name == null) return true;
 
-		int location = glGetUniformLocation(name, this.name);
 
-		if (location != -1) {
-			T t = value.get();
-			mostRecentValue = t;
-			float[] tf = rewriteToFloatArray(t);
-			if (tf != null && !intOnly) {
-				if (tf.length == 1) glUniform1f(location, tf[0]);
-				else if (tf.length == 2) glUniform2f(location, tf[0], tf[1]);
-				else if (tf.length == 3) glUniform3f(location, tf[0], tf[1], tf[2]);
-				else if (tf.length == 4) glUniform4f(location, tf[0], tf[1], tf[2], tf[3]);
-				else throw new IllegalArgumentException(" bad dimension after conversion to float array " + t + " -> " + tf.length);
-			} else {
-				int[] ti = rewriteToIntArray(t);
-				if (ti != null) {
-					if (ti.length == 1) glUniform1i(location, ti[0]);
-					else if (ti.length == 2) glUniform2i(location, ti[0], ti[1]);
-					else if (ti.length == 3) glUniform3i(location, ti[0], ti[1], ti[2]);
-					else if (ti.length == 4) glUniform4i(location, ti[0], ti[1], ti[2], ti[3]);
-					else
-						throw new IllegalArgumentException(" bad dimension after conversion to int array " + t + " -> " + ti.length);
+			int location = glGetUniformLocation(name, this.name);
+			GraphicsContext.checkError(() -> "while setting :"+name+" / "+this.name);
+
+			if (location != -1) {
+				T t = value.get();
+				if (t==null) {
+					System.out.println(" warning :"+name+" uniform is null");
+					return true;
+				}
+
+				mostRecentValue = t;
+				float[] tf = rewriteToFloatArray(t);
+				GraphicsContext.checkError();
+				if (tf != null && !intOnly) {
+					GraphicsContext.checkError(() -> "while setting :"+name+" / "+this.name);
+					if (tf.length == 1) glUniform1f(location, tf[0]);
+					else if (tf.length == 2) glUniform2f(location, tf[0], tf[1]);
+					else if (tf.length == 3) glUniform3f(location, tf[0], tf[1], tf[2]);
+					else if (tf.length == 4) glUniform4f(location, tf[0], tf[1], tf[2], tf[3]);
+					else throw new IllegalArgumentException(" bad dimension after conversion to float array " + t + " -> " + tf.length);
+					GraphicsContext.checkError(() -> "while setting :"+name+" / "+this.name);
 				} else {
-					float[][] tm = rewriteToFloatMatrix(t);
+					int[] ti = rewriteToIntArray(t);
+					if (ti != null) {
+						GraphicsContext.checkError();
+						if (ti.length == 1) glUniform1i(location, ti[0]);
+						else if (ti.length == 2) glUniform2i(location, ti[0], ti[1]);
+						else if (ti.length == 3) glUniform3i(location, ti[0], ti[1], ti[2]);
+						else if (ti.length == 4) glUniform4i(location, ti[0], ti[1], ti[2], ti[3]);
+						else throw new IllegalArgumentException(" bad dimension after conversion to int array " + t + " -> " + ti.length);
+						GraphicsContext.checkError();
+					} else {
+						float[][] tm = rewriteToFloatMatrix(t);
 
+						GraphicsContext.checkError(() -> "while setting :"+name+" / "+this.name);
 
-					if (tm != null && !intOnly) {
-						if (tm.length == 3) {
-							matrix3.rewind();
-							matrix3.put(tm[0]);
-							matrix3.put(tm[1]);
-							matrix3.put(tm[2]);
-							matrix3.rewind();
-							glUniformMatrix3(location, transpose, matrix3);
-						} else if (tm.length == 4) {
-							matrix4.rewind();
-							matrix4.put(tm[0]);
-							matrix4.put(tm[1]);
-							matrix4.put(tm[2]);
-							matrix4.put(tm[3]);
-							matrix4.rewind();
-							glUniformMatrix4(location, transpose, matrix4);
-						} else if (tm.length == 2) {
-							matrix4.rewind();
-							matrix4.put(tm[0]);
-							matrix4.put(tm[1]);
-							matrix4.rewind();
-							glUniformMatrix2(location, transpose, matrix4);
-						} else
-							throw new IllegalArgumentException(" bad dimension after conversion to float matrix " + t + " -> " + tm.length);
-					} else
-						throw new IllegalArgumentException(" cannot convert " + t + " to something that OpenGL can use as a uniform");
+						if (tm != null && !intOnly) {
+							if (tm.length == 3) {
+								matrix3.rewind();
+								matrix3.put(tm[0]);
+								matrix3.put(tm[1]);
+								matrix3.put(tm[2]);
+								matrix3.rewind();
+								glUniformMatrix3fv(location, transpose, matrix3);
+							} else if (tm.length == 4) {
+								matrix4.rewind();
+								matrix4.put(tm[0]);
+								matrix4.put(tm[1]);
+								matrix4.put(tm[2]);
+								matrix4.put(tm[3]);
+								matrix4.rewind();
+								glUniformMatrix4fv(location, transpose, matrix4);
+							} else if (tm.length == 2) {
+								matrix4.rewind();
+								matrix4.put(tm[0]);
+								matrix4.put(tm[1]);
+								matrix4.rewind();
+								glUniformMatrix2fv(location, transpose, matrix4);
+							} else throw new IllegalArgumentException(" bad dimension after conversion to float matrix " + t + " -> " + tm.length);
+						} else throw new IllegalArgumentException(" cannot convert " + t + " to something that OpenGL can use as a uniform");
+						GraphicsContext.checkError(() -> "while setting :"+name+" / "+this.name);
 
+					}
 				}
 			}
+			return true;
 		}
-		return true;
+		finally
+		{
+			GraphicsContext.checkError(() -> "while setting :"+name+" / "+this.name);
+		}
 	}
 
 	static public float[] rewriteToFloatArray(Object t) {
 
 		if (t instanceof float[]) return (float[]) t;
-		if (t instanceof Number) return new float[]{((Number) t).floatValue()};
+		if (t instanceof Float) return new float[]{((Number) t).floatValue()};
+		if (t instanceof Double) return new float[]{((Number) t).floatValue()};
 		if (t instanceof Boolean) return new float[]{((Boolean) t).booleanValue() ? 1f : 0f};
 
 		if (t instanceof Vector1D) return new float[]{(float) ((Vector1D) t).getX()};

@@ -1,9 +1,7 @@
 package field.graphics;
 
 import field.linalg.Mat4;
-import field.linalg.Vec2;
 import field.utility.Rect;
-import org.lwjgl.opengl.Display;
 
 import java.util.function.Supplier;
 
