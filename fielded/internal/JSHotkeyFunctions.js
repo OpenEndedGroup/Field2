@@ -229,6 +229,7 @@ function Run_Selection() {
 
     } else if (cm.listSelections()[0].anchor.line == cm.listSelections()[0].head.line)
        {
+        lh1 = cm.listSelections()[0].head
       	 fragment = cm.getSelections()[0]
        }
        else {

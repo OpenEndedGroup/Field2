@@ -1,4 +1,4 @@
-anchorLine = Math.max(cm.listSelections()[0].anchor.line, cm.listSelections()[0].head.line)
+anchorLine = Math.mawx(cm.listSelections()[0].anchor.line, cm.listSelections()[0].head.line)
 
  if (cm.listSelections()[0].anchor.line == cm.listSelections()[0].head.line && cm.listSelections()[0].anchor.pos == cm.listSelections()[0].head.pos) {
 
@@ -30,6 +30,7 @@ anchorLine = Math.max(cm.listSelections()[0].anchor.line, cm.listSelections()[0]
  else if (cm.listSelections()[0].anchor.line == cm.listSelections()[0].head.line)
  {
 	 fragment = cm.getSelections()[0]
+        lh1 = cm.listSelections()[0].head
  }
  else {
 	 fragment = cm.getSelections()[0]
