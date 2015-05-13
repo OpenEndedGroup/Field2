@@ -1,5 +1,6 @@
 {
   "__id__" "_jython"
+  "comment" "Embedded Python interpreter based on Jython"
   "classpath" [
     "{app}/out/production/fieldjython/"
     "{app}/out/production/fieldjython/*"

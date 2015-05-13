@@ -36,14 +36,10 @@ public class FileBrowser extends Box implements IO.Loaded {
 		    "property is set to true if this box is used in other sheets, and you are editing all of them at the same time")
 											    .type()
 											    .toCannon();
-
-
-
-
+	static AtomicInteger sheetsInFlight = new AtomicInteger();
 	private final Box root;
 	LinkedHashMap<String, FieldFile> files = new LinkedHashMap<>();
 	LinkedHashMap<String, FieldBox> boxes = new LinkedHashMap<>();
-	static AtomicInteger sheetsInFlight = new AtomicInteger();
 	long allFrameHashSalt = 0;
 
 	public FileBrowser(Box root) {
@@ -94,10 +90,8 @@ public class FileBrowser extends Box implements IO.Loaded {
 //						     Log.log("insertbox", "box: " + f.name);
 
 						     Set<FieldFile> ui = f.usedIn(files);
-						     m.put(new Pair<>(f.name+ " " + (f.customClass != null ? "<b>custom</b>" : ""), ("used in " + ui.size() + " file" + (ui.size() == 1 ? "" : "s"))), () -> {
-
-							     // doit
-//							     Log.log("insertbox", "would insert box :" + f.name);
+						     m.put(new Pair<>(f.name + " " + (f.customClass != null ? "<b>custom</b>" : ""),
+								      ("used in " + ui.size() + " file" + (ui.size() == 1 ? "" : "s")) + (f.comment == null ? "" : f.comment)), () -> {
 
 
 							     FieldBoxWindow w = first(Boxes.window, both()).get();
@@ -148,11 +142,9 @@ public class FileBrowser extends Box implements IO.Loaded {
 //							     Log.log("insertbox", "would insert file :" + f.name);
 							     Set<Box> loaded = Open.doOpen(root, f.name);
 
-							     if (f.copyOnly)
-								     for (Box b : loaded)
-									     IO.uniqify(b);
-							     else
-							     for (Box b : loaded)
+							     if (f.copyOnly) for (Box b : loaded)
+								     IO.uniqify(b);
+							     else for (Box b : loaded)
 								     IO.uniqifyIfNecessary(root, b);
 
 						     });
@@ -166,8 +158,8 @@ public class FileBrowser extends Box implements IO.Loaded {
 //						     Log.log("insertbox", "box: " + f.name);
 
 						     Set<FieldFile> ui = f.usedIn(files);
-						     m.put(new Pair<>(f.name + " " + (f.customClass != null ? "<b>custom</b>" : ""), ("used in " + ui.size() + " file" + (ui.size() == 1 ? "" : "s")+" "+(f.copyOnly ? "<i>(Template)</i>" : ""))),
-							   () -> {
+						     m.put(new Pair<>(f.name + " " + (f.customClass != null ? "<b>custom</b>" : ""),
+								      ("used in " + ui.size() + " file" + (ui.size() == 1 ? "" : "s") + " " + (f.copyOnly ? "<i>(Template)</i>" : ""))), () -> {
 
 								   // doit
 //								   Log.log("insertbox", "would insert box :" + f.name);
@@ -185,9 +177,7 @@ public class FileBrowser extends Box implements IO.Loaded {
 
 								   if (f.copyOnly) {
 									   IO.uniqify(loadBox(f.filename.getAbsolutePath(), position));
-								   }
-								   else
-									   IO.uniqifyIfNecessary(root, loadBox(f.filename.getAbsolutePath(), position));
+								   } else IO.uniqifyIfNecessary(root, loadBox(f.filename.getAbsolutePath(), position));
 
 
 							   });
@@ -288,7 +278,7 @@ public class FileBrowser extends Box implements IO.Loaded {
 
 				    float inset = 10f;
 
-				FLinesAndJavaShapes.drawRoundedRectInto(badges, r.x, r.y, r.w, r.h, 19);
+				    FLinesAndJavaShapes.drawRoundedRectInto(badges, r.x, r.y, r.w, r.h, 19);
 
 				    if (x.properties.isTrue(isLinked, true)) {
 					    x.properties.put(isLinked, true);
@@ -306,87 +296,6 @@ public class FileBrowser extends Box implements IO.Loaded {
 		}, () -> allFrameHashSalt));
 	}
 
-	@Override
-	public void loaded() {
-		Log.log("INSERT", "has loaded");
-		parse();
-	}
-
-	private Box loadBox(String f, Vec2 position) {
-
-		Box b = fieldbox.FieldBox.fieldBox.io.loadSingleBox(f, root);
-
-		Rect fr = b.properties.get(Box.frame);
-		fr.x = (float) (position.x - fr.w / 2);
-		fr.y = (float) (position.y - fr.h / 2);
-
-		root.connect(b);
-		if (b instanceof IO.Loaded) {
-			((IO.Loaded) b).loaded();
-		}
-		Callbacks.load(b);
-
-		Drawing.dirty(b);
-
-		return b;
-	}
-
-	public void parse() {
-
-		Log.log("INSERT", "has loaded");
-		String dir = fieldbox.FieldBox.fieldBox.io.getDefaultDirectory();
-		parse(dir, false);
-		dir = fieldbox.FieldBox.fieldBox.io.getTemplateDirectory();
-		parse(dir, true);
-	}
-	public void parse(String dir, boolean copyOnly)
-	{
-		Log.log("INSERT", "parsing directory :"+dir);
-
-		File[] boxes = new File(dir).listFiles(x -> x.getName()
-							     .endsWith(".box"));
-		if (boxes != null) {
-
-			Log.log("INSERT", "boxes are :"+Arrays.asList(boxes));
-
-			for (File from : boxes)
-				RunLoop.workerPool.submit(() -> {
-
-					Log.log("INSERT", from);
-					FieldBox ff = newFieldBox(from);
-					ff.copyOnly = copyOnly;
-					synchronized (files) {
-						FieldBox displaced = FileBrowser.this.boxes.put(ff.id, ff);
-					}
-				});
-		}
-
-		File[] sheets = new File(dir).listFiles(x -> x.getName()
-							      .endsWith(".field2") || x.getName()
-										       .equals(".field"));
-
-		if (sheets != null) {
-			Log.log("INSERT", "sheets are :"+Arrays.asList(sheets));
-			for (File from : sheets) {
-				sheetsInFlight.incrementAndGet();
-				RunLoop.workerPool.submit(() -> {
-					Log.log("INSERT", from);
-
-					try {
-						FieldFile ff = newFieldFile(from);
-						ff.copyOnly = copyOnly;
-
-						synchronized (files) {
-							files.put(ff.id, ff);
-						}
-					} finally {
-					}
-				});
-			}
-
-		}
-	}
-
 	static public FieldBox newFieldBox(File from) {
 		return newFieldBox(from, false);
 	}
@@ -398,8 +307,7 @@ public class FileBrowser extends Box implements IO.Loaded {
 		if (all == null) return null;
 
 		f.filename = from;
-		if (retainText)
-		{
+		if (retainText) {
 			f.allText = all;
 		}
 
@@ -421,6 +329,9 @@ public class FileBrowser extends Box implements IO.Loaded {
 				f.id = s.replace("\"__id__\"", "")
 					.trim();
 				f.id = f.id.substring(1, f.id.length() - 1);
+
+				System.out.println("id is <" + f.id + ">");
+
 			}
 			if (s.trim()
 			     .startsWith("\"__boxclass__\"")) {
@@ -482,6 +393,88 @@ public class FileBrowser extends Box implements IO.Loaded {
 			return Files.readAllLines(from.toPath());
 		} catch (IOException e) {
 			return null;
+		}
+	}
+
+	@Override
+	public void loaded() {
+		Log.log("INSERT", "has loaded");
+		parse();
+	}
+
+	private Box loadBox(String f, Vec2 position) {
+
+		Box b = fieldbox.FieldBox.fieldBox.io.loadSingleBox(f, root);
+
+		Rect fr = b.properties.get(Box.frame);
+		fr.x = (float) (position.x - fr.w / 2);
+		fr.y = (float) (position.y - fr.h / 2);
+
+		root.connect(b);
+		if (b instanceof IO.Loaded) {
+			((IO.Loaded) b).loaded();
+		}
+		Callbacks.load(b);
+
+		Drawing.dirty(b);
+
+		return b;
+	}
+
+	public void parse() {
+
+		Log.log("INSERT", "has loaded");
+		String dir = fieldbox.FieldBox.fieldBox.io.getDefaultDirectory();
+		parse(dir, false);
+		dir = fieldbox.FieldBox.fieldBox.io.getTemplateDirectory();
+		parse(dir, true);
+	}
+
+	public void parse(String dir, boolean copyOnly) {
+		Log.log("INSERT", "parsing directory :" + dir);
+
+		File[] boxes = new File(dir).listFiles(x -> x.getName()
+							     .endsWith(".box"));
+		if (boxes != null) {
+
+			Log.log("INSERT", "boxes are :" + Arrays.asList(boxes));
+
+			for (File from : boxes)
+				RunLoop.workerPool.submit(() -> {
+
+					Log.log("INSERT", from);
+					FieldBox ff = newFieldBox(from);
+					ff.copyOnly = copyOnly;
+					synchronized (files) {
+						FieldBox displaced = FileBrowser.this.boxes.put(ff.id, ff);
+					}
+				});
+		}
+
+		File[] sheets = new File(dir).listFiles(x -> x.getName()
+							      .endsWith(".field2") || x.getName()
+										       .equals(".field"));
+
+		if (sheets != null) {
+			Log.log("INSERT", "sheets are :" + Arrays.asList(sheets));
+			for (File from : sheets) {
+				sheetsInFlight.incrementAndGet();
+				RunLoop.workerPool.submit(() -> {
+					Log.log("INSERT", from);
+
+					try {
+						FieldFile ff = newFieldFile(from);
+						ff.copyOnly = copyOnly;
+
+						synchronized (files) {
+							files.put(ff.id, ff);
+						}
+					} finally {
+						sheetsInFlight.decrementAndGet();
+					}
+				});
+			}
+
 		}
 	}
 
@@ -551,12 +544,13 @@ public class FileBrowser extends Box implements IO.Loaded {
 
 		public Set<FieldFile> usedIn(LinkedHashMap<String, FieldFile> files) {
 //			Log.log("insertbox", "used in :" + sheetsInFlight.get() + " / " + id);
-			if (sheetsInFlight.get() > 0) return Collections.emptySet();
+			if (sheetsInFlight.get() > 0) {
+				return Collections.emptySet();
+			}
 
 			return files.values()
 				    .stream()
 				    .filter(x -> {
-					    System.out.println(" looking for :" + id + " in " + x.boxes);
 					    return x.boxes.contains(id);
 				    })
 				    .collect(Collectors.toSet());
