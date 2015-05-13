@@ -262,12 +262,21 @@ public class BaseMesh extends Scene implements Scene.Perform {
 	static public BaseMesh standard(int numVertex, int numElements, int primitiveType, int primitiveSize) {
 		BaseMesh m = new BaseMesh() {
 			protected boolean performNow() {
+
+				if (GraphicsContext.stateTracker.shader.get()==0)
+				{
+					System.err.println("trying to draw geometry ("+this+") without a shader attached will draw nothing");
+					return true;
+				}
+
+				GraphicsContext.checkError(() -> "on entry "+this);
 				if (primitiveSize == 0) {
 					glDrawArrays(primitiveType, 0, limitVertex);
 				} else {
 					Log.log("graphics.trace", () -> "drawing "+primitiveType+" "+limitElement+" "+primitiveSize);
 					glDrawElements(primitiveType, limitElement * primitiveSize, GL_UNSIGNED_INT, 0);
 				}
+				GraphicsContext.checkError(() -> "on exit "+this);
 				return true;
 			}
 		};
