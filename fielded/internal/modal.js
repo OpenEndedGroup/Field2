@@ -144,7 +144,7 @@ function runModalAtCursor(placeholder, completeme, initialText) {
         h = $(".CodeMirror").height() - p.top - 100;
         $($(m).children()[1]).height(h)
     }
-    $(m).css("left", cc.right)
+    $(m).css("left", Math.min($(".CodeMirror").width()-500, cc.right));
 }
 
 //runModalAtCursor("banana", completme)
