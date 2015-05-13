@@ -93,7 +93,7 @@ public class TernSupport {
 						"files:[{type:\"full\",name:\"" + boxName + ".js\",text:__someFile}]},\n" +
 						"	function (e,r){\n" +
 						"		for(var i=0;i<r.completions.length;i++)" +
-						"			__completions.add(new __fieldglobal.fieldbox.execution.Completion(r.start, r.end, r.completions[i].name, '<span class=type>'+r.completions[i].type.replace('->','&rarr;')+'&nbsp;&mdash;&nbsp;</span><span class=doc>'+r.completions[i].doc+'</span>'))" +
+						"			__completions.add(new __fieldglobal.fieldbox.execution.Completion(r.start, r.end, r.completions[i].name, '<span class=type>'+r.completions[i].type.replace('->','&rarr;')+'&nbsp;&mdash;&nbsp;</span><span class=doc>'+(r.completions[i].doc==null ? '' : r.completions[i].doc)+'</span>'))" +
 						"	})");
 			r.addAll((ArrayList<Completion>) engine.get("__completions"));
 
