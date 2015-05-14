@@ -117,6 +117,31 @@ public class Window implements ProvidesGraphicsContext {
 		modifiers = new CannonicalModifierKeys(window);
 
 
+
+		new Thread()
+		{
+			long lastAt = System.currentTimeMillis();
+			long lastWas = 0;
+
+			public void run() {
+
+				while(true) {
+					if (System.currentTimeMillis() - lastAt > 5000) {
+						double f = 1000*(frame - lastWas) / (float) (System.currentTimeMillis() - lastAt);
+						if (lastWas>0 && (frame!=lastWas)) System.err.println(" frame rate is :" + f + " for " + Window.this);
+						lastWas = frame;
+						lastAt = System.currentTimeMillis();
+					}
+					try {
+						Thread.sleep(5000);
+					} catch (InterruptedException e) {
+
+
+					}
+				}
+			}
+		}.start();
+
 	}
 
 	static boolean debugKeyboardTransition(Event<KeyboardState> event) {
@@ -191,26 +216,17 @@ public class Window implements ProvidesGraphicsContext {
 
 		updateScene();
 
-
-		/*
-			boolean lshift = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT);
-			boolean rshift = glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT);
-			boolean lopt= glfwGetKey(window, GLFW_KEY_LEFT_ALT);
-			boolean ropt= glfwGetKey(window, GLFW_KEY_RIGHT_ALT);
-			boolean lcommand= glfwGetKey(window, GLFW_KEY_LEFT_SUPER);
-			boolean rcommand= glfwGetKey(window, GLFW_KEY_RIGHT_SUPER);
-			boolean lctrl= glfwGetKey(window, GLFW_KEY_LEFT_CONTROL);
-			boolean rctrl= glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL);
-			Log.log("finalkey", lshift+" "+rshift+":"+lopt+" "+ropt+":"+lcommand+" "+rcommand+":"+lctrl+":"+rctrl);
-*/
-
-
+		frame++;
+		if (!dontSwap)
 		glfwSwapBuffers(window);
 
 		glfwPollEvents();
 		currentWindow = null;
 
 	}
+
+	long frame;
+	public boolean dontSwap = false;
 
 	protected boolean disabled = false;
 	protected boolean lazyRepainting = false;
