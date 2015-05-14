@@ -358,7 +358,6 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 	@Override
 	@HiddenInAutocomplete
 	public Object asMap_set(String p, Object o) {
-		System.out.println(" asmap_set :"+o+" "+(o!=null ? o.getClass() : ""));
 		Object fo = Conversions.convert(o, Supplier.class);
 		if (fo instanceof Supplier) return getDefaultBundle().set(p, (Supplier) fo);
 		if (fo instanceof InvocationHandler) {
