@@ -543,7 +543,6 @@ public class FileBrowser extends Box implements IO.Loaded {
 		}
 
 		public Set<FieldFile> usedIn(LinkedHashMap<String, FieldFile> files) {
-//			Log.log("insertbox", "used in :" + sheetsInFlight.get() + " / " + id);
 			if (sheetsInFlight.get() > 0) {
 				return Collections.emptySet();
 			}
