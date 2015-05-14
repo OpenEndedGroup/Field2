@@ -61,15 +61,14 @@ public class GraphicsContext {
 		Log.log("graphics.trace", ">> graphics context begin ");
 		currentGraphicsContext = c;
 		for (Runnable r : currentGraphicsContext.preQueue) {
-			GraphicsContext.checkError(() -> ""+r);
 			r.run();
-			GraphicsContext.checkError(() -> ""+r);
 		}
 	}
 
 	static public void exitContext(GraphicsContext c) {
 		for (Runnable r : currentGraphicsContext.postQueue)
 			r.run();
+		currentGraphicsContext.postQueue.clear();
 		currentGraphicsContext = null;
 		Log.log("graphics.trace", "<< graphics context end");
 	}
