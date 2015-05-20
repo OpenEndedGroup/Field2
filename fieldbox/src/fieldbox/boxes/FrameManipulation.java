@@ -380,35 +380,8 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 
 	private Set<Box> singleChildrenFor(Box z) {
 
-		Set<Box> a = new LinkedHashSet<>();
-
-		a.add(z);
-
-		Set<Box> n;
-		do {
-			n = new LinkedHashSet<>();
-
-			for (Box zz : a) {
-				n.addAll(z.children()
-					  .stream()
-					  .filter(x -> {
-
-						  if (x.parents()
-						       .size() == 1) return true;
-						  if (x.parents()
-						       .size() == 2 && x.parents()
-									.contains(root)) return true;
-						  return false;
-
-					  })
-					  .filter(x -> !a.contains(x))
-					  .collect(Collectors.toList()));
-			}
-			a.addAll(n);
-		} while (n.size() > 0);
-
-		a.remove(z);
-		return a;
+		// for now, let's just move this box
+		return Collections.singleton(z);
 	}
 
 	protected Rect frame(Box hitBox) {
