@@ -313,6 +313,19 @@ public class FLinesAndJavaShapes {
 		return javaShapeToFLine(sa);
 	}
 
+	static public List<Vec3> samplePoints(FLine f, float distance)
+	{
+		Cursor cc = f.cursor();
+		ArrayList<Vec3> r = new ArrayList<>();
+		double D = 0;
+		while(D<cc.lengthD())
+		{
+			r.add(cc.position());
+			cc.setD(D+=distance);
+		}
+		return r;
+	}
+
 	static public FLine drawRoundedRectInto(FLine into, double x, double y, double w, double h, double r) {
 		into.moveTo(x + ctrlpts[0][0] * w + ctrlpts[0][1] * r, y + ctrlpts[0][2] * h + ctrlpts[0][3] * r);
 		into.lineTo(x + ctrlpts[1][0] * w + ctrlpts[1][1] * r, y + ctrlpts[1][2] * h + ctrlpts[1][3] * r);
