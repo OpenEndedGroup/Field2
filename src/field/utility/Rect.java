@@ -108,4 +108,9 @@ public class Rect implements Mutable<Rect> {
 		return new Rect(x,y,w,h);
 	}
 
+	public double area()
+	{
+		return w*h;
+	}
+
 }
