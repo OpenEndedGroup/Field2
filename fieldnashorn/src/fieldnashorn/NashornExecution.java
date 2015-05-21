@@ -52,8 +52,14 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	}
 
 	@Override
-	public void executeTextFragment(String textFragment, Consumer<field.utility.Pair<Integer, String>> lineErrors, Consumer<String> success) {
-		executeAndReturn(textFragment, lineErrors, success, false);
+	public void executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors) {
+		if (suffix.equals("print"))
+		{
+			executeAndReturn("print("+textFragment+")", lineErrors, success, false);
+
+		}
+		else
+			executeAndReturn(textFragment, lineErrors, success, false);
 	}
 
 	protected void executeAndReturn(String textFragment, Consumer<Pair<Integer, String>> lineErrors, final Consumer<String> success, boolean printResult) {
@@ -175,12 +181,6 @@ public class NashornExecution implements Execution.ExecutionSupport {
 		} else {
 			return engine.eval(textFragment, context);
 		}
-	}
-
-	@Override
-	public void executeAndPrint(String textFragment, Consumer<field.utility.Pair<Integer, String>> lineErrors, Consumer<String> success) {
-		executeAndReturn(textFragment, lineErrors, success, true);
-		lineOffset = 0;
 	}
 
 	@Override

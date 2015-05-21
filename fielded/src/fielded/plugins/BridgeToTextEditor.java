@@ -153,7 +153,7 @@ public class BridgeToTextEditor extends Box {
 				}
 
 				@Override
-				public void executeTextFragment(String textFragment, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
+				public void executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors) {
 
 					if (previousPush!=null) previousPush.close();;
 					previousPush = delegateTo
@@ -161,14 +161,10 @@ public class BridgeToTextEditor extends Box {
 					delegateTo.sendJavaScript(textFragment);
 				}
 
-				@Override
-				public void executeAndPrint(String textFragment, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
-					executeTextFragment(textFragment, lineErrors, success);
-				}
 
 				@Override
 				public void executeAll(String allText, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
-					executeTextFragment(allText, lineErrors, success);
+					executeTextFragment(allText, "", success, lineErrors);
 				}
 
 				@Override

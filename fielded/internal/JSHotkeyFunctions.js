@@ -200,7 +200,12 @@ function Run_End() {
     });
 }
 
-function Run_Selection() {
+function Run_Selection()
+{
+	Run_Selection_variant("");
+}
+
+function Run_Selection_variant(variant) {
     anchorLine = Math.max(cm.listSelections()[0].anchor.line, cm.listSelections()[0].head.line)
 
 
@@ -257,7 +262,7 @@ function Run_Selection() {
         clearOutputs(Math.min(cm.listSelections()[0].head.line, cm.listSelections()[0].anchor.line), Math.max(cm.listSelections()[0].head.line, cm.listSelections()[0].anchor.line));
     }
 
-    _field.sendWithReturn("execution.fragment", {
+    _field.sendWithReturn("execution.fragment"+variant, {
         box: cm.currentbox,
         property: cm.currentproperty,
         text: fragment,
@@ -362,5 +367,13 @@ globalCommands.push({
         "callback": function () {
             Run_Selection()
         }
-    }
+    },
+
+    {
+            "name": "Run and Print Selection",
+            "info": "Runs the currently selected code wrapped in a language-appropriate 'print' statement",
+            "callback": function () {
+                Run_Selection_variant(".print")
+            }
+        }
 );

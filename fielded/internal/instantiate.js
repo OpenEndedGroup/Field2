@@ -221,6 +221,9 @@ extraKeys = {
     "Alt-Enter": function (cm) {
         Run_Selection();
     },
+    "Shift-Alt-Enter": function (cm) {
+        Run_Selection_variant(".print");
+    },
     "Alt-0": function (cm) {
         Run_All();
     },

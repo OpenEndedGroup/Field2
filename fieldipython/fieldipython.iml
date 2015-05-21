@@ -15,5 +15,6 @@
     <orderEntry type="module" module-name="fieldlinker" />
     <orderEntry type="module" module-name="fieldnashorn" />
     <orderEntry type="library" name="nashorn-local" level="project" />
+    <orderEntry type="library" name="jpy-0.8-SNAPSHOT" level="project" />
   </component>
 </module>

@@ -1,7 +1,7 @@
 package fielded;
 
-import field.graphics.FLine;
 import field.app.RunLoop;
+import field.graphics.FLine;
 import field.graphics.StandardFLineDrawing;
 import field.linalg.Vec2;
 import field.linalg.Vec4;
@@ -49,33 +49,58 @@ public class RemoteEditor extends Box {
 
 	static public final Dict.Prop<String> defaultEditorProperty = new Dict.Prop<String>("defaultEditorProperty").type()
 														    .doc("The property that the editor will switch to. Will default to 'code' if not set.");
-
-	static public interface ExtendedCommand extends Runnable {
-		public void begin(SupportsPrompt prompt, String alternativeChosen);
-	}
-
-	static public interface SupportsPrompt {
-		public void prompt(String prompt, Map<Pair<String, String>, Runnable> options, ExtendedCommand alternative);
-	}
-
-	static {
-		IO.persist(defaultEditorProperty);
-		IO.persist(new Dict.Prop<String>("_" + defaultEditorProperty.getName() + "_cookie"));
-
-	}
-
 	private final Server server;
 	private final String socketName;
 	private final MessageQueue<Quad<Dict.Prop, Box, Object, Object>, String> queue;
 	private final Watches watches;
-
-
-	Commands commandHelper = new Commands();
-
 	public List<Consumer<String>> logStack = new ArrayList<>();
 	public List<Consumer<String>> errorStack = new ArrayList<>();
-
 	public HashMap<String, String> previousClipboards = new LinkedHashMap<>();
+	Commands commandHelper = new Commands();
+	RateLimitingQueue<String, Pair<String, String>> rater = new RateLimitingQueue<String, Pair<String, String>>(20, 100) {
+
+		Deque<Long> overflowedAt = new LinkedList<>();
+
+		@Override
+		protected String groupFor(Pair<String, String> stringRunnablePair) {
+			return stringRunnablePair.first;
+		}
+
+		@Override
+		protected void send(String key, Collection<Pair<String, String>> value) {
+
+			Log.log("remote.trace", " >> " + key + " " + value.size());
+
+			if (value.size() > 1) {
+
+
+				if (value.size() > 10) {
+					overflowedAt.addLast(RunLoop.tick);
+					if (overflowedAt.size() > 4) overflowedAt.removeFirst();
+				}
+
+
+				if (overflowedAt.size() > 3 && overflowedAt.getLast() - overflowedAt.getFirst() < 10) {
+					//TODO: tell somebody we've dropped something
+					server.send(socketName, "_messageBus.publish('" + key + "', " + value.iterator()
+													     .next().second + ")");
+				} else {
+					String m = "";
+					for (Pair<String, String> v : value) {
+						m = m.concat((m.length() > 0 ? "," : "") + v.second);
+					}
+					server.send(socketName, "[" + m + "].forEach(function(q){ _messageBus.publish('" + key + "', q)})");
+				}
+
+			} else {
+				server.send(socketName, "_messageBus.publish('" + key + "', " + value.iterator()
+												     .next().second + ")");
+			}
+		}
+	};
+	Dict.Prop<String> currentlyEditing;
+	Box currentSelection;
+	boolean selectionHasChanged = false;
 
 	public RemoteEditor(Server server, String socketName, Watches watches, MessageQueue<Quad<Dict.Prop, Box, Object, Object>, String> queue) {
 		this.server = server;
@@ -162,7 +187,7 @@ public class RemoteEditor extends Box {
 
 			String disabledRanges = p.getString("disabledRanges");
 
-			box.get().properties.put(new Dict.Prop<List<Pair<Integer, Integer>>>("_"+prop+"_disabled"), parseDisabledRanges(disabledRanges));
+			box.get().properties.put(new Dict.Prop<List<Pair<Integer, Integer>>>("_" + prop + "_disabled"), parseDisabledRanges(disabledRanges));
 
 			return payload;
 		});
@@ -240,7 +265,7 @@ public class RemoteEditor extends Box {
 			return payload;
 		});
 
-		server.addHandlerLast(Predicate.isEqual("execution.fragment"), () -> socketName, (s, socket, address, payload) -> {
+		server.addHandlerLast(x -> x.startsWith("execution.fragment"), () -> socketName, (s, socket, address, payload) -> {
 
 			Log.log("remote.trace", " inside execution fragment ");
 
@@ -264,24 +289,29 @@ public class RemoteEditor extends Box {
 
 			Log.log("remote.debug", "lineoffset ;" + lineoffset + " " + p.has("lineoffset"));
 
+			String suffix = address.length()<"execution.fragment.".length() ? "" : address.substring("execution.fragment.".length());
+
+			System.out.println(" SUFFIX IS :"+suffix);
+
 			Execution.ExecutionSupport support = getExecution(box.get(), new Dict.Prop<String>(prop)).support(box.get(), new Dict.Prop<String>(prop));
 			support.setLineOffsetForFragment(lineoffset);
-			support.executeTextFragment(text, newOutput(box.get(), returnAddress, (Function<Pair<Integer, String>, String>) (lineerror) -> new JSONStringer().object()
-																					 .key("type")
-																					 .value("error")
-																					 .key("line")
-																					 .value((int) lineerror.first)
-																					 .key("message")
-																					 .value(lineerror.second)
-																					 .endObject()
-																					 .toString()),
-						    newOutput(box.get(), returnAddress, (m) -> new JSONStringer().object()
-														 .key("type")
-														 .value("success")
-														 .key("message")
-														 .value(m)
-														 .endObject()
-														 .toString()));
+			support.executeTextFragment(text, suffix, newOutput(box.get(), returnAddress, (m) -> new JSONStringer().object()
+															       .key("type")
+															       .value("success")
+															       .key("message")
+															       .value(m)
+															       .endObject()
+															       .toString()), newOutput(box.get(), returnAddress,
+																		       (Function<Pair<Integer, String>, String>) (lineerror) -> new JSONStringer().object()
+																												  .key("type")
+																												  .value("error")
+																												  .key("line")
+																												  .value((int) lineerror.first)
+																												  .key("message")
+																												  .value(lineerror.second)
+																												  .endObject()
+																												  .toString()));
+
 			boxFeedback(box, new Vec4(0, 0.5f, 0.3f, 0.5f));
 
 			return payload;
@@ -307,8 +337,7 @@ public class RemoteEditor extends Box {
 
 			List<Pair<Integer, Integer>> dis = parseDisabledRanges(p.getString("disabledRanges"));
 
-			if (dis!=null)
-			{
+			if (dis != null) {
 				text = DisabledRangeHelper.rewriteWithDisabledRanges(text, "/* -- start -- ", "-- end -- */", dis);
 			}
 
@@ -453,7 +482,7 @@ public class RemoteEditor extends Box {
 
 			Execution.ExecutionSupport support = getExecution(box.get(), new Dict.Prop<String>(prop)).support(box.get(), new Dict.Prop<String>(prop));
 
-			System.out.println(" go for completion on :"+support);
+			System.out.println(" go for completion on :" + support);
 
 			support.completion(text, line, ch, newOutput(box.get(), returnAddress, (responses) -> {
 
@@ -553,19 +582,19 @@ public class RemoteEditor extends Box {
 			String command = p.getString("command");
 
 			find(Commands.commands, both()).flatMap(m -> m.get()
-									  .entrySet()
-									  .stream())
-							   .filter(m -> m.getKey().first.trim()
-											.toLowerCase()
-											.equals(command.trim()
-												       .toLowerCase()))
-							   .findFirst()
-							   .ifPresent(m -> {
-								   Runnable r = m.getValue();
-								   if (r instanceof ExtendedCommand) ((ExtendedCommand) r).begin(
-									       commandHelper.supportsPrompt(x -> server.send(socketName, "_messageBus.publish('begin.commands', " + x + ")")), null);
-								   r.run();
-							   });
+								      .entrySet()
+								      .stream())
+						       .filter(m -> m.getKey().first.trim()
+										    .toLowerCase()
+										    .equals(command.trim()
+												   .toLowerCase()))
+						       .findFirst()
+						       .ifPresent(m -> {
+							       Runnable r = m.getValue();
+							       if (r instanceof ExtendedCommand) ((ExtendedCommand) r).begin(
+									   commandHelper.supportsPrompt(x -> server.send(socketName, "_messageBus.publish('begin.commands', " + x + ")")), null);
+							       r.run();
+						       });
 
 			return payload;
 		});
@@ -606,7 +635,7 @@ public class RemoteEditor extends Box {
 
 			List<Map.Entry<Pair<String, String>, Runnable>> commands = box.get()
 										      .find(Commands.commands, box.get()
-														      .both())
+														  .both())
 										      .flatMap(m -> m.get()
 												     .entrySet()
 												     .stream())
@@ -678,8 +707,45 @@ public class RemoteEditor extends Box {
 
 	}
 
+	static public void boxFeedback(Optional<Box> box, Vec4 color) {
+
+		// this little flicker is causing a repaint of the underlying layer while we are typing. Forget it until we can put this into an overlay layer
+		if (true) return;
+
+		if (box.get().properties.get(frameDrawing) != null) // we only decorate things that are drawn
+			box.get().properties.putToMap(frameDrawing, "__edited__", expires(boxOrigin((bx) -> {
+
+				FLine f = new FLine();
+				f.rect(-5, -5, 10, 10);
+				f.attributes.put(filled, true);
+				f.attributes.put(stroked, false);
+				f.attributes.put(StandardFLineDrawing.color, color);
+				return f;
+
+			}, new Vec2(1, 1)), 60));
+		Drawing.dirty(box.get());
+	}
+
+	// Function to gather all javascript files in a directory as a list of strings
+	// (i.e. "somefile.js")
+	// Arguments: Absolute directory location of .js files
+	// Returns: List of file names
+	private static List<String> findJSFiles(String dir) {
+		File[] files = new File(dir).listFiles();
+		List<String> fileStrings = new ArrayList<>();
+		for (File file : files) {
+			if (!file.isDirectory() && file.toString()
+						       .endsWith(".js")) {
+				String fullPath = file.toString();
+				fileStrings.add(fullPath.substring(fullPath.lastIndexOf('/') + 1));
+			}
+		}
+
+		return fileStrings;
+	}
+
 	private List<Pair<Integer, Integer>> parseDisabledRanges(String disabledRanges) {
-		if (disabledRanges==null) return null;
+		if (disabledRanges == null) return null;
 		return DisabledRangeHelper.parseDisabledRanges(disabledRanges);
 	}
 
@@ -785,68 +851,6 @@ public class RemoteEditor extends Box {
 		};
 	}
 
-
-	static public void boxFeedback(Optional<Box> box, Vec4 color) {
-
-		// this little flicker is causing a repaint of the underlying layer while we are typing. Forget it until we can put this into an overlay layer
-		if (true) return;
-
-		if (box.get().properties.get(frameDrawing) != null) // we only decorate things that are drawn
-			box.get().properties.putToMap(frameDrawing, "__edited__", expires(boxOrigin((bx) -> {
-
-				FLine f = new FLine();
-				f.rect(-5, -5, 10, 10);
-				f.attributes.put(filled, true);
-				f.attributes.put(stroked, false);
-				f.attributes.put(StandardFLineDrawing.color, color);
-				return f;
-
-			}, new Vec2(1, 1)), 60));
-		Drawing.dirty(box.get());
-	}
-
-	RateLimitingQueue<String, Pair<String, String>> rater = new RateLimitingQueue<String, Pair<String, String>>(20, 100) {
-
-		@Override
-		protected String groupFor(Pair<String, String> stringRunnablePair) {
-			return stringRunnablePair.first;
-		}
-
-		Deque<Long> overflowedAt = new LinkedList<>();
-
-		@Override
-		protected void send(String key, Collection<Pair<String, String>> value) {
-
-			Log.log("remote.trace", " >> " + key + " " + value.size());
-
-			if (value.size() > 1) {
-
-
-				if (value.size() > 10) {
-					overflowedAt.addLast(RunLoop.tick);
-					if (overflowedAt.size() > 4) overflowedAt.removeFirst();
-				}
-
-
-				if (overflowedAt.size() > 3 && overflowedAt.getLast() - overflowedAt.getFirst() < 10) {
-					//TODO: tell somebody we've dropped something
-					server.send(socketName, "_messageBus.publish('" + key + "', " + value.iterator()
-													     .next().second + ")");
-				} else {
-					String m = "";
-					for (Pair<String, String> v : value) {
-						m = m.concat((m.length() > 0 ? "," : "") + v.second);
-					}
-					server.send(socketName, "[" + m + "].forEach(function(q){ _messageBus.publish('" + key + "', q)})");
-				}
-
-			} else {
-				server.send(socketName, "_messageBus.publish('" + key + "', " + value.iterator()
-												     .next().second + ")");
-			}
-		}
-	};
-
 	protected <T> Consumer<T> newOutput(Box inside, String returnAddress, Function<T, String> toJson) {
 		Consumer<T> c = x -> {
 			String json = toJson.apply(x)
@@ -860,24 +864,20 @@ public class RemoteEditor extends Box {
 		return c;
 	}
 
-
 	protected Optional<Box> findBoxByID(String uid) {
 		return breadthFirst(downwards()).filter(x -> Util.safeEq(x.properties.get(IO.id), uid))
 						.findFirst();
 	}
 
-	Dict.Prop<String> currentlyEditing;
-	Box currentSelection;
+	public Dict.Prop<String> getCurrentlyEditingProperty() {
+		return currentlyEditing;
+	}
 
 	public void setCurrentlyEditingProperty(Dict.Prop<String> ed) {
 		if (!Util.safeEq(currentlyEditing, ed)) {
 			this.currentlyEditing = ed;
 			changeSelection(currentSelection, currentlyEditing);
 		}
-	}
-
-	public Dict.Prop<String> getCurrentlyEditingProperty() {
-		return currentlyEditing;
 	}
 
 	public Box getCurrentlyEditing() {
@@ -924,9 +924,7 @@ public class RemoteEditor extends Box {
 					support.setFilenameForStacktraces("" + currentSelection);
 				} else {
 				}
-			}
-			else
-			{
+			} else {
 				// this can happen when we're editing something that isn't 'code'
 				String cmln = FieldBox.fieldBox.io.getLanguageForProperty(editingProperty);
 				Log.log("remote.general", "langage :" + cmln);
@@ -946,9 +944,6 @@ public class RemoteEditor extends Box {
 		this.currentSelection = currentSelection;
 	}
 
-	boolean selectionHasChanged = false;
-
-
 	protected boolean update() {
 		if (selectionHasChanged) {
 			selectionHasChanged = false;
@@ -963,15 +958,12 @@ public class RemoteEditor extends Box {
 
 				Dict.Prop objectProp;
 
-				if (currentlyEditing!=null && target.properties.has(currentlyEditing))
-				{
+				if (currentlyEditing != null && target.properties.has(currentlyEditing)) {
 					objectProp = currentlyEditing;
-				}
-				else
-					objectProp = target.find(defaultEditorProperty, target.upwards())
-							     .findFirst()
-							     .map(x -> (Dict.Prop) new Dict.Prop<String>(x).toCannon())
-							     .orElseGet(() -> (Dict.Prop) Execution.code);
+				} else objectProp = target.find(defaultEditorProperty, target.upwards())
+							  .findFirst()
+							  .map(x -> (Dict.Prop) new Dict.Prop<String>(x).toCannon())
+							  .orElseGet(() -> (Dict.Prop) Execution.code);
 
 
 				Log.log("remoteeditor", " looking for a defaultEditorProperty on <" + target + "> <" + target.properties.get(defaultEditorProperty) + ">, got <" + objectProp + ">");
@@ -982,16 +974,18 @@ public class RemoteEditor extends Box {
 		return true;
 	}
 
-
 	public Execution getExecution(Box box, Dict.Prop<String> prop) {
 
-		return box.breadthFirst(box.upwards()).filter(x -> x.properties.has(Execution.execution)).map(x -> x.properties.get(Execution.execution)).filter(x -> x != null).filter(
-			    x -> x.support(box, prop) != null).findFirst()
-					  .orElseGet(() -> null);
+		return box.breadthFirst(box.upwards())
+			  .filter(x -> x.properties.has(Execution.execution))
+			  .map(x -> x.properties.get(Execution.execution))
+			  .filter(x -> x != null)
+			  .filter(x -> x.support(box, prop) != null)
+			  .findFirst()
+			  .orElseGet(() -> null);
 
 
 	}
-
 
 	/**
 	 * A general purpose Send some JavaScript to a text editor call
@@ -1013,8 +1007,7 @@ public class RemoteEditor extends Box {
 		server.send(socketName, javascript);
 	}
 
-	public Server getServer()
-	{
+	public Server getServer() {
 		return server;
 	}
 
@@ -1032,22 +1025,17 @@ public class RemoteEditor extends Box {
 		this.errorStack.remove(this.errorStack.size() - 1);
 	}
 
-	// Function to gather all javascript files in a directory as a list of strings
-	// (i.e. "somefile.js")
-	// Arguments: Absolute directory location of .js files
-	// Returns: List of file names
-	private static List<String> findJSFiles(String dir) {
-		File[] files = new File(dir).listFiles();
-		List<String> fileStrings = new ArrayList<>();
-		for (File file : files) {
-			if (!file.isDirectory() && file.toString()
-						       .endsWith(".js")) {
-				String fullPath = file.toString();
-				fileStrings.add(fullPath.substring(fullPath.lastIndexOf('/') + 1));
-			}
-		}
+	static public interface ExtendedCommand extends Runnable {
+		public void begin(SupportsPrompt prompt, String alternativeChosen);
+	}
 
-		return fileStrings;
+	static public interface SupportsPrompt {
+		public void prompt(String prompt, Map<Pair<String, String>, Runnable> options, ExtendedCommand alternative);
+	}
+	static {
+		IO.persist(defaultEditorProperty);
+		IO.persist(new Dict.Prop<String>("_" + defaultEditorProperty.getName() + "_cookie"));
+
 	}
 
 }

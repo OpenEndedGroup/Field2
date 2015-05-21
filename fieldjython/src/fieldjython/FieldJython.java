@@ -87,7 +87,10 @@ public class FieldJython extends Execution {
 			long uniq;
 
 			@Override
-			public void executeTextFragment(String textFragment, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
+			public void executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors) {
+
+				if (suffix.equals("print"))
+					textFragment = "print("+textFragment+")";
 
 				try {
 					Execution.context.get()
@@ -122,10 +125,6 @@ public class FieldJython extends Execution {
 				}
 			}
 
-			@Override
-			public void executeAndPrint(String textFragment, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
-				executeTextFragment(textFragment, lineErrors, success);
-			}
 
 			@Override
 			public Object getBinding(String name) {
@@ -134,7 +133,7 @@ public class FieldJython extends Execution {
 
 			@Override
 			public void executeAll(String allText, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
-				executeTextFragment(allText, lineErrors, success);
+				executeTextFragment(allText, "", success, lineErrors);
 			}
 
 			@Override

@@ -140,7 +140,7 @@ public class Typing extends Box {
 		selection().forEach(box -> {
 			box.first(Execution.execution)
 			   .ifPresent(x -> x.support(box, Execution.code)
-					    .executeTextFragment(ct, error, success));
+					    .executeTextFragment(ct, "", success, error));
 		});
 	}
 

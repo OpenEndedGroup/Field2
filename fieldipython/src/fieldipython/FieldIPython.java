@@ -88,7 +88,7 @@ public class FieldIPython extends Execution {
 			Set term = new LinkedHashSet<Character>(Arrays.asList('(', ')', ' ', '[', ']', '{', '}'));
 
 			@Override
-			public void executeTextFragment(String textFragment, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
+			public void executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors) {
 
 				try {
 					Execution.context.get()
@@ -110,10 +110,6 @@ public class FieldIPython extends Execution {
 				}
 			}
 
-			@Override
-			public void executeAndPrint(String textFragment, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
-				executeTextFragment(textFragment, lineErrors, success);
-			}
 
 			@Override
 			public Object getBinding(String name) {
@@ -123,7 +119,7 @@ public class FieldIPython extends Execution {
 
 			@Override
 			public void executeAll(String allText, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
-				executeTextFragment(allText, lineErrors, success);
+				executeTextFragment(allText, "", success, lineErrors);
 			}
 
 			@Override

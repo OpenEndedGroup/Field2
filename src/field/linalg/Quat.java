@@ -354,6 +354,8 @@ public class Quat implements Serializable {
 		return dest;
 	}
 
+
+
 	/**
 	 * Sets the value of this quaternion to the equivalent rotation of the Axis-Angle argument.
 	 *

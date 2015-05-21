@@ -51,7 +51,7 @@ public class RunLoop {
 				} else {
 				}
 				if (shouldSleep.size()==0)
-					Thread.sleep(5);
+					Thread.sleep(2);
 			} catch (Throwable t) {
 				System.err.println(" exception thrown in main loop");
 				t.printStackTrace();

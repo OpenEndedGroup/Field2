@@ -53,9 +53,7 @@ public class Execution extends Box {
 	 */
 	static public interface ExecutionSupport {
 
-		public void executeTextFragment(String textFragment, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success);
-
-		public void executeAndPrint(String textFragment, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success);
+		public void executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors);
 
 		public void executeAll(String allText, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success);
 
@@ -91,17 +89,10 @@ public class Execution extends Box {
 		}
 
 		default public void executeTextFragment(String allText, Box box) {
-			executeTextFragment(allText, box.first(RemoteEditor.outputErrorFactory)
-				    .orElse((x) -> (is -> System.err.println("error (without remote editor attached) :" + is))).apply(box), box
-				    .first(RemoteEditor.outputFactory)
-				    .orElse(x -> (is -> System.out.println("output (without remote editor attached) :" + is))).apply(box));
-		}
-
-		default public void executeAndPrint(String allText, Box box) {
-			executeAndPrint(allText, box.first(RemoteEditor.outputErrorFactory)
-				    .orElse((x) -> (is -> System.err.println("error (without remote editor attached) :" + is))).apply(box), box
-				    .first(RemoteEditor.outputFactory)
-				    .orElse(x -> (is -> System.out.println("output (without remote editor attached) :" + is))).apply(box));
+			executeTextFragment(allText, "", box
+			.first(RemoteEditor.outputFactory)
+			.orElse(x -> (is -> System.out.println("output (without remote editor attached) :" + is))).apply(box), box.first(RemoteEditor.outputErrorFactory)
+				    .orElse((x) -> (is -> System.err.println("error (without remote editor attached) :" + is))).apply(box));
 		}
 
 		default public void executeAll(String allText, Box box) {

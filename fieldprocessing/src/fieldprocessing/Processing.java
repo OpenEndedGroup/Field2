@@ -106,7 +106,7 @@ public class Processing extends Execution {
 		return new Execution.ExecutionSupport() {
 
 			@Override
-			public void executeTextFragment(String textFragment, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
+			public void executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors) {
 				System.out.println(" WRAPPED :"+textFragment);
 				queue.add(() -> {
 					Execution delegateTo = box.find(Execution.execution, box.upwards())
@@ -114,7 +114,7 @@ public class Processing extends Execution {
 								  .orElseThrow(() -> new IllegalArgumentException(" can't instantiate Processing execution - no default execution found"));
 					Execution.ExecutionSupport s = delegateTo.support(box, prop);
 
-					s.executeTextFragment(textFragment, lineErrors, success);
+					s.executeTextFragment(textFragment, "", success, lineErrors);
 				});
 			}
 
@@ -127,17 +127,7 @@ public class Processing extends Execution {
 				return s.getBinding(name);
 			}
 
-			@Override
-			public void executeAndPrint(String textFragment, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
-				System.out.println(" WRAPPED :"+textFragment);
-				queue.add(() -> {
-					Execution delegateTo = box.find(Execution.execution, box.upwards())
-								  .findFirst()
-								  .orElseThrow(() -> new IllegalArgumentException(" can't instantiate Processing execution - no default execution found"));
-					Execution.ExecutionSupport s = delegateTo.support(box, prop);
-					s.executeAndPrint(textFragment, lineErrors, success);
-				});
-			}
+
 
 			@Override
 			public void executeAll(String allText, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
