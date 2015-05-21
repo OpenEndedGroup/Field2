@@ -1,6 +1,5 @@
 package fieldbox.boxes.plugins;
 
-import apple.applescript.AppleScriptEngineFactory;
 import field.utility.Pair;
 import fieldagent.Main;
 import fieldbox.FieldBox;
@@ -9,6 +8,8 @@ import fieldbox.boxes.Box;
 import fieldbox.boxes.Mouse;
 import fielded.Commands;
 
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.io.File;
 import java.util.*;
@@ -115,8 +116,11 @@ public class RevealInFinder extends Box {
 		System.out.println(" executing\n" + theApplescript);
 
 		try {
-			Object r = new AppleScriptEngineFactory().getScriptEngine()
-								    .eval(theApplescript);
+//			Object r = new AppleScriptEngineFactory().getScriptEngine()
+//								    .eval(theApplescript);
+
+			ScriptEngine engine = new ScriptEngineManager().getEngineByName("AppleScript");
+			engine.eval(theApplescript);
 		} catch (ScriptException e) {
 			e.printStackTrace();
 		}
