@@ -7,10 +7,7 @@ import field.utility.Dict;
 import field.utility.Log;
 import field.utility.Pair;
 import field.utility.Rect;
-import fieldbox.boxes.Box;
-import fieldbox.boxes.Drawing;
-import fieldbox.boxes.MarkingMenus;
-import fieldbox.boxes.Mouse;
+import fieldbox.boxes.*;
 import fieldbox.io.IO;
 import fielded.Commands;
 
@@ -35,6 +32,10 @@ public class DefaultMenus extends Box {
 																     .doc("_.ensureChild('name') creates a new box that's a child of this one, if there already isn't one with this name");
 	static public final Dict.Prop<TriFunctionOfBoxAnd<String, Class, Box>> ensureChildOfClass = new Dict.Prop<BiFunctionOfBoxAnd<Class, Box>>("ensureChildOfClass").toCannon()
 																				       .doc("_.ensureChildOfClass('name', c) create a new box that's a peer of this one, with a custom class 'c', if one called 'name' doesn't already exist");
+
+
+	static public final Dict.Prop<FunctionOfBox<Box>> delete = new Dict.Prop<FunctionOfBox<Box>>("delete").toCannon()
+													      .doc("delete this box");
 
 	// this gets set if we sucessfully opened something
 	static public volatile boolean safeToSave = false;
@@ -135,6 +136,12 @@ public class DefaultMenus extends Box {
 							      .filter(x -> x.properties.get(Box.frame) != null)
 							      .findFirst()
 							      .isPresent()) save();
+		});
+
+		properties.put(delete, (box) -> {
+			Callbacks.call(box, Callbacks.onDelete);
+			box.disconnectFromAll();
+			return null;
 		});
 
 	}
