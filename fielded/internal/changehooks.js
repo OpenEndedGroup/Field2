@@ -14,6 +14,7 @@ cm.on("change", function (cm, change) {
 				cookie.output = serializeAllOutput()
 				cookie.currentpos = cm.getCursor()
 				cookie.widgets = serializeAllWidgets()
+				cookie.history = cm.getDoc().getHistory()
 				_messageBus.publish("toField.store.cookie", {
 						box: cm.currentbox,
 						property: cm.currentproperty,
@@ -21,8 +22,6 @@ cm.on("change", function (cm, change) {
 				})
     }
 })
-
-// cm.getHistory / cm.setHistory to serialize out histories
 
 _messageBus.subscribe("focus", function (d, e) {
     cm.focus()
@@ -47,6 +46,7 @@ _messageBus.subscribe("selection.changed", function (d, e) {
         cookie.output = serializeAllOutput()
         cookie.currentpos = cm.getCursor()
         cookie.widgets = serializeAllWidgets()
+				cookie.history = cm.getDoc().getHistory()
         _messageBus.publish("toField.store.cookie", {
             box: cm.currentbox,
             property: cm.currentproperty,
@@ -59,6 +59,10 @@ _messageBus.subscribe("selection.changed", function (d, e) {
     cm.currentbox = d.box;
     cm.currentproperty = d.property;
     cm.setValue(d.text);
+    if (d.cookie.history)
+	    cm.getDoc().setHistory(d.cookie.history);
+    else
+	    cm.getDoc().clearHistory();
 
     if (d.cookie) {
         if (d.cookie.output) {
