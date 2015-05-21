@@ -63,7 +63,7 @@ function paste() {
 
         var start = cm.getCursor();
         cm.replaceRange(getFromRing(0), cm.getCursor("start"), cm.getCursor("end"), "paste");
-        cm.setSelection(start, cm.getCursor("end"));
+        cm.setSelection(cm.getCursor("end"), cm.getCursor("end"));
     })
 }
 
