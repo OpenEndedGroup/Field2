@@ -7,6 +7,7 @@ import fieldbox.boxes.Box;
 import fieldbox.boxes.Boxes;
 import fieldlinker.Linker.AsMap;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Optional;
@@ -17,7 +18,8 @@ import java.util.stream.Collectors;
  */
 public class Pseudo extends Box {
 
-	static public Dict.Prop<FunctionOfBoxValued<First>> where = new Dict.Prop<FunctionOfBoxValued<First>>("where").doc(" _.where.x returns the box that contains the property _.x. _.where.x=someOtherBox can be used to move properties around.")
+	static public Dict.Prop<FunctionOfBoxValued<First>> where = new Dict.Prop<FunctionOfBoxValued<First>>("where").doc(
+		    " _.where.x returns the box that contains the property _.x. _.where.x=someOtherBox can be used to move properties around.")
 														      .toCannon()
 														      .type();
 	static public Dict.Prop<FunctionOfBoxValued<All>> all = new Dict.Prop<FunctionOfBoxValued<All>>("all").doc(" _.all.x returns all values of x above this box")
@@ -60,8 +62,8 @@ public class Pseudo extends Box {
 
 	static public Dict.Prop<FunctionOfBoxValued<Replacer>> replace = new Dict.Prop<FunctionOfBoxValued<Replacer>>("replace").doc(
 		    "_.replace.x = 10 replaces the value of 'x' where it is found (e.g. here or some parent).")
-														.toCannon()
-														.type();
+																.toCannon()
+																.type();
 
 
 	public Pseudo(Box r) {
@@ -81,9 +83,9 @@ public class Pseudo extends Box {
 			 .map(x -> x.properties.get(next))
 			 .filter(x -> x != null)
 			 .forEach(x -> {
-				 x.values()
-				  .forEach(z -> z.run());
+				 ArrayList<Runnable> q = new ArrayList<>(x.values());
 				 x.clear();
+				 q.forEach(z -> z.run());
 			 });
 			return true;
 		});
@@ -109,9 +111,8 @@ public class Pseudo extends Box {
 
 		@Override
 		public boolean asMap_delete(Object o) {
-			Box q = (Box)asMap_get("" + o);
-			if (q!=null)
-			{
+			Box q = (Box) asMap_get("" + o);
+			if (q != null) {
 				return q.properties.asMap_delete(o);
 			}
 			return false;
@@ -194,9 +195,9 @@ public class Pseudo extends Box {
 		@Override
 		public Object asMap_set(String s, Object v) {
 			Box at = (Box) super.asMap_get(s);
-			if (at==null) return null;
+			if (at == null) return null;
 
-			return at.properties.put(new Dict.Prop(""+s), v);
+			return at.properties.put(new Dict.Prop("" + s), v);
 		}
 	}
 
@@ -280,12 +281,12 @@ public class Pseudo extends Box {
 
 		@Override
 		public Object asMap_getElement(int i) {
-			return new Until(on, extra+i);
+			return new Until(on, extra + i);
 		}
 
 		@Override
 		public Object asMap_getElement(Object i) {
-			return new Until(on, extra+((Number)i).intValue());
+			return new Until(on, extra + ((Number) i).intValue());
 		}
 
 		@Override
