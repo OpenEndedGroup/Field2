@@ -320,8 +320,11 @@ public class Open {
 		new ServerSupport(boxes);//.openEditor();
 
 		// add a red line time slider to the sheet (this isn't saved with the document, so we'll add it each time
+		TimeSlider ts = new TimeSlider();
 		boxes.root()
-		     .connect(new TimeSlider());
+		     .connect(ts);
+
+		boxes.root().properties.put(TimeSlider.time, ts);
 
 		// actually open the document that's stored on disk
 		doOpen(boxes.root(), filename);

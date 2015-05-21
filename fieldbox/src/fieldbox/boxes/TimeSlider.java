@@ -10,8 +10,10 @@ import fieldlinker.Linker;
 import java.awt.*;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static field.graphics.StandardFLineDrawing.*;
@@ -25,6 +27,8 @@ import static fieldbox.boxes.FLineDrawing.frameDrawing;
  * executed by changing this::population, change the behavior by changing this::off, this::on, this::skipForward, this::skipBackward.
  */
 public class TimeSlider extends Box {
+
+	static public final Dict.Prop<TimeSlider> time = new Dict.Prop<>("time").toCannon().doc("the defualt red-line time slider. Set _.time.frame.x = something to move it around.");
 
 	Rect was = null;
 
@@ -123,6 +127,14 @@ public class TimeSlider extends Box {
 			if (b!=null)
 			b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).begin(b, initiator(b)));
 		});
+	}
+
+	public List<Box> intersectsWith()
+	{
+		Rect now = properties.get(frame);
+		return population()
+			    .filter(x -> x.properties.get(frame)
+						      .intersectsX(now.x)).collect(Collectors.toList());
 	}
 
 	/**
