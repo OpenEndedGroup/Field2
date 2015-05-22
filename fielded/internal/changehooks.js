@@ -59,12 +59,13 @@ _messageBus.subscribe("selection.changed", function (d, e) {
     cm.currentbox = d.box;
     cm.currentproperty = d.property;
     cm.setValue(d.text);
-    if (d.cookie.history)
-	    cm.getDoc().setHistory(d.cookie.history);
-    else
-	    cm.getDoc().clearHistory();
 
     if (d.cookie) {
+			if (d.cookie.history)
+				cm.getDoc().setHistory(d.cookie.history);
+			else
+				cm.getDoc().clearHistory();
+
         if (d.cookie.output) {
                     eval(d.cookie.output)
                     setTimeout(updateAllBrackets, 50)
