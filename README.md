@@ -12,6 +12,8 @@ Welcome to the Field2 development repository. _This codebase is experimental and
 
  * ```java``` itself. Either get a JDK 8 or 9 EA. 
 
+ * ```jzmq``` from https://github.com/zeromq/jzmq (this is for IPython support)
+
 To build, either invest the time importing the code-base into Idea (very recommended), or edit ```fieldwork2.properties``` in the repository and and build using ```build.sh``` (this calls ```ant -f fieldwork2.xml```)
 
 Statically-linked built versions of native dependencies are included in the repository (currently we have a version of GLFW 3.1, a fast jpeg loading library and LWJGL).
