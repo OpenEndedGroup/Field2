@@ -218,16 +218,63 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 
 			Drawing.dirty(hitBox);
 
-			boolean shift = e.after.keyboardState.keysDown.contains(Glfw.GLFW_KEY_LEFT_SHIFT) || e.after.keyboardState.keysDown.contains(
-				    Glfw.GLFW_KEY_RIGHT_SHIFT) || e.after.buttonsDown.contains(1);
+			boolean shift = e.after.keyboardState.isShiftDown();
+
+			boolean command = e.after.keyboardState.isSuperDown();
+
+			Log.log("selection", "shift / command "+shift+" / "+command);
+
 			boolean selected = hitBox.properties.isTrue(Mouse.isSelected, false);
+
+			Log.log("selection", "hit box is currently selected :"+selected);
+
 			Rect originalFrame = frame(hitBox);
 
+			Set<Box> workingSet = new LinkedHashSet<Box>();
 
-			if (!e.after.keyboardState.isSuperDown()) Callbacks.transition(hitBox, Mouse.isSelected, true, false, Callbacks.onSelect, Callbacks.onDeselect);
+			if (!command)
+			{
+				if (shift)
+				{
+					workingSet.addAll(breadthFirst(both()).filter(x -> x.properties.isTrue(Mouse.isSelected, false))
+									      .filter(x -> !x.properties.isTrue(Mouse.isSticky, false) || x == hitBox)
+									      .filter(x -> x.properties.has(Box.frame))
+									      .filter(x -> x.properties.has(Box.name))
+									      .collect(Collectors.toSet()));
+					workingSet.add(hitBox);
+				}
+				else
+				{
+					workingSet.add(hitBox);
+				}
+
+				Log.log("selection", "working set is :"+workingSet);
 
 
-			if (/*hitBox.properties.isTrue(Mouse.isSelected, false) &&*/ e.after.buttonsDown.contains(0)) {
+				breadthFirst(both())
+
+					    .filter(x -> !x.properties.isTrue(Mouse.isSticky, false) || x == hitBox)
+						    .filter(x -> x.properties.has(Box.frame))
+						    .filter(x -> x.properties.has(Box.name)).forEach(x -> {
+
+					if (x.properties.isTrue(Mouse.isSelected, false) && !workingSet.contains(x)) {
+						Callbacks.transition(x, Mouse.isSelected, false, false, Callbacks.onSelect, Callbacks.onDeselect);
+						Drawing.dirty(x);
+					} else if (!x.properties.isTrue(Mouse.isSelected, false) && workingSet.contains(x)) {
+						Callbacks.transition(x, Mouse.isSelected, true, false, Callbacks.onSelect, Callbacks.onDeselect);
+						Drawing.dirty(x);
+					}
+
+				});
+			}
+			else
+			{
+				workingSet.add(hitBox);
+			}
+
+
+
+			if (e.after.buttonsDown.contains(0)) {
 				// what kind of drag might this be?
 
 				List<DragTarget> targets = targetsFor(frame(hitBox), point, drawing.orElseThrow(() -> new IllegalArgumentException(
@@ -240,12 +287,7 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 
 				hitBox.properties.put(Mouse.isManipulated, true);
 
-				Set<Box> workingSet = breadthFirst(both()).filter(
-					    x -> (e.after.keyboardState.isSuperDown() && x == hitBox) || (!e.after.keyboardState.isSuperDown() && x.properties.isTrue(Mouse.isSelected, false)))
-									  .filter(x -> !x.properties.isTrue(Mouse.isSticky, false) || x == hitBox)
-									  .filter(x -> x.properties.has(Box.frame))
-									  .filter(x -> x.properties.has(Box.name))
-									  .collect(Collectors.toSet());
+
 
 
 				System.out.println(" working set is :" + workingSet);
