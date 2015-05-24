@@ -30,6 +30,8 @@ public class Server {
 	List<URIHandler> uriHandlers = new ArrayList<>();
 
 	BiMap<String, WebSocket> knownSockets = HashBiMap.create();
+	public final int port;
+	public final int websocketPort;
 
 
 	public interface Handler {
@@ -55,7 +57,8 @@ public class Server {
 
 
 	public Server(int port, int websocketPort) throws IOException {
-
+		this.port = port;
+		this.websocketPort = websocketPort;
 		server = new NanoHTTPD(port) {
 			@Override
 			Response serve(String uri, Method method, Map<String, String> headers, Map<String, String> parms, Map<String, String> files) {
@@ -72,6 +75,8 @@ public class Server {
 				if (fixedResources.containsKey(uri)) {
 					String resource = fixedResources.get(uri);
 					resource = resource.replace("///ID///", "" + id);
+					resource = resource.replace("///PORT///", ""+port);
+					resource = resource.replace("///WSPORT///", ""+websocketPort);
 					return new Response(Response.Status.OK, null, resource);
 				}
 

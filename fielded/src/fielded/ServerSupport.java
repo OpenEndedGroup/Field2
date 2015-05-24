@@ -3,6 +3,7 @@ package fielded;
 import field.message.MessageQueue;
 import field.utility.Dict;
 import field.utility.Log;
+import field.utility.Ports;
 import field.utility.Quad;
 import fieldagent.Main;
 import fieldbox.boxes.Box;
@@ -24,6 +25,8 @@ import java.util.List;
  */
 public class ServerSupport {
 
+	static public int webserverPort = -1;
+
 	static public final Dict.Prop<Server> server = new Dict.Prop<Server>("server").type().toCannon().doc("The internal websocket-capable server");
 
 	static public List<String> playlist = Arrays
@@ -34,7 +37,6 @@ public class ServerSupport {
 
 		new BridgeToTextEditor(boxes.root()).connect(boxes.root());
 
-
 		Watches watches = boxes.root().first(Watches.watches)
 			    .orElseThrow(() -> new IllegalArgumentException(" need Watches for server support"));
 		MessageQueue<Quad<Dict.Prop, Box, Object, Object>, String> queue = watches.getQueue();
@@ -43,9 +45,10 @@ public class ServerSupport {
 		Log.log("startup", " server support is initializing ");
 		try {
 
-			// todo: these need to be random, unallocated ports
+			int a = webserverPort = Ports.nextAvailable(8080);
+			int b = Ports.nextAvailable(a+1);
+			Server s = new Server(a, b);
 
-			Server s = new Server(8080, 8081);
 			boxes.root().properties.put(server, s);
 			s.setFixedResource("/init", readFile(fieldagent.Main.app + "fielded/internal/init.html"));
 			s.addDocumentRoot(fieldagent.Main.app + "/fielded/internal/");
@@ -144,7 +147,7 @@ public class ServerSupport {
 		switch (Main.os) {
 			case linux:
 				try {
-					new ProcessBuilder("/usr/bin/google-chrome", "--app=http://localhost:8080/init")
+					new ProcessBuilder("/usr/bin/google-chrome", "--app=http://localhost:"+ServerSupport.webserverPort+"/init")
 						    .redirectOutput(ProcessBuilder.Redirect.to(File.createTempFile("field", "browseroutput")))
 						    .redirectError(File.createTempFile("field", "browsererror")).start();
 				} catch (Throwable t) {
@@ -159,7 +162,7 @@ public class ServerSupport {
 					System.out.println(" Launching field with tmp dir :" + f);
 					//  this almost works, but chrome is ignoring the --harmony flag completely
 //					new ProcessBuilder("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", /*"--app=http://localhost:8080/init",*/ "--user-data-dir="+f.getAbsolutePath(), "--enable-experimental-web-platform-features", "--js-flags=\"--harmony\"", "--no-first-run")
-					new ProcessBuilder("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "--app=http://localhost:8080/init", "--no-first-run")
+					new ProcessBuilder("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "--app=http://localhost:"+ServerSupport.webserverPort+"/init", "--no-first-run")
 						    .redirectOutput(ProcessBuilder.Redirect.to(File.createTempFile("field", "browseroutput")))
 						    .redirectError(File.createTempFile("field", "browsererror")).start();
 

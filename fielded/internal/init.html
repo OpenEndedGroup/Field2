@@ -19,7 +19,7 @@
 
             _field.id = id
 
-            _field.socket = new WebSocket("ws://localhost:8081")
+            _field.socket = new WebSocket("ws://localhost:///WSPORT///")
             _field.socket.binaryType = "arraybuffer"
 
             _field.send = function (address, obj) {

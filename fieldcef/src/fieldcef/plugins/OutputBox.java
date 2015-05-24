@@ -106,7 +106,7 @@ public class OutputBox extends Box implements IO.Loaded {
 		String res = UUID.randomUUID()
 				 .toString();
 		s.setFixedResource("/" + res, bootstrap);
-		browser.properties.put(browser.url, "http://localhost:8080/" + res);
+		browser.properties.put(browser.url, "http://localhost:"+s.port+"/" + res);
 
 
 		tick = 0;
@@ -114,7 +114,7 @@ public class OutputBox extends Box implements IO.Loaded {
 			    .attach(x -> {
 				    tick++;
 				    if (browser.browser.getURL()
-						       .equals("http://localhost:8080/" + res)) {
+						       .equals("http://localhost:"+s.port+"/" + res)) {
 
 					    inject2(browser);
 //					    try {

@@ -13,6 +13,7 @@ import fieldbox.io.IO;
 import fieldbox.ui.FieldBoxWindow;
 import fieldcef.browser.Browser;
 import fielded.Commands;
+import fielded.ServerSupport;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 
 import java.io.BufferedReader;
@@ -190,7 +191,7 @@ public class TextEditor extends Box implements IO.Loaded {
 
 	@HiddenInAutocomplete
 	public void boot() {
-		browser.properties.put(browser.url, "http://localhost:8080/init");
+		browser.properties.put(browser.url, "http://localhost:"+ ServerSupport.webserverPort+"/init");
 		Drawing.dirty(this);
 		browser.finishBooting();
 	}
