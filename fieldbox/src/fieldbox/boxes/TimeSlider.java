@@ -201,7 +201,7 @@ public class TimeSlider extends Box {
 			f.attributes.put(stroked, true);
 
 			return f;
-		}, (box) -> new Pair(box.properties.get(frame), box.properties.get(Mouse.isSelected))));
+		}, (box) -> new Triple(box.properties.get(frame), box.properties.get(Mouse.isSelected), box.properties.get(Mouse.isManipulated))));
 
 		r.put("__outlineFill__", new Cached<Box, Object, FLine>((box, previously) -> {
 			Rect rect = box.properties.get(frame);
@@ -232,7 +232,7 @@ public class TimeSlider extends Box {
 
 
 			return f;
-		}, (box) -> new Pair(box.properties.get(frame), box.properties.get(Mouse.isSelected))));
+		}, (box) -> new Triple(box.properties.get(frame), box.properties.get(Mouse.isSelected), box.properties.get(Mouse.isManipulated))));
 
 
 		return r;
