@@ -270,8 +270,6 @@ public class Browser extends Box implements IO.Loaded {
 			if (!intersects(r, e)) return null;
 
 			if (properties.isTrue(Box.hidden, false)) return null;
-
-
 //			if (e.after.keyboardState.isAltDown())
 //			{
 				e.properties.put(Window.consumed, true);
@@ -371,7 +369,7 @@ public class Browser extends Box implements IO.Loaded {
 
 		this.properties.putToMap(Keyboard.onKeyDown, "__browser__", (e, k) -> {
 
-			if (!isSelected() && !focussed) return null;
+			//if (/*!isSelected() &&*/ !focussed) return null;
 			if (properties.isTrue(Box.hidden, false)) return null;
 
 			if (true) return keyboardHacks.onKeyDown(e, k);
@@ -433,10 +431,8 @@ public class Browser extends Box implements IO.Loaded {
 
 		this.properties.putToMap(Keyboard.onCharTyped, "__browser__", (e, k) -> {
 
-			System.err.println(" keyboard pressed ;" + isSelected() + " " + focussed);
 
-
-			if (!isSelected() && !focussed) return;
+//			if (!isSelected() && !focussed) return;
 			if (properties.isTrue(Box.hidden, false)) return;
 
 			if (true) {
