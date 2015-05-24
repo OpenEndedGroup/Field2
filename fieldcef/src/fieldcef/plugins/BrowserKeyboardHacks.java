@@ -69,7 +69,7 @@ public class BrowserKeyboardHacks {
 			{
 				KeyEvent ke = new KeyEvent(component, KeyEvent.KEY_TYPED, 0, mod, KeyEvent.VK_UNDEFINED, (char) mapper.isForcedTyped(mm));
 				System.out.println(" forced typed :"+(char) mapper.isForcedTyped(mm));
-				e.properties.put(Window.consumed, true);
+					e.properties.put(Window.consumed, true);
 				target.sendKeyEvent(ke);
 				keysDown.add(mm);
 				continue;

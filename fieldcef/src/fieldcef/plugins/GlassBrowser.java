@@ -88,6 +88,8 @@ public class GlassBrowser extends Box implements IO.Loaded {
 		// I've been looking forward to this for a while
 		this.properties.putToMap(Keyboard.onKeyDown, "__glassbrowser__", (e, k) -> {
 
+			System.out.println(" glassbrowser is this even possible? :"+e.properties.isTrue(Window.consumed, false));
+
 			if (!e.properties.isTrue(Window.consumed, false)) {
 				if (e.after.keysDown.contains(Glfw.GLFW_KEY_SPACE) && e.after.isControlDown() && !e.before.keysDown.contains(Glfw.GLFW_KEY_SPACE)) {
 					if (!visible) {

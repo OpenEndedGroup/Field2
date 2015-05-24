@@ -77,7 +77,6 @@ public class Browser extends Box implements IO.Loaded {
 	int check = 100;
 	boolean hasRepainted = false;
 	boolean first = true;
-	boolean focussed = false;
 	boolean paused = false;
 	boolean ignore = false;
 	private int w;
@@ -231,7 +230,7 @@ public class Browser extends Box implements IO.Loaded {
 			Rect rect = box.properties.get(frame);
 			if (rect == null) return null;
 
-			boolean selected = box.properties.isTrue(Mouse.isSelected, false) || focussed;
+			boolean selected = box.properties.isTrue(Mouse.isSelected, false) || getFocus();
 
 			FLine f = new FLine();
 			if (selected) rect = rect.inset(-10f);
@@ -250,7 +249,7 @@ public class Browser extends Box implements IO.Loaded {
 			f.attributes.put(stroked, true);
 
 			return f;
-		}, (box) -> new Pair(box.properties.get(frame), box.properties.isTrue(Mouse.isSelected, false) || focussed)));
+		}, (box) -> new Triple(box.properties.get(frame), box.properties.isTrue(Mouse.isSelected, false), getFocus())));
 
 		// AWT's MouseEvent constructor throws an NPE unless you give it a component.
 		Component component = new Component() {
@@ -292,6 +291,8 @@ public class Browser extends Box implements IO.Loaded {
 
 			dragOngoing = true;
 
+			setFocus(true);
+
 			return (e2, term) -> {
 
 				Vec2 point2 = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e2.after.x, e2.after.y)))
@@ -321,7 +322,7 @@ public class Browser extends Box implements IO.Loaded {
 			if (!intersects(r, e)) return null;
 			if (properties.isTrue(Box.hidden, false)) return null;
 
-			if (isSelected() || focussed) ;
+			if (isSelected() || getFocus()) ;
 			e.properties.put(Window.consumed, true);
 
 			Optional<Drawing> drawing = this.find(Drawing.drawing, both())
@@ -341,7 +342,7 @@ public class Browser extends Box implements IO.Loaded {
 
 			Rect r = properties.get(Box.frame);
 			if (!intersects(r, e)) return;
-			if (!isSelected() && !focussed) return;
+			if (!isSelected() && !getFocus()) return;
 			if (properties.isTrue(Box.hidden, false)) return;
 
 
@@ -370,6 +371,7 @@ public class Browser extends Box implements IO.Loaded {
 		this.properties.putToMap(Keyboard.onKeyDown, "__browser__", (e, k) -> {
 
 			//if (/*!isSelected() &&*/ !focussed) return null;
+			if (!getFocus()) return null;
 			if (properties.isTrue(Box.hidden, false)) return null;
 
 			if (true) return keyboardHacks.onKeyDown(e, k);
@@ -433,6 +435,7 @@ public class Browser extends Box implements IO.Loaded {
 
 
 //			if (!isSelected() && !focussed) return;
+			if (!getFocus()) return ;
 			if (properties.isTrue(Box.hidden, false)) return;
 
 			if (true) {
@@ -494,7 +497,7 @@ public class Browser extends Box implements IO.Loaded {
 
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__pullFocus__", () -> {
 
-			if (!isSelected() && !focussed) {
+			if (!isSelected() && !getFocus()) {
 				find(KeyboardFocus._keyboardFocus, both()).findFirst()
 									  .get()
 									  .disclaimFocus(this);
@@ -726,12 +729,14 @@ public class Browser extends Box implements IO.Loaded {
 	}
 
 	public boolean getFocus() {
-		return focussed;
+		return find(KeyboardFocus._keyboardFocus, both()).findFirst()
+								 .get()
+								 .isFocused(this);
 	}
 
 	public void setFocus(boolean f) {
-		if (f != focussed) Drawing.dirty(this);
-		focussed = f;
+		if (f != getFocus()) Drawing.dirty(this);
+
 		browser.setFocus(f);
 		if (f) {
 			find(KeyboardFocus._keyboardFocus, both()).findFirst()

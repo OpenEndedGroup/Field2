@@ -47,6 +47,12 @@ public class KeyboardFocus extends Box {
 		this.properties.putToMap(Callbacks.onDelete,"__keyboardFocusRing__", x -> {focused.remove(x); return null;});
 	}
 
+	public boolean isFocused(Box b)
+	{
+		if (focused.size()==0) return false;
+		return focused.get(focused.size()-1)==b;
+	}
+
 	public void claimFocus(Box b) {
 		List<Box> prev = new ArrayList<>(focused);
 
