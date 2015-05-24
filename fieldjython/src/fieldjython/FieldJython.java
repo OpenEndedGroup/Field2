@@ -24,7 +24,12 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -40,6 +45,7 @@ public class FieldJython extends Execution {
 
 
 
+	Lock lock = new ReentrantLock();
 
 	public FieldJython(Box root) {
 		super(null);
@@ -64,6 +70,11 @@ public class FieldJython extends Execution {
 
 
 		Log.log("startup.jython", "Jython plugin has finished starting up ");
+
+
+		new Thread(() -> {
+			new PythonInterpreter();
+		}).start();
 
 	}
 
