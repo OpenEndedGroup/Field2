@@ -41,6 +41,7 @@ function kill(cm, from, to, mayGrow, text) {
 }
 
 function copy() {
+	console.log("COPY");
     _field.send("clipboard.setClipboard", {value: cm.getSelection()});
     addToRing(cm.getSelection())
 }

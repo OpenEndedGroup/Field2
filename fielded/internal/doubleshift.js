@@ -4,6 +4,11 @@ _doubleshift = {
 }
 
 $(document).keydown(function (e) {
+		if (e.keyCode==67 && e.metaKey && !e.shiftKey && !e.altKey && cm.getSelection()=="")
+		{
+	    _field.send("clipboard.setClipboard", {value: window.getSelection().toString()});
+		}
+		else
     if (e.keyCode == 16) {
         now = new Date().valueOf()
         if (now - _doubleshift.downAt < 250) {
