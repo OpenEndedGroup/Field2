@@ -205,6 +205,7 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 
 		Optional<Box> hit = breadthFirst(both()).filter(b -> frame(b) != null)
 							.filter(b -> !b.properties.isTrue(Box.hidden, false))
+							//.filter(b -> !b.properties.isTrue(Mouse.isSticky, false))
 							.filter(b -> frame(b).intersects(point))
 							.sorted((a, b) -> Float.compare(order(frame(a)), order(frame(b))))
 							.findFirst();
@@ -212,7 +213,16 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 
 		Log.log("selection", "hit box is " + hit.orElse(null));
 
+
 		return hit.map(hitBox -> {
+
+			if (hitBox.properties.isTrue(Mouse.isSticky, false))
+			{
+				Log.log("selection", "hitbox is sticky, selecting and finishing");
+				Callbacks.transition(hitBox, Mouse.isSelected, true, false, Callbacks.onSelect, Callbacks.onDeselect);
+				Drawing.dirty(hitBox);
+				return null;
+			}
 
 			Log.log("selection", "hit box is really hidden ? " + hitBox.properties.get(Box.hidden));
 
@@ -237,7 +247,7 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 				if (shift)
 				{
 					workingSet.addAll(breadthFirst(both()).filter(x -> x.properties.isTrue(Mouse.isSelected, false))
-									      .filter(x -> !x.properties.isTrue(Mouse.isSticky, false) || x == hitBox)
+									      .filter(b -> !b.properties.isTrue(Mouse.isSticky, false))
 									      .filter(x -> x.properties.has(Box.frame))
 									      .filter(x -> x.properties.has(Box.name))
 									      .collect(Collectors.toSet()));
@@ -273,6 +283,7 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 			}
 
 
+			workingSet.forEach(x -> x.properties.put(Mouse.isManipulated, true));
 
 			if (e.after.buttonsDown.contains(0)) {
 				// what kind of drag might this be?

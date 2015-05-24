@@ -91,11 +91,11 @@ public class Browser extends Box implements IO.Loaded {
 		Rect r = now.properties.get(Box.frame);
 		float op = now.properties.getFloat(StandardFLineDrawing.opacity, 1);
 
-//		if (now.properties.isTrue(FLineDrawing.hidden, false)) {
-//			builder.open();
-//			builder.close();
-//			return null;
-//		}
+		if (now.properties.isTrue(FLineDrawing.hidden, false)) {
+			builder.open();
+			builder.close();
+			return null;
+		}
 
 		builder.open();
 		builder.aux(5, 0, 0, op);
@@ -263,6 +263,8 @@ public class Browser extends Box implements IO.Loaded {
 
 		this.properties.putToMap(Mouse.onMouseDown, "__browser__", (e, button) -> {
 
+			Log.log("selection", "is browser hidden ? "+properties.isTrue(Box.hidden, false)+" "+this);
+
 			Rect r = properties.get(Box.frame);
 
 			if (!intersects(r, e)) return null;
@@ -270,9 +272,10 @@ public class Browser extends Box implements IO.Loaded {
 			if (properties.isTrue(Box.hidden, false)) return null;
 
 
-			if (e.after.keyboardState.isAltDown()) {
+//			if (e.after.keyboardState.isAltDown())
+//			{
 				e.properties.put(Window.consumed, true);
-			}
+//			}
 
 			Optional<Drawing> drawing = this.find(Drawing.drawing, both())
 							.findFirst();

@@ -103,6 +103,8 @@ public class TextEditor extends Box implements IO.Loaded {
 
 		browser.properties.put(Box.undeletable, true);
 
+		browser.properties.put(Box.name, "texteditor");
+
 		browser.connect(root);
 		browser.loaded();
 
@@ -134,7 +136,7 @@ public class TextEditor extends Box implements IO.Loaded {
 			 .register(x -> x.equals("selection.changed"), c -> {
 				 Log.log("shy", "selection is now" + selection().count());
 
-				 if (selection().count() == 0) {
+				 if (selection().count() != 1) {
 					 browser.properties.put(Box.hidden, true);
 					 Drawing.dirty(this);
 				 } else {
