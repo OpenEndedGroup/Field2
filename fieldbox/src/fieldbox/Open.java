@@ -6,6 +6,7 @@ import field.dynalink.linker.GuardingDynamicLinker;
 import field.graphics.MeshBuilder;
 import field.graphics.Scene;
 import field.graphics.SimpleArrayBuffer;
+import field.graphics.Texture;
 import field.utility.AutoPersist;
 import field.utility.Dict;
 import field.utility.Log;
@@ -295,12 +296,13 @@ public class Open {
 		RunLoop.main.getLoop()
 			    .attach(10, Scene.strobe((i) -> {
 				    if (MeshBuilder.cacheHits + MeshBuilder.cacheMisses_internalHash + MeshBuilder.cacheMisses_cursor + MeshBuilder.cacheMisses_externalHash > 0) {
-					    Log.println("graphics.stats", " meshbuilder cache " + MeshBuilder.cacheHits + " | " + MeshBuilder.cacheMisses_cursor + " / " + MeshBuilder.cacheMisses_externalHash + " / " + MeshBuilder.cacheMisses_internalHash+" / " + MeshBuilder.cacheMisses_tooOld);
+					    Log.println("graphics.stats", " meshbuilder cache h" + MeshBuilder.cacheHits + " | mc" + MeshBuilder.cacheMisses_cursor + " / meh" + MeshBuilder.cacheMisses_externalHash + " / mih" + MeshBuilder.cacheMisses_internalHash+" / mto" + MeshBuilder.cacheMisses_tooOld+" | tex"+Texture.bytesUploaded);
 					    MeshBuilder.cacheHits = 0;
 					    MeshBuilder.cacheMisses_cursor = 0;
 					    MeshBuilder.cacheMisses_externalHash = 0;
 					    MeshBuilder.cacheMisses_internalHash = 0;
 					    MeshBuilder.cacheMisses_tooOld = 0;
+					    Texture.bytesUploaded = 0;
 				    }
 				    if (SimpleArrayBuffer.uploadBytes > 0) {
 					    Log.println("graphics.stats", " uploaded " + SimpleArrayBuffer.uploadBytes + " bytes to OpenGL");

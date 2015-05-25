@@ -29,6 +29,9 @@ import static org.lwjgl.opengl.GL30.*;
  */
 public class Texture extends BaseScene<Texture.State> implements Scene.Perform, OffersUniform<Integer> {
 
+	// global statistics on how much we're sending to OpennGL
+	static public int bytesUploaded = 0;
+
 	public class State extends BaseScene.Modifiable {
 		protected int name = -1;
 
@@ -84,6 +87,8 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 			upload.clear();
 			upload.rewind();
 			s.old.rewind();
+
+			bytesUploaded+=s.old.limit();
 			GL15.glUnmapBuffer(GL21.GL_PIXEL_UNPACK_BUFFER);
 			GL15.glBindBuffer(GL21.GL_PIXEL_UNPACK_BUFFER, 0);
 			Log.log("graphics.trace", "uploaded part 1");
@@ -128,6 +133,9 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 			upload.rewind();
 			s.old.clear();
 			s.old.rewind();
+
+			bytesUploaded+=s.old.limit();
+
 			GL15.glUnmapBuffer(GL21.GL_PIXEL_UNPACK_BUFFER);
 			GL15.glBindBuffer(GL21.GL_PIXEL_UNPACK_BUFFER, 0);
 			Log.log("graphics.trace", "uploaded part 1");
