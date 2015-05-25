@@ -43,9 +43,9 @@ import static field.utility.Log.log;
  */
 public class FieldJython extends Execution {
 
-
-
 	Lock lock = new ReentrantLock();
+	Map<Box, ExecutionSupport> knownInterpreters = new MapMaker().weakKeys()
+								     .makeMap();
 
 	public FieldJython(Box root) {
 		super(null);
@@ -69,6 +69,7 @@ public class FieldJython extends Execution {
 		});
 
 
+
 		Log.log("startup.jython", "Jython plugin has finished starting up ");
 
 
@@ -82,11 +83,11 @@ public class FieldJython extends Execution {
 		return breadthFirst(both()).filter(x -> x.properties.isTrue(Mouse.isSelected, false));
 	}
 
-	Map<Box, ExecutionSupport> knownInterpreters = new MapMaker().weakKeys().makeMap();
-
 	@Override
 	public ExecutionSupport support(Box box, Dict.Prop<String> prop) {
-		return knownInterpreters.computeIfAbsent(box, k -> wrap(box, prop));
+		FunctionOfBox<Boolean> ef = this.properties.get(executionFilter);
+		if (box==this || ef == null || ef.apply(box)) return knownInterpreters.computeIfAbsent(box, k -> wrap(box, prop));
+		else return null;
 	}
 
 	private ExecutionSupport wrap(Box box, Dict.Prop<String> prop) {
@@ -100,8 +101,7 @@ public class FieldJython extends Execution {
 			@Override
 			public void executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors) {
 
-				if (suffix.equals("print"))
-					textFragment = "print("+textFragment+")";
+				if (suffix.equals("print")) textFragment = "print(" + textFragment + ")";
 
 				try {
 					Execution.context.get()
@@ -256,7 +256,7 @@ public class FieldJython extends Execution {
 
 				if (prefixIs instanceof PyObject) prefixIs = Py.tojava((PyObject) prefixIs, Object.class);
 
-				System.out.println(" evaluated :"+prefix+" to "+prefixIs+" getting completions on it");
+				System.out.println(" evaluated :" + prefix + " to " + prefixIs + " getting completions on it");
 
 				List<Completion> javaC = TernSupport.javaSupport.getCompletionsFor(prefixIs, sub);
 
@@ -391,7 +391,6 @@ public class FieldJython extends Execution {
 		};
 
 	}
-
 
 
 }

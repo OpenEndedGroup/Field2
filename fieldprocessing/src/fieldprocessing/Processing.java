@@ -91,8 +91,9 @@ public class Processing extends Execution {
 
 
 	public Execution.ExecutionSupport support(Box box, Dict.Prop<String> prop) {
-
-		return wrap(box, prop);
+		FunctionOfBox<Boolean> ef = this.properties.get(executionFilter);
+		if (box==this || ef == null || ef.apply(box)) wrap(box, prop);
+		return null;
 	}
 
 	public Consumer<Pair<Integer, String>> lastErrorOutput;

@@ -27,6 +27,7 @@ public class Execution extends Box {
 	static public Dict.Prop<Execution> execution = new Dict.Prop<Execution>("execution");
 	static public Dict.Prop<LinkedHashMapAndArrayList<CompletionSupport>> completions = new Dict.Prop<>("completions").toCannon().type().doc("Functions that can return completions for code in the editor");
 	static public Dict.Prop<LinkedHashMapAndArrayList<CompletionSupport>> imports= new Dict.Prop<>("imports").toCannon().type().doc("Functions that can return import help for code in the editor");
+	static public Dict.Prop<FunctionOfBox<Boolean>> executionFilter = new Dict.Prop<>("executionFilter").toCannon().type().doc("defines a function that, when called with a box, returns a boolean describing whether this box should be handled by this Execution implementation");
 
 	private final BiFunction<Box, Dict.Prop<String>, ? extends ExecutionSupport> support;
 

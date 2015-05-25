@@ -214,7 +214,9 @@ public class FieldClojure extends Execution {
 
 	@Override
 	public Execution.ExecutionSupport support(Box box, Dict.Prop<String> prop) {
-		return wrap(box, prop);
+		FunctionOfBox<Boolean> ef = this.properties.get(executionFilter);
+		if (box==this || ef == null || ef.apply(box)) 		return wrap(box, prop);
+		return null;
 	}
 
 	private Execution.ExecutionSupport wrap(Box box, Dict.Prop<String> prop) {
