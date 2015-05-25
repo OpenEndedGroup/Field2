@@ -517,14 +517,14 @@ public class Browser extends Box implements IO.Loaded {
 		this.properties.putToMap(Callbacks.onSelect, "__pullFocus__", (k) -> {
 			if (!(k instanceof Browser)) find(KeyboardFocus._keyboardFocus, both()).findFirst()
 											       .get()
-											       .claimFocus(k);
+											       .claimFocus((Box)k);
 			return null;
 		});
 
 		this.properties.putToMap(Callbacks.onDeselect, "__pullFocus__", (k) -> {
 			if (!(k instanceof Browser)) find(KeyboardFocus._keyboardFocus, both()).findFirst()
 											       .get()
-											       .disclaimFocus(k);
+											       .disclaimFocus((Box)k);
 			return null;
 		});
 	}

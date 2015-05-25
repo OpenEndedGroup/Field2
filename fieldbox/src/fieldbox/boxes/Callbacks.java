@@ -18,7 +18,7 @@ import java.util.function.Supplier;
  */
 public class Callbacks {
 
-	static public final Dict.Prop<IdempotencyMap<Box.FunctionOfBox<Void>>> onDelete
+	static public final Dict.Prop<IdempotencyMap<Box.FunctionOfBox>> onDelete
 		    = new Dict.Prop<>("onDelete").type()
 						 .toCannon()
 						 .doc("callback that's called when a box is deleted")
@@ -26,21 +26,21 @@ public class Callbacks {
 							     Box.FunctionOfBox.class));
 
 
-	static public final Dict.Prop<IdempotencyMap<Box.FunctionOfBox<Void>>> onLoad
+	static public final Dict.Prop<IdempotencyMap<Box.FunctionOfBox>> onLoad
 		    = new Dict.Prop<>("onLoad").type()
 						 .toCannon()
 						 .doc("callback that's called when a box is loaded")
 						 .autoConstructs(() -> new IdempotencyMap<>(
 							     Box.FunctionOfBox.class));
 
-	static public final Dict.Prop<IdempotencyMap<Box.FunctionOfBox<Void>>> onSelect
+	static public final Dict.Prop<IdempotencyMap<Box.FunctionOfBox>> onSelect
 		    = new Dict.Prop<>("onSelect").type()
 					       .toCannon()
 					       .doc("callback that's called when a box is selected")
 					       .autoConstructs(() -> new IdempotencyMap<>(
 							   Box.FunctionOfBox.class));
 
-	static public final Dict.Prop<IdempotencyMap<Box.FunctionOfBox<Void>>> onDeselect
+	static public final Dict.Prop<IdempotencyMap<Box.FunctionOfBox>> onDeselect
 		    = new Dict.Prop<>("onDeselect").type()
 						 .toCannon()
 						 .doc("callback that's called when a box is deselected")
@@ -48,7 +48,7 @@ public class Callbacks {
 							     Box.FunctionOfBox.class));
 
 
-	static public <T> void call(Box from, Dict.Prop<IdempotencyMap<Box.FunctionOfBox<T>>> prop) {
+	static public void call(Box from, Dict.Prop<IdempotencyMap<Box.FunctionOfBox>> prop) {
 		from.breadthFirst(from.upwards())
 		    .map(x -> x.properties.get(prop))
 		    .filter(x -> x != null)
@@ -57,7 +57,7 @@ public class Callbacks {
 		    .forEach(x -> x.apply(from));
 	}
 
-	static public void transition(Box on, Dict.Prop<Boolean> property, boolean transitionTo,  boolean defaultState, Dict.Prop<IdempotencyMap<Box.FunctionOfBox<Void>>> toTrue,  Dict.Prop<IdempotencyMap<Box.FunctionOfBox<Void>>> toFalse)
+	static public void transition(Box on, Dict.Prop<Boolean> property, boolean transitionTo,  boolean defaultState, Dict.Prop<IdempotencyMap<Box.FunctionOfBox>> toTrue,  Dict.Prop<IdempotencyMap<Box.FunctionOfBox>> toFalse)
 	{
 		boolean currentState = on.properties.isTrue(property, defaultState);
 		if (currentState==transitionTo) return;

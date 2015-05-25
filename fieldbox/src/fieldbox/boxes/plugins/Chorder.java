@@ -36,13 +36,13 @@ public class Chorder extends Box {
 		    "begin").type()
 			    .toCannon()
 			    .doc("call <code>.begin()</code> to add a box to the animation cycle. Returns a function that tells you whether this box is still running.");
-	static public final Dict.Prop<FunctionOfBox<Void>> end = new Dict.Prop<>("end").type()
+	static public final Dict.Prop<FunctionOfBox> end = new Dict.Prop<>("end").type()
 										       .toCannon()
 										       .doc("call <code>.end()</code> to remove a box from the animation cycle.");
 
 	static public final Dict.Prop<Boolean> nox = new Dict.Prop<>("_nox").type()
 									    .toCannon()
-									    .doc("set to prevent option-clicking from running this box");
+									    .doc("'NO eXecution. Set to prevent option-clicking from running this box");
 	private Map<String, Object> initiator;
 
 
@@ -90,9 +90,9 @@ public class Chorder extends Box {
 			return () -> box.properties.computeIfAbsent(IsExecuting.executionCount, (k) -> 0) > 0;
 		});
 		this.properties.put(end, box -> {
-			box.first(Execution.execution)
-			   .ifPresent(x -> x.support(box, Execution.code)
-					    .end(box));
+			((Box)box).first(Execution.execution)
+			   .ifPresent(x -> x.support((Box)box, Execution.code)
+					    .end((Box)box));
 			return null;
 		});
 	}
