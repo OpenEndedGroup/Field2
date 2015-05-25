@@ -39,7 +39,7 @@ public class RunCommand extends Box {
 
 		// Nashorn doesn't like a lambda here
 
-		commands.stream().filter(x -> x.first.toLowerCase().equals(of.toLowerCase())).forEach(r -> {
+		commands.stream().filter(x -> stripFormatting(x.first.toLowerCase()).equals(of.toLowerCase())).forEach(r -> {
 			if (r.third instanceof RemoteEditor.ExtendedCommand) {
 				((RemoteEditor.ExtendedCommand) r.third).begin((pr, o, a) -> {
 					a.begin(null, null); // SHOULD BE AN ARG
@@ -47,11 +47,14 @@ public class RunCommand extends Box {
 				}, null);
 				((RemoteEditor.ExtendedCommand) r.third).run();
 			} else {
-				r.third
-				 .run();
+				r.third.run();
 			}
 		});
 		return true;
+	}
+
+	private String stripFormatting(String s) {
+		return s.replaceAll("<[^>]*>", "");
 	}
 
 
