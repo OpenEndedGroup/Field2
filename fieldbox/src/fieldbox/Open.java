@@ -232,6 +232,8 @@ public class Open {
 
 		new MissingStream(boxes.root()).connect(boxes.root());
 
+		new KeyboardShortcuts(boxes.root()).connect(boxes.root());
+
 		if (ThreadSync.enabled)
 			new ThreadSyncFeedback(boxes.root()).connect(boxes.root());
 

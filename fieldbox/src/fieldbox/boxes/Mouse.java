@@ -41,7 +41,7 @@ public class Mouse {
 
 	public void dispatch(Box root, Window.Event<Window.MouseState> event) {
 
-		Box startAt = Intersects.startAt(event, root);
+		Box startAt = Intersects.startAt(event.after, root);
 
 		Set<Integer> pressed = Window.MouseState.buttonsPressed(event.before, event.after);
 		Set<Integer> released = Window.MouseState.buttonsReleased(event.before, event.after);

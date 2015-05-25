@@ -48,10 +48,9 @@ public class MarkingMenus extends Box {
 		this.properties.putToMap(Mouse.onMouseDown, "__markingmenus__", (event, button) -> {
 			if (button != 1) return null;
 
-
 			if (event.properties.isTrue(Window.consumed, false)) return null;
 
-			Box startAt = Intersects.startAt(event, root);
+			Box startAt = Intersects.startAt(event.after, root);
 
 			MenuSpecification m = startAt.find(menuSpecs, upwards())
 						     .filter(x -> x != null)

@@ -11,6 +11,8 @@ public class LoggingDefaults {
 
 		Log.on("auto", Log::green);
 		Log.on("watching.*", Log::green);
+		Log.on(".*selection.*", Log::green);
+		Log.on(".*serial.*", Log::green);
 		Log.on("nashorn.general", Log::green);
 		Log.on("INSERT", Log::green);
 		Log.on("tap.*", Log::green);

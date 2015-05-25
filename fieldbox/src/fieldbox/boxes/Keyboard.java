@@ -71,8 +71,12 @@ public class Keyboard {
 
 			// change map to handle errors on x
 
-			root.find(onKeyDown, root.both()).flatMap(x -> x.values().stream()).map(Util.wrap(x -> x.onKeyDown(event, p), errors, null, Hold.class)).filter(x -> x != null)
-				    .collect(Collectors.toCollection(() -> hold));
+			root.find(onKeyDown, root.both())
+			    .flatMap(x -> x.values()
+					   .stream())
+			    .map(Util.wrap(x -> x.onKeyDown(event, p), errors, null, Hold.class))
+			    .filter(x -> x != null)
+			    .collect(Collectors.toCollection(() -> hold));
 		});
 
 		typed.stream().forEach(p -> {
