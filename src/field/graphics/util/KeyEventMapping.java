@@ -6,17 +6,15 @@ import com.google.common.collect.HashBiMap;
 
 import java.awt.event.KeyEvent;
 import java.lang.reflect.Field;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class KeyEventMapping {
 
+	static HashMap<Integer, String> lookupMap = null;
 	BiMap<Integer, Integer> keyCodes = HashBiMap.create();
 	Set<Integer> glfwModifiers = new LinkedHashSet<>();
-
 	Map<Integer, Character> forceTyped = new LinkedHashMap<>();
+
 
 	public KeyEventMapping() {
 		keyCodes.put(KeyEvent.VK_ENTER, Glfw.GLFW_KEY_ENTER);
@@ -44,7 +42,6 @@ public class KeyEventMapping {
 		keyCodes.put(KeyEvent.VK_META, Glfw.GLFW_KEY_LEFT_SUPER);
 //		keyCodes.put(KeyEvent.VK_QUOTE, Glfw.GLFW_KEY_APOSTROPHE);
 //		keyCodes.put(KeyEvent.VK_QUOTEDBL, Glfw.GLFW_KEY_APOSTROPHE);
-
 
 
 		keyCodes.put(KeyEvent.VK_0, Glfw.GLFW_KEY_0);
@@ -80,6 +77,24 @@ public class KeyEventMapping {
 
 	}
 
+	static public String lookup(int num) {
+
+		if (lookupMap == null) {
+
+			lookupMap = new HashMap<>();
+			Field[] ff = Glfw.class.getFields();
+			for (Field fff : ff) {
+				try {
+					if (fff.getName()
+					       .startsWith("GLFW_KEY")) lookupMap.put(((Number) fff.get(null)).intValue(), fff.getName());
+				} catch (IllegalAccessException e) {
+				} catch (ClassCastException e) {
+
+				}
+			}
+		}
+		return lookupMap.get(num);
+	}
 
 	public Integer translateCode(int glfwcode) {
 		return keyCodes.inverse()
@@ -90,23 +105,7 @@ public class KeyEventMapping {
 		return glfwModifiers.contains(glfwcode);
 	}
 
-	static public String lookup(int num) {
-		Field[] ff = Glfw.class.getFields();
-		for (Field fff : ff) {
-			try {
-				if (fff.getName()
-				       .startsWith("GLFW_KEY") && ((Number)fff.get(null)).intValue() == num) return fff.getName();
-			} catch (IllegalAccessException e) {
-			} catch(ClassCastException e)
-			{
-
-			}
-		}
-		return null;
-	}
-
-	public Character isForcedTyped(int glfwcode)
-	{
+	public Character isForcedTyped(int glfwcode) {
 		return forceTyped.get(glfwcode);
 	}
 
