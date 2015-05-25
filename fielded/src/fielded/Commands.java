@@ -16,17 +16,17 @@ public class Commands extends Box {
 
 
 	static public final Dict.Prop<Supplier<Map<Pair<String, String>, Runnable>>> commands = new Dict.Prop<>("commands").type()
-															   .doc("commands injected into the editor as ctrl-space menuSpecs")
+															   .doc("commands injected into the editor as ctrl-space menuSpecs. For a simpler, static, interface you might try _.command")
 															   .toCannon();
 
-	static public final Dict.Prop<IdempotencyMap<FunctionOfBox<Void>>> command = new Dict.Prop<>("command").type()
+	static public final Dict.Prop<IdempotencyMap<FunctionOfBox>> command = new Dict.Prop<>("command").type()
 													       .toCannon()
-													       .doc("commands for this box (and all boxes below)")
+													       .doc("commands for this box (and all boxes below). For example _.command.foo = function(_) bar(_)")
 													       .autoConstructs(() -> new IdempotencyMap<>(Box.FunctionOfBox.class));
 	static public final Dict.Prop<IdempotencyMap<String>> commandDoc = new Dict.Prop<>("commandDoc").type()
 													       .toCannon()
-													       .doc("documentation for commands for this box (and all boxes below)")
-													       .autoConstructs(() -> new IdempotencyMap<>(Box.FunctionOfBox.class));
+													       .doc("documentation for commands for this box (and all boxes below). For example _.commandDoc.foo = \"foos the bar\"")
+													       .autoConstructs(() -> new IdempotencyMap<>(String.class));
 
 	public LinkedHashMap<String, Runnable> callTable = new LinkedHashMap<>();
 	public RemoteEditor.ExtendedCommand callTable_alternative = null;
@@ -77,11 +77,11 @@ public class Commands extends Box {
 																.collect(Collectors.toList());
 
 
-		IdempotencyMap<FunctionOfBox<Void>> map = box
+		IdempotencyMap<FunctionOfBox> map = box
 							     .find(command, box
 									       .upwards())
-							     .reduce(new IdempotencyMap<FunctionOfBox<Void>>(FunctionOfBox.class), (a1, a2) -> {
-								     IdempotencyMap<FunctionOfBox<Void>> q = new IdempotencyMap<>(FunctionOfBox.class);
+							     .reduce(new IdempotencyMap<FunctionOfBox>(FunctionOfBox.class), (a1, a2) -> {
+								     IdempotencyMap<FunctionOfBox> q = new IdempotencyMap<>(FunctionOfBox.class);
 								     q.putAll(a1);
 								     q.putAll(a2);
 								     return q;

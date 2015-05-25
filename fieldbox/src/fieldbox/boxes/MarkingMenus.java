@@ -36,8 +36,8 @@ public class MarkingMenus extends Box {
 	static public Dict.Prop<Function<Window.Event<Window.MouseState>, MenuSpecification>> menuSpecs = new Dict.Prop<>("menuSpecs"); // TODO: comment
 
 	// easy interface
-	static public Dict.Prop<IdempotencyMap<Runnable>> menu = new Dict.Prop<>("menu").toCannon()
-											.autoConstructs(() -> new IdempotencyMap<>(Runnable.class)); // TODO: comment
+	static public Dict.Prop<IdempotencyMap<FunctionOfBox>> menu = new Dict.Prop<>("menu").toCannon()
+											.autoConstructs(() -> new IdempotencyMap<>(FunctionOfBox.class)).doc("Adds a menu item to a box at a particular direction. For example _.menu.show_something_n = function(_) { ... } will place a menu item 'show something' at the 'N' position. Note this position can get 'bumped' by other items.");
 
 
 	public MarkingMenus(Box root) {
@@ -78,15 +78,17 @@ public class MarkingMenus extends Box {
 			       .forEach(x -> {
 				       String key = x.getKey();
 				       String label = key;
-				       Runnable v = x.getValue();
+				       FunctionOfBox v = x.getValue();
 
 				       Position p = null;
 
 				       if (key.contains("_")) {
 					       String[] q = key.split("_");
-					       label = q[0];
+					       label = Arrays.asList(q).subList(0, q.length-1).stream().reduce((a,b) -> a+" "+b).get();
+
 					       try {
 						       p = Position.valueOf(q[q.length - 1].toUpperCase());
+						       if (p==null) p = Position.N;
 					       } catch (IllegalArgumentException e) {
 					       }
 				       } else {
@@ -98,7 +100,7 @@ public class MarkingMenus extends Box {
 					       tries++;
 				       }
 				       if (tries < Position.values().length)
-					       m.items.put(p, new MenuItem(label, v));
+					       m.items.put(p, new MenuItem(label, () -> v.apply(startAt)));
 			       });
 
 
