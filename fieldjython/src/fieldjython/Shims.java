@@ -17,7 +17,7 @@ public class Shims {
 
 	static public void init() {
 		{
-			PyBuiltinMethodNarrow meth = new PyBuiltinMethodNarrow("__getattr__", 1) {
+			PyBuiltinMethodNarrow meth = new PyBuiltinMethodNarrow("__getattribute__", 1) {
 				@Override
 				public PyObject __call__(PyObject key) {
 					Linker.AsMap program = Py.tojava(self, Linker.AsMap.class);

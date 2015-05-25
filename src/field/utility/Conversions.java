@@ -10,9 +10,7 @@ import field.nashorn.internal.runtime.ScriptObject;
 import field.nashorn.internal.runtime.linker.JavaAdapterFactory;
 
 import java.lang.invoke.MethodHandles;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
+import java.lang.reflect.*;
 import java.util.*;
 import java.util.function.Function;
 
@@ -226,6 +224,7 @@ public class Conversions {
 		return convert(value, Collections.singletonList(fit));
 	}
 
+
 	static public Object convert(Object value, List<Class> fit) {
 
 		Log.log("serial", "-- convert -- ", value, fit);
@@ -258,8 +257,14 @@ public class Conversions {
 
 		}
 
+		if (fit.get(0).isInterface() && value instanceof InvocationHandler)
+		{
+			return Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class[]{fit.get(0)}, (InvocationHandler)value);
+		}
+
+
 		Log.log("serial", "toString before conversion :" + value);
-		if (value instanceof ScriptObjectMirror) value = ScriptUtils.unwrap(value);
+		if (value instanceof ScriptObjectMirror) return convert(ScriptUtils.unwrap(value), fit);
 
 		Log.log("serial", "toString during conversion :" + value);
 
@@ -274,6 +279,9 @@ public class Conversions {
 				Log.log("underscore.error", " problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0), e);
 			}
 		}
+
+
+
 		Log.log("serial", "toString after conversion :" + value);
 
 		return value;
