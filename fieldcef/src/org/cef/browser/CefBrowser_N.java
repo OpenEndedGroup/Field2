@@ -64,6 +64,7 @@ abstract public class CefBrowser_N extends CefNativeAdapter implements CefBrowse
 
 	@Override
 	protected void finalize() throws Throwable {
+		System.out.println(" CEF, getting GC'd ?");
 		close();
 		super.finalize();
 	}
@@ -245,6 +246,7 @@ abstract public class CefBrowser_N extends CefNativeAdapter implements CefBrowse
 
 	@Override
 	public void close() {
+		System.out.println(" CEF, getting closed ?");
 		try {
 			N_Close();
 		} catch (UnsatisfiedLinkError ule) {

@@ -60,12 +60,12 @@ public class CefSystem {
 
 			@Override
 			public boolean doClose(CefBrowser browser) {
-				return true;
+				System.out.println("CEF : doclose"); return true;
 			}
 
 			@Override
 			public void onBeforeClose(CefBrowser browser) {
-				Log.log("cef.debug", "beforeClose "+browser);
+				System.out.println("CEF : beforedoclose"); Log.log("cef.debug", "beforeClose "+browser);
 			}
 		});
 

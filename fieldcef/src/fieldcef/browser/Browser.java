@@ -498,35 +498,36 @@ public class Browser extends Box implements IO.Loaded {
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__pullFocus__", () -> {
 
 			if (!isSelected() && !getFocus()) {
-				find(KeyboardFocus._keyboardFocus, both()).findFirst()
-									  .get()
+				getKeyboardFocus()
 									  .disclaimFocus(this);
 			} else if (properties.isTrue(Box.hidden, false)) {
-				find(KeyboardFocus._keyboardFocus, both()).findFirst()
-									  .get()
+				getKeyboardFocus()
 									  .disclaimFocus(this);
 			} else {
 
-				find(KeyboardFocus._keyboardFocus, both()).findFirst()
-									  .get()
+				getKeyboardFocus()
 									  .claimFocus(this);
 			}
 			return true;
 		});
 
 		this.properties.putToMap(Callbacks.onSelect, "__pullFocus__", (k) -> {
-			if (!(k instanceof Browser)) find(KeyboardFocus._keyboardFocus, both()).findFirst()
-											       .get()
-											       .claimFocus((Box)k);
+			if (!(k instanceof Browser)) getKeyboardFocus()
+											       .claimFocus((Box) k);
 			return null;
 		});
 
 		this.properties.putToMap(Callbacks.onDeselect, "__pullFocus__", (k) -> {
-			if (!(k instanceof Browser)) find(KeyboardFocus._keyboardFocus, both()).findFirst()
-											       .get()
-											       .disclaimFocus((Box)k);
+			if (!(k instanceof Browser)) getKeyboardFocus()
+											       .disclaimFocus((Box) k);
 			return null;
 		});
+	}
+
+	KeyboardFocus cachedFocus = null;
+	private KeyboardFocus getKeyboardFocus() {
+		return cachedFocus==null ? cachedFocus = find(KeyboardFocus._keyboardFocus, both()).findFirst()
+							  .get() : cachedFocus;
 	}
 
 	private boolean isSelected() {
@@ -729,8 +730,7 @@ public class Browser extends Box implements IO.Loaded {
 	}
 
 	public boolean getFocus() {
-		return find(KeyboardFocus._keyboardFocus, both()).findFirst()
-								 .get()
+		return getKeyboardFocus()
 								 .isFocused(this);
 	}
 
@@ -739,12 +739,10 @@ public class Browser extends Box implements IO.Loaded {
 
 		browser.setFocus(f);
 		if (f) {
-			find(KeyboardFocus._keyboardFocus, both()).findFirst()
-								  .get()
+			getKeyboardFocus()
 								  .claimFocus(this);
 		} else {
-			find(KeyboardFocus._keyboardFocus, both()).findFirst()
-								  .get()
+			getKeyboardFocus()
 								  .disclaimFocus(this);
 
 		}
