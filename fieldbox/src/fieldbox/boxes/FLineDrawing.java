@@ -113,11 +113,11 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 	static public Function<Box, FLine> windowOrigin(Function<Box, FLine> wrap) {
 		return new Cached<Box, Object, FLine>((box, previously) -> {
 
-			Rect v = box.find(Drawing.drawing, box.both()).findFirst().get().getCurrentViewBounds(box);
+			Rect v = box.find(Drawing.drawing, box.upwards()).findFirst().get().getCurrentViewBounds(box);
 
 			return wrap.apply(box)
 				   .byTransforming((pos) -> new Vec3(v.x+v.w/2+pos.x, v.y+v.h/2+pos.y, pos.z));
-		}, (box) -> box.find(Drawing.drawing, box.both()).findFirst().get().getCurrentViewBounds(box));
+		}, (box) -> box.find(Drawing.drawing, box.upwards()).findFirst().get().getCurrentViewBounds(box));
 	}
 
 
@@ -187,6 +187,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 	public void draw(Drawing context) {
 
 		Util.Errors error = new Util.Errors();
+		Optional<TextDrawing> text = first(TextDrawing.textDrawing, both());
 
 		this.breadthFirst(this.both())
 		    .forEach(Util.wrap(x -> {
@@ -213,7 +214,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 				   .map(c -> c.apply(x))
 				   .filter(fline -> fline != null)
 				   .collect(Collectors.toList())
-				   .forEach(fline -> dispatchLine(fline, context));
+				   .forEach(fline -> dispatchLine(fline, context, text));
 			    Map<String, Supplier<FLine>> ll = x.properties.computeIfAbsent(lines, (k) -> new IdempotencyMap<>(Supplier.class));
 
 			    all = new ArrayList<>();
@@ -233,7 +234,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 			      .stream()
 			      .map(c -> c.get())
 			      .filter(fline -> fline != null)
-			      .forEach(fline -> dispatchLine(fline, context));
+			      .forEach(fline -> dispatchLine(fline, context, text));
 
 
 			    Map<String, Supplier<Collection<FLine>>> bl = x.properties.get(bulkLines);
@@ -251,7 +252,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 
 				    Log.log("drawing.trace", " --> " + all);
 
-				    all.forEach(fline -> dispatchLine(fline, context));
+				    all.forEach(fline -> dispatchLine(fline, context, text));
 			    }
 			    Log.log("drawing.trace", "lines for " + x + " finished");
 
@@ -267,14 +268,13 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 		}
 	}
 
-	protected void dispatchLine(FLine fline, Drawing context) {
+	protected void dispatchLine(FLine fline, Drawing context, Optional<TextDrawing> text) {
 
 		String layerName = fline.attributes.getOr(layer, () -> "__main__");
 
 		MeshBuilder line = context.getLine(layerName);
 		MeshBuilder mesh = context.getMesh(layerName);
 		MeshBuilder points = context.getPoints(layerName);
-		Optional<TextDrawing> text = first(TextDrawing.textDrawing, both());
 
 
 		StandardFLineDrawing.dispatchLine(fline, mesh, line, points, text, layerName);
