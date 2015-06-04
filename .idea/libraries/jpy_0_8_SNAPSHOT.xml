@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="jpy-0.8-SNAPSHOT">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/fieldipython/lib/jpy-0.8-SNAPSHOT.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
