@@ -76,7 +76,6 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	}
 
 
-
 	static public String compress(String signature) {
 		signature = " " + signature;
 
@@ -260,6 +259,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 			@Override
 			protected Iterator<Box> pull() {
 				if (thisLevel.size() == 0) return null;
+
 				Set<Box> nextLevel = new LinkedHashSet<>();
 				for (Box b : thisLevel)
 					nextLevel.addAll(map.apply(b));
@@ -268,6 +268,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 				thisLevel = nextLevel;
 
 				return thisLevel.iterator();
+
 			}
 		}.reset()
 		 .stream();
@@ -309,6 +310,9 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 				.getFields();
 		for (Field ff : f)
 			r.add(ff.getName());
+
+		System.out.println(" known non properties for " + this + " is " + r);
+
 		return r;
 	}
 
@@ -322,16 +326,14 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 
 		Dict.Prop cannon = new Dict.Prop(m).toCannon();
 
-		Object ret=null;
+		Object ret = null;
 
 		if (!properties.has(cannon) && cannon.autoConstructor != null) {
 			ret = cannon.autoConstructor.get();
-			if (ret!=null)
-				properties.put(cannon, ret);
+			if (ret != null) properties.put(cannon, ret);
 
 		}
-		if (ret==null)
-			ret = Missing.findFrom(this, cannon);
+		if (ret == null) ret = Missing.findFrom(this, cannon);
 
 		if (ret instanceof Box.FunctionOfBox) {
 			final Object fret = ret;
@@ -357,7 +359,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 
 	@Override
 	public boolean asMap_delete(Object o) {
-		return Missing.delete(this, new Dict.Prop(""+o))!=null;
+		return Missing.delete(this, new Dict.Prop("" + o)) != null;
 	}
 
 	@Override
@@ -374,9 +376,6 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 //		Log.log("underscore.debug", " cannonical type information " + cannon.getTypeInformation());
 
 		Object converted = Conversions.convert(value, cannon.getTypeInformation());
-
-
-
 
 
 		Missing.setTo(this, cannon, converted);
@@ -435,7 +434,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	public Object asMap_getElement(Object element) {
 //
 //		return new XPathSupport(this).get(""+element);
-		return asMap_get(""+element);
+		return asMap_get("" + element);
 	}
 
 	@Override
@@ -565,7 +564,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 
 		@Override
 		public boolean asMap_delete(Object o) {
-			return delegateTo.asMap_delete(prefix.properties.get(IO.id)+o);
+			return delegateTo.asMap_delete(prefix.properties.get(IO.id) + o);
 		}
 
 		@Override
@@ -692,8 +691,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 
 		private BiFunction<TemplateMap<T>, Object, Object> calling;
 
-		public TemplateMap(Box startFrom, String namePrefix, Class<T> clazz, Function<Box, T> autoconstructor)
-		{
+		public TemplateMap(Box startFrom, String namePrefix, Class<T> clazz, Function<Box, T> autoconstructor) {
 			this.startFrom = startFrom;
 			this.namePrefix = namePrefix;
 			this.clazz = clazz;
@@ -721,18 +719,18 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 		public Object asMap_get(String p) {
 
 			Optional<Box> q = startFrom.breadthFirst(startFrom.upwards())
-						       .flatMap(x -> x.children()
-								      .stream()
-								      .filter(bx -> clazz.isInstance(bx) && bx.properties.getOr(Box.name, () -> "")
-															 .equals(namePrefix + ":" + p)))
-						       .findFirst();
+						   .flatMap(x -> x.children()
+								  .stream()
+								  .filter(bx -> clazz.isInstance(bx) && bx.properties.getOr(Box.name, () -> "")
+														     .equals(namePrefix + ":" + p)))
+						   .findFirst();
 
 
 			if (q.isPresent()) return q.get();
 
 			Box b = autoconstructor.apply(startFrom);
-			b.properties.put(Box.name, namePrefix+":"+p);
-			if (!clazz.isInstance(b)) throw new IllegalArgumentException(" autoconstructor didn't return an object of the correct class <"+b.getClass()+"> <"+clazz+">");
+			b.properties.put(Box.name, namePrefix + ":" + p);
+			if (!clazz.isInstance(b)) throw new IllegalArgumentException(" autoconstructor didn't return an object of the correct class <" + b.getClass() + "> <" + clazz + ">");
 
 			startFrom.connect(b);
 
