@@ -8,15 +8,16 @@ import field.utility.*;
 import fieldbox.boxes.*;
 import fieldbox.io.IO;
 
-import java.awt.*;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static field.graphics.StandardFLineDrawing.*;
+import static field.graphics.StandardFLineDrawing.strokeColor;
+import static field.graphics.StandardFLineDrawing.stroked;
 import static fieldbox.boxes.FLineDrawing.frameDrawing;
 
 /**
@@ -50,6 +51,7 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 	public DispatchBox(Box head, Box tail) {
 		this.properties.put(DispatchBox.head, new BoxRef(head));
 		this.properties.put(DispatchBox.tail, new BoxRef(tail));
+		this.properties.put(Chorder.nox, true);
 		loaded();
 	}
 
@@ -112,6 +114,9 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 			return Missing.getLog().stream().filter(p).collect(Collectors.toList());
 		});
 
+		this.properties.put(Chorder.nox, true);
+
+
 	}
 
 	protected Map<String, Function<Box, FLine>> defaultdrawsLines(Dict.Prop<Map<String, Function<Box, FLine>>> k) {
@@ -140,7 +145,7 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 			Log.log("nub", "middle is " + at);
 
 			f.attributes.put(strokeColor, selected ? new Vec4(1, 1, 1, -0.1f) : new Vec4(0, 0, 0, 0.1f));
-			if (selected) f.attributes.put(thicken, new BasicStroke(selected ? 16 : 0.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
+//			if (selected) f.attributes.put(thicken, new BasicStroke(selected ? 16 : 0.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
 
 //			f.attributes.put(filled, true);
 			f.attributes.put(stroked, true);
@@ -159,22 +164,29 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 	}
 
 	protected boolean checkForDeletion() {
-		if (head() == null || tail() == null) {
+
+
+		Box h = head();
+		Box t = tail();
+		if (h == null || t == null) {
 			Drawing.dirty(this);
 			Callbacks.delete(this);
 			this.disconnectFromAll();
 		}
 
-		if (head().parents()
-			  .size() == 0 || tail().parents()
+		Set<Box> hp = h.parents();
+		Set<Box> tp = t.parents();
+		if (hp
+			  .size() == 0 || tp
 						.size() == 0) {
 			Drawing.dirty(this);
 			Callbacks.delete(this);
 			this.disconnectFromAll();
 		}
+		Set<Box> hc = h.children();
 
-		if (!head().children()
-			   .contains(tail())) {
+		if (!hc
+			   .contains(t)) {
 			Drawing.dirty(this);
 			Callbacks.delete(this);
 			this.disconnectFromAll();
@@ -184,11 +196,13 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 	}
 
 	protected boolean updateFrameToMiddle() {
-		if (head() == null) return false;
-		if (tail() == null) return false;
+		Box hb = head();
+		Box tb = tail();
+		if (hb == null) return false;
+		if (tb == null) return false;
 
-		Rect h = head().properties.get(frame);
-		Rect t = tail().properties.get(frame);
+		Rect h = hb.properties.get(frame);
+		Rect t = tb.properties.get(frame);
 
 		if (h == null || t == null) return false;
 

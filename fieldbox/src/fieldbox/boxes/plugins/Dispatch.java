@@ -50,16 +50,16 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 								    Box.hidden, false))
 							.forEach(x -> {
 
+								int n = 0;
 								for (Box x2 : x.children()) {
 									if (x2.properties.has(
 										    Box.frame)) {
 
 										ensureBox(x, x2);
 
-//								    FLine m = arc(x.properties.get(Box.frame), x2.properties.get(Box.frame), false).first;
-//								    if (f.nodes.size() == 0) f.attributes.putAll(m.attributes);
-//								    f.nodes.addAll(m.nodes);
+										if (n++>25) break; // TODO: indicate that we're giving up making boxes for things with more than 25 children
 									}
+
 								}
 
 							});
@@ -77,11 +77,13 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 					    .filter(x -> x.properties.isTrue(Mouse.isSelected, false))
 					    .forEach(x -> {
 
+						    int n = 0;
 						    for (Box x2 : x.children()) {
 							    if (x2.properties.has(Box.frame)) {
 								    FLine m = arc(x.properties.get(Box.frame), x2.properties.get(Box.frame), true).first;
 								    if (f.nodes.size() == 0) f.attributes.putAll(m.attributes);
 								    f.nodes.addAll(m.nodes);
+								    if (n++>25) break; // TODO: indicate that we're giving up making boxes for things with more than 25 children
 							    }
 						    }
 
@@ -90,6 +92,7 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 								    FLine m = arc(x2.properties.get(Box.frame), x.properties.get(Box.frame), true).first;
 								    if (f.nodes.size() == 0) f.attributes.putAll(m.attributes);
 								    f.nodes.addAll(m.nodes);
+								    if (n++>25) break; // TODO: indicate that we're giving up making boxes for things with more than 25 children
 							    }
 						    }
 					    });
@@ -205,7 +208,6 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 		{
 			DispatchBox db = new DispatchBox(start, box);
 			root.connect(db);
-
 		}
 	}
 
@@ -310,10 +312,10 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 		f = FLinesAndJavaShapes.javaShapeToFLine(r1);
 
 		f.attributes.put(fillColor, selected ? new Vec4(0, 0, 0, 1.0f * o) : new Vec4(0, 0, 0, 0.25f * o));
-		f.attributes.put(strokeColor, selected ? new Vec4(0, 0, 0, 0.15f * o) : new Vec4(0, 0, 0, 0.1f * o));
-		f.attributes.put(thicken, new BasicStroke(selected ? 2.25f : 1.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
+		f.attributes.put(strokeColor, selected ? new Vec4(0, 0, 0, 1.0f * o) : new Vec4(0, 0, 0, 0.25f * o));
+//		f.attributes.put(thicken, new BasicStroke(selected ? 3.25f : 1.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
 
-		f.attributes.put(filled, true);
+//		f.attributes.put(filled, true);
 		f.attributes.put(stroked, true);
 
 		return new Pair<>(f, midpoint);
