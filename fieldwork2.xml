@@ -34,6 +34,7 @@
     <exclude name="**/__pycache__/**"/>
     <exclude name="**/.bundle/**"/>
     <exclude name="**/*.rbc/**"/>
+    <exclude name="**/*.orig/**"/>
   </patternset>
   <patternset id="library.patterns">
     <include name="*.zip"/>
@@ -133,6 +134,10 @@
   
   <path id="library.jpen-2.classpath">
     <pathelement location="${basedir}/lib/jpen-2.jar"/>
+  </path>
+  
+  <path id="library.jpy-0.8-snapshot.classpath">
+    <pathelement location="${basedir}/fieldipython/lib/jpy-0.8-SNAPSHOT.jar"/>
   </path>
   
   <path id="library.jython-standalone-2.7-b3.classpath">

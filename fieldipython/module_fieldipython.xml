@@ -21,6 +21,7 @@
     <pathelement location="${fieldwork2.output.dir}"/>
     <pathelement location="${fieldlinker.output.dir}"/>
     <path refid="library.nashorn-local.classpath"/>
+    <path refid="library.jpy-0.8-snapshot.classpath"/>
   </path>
   
   <path id="fieldipython.runtime.production.module.classpath">
@@ -29,6 +30,7 @@
     <path refid="fieldwork2.runtime.production.module.classpath"/>
     <path refid="fieldlinker.runtime.production.module.classpath"/>
     <path refid="library.nashorn-local.classpath"/>
+    <path refid="library.jpy-0.8-snapshot.classpath"/>
   </path>
   
   <path id="fieldipython.module.classpath">
@@ -40,6 +42,7 @@
     <pathelement location="${fieldlinker.testoutput.dir}"/>
     <pathelement location="${fieldlinker.output.dir}"/>
     <path refid="library.nashorn-local.classpath"/>
+    <path refid="library.jpy-0.8-snapshot.classpath"/>
   </path>
   
   <path id="fieldipython.runtime.module.classpath">
@@ -49,6 +52,7 @@
     <path refid="fieldwork2.runtime.module.classpath"/>
     <path refid="fieldlinker.runtime.module.classpath"/>
     <path refid="library.nashorn-local.classpath"/>
+    <path refid="library.jpy-0.8-snapshot.classpath"/>
   </path>
   
   
