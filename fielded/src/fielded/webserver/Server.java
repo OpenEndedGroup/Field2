@@ -120,6 +120,7 @@ public class Server {
 			public void onClose(WebSocket webSocket, int i, String s, boolean b) {
 				Log.log("remote.trace", " websocket closed " + i + " " + s + " " + b);
 				synchronized (knownSockets) {
+					System.out.println(" WEBSOCKET CLOSED ");
 					knownSockets.values().remove(webSocket);
 				}
 			}

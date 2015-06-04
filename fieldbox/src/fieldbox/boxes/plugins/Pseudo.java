@@ -63,6 +63,8 @@ public class Pseudo extends Box {
 	static public Dict.Prop<FunctionOfBoxValued<Replacer>> replace = new Dict.Prop<FunctionOfBoxValued<Replacer>>("replace").doc(
 		    "_.replace.x = 10 replaces the value of 'x' where it is found (e.g. here or some parent).")
 																.toCannon()
+//	static public Dict.Prop<FunctionOfBoxValued<Ref>> replace = new Dict.Prop<FunctionOfBoxValued<Ref>>("ref").doc(
+//		    "_.ref.x is equivalent to function(){ return _.x }");
 																.type();
 
 

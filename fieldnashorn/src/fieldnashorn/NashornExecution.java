@@ -53,13 +53,10 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 	@Override
 	public void executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors) {
-		if (suffix.equals("print"))
-		{
-			executeAndReturn("print("+textFragment+")", lineErrors, success, false);
+		if (suffix.equals("print")) {
+			executeAndReturn("print(" + textFragment + ")", lineErrors, success, false);
 
-		}
-		else
-			executeAndReturn(textFragment, lineErrors, success, false);
+		} else executeAndReturn(textFragment, lineErrors, success, false);
 	}
 
 	protected void executeAndReturn(String textFragment, Consumer<Pair<Integer, String>> lineErrors, final Consumer<String> success, boolean printResult) {
@@ -140,7 +137,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	}
 
 	private void handleScriptException(Throwable e, Consumer<Pair<Integer, String>> lineErrors) {
-		System.out.println(" handling exception to :"+lineErrors);
+		System.out.println(" handling exception to :" + lineErrors);
 		if (e instanceof ScriptException) {
 			lineErrors.accept(new Pair<>(((ScriptException) e).getLineNumber(), e.getMessage()));
 			e.printStackTrace();
@@ -164,12 +161,12 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	}
 
 	private Object engineeval(String textFragment, ScriptContext context, Consumer<Throwable> exception) throws ScriptException {
-		if (ThreadSync.enabled && Thread.currentThread()==ThreadSync.get().mainThread) {
+		if (ThreadSync.enabled && Thread.currentThread() == ThreadSync.get().mainThread) {
 			try {
 				ThreadSync.Fiber f = ThreadSync.get()
-							      .run(() -> {
-								      return engine.eval(textFragment, context);
-							      }, exception);
+							       .run(() -> {
+								       return engine.eval(textFragment, context);
+							       }, exception);
 				f.tag = box;
 				return f.lastReturn;
 
@@ -199,7 +196,8 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	public String begin(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success, Map<String, Object> initiator) {
 		context.setAttribute("_r", null, ScriptContext.ENGINE_SCOPE);
 
-		initiator.entrySet().forEach(x -> context.setAttribute(x.getKey(), x.getValue(), ScriptContext.ENGINE_SCOPE));
+		initiator.entrySet()
+			 .forEach(x -> context.setAttribute(x.getKey(), x.getValue(), ScriptContext.ENGINE_SCOPE));
 
 		String allText = DisabledRangeHelper.getStringWithDisabledRanges(box, property, "/*", "*/");
 

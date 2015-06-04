@@ -78,7 +78,7 @@ public class Linker implements GuardingDynamicLinker, GuardingTypeConverterFacto
 
 			if (rec instanceof AsMap && ((AsMap) rec).asMap_isProperty(propertyName)) {
 
-				System.err.println(" linking AsMap/get " + rec);
+				System.err.println(" linking AsMap/get 2" + rec);
 				MethodHandle get = MethodHandles.lookup()
 								.findVirtual(rec.getClass(), "asMap_get", MethodType.methodType(Object.class, String.class));
 
@@ -150,7 +150,7 @@ public class Linker implements GuardingDynamicLinker, GuardingTypeConverterFacto
 
 			if (rec instanceof AsMap && ((AsMap) rec).asMap_isProperty(propertyName)) {
 
-				System.err.println(" linking AsMap/get " + rec);
+				System.err.println(" linking AsMap/get 1" + rec+" admits to property "+propertyName);
 				MethodHandle get = MethodHandles.lookup()
 								.findVirtual(rec.getClass(), "asMap_get", MethodType.methodType(Object.class, String.class));
 
