@@ -1,5 +1,6 @@
 package field.app;
 
+import com.apple.eawt.*;
 import field.graphics.Scene;
 
 import java.util.*;
@@ -15,18 +16,20 @@ import java.util.concurrent.locks.ReentrantLock;
 public class RunLoop {
 
 	static public final RunLoop main = new RunLoop();
-	static public long tick = 0;
-
 	static public final ReentrantLock lock = new ReentrantLock(true);
-
-	public Scene mainLoop = new Scene();
-	Thread mainThread = null;
-	static public final ExecutorService workerPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 2);
-
+	static public final ExecutorService workerPool = Executors.newFixedThreadPool(Runtime.getRuntime()
+											     .availableProcessors() + 2);
+	static public long tick = 0;
 	protected final Thread shutdownThread;
+	public Scene mainLoop = new Scene();
+	public Set<Object> shouldSleep = Collections.synchronizedSet(new LinkedHashSet<>());
+	Thread mainThread = null;
+	List<Runnable> onExit = new LinkedList<>();
+	AtomicBoolean exitStarted = new AtomicBoolean(false);
 
 	protected RunLoop() {
-		Runtime.getRuntime().addShutdownHook(shutdownThread = new Thread(() -> exit()));
+		Runtime.getRuntime()
+		       .addShutdownHook(shutdownThread = new Thread(() -> exit()));
 	}
 
 	public Scene getLoop() {
@@ -37,21 +40,28 @@ public class RunLoop {
 		return Thread.currentThread() == mainThread;
 	}
 
-	public Set<Object> shouldSleep = Collections.synchronizedSet(new LinkedHashSet<>());
-
 	public void enterMainLoop() {
 		mainThread = Thread.currentThread();
+
+		Application.getApplication().setQuitStrategy(QuitStrategy.SYSTEM_EXIT_0);
+		Application.getApplication().setQuitHandler(new QuitHandler() {
+			@Override
+			public void handleQuitRequestWith(AppEvent.QuitEvent quitEvent, QuitResponse quitResponse) {
+				exit();
+			}
+		});
+
 		while (true) {
 			try {
 				tick++;
 
 				if (lock.tryLock(1, TimeUnit.DAYS)) {
 					mainLoop.updateAll();
-					ThreadSync.get().serviceAndCull();
+					ThreadSync.get()
+						  .serviceAndCull();
 				} else {
 				}
-				if (shouldSleep.size()==0)
-					Thread.sleep(2);
+				if (shouldSleep.size() == 0) Thread.sleep(2);
 			} catch (Throwable t) {
 				System.err.println(" exception thrown in main loop");
 				t.printStackTrace();
@@ -92,10 +102,6 @@ public class RunLoop {
 		});
 	}
 
-
-	List<Runnable> onExit = new LinkedList<>();
-	AtomicBoolean exitStarted = new AtomicBoolean(false);
-
 	public void exit() {
 		try {
 			if (exitStarted.compareAndSet(false, true)) {
@@ -109,6 +115,11 @@ public class RunLoop {
 				}
 				if (Thread.currentThread() != shutdownThread) System.exit(0);
 			}
+//			System.err.println(":: halting now");
+//			System.exit(0);
+//
+//			Thread.sleep(1000);
+//			Runtime.getRuntime().halt(0);
 		} catch (Throwable t) {
 			System.err.println(" unexpected exception thrown during exit ");
 			t.printStackTrace();
