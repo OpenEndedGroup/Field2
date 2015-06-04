@@ -22,8 +22,14 @@ import java.util.stream.Stream;
  */
 public class DragToCopy extends Box {
 
+	static public final Dict.Prop<FunctionOfBox<Box>> duplicate = new Dict.Prop<FunctionOfBox<Box>>("duplicate").toCannon().doc("duplicates a box (and all of it's properties)");
+
 	public DragToCopy(Box root)
 	{
+		this.properties.put(duplicate, x -> {
+			List<Box> o = duplicateGroup(Collections.singletonList(x));
+			return o.get(0);
+		});
 		this.properties.putToMap(Mouse.onMouseDown, "__dragToCopy__", (e, button)->{
 
 			if (button==0 && e.after.keyboardState.isSuperDown() && e.after.keyboardState.isShiftDown() && selection().findAny().isPresent())
