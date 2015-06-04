@@ -3,6 +3,7 @@ package fieldbox.boxes;
 import field.graphics.FLine;
 import field.linalg.Vec4;
 import field.utility.*;
+import fieldbox.boxes.plugins.Chorder;
 import fieldbox.boxes.plugins.Initiators;
 import fieldbox.execution.Execution;
 import fieldlinker.Linker;
@@ -35,8 +36,8 @@ public class TimeSlider extends Box {
 	int width = 20;
 
 	public TimeSlider() {
-		this.properties.putToMap(Boxes.insideRunLoop, "main.__swipe__", this::swiper);
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__force_onscreen__", this::forceOnscreen);
+		this.properties.putToMap(Boxes.insideRunLoop, "main.__swipe__", this::swiper);
 
 		properties.put(frame, new Rect(0, 0, width, 5000));
 
@@ -55,7 +56,7 @@ public class TimeSlider extends Box {
 			was = this.properties.get(frame).duplicate();
 		} else {
 			Rect now = this.properties.get(frame);
-			if (now.x == was.w) {
+			if (now.x == was.x) {
 
 			} else {
 				perform(was, now);
@@ -68,6 +69,8 @@ public class TimeSlider extends Box {
 
 	protected boolean forceOnscreen() {
 		Rect f = properties.get(frame);
+
+		if (was!=null && was.equals(f)) return true;
 
 		Rect w = f.inset(0);
 
@@ -132,9 +135,12 @@ public class TimeSlider extends Box {
 	public List<Box> intersectsWith()
 	{
 		Rect now = properties.get(frame);
-		return population()
-			    .filter(x -> x.properties.get(frame)
-						      .intersectsX(now.x)).collect(Collectors.toList());
+		List<Box> nx = population().filter(x -> !x.properties.isTrue(Chorder.nox, false))
+						.filter(x -> x.properties.get(frame)
+									 .intersectsX(now.x))
+						.collect(Collectors.toList());
+
+		return nx;
 	}
 
 	/**
@@ -164,8 +170,8 @@ public class TimeSlider extends Box {
 	protected void skipBackward(Stream<Box> skipBackward) {
 		skipBackward.forEach(b -> {
 			Log.log("debug.execution", " -- backward :"+b);
-			b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).begin(b, initiator(b)));
-			b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).end(b));
+//			b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).begin(b, initiator(b)));
+//			b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).end(b));
 		});
 
 	}
@@ -175,7 +181,7 @@ public class TimeSlider extends Box {
 	 * timeslider's first parent that have Manipulation.frames that aren't this box --- i.e. all the siblings of this box
 	 */
 	protected Stream<Box> population() {
-		return parents().iterator().next().breadthFirst(this.downwards()).filter(x -> x.properties.has(frame)).filter(x -> x != this);
+		return parents().iterator().next().breadthFirst(this.downwards()).filter(x -> !x.properties.isTrue(Chorder.nox, false)).filter(x -> x.properties.has(frame)).filter(x -> x != this);
 	}
 
 	protected Map<String, Function<Box, FLine>> defaultdrawsLines(Dict.Prop<Map<String, Function<Box, FLine>>> k) {
