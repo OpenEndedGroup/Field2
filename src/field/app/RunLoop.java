@@ -1,6 +1,5 @@
 package field.app;
 
-import com.apple.eawt.*;
 import field.graphics.Scene;
 
 import java.util.*;
@@ -43,13 +42,7 @@ public class RunLoop {
 	public void enterMainLoop() {
 		mainThread = Thread.currentThread();
 
-		Application.getApplication().setQuitStrategy(QuitStrategy.SYSTEM_EXIT_0);
-		Application.getApplication().setQuitHandler(new QuitHandler() {
-			@Override
-			public void handleQuitRequestWith(AppEvent.QuitEvent quitEvent, QuitResponse quitResponse) {
-				exit();
-			}
-		});
+
 
 		while (true) {
 			try {
