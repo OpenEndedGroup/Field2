@@ -2,10 +2,14 @@ package field.utility;
 
 import field.linalg.Vec2;
 
+import java.io.Serializable;
+
 /**
  * A 2D Rectangle
  */
-public class Rect implements Mutable<Rect> {
+public class Rect implements Mutable<Rect>, Serializable {
+	private static final long serialVersionUID = 1L;
+
 
 	public float x;
 	public float y;
