@@ -34,7 +34,7 @@ public interface ArrayBuffer {
 	 */
 	public int getAttribute();
 
-	/**
+	/**e
 	 * the dimensionality of each element (between 1 and 4 inclusive).
 	 */
 	public int getDimension();
@@ -72,7 +72,7 @@ public interface ArrayBuffer {
 	public ArrayBuffer replaceWithSize(int size);
 
 	/**
-	 * Causes the graphics system to ultimately reliquish OpenGL resources associated with this buffer
+	 * Causes the graphics system to ultimately relinquish OpenGL resources associated with this buffer
 	 */
 	public void destroy();
 
