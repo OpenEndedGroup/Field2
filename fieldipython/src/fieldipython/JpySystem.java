@@ -36,7 +36,12 @@ public class JpySystem implements Linker.AsMap {
 			PyModule mainModule = PyModule.importModule("__main__");
 			mainModule.setAttribute("__field__", JpySystem.this);
 
-			PyLib.execScript("IPython.embed_kernel()");
+
+			System.out.println(" -- init config -- ");
+			PyLib.execScript("c = IPython.Config()");
+			PyLib.execScript("c.Session.key=b''");
+			PyLib.execScript("IPython.start_kernel(user_ns=globals(), config=c)");
+			System.out.println(" -- lanched config -- ");
 		});
 		thread.start();
 		f.get();
