@@ -1,6 +1,7 @@
 package fieldipython;
 
 import field.app.RunLoop;
+import field.utility.Log;
 import fieldbox.boxes.Box;
 import fieldlinker.Linker;
 import fieldnashorn.annotations.HiddenInAutocomplete;
@@ -27,26 +28,40 @@ public class JpySystem implements Linker.AsMap {
 	public JpySystem(Box readFrom, Box writeTo) throws ExecutionException, InterruptedException {
 		this.readFrom = readFrom;
 		this.writeTo = writeTo;
+
+		String foundJpyLib = Thread.currentThread()
+				    .getContextClassLoader()
+				    .getResource("jpy.so")
+				    .getFile();
+		System.setProperty("jpy.jpyLib", foundJpyLib);
+		String foundJdlLib = Thread.currentThread()
+					   .getContextClassLoader()
+					   .getResource("jdl.so")
+					   .getFile();
+		System.setProperty("jpy.jdlLib", foundJdlLib);
+
+		Log.log("jpy", () -> " found libraries at :" + foundJdlLib + " / " + foundJpyLib);
+
 		CompletableFuture f = new CompletableFuture();
 		thread = new Thread(() -> {
 			PyLib.startPython();
 			PyLib.execScript("import IPython");
-			f.complete(true);
 
 			PyModule mainModule = PyModule.importModule("__main__");
 			mainModule.setAttribute("__field__", JpySystem.this);
 
 
-			System.out.println(" -- init config -- ");
+			System.out.println(" -- init jpy/ipython -- ");
 			PyLib.execScript("c = IPython.Config()");
 			PyLib.execScript("c.Session.key=b''");
+			f.complete(true);
 			PyLib.execScript("IPython.start_kernel(user_ns=globals(), config=c)");
-			System.out.println(" -- lanched config -- ");
+			System.out.println(" -- launched jpy/ipython  -- ");
 		});
 		thread.start();
 		f.get();
 
-		// embed_kernel never returns, but we do need it to run
+		// start_kernel never returns, but we do need it to run
 		Thread.sleep(1000);
 
 		RunLoop.main.onExit(thread::stop);
