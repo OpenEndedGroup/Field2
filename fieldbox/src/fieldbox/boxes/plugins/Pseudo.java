@@ -5,6 +5,7 @@ import field.utility.Dict;
 import field.utility.IdempotencyMap;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Boxes;
+import fieldbox.boxes.XPathSupport;
 import fieldlinker.Linker.AsMap;
 
 import java.util.ArrayList;
@@ -68,6 +69,9 @@ public class Pseudo extends Box {
 																.type();
 
 
+	static public Dict.Prop<FunctionOfBoxValued<XPath>> query = new Dict.Prop<>("query").toCannon().type();
+	static public Dict.Prop<FunctionOfBoxValued<Namer>> named = new Dict.Prop<>("named").toCannon().type();
+
 	public Pseudo(Box r) {
 		this.properties.put(where, First::new);
 		this.properties.put(all, All::new);
@@ -79,6 +83,8 @@ public class Pseudo extends Box {
 		this.properties.put(peek, Peek::new);
 		this.properties.put(yieldUntil, Until::new);
 		this.properties.put(replace, Replacer::new);
+		this.properties.put(query, XPath::new);
+		this.properties.put(named, Namer::new);
 
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__next__", () -> {
 			r.breadthFirst(r.downwards())
@@ -91,6 +97,131 @@ public class Pseudo extends Box {
 			 });
 			return true;
 		});
+	}
+
+	static public class Namer implements AsMap
+	{
+
+		private final Box on;
+
+		public Namer(Box on)
+		{
+			this.on = on;
+		}
+		@Override
+		public boolean asMap_isProperty(String s) {
+			return true;
+		}
+
+		@Override
+		public Object asMap_call(Object o, Object o1) {
+			return asMap_getElement(o1);
+		}
+
+		@Override
+		public Object asMap_getElement(Object element) {
+			return asMap_get(element+"");
+		}
+
+		@Override
+		public Object asMap_setElement(int element, Object o) {
+			return null;
+		}
+
+		@Override
+		public Object asMap_get(String p) {
+			return on.breadthFirst(on.downwards()).filter(x -> x.properties.has(Box.name)).filter(x -> x.properties.get(Box.name).matches(p)).collect(Collectors.toList());
+		}
+
+		@Override
+		public Object asMap_set(String p, Object val) {
+			return null;
+		}
+
+
+		@Override
+		public Object asMap_new(Object a) {
+			return null;
+		}
+
+		@Override
+		public Object asMap_new(Object a, Object b) {
+			return null;
+		}
+
+		@Override
+		public Object asMap_getElement(int element) {
+			return asMap_get(""+element);
+		}
+
+		@Override
+		public boolean asMap_delete(Object o) {
+			return false;
+		}
+	}
+
+	static public class XPath implements AsMap
+	{
+
+		private final Box on;
+		private final XPathSupport support;
+
+		public XPath(Box on)
+		{
+			this.on = on;
+			this.support = new XPathSupport(on);
+		}
+		@Override
+		public boolean asMap_isProperty(String s) {
+			return true;
+		}
+
+		@Override
+		public Object asMap_call(Object o, Object o1) {
+			return asMap_getElement(o1);
+		}
+
+		@Override
+		public Object asMap_getElement(Object element) {
+			return asMap_get(element+"");
+		}
+
+		@Override
+		public Object asMap_setElement(int element, Object o) {
+			return null;
+		}
+
+		@Override
+		public Object asMap_get(String p) {
+			return support.get(p);
+		}
+
+		@Override
+		public Object asMap_set(String p, Object val) {
+			support.set(p, val);
+			return null;
+		}
+
+
+		@Override
+		public Object asMap_new(Object a) {
+			return null;
+		}
+
+		@Override
+		public Object asMap_new(Object a, Object b) {
+			return null;
+		}
+
+		@Override
+		public Object asMap_getElement(int element) {
+			return asMap_get(""+element);
+		}
+
+		@Override
+		public boolean asMap_delete(Object o) {
+			return false;
+		}
 	}
 
 	static public class First implements AsMap {
