@@ -37,6 +37,7 @@ import static fieldbox.boxes.FLineDrawing.*;
  */
 public class RemoteEditor extends Box {
 
+	static public final Dict.Prop<EditorUtils> editorUtils = new Dict.Prop<EditorUtils>("editorUtils").toCannon().doc("utility class for manipulating the editor at a high level");
 
 	static public final Dict.Prop<Supplier<Map<Pair<String, String>, Runnable>>> hotkeyCommands = new Dict.Prop<>("hotkeyCommands").type()
 																       .doc("commands injected into the editor as hotkey menuSpecs")
@@ -110,7 +111,7 @@ public class RemoteEditor extends Box {
 		this.properties.put(editor, this);
 
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__watch_service__", (Supplier<Boolean>) this::update);
-
+		this.properties.put(editorUtils, new EditorUtils(this));
 
 		watches.addWatch(Mouse.isSelected, "selection.changed");
 		watches.addWatch(LinuxWindowTricks.lostFocus, "focus.editor");
@@ -988,13 +989,23 @@ public class RemoteEditor extends Box {
 	}
 
 	/**
-	 * A general purpose Send some JavaScript to a text editor call
+	 * A general purpose Send some JavaScript to a text editor call. This is queued to run inside the animation cycle, and thus is thread-safe.
 	 */
 	public void sendJavaScript(String javascript) {
 		Log.log("javascript.trace", ">>>Sending javascript");
 		Log.log("javascript.trace", javascript);
 		Log.log("javascript.trace", "<<<Sentjavascript");
 		server.send(socketName, javascript);
+	}
+
+	/**
+	 * A general purpose Send some JavaScript to a text editor call, doesn't queue it inside the animation cycle, this must be called from the main thread, or a blocking ThreadSync thread
+	 */
+	public void sendJavaScriptNow(String javascript) {
+		Log.log("javascript.trace", ">>>Sending javascript");
+		Log.log("javascript.trace", javascript);
+		Log.log("javascript.trace", "<<<Sentjavascript");
+		server.broadcast(javascript);
 	}
 
 	/**
