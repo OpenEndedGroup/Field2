@@ -16,6 +16,7 @@ import fieldbox.io.IO;
 import fielded.Animatable;
 import fielded.DisabledRangeHelper;
 import fielded.RemoteEditor;
+import fieldnashorn.babel.SourceTransformer;
 
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
@@ -27,12 +28,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
  * An implementation of Execution.ExecutionSupport for Nashorn/Javascript
  */
 public class NashornExecution implements Execution.ExecutionSupport {
+
+	static public final Dict.Prop<SourceTransformer> sourceTransformer = new Dict.Prop<SourceTransformer>("sourceTransformer").doc("an instanceof of a SourceTransformer that will take the source code here and transform it into JavaScript. This allows things like Babel.js to be used in Field").toCannon();
 
 	private final Dict.Prop<String> property;
 	private final Box box;
@@ -59,6 +63,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 		} else executeAndReturn(textFragment, lineErrors, success, false);
 	}
 
+	Function<Integer, Integer> lineTransform;
 	protected void executeAndReturn(String textFragment, Consumer<Pair<Integer, String>> lineErrors, final Consumer<String> success, boolean printResult) {
 
 		try {
@@ -110,7 +115,29 @@ public class NashornExecution implements Execution.ExecutionSupport {
 			textFragment = prefix + textFragment + (filename == null ? "" : ("//# sourceURL=" + filename));
 
 
-			Object ret = engineeval(textFragment, context, e -> handleScriptException(e, lineErrors));
+			//TODO: should be find?
+			SourceTransformer st = box.properties.get(sourceTransformer);
+
+
+			if (st!=null)
+			{
+				try{
+					Pair<String, Function<Integer, Integer>> transformation = st.transform(textFragment);
+					textFragment = transformation.first;
+					lineTransform = transformation.second;
+				}
+				catch(SourceTransformer.TranslationFailedException t)
+				{
+					lineErrors.accept(new Pair<>(-1, t.getMessage()));
+					return;
+				}
+			}
+			else
+			{
+				lineTransform = x -> x;
+			}
+
+			Object ret = engineeval(textFragment, context, e -> handleScriptException(e, lineErrors, lineTransform));
 
 			Log.log("nashorn.general", () -> "\n<<javascript out" + ret + " " + (ret != null ? ret.getClass() + "" : ""));
 			if (writer != null) writer.flush();
@@ -125,9 +152,9 @@ public class NashornExecution implements Execution.ExecutionSupport {
 			RemoteEditor.boxFeedback(Optional.of(box), new Vec4(0.3f, 0.7f, 0.3f, 0.5f));
 
 		} catch (ScriptException e) {
-			handleScriptException(e, lineErrors);
+			handleScriptException(e, lineErrors, lineTransform);
 		} catch (Throwable t) {
-			handleScriptException(t, lineErrors);
+			handleScriptException(t, lineErrors, x -> x);
 
 		} finally {
 			lineOffset = 0;
@@ -136,10 +163,10 @@ public class NashornExecution implements Execution.ExecutionSupport {
 		}
 	}
 
-	private void handleScriptException(Throwable e, Consumer<Pair<Integer, String>> lineErrors) {
+	private void handleScriptException(Throwable e, Consumer<Pair<Integer, String>> lineErrors, Function<Integer, Integer> lineTransform) {
 		System.out.println(" handling exception to :" + lineErrors);
 		if (e instanceof ScriptException) {
-			lineErrors.accept(new Pair<>(((ScriptException) e).getLineNumber(), e.getMessage()));
+			lineErrors.accept(new Pair<>(lineTransform.apply(  ((ScriptException) e).getLineNumber()), e.getMessage()));
 			e.printStackTrace();
 		} else {                        // let's see if we can't scrape a line number out of the exception stacktrace
 			StackTraceElement[] s = e.getStackTrace();
@@ -148,7 +175,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 				for (int i = 0; i < s.length; i++) {
 					if (s[i].getFileName() != null && s[i].getFileName()
 									      .startsWith("bx[")) {
-						lineErrors.accept(new Pair<>(s[i].getLineNumber(), e.getMessage()));
+						lineErrors.accept(new Pair<>(lineTransform.apply(s[i].getLineNumber()), e.getMessage()));
 						found = true;
 					}
 				}
