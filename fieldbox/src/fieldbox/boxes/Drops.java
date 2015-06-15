@@ -27,11 +27,7 @@ public class Drops {
 		Vec2 point = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(drop.after.position().get().x, drop.after.position().get().y)))
 				    .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
 
-		Box startAt = root.breadthFirst(root.both())
-				  .filter(x -> intersectsWith(x, point))
-				  .findFirst()
-				  .orElseGet(() -> selection(root));
-
+		Box startAt = Intersects.startAt(drop.after.mouseState, root);
 
 		System.out.println(" drop start at is :"+startAt);
 
