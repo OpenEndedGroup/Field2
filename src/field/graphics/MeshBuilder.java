@@ -23,102 +23,24 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	static public int cacheMisses_externalHash = 0;
 	static public int cacheMisses_internalHash = 0;
 	static public int cacheMisses_tooOld = 0;
-
-
-	public class Bookmark {
-		protected int vertexCursor = MeshBuilder.this.vertexCursor;
-		protected int elementCursor = MeshBuilder.this.elementCursor;
-		protected long buildNumber = MeshBuilder.this.buildNumber;
-
-		protected Object hash = computeHash();
-		public Object externalHash;
-
-
-		public int at() {
-			return MeshBuilder.this.vertexCursor - vertexCursor;
-		}
-
-		public boolean stillValid() {
-			return stillValid(null);
-		}
-
-		public boolean stillValid(Object externalHash) {
-
-			if (buildNumber<MeshBuilder.this.buildNumber-1) {
-					Log.log("cache", () -> " buildNumber, build was out of date "+buildNumber+" "+MeshBuilder.this.buildNumber);
-				cacheMisses_tooOld++;
-				return false;
-			}
-
-			this.buildNumber = MeshBuilder.this.buildNumber;
-
-				Log.log("cache", "evaluating cache " + MeshBuilder.this.vertexCursor + " / " + vertexCursor + "  " + MeshBuilder.this.elementCursor + " / " + elementCursor + " " + this.externalHash + "=" + externalHash + " " + computeHash() + "=" + this.hash);
-
-			if (MeshBuilder.this.vertexCursor != vertexCursor || MeshBuilder.this.elementCursor != elementCursor) {
-					Log.log("cache", () -> " CURSORS vertex cursor was :" + vertexCursor + " / " + MeshBuilder.this.vertexCursor + "  " + elementCursor + " / " + MeshBuilder.this.elementCursor);
-				cacheMisses_cursor++;
-				return false;
-			}
-			if (!Util.safeEq(this.externalHash, externalHash)) {
-					Log.log("cache", () -> " externalHash " + this.externalHash + " " + externalHash);
-				cacheMisses_externalHash++;
-				return false;
-			}
-
-			Object h2 = computeHash();
-			if (!h2.equals(hash)) {
-	Log.log("cache", () -> " internalHash " + h2 + " " + hash);
-				cacheMisses_internalHash++;
-				return false;
-			}
-			cacheHits++;
-			 Log.log("cache", "succeeded");
-			return true;
-		}
-
-		public Bookmark reset() {
-			return reset(null);
-		}
-
-		public Bookmark reset(Object externalHash) {
-			vertexCursor = MeshBuilder.this.vertexCursor;
-			elementCursor = MeshBuilder.this.elementCursor;
-			hash = computeHash();
-			this.externalHash = externalHash;
-			return this;
-		}
-
-		public String toString() {
-			return "book@" + at() + " :" + vertexCursor + " " + elementCursor;
-		}
-
-		public Bookmark invalidate() {
-			externalHash = "--invalidated--";
-			return this;
-		}
-
-		public MeshBuilder getOuter() {
-			return MeshBuilder.this;
-		}
-	}
-
-	private BaseMesh target;
 	static public float GROWTH = 1.5f;
+	int openCount = 0;
+	long buildNumber = 0;
+	// no shrinking yet, but when we do, we have to kill all bookmarks (at least all bookmarks above the trim line, which is impossible to compute right now)
+	int shrinkage = 0;
+	int vertexCursor = 0;
+	int elementCursor = 0;
+	Map<Integer, float[]> aux = new HashMap<Integer, float[]>();
+	MeshBuilder_tesselationSupport tessSupport = null;
+	private BaseMesh target;
 
 	public MeshBuilder(BaseMesh target) {
 		this.target = target;
 	}
 
-	int openCount = 0;
-	long buildNumber = 0;
-
-	// no shrinking yet, but when we do, we have to kill all bookmarks (at least all bookmarks above the trim line, which is impossible to compute right now)
-	int shrinkage = 0;
-
 	/**
-	 * opens a MeshBuilder to get it ready for accepting geometry. The first call to open() will clear out all the geometry that was previously in
-	 * this container. Nested calls to open() without a corresponding call to close() will append. Make sure that there's a matching close() for
-	 * every open() (i.e. learn how to use try-with-resources and try-finally blocks)
+	 * opens a MeshBuilder to get it ready for accepting geometry. The first call to open() will clear out all the geometry that was previously in this container. Nested calls to open() without a
+	 * corresponding call to close() will append. Make sure that there's a matching close() for every open() (i.e. learn how to use try-with-resources and try-finally blocks)
 	 */
 	public MeshBuilder open() {
 		if (openCount == 0) {
@@ -129,8 +51,8 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	}
 
 	/**
-	 * opens a MeshBuilder to get it ready for accepting additional geometry. Make sure that there's a matching close() for every open() (i.e.
-	 * learn how to use try-with-resources and try-finally blocks)
+	 * opens a MeshBuilder to get it ready for accepting additional geometry. Make sure that there's a matching close() for every open() (i.e. learn how to use try-with-resources and try-finally
+	 * blocks)
 	 */
 	public void openAppend() {
 		if (openCount == 0) {
@@ -146,9 +68,6 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 		return openCount > 0;
 	}
 
-	int vertexCursor = 0;
-	int elementCursor = 0;
-
 	private void doOpen() {
 		vertexCursor = 0;
 		elementCursor = 0;
@@ -161,10 +80,9 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	}
 
 	/**
-	 * closes a MeshBuilder. There should be a close() for every open() and it's an error to let the graphics system get hold of a MeshBuilder
-	 * that isn't closed properly. Alas, this is a hard error to catch since the missing close() by definition doesn't have a known stacktrace.
-	 * Closing something that isn't open will through an IllegalArgumentException, but again, this isn't always local to the site of the mismatch
-	 * error.
+	 * closes a MeshBuilder. There should be a close() for every open() and it's an error to let the graphics system get hold of a MeshBuilder that isn't closed properly. Alas, this is a hard
+	 * error to catch since the missing close() by definition doesn't have a known stacktrace. Closing something that isn't open will through an IllegalArgumentException, but again, this isn't
+	 * always local to the site of the mismatch error.
 	 */
 	public void close() {
 		openCount--;
@@ -175,8 +93,6 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 			throw new IllegalArgumentException("more closes than opens?");
 		}
 	}
-
-	Map<Integer, float[]> aux = new HashMap<Integer, float[]>();
 
 	private void doClose() {
 		target.setVertexLimit(vertexCursor);
@@ -198,8 +114,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	}
 
 	/**
-	 * Adds some aux data associated with attribute "attribute" with dimension add.length. "attribute" must be between 1 and 15 inclusive, add
-	 * must have dimension 1,2,3 or 4.
+	 * Adds some aux data associated with attribute "attribute" with dimension add.length. "attribute" must be between 1 and 15 inclusive, add must have dimension 1,2,3 or 4.
 	 */
 	public MeshBuilder aux(int attribute, float[] add) {
 		aux.put(attribute, add);
@@ -250,7 +165,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	 * Adds some aux data associated with attribute "attribute" with dimension 2. "attribute" must be between 1 and 15 inclusive
 	 */
 	public MeshBuilder aux(int attribute, Vec2 x) {
-		aux.put(attribute, new float[]{(float)x.x, (float)x.y});
+		aux.put(attribute, new float[]{(float) x.x, (float) x.y});
 		ensureExists(attribute, 2, vertexCursor);
 		return this;
 	}
@@ -259,7 +174,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	 * Adds some aux data associated with attribute "attribute" with dimension 3. "attribute" must be between 1 and 15 inclusive
 	 */
 	public MeshBuilder aux(int attribute, Vec3 x) {
-		aux.put(attribute, new float[]{(float)x.x, (float)x.y, (float)x.z});
+		aux.put(attribute, new float[]{(float) x.x, (float) x.y, (float) x.z});
 		ensureExists(attribute, 3, vertexCursor);
 		return this;
 	}
@@ -268,8 +183,27 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	 * Adds some aux data associated with attribute "attribute" with dimension 4. "attribute" must be between 1 and 15 inclusive
 	 */
 	public MeshBuilder aux(int attribute, Vec4 x) {
-		aux.put(attribute, new float[]{(float)x.x, (float)x.y, (float)x.z, (float)x.w});
+		aux.put(attribute, new float[]{(float) x.x, (float) x.y, (float) x.z, (float) x.w});
 		ensureExists(attribute, 4, vertexCursor);
+		return this;
+	}
+
+	/**
+	 * binds a FloatBuffer to this aux attribute. Dimension must be 1,2,3 or 4, storage.limit() must equal the number of vertices in this mesh * that dimension. You can call this over and over again to force a re-upload of this FloatBuffer to the GPU
+	 */
+	public MeshBuilder bindAux(int attribute, int dimension, FloatBuffer storage)
+	{
+		ArrayBuffer a = ensureExists(attribute, dimension, vertexCursor);
+
+		if (a instanceof SimpleArrayBuffer)
+		{
+			((SimpleArrayBuffer)a).setCustomStorage(storage);
+		}
+		else
+		{
+			throw new IllegalArgumentException(" can't bind to arraybuffer of class "+(a.getClass()));
+		}
+
 		return this;
 	}
 
@@ -280,16 +214,15 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	}
 
 	/**
-	 * Creates a new cache bookmark at this point in the construction of the geometry. You can use a pair of bookmarks at some future recreation
-	 * of this mesh to ask if a group of calls to nextVertex, nextElement, and aux can be skipped completely
+	 * Creates a new cache bookmark at this point in the construction of the geometry. You can use a pair of bookmarks at some future recreation of this mesh to ask if a group of calls to
+	 * nextVertex, nextElement, and aux can be skipped completely
 	 */
 	public Bookmark bookmark() {
 		return new Bookmark();
 	}
 
 	/**
-	 * Can all the calls to nextVertex, nextElement and aux, between these two bookmarks be skipped? Returns true if we have skipped forward,
-	 * false otherwise.
+	 * Can all the calls to nextVertex, nextElement and aux, between these two bookmarks be skipped? Returns true if we have skipped forward, false otherwise.
 	 */
 	public boolean skipTo(Bookmark from, Bookmark to) {
 		if (!from.stillValid() || from.getOuter() != this) return false;
@@ -299,13 +232,11 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	}
 
 	/**
-	 * Can all the calls to nextVertex, nextElement and aux, between these two bookmarks be skipped? Returns true if we have skipped forward,
-	 * false otherwise. Bookmarks can be unskippable because externalHashes have changed, because internalHashes have changed (for example an aux
-	 * channgel has been added) or because the geometry layout has changed (the number of vertices or elements added up to this point is
-	 * different).
+	 * Can all the calls to nextVertex, nextElement and aux, between these two bookmarks be skipped? Returns true if we have skipped forward, false otherwise. Bookmarks can be unskippable because
+	 * externalHashes have changed, because internalHashes have changed (for example an aux channgel has been added) or because the geometry layout has changed (the number of vertices or elements
+	 * added up to this point is different).
 	 * <p>
-	 * If false, then from is reset with the value of "externalHash", updator is called with updator.accept(this) and then to is reset with the
-	 * value of externalHash.
+	 * If false, then from is reset with the value of "externalHash", updator is called with updator.accept(this) and then to is reset with the value of externalHash.
 	 */
 	public boolean skipTo(Bookmark from, Bookmark to, Object externalHash, Consumer<MeshBuilder> updator) {
 
@@ -322,8 +253,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	}
 
 	/**
-	 * Can all the calls to nextVertex, nextElement and aux, between these two bookmarks be skipped? Returns true if we have skipped forward,
-	 * false otherwise.
+	 * Can all the calls to nextVertex, nextElement and aux, between these two bookmarks be skipped? Returns true if we have skipped forward, false otherwise.
 	 * <p>
 	 * Equivalent to skipTo(from, to, externalHash, (Consumer<MeshBuilder> x -> updator.run())
 	 */
@@ -350,22 +280,22 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	 * Adds a vertex to this MeshBuilder
 	 */
 	public MeshBuilder nextVertex(Vec3 a) {
-		return nextVertex((float)a.x, (float)a.y, (float)a.z);
+		return nextVertex((float) a.x, (float) a.y, (float) a.z);
 	}
+
 	/**
 	 * Adds a vertex to this MeshBuilder
 	 */
 	public MeshBuilder nextVertex(Vec2 a) {
-		return nextVertex((float)a.x, (float)a.y, 0);
+		return nextVertex((float) a.x, (float) a.y, 0);
 	}
 
 
 	/**
-	 * Adds a element of type "line with adjacency" to this MeshBuilder. Line with adjancey is an OpenGL element that is a line segment with two
-	 * other associated vertices (typically the previous and next vertices, but shaders are free to interpret these however they'd like to)
+	 * Adds a element of type "line with adjacency" to this MeshBuilder. Line with adjancey is an OpenGL element that is a line segment with two other associated vertices (typically the previous
+	 * and next vertices, but shaders are free to interpret these however they'd like to)
 	 * <p>
-	 * (vertex numbers are backwards from the current vertex, so vertex 0 is the most recent call to nextVertex, 1 is the vertex before that and
-	 * so on)
+	 * (vertex numbers are backwards from the current vertex, so vertex 0 is the most recent call to nextVertex, 1 is the vertex before that and so on)
 	 */
 	public MeshBuilder nextElement(int v1, int v2, int v3, int v4) {
 		IntBuffer dest = ensureElementSize(4, elementCursor);
@@ -375,8 +305,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with middle1 " + v2 + " > " + (vertexCursor - 1));
 		if (vertexCursor - 1 - v3 < 0)
 			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with middle2 " + v3 + " > " + (vertexCursor - 1));
-		if (vertexCursor - 1 - v4 < 0)
-			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with end " + v3 + " > " + (vertexCursor - 1));
+		if (vertexCursor - 1 - v4 < 0) throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with end " + v3 + " > " + (vertexCursor - 1));
 		dest.put(vertexCursor - 1 - v1);
 		dest.put(vertexCursor - 1 - v2);
 		dest.put(vertexCursor - 1 - v3);
@@ -389,8 +318,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	/**
 	 * Adds two triangles that mark out the quad v1,v2,v3,v4. Specifically v1,v2,v3 and v1,v3,v4.
 	 * <p>
-	 * (vertex numbers are backwards from the current vertex, so vertex 0 is the most recent call to nextVertex, 1 is the vertex before that and
-	 * so on)
+	 * (vertex numbers are backwards from the current vertex, so vertex 0 is the most recent call to nextVertex, 1 is the vertex before that and so on)
 	 */
 	public MeshBuilder nextElement_quad(int v1, int v2, int v3, int v4) {
 		IntBuffer dest = ensureElementSize(3, elementCursor + 1);
@@ -400,8 +328,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with middle1 " + v2 + " > " + (vertexCursor - 1));
 		if (vertexCursor - 1 - v3 < 0)
 			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with middle2 " + v3 + " > " + (vertexCursor - 1));
-		if (vertexCursor - 1 - v4 < 0)
-			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with end " + v3 + " > " + (vertexCursor - 1));
+		if (vertexCursor - 1 - v4 < 0) throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with end " + v3 + " > " + (vertexCursor - 1));
 
 		dest.put(vertexCursor - 1 - v1);
 		dest.put(vertexCursor - 1 - v2);
@@ -419,8 +346,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	/**
 	 * Adds the triangle v1,v2,v3.
 	 * <p>
-	 * vertex numbers are backwards from the current vertex, so vertex 0 is the most recent call to nextVertex, 1 is the vertex before that and so
-	 * on
+	 * vertex numbers are backwards from the current vertex, so vertex 0 is the most recent call to nextVertex, 1 is the vertex before that and so on
 	 */
 	public MeshBuilder nextElement(int v1, int v2, int v3) {
 
@@ -430,8 +356,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with start " + v1 + " > " + (vertexCursor - 1));
 		if (vertexCursor - 1 - v2 < 0)
 			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with middle " + v2 + " > " + (vertexCursor - 1));
-		if (vertexCursor - 1 - v3 < 0)
-			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with end " + v3 + " > " + (vertexCursor - 1));
+		if (vertexCursor - 1 - v3 < 0) throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with end " + v3 + " > " + (vertexCursor - 1));
 
 		dest.put(vertexCursor - 1 - v1);
 		dest.put(vertexCursor - 1 - v2);
@@ -444,15 +369,13 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	/**
 	 * Adds the line segment v1, v2.
 	 * <p>
-	 * vertex numbers are backwards from the current vertex, so vertex 0 is the most recent call to nextVertex, 1 is the vertex before that and so
-	 * on
+	 * vertex numbers are backwards from the current vertex, so vertex 0 is the most recent call to nextVertex, 1 is the vertex before that and so on
 	 */
 	public MeshBuilder nextElement(int v1, int v2) {
 		IntBuffer dest = ensureElementSize(2, elementCursor);
 		if (vertexCursor - 1 - v1 < 0)
 			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with start " + v1 + " > " + (vertexCursor - 1));
-		if (vertexCursor - 1 - v2 < 0)
-			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with end " + v2 + " > " + (vertexCursor - 1));
+		if (vertexCursor - 1 - v2 < 0) throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with end " + v2 + " > " + (vertexCursor - 1));
 
 		dest.put(vertexCursor - 1 - v1);
 		dest.put(vertexCursor - 1 - v2);
@@ -464,15 +387,12 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	/**
 	 * Adds a string of line segments stretching from start all the way through to end.
 	 * <p>
-	 * vertex numbers are backwards from the current vertex, so vertex 0 is the most recent call to nextVertex, 1 is the vertex before that and so
-	 * on
+	 * vertex numbers are backwards from the current vertex, so vertex 0 is the most recent call to nextVertex, 1 is the vertex before that and so on
 	 */
 	public MeshBuilder nextLine(int start, int end) {
 		IntBuffer dest = ensureElementSize(2, elementCursor + Math.abs(start - end));
-		if (start < 0)
-			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access an unwritten index with start " + start);
-		if (end < 0)
-			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access an unwritten index with end " + start);
+		if (start < 0) throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access an unwritten index with start " + start);
+		if (end < 0) throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access an unwritten index with end " + start);
 		if (end > start) {
 			if (vertexCursor - 1 - (start + 1) < 0)
 				throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with start " + start + " > " + (vertexCursor - 1));
@@ -490,7 +410,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 			if (vertexCursor - 1 - (end - 1) < 0)
 				throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with end " + start + " > " + (vertexCursor - 1));
 
-			for (int a = start-1; a > end; a--) {
+			for (int a = start - 1; a > end; a--) {
 				dest.put(vertexCursor - 1 - a);
 				dest.put(vertexCursor - 1 - (a - 1));
 				elementCursor++;
@@ -503,8 +423,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	// todo, some way of doing properties and aux here
 
 	/**
-	 * Adds a set of contours described by a list of lists of Vec3. These lists are tesselated into triangles by the GLU_TESS_WINDING_NONZERO
-	 * tesselation rule
+	 * Adds a set of contours described by a list of lists of Vec3. These lists are tesselated into triangles by the GLU_TESS_WINDING_NONZERO tesselation rule
 	 */
 	public MeshBuilder nextContourSet(List<List<Vec3>> contours) {
 		MeshBuilder_tesselationSupport tess = getTessSupport();
@@ -536,16 +455,13 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	}
 
 	/**
-	 * Merges the geometry contained by "source" into this MeshBuilder. This is a relatively fast operation, consider caching sub-geometry inside
-	 * individual MeshBuilders (and, of course, protecting this merge operation between two bookmarks).
+	 * Merges the geometry contained by "source" into this MeshBuilder. This is a relatively fast operation, consider caching sub-geometry inside individual MeshBuilders (and, of course,
+	 * protecting this merge operation between two bookmarks).
 	 */
 	public MeshBuilder merge(MeshBuilder source) {
-		if (target.elements == null && source.target.elements != null)
-			throw new IllegalArgumentException(" cannot merge, mismatch in element dimension ");
-		if (target.elements != null && source.target.elements == null)
-			throw new IllegalArgumentException(" cannot merge, mismatch in element dimension ");
-		if (target.elements.getDimension() != source.target.elements.getDimension())
-			throw new IllegalArgumentException(" cannot merge, mismatch in element dimension ");
+		if (target.elements == null && source.target.elements != null) throw new IllegalArgumentException(" cannot merge, mismatch in element dimension ");
+		if (target.elements != null && source.target.elements == null) throw new IllegalArgumentException(" cannot merge, mismatch in element dimension ");
+		if (target.elements.getDimension() != source.target.elements.getDimension()) throw new IllegalArgumentException(" cannot merge, mismatch in element dimension ");
 
 		FloatBuffer v = ensureSize(0, 3, vertexCursor + source.vertexCursor);
 		v.put(source.target.vertex(true));
@@ -583,8 +499,6 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 		return this;
 	}
 
-	MeshBuilder_tesselationSupport tessSupport = null;
-
 	/**
 	 * returns a utility class that's helpful for acccessing the tesselator
 	 *
@@ -597,8 +511,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	}
 
 	/**
-	 * vertex numbers are backwards from the current vertex, so vertex 0 is the most recent call to nextVertex, 1 is the vertex before that and so
-	 * on
+	 * vertex numbers are backwards from the current vertex, so vertex 0 is the most recent call to nextVertex, 1 is the vertex before that and so on
 	 * <p>
 	 * equivalent to nextLine(start, 0), e.g. nextLine from 'start' to here
 	 */
@@ -606,10 +519,9 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 		return nextLine(start, 0);
 	}
 
-
 	/**
-	 * Appends an FLine into this meshbuilder. Note this operation is sensitive to the kind of Mesh that this MeshBuilder is targeting. If you
-	 * append a line that isn't filled into a MeshBuilder for a triangle mesh, nothing will happen.
+	 * Appends an FLine into this meshbuilder. Note this operation is sensitive to the kind of Mesh that this MeshBuilder is targeting. If you append a line that isn't filled into a MeshBuilder
+	 * for a triangle mesh, nothing will happen.
 	 * <p>
 	 */
 	public void append(FLine f) {
@@ -656,7 +568,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 		return f;
 	}
 
-	private void ensureExists(int attribute, int dimension, int num) {
+	private ArrayBuffer ensureExists(int attribute, int dimension, int num) {
 		ArrayBuffer a = target.buffer(attribute, dimension);
 		if (a == null) {
 			a = target.arrayBufferFactory.newArrayBuffer((int) (num * GROWTH + 1), GL15.GL_ARRAY_BUFFER, attribute, dimension, 0);
@@ -665,6 +577,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 			a = a.replaceWithSize((int) ((num + 1) * GROWTH + 1));
 			target.setBuffer(attribute, a);
 		}
+		return a;
 	}
 
 	private IntBuffer ensureElementSize(int dimension, int num) {
@@ -695,5 +608,82 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	 */
 	public BaseMesh getTarget() {
 		return target;
+	}
+
+	public class Bookmark {
+		public Object externalHash;
+		protected int vertexCursor = MeshBuilder.this.vertexCursor;
+		protected int elementCursor = MeshBuilder.this.elementCursor;
+		protected long buildNumber = MeshBuilder.this.buildNumber;
+		protected Object hash = computeHash();
+
+		public int at() {
+			return MeshBuilder.this.vertexCursor - vertexCursor;
+		}
+
+		public boolean stillValid() {
+			return stillValid(null);
+		}
+
+		public boolean stillValid(Object externalHash) {
+
+			if (buildNumber < MeshBuilder.this.buildNumber - 1) {
+				Log.log("cache", () -> " buildNumber, build was out of date " + buildNumber + " " + MeshBuilder.this.buildNumber);
+				cacheMisses_tooOld++;
+				return false;
+			}
+
+			this.buildNumber = MeshBuilder.this.buildNumber;
+
+			Log.log("cache",
+				"evaluating cache " + MeshBuilder.this.vertexCursor + " / " + vertexCursor + "  " + MeshBuilder.this.elementCursor + " / " + elementCursor + " " + this.externalHash + "=" + externalHash + " " + computeHash() + "=" + this.hash);
+
+			if (MeshBuilder.this.vertexCursor != vertexCursor || MeshBuilder.this.elementCursor != elementCursor) {
+				Log.log("cache",
+					() -> " CURSORS vertex cursor was :" + vertexCursor + " / " + MeshBuilder.this.vertexCursor + "  " + elementCursor + " / " + MeshBuilder.this.elementCursor);
+				cacheMisses_cursor++;
+				return false;
+			}
+			if (!Util.safeEq(this.externalHash, externalHash)) {
+				Log.log("cache", () -> " externalHash " + this.externalHash + " " + externalHash);
+				cacheMisses_externalHash++;
+				return false;
+			}
+
+			Object h2 = computeHash();
+			if (!h2.equals(hash)) {
+				Log.log("cache", () -> " internalHash " + h2 + " " + hash);
+				cacheMisses_internalHash++;
+				return false;
+			}
+			cacheHits++;
+			Log.log("cache", "succeeded");
+			return true;
+		}
+
+		public Bookmark reset() {
+			return reset(null);
+		}
+
+		public Bookmark reset(Object externalHash) {
+			vertexCursor = MeshBuilder.this.vertexCursor;
+			elementCursor = MeshBuilder.this.elementCursor;
+			hash = computeHash();
+			this.externalHash = externalHash;
+			return this;
+		}
+
+		public String toString() {
+			return "book@" + at() + " :" + vertexCursor + " " + elementCursor;
+		}
+
+		public Bookmark invalidate() {
+			externalHash = "--invalidated--";
+			return this;
+		}
+
+		public MeshBuilder getOuter() {
+			return MeshBuilder.this;
+		}
 	}
 }

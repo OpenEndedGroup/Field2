@@ -19,25 +19,16 @@ import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
 public class SimpleArrayBuffer implements ArrayBuffer {
 
 	static public int uploadBytes = 0;
-
+	final int divisor;
 	private final FloatBuffer dataAsFloat;
 	private final IntBuffer dataAsInt;
-
-	public class State {
-		int name = -1;
-		int mod = -1;
-		int limit = 0;
-	}
-
 	private final int size;
 	private final int binding;
 	private final int attribute;
 	private final int dimension;
-	final int divisor;
-
 	ByteBuffer data;
 	int mod = 0;
-
+	private FloatBuffer customStorage = null;
 	public SimpleArrayBuffer(int size, int binding, int attribute, int dimension, int divisor) {
 		this.size = size;
 		this.binding = binding;
@@ -45,9 +36,23 @@ public class SimpleArrayBuffer implements ArrayBuffer {
 		this.dimension = dimension;
 		this.divisor = divisor;
 
-		data = ByteBuffer.allocateDirect(4 * size * dimension).order(ByteOrder.nativeOrder());
+		data = ByteBuffer.allocateDirect(4 * size * dimension)
+				 .order(ByteOrder.nativeOrder());
 		dataAsFloat = data.asFloatBuffer();
 		dataAsInt = data.asIntBuffer();
+	}
+
+	static public ArrayBuffer newArrayBuffer(int maxVertex, int binding, int attribute, int dimension, int divisor) {
+		return new SimpleArrayBuffer(maxVertex, binding, attribute, dimension, divisor);
+	}
+
+	public FloatBuffer getCustomStorage() {
+		return customStorage;
+	}
+
+	public void setCustomStorage(FloatBuffer customStorage) {
+		this.customStorage = customStorage;
+		mod++;
 	}
 
 	@Override
@@ -58,7 +63,7 @@ public class SimpleArrayBuffer implements ArrayBuffer {
 		if (state.mod != mod || state.limit < limit) {
 
 
-			Log.log(" causing upload :"+state.mod+" "+mod+" || "+state.limit+" "+limit);
+			Log.log(" causing upload :" + state.mod + " " + mod + " || " + state.limit + " " + limit);
 
 			upload(state, limit);
 			state.mod = mod;
@@ -87,20 +92,16 @@ public class SimpleArrayBuffer implements ArrayBuffer {
 		return dimension;
 	}
 
-	public int getOpenGLNameInCurrentContext()
-	{
+	public int getOpenGLNameInCurrentContext() {
 		State s = GraphicsContext.get(this);
-		if (s==null)
-			throw new IllegalArgumentException("No state in this context");
+		if (s == null) throw new IllegalArgumentException("No state in this context");
 
 		return s.name;
 	}
 
-	public int getOpenGLNameInContext(GraphicsContext context)
-	{
+	public int getOpenGLNameInContext(GraphicsContext context) {
 		State s = context.lookup(this);
-		if (s==null)
-			throw new IllegalArgumentException("No state in this context");
+		if (s == null) throw new IllegalArgumentException("No state in this context");
 
 		return s.name;
 	}
@@ -116,13 +117,15 @@ public class SimpleArrayBuffer implements ArrayBuffer {
 	@Override
 	public FloatBuffer floats(boolean readOnly) {
 		if (!readOnly) mod++;
-		return (FloatBuffer) dataAsFloat.rewind().limit(dimension * size);
+		return (FloatBuffer) dataAsFloat.rewind()
+						.limit(dimension * size);
 	}
 
 	@Override
 	public IntBuffer ints(boolean readOnly) {
 		if (!readOnly) mod++;
-		return (IntBuffer) dataAsInt.rewind().limit(dimension * size);
+		return (IntBuffer) dataAsInt.rewind()
+					    .limit(dimension * size);
 	}
 
 	private State setup() {
@@ -150,7 +153,7 @@ public class SimpleArrayBuffer implements ArrayBuffer {
 
 	private void upload(State s, int limit) {
 
-		Log.log(" uploading :"+limit+" from "+this+"       "+dimension+" "+binding);
+		Log.log(" uploading :" + limit + " from " + this + "       " + dimension + " " + binding);
 
 		glBindBuffer(binding, s.name);
 		data.rewind();
@@ -158,9 +161,13 @@ public class SimpleArrayBuffer implements ArrayBuffer {
 
 		s.limit = limit;
 
-		glBufferSubData(binding, 0, data);
-
-		uploadBytes+=4*limit*dimension;
+		if (customStorage != null) {
+			if (customStorage.limit() < (limit * dimension)) Log.log("graphics.error", "ERROR: not enough data in bound storage, attribute " + attribute);
+			else glBufferSubData(binding, 0, customStorage);
+		} else {
+			glBufferSubData(binding, 0, data);
+		}
+		uploadBytes += 4 * limit * dimension;
 
 	}
 
@@ -178,6 +185,12 @@ public class SimpleArrayBuffer implements ArrayBuffer {
 		next.data.clear();
 		this.data.clear();
 
+		if (customStorage!=null && customStorage.limit()>=size*dimension)
+		{
+			next.customStorage = customStorage;
+			//TODO skip the bit above where we bother to even allocate the non "custom" storage
+		}
+
 		return next;
 	}
 
@@ -186,8 +199,10 @@ public class SimpleArrayBuffer implements ArrayBuffer {
 		GraphicsContext.postQueueInAllContexts(() -> this.destroy());
 	}
 
-	static public ArrayBuffer newArrayBuffer(int maxVertex, int binding, int attribute, int dimension, int divisor) {
-		return new SimpleArrayBuffer(maxVertex, binding, attribute, dimension, divisor);
+	public class State {
+		int name = -1;
+		int mod = -1;
+		int limit = 0;
 	}
 
 }
