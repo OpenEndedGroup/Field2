@@ -265,6 +265,8 @@ a {
     min-height: 27px;
     pointer-events: all;
     border: 1px solid rgba(0, 0, 0, 0.1);
+    margin-right:50px;
+	overflow-wrap: break-word;
 }
 
 .Field-remoteOutput-error {
@@ -275,7 +277,7 @@ a {
     padding-top: 0px;
     border-top: 3px solid #833;
     padding-left: 10px;
-    margin-left: 25px;
+    margin-left: 26px;
     display: block;
     white-space: pre;
     overflow: scroll;
@@ -284,6 +286,8 @@ a {
     min-height: 27px;
     pointer-events: all;
     border: 1px solid rgba(0, 0, 0, 0.1);
+    margin-right:50px;
+	overflow-wrap: break-word;
 }
 
 .Field-remoteColor {
