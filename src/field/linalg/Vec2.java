@@ -91,7 +91,7 @@ public class Vec2 implements Supplier<Vec2>, Serializable {
 	}
 
 	/**
-	 * Add a Vec2 times a scalar to another Vec2 and place the result in a destination vector. Returns left + w*right
+	 * Add a Vec2 to another Vec2 times a scalar and place the result in a destination vector. Returns left + w*right
 	 *
 	 * @param left  The LHS vector
 	 * @param right The RHS vector
@@ -99,7 +99,7 @@ public class Vec2 implements Supplier<Vec2>, Serializable {
 	 * @return the sum of left and right in dest
 	 */
 	public static Vec2 add(Vec2 left, float w, Vec2 right, Vec2 dest) {
-		if (dest == null) return new Vec2(left.x + right.x, left.y + right.y);
+		if (dest == null) return new Vec2(left.x + w*right.x, left.y + w*right.y);
 		else {
 			dest.set(left.x + w * right.x, left.y + w * right.y);
 			return dest;

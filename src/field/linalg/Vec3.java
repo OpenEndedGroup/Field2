@@ -1,6 +1,7 @@
 package field.linalg;
 
 import field.utility.Mutable;
+import fieldnashorn.annotations.SafeToToString;
 
 import java.io.Serializable;
 import java.nio.DoubleBuffer;
@@ -10,6 +11,7 @@ import java.util.function.Supplier;
 /**
  * A class representing a 3-vector (both a position and direction in 3-space).
  */
+@SafeToToString
 public class Vec3 implements Supplier<Vec3>, Serializable, Mutable<Vec3> {
 
 	private static final long serialVersionUID = 1L;
