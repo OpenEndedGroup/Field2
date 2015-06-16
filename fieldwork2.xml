@@ -162,6 +162,10 @@
     <pathelement location="${basedir}/lib/poly2tri-core-0.1.1-SNAPSHOT.jar"/>
   </path>
   
+  <path id="library.protobuf-java-2.6.1.classpath">
+    <pathelement location="${basedir}/fieldnashorn/external/protobuf-java-2.6.1.jar"/>
+  </path>
+  
   <path id="library.qdox-2.0-m1.classpath">
     <pathelement location="${basedir}/fieldnashorn/external/qdox-2.0-M1.jar"/>
   </path>
