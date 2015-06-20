@@ -49,6 +49,7 @@ public class IO {
 	static Map<String, Filespec> knownFiles = new HashMap<String, Filespec>();
 
 	public static final Dict.Prop<String> id = new Dict.Prop<>("__id__");
+	public static final Dict.Prop<String> desiredBoxClass = new Dict.Prop<>("__desiredBoxClassdesiredBoxClass__");
 	public static final Dict.Prop<String> comment = new Dict.Prop<>("comment").toCannon()
 										  .type()
 										  .doc("A comment string that's easily searchable");
@@ -341,7 +342,6 @@ public class IO {
 		Map<Object, String> m = (Map) (serializeFromString(readFromFile(filenameFor(f))));
 
 		String boxClass = m.getOrDefault("__boxclass__", Box.class.getName());
-
 		Box box;
 
 		try {
@@ -393,6 +393,9 @@ public class IO {
 			}
 
 		}
+
+		if (m.get("__boxclass__")!=null)
+			box.properties.put(desiredBoxClass, m.get("__boxclass__"));
 
 
 		return box;
@@ -464,7 +467,7 @@ public class IO {
 										      .toString()));
 		}
 
-		ex.boxClass = box.getClass()
+		ex.boxClass = box.getClass().equals(Box.class) ? box.properties.getOr(desiredBoxClass, () -> Box.class.getName()) : box.getClass()
 				 .getName();
 
 		return ex;
