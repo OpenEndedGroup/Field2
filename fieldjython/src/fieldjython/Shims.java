@@ -1,10 +1,7 @@
 package fieldjython;
 
 import fieldlinker.Linker;
-import org.python.core.Py;
-import org.python.core.PyBuiltinMethodNarrow;
-import org.python.core.PyObject;
-import org.python.core.PyType;
+import org.python.core.*;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -17,10 +14,24 @@ public class Shims {
 
 	static public void init() {
 		{
+			final PyObject objectGetattribute = PyObject.TYPE.__getattr__("__getattribute__");
+
 			PyBuiltinMethodNarrow meth = new PyBuiltinMethodNarrow("__getattribute__", 1) {
 				@Override
 				public PyObject __call__(PyObject key) {
 					Linker.AsMap program = Py.tojava(self, Linker.AsMap.class);
+					if (program.asMap_isProperty(key.asString())) {
+						return Py.java2py(program.asMap_get(key.asString()));
+					} else {
+						try {
+							return objectGetattribute.__call__(self, key);
+						} catch (PyException e) {
+							if (!Py.matchException(e, Py.AttributeError)) {
+								throw e;
+							}
+						}
+					}
+
 					return Py.java2py(program.asMap_get(key.asString()));
 				}
 			};
