@@ -21,8 +21,6 @@ function executeBracket(bra) {
         ch: 0
     })
 
-    //       fragment = cm.getSelections()[0]
-
     _field.sendWithReturn("execution.fragment", {
         box: cm.currentbox,
         property: cm.currentproperty,

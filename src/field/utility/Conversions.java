@@ -227,8 +227,6 @@ public class Conversions {
 
 	static public Object convert(Object value, List<Class> fit) {
 
-		Log.log("serial", "-- convert -- ", value, fit);
-
 		if (fit == null) return value;
 		if (fit.get(0)
 		       .isInstance(value)) return value;
@@ -263,10 +261,8 @@ public class Conversions {
 		}
 
 
-		Log.log("serial", "toString before conversion :" + value);
 		if (value instanceof ScriptObjectMirror) return convert(ScriptUtils.unwrap(value), fit);
 
-		Log.log("serial", "toString during conversion :" + value);
 
 		if (value instanceof ScriptFunctionImpl) {
 			StaticClass adapterClassFor = JavaAdapterFactory.getAdapterClassFor(new Class[]{fit.get(0)}, (ScriptObject) value, MethodHandles.lookup());
@@ -281,8 +277,6 @@ public class Conversions {
 		}
 
 
-
-		Log.log("serial", "toString after conversion :" + value);
 
 		return value;
 	}
