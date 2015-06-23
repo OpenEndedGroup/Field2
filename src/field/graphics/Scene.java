@@ -16,6 +16,7 @@ import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * The principle class of the Field Graphics "Scene List" structure.
@@ -103,10 +104,13 @@ public class Scene extends Box implements Linker.AsMap {
 	 */
 	public void detach(Consumer<Integer> p) {
 
-		scene.values()
-		     .stream()
-		     .map(x -> x.remove(p))
-		     .count();
+		List<Boolean> removed = scene.values()
+					     .stream()
+					     .map(x -> x.remove(p))
+					     .filter(x -> x)
+					     .collect(Collectors.toList());
+		if (removed.size()==0)
+			System.err.println(" removed a Perform that wasn't their");
 
 	}
 
