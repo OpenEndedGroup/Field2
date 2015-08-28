@@ -1,10 +1,7 @@
 package fieldbox.execution;
 
 import com.thoughtworks.qdox.JavaProjectBuilder;
-import com.thoughtworks.qdox.model.JavaAnnotation;
-import com.thoughtworks.qdox.model.JavaClass;
-import com.thoughtworks.qdox.model.JavaField;
-import com.thoughtworks.qdox.model.JavaMethod;
+import com.thoughtworks.qdox.model.*;
 import com.thoughtworks.qdox.parser.ParseException;
 import field.app.RunLoop;
 import field.utility.Log;
@@ -27,6 +24,8 @@ import java.util.jar.JarFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 /**
  * When Nashorn/Javascript completion bumps up against something that's actually a Java object, we can use Java reflection based completion. Better yet, if we have the source code fore that Java we
@@ -43,6 +42,8 @@ public class JavaSupport {
 	private final JavaProjectBuilder builder;
 
 	Map<String, String> allClassNames = new LinkedHashMap<>();
+
+	Set<String> srcZipsDeltWith = new LinkedHashSet<>();
 
 	public JavaSupport() {
 		javaSupport = this;
@@ -70,6 +71,28 @@ public class JavaSupport {
 
 							synchronized (allClassNames) {
 								allClassNames.putAll(a);
+							}
+
+							File f = new File(path.getFile());
+							while (f != null) {
+								if (f.isDirectory()) {
+									if (new File(f, "src.zip").exists()) {
+										Log.log("jar.indexer", "found a src.zip in classpath <"+f+">");
+
+										String p = new File(f, "src.zip").getAbsolutePath();
+										synchronized (srcZipsDeltWith) {
+											if (srcZipsDeltWith.contains(p)) break;
+											srcZipsDeltWith.add(p);
+											try {
+												indexSrcZip(p);
+											} catch (IOException e) {
+												e.printStackTrace();
+											}
+											break;
+										}
+									}
+								}
+								f = f.getParentFile();
 							}
 						});
 					}
@@ -148,6 +171,18 @@ public class JavaSupport {
 		return signature.trim();
 	}
 
+	private void indexSrcZip(String filename) throws IOException {
+		ZipFile zipFile = new ZipFile(filename);
+		Enumeration entries = zipFile.entries();
+		while (entries.hasMoreElements()) {
+			ZipEntry zipEntry = (ZipEntry) entries.nextElement();
+			String u = "jar:file://" + filename + "!/" + zipEntry.getName();
+			Log.log("jar.indexer", "will index a source :"+u);
+			builder.addSource(new URL(u));
+		}
+		;
+	}
+
 	private Map<String, String> indexJigsaw() {
 		Log.log("jar.indexer", "will index jigsaw");
 		try {
@@ -163,7 +198,6 @@ public class JavaSupport {
 
 					@Override
 					public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-//						Log.log("jar.indexer", "jigsaw file is "+file);
 						if (file.toString()
 							.endsWith(".class")) {
 							String q = file.toString();
@@ -177,7 +211,6 @@ public class JavaSupport {
 							name = name.replace("/", ".");
 							name = name.replace(".class", "");
 							name = name.replace("$", ".");
-//							Log.log("jar.indexer", "indexd :"+name+" "+split[1]);
 							r.put(name, split[1]);
 						}
 						return FileVisitResult.CONTINUE;
@@ -275,6 +308,10 @@ public class JavaSupport {
 		return Collections.emptyMap();
 	}
 
+	public List<Completion> getOptionCompletionsFor(Object o, String prefix) {
+		return getOptionCompletionsFor(o, prefix, false);
+	}
+
 	public List<Completion> getCompletionsFor(Object o, String prefix) {
 		if (o instanceof HandlesCompletion) {
 
@@ -283,12 +320,28 @@ public class JavaSupport {
 			return ((HandlesCompletion) o).getCompletionsFor(prefix);
 		} else Log.log("completion.debug", " object :" + o + " is not a completion handler ");
 
-		List<Completion> r = getOptionCompletionsFor(o, prefix);
+		List<Completion> r = getOptionCompletionsFor(o, prefix, false);
+
+		return r;
+	}
+	public List<Completion> getCompletionsFor(Object o, String prefix, boolean includeConstructors) {
+		if (o instanceof HandlesCompletion) {
+
+			Log.log("completion.debug", " object :" + o + " is a completion handler ");
+
+			return ((HandlesCompletion) o).getCompletionsFor(prefix);
+		} else Log.log("completion.debug", " object :" + o + " is not a completion handler ");
+
+		List<Completion> r = getOptionCompletionsFor(o, prefix, includeConstructors);
 
 		return r;
 	}
 
-	public List<Completion> getOptionCompletionsFor(Object o, String prefix) {
+	public List<Completion> getOptionCompletionsFor(Object o, String prefix, boolean includeConstructors) {
+
+
+		Log.log("completion.debug", "getOptionCompletionsFor "+o+" / "+prefix);
+
 		boolean staticsOnly = o instanceof Class;
 
 		Class c = o instanceof Class ? (Class) o : o.getClass();
@@ -298,7 +351,7 @@ public class JavaSupport {
 
 		JavaClass j = builder.getClassByName(c.getName());
 
-		Log.log("completion.debug", " java class (for javadoc supported completion) :" + j + " prefix is <" + prefix + ">");
+		Log.log("completion.debug", " java class (for javadoc supported completion) :" + j + " prefix is <" + prefix + "> "+includeConstructors+" "+staticsOnly);
 
 		List<Completion> r = new ArrayList<>();
 		try {
@@ -309,6 +362,42 @@ public class JavaSupport {
 
 				if (c.getAnnotation(HiddenInAutocomplete.class) == null) {
 
+					if (staticsOnly && includeConstructors)
+					{
+						for(JavaConstructor m : j.getConstructors())
+						{
+							Log.log("completion.debug", "looking at constructor "+m);
+
+							if (hasAnnotation(m.getAnnotations(), HiddenInAutocomplete.class)) continue;
+							if (docOnly && m.getComment()
+									.trim()
+									.length() < 1) continue;
+
+							String val = "";
+							boolean tostring = false;
+							if (hasAnnotation(m.getAnnotations(), SafeToToString.class)) {
+								try {
+									val = "= <b>" + access(c.getDeclaredMethod(m.getName())).invoke(o) + "</b> &nbsp;";
+									tostring = true;
+								} catch (Throwable t) {
+									t.printStackTrace();
+								}
+							}
+
+							if ((prefix.equals("") || m.getName()
+										   .startsWith(prefix)) && m.getModifiers()
+													    .contains("public") ) {
+
+
+								m.getParameters().forEach(x -> System.out.println(x.getName()));
+
+								Completion cc = new Completion(-1, -1, m.getName(), val + "<span class=type>" + compress(m.getName(), "("+m.getParameters().stream().map(x -> x.getType()+" "+x.getName()).reduce("", (a,b) -> a+", "+b).substring(m.getParameters().size()>0 ? 2 :0) ) + ")</span>" + (m.getComment() != null ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + m.getComment() + "</span>" : ""));
+								add(val.length() > 0, r, cc);
+								cc.rank += tostring ? 100 : 0;
+								cc.rank+= m.getComment()!=null ? 10 : 0;
+							}
+						}
+					}
 
 					for (JavaField m : j.getFields()) {
 						if (hasAnnotation(m.getAnnotations(), HiddenInAutocomplete.class)) continue;
@@ -317,10 +406,12 @@ public class JavaSupport {
 								.length() < 1) continue;
 
 						String val = "";
-						if (hasAnnotation(m.getAnnotations(), SafeToToString.class) || m.getType()
+						boolean tostring = false;
+						if (!staticsOnly && hasAnnotation(m.getAnnotations(), SafeToToString.class) || m.getType()
 														.isPrimitive()) {
 							try {
 								val = "= <b>" + access(c.getDeclaredField(m.getName())).get(o) + "</b> &nbsp;";
+								tostring = true;
 							} catch (Throwable t) {
 								t.printStackTrace();
 							}
@@ -330,8 +421,11 @@ public class JavaSupport {
 									   .startsWith(prefix)) && m.getModifiers()
 												    .contains("public") && (!staticsOnly || m.getModifiers()
 																	     .contains("static"))) {
-							add(val.length() > 0, r, new Completion(-1, -1, m.getName(), val + "<span class=type>" + compress(m.getName(), m.getDeclarationSignature(
-								    true)) + "</span>" + (m.getComment() != null ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + m.getComment() + "</span>" : "")));
+							Completion cc = new Completion(-1, -1, m.getName(), val + "<span class=type>" + compress(m.getName(), m.getDeclarationSignature(
+								    true)) + "</span>" + (m.getComment() != null ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + m.getComment() + "</span>" : ""));
+							add(val.length() > 0, r, cc);
+							cc.rank+= tostring ? 100 : 0;
+							cc.rank+= m.getComment()!=null ? 10 : 0;
 						}
 					}
 					for (JavaMethod m : j.getMethods()) {
@@ -340,10 +434,14 @@ public class JavaSupport {
 								.trim()
 								.length() < 1) continue;
 
+
+
 						String val = "";
-						if (hasAnnotation(m.getAnnotations(), SafeToToString.class)) {
+						boolean tostring = false;
+						if (!staticsOnly && hasAnnotation(m.getAnnotations(), SafeToToString.class)) {
 							try {
 								val = "= <b>" + access(c.getDeclaredMethod(m.getName())).invoke(o) + "</b> &nbsp;";
+								tostring = true;
 							} catch (Throwable t) {
 								t.printStackTrace();
 							}
@@ -353,8 +451,11 @@ public class JavaSupport {
 									   .startsWith(prefix)) && m.getModifiers()
 												    .contains("public") && (!staticsOnly || m.getModifiers()
 																	     .contains("static"))) {
-							add(val.length() > 0, r, new Completion(-1, -1, m.getName(), val + "<span class=type>" + compress(m.getName(), m.getDeclarationSignature(
-								    true)) + "</span>" + (m.getComment() != null ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + m.getComment() + "</span>" : "")));
+							Completion cc = new Completion(-1, -1, m.getName(), val + "<span class=type>" + compress(m.getName(), m.getDeclarationSignature(
+								    true)) + "</span>" + (m.getComment() != null ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + m.getComment() + "</span>" : ""));
+							add(val.length() > 0, r, cc);
+							cc.rank += tostring ? 100 : 0;
+							cc.rank+= m.getComment()!=null ? 10 : 0;
 						}
 					}
 				}
@@ -377,6 +478,9 @@ public class JavaSupport {
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
+
+		Collections.sort(r, (a, b) -> -Double.compare(a.rank, b.rank));
+
 		return r;
 	}
 
@@ -403,31 +507,48 @@ public class JavaSupport {
 	}
 
 	public List<Pair<String, String>> getPossibleJavaClassesFor(String left) {
-		List<Pair<String, String>> rr = new ArrayList<>();
+		try {
+			List<Pair<String, String>> rr = new ArrayList<>();
 
-		Set<String> seen = new LinkedHashSet<>();
+			Set<String> seen = new LinkedHashSet<>();
 
-		for (JavaClass c : builder.getClasses()) {
-			if (c.getName()
-			     .contains(left) && !seen.contains(c.getFullyQualifiedName())) {
-				seen.add(c.getFullyQualifiedName());
-				rr.add(new Pair<>(c.getFullyQualifiedName(), c.getComment()));
-			}
-		}
-
-		synchronized (allClassNames) {
-			for (Map.Entry<String, String> e : allClassNames.entrySet()) {
-				if (e.getKey()
-				     .contains(left) && !seen.contains(e.getKey())) {
-					seen.add(e.getKey());
-					rr.add(new Pair<>(e.getKey(), "from " + e.getValue()));
+			for (JavaClass c : builder.getClasses()) {
+				if (c.getName()
+				     .contains(left) && !seen.contains(c.getFullyQualifiedName())) {
+					seen.add(c.getFullyQualifiedName());
+					rr.add(new Pair<>(c.getFullyQualifiedName(), c.getComment()));
 				}
 			}
+
+			synchronized (allClassNames) {
+				for (Map.Entry<String, String> e : allClassNames.entrySet()) {
+					if (e.getKey()
+					     .contains(left) && !seen.contains(e.getKey())) {
+						seen.add(e.getKey());
+						rr.add(new Pair<>(e.getKey(), "from " + e.getValue()));
+					}
+				}
+			}
+
+			if (rr.size() > 100) rr = rr.subList(0, 100);
+
+
+			Collections.sort(rr, (a, b) -> {
+				String[] pa = a.first.split("\\.");
+				String[] pb = b.first.split("\\.");
+
+				return Double.compare(pa[pa.length - 1].length(), pb[pb.length - 1].length());
+
+			});
+
+			return rr;
+		}
+		catch(Throwable t)
+		{
+			t.printStackTrace();
+			return Collections.emptyList();
 		}
 
-		if (rr.size() > 100) rr = rr.subList(0, 100);
-
-		return rr;
 	}
 
 
