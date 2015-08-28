@@ -86,7 +86,7 @@ public class Sphere implements Primitive {
 			    Math.cos(phi),
 			    Math.sin(theta) * Math.sin(phi)
 		);
-		return new Vertex(Vec3.add(c, r, dir, new Vec3()), dir);
+		return new Vertex(new Vec3(c).fma(r, dir), dir);
 	}
 
 	@Override

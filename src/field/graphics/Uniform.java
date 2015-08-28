@@ -58,9 +58,9 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 		if (t instanceof Vector2D) return new float[]{(float) ((Vector2D) t).getX(), (float) ((Vector2D) t).getY()};
 		if (t instanceof Vector3D) return new float[]{(float) ((Vector3D) t).getX(), (float) ((Vector3D) t).getY(), (float) ((Vector3D) t).getZ()};
 
-		if (t instanceof Vec2) return new float[]{(float) ((Vec2) t).getX(), (float) ((Vec2) t).getY()};
-		if (t instanceof Vec3) return new float[]{(float) ((Vec3) t).getX(), (float) ((Vec3) t).getY(), (float) ((Vec3) t).getZ()};
-		if (t instanceof Vec4) return new float[]{(float) ((Vec4) t).getX(), (float) ((Vec4) t).getY(), (float) ((Vec4) t).getZ(), (float) ((Vec4) t).getW()};
+		if (t instanceof Vec2) return new float[]{(float) ((Vec2) t).x, (float) ((Vec2) t).y};
+		if (t instanceof Vec3) return new float[]{(float) ((Vec3) t).x, (float) ((Vec3) t).y, (float) ((Vec3) t).z};
+		if (t instanceof Vec4) return new float[]{(float) ((Vec4) t).x, (float) ((Vec4) t).y, (float) ((Vec4) t).z, (float) ((Vec4) t).w};
 
 		return null;
 	}

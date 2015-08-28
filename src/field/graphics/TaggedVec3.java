@@ -33,7 +33,7 @@ public class TaggedVec3 extends Vec3 {
 	}
 
 	public TaggedVec3(char t, FloatBuffer f, int index) {
-		super(f, index);
+		super(index, f);
 		this.tag = t;
 	}
 

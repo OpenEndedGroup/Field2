@@ -96,7 +96,7 @@ public class Camera {
 		}
 
 		public Vec3 left() {
-			return Vec3.cross(up, ray(), new Vec3()).normalise();
+			return Vec3.cross(up, ray(), new Vec3()).normalize();
 		}
 
 		public Vec3 position() {
@@ -127,37 +127,37 @@ public class Camera {
 
 		public State orbitLeft(float r) {
 			State s = copy();
-			s.position = Vec3.add(target, new Quat().setFromAxisAngle(up, r).rotate(ray().scale(-1)), new Vec3());
+			s.position = Vec3.add(target, new Quat().fromAxisAngleRad(up, r).transform(ray().mul(-1)), new Vec3());
 			return s;
 		}
 
 		public State orbitUp(float r) {
 			State s = copy();
-			Quat q = new Quat().setFromAxisAngle(left(), r);
-			s.position = Vec3.add(target, q.rotate(ray().scale(-1)), new Vec3());
-			s.up = q.rotate(up);
+			Quat q = new Quat().fromAxisAngleRad(left(), r);
+			s.position = Vec3.add(target, q.transform(ray().mul(-1)), new Vec3());
+			s.up = q.transform(up);
 			return s;
 		}
 
 		public State roll(float r) {
 			State s = copy();
-			Quat q = new Quat().setFromAxisAngle(ray(), r);
-			s.up = q.rotate(up);
+			Quat q = new Quat().fromAxisAngleRad(ray(), r);
+			s.up = q.transform(up);
 			return s;
 		}
 
 
 		public State lookLeft(float r) {
 			State s = copy();
-			s.target = Vec3.add(position, new Quat().setFromAxisAngle(up, r).rotate(ray().scale(1)), new Vec3());
+			s.target = Vec3.add(position, new Quat().fromAxisAngleRad(up, r).transform(ray().mul(1)), new Vec3());
 			return s;
 		}
 
 		public State lookUp(float r) {
 			State s = copy();
-			Quat q = new Quat().setFromAxisAngle(left(), r);
-			s.target = Vec3.add(position, q.rotate(ray().scale(1)), new Vec3());
-			s.up = q.rotate(up);
+			Quat q = new Quat().fromAxisAngleRad(left(), r);
+			s.target = Vec3.add(position, q.transform(ray().mul(1)), new Vec3());
+			s.up = q.transform(up);
 			return s;
 		}
 
@@ -165,8 +165,8 @@ public class Camera {
 		public State translateLeft(float r) {
 			State s = copy();
 			Vec3 left = left();
-			left = left.normalise();
-			left.scale((float) position.distanceFrom(target));
+			left = left.normalize();
+			left.mul((float) position.distance(target));
 			s.position.x += left.x * r;
 			s.position.y += left.y * r;
 			s.position.z += left.z * r;
@@ -179,8 +179,8 @@ public class Camera {
 		public State translateIn(float r) {
 			State s = copy();
 			Vec3 left = ray();
-			left = left.normalise();
-			left.scale((float) position.distanceFrom(target));
+			left = left.normalize();
+			left.mul((float) position.distance(target));
 			s.position.x += left.x * r;
 			s.position.y += left.y * r;
 			s.position.z += left.z * r;
@@ -193,8 +193,8 @@ public class Camera {
 		public State dollyIn(float r) {
 			State s = copy();
 			Vec3 left = ray();
-			left = left.normalise();
-			left.scale((float) position.distanceFrom(target));
+			left = left.normalize();
+			left.mul((float) position.distance(target));
 			s.position.x += left.x * r;
 			s.position.y += left.y * r;
 			s.position.z += left.z * r;
@@ -204,8 +204,8 @@ public class Camera {
 		public State translateUp(float r) {
 			State s = copy();
 			Vec3 left = up;
-			left = left.normalise();
-			left.scale((float) position.distanceFrom(target));
+			left = left.normalize();
+			left.mul((float) position.distance(target));
 			s.position.x += left.x * r;
 			s.position.y += left.y * r;
 			s.position.z += left.z * r;
@@ -217,7 +217,7 @@ public class Camera {
 
 		public Vec3 position(float stereoSide) {
 			Vec3 left = left();
-			float d = (float) target.distanceFrom(position);
+			float d = (float) target.distance(position);
 			float s = stereoSide * (io_disparity + io_disparity_per_distance * d);
 			return new Vec3(position.x + left.x * s, position.y + left.y * s, position.z + left.z * s);
 		}
@@ -290,11 +290,11 @@ public class Camera {
 
 	public Mat4 view(float stereoSide) {
 
-		Vec3 forward = state.ray(stereoSide).normalise();
-		Vec3 up = state.up.normalise();
+		Vec3 forward = state.ray(stereoSide).normalize();
+		Vec3 up = state.up.normalize();
 
 		/* Side = forward x up */
-		Vec3 side = Vec3.cross(forward, up, new Vec3()).normalise();
+		Vec3 side = Vec3.cross(forward, up, new Vec3()).normalize();
 
 		/* Recompute up as: up = side x forward */
 		up = Vec3.cross(side, forward, new Vec3());

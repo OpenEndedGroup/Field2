@@ -119,7 +119,7 @@ public class Directionality extends Box {
 					if (Math.abs(left.get(i).v.y - n.v.y) <= left.get(
 						    i).v.x - n.v.x) {
 
-						double d = left.get(i).v.distanceFrom(n.v);
+						double d = left.get(i).v.distance(n.v);
 						if (d < best && check(n.connections, left.get(i))) {
 							best = d;
 							bestIs = i;
@@ -140,7 +140,7 @@ public class Directionality extends Box {
 					if (Math.abs(left.get(i).v.y - n.v.y) <= n.v.x - left.get(
 						    i).v.x) {
 
-						double d = left.get(i).v.distanceFrom(n.v);
+						double d = left.get(i).v.distance(n.v);
 						if (d < best && check(n.connections, left.get(i))) {
 							best = d;
 							bestIs = i;
@@ -160,7 +160,7 @@ public class Directionality extends Box {
 					if (Math.abs(down.get(i).v.x - n.v.x) <= down.get(
 						    i).v.y - n.v.y) {
 
-						double d = down.get(i).v.distanceFrom(n.v);
+						double d = down.get(i).v.distance(n.v);
 						if (d < best && check(n.connections, down.get(i))) {
 							best = d;
 							bestIs = i;
@@ -181,7 +181,7 @@ public class Directionality extends Box {
 					if (Math.abs(down.get(i).v.x - n.v.x) <= n.v.y - down.get(
 						    i).v.y) {
 
-						double d = down.get(i).v.distanceFrom(n.v);
+						double d = down.get(i).v.distance(n.v);
 						if (d < best && check(n.connections, down.get(i))) {
 							best = d;
 							bestIs = i;

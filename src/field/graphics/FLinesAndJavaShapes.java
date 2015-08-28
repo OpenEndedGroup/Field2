@@ -13,6 +13,7 @@ import org.apache.commons.math3.optim.univariate.UnivariateObjectiveFunction;
 import org.apache.commons.math3.optim.univariate.UnivariatePointValuePair;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.PathIterator;
@@ -249,7 +250,11 @@ public class FLinesAndJavaShapes {
 	}
 
 	static public FLine javaShapeToFLine(Shape f) {
-		PathIterator pi = f.getPathIterator(null);
+		return javaShapeToFLine(f, AffineTransform.getTranslateInstance(0,0));
+	}
+
+	static public FLine javaShapeToFLine(Shape f, AffineTransform at) {
+		PathIterator pi = f.getPathIterator(at);
 		float[] cc = new float[6];
 		Vec2 lastAt = null;
 		Vec2 lastMoveTo = null;
@@ -258,7 +263,7 @@ public class FLinesAndJavaShapes {
 		while (!pi.isDone()) {
 			int ty = pi.currentSegment(cc);
 			if (ty == PathIterator.SEG_CLOSE) {
-				if (lastMoveTo != null && lastAt.distanceFrom(lastMoveTo) > 1e-6) in.lineTo(lastMoveTo.x, lastMoveTo.y);
+				if (lastMoveTo != null && lastAt.distance(lastMoveTo) > 1e-6) in.lineTo(lastMoveTo.x, lastMoveTo.y);
 				lastAt = null;
 			} else if (ty == PathIterator.SEG_CUBICTO) {
 				if (lastAt == null || (Math.abs(lastAt.x - cc[4]) + Math.abs(lastAt.y - cc[5]) > 1e-15)) in.cubicTo(cc[0], cc[1], cc[2], cc[3], cc[4], cc[5]);
@@ -300,6 +305,7 @@ public class FLinesAndJavaShapes {
 			pi.next();
 
 		}
+
 		return in;
 	}
 
@@ -357,7 +363,7 @@ public class FLinesAndJavaShapes {
 			if (n1 instanceof FLine.LineTo) {
 				Vec3 dir = new Vec3(n1.to).sub(n0.to);
 				if (dir.length() == 0) {
-					double dd = n1.to.distanceFrom(point);
+					double dd = n1.to.distance(point);
 					if (dd <= best) {
 						best = dd;
 
@@ -366,12 +372,12 @@ public class FLinesAndJavaShapes {
 				} else {
 
 					double len = dir.length();
-					dir.scale(1 / len);
+					dir.mul(1 / len);
 					double d = dir.dot(new Vec3(point).sub(n0.to));
 					if (d < 0) d = 0;
 					if (d > len) d = len;
-					Vec3 at = new Vec3(n0.to).add(dir, d);
-					double dd = at.distanceFrom(point);
+					Vec3 at = new Vec3(n0.to).fma(dir, d);
+					double dd = at.distance(point);
 					if (dd < best) {
 						best = dd;
 						tt = d + (i - 1);
@@ -380,7 +386,7 @@ public class FLinesAndJavaShapes {
 			} else {
 				FLine.CubicTo c = (FLine.CubicTo) n1;
 				double t = new CubicSegment3(n0.to, c.c1, c.c2, c.to).closestToPoint(point);
-				double dd = evaluateCubicFrame(n0.to, c.c1, c.c2, c.to, t, new Vec3()).distanceFrom(point);
+				double dd = evaluateCubicFrame(n0.to, c.c1, c.c2, c.to, t, new Vec3()).distance(point);
 				if (dd < best) {
 					best = dd;
 					tt = t + (i - 1);
@@ -515,10 +521,10 @@ public class FLinesAndJavaShapes {
 		FLine out = new FLine();
 
 		Cursor controlCusor = new Cursor(control, 0.1f);
-		Quat q2 = new Quat().setFromTwoVec3(controlCusor.setT(0)
-								.tangent(), z);
+		Quat q2 = new Quat().rotateTo(controlCusor.setT(0)
+							  .tangent(), z);
 
-		xy = xy.byTransforming(x -> q2.rotate(new Vec3(x))
+		xy = xy.byTransforming(x -> q2.transform(new Vec3(x))
 					      .add(control.nodes.get(0).to));
 
 //		out.add(xy);
@@ -526,12 +532,12 @@ public class FLinesAndJavaShapes {
 		for (int i = 1; i < control.nodes.size(); i++) {
 			final int fi = i;
 
-			Quat q1 = new Quat().setFromTwoVec3(controlCusor.setT(i)
-									.tangent(), controlCusor.setT(i - 1)
-												.tangent());
+			Quat q1 = new Quat().rotateTo(controlCusor.setT(i)
+								  .tangent(), controlCusor.setT(i - 1)
+											  .tangent());
 
 
-			FLine nxy = xy.byTransforming(x -> q1.rotate(new Vec3(x).sub(control.nodes.get(fi - 1).to))
+			FLine nxy = xy.byTransforming(x -> q1.transform(new Vec3(x).sub(control.nodes.get(fi - 1).to))
 							     .add(control.nodes.get(fi).to));
 
 			for (int x = 1; x < nxy.nodes.size(); x++) {
@@ -775,7 +781,12 @@ public class FLinesAndJavaShapes {
 		public Vec2 normal2()
 		{
 			Vec3 t = tangent();
-			return new Vec2(t.y, -t.x);
+			Vec2 t2 = t==null ? null : new Vec2(t.y, -t.x);
+
+			if (t2==null)
+				System.out.println("NORMAL2 failed :"+this.on.nodes+" / "+this.alpha);
+
+			return t2;
 		}
 
 		/**
@@ -789,8 +800,8 @@ public class FLinesAndJavaShapes {
 				Vec3 p3 = ((FLine.CubicTo) on.nodes.get(clamp(index + 1))).to;
 
 				CubicSegment3 c = new CubicSegment3(p0, p1, p2, p3);
-				return new Vec3(normal()).normalise()
-							 .scale(c.R(alpha));
+				return new Vec3(normal()).normalize()
+							 .mul(c.R(alpha));
 
 			} else return null;
 		}
@@ -820,7 +831,7 @@ public class FLinesAndJavaShapes {
 			if (t1 == null && t2 == null) return null;
 
 			Vec3 t = new Vec3(t1 == null ? t2 : t1).add(t2 == null ? t1 : t2)
-							       .scale(0.5f);
+							       .mul(0.5f);
 			return t.isNaN() ? null : t;
 		}
 
@@ -835,7 +846,7 @@ public class FLinesAndJavaShapes {
 			if (t1 == null && t2 == null) return null;
 
 			Vec3 t = new Vec3(t1 == null ? t2 : t1).add(t2 == null ? t1 : t2)
-							       .scale(0.5f);
+							       .mul(0.5f);
 			return t.isNaN() ? null : t;
 		}
 
@@ -874,7 +885,7 @@ public class FLinesAndJavaShapes {
 		 * returns a list of places where tangentForward doesn't equal tangentBackward
 		 */
 		public List<Double> tangentBreaks() {
-			return extremalOuterPoints(p -> p.first.distanceFrom(p.second) > 1e-3);
+			return extremalOuterPoints(p -> p.first.distance(p.second) > 1e-3);
 		}
 
 		/**
@@ -1139,7 +1150,7 @@ public class FLinesAndJavaShapes {
 
 		if (t<0 || t>1 || u<0 || u>1) return null;
 
-		return new Vec2(l1a).add(l1d, (float) t) ;
+		return new Vec2(l1a).fma((float) t, l1d);
 
 	}
 
@@ -1180,15 +1191,15 @@ public class FLinesAndJavaShapes {
 		 */
 		public CubicSegment3 rotateToX(Vec3 x1, Vec3 x2) {
 			Vec3 dir = Vec3.sub(x2, x1, new Vec3());
-			Quat q = new Quat().setFromTwoVec3(new Vec3(1, 0, 0), dir);
+			Quat q = new Quat().rotateTo(new Vec3(1, 0, 0), dir);
 
-			x1 = q.rotate(x1);
-			x2 = q.rotate(x2);
+			x1 = q.transform(x1);
+			x2 = q.transform(x2);
 
-			Vec3 a2 = Vec3.sub(q.rotate(a), x1, new Vec3());
-			Vec3 b2 = Vec3.sub(q.rotate(b), x1, new Vec3());
-			Vec3 c2 = Vec3.sub(q.rotate(c), x1, new Vec3());
-			Vec3 d2 = Vec3.sub(q.rotate(d), x1, new Vec3());
+			Vec3 a2 = Vec3.sub(q.transform(a), x1, new Vec3());
+			Vec3 b2 = Vec3.sub(q.transform(b), x1, new Vec3());
+			Vec3 c2 = Vec3.sub(q.transform(c), x1, new Vec3());
+			Vec3 d2 = Vec3.sub(q.transform(d), x1, new Vec3());
 			return new CubicSegment3(a2, b2, c2, d2);
 		}
 
@@ -1603,15 +1614,15 @@ public class FLinesAndJavaShapes {
 		public Vec3 D(double alpha) {
 
 			Vec3 a = new Vec3(this.b).sub(this.a);
-			Vec3 b = new Vec3(this.c).add(this.b, -2)
+			Vec3 b = new Vec3(this.c).fma(this.b, -2)
 						 .add(this.a);
-			Vec3 c = new Vec3(this.d).add(this.c, -3)
-						 .add(this.b, 3)
-						 .add(this.a, -1);
+			Vec3 c = new Vec3(this.d).fma(this.c, -3)
+						 .fma(this.b, 3)
+						 .fma(this.a, -1);
 
-			Vec3 D = new Vec3().add(a, 3)
-					   .add(b, 6 * alpha)
-					   .add(c, 3 * alpha * alpha);
+			Vec3 D = new Vec3().fma(a, 3)
+					   .fma(b, 6 * alpha)
+					   .fma(c, 3 * alpha * alpha);
 
 			return D;
 		}
@@ -1620,14 +1631,14 @@ public class FLinesAndJavaShapes {
 		public Vec3 DD(double alpha) {
 
 			Vec3 a = new Vec3(this.b).sub(this.c);
-			Vec3 b = new Vec3(this.c).add(this.b, -2)
+			Vec3 b = new Vec3(this.c).fma(this.b, -2)
 						 .add(this.a);
-			Vec3 c = new Vec3(this.d).add(this.c, -3)
-						 .add(this.b, 3)
-						 .add(this.a, -1);
+			Vec3 c = new Vec3(this.d).fma(this.c, -3)
+						 .fma(this.b, 3)
+						 .fma(this.a, -1);
 
-			Vec3 DD = new Vec3().add(b, 6)
-					    .add(c, 6 * alpha);
+			Vec3 DD = new Vec3().fma(b, 6)
+					    .fma(c, 6 * alpha);
 
 			return DD;
 		}
@@ -1761,9 +1772,9 @@ public class FLinesAndJavaShapes {
 			// right now we split this segment into two pieces to reduce the changes of getting stuck in a local minimum. We ought to split at inflection points instead
 
 			BrentOptimizer o = new BrentOptimizer(1e-4, 1e-4);
-			UnivariatePointValuePair p1 = o.optimize(new UnivariateObjectiveFunction((x) -> evaluateCubicFrame(a, b, c, d, x, new Vec3()).distanceFrom(v)),
+			UnivariatePointValuePair p1 = o.optimize(new UnivariateObjectiveFunction((x) -> evaluateCubicFrame(a, b, c, d, x, new Vec3()).distance(v)),
 								 new SearchInterval(0, 0.5, 0.25), GoalType.MINIMIZE, new MaxEval(200));
-			UnivariatePointValuePair p2 = o.optimize(new UnivariateObjectiveFunction((x) -> evaluateCubicFrame(a, b, c, d, x, new Vec3()).distanceFrom(v)),
+			UnivariatePointValuePair p2 = o.optimize(new UnivariateObjectiveFunction((x) -> evaluateCubicFrame(a, b, c, d, x, new Vec3()).distance(v)),
 								 new SearchInterval(0.5, 1, 0.75), GoalType.MINIMIZE, new MaxEval(200));
 
 			if (p1.getValue() < p2.getValue()) return p1.getPoint();
@@ -1808,21 +1819,19 @@ public class FLinesAndJavaShapes {
 		 */
 		public CubicSegment2 rotateToX(Vec2 x1, Vec2 x2) {
 			Vec2 dir = Vec2.sub(x2, x1, new Vec2());
-			Quat q = new Quat().setFromTwoVec3(new Vec3(1, 0, 0), dir.toVec3());
+			Quat q = new Quat().rotateTo(new Vec3(1, 0, 0), dir.toVec3());
 
-			x1 = q.rotate(x1)
-			      .toVec2();
-			x2 = q.rotate(x2)
-			      .toVec2();
+			x1 = q.transform(x1);
+			x2 = q.transform(x2);
 
-			Vec2 a2 = Vec2.sub(q.rotate(a)
-					    .toVec2(), x1, new Vec2());
-			Vec2 b2 = Vec2.sub(q.rotate(b)
-					    .toVec2(), x1, new Vec2());
-			Vec2 c2 = Vec2.sub(q.rotate(c)
-					    .toVec2(), x1, new Vec2());
-			Vec2 d2 = Vec2.sub(q.rotate(d)
-					    .toVec2(), x1, new Vec2());
+			Vec2 a2 = Vec2.sub(q.transform(a)
+					    , x1, new Vec2());
+			Vec2 b2 = Vec2.sub(q.transform(b)
+					    , x1, new Vec2());
+			Vec2 c2 = Vec2.sub(q.transform(c)
+					    , x1, new Vec2());
+			Vec2 d2 = Vec2.sub(q.transform(d)
+					    , x1, new Vec2());
 			return new CubicSegment2(a2, b2, c2, d2);
 		}
 
@@ -2170,9 +2179,9 @@ public class FLinesAndJavaShapes {
 			// right now we split this segment into two pieces to reduce the changes of getting stuck in a local minimum.
 
 			BrentOptimizer o = new BrentOptimizer(1e-4, 1e-4);
-			UnivariatePointValuePair p1 = o.optimize(new UnivariateObjectiveFunction((x) -> evaluateCubicFrame(a, b, c, d, x, new Vec2()).distanceFrom(v)),
+			UnivariatePointValuePair p1 = o.optimize(new UnivariateObjectiveFunction((x) -> evaluateCubicFrame(a, b, c, d, x, new Vec2()).distance(v)),
 								 new SearchInterval(0, 0.5, 0.25), GoalType.MINIMIZE);
-			UnivariatePointValuePair p2 = o.optimize(new UnivariateObjectiveFunction((x) -> evaluateCubicFrame(a, b, c, d, x, new Vec2()).distanceFrom(v)),
+			UnivariatePointValuePair p2 = o.optimize(new UnivariateObjectiveFunction((x) -> evaluateCubicFrame(a, b, c, d, x, new Vec2()).distance(v)),
 								 new SearchInterval(0.5, 1, 0.75), GoalType.MINIMIZE);
 
 			if (p1.getValue() < p2.getValue()) return p1.getPoint();

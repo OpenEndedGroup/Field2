@@ -160,7 +160,7 @@ public class StandardFLineDrawing {
 						   Vec4 fcHere = colorsToDraw == null ? prevColor : (i >= colorsToDraw.size() ? prevColor : colorsToDraw.get(i));
 						   ot.map(t -> t.getFontSupport(fline.attributes.getOr(font, () -> f)))
 						     .ifPresent(fs -> {
-							     fs.mesh.aux(1, new Vec4(fcHere).scale(op));
+							     fs.mesh.aux(1, new Vec4(fcHere).mul(op));
 							     fs.font.draw(m, new Vec2(node.to.x - dim.x / 2 + o.x, node.to.y), textScale, fline);
 							     o.x += fs.font.dimensions(m, textScale).x;
 						     });

@@ -15,5 +15,6 @@
     <orderEntry type="module" module-name="fieldagent" />
     <orderEntry type="library" name="nashorn-local" level="project" />
     <orderEntry type="library" name="protobuf-java-2.6.1" level="project" />
+    <orderEntry type="module" module-name="fieldlinker" />
   </component>
 </module>

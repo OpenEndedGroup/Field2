@@ -62,13 +62,13 @@ public class NearestPoint {
 
 
 	/* Check distance to beginning of curve, where t = 0	*/
-			dist = P.distanceFrom(V[0]);
+			dist = P.distance(V[0]);
 			t = 0.0;
 
 	/* Find distances for candidate points	*/
 			for (i = 0; i < n_solutions; i++) {
 				p = Bezier(V, DEGREE, t_candidate[i], null, null);
-				new_dist = P.distanceFrom(p);
+				new_dist = P.distance(p);
 				if (new_dist < dist) {
 					dist = new_dist;
 					t = t_candidate[i];
@@ -76,7 +76,7 @@ public class NearestPoint {
 			}
 
 	/* Finally, look at distance to end point, where t = 1.0 */
-			new_dist = P.distanceFrom(V[DEGREE]);
+			new_dist = P.distance(V[DEGREE]);
 			if (new_dist < dist) {
 				dist = new_dist;
 				t = 1.0;

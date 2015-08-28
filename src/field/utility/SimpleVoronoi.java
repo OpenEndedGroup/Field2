@@ -4,21 +4,7 @@ import field.graphics.FLine;
 import field.linalg.Vec2;
 
 import java.awt.geom.GeneralPath;
-import java.util.AbstractSet;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 
 
 /**
@@ -99,7 +85,7 @@ public class SimpleVoronoi {
 			y += (A[i].coordinates[1] + A[(i+1)%A.length].coordinates[1]) * a;
 		}
 		aa /= 2;
-		return new Vec2(x, y).scale((float) (1 / (6 * aa)));
+		return new Vec2(x, y).mul((float) (1 / (6 * aa)));
 	}
 
 	public GeneralPath makeArea(Pnt[] p) {

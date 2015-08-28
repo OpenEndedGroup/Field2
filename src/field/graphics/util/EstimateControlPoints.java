@@ -3,7 +3,6 @@ package field.graphics.util;
 import field.graphics.FLinesAndJavaShapes;
 import field.linalg.Vec2;
 import field.linalg.Vec3;
-import field.utility.Log;
 import field.utility.Triple;
 import org.apache.commons.math3.optim.*;
 import org.apache.commons.math3.optim.nonlinear.scalar.GoalType;
@@ -100,7 +99,7 @@ public class EstimateControlPoints {
 		return x -> {
 			double t = Double.POSITIVE_INFINITY;
 			for (Vec3 vv : d) {
-				double s = vv.distanceFromSquared(x);
+				double s = vv.distanceSquared(x);
 				if (s<t)
 					t = s;
 			}
@@ -113,7 +112,7 @@ public class EstimateControlPoints {
 	}
 
 	public Function<Vec3, Double> negateAndSlope(Function<Vec3, Double> w, Vec3 from, double slope) {
-		return x -> -w.apply(x)+from.distanceFrom(x)*slope;
+		return x -> -w.apply(x)+from.distance(x)*slope;
 	}
 
 
@@ -130,15 +129,15 @@ public class EstimateControlPoints {
 
 		for (int i = 1; i < p.length - 1; i++) {
 			Vec3 p1 = p[i];
-			double d01 = p1.distanceFrom(p0);
-			double d31 = p1.distanceFrom(p3);
+			double d01 = p1.distance(p0);
+			double d31 = p1.distance(p3);
 			for (int j = i + 1; j < p.length - 1; j++) {
 				Vec3 p2 = p[j];
 
-				double d02 = p2.distanceFrom(p0);
-				double d32 = p2.distanceFrom(p3);
+				double d02 = p2.distance(p0);
+				double d32 = p2.distance(p3);
 
-				double d12 = p1.distanceFrom(p2);
+				double d12 = p1.distance(p2);
 				FLinesAndJavaShapes.CubicSegment3 c = null;
 				if (d01 + d32 < d31 + d02) {
 					// p0, p1, p2, p3
@@ -164,7 +163,7 @@ public class EstimateControlPoints {
 		}
 
 
-		return new FLinesAndJavaShapes.CubicSegment3(p0, ac1.scale(1.0 / num), ac2.scale(1.0 / num), p3);
+		return new FLinesAndJavaShapes.CubicSegment3(p0, ac1.mul(1.0 / num), ac2.mul(1.0 / num), p3);
 
 	}
 
@@ -180,15 +179,15 @@ public class EstimateControlPoints {
 
 		for (int i = 1; i < p.length - 1; i++) {
 			Vec3 p1 = p[i];
-			double d01 = p1.distanceFrom(p0);
-			double d31 = p1.distanceFrom(p3);
+			double d01 = p1.distance(p0);
+			double d31 = p1.distance(p3);
 			for (int j = i + 1; j < p.length - 1; j++) {
 				Vec3 p2 = p[j];
 
-				double d02 = p2.distanceFrom(p0);
-				double d32 = p2.distanceFrom(p3);
+				double d02 = p2.distance(p0);
+				double d32 = p2.distance(p3);
 
-				double d12 = p1.distanceFrom(p2);
+				double d12 = p1.distance(p2);
 				FLinesAndJavaShapes.CubicSegment3 c = null;
 				if (d01 + d32 < d31 + d02) {
 					// p0, p1, p2, p3
@@ -206,14 +205,14 @@ public class EstimateControlPoints {
 
 				curves.add(c);
 				double w = weight.apply(c);
-				ac1.add(c.b.scale(w));
-				ac2.add(c.c.scale(w));
+				ac1.add(c.b.mul(w));
+				ac2.add(c.c.mul(w));
 				num += w;
 			}
 		}
 
 
-		return new FLinesAndJavaShapes.CubicSegment3(p0, ac1.scale(1.0 / num), ac2.scale(1.0 / num), p3);
+		return new FLinesAndJavaShapes.CubicSegment3(p0, ac1.mul(1.0 / num), ac2.mul(1.0 / num), p3);
 	}
 
 	public FLinesAndJavaShapes.CubicSegment3 reestimate(FLinesAndJavaShapes.CubicSegment3 initial, Vec3[] p, Function<FLinesAndJavaShapes.CubicSegment3, Double> weight) {
@@ -222,14 +221,14 @@ public class EstimateControlPoints {
 
 		double[] dd = new double[]{initial.b.x, initial.b.y, initial.c.x, initial.c.y};
 
-		double scale = initial.a.distanceFrom(initial.b) + initial.b.distanceFrom(initial.c) + initial.c.distanceFrom(initial.d);
+		double scale = initial.a.distance(initial.b) + initial.b.distance(initial.c) + initial.c.distance(initial.d);
 
 		PointValuePair s = optimizer.optimize(new MaxEval(2000), GoalType.MINIMIZE, new InitialGuess(dd), new ObjectiveFunction(x -> {
 
 			Vec3 C1 = new Vec3(x[0], x[1], 0);
 			Vec3 C2 = new Vec3(x[2], x[3], 0);
 
-			double sc = initial.a.distanceFrom(C1) + initial.d.distanceFrom(C2) + C1.distanceFrom(C2);
+			double sc = initial.a.distance(C1) + initial.d.distance(C2) + C1.distance(C2);
 
 			FLinesAndJavaShapes.CubicSegment3 seg = new FLinesAndJavaShapes.CubicSegment3(initial.a, C1, C2, initial.d);
 			Double w = weight.apply(seg) + sc;
@@ -250,7 +249,7 @@ public class EstimateControlPoints {
 
 		double[] dd = new double[]{initial.b.x, initial.b.y, initial.c.x, initial.c.y, initial.a.x, initial.a.y, initial.d.x, initial.d.y};
 
-		double scale = initial.a.distanceFrom(initial.b) + initial.b.distanceFrom(initial.c) + initial.c.distanceFrom(initial.d);
+		double scale = initial.a.distance(initial.b) + initial.b.distance(initial.c) + initial.c.distance(initial.d);
 
 		PointValuePair s = optimizer.optimize(new MaxEval(2000), GoalType.MINIMIZE, new InitialGuess(dd), new ObjectiveFunction(x -> {
 
@@ -259,7 +258,7 @@ public class EstimateControlPoints {
 			Vec3 P1 = new Vec3(x[4], x[5], 0);
 			Vec3 P2 = new Vec3(x[6], x[7], 0);
 
-			double sc = P1.distanceFrom(C1) + P2.distanceFrom(C2) + C1.distanceFrom(C2);
+			double sc = P1.distance(C1) + P2.distance(C2) + C1.distance(C2);
 
 			FLinesAndJavaShapes.CubicSegment3 seg = new FLinesAndJavaShapes.CubicSegment3(P1, C1, C2, P2);
 			Double w = weight.apply(seg) + sc;
@@ -291,14 +290,14 @@ public class EstimateControlPoints {
 			int i = (int) (1 + (p.length - 2) * Math.random());
 			int j = (int) (1 + (p.length - 2) * Math.random());
 			Vec3 p1 = p[i];
-			double d01 = p1.distanceFrom(p0);
-			double d31 = p1.distanceFrom(p3);
+			double d01 = p1.distance(p0);
+			double d31 = p1.distance(p3);
 			Vec3 p2 = p[j];
 
-			double d02 = p2.distanceFrom(p0);
-			double d32 = p2.distanceFrom(p3);
+			double d02 = p2.distance(p0);
+			double d32 = p2.distance(p3);
 
-			double d12 = p1.distanceFrom(p2);
+			double d12 = p1.distance(p2);
 			FLinesAndJavaShapes.CubicSegment3 c = null;
 			if (d01 + d32 < d31 + d02) {
 				// p0, p1, p2, p3
@@ -318,13 +317,13 @@ public class EstimateControlPoints {
 
 			curves.add(c);
 			double w = weight.apply(c);
-			ac1.add(c.b.scale(w));
-			ac2.add(c.c.scale(w));
+			ac1.add(c.b.mul(w));
+			ac2.add(c.c.mul(w));
 			num += w;
 		}
 
 
-		return new FLinesAndJavaShapes.CubicSegment3(p0, ac1.scale(1.0 / num), ac2.scale(1.0 / num), p3);
+		return new FLinesAndJavaShapes.CubicSegment3(p0, ac1.mul(1.0 / num), ac2.mul(1.0 / num), p3);
 	}
 
 	public Function<FLinesAndJavaShapes.CubicSegment3, Double> averageError(Vec3[] data) {

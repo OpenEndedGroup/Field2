@@ -213,12 +213,12 @@ public final class Polygon {
 	 */
 	private static Polygon fromPoints(List<Vec3> points, Plane plane) {
 
-		Vec3 normal = (plane != null) ? plane.normal.clone() : new Vec3(0, 0, 0);
+		Vec3 normal = (plane != null) ? plane.normal.duplicate() : new Vec3(0, 0, 0);
 
 		List<Vertex> vertices = new ArrayList<>();
 
 		for (Vec3 p : points) {
-			Vec3 vec = p.clone();
+			Vec3 vec = p.duplicate();
 			Vertex vertex = new Vertex(vec, normal);
 			vertices.add(vertex);
 		}
@@ -231,7 +231,7 @@ public final class Polygon {
 
 		List<Polygon> result = new ArrayList<>();
 
-		Vec3 normal = concave.vertices.get(0).normal.clone();
+		Vec3 normal = concave.vertices.get(0).normal.duplicate();
 
 		boolean cw = !isCCW(concave);
 

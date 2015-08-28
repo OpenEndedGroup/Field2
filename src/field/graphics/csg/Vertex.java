@@ -63,8 +63,8 @@ public class Vertex {
 	 * @param normal normal
 	 */
 	public Vertex(Vec3 pos, Vec3 normal) {
-		this.pos = pos.clone();
-		this.normal = normal.clone();
+		this.pos = pos.duplicate();
+		this.normal = normal.duplicate();
 	}
 
 
@@ -76,21 +76,21 @@ public class Vertex {
 	 * @param weight weight
 	 */
 	private Vertex(Vec3 pos, Vec3 normal, double weight) {
-		this.pos = pos.clone();
-		this.normal = normal.clone();
+		this.pos = pos.duplicate();
+		this.normal = normal.duplicate();
 		this.weight = weight;
 	}
 
 	@Override
 	public Vertex clone() {
-		return new Vertex(pos.clone(), normal.clone(), weight);
+		return new Vertex(pos.duplicate(), normal.duplicate(), weight);
 	}
 
 	/**
 	 * Inverts all orientation-specific data. (e.g. vertex normal).
 	 */
 	public void flip() {
-		normal.scale(-1);
+		normal.mul(-1);
 	}
 
 	/**
@@ -103,7 +103,7 @@ public class Vertex {
 	 */
 	public Vertex interpolate(Vertex other, double t) {
 
-		return new Vertex(Vec3.lerp(pos, other.pos, 1-t, new Vec3()), Vec3.lerp(normal, other.normal, 1-t, new Vec3()).normalise());
+		return new Vertex(Vec3.lerp(pos, other.pos, 1-t, new Vec3()), Vec3.lerp(normal, other.normal, 1-t, new Vec3()).normalize());
 
 	}
 

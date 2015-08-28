@@ -141,12 +141,12 @@ public class TopologyBox extends Box
 		Vec2 a = new Vec2(from.x + from.w / 2, from.y + from.h / 2);
 		Vec2 b = new Vec2(to.x + to.w / 2, to.y + to.h / 2);
 
-		float d = (float) b.distanceFrom(a);
+		float d = (float) b.distance(a);
 
 		Vec2 normal = Vec2.sub(b, a, new Vec2());
 
-		Vec2 tan = new Vec2(-normal.y, normal.x).normalise().scale(d * 0.15f);
-		if (normal.x > 0) tan.scale(-1);
+		Vec2 tan = new Vec2(-normal.y, normal.x).normalize().mul(d * 0.15f);
+		if (normal.x > 0) tan.mul(-1);
 
 		Vec2 c1 = new Vec2(a.x + normal.x * 1 / 3f + tan.x, a.y + normal.y * 1 / 3f + tan.y);
 		Vec2 c2 = new Vec2(a.x + normal.x * 2 / 3f + tan.x, a.y + normal.y * 2 / 3f + tan.y);

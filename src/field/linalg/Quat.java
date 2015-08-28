@@ -1,62 +1,81 @@
+/*
+ * (C) Copyright 2015 Richard Greenlees
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+
+ */
 package field.linalg;
 
-import java.io.Serializable;
-import java.nio.DoubleBuffer;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.function.Supplier;
 
 /**
- * Created by marc on 3/12/14.
+ * Contains the definition and functions for rotations expressed as 4-dimensional vectors
+ *
+ * @author Richard Greenlees
+ * @author Kai Burjack
  */
-public class Quat implements Serializable {
+public class Quat implements Externalizable, Supplier<Quat> {
 
 	private static final long serialVersionUID = 1L;
 
-	public double x, y, z, w;
+	/**
+	 * The first component of the vector part.
+	 */
+	public double x;
+	/**
+	 * The second component of the vector part.
+	 */
+	public double y;
+	/**
+	 * The third component of the vector part.
+	 */
+	public double z;
+	/**
+	 * The real/scalar part of the quaternion.
+	 */
+	public double w;
 
 	/**
-	 * C'tor. The quaternion will be initialized to the identity.
+	 * Create a new {@link Quat} and initialize it with <tt>(x=0, y=0, z=0, w=1)</tt>, where <tt>(x, y, z)</tt> is the vector part of the quaternion and <tt>w</tt> is the real/scalar part.
 	 */
 	public Quat() {
-		super();
-		setIdentity();
+		x = 0.0;
+		y = 0.0;
+		z = 0.0;
+		w = 1.0;
 	}
 
 	/**
-	 * C'tor
+	 * Create a new {@link Quat} and initialize its components to the given values.
 	 *
-	 * @param src
-	 */
-	public Quat(Vec4 src) {
-		set(src);
-	}
-
-	/**
-	 * C'tor
-	 *
-	 * @param src
-	 */
-	public Quat(Quat src) {
-		set(src);
-	}
-
-	/**
-	 * C'tor
+	 * @param x the first component of the imaginary part
+	 * @param y the second component of the imaginary part
+	 * @param z the third component of the imaginary part
+	 * @param w the real part
 	 */
 	public Quat(double x, double y, double z, double w) {
-		set(x, y, z, w);
-	}
-
-	public void set(double x, double y) {
-		this.x = x;
-		this.y = y;
-	}
-
-	public void set(double x, double y, double z) {
-		this.x = x;
-		this.y = y;
-		this.z = z;
-	}
-
-	public void set(double x, double y, double z, double w) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
@@ -64,525 +83,1777 @@ public class Quat implements Serializable {
 	}
 
 	/**
-	 * Load from another Vec4
+	 * Create a new {@link Quat} and initialize its imaginary components to the given values, and its real part to <tt>1.0</tt>.
 	 *
-	 * @param src The source vector
-	 * @return this
+	 * @param x the first component of the imaginary part
+	 * @param y the second component of the imaginary part
+	 * @param z the third component of the imaginary part
 	 */
-	public Quat set(Vec4 src) {
-		x = src.getX();
-		y = src.getY();
-		z = src.getZ();
-		w = src.getW();
-		return this;
-	}
-
-	/**
-	 * Load from another Quat
-	 *
-	 * @param src The source vector
-	 * @return this
-	 */
-	public Quat set(Quat src) {
-		x = src.getX();
-		y = src.getY();
-		z = src.getZ();
-		w = src.getW();
-		return this;
-	}
-
-	/**
-	 * Set this quaternion to the multiplication identity.
-	 *
-	 * @return this
-	 */
-	public Quat setIdentity() {
-		return setIdentity(this);
-	}
-
-	/**
-	 * Set the given quaternion to the multiplication identity.
-	 *
-	 * @param q The quaternion
-	 * @return q
-	 */
-	public static Quat setIdentity(Quat q) {
-		q.x = 0;
-		q.y = 0;
-		q.z = 0;
-		q.w = 1;
-		return q;
-	}
-
-	/**
-	 * @return the length of the vector
-	 */
-	public final double length() {
-		return (double) Math.sqrt(lengthSquared());
-	}
-
-	/**
-	 * @return the length squared of the quaternion
-	 */
-	public double lengthSquared() {
-		return x * x + y * y + z * z + w * w;
-	}
-
-	/**
-	 * Normalise the source quaternion and place the result in another quaternion.
-	 *
-	 * @param src  The source quaternion
-	 * @param dest The destination quaternion, or null if a new quaternion is to be created
-	 * @return The normalised quaternion
-	 */
-	public static Quat normalise(Quat src, Quat dest) {
-		double inv_l = 1f / src.length();
-
-		if (dest == null) dest = new Quat();
-
-		dest.set(src.x * inv_l, src.y * inv_l, src.z * inv_l, src.w * inv_l);
-
-		return dest;
-	}
-
-	/**
-	 * Normalise this quaternion and place the result in another quaternion.
-	 *
-	 * @param dest The destination quaternion, or null if a new quaternion is to be created
-	 * @return the normalised quaternion
-	 */
-	public Quat normalise(Quat dest) {
-		return normalise(this, dest);
-	}
-
-	/**
-	 * The dot product of two quaternions
-	 *
-	 * @param left  The LHS quat
-	 * @param right The RHS quat
-	 * @return left dot right
-	 */
-	public static double dot(Quat left, Quat right) {
-		return left.x * right.x + left.y * right.y + left.z * right.z + left.w * right.w;
-	}
-
-	/**
-	 * Calculate the conjugate of this quaternion and put it into the given one
-	 *
-	 * @param dest The quaternion which should be set to the conjugate of this quaternion
-	 */
-	public Quat negate(Quat dest) {
-		return negate(this, dest);
-	}
-
-	/**
-	 * Calculate the conjugate of this quaternion and put it into the given one
-	 *
-	 * @param src  The source quaternion
-	 * @param dest The quaternion which should be set to the conjugate of this quaternion
-	 */
-	public static Quat negate(Quat src, Quat dest) {
-		if (dest == null) dest = new Quat();
-
-		dest.x = -src.x;
-		dest.y = -src.y;
-		dest.z = -src.z;
-		dest.w = src.w;
-
-		return dest;
-	}
-
-	/**
-	 * Calculate the conjugate of this quaternion
-	 */
-	public Quat negate() {
-		return negate(this, this);
-	}
-
-	public Quat load(DoubleBuffer buf) {
-		x = buf.get();
-		y = buf.get();
-		z = buf.get();
-		w = buf.get();
-		return this;
-	}
-
-	public Quat scale(double scale) {
-		return scale(scale, this, this);
-	}
-
-	/**
-	 * Scale the source quaternion by scale and put the result in the destination
-	 *
-	 * @param scale The amount to scale by
-	 * @param src   The source quaternion
-	 * @param dest  The destination quaternion, or null if a new quaternion is to be created
-	 * @return The scaled quaternion
-	 */
-	public static Quat scale(double scale, Quat src, Quat dest) {
-		if (dest == null) dest = new Quat();
-		dest.x = src.x * scale;
-		dest.y = src.y * scale;
-		dest.z = src.z * scale;
-		dest.w = src.w * scale;
-		return dest;
-	}
-
-	public Quat store(DoubleBuffer buf) {
-		buf.put(x);
-		buf.put(y);
-		buf.put(z);
-		buf.put(w);
-
-		return this;
-	}
-
-	/**
-	 * @return x
-	 */
-	public final double getX() {
-		return x;
-	}
-
-	/**
-	 * @return y
-	 */
-	public final double getY() {
-		return y;
-	}
-
-	/**
-	 * Set X
-	 *
-	 * @param x
-	 */
-	public final void setX(double x) {
+	public Quat(double x, double y, double z) {
 		this.x = x;
-	}
-
-	/**
-	 * Set Y
-	 *
-	 * @param y
-	 */
-	public final void setY(double y) {
 		this.y = y;
-	}
-
-	/**
-	 * Set Z
-	 *
-	 * @param z
-	 */
-	public void setZ(double z) {
 		this.z = z;
-	}
-
-	public double getZ() {
-		return z;
+		this.w = 1.0;
 	}
 
 	/**
-	 * Set W
+	 * Create a new {@link Quat} and initialize its components to the same values as the given {@link Quat}.
 	 *
-	 * @param w
+	 * @param source the {@link Quat} to take the component values from
 	 */
-	public void setW(double w) {
-		this.w = w;
-	}
-
-	public double getW() {
-		return w;
-	}
-
-	public String toString() {
-		return "Quat: " + x + " " + y + " " + z + " " + w;
-	}
-
-
-	/**
-	 * Returns a vector that is 'v' rotated by this quaternion
-	 *
-	 * @param v the Vec3 to rotate
-	 * @return a new Vec3
-	 */
-
-	public Vec3 rotate(Vec3 v) {
-		return Mat4.transform(new Mat4(this, null, 1), v, new Vec3());
+	public Quat(Quat source) {
+		x = source.x;
+		y = source.y;
+		z = source.z;
+		w = source.w;
 	}
 
 	/**
-	 * Returns a vector that is 'v' rotated by this quaternion
+	 * Normalize this quaternion.
 	 *
-	 * @param v the Vec2 to rotate
-	 * @return a new Vec2
-	 *
-	 */
-
-	public Vec3 rotate(Vec2 v) {
-		return Mat4.transform(new Mat4(this, null, 1), v.toVec3(), new Vec3());
-	}
-
-	/**
-	 * Sets the value of this quaternion to the quaternion product of quaternions left and right (this = left * right). Note that this is safe for aliasing (e.g. this can be left or right).
-	 *
-	 * @param left  the first quaternion
-	 * @param right the second quaternion
-	 */
-	public static Quat mul(Quat left, Quat right, Quat dest) {
-		if (dest == null) dest = new Quat();
-		dest.set(left.x * right.w + left.w * right.x + left.y * right.z - left.z * right.y, left.y * right.w + left.w * right.y + left.z * right.x - left.x * right.z,
-			 left.z * right.w + left.w * right.z + left.x * right.y - left.y * right.x, left.w * right.w - left.x * right.x - left.y * right.y - left.z * right.z);
-		return dest;
-	}
-
-	/**
-	 * Multiplies quaternion left by the inverse of quaternion right and places the value into this quaternion. The value of both argument quaternions is preservered (this = left * right^-1).
-	 *
-	 * @param left  the left quaternion
-	 * @param right the right quaternion
-	 */
-	public static Quat mulInverse(Quat left, Quat right, Quat dest) {
-		double n = right.lengthSquared();
-		// zero-div may occur.
-		n = (n == 0.0 ? n : 1 / n);
-		// store on stack once for aliasing-safty
-		if (dest == null) dest = new Quat();
-		dest.set((left.x * right.w - left.w * right.x - left.y * right.z + left.z * right.y) * n, (left.y * right.w - left.w * right.y - left.z * right.x + left.x * right.z) * n,
-			 (left.z * right.w - left.w * right.z - left.x * right.y + left.y * right.x) * n, (left.w * right.w + left.x * right.x + left.y * right.y + left.z * right.z) * n);
-
-		return dest;
-	}
-
-
-
-	/**
-	 * Sets the value of this quaternion to the equivalent rotation of the Axis-Angle argument.
-	 *
-	 * @param a1 the axis-angle: (x,y,z) is the axis and w is the angle
-	 */
-	public final Quat setFromAxisAngle(Vec4 a1) {
-		x = a1.x;
-		y = a1.y;
-		z = a1.z;
-		double n = (double) Math.sqrt(x * x + y * y + z * z);
-		// zero-div may occur.
-		double s = (double) (Math.sin(0.5 * a1.w) / n);
-		x *= s;
-		y *= s;
-		z *= s;
-		w = (double) Math.cos(0.5 * a1.w);
-		return this;
-	}
-
-	/**
-	 * Sets the value of this quaternion to a rotation that takes the vector 'from' and rotates it to the vector 'to'
-	 */
-	public final Quat setFromTwoVec3(Vec3 to, Vec3 from) {
-		to = new Vec3(to).normalise();
-		from = new Vec3(from).normalise();
-		Quat qfrom = new Quat(from.x, from.y, from.z, 0);
-		Quat qto = new Quat(-to.x, -to.y, -to.z, 0);
-
-		Quat.mul(qfrom, qto, this);
-		this.normalize(this);
-		this.sqrt();
-		return this;
-
-	}
-
-	/**
-	 * Sets the value of this quaternion to the normalized value of quaternion q1.
-	 *
-	 * @param q1 the quaternion to be normalized.
-	 * @return this (mutated)
-	 */
-	public final Quat normalize(Quat q1) {
-		double norm = (q1.x * q1.x + q1.y * q1.y + q1.z * q1.z + q1.w * q1.w);
-
-		if (norm > 0.0f) {
-			norm = 1.0f / (float) Math.sqrt(norm);
-			this.x = norm * q1.x;
-			this.y = norm * q1.y;
-			this.z = norm * q1.z;
-			this.w = norm * q1.w;
-		} else {
-			this.x = (float) 0.0;
-			this.y = (float) 0.0;
-			this.z = (float) 0.0;
-			this.w = (float) 0.0;
-		}
-		return this;
-	}
-
-	public Quat sqrt() {
-		return pow(0.5f);
-	}
-
-	public Quat pow(float p) {
-		ln();
-		x *= p;
-		y *= p;
-		z *= p;
-		return exp();
-	}
-
-	public Quat exp() {
-		double omega = mag();
-		double sinc_omega = BaseMath.sinc(omega);
-
-		this.w = (float) Math.cos(omega);
-		this.x = (float) (this.x * sinc_omega);
-		this.y = (float) (this.y * sinc_omega);
-		this.z = (float) (this.z * sinc_omega);
-		this.normalize(this);
-		return this;
-	}
-
-	public double mag() {
-		return Math.sqrt(x * x + y * y + z * z + w * w);
-	}
-
-	public Quat ln() {
-
-		float EPSILON = 1e-10f;
-		float omega = (float) BaseMath.acos(w);
-		w = 0;
-
-		float sinc = (float) BaseMath.sinc(omega);
-		if (Math.abs(sinc) < EPSILON) sinc = EPSILON;
-
-		x /= sinc;
-		y /= sinc;
-		z /= sinc;
-
-		return this;
-	}
-
-	/**
-	 * Sets the value of this quaternion to the equivalent rotation of the Axis-Angle argument.
-	 *
-	 * @param a1 the axis-angle: (x,y,z) is the axis and a is the angle
-	 */
-	public final Quat setFromAxisAngle(Vec3 a1, double a) {
-		x = a1.x;
-		y = a1.y;
-		z = a1.z;
-		double n = (double) Math.sqrt(x * x + y * y + z * z);
-		// zero-div may occur.
-		double s = (double) (Math.sin(0.5 * a) / n);
-		x *= s;
-		y *= s;
-		z *= s;
-		w = (double) Math.cos(0.5 * a);
-		return this;
-	}
-
-	/**
-	 * Sets the value of this quaternion using the rotational component of the passed matrix.
-	 *
-	 * @param m The matrix
 	 * @return this
 	 */
-	public final Quat setFromMatrix(Mat4 m) {
-		return setFromMatrix(m, this);
+	public Quat normalize() {
+		double norm = Math.sqrt(x * x + y * y + z * z + w * w);
+		x /= norm;
+		y /= norm;
+		z /= norm;
+		w /= norm;
+		return this;
 	}
 
 	/**
-	 * Sets the value of the source quaternion using the rotational component of the passed matrix.
+	 * Normalize this quaternion and store the result in <code>dest</code>.
 	 *
-	 * @param m The source matrix
-	 * @param q The destination quaternion, or null if a new quaternion is to be created
-	 * @return q
+	 * @param dest will hold the result
+	 * @return this
 	 */
-	public static Quat setFromMatrix(Mat4 m, Quat q) {
-		return q.setFromMat(m.m00, m.m01, m.m02, m.m10, m.m11, m.m12, m.m20, m.m21, m.m22);
+	public Quat normalize(Quat dest) {
+		double norm = Math.sqrt(x * x + y * y + z * z + w * w);
+		dest.x = x / norm;
+		dest.y = y / norm;
+		dest.z = z / norm;
+		dest.w = w / norm;
+		return this;
 	}
 
 	/**
-	 * Sets the value of this quaternion using the rotational component of the passed matrix.
+	 * Add <code>q2</code> to this quaternion.
 	 *
-	 * @param m The source matrix
+	 * @param q2 the quaternion to add to this
+	 * @return this
 	 */
-	public final Quat setFromMatrix(Mat3 m) {
-		return setFromMatrix(m, this);
+	public Quat add(Quat q2) {
+		x += q2.x;
+		y += q2.y;
+		z += q2.z;
+		w += q2.w;
+		return this;
 	}
 
 	/**
-	 * Sets the value of the source quaternion using the rotational component of the passed matrix.
+	 * Add <code>q2</code> to this quaternion and store the result in <code>dest</code>.
 	 *
-	 * @param m The source matrix
-	 * @param q The destination quaternion, or null if a new quaternion is to be created
-	 * @return q
+	 * @param q2   the quaternion to add to this
+	 * @param dest will hold the result
+	 * @return this
 	 */
-	public static Quat setFromMatrix(Mat3 m, Quat q) {
-		return q.setFromMat(m.m00, m.m01, m.m02, m.m10, m.m11, m.m12, m.m20, m.m21, m.m22);
+	public Quat add(Quat q2, Quat dest) {
+		dest.x = x + q2.x;
+		dest.y = y + q2.y;
+		dest.z = z + q2.z;
+		dest.w = w + q2.w;
+		return this;
 	}
 
 	/**
-	 * Private method to perform the matrix-to-quaternion conversion
+	 * Return the dot product of this {@link Quat} and <code>otherQuat</code>.
+	 *
+	 * @param otherQuat the other quaternion
+	 * @return the dot product
 	 */
-	private Quat setFromMat(double m00, double m01, double m02, double m10, double m11, double m12, double m20, double m21, double m22) {
+	public double dot(Quat otherQuat) {
+		return this.x * otherQuat.x + this.y * otherQuat.y + this.z * otherQuat.z + this.w * otherQuat.w;
+	}
 
-		double s;
-		double tr = m00 + m11 + m22;
+	/**
+	 * Return the angle in radians represented by this quaternion rotation.
+	 *
+	 * @return the angle in radians
+	 */
+	public double angle() {
+		double angle = 2.0 * Math.acos(w);
+		return angle <= Math.PI ? angle : 2.0 * Math.PI - angle;
+	}
+
+	/**
+	 * Set the given destination matrix to the rotation represented by <code>this</code>.
+	 *
+	 * @param dest the matrix to write the rotation into
+	 * @return the passed in destination
+	 */
+	public Mat3 get(Mat3 dest) {
+		double q00 = 2.0 * x * x;
+		double q11 = 2.0 * y * y;
+		double q22 = 2.0 * z * z;
+
+		double q01 = 2.0 * x * y;
+		double q02 = 2.0 * x * z;
+		double q03 = 2.0 * x * w;
+
+		double q12 = 2.0 * y * z;
+		double q13 = 2.0 * y * w;
+
+		double q23 = 2.0 * z * w;
+
+		dest.m00 = (float) (1.0 - q11 - q22);
+		dest.m01 = (float) (q01 + q23);
+		dest.m02 = (float) (q02 - q13);
+		dest.m10 = (float) (q01 - q23);
+		dest.m11 = (float) (1.0 - q22 - q00);
+		dest.m12 = (float) (q12 + q03);
+		dest.m20 = (float) (q02 + q13);
+		dest.m21 = (float) (q12 - q03);
+		dest.m22 = (float) (1.0 - q11 - q00);
+		return dest;
+	}
+
+	/**
+	 * Set the given destination matrix to the rotation represented by <code>this</code>.
+	 *
+	 * @param dest the matrix to write the rotation into
+	 * @return the passed in destination
+	 */
+	public Mat4 get(Mat4 dest) {
+		double q00 = 2.0 * x * x;
+		double q11 = 2.0 * y * y;
+		double q22 = 2.0 * z * z;
+
+		double q01 = 2.0 * x * y;
+		double q02 = 2.0 * x * z;
+		double q03 = 2.0 * x * w;
+
+		double q12 = 2.0 * y * z;
+		double q13 = 2.0 * y * w;
+
+		double q23 = 2.0 * z * w;
+
+		dest.m00 = 1.0 - q11 - q22;
+		dest.m01 = q01 + q23;
+		dest.m02 = q02 - q13;
+		dest.m03 = 0.0;
+		dest.m10 = q01 - q23;
+		dest.m11 = 1.0 - q22 - q00;
+		dest.m12 = q12 + q03;
+		dest.m13 = 0.0;
+		dest.m20 = q02 + q13;
+		dest.m21 = q12 - q03;
+		dest.m22 = 1.0 - q11 - q00;
+		dest.m30 = 0.0;
+		dest.m31 = 0.0;
+		dest.m32 = 0.0;
+		dest.m33 = 1.0;
+		return dest;
+	}
+
+	/**
+	 * Set this quaternion to the new values.
+	 *
+	 * @param x the new value of x
+	 * @param y the new value of y
+	 * @param z the new value of z
+	 * @param w the new value of w
+	 * @return this
+	 */
+	public Quat set(double x, double y, double z, double w) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		this.w = w;
+		return this;
+	}
+
+	/**
+	 * Set the x, y and z components of this quaternion to the new values.
+	 *
+	 * @param x the new value of x
+	 * @param y the new value of y
+	 * @param z the new value of z
+	 * @return this
+	 */
+	public Quat set(double x, double y, double z) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		return this;
+	}
+
+	/**
+	 * Set this quaternion to be a copy of q.
+	 *
+	 * @param q the {@link Quat} to copy
+	 * @return this
+	 */
+	public Quat set(Quat q) {
+		x = q.x;
+		y = q.y;
+		z = q.z;
+		w = q.w;
+		return this;
+	}
+
+	/**
+	 * Set this {@link Quat} to be equivalent to the given {@link AxisAngle}.
+	 *
+	 * @param axisAngle the {@link AxisAngle}
+	 * @return this
+	 */
+	public Quat set(AxisAngle axisAngle) {
+		return setAngleAxis(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z);
+	}
+
+	/**
+	 * Set this quaternion to be a representation of the supplied axis and angle (in radians).
+	 *
+	 * @param angle the angle in radians
+	 * @param axisX the x-coordinate of the rotation axis
+	 * @param axisY the y-coordinate of the rotation axis
+	 * @param axisZ the z-coordinate of the rotation axis
+	 * @return this
+	 */
+	public Quat setAngleAxis(double angle, double axisX, double axisY, double axisZ) {
+		double hangle = angle / 2.0;
+		double sinAngle = Math.sin(hangle);
+		double vLength = Math.sqrt(axisX * axisX + axisY * axisY + axisZ * axisZ);
+
+		x = axisX / vLength * sinAngle;
+		y = axisY / vLength * sinAngle;
+		z = axisZ / vLength * sinAngle;
+		w = Math.cos(hangle);
+
+		return this;
+	}
+
+	/**
+	 * Set this quaternion to be a representation of the supplied axis and angle (in radians).
+	 *
+	 * @param angle the angle in radians
+	 * @param axis  the rotation axis
+	 * @return this
+	 */
+	public Quat setAngleAxis(double angle, Vec3 axis) {
+		return setAngleAxis(angle, axis.x, axis.y, axis.z);
+	}
+
+	/**
+	 * Set this quaternion to be a representation of the rotational component of the given matrix.
+	 *
+	 * @param mat the matrix whose rotational component is used to set this quaternion
+	 * @return this
+	 */
+	public Quat set(Mat4 mat) {
+		double t;
+		double tr = mat.m00 + mat.m11 + mat.m22;
 		if (tr >= 0.0) {
-			s = (double) Math.sqrt(tr + 1.0);
-			w = s * 0.5f;
-			s = 0.5f / s;
-			x = (m21 - m12) * s;
-			y = (m02 - m20) * s;
-			z = (m10 - m01) * s;
+			t = Math.sqrt(tr + 1.0);
+			w = t * 0.5;
+			t = 0.5 / t;
+			x = (mat.m12 - mat.m21) * t;
+			y = (mat.m20 - mat.m02) * t;
+			z = (mat.m01 - mat.m10) * t;
 		} else {
-			double max = Math.max(Math.max(m00, m11), m22);
-			if (max == m00) {
-				s = (double) Math.sqrt(m00 - (m11 + m22) + 1.0);
-				x = s * 0.5f;
-				s = 0.5f / s;
-				y = (m01 + m10) * s;
-				z = (m20 + m02) * s;
-				w = (m21 - m12) * s;
-			} else if (max == m11) {
-				s = (double) Math.sqrt(m11 - (m22 + m00) + 1.0);
-				y = s * 0.5f;
-				s = 0.5f / s;
-				z = (m12 + m21) * s;
-				x = (m01 + m10) * s;
-				w = (m02 - m20) * s;
+			if (mat.m00 >= mat.m11 && mat.m00 >= mat.m22) {
+				t = Math.sqrt(mat.m00 - (mat.m11 + mat.m22) + 1.0);
+				x = t * 0.5;
+				t = 0.5 / t;
+				y = (mat.m10 + mat.m01) * t;
+				z = (mat.m02 + mat.m20) * t;
+				w = (mat.m12 - mat.m21) * t;
+			} else if (mat.m11 > mat.m22) {
+				t = Math.sqrt(mat.m11 - (mat.m22 + mat.m00) + 1.0);
+				y = t * 0.5;
+				t = 0.5 / t;
+				z = (mat.m21 + mat.m12) * t;
+				x = (mat.m10 + mat.m01) * t;
+				w = (mat.m20 - mat.m02) * t;
 			} else {
-				s = (double) Math.sqrt(m22 - (m00 + m11) + 1.0);
-				z = s * 0.5f;
-				s = 0.5f / s;
-				x = (m20 + m02) * s;
-				y = (m12 + m21) * s;
-				w = (m10 - m01) * s;
+				t = Math.sqrt(mat.m22 - (mat.m00 + mat.m11) + 1.0);
+				z = t * 0.5;
+				t = 0.5 / t;
+				x = (mat.m02 + mat.m20) * t;
+				y = (mat.m21 + mat.m12) * t;
+				w = (mat.m01 - mat.m10) * t;
 			}
 		}
 		return this;
 	}
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof Quat)) return false;
+	/**
+	 * Set this quaternion to be a representation of the rotational component of the given matrix.
+	 *
+	 * @param mat the matrix whose rotational component is used to set this quaternion
+	 * @return this
+	 */
+	public Quat set(Mat3 mat) {
+		double t;
+		double tr = mat.m00 + mat.m11 + mat.m22;
+		if (tr >= 0.0) {
+			t = Math.sqrt(tr + 1.0);
+			w = t * 0.5;
+			t = 0.5 / t;
+			x = (mat.m12 - mat.m21) * t;
+			y = (mat.m20 - mat.m02) * t;
+			z = (mat.m01 - mat.m10) * t;
+		} else {
+			if (mat.m00 >= mat.m11 && mat.m00 >= mat.m22) {
+				t = Math.sqrt(mat.m00 - (mat.m11 + mat.m22) + 1.0);
+				x = t * 0.5;
+				t = 0.5 / t;
+				y = (mat.m10 + mat.m01) * t;
+				z = (mat.m02 + mat.m20) * t;
+				w = (mat.m12 - mat.m21) * t;
+			} else if (mat.m11 > mat.m22) {
+				t = Math.sqrt(mat.m11 - (mat.m22 + mat.m00) + 1.0);
+				y = t * 0.5;
+				t = 0.5 / t;
+				z = (mat.m21 + mat.m12) * t;
+				x = (mat.m10 + mat.m01) * t;
+				w = (mat.m20 - mat.m02) * t;
+			} else {
+				t = Math.sqrt(mat.m22 - (mat.m00 + mat.m11) + 1.0);
+				z = t * 0.5;
+				t = 0.5 / t;
+				x = (mat.m02 + mat.m20) * t;
+				y = (mat.m21 + mat.m12) * t;
+				w = (mat.m01 - mat.m10) * t;
+			}
+		}
+		return this;
+	}
 
-		Quat that = (Quat) o;
+	/**
+	 * Set this quaternion to be a representation of the supplied axis and angle (in radians).
+	 *
+	 * @param axis  the rotation axis
+	 * @param angle the angle in radians
+	 * @return this
+	 */
+	public Quat fromAxisAngleRad(Vec3 axis, double angle) {
+		double hangle = angle / 2.0;
+		double sinAngle = Math.sin(hangle);
+		double vLength = axis.length();
 
-		if (Double.compare(that.w, w) != 0) return false;
-		if (Double.compare(that.x, x) != 0) return false;
-		if (Double.compare(that.y, y) != 0) return false;
-		if (Double.compare(that.z, z) != 0) return false;
+		x = axis.x / vLength * sinAngle;
+		y = axis.y / vLength * sinAngle;
+		z = axis.z / vLength * sinAngle;
+		w = Math.cos(hangle);
 
+		return this;
+	}
+
+	/**
+	 * Set this quaternion to be a representation of the supplied axis and angle (in radians).
+	 *
+	 * @param axisX the x component of the rotation axis
+	 * @param axisY the y component of the rotation axis
+	 * @param axisZ the z component of the rotation axis
+	 * @param angle the angle in radians
+	 * @return this
+	 */
+	public Quat fromAxisAngleRad(double axisX, double axisY, double axisZ, double angle) {
+		double hangle = angle / 2.0;
+		double sinAngle = Math.sin(hangle);
+		double vLength = Math.sqrt(axisX * axisX + axisY * axisY + axisZ * axisZ);
+
+		x = axisX / vLength * sinAngle;
+		y = axisY / vLength * sinAngle;
+		z = axisZ / vLength * sinAngle;
+		w = Math.cos(hangle);
+
+		return this;
+	}
+
+	/**
+	 * Set this quaternion to be a representation of the supplied axis and angle (in radians).
+	 *
+	 * @param axis  the rotation axis
+	 * @param angle the angle in radians
+	 * @return this
+	 */
+	public Quat fromAxisAngleDeg(Vec3 axis, double angle) {
+		double hangle = angle / 2.0;
+		double sinAngle = Math.sin(hangle);
+		double vLength = axis.length();
+
+		x = axis.x / vLength * sinAngle;
+		y = axis.y / vLength * sinAngle;
+		z = axis.z / vLength * sinAngle;
+		w = Math.cos(hangle);
+
+		return this;
+	}
+
+	/**
+	 * Multiply this quaternion by <code>q</code>.
+	 * <p>
+	 * If <tt>T</tt> is <code>this</code> and <tt>Q</tt> is the given quaternion, then the resulting quaternion <tt>R</tt> is:
+	 * <p>
+	 * <tt>R = T * Q</tt>
+	 * <p>
+	 * So, this method uses post-multiplication like the matrix classes, resulting in a vector to be transformed by <tt>Q</tt> first, and then by <tt>T</tt>.
+	 *
+	 * @param q the quaternion to multiply <code>this</code> by
+	 * @return this
+	 */
+	public Quat mul(Quat q) {
+		return mul(q, this);
+	}
+
+	/**
+	 * Multiply this quaternion by <code>q</code> and store the result in <code>dest</code>.
+	 * <p>
+	 * If <tt>T</tt> is <code>this</code> and <tt>Q</tt> is the given quaternion, then the resulting quaternion <tt>R</tt> is:
+	 * <p>
+	 * <tt>R = T * Q</tt>
+	 * <p>
+	 * So, this method uses post-multiplication like the matrix classes, resulting in a vector to be transformed by <tt>Q</tt> first, and then by <tt>T</tt>.
+	 *
+	 * @param q    the quaternion to multiply <code>this</code> by
+	 * @param dest will hold the result
+	 * @return this
+	 */
+	public Quat mul(Quat q, Quat dest) {
+		if (this != dest && q != dest) {
+			dest.x = w * q.x + x * q.w + y * q.z - z * q.y;
+			dest.y = w * q.y - x * q.z + y * q.w + z * q.x;
+			dest.z = w * q.z + x * q.y - y * q.x + z * q.w;
+			dest.w = w * q.w - x * q.x - y * q.y - z * q.z;
+		} else {
+			dest.set(w * q.x + x * q.w + y * q.z - z * q.y, w * q.y - x * q.z + y * q.w + z * q.x, w * q.z + x * q.y - y * q.x + z * q.w, w * q.w - x * q.x - y * q.y - z * q.z);
+		}
+		return this;
+	}
+
+	/**
+	 * Transform the given vector by this quaternion. This will apply the rotation described by this quaternion to the given vector.
+	 *
+	 * @param vec the vector to transform
+	 * @return the transformed Vec3
+	 */
+	public Vec3 transform(Vec3 vec) {
+		return transform(vec, vec);
+	}
+
+	/**
+	 * Transform the given vector by this quaternion and store the result in <code>dest</code>. This will apply the rotation described by this quaternion to the given vector.
+	 *
+	 * @param vec  the vector to transform
+	 * @param dest will hold the result
+	 * @return dest
+	 */
+	public Vec3 transform(Vec3 vec, Vec3 dest) {
+		double num = x * 2.0;
+		double num2 = y * 2.0;
+		double num3 = z * 2.0;
+		double num4 = x * num;
+		double num5 = y * num2;
+		double num6 = z * num3;
+		double num7 = x * num2;
+		double num8 = x * num3;
+		double num9 = y * num3;
+		double num10 = w * num;
+		double num11 = w * num2;
+		double num12 = w * num3;
+		dest.set((1.0 - (num5 + num6)) * vec.x + (num7 - num12) * vec.y + (num8 + num11) * vec.z, (num7 + num12) * vec.x + (1.0 - (num4 + num6)) * vec.y + (num9 - num10) * vec.z,
+			 (num8 - num11) * vec.x + (num9 + num10) * vec.y + (1.0 - (num4 + num5)) * vec.z);
+		return dest;
+	}
+
+	/**
+	 * Transform the given vector by this quaternion. This will apply the rotation described by this quaternion to the given vector.
+	 *
+	 * @param vec the vector to transform
+	 * @return the transformed vec2
+	 */
+	public Vec2 transform(Vec2 vec) {
+		return transform(vec, vec);
+	}
+
+	/**
+	 * Transform the given vector by this quaternion and store the result in <code>dest</code>. This will apply the rotation described by this quaternion to the given vector.
+	 *
+	 * @param vec  the vector to transform
+	 * @param dest will hold the result
+	 * @return dest
+	 */
+	public Vec2 transform(Vec2 vec, Vec2 dest) {
+		double num = x * 2.0;
+		double num2 = y * 2.0;
+		double num3 = z * 2.0;
+		double num4 = x * num;
+		double num5 = y * num2;
+		double num6 = z * num3;
+		double num7 = x * num2;
+		double num12 = w * num3;
+		dest.set((1.0 - (num5 + num6)) * vec.x + (num7 - num12) * vec.y, (num7 + num12) * vec.x + (1.0 - (num4 + num6)) * vec.y);
+		return dest;
+	}
+
+	/**
+	 * Transform the given vector by this quaternion. This will apply the rotation described by this quaternion to the given vector.
+	 * <p>
+	 * Only the first three components of the given 4D vector are being used and modified.
+	 *
+	 * @param vec the vector to transform
+	 * @return the transformed vector
+	 */
+	public Vec4 transform(Vec4 vec) {
+		return transform(vec, vec);
+	}
+
+	/**
+	 * Transform the given vector by this quaternion and store the result in <code>dest</code>. This will apply the rotation described by this quaternion to the given vector.
+	 * <p>
+	 * Only the first three components of the given 4D vector are being used and set on the destination.
+	 *
+	 * @param vec  the vector to transform
+	 * @param dest will hold the result
+	 * @return this
+	 */
+	public Vec4 transform(Vec4 vec, Vec4 dest) {
+		double num = x * 2.0;
+		double num2 = y * 2.0;
+		double num3 = z * 2.0;
+		double num4 = x * num;
+		double num5 = y * num2;
+		double num6 = z * num3;
+		double num7 = x * num2;
+		double num8 = x * num3;
+		double num9 = y * num3;
+		double num10 = w * num;
+		double num11 = w * num2;
+		double num12 = w * num3;
+		dest.set((1.0 - (num5 + num6)) * vec.x + (num7 - num12) * vec.y + (num8 + num11) * vec.z, (num7 + num12) * vec.x + (1.0 - (num4 + num6)) * vec.y + (num9 - num10) * vec.z,
+			 (num8 - num11) * vec.x + (num9 + num10) * vec.y + (1.0 - (num4 + num5)) * vec.z, dest.w);
+		return dest;
+	}
+
+	/**
+	 * Invert this quaternion and store the {@link #normalize() normalized} result in <code>dest</code>.
+	 *
+	 * @param dest will hold the result
+	 * @return this
+	 */
+	public Quat invert(Quat dest) {
+		double norm = x * x + y * y + z * z + w * w;
+		dest.x = -x / norm;
+		dest.y = -y / norm;
+		dest.z = -z / norm;
+		dest.w = w / norm;
+		return this;
+	}
+
+	/**
+	 * Invert this quaternion by assuming that it is already {@link #normalize() normalized} and store the result in <code>dest</code>.
+	 *
+	 * @param dest will hold the result
+	 * @return this
+	 */
+	public Quat unitInvert(Quat dest) {
+		dest.x = -x;
+		dest.y = -y;
+		dest.z = -z;
+		dest.w = w;
+		return this;
+	}
+
+	/**
+	 * Invert this quaternion and {@link #normalize() normalize} it.
+	 *
+	 * @return this
+	 */
+	public Quat invert() {
+		return invert(this);
+	}
+
+	/**
+	 * Invert this quaternion by assuming that it is already {@link #normalize() normalized}.
+	 *
+	 * @return this
+	 */
+	public Quat unitInvert() {
+		return unitInvert(this);
+	}
+
+	/**
+	 * Divide <code>this</code> quaternion by <code>b</code> and store the result in <code>dest</code>.
+	 * <p>
+	 * The division expressed using the inverse is performed in the following way:
+	 * <p>
+	 * <tt>dest = this * b^-1</tt>, where <tt>b^-1</tt> is the inverse of <code>b</code>.
+	 *
+	 * @param b    the {@link Quat} to divide this by
+	 * @param dest will hold the result
+	 * @return this
+	 */
+	public Quat div(Quat b, Quat dest) {
+		double norm = b.x * b.x + b.y * b.y + b.z * b.z + b.w * b.w;
+		double x = -b.x / norm;
+		double y = -b.y / norm;
+		double z = -b.z / norm;
+		double w = b.w / norm;
+		dest.set(this.w * x + this.x * w + this.y * z - this.z * y, this.w * y - this.x * z + this.y * w + this.z * x, this.w * z + this.x * y - this.y * x + this.z * w,
+			 this.w * w - this.x * x - this.y * y - this.z * z);
+		return this;
+	}
+
+	/**
+	 * Divide <code>this</code> quaternion by <code>b</code>.
+	 * <p>
+	 * The division expressed using the inverse is performed in the following way:
+	 * <p>
+	 * <tt>this = this * b^-1</tt>, where <tt>b^-1</tt> is the inverse of <code>b</code>.
+	 *
+	 * @param b the {@link Quat} to divide this by
+	 * @return this
+	 */
+	public Quat div(Quat b) {
+		return div(b, this);
+	}
+
+	/**
+	 * Conjugate this quaternion.
+	 *
+	 * @return this
+	 */
+	public Quat conjugate() {
+		x = -x;
+		y = -y;
+		z = -z;
+		return this;
+	}
+
+	/**
+	 * Conjugate this quaternion and store the result in <code>dest</code>.
+	 *
+	 * @param dest will hold the result
+	 * @return this
+	 */
+	public Quat conjugate(Quat dest) {
+		dest.x = -x;
+		dest.y = -y;
+		dest.z = -z;
+		dest.w = w;
+		return this;
+	}
+
+	/**
+	 * Set this quaternion to the identity.
+	 *
+	 * @return this
+	 */
+	public Quat identity() {
+		x = 0.0;
+		y = 0.0;
+		z = 0.0;
+		w = 1.0;
+		return this;
+	}
+
+	/**
+	 * Return the length of this quaternion.
+	 *
+	 * @return the length
+	 */
+	public double length() {
+		return x * x + y * y + z * z + w * w;
+	}
+
+	/**
+	 * Calculate this quaternion using the supplied pitch (rotation about X), yaw (rotation about Y) and roll (rotation about Z) angles (in radians) with rotation order XYZ.
+	 * <p>
+	 * This method implements the solution outlined in <a href="http://gamedev.stackexchange.com/questions/13436/glm-euler-angles-to-quaternion#answer-13446">this stackexchange answer</a>.
+	 *
+	 * @param rotationAboutX the angle in radians to rotate about x
+	 * @param rotationAboutY the angle in radians to rotate about y
+	 * @param rotationAboutZ the angle in radians to rotate about z
+	 * @return this
+	 */
+	public Quat setEulerAnglesXYZ(double rotationAboutX, double rotationAboutY, double rotationAboutZ) {
+		double sx = Math.sin(rotationAboutX * 0.5);
+		double cx = Math.cos(rotationAboutX * 0.5);
+		double sy = Math.sin(rotationAboutY * 0.5);
+		double cy = Math.cos(rotationAboutY * 0.5);
+		double sz = Math.sin(rotationAboutZ * 0.5);
+		double cz = Math.cos(rotationAboutZ * 0.5);
+
+		x = cx * cy * cz + sx * sy * sz;
+		y = sx * cy * cz - cx * sy * sz;
+		z = cx * sy * cz + sx * cy * sz;
+		w = cx * cy * sz - sx * sy * cz;
+
+		return this;
+	}
+
+	/**
+	 * Calculate this quaternion using the supplied pitch (rotation about X), yaw (rotation about Y) and roll (rotation about Z) angles (in radians) with rotation order ZYX.
+	 * <p>
+	 * This method implements the solution outlined in <a href="http://gamedev.stackexchange.com/questions/13436/glm-euler-angles-to-quaternion#answer-13446">this stackexchange answer</a>.
+	 *
+	 * @param rotationAboutX the angle in radians to rotate about x
+	 * @param rotationAboutY the angle in radians to rotate about y
+	 * @param rotationAboutZ the angle in radians to rotate about z
+	 * @return this
+	 */
+	public Quat setEulerAnglesZYX(double rotationAboutX, double rotationAboutY, double rotationAboutZ) {
+		double sx = Math.sin(rotationAboutX * 0.5);
+		double cx = Math.cos(rotationAboutX * 0.5);
+		double sy = Math.sin(rotationAboutY * 0.5);
+		double cy = Math.cos(rotationAboutY * 0.5);
+		double sz = Math.sin(rotationAboutZ * 0.5);
+		double cz = Math.cos(rotationAboutZ * 0.5);
+
+		x = cx * cy * cz - sx * sy * sz;
+		y = sx * cy * cz + cx * sy * sz;
+		z = cx * sy * cz - sx * cy * sz;
+		w = cx * cy * sz + sx * sy * cz;
+
+		return this;
+	}
+
+	/**
+	 * Interpolate between <code>this</code> quaternion and the specified <code>target</code> using sperical linear interpolation using the specified interpolation factor <code>alpha</code>.
+	 *
+	 * @param target the target of the interpolation, which should be reached with <tt>alpha = 1.0</tt>
+	 * @param alpha  the interpolation factor, within <tt>[0..1]</tt>
+	 * @return this
+	 */
+	public Quat slerp(Quat target, double alpha) {
+		return slerp(target, alpha, this);
+	}
+
+	/**
+	 * Interpolate between <code>this</code> quaternion and the specified <code>target</code> using sperical linear interpolation using the specified interpolation factor <code>alpha</code>, and
+	 * store the result in <code>dest</code>.
+	 *
+	 * @param target the target of the interpolation, which should be reached with <tt>alpha = 1.0</tt>
+	 * @param alpha  the interpolation factor, within <tt>[0..1]</tt>
+	 * @param dest   will hold the result
+	 * @return this
+	 */
+	public Quat slerp(Quat target, double alpha, Quat dest) {
+		double dot = x * target.x + y * target.y + z * target.z + w * target.w;
+		// Thresholds to accelerate computations
+		double nlerpThreshold = 0.95;
+		double sinThetaThreshold = 0.01;
+		// Check if we must use slerp and cannot get away with simple linear interpolation
+		if (dot > -nlerpThreshold && dot < nlerpThreshold) {
+			double absDot = Math.abs(dot);
+			double theta = Math.acos(absDot);
+			double sinTheta = 1.0f;
+			// Check if we need to compute sinTheta
+			if (dot < -sinThetaThreshold || dot > sinThetaThreshold) {
+				sinTheta = Math.sin(theta);
+			}
+			double q1 = Math.sin(theta * (1.0f - alpha));
+			double q2 = Math.sin(theta * alpha);
+			dest.x = (q1 * x + q2 * target.x) / sinTheta;
+			dest.y = (q1 * y + q2 * target.y) / sinTheta;
+			dest.z = (q1 * z + q2 * target.z) / sinTheta;
+			dest.w = (q1 * w + q2 * target.w) / sinTheta;
+		} else {
+			nlerp(target, alpha, dest);
+		}
+		return this;
+	}
+
+	/**
+	 * Compute a linear (non-spherical) interpolation of <code>this</code> and the given quaternion <code>q</code> and store the result in <code>this</code>.
+	 *
+	 * @param q      the other quaternion
+	 * @param factor the interpolation factor. It is between 0.0 and 1.0
+	 * @return this
+	 */
+	public Quat nlerp(Quat q, double factor) {
+		return nlerp(q, factor, this);
+	}
+
+	/**
+	 * Compute a linear (non-spherical) interpolation of <code>this</code> and the given quaternion <code>q</code> and store the result in <code>dest</code>.
+	 *
+	 * @param q      the other quaternion
+	 * @param factor the interpolation factor. It is between 0.0 and 1.0
+	 * @param dest   will hold the result
+	 * @return this
+	 */
+	public Quat nlerp(Quat q, double factor, Quat dest) {
+		double dot = this.dot(q);
+		double blendI = 1.0 - factor;
+		if (dot < 0.0) {
+			dest.w = blendI * w + factor * -q.w;
+			dest.x = blendI * x + factor * -q.x;
+			dest.y = blendI * y + factor * -q.y;
+			dest.z = blendI * z + factor * -q.z;
+		} else {
+			dest.w = blendI * w + factor * q.w;
+			dest.x = blendI * x + factor * q.x;
+			dest.y = blendI * y + factor * q.y;
+			dest.z = blendI * z + factor * q.z;
+		}
+		dest.normalize();
+		return this;
+	}
+
+	/**
+	 * Apply a rotation to this quaternion that maps the given direction to the positive Z axis.
+	 * <p>
+	 * Because there are multiple possibilities for such a rotation, this method will choose the one that ensures the given up direction to remain parallel to the plane spanned by the
+	 * <code>up</code> and <code>dir</code> vectors.
+	 * <p>
+	 * If <code>Q</code> is <code>this</code> quaternion and <code>R</code> the quaternion representing the specified rotation, then the new quaternion will be <code>Q * R</code>. So when
+	 * transforming a vector <code>v</code> with the new quaternion by using <code>Q * R * v</code>, the rotation added by this method will be applied first!
+	 * <p>
+	 * Reference: <a href="http://answers.unity3d.com/questions/467614/what-is-the-source-code-of-quaternionlookrotation.html">http://answers.unity3d.com</a>
+	 *
+	 * @param dir the direction to map to the positive Z axis
+	 * @param up  the vector which will be mapped to a vector parallel to the plane spanned by the given <code>dir</code> and <code>up</code>
+	 * @return this
+	 * @see #lookRotate(double, double, double, double, double, double, Quat)
+	 */
+	public Quat lookRotate(Vec3 dir, Vec3 up) {
+		return lookRotate(dir.x, dir.y, dir.z, up.x, up.y, up.z, this);
+	}
+
+	/**
+	 * Apply a rotation to this quaternion that maps the given direction to the positive Z axis, and store the result in <code>dest</code>.
+	 * <p>
+	 * Because there are multiple possibilities for such a rotation, this method will choose the one that ensures the given up direction to remain parallel to the plane spanned by the
+	 * <code>up</code> and <code>dir</code> vectors.
+	 * <p>
+	 * If <code>Q</code> is <code>this</code> quaternion and <code>R</code> the quaternion representing the specified rotation, then the new quaternion will be <code>Q * R</code>. So when
+	 * transforming a vector <code>v</code> with the new quaternion by using <code>Q * R * v</code>, the rotation added by this method will be applied first!
+	 * <p>
+	 * Reference: <a href="http://answers.unity3d.com/questions/467614/what-is-the-source-code-of-quaternionlookrotation.html">http://answers.unity3d.com</a>
+	 *
+	 * @param dir  the direction to map to the positive Z axis
+	 * @param up   the vector which will be mapped to a vector parallel to the plane spanned by the given <code>dir</code> and <code>up</code>
+	 * @param dest will hold the result
+	 * @return this
+	 * @see #lookRotate(double, double, double, double, double, double, Quat)
+	 */
+	public Quat lookRotate(Vec3 dir, Vec3 up, Quat dest) {
+		return lookRotate(dir.x, dir.y, dir.z, up.x, up.y, up.z, dest);
+	}
+
+	/**
+	 * Apply a rotation to this quaternion that maps the given direction to the positive Z axis.
+	 * <p>
+	 * Because there are multiple possibilities for such a rotation, this method will choose the one that ensures the given up direction to remain parallel to the plane spanned by the <tt>up</tt>
+	 * and <tt>dir</tt> vectors.
+	 * <p>
+	 * If <code>Q</code> is <code>this</code> quaternion and <code>R</code> the quaternion representing the specified rotation, then the new quaternion will be <code>Q * R</code>. So when
+	 * transforming a vector <code>v</code> with the new quaternion by using <code>Q * R * v</code>, the rotation added by this method will be applied first!
+	 * <p>
+	 * Reference: <a href="http://answers.unity3d.com/questions/467614/what-is-the-source-code-of-quaternionlookrotation.html">http://answers.unity3d.com</a>
+	 *
+	 * @param dirX the x-coordinate of the direction to look along
+	 * @param dirY the y-coordinate of the direction to look along
+	 * @param dirZ the z-coordinate of the direction to look along
+	 * @param upX  the x-coordinate of the up vector
+	 * @param upY  the y-coordinate of the up vector
+	 * @param upZ  the z-coordinate of the up vector
+	 * @return this
+	 * @see #lookRotate(double, double, double, double, double, double, Quat)
+	 */
+	public Quat lookRotate(double dirX, double dirY, double dirZ, double upX, double upY, double upZ) {
+		return lookRotate(dirX, dirY, dirZ, upX, upY, upZ, this);
+	}
+
+	/**
+	 * Apply a rotation to this quaternion that maps the given direction to the positive Z axis, and store the result in <code>dest</code>.
+	 * <p>
+	 * Because there are multiple possibilities for such a rotation, this method will choose the one that ensures the given up direction to remain parallel to the plane spanned by the <tt>up</tt>
+	 * and <tt>dir</tt> vectors.
+	 * <p>
+	 * If <code>Q</code> is <code>this</code> quaternion and <code>R</code> the quaternion representing the specified rotation, then the new quaternion will be <code>Q * R</code>. So when
+	 * transforming a vector <code>v</code> with the new quaternion by using <code>Q * R * v</code>, the rotation added by this method will be applied first!
+	 * <p>
+	 * Reference: <a href="http://answers.unity3d.com/questions/467614/what-is-the-source-code-of-quaternionlookrotation.html">http://answers.unity3d.com</a>
+	 *
+	 * @param dirX the x-coordinate of the direction to look along
+	 * @param dirY the y-coordinate of the direction to look along
+	 * @param dirZ the z-coordinate of the direction to look along
+	 * @param upX  the x-coordinate of the up vector
+	 * @param upY  the y-coordinate of the up vector
+	 * @param upZ  the z-coordinate of the up vector
+	 * @param dest will hold the result
+	 * @return this
+	 */
+	public Quat lookRotate(double dirX, double dirY, double dirZ, double upX, double upY, double upZ, Quat dest) {
+		// Normalize direction
+		double dirLength = Math.sqrt(dirX * dirX + dirY * dirY + dirZ * dirZ);
+		double dirnX = dirX / dirLength;
+		double dirnY = dirY / dirLength;
+		double dirnZ = dirZ / dirLength;
+		// left = up x dir
+		double leftX, leftY, leftZ;
+		leftX = upY * dirnZ - upZ * dirnY;
+		leftY = upZ * dirnX - upX * dirnZ;
+		leftZ = upX * dirnY - upY * dirnX;
+		// normalize left
+		double leftLength = Math.sqrt(leftX * leftX + leftY * leftY + leftZ * leftZ);
+		leftX /= leftLength;
+		leftY /= leftLength;
+		leftZ /= leftLength;
+		// up = direction x left
+		double upnX = dirnY * leftZ - dirnZ * leftY;
+		double upnY = dirnZ * leftX - dirnX * leftZ;
+		double upnZ = dirnX * leftY - dirnY * leftX;
+
+        /* Convert orthonormal basis vectors to quaternion */
+		double x, y, z, w;
+		double t;
+		double tr = leftX + upnY + dirnZ;
+		if (tr >= 0.0) {
+			t = Math.sqrt(tr + 1.0);
+			w = t * 0.5;
+			t = 0.5 / t;
+			x = (dirnY - upnZ) * t;
+			y = (leftZ - dirnX) * t;
+			z = (upnX - leftY) * t;
+		} else {
+			if (leftX > upnY && leftX > dirnZ) {
+				t = Math.sqrt(1.0 + leftX - upnY - dirnZ);
+				x = t * 0.5;
+				t = 0.5 / t;
+				y = (leftY + upnX) * t;
+				z = (dirnX + leftZ) * t;
+				w = (dirnY - upnZ) * t;
+			} else if (upnY > dirnZ) {
+				t = Math.sqrt(1.0 + upnY - leftX - dirnZ);
+				y = t * 0.5;
+				t = 0.5 / t;
+				x = (leftY + upnX) * t;
+				z = (upnZ + dirnY) * t;
+				w = (leftZ - dirnX) * t;
+			} else {
+				t = Math.sqrt(1.0 + dirnZ - leftX - upnY);
+				z = t * 0.5;
+				t = 0.5 / t;
+				x = (dirnX + leftZ) * t;
+				y = (upnZ + dirnY) * t;
+				w = (upnX - leftY) * t;
+			}
+		}
+	/* Multiply */
+		dest.set(this.w * x + this.x * w + this.y * z - this.z * y, this.w * y - this.x * z + this.y * w + this.z * x, this.w * z + this.x * y - this.y * x + this.z * w,
+			 this.w * w - this.x * x - this.y * y - this.z * z);
+		return this;
+	}
+
+	/**
+	 * Return a string representation of this quaternion.
+	 * <p>
+	 * This method creates a new {@link DecimalFormat} on every invocation with the format string "<tt> 0.000E0;-</tt>".
+	 *
+	 * @return the string representation
+	 */
+	public String toString() {
+		DecimalFormat formatter = new DecimalFormat(" 0.000E0;-"); //$NON-NLS-1$
+		return toString(formatter).replaceAll("E(\\d+)", "E+$1"); //$NON-NLS-1$ //$NON-NLS-2$
+	}
+
+	/**
+	 * Return a string representation of this quaternion by formatting the components with the given {@link NumberFormat}.
+	 *
+	 * @param formatter the {@link NumberFormat} used to format the quaternion components with
+	 * @return the string representation
+	 */
+	public String toString(NumberFormat formatter) {
+		return "(" + formatter.format(x) + " " + formatter.format(y) + " " + formatter.format(z) + " " + formatter.format(
+			    w) + ")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+	}
+
+	public void writeExternal(ObjectOutput out) throws IOException {
+		out.writeDouble(x);
+		out.writeDouble(y);
+		out.writeDouble(z);
+		out.writeDouble(w);
+	}
+
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		x = in.readDouble();
+		y = in.readDouble();
+		z = in.readDouble();
+		w = in.readDouble();
+	}
+
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		long temp;
+		temp = Double.doubleToLongBits(w);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		temp = Double.doubleToLongBits(x);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		temp = Double.doubleToLongBits(y);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		temp = Double.doubleToLongBits(z);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		return result;
+	}
+
+	public boolean equals(Object obj) {
+		if (this == obj) return true;
+		if (obj == null) return false;
+		if (getClass() != obj.getClass()) return false;
+		Quat other = (Quat) obj;
+		if (Double.doubleToLongBits(w) != Double.doubleToLongBits(other.w)) return false;
+		if (Double.doubleToLongBits(x) != Double.doubleToLongBits(other.x)) return false;
+		if (Double.doubleToLongBits(y) != Double.doubleToLongBits(other.y)) return false;
+		if (Double.doubleToLongBits(z) != Double.doubleToLongBits(other.z)) return false;
 		return true;
 	}
 
-	@Override
-	public int hashCode() {
-		long result = (x != +0.0f ? Double.doubleToLongBits(x) : 0);
-		result = 31 * result + (y != +0.0f ? Double.doubleToLongBits(y) : 0);
-		result = 31 * result + (z != +0.0f ? Double.doubleToLongBits(z) : 0);
-		result = 31 * result + (w != +0.0f ? Double.doubleToLongBits(w) : 0);
-		return (int) (result ^ (result >>> 32));
+	/**
+	 * Compute the difference between <code>this</code> and the <code>other</code> quaternion and store the result in <code>this</code>.
+	 * <p>
+	 * The difference is the rotation that has to be applied to get from <code>this</code> rotation to <code>other</code>. If <tt>T</tt> is <code>this</code>, <tt>Q</tt> is <code>other</code> and
+	 * <tt>D</tt> is the computed difference, then the following equation holds:
+	 * <p>
+	 * <tt>T * D = Q</tt>
+	 * <p>
+	 * It is defined as: <tt>D = T^-1 * Q</tt>, where <tt>T^-1</tt> denotes the {@link #invert() inverse} of <tt>T</tt>.
+	 *
+	 * @param other the other quaternion
+	 * @return this
+	 */
+	public Quat difference(Quat other) {
+		return difference(other, this);
 	}
 
+	/**
+	 * Compute the difference between <code>this</code> and the <code>other</code> quaternion and store the result in <code>dest</code>.
+	 * <p>
+	 * The difference is the rotation that has to be applied to get from <code>this</code> rotation to <code>other</code>. If <tt>T</tt> is <code>this</code>, <tt>Q</tt> is <code>other</code> and
+	 * <tt>D</tt> is the computed difference, then the following equation holds:
+	 * <p>
+	 * <tt>T * D = Q</tt>
+	 * <p>
+	 * It is defined as: <tt>D = T^-1 * Q</tt>, where <tt>T^-1</tt> denotes the {@link #invert() inverse} of <tt>T</tt>.
+	 *
+	 * @param other the other quaternion
+	 * @param dest  will hold the result
+	 * @return this
+	 */
+	public Quat difference(Quat other, Quat dest) {
+		double norm = x * x + y * y + z * z + w * w;
+		double x = -this.x / norm;
+		double y = -this.y / norm;
+		double z = -this.z / norm;
+		double w = this.w / norm;
+		dest.set(w * other.x + x * other.w + y * other.z - z * other.y, w * other.y - x * other.z + y * other.w + z * other.x, w * other.z + x * other.y - y * other.x + z * other.w,
+			 w * other.w - x * other.x - y * other.y - z * other.z);
+		return this;
+	}
+
+
+	/**
+	 * Set <code>this</code> quaternion to a rotation that rotates the <tt>fromDir</tt> vector to point along <tt>toDir</tt>.
+	 * <p>
+	 * Since there can be multiple possible rotations, this method chooses the one with the shortest arc.
+	 *
+	 * @param fromDirX the x-coordinate of the direction to rotate into the destination direction
+	 * @param fromDirY the y-coordinate of the direction to rotate into the destination direction
+	 * @param fromDirZ the z-coordinate of the direction to rotate into the destination direction
+	 * @param toDirX   the x-coordinate of the direction to rotate to
+	 * @param toDirY   the y-coordinate of the direction to rotate to
+	 * @param toDirZ   the z-coordinate of the direction to rotate to
+	 * @return this
+	 */
+	public Quat rotationTo(double fromDirX, double fromDirY, double fromDirZ, double toDirX, double toDirY, double toDirZ) {
+		double fromLength = Math.sqrt(fromDirX * fromDirX + fromDirY * fromDirY + fromDirZ * fromDirZ);
+		double fromX = fromDirX / fromLength;
+		double fromY = fromDirY / fromLength;
+		double fromZ = fromDirZ / fromLength;
+		double toLength = Math.sqrt(toDirX * toDirX + toDirY * toDirY + toDirZ * toDirZ);
+		double toX = toDirX / toLength;
+		double toY = toDirY / toLength;
+		double toZ = toDirZ / toLength;
+		double dot = fromX * toX + fromY * toY + fromZ * toZ;
+		if (dot < 1e-6 - 1.0) {
+            /* vectors are negation of each other */
+			double axisX = 0.0;
+			double axisY = -fromZ;
+			double axisZ = fromY;
+			if (axisX * axisX + axisY * axisY + axisZ * axisZ < 1E-6) {
+				axisX = fromZ;
+				axisY = 0.0;
+				axisZ = -fromX;
+			}
+			double angleR = Math.PI;
+			double s = Math.sin(angleR / 2.0);
+			x = axisX * s;
+			y = axisY * s;
+			z = axisZ * s;
+			w = Math.cos(angleR / 2.0);
+		} else if (dot < 1.0) {
+			double s = Math.sqrt((1.0 + dot) * 2.0);
+			double invs = 1.0 / s;
+			double crossX = fromY * toZ - fromZ * toY;
+			double crossY = fromZ * toX - fromX * toZ;
+			double crossZ = fromX * toY - fromY * toX;
+			x = crossX * invs;
+			y = crossY * invs;
+			z = crossZ * invs;
+			w = s * 0.5;
+			double norm = Math.sqrt(x * x + y * y + z * z + w * w);
+			x /= norm;
+			y /= norm;
+			z /= norm;
+			w /= norm;
+		} else {
+            /* vectors are parallel, don't change anything */
+			return this;
+		}
+		return this;
+	}
+
+	/**
+	 * Set <code>this</code> quaternion to a rotation that rotates the <code>fromDir</code> vector to point along <code>toDir</code>.
+	 * <p>
+	 * Because there can be multiple possible rotations, this method chooses the one with the shortest arc.
+	 *
+	 * @param fromDir the starting direction
+	 * @param toDir   the destination direction
+	 * @return this
+	 * @see #rotationTo(double, double, double, double, double, double)
+	 */
+	public Quat rotationTo(Vec3 fromDir, Vec3 toDir) {
+		return rotationTo(fromDir.x, fromDir.y, fromDir.z, toDir.x, toDir.y, toDir.z);
+	}
+
+	/**
+	 * Apply a rotation to <code>this</code> that rotates the <tt>fromDir</tt> vector to point along <tt>toDir</tt> and store the result in <code>dest</code>.
+	 * <p>
+	 * Since there can be multiple possible rotations, this method chooses the one with the shortest arc.
+	 * <p>
+	 * If <code>Q</code> is <code>this</code> quaternion and <code>R</code> the quaternion representing the specified rotation, then the new quaternion will be <code>Q * R</code>. So when
+	 * transforming a vector <code>v</code> with the new quaternion by using <code>Q * R * v</code>, the rotation added by this method will be applied first!
+	 *
+	 * @param fromDirX the x-coordinate of the direction to rotate into the destination direction
+	 * @param fromDirY the y-coordinate of the direction to rotate into the destination direction
+	 * @param fromDirZ the z-coordinate of the direction to rotate into the destination direction
+	 * @param toDirX   the x-coordinate of the direction to rotate to
+	 * @param toDirY   the y-coordinate of the direction to rotate to
+	 * @param toDirZ   the z-coordinate of the direction to rotate to
+	 * @param dest     will hold the result
+	 * @return this
+	 */
+	public Quat rotateTo(double fromDirX, double fromDirY, double fromDirZ, double toDirX, double toDirY, double toDirZ, Quat dest) {
+		double fromLength = Math.sqrt(fromDirX * fromDirX + fromDirY * fromDirY + fromDirZ * fromDirZ);
+		double fromX = fromDirX / fromLength;
+		double fromY = fromDirY / fromLength;
+		double fromZ = fromDirZ / fromLength;
+		double toLength = Math.sqrt(toDirX * toDirX + toDirY * toDirY + toDirZ * toDirZ);
+		double toX = toDirX / toLength;
+		double toY = toDirY / toLength;
+		double toZ = toDirZ / toLength;
+		double dot = fromX * toX + fromY * toY + fromZ * toZ;
+		double x, y, z, w;
+		if (dot < 1e-6 - 1.0) {
+            /* vectors are negation of each other */
+			double axisX = 0.0;
+			double axisY = -fromZ;
+			double axisZ = fromY;
+			if (axisX * axisX + axisY * axisY + axisZ * axisZ < 1E-6) {
+				axisX = fromZ;
+				axisY = 0.0;
+				axisZ = -fromX;
+			}
+			double angleR = Math.PI;
+			double s = Math.sin(angleR / 2.0);
+			x = axisX * s;
+			y = axisY * s;
+			z = axisZ * s;
+			w = Math.cos(angleR / 2.0);
+		} else if (dot < 1.0) {
+			double s = Math.sqrt((1.0 + dot) * 2.0);
+			double invs = 1.0 / s;
+			double crossX = fromY * toZ - fromZ * toY;
+			double crossY = fromZ * toX - fromX * toZ;
+			double crossZ = fromX * toY - fromY * toX;
+			x = crossX * invs;
+			y = crossY * invs;
+			z = crossZ * invs;
+			w = s * 0.5;
+			double norm = Math.sqrt(x * x + y * y + z * z + w * w);
+			x /= norm;
+			y /= norm;
+			z /= norm;
+			w /= norm;
+		} else {
+            /* vectors are parallel, don't change anything */
+			return this;
+		}
+        /* Multiply */
+		dest.set(this.w * x + this.x * w + this.y * z - this.z * y, this.w * y - this.x * z + this.y * w + this.z * x, this.w * z + this.x * y - this.y * x + this.z * w,
+			 this.w * w - this.x * x - this.y * y - this.z * z);
+		return this;
+	}
+
+	/**
+	 * Set this {@link Quat} to a rotation of the given angle in radians about the supplied axis, all of which are specified via the {@link AxisAngle}.
+	 *
+	 * @param axisAngle the {@link AxisAngle} giving the rotation angle in radians and the axis to rotate about
+	 * @return this
+	 * @see #rotationAxis(double, double, double, double)
+	 */
+	public Quat rotationAxis(AxisAngle axisAngle) {
+		return rotationAxis(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z);
+	}
+
+	/**
+	 * Set this quaternion to a rotation of the given angle in radians about the supplied axis.
+	 *
+	 * @param angle the rotation angle in radians
+	 * @param axisX the x-coordinate of the rotation axis
+	 * @param axisY the y-coordinate of the rotation axis
+	 * @param axisZ the z-coordinate of the rotation axis
+	 * @return this
+	 */
+	public Quat rotationAxis(double angle, double axisX, double axisY, double axisZ) {
+		double hangle = angle / 2.0;
+		double sinAngle = Math.sin(hangle);
+		double vLength = Math.sqrt(axisX * axisX + axisY * axisY + axisZ * axisZ);
+
+		x = (axisX / vLength) * sinAngle;
+		y = (axisY / vLength) * sinAngle;
+		z = (axisZ / vLength) * sinAngle;
+		w = (float) Math.cos(hangle);
+
+		return this;
+	}
+
+	/**
+	 * Set this quaternion to represent a rotation of the given angles in radians about the basis unit axes of the cartesian space.
+	 *
+	 * @param angleX the angle in radians to rotate about the x axis
+	 * @param angleY the angle in radians to rotate about the y axis
+	 * @param angleZ the angle in radians to rotate about the z axis
+	 * @return this
+	 */
+	public Quat rotation(double angleX, double angleY, double angleZ) {
+		double thetaX = angleX * 0.5;
+		double thetaY = angleY * 0.5;
+		double thetaZ = angleZ * 0.5;
+		double thetaMagSq = thetaX * thetaX + thetaY * thetaY + thetaZ * thetaZ;
+		double s;
+		if (thetaMagSq * thetaMagSq / 24.0f < 1E-8f) {
+			w = 1.0 - thetaMagSq / 2.0;
+			s = 1.0 - thetaMagSq / 6.0;
+		} else {
+			double thetaMag = Math.sqrt(thetaMagSq);
+			w = Math.cos(thetaMag);
+			s = Math.sin(thetaMag) / thetaMag;
+		}
+		x = thetaX * s;
+		y = thetaY * s;
+		z = thetaZ * s;
+		return this;
+	}
+
+	/**
+	 * Set this quaternion to represent a rotation of the given radians about the x axis.
+	 *
+	 * @param angle the angle in radians to rotate about the x axis
+	 * @return this
+	 * @see #rotation(double, double, double)
+	 */
+	public Quat rotationX(double angle) {
+		return rotation(angle, 0.0, 0.0);
+	}
+
+	/**
+	 * Set this quaternion to represent a rotation of the given radians about the y axis.
+	 *
+	 * @param angle the angle in radians to rotate about the y axis
+	 * @return this
+	 * @see #rotation(double, double, double)
+	 */
+	public Quat rotationY(double angle) {
+		return rotation(0.0, angle, 0.0);
+	}
+
+	/**
+	 * Set this quaternion to represent a rotation of the given radians about the z axis.
+	 *
+	 * @param angle the angle in radians to rotate about the z axis
+	 * @return this
+	 * @see #rotation(double, double, double)
+	 */
+	public Quat rotationZ(double angle) {
+		return rotation(0.0, 0.0, angle);
+	}
+
+	/**
+	 * Apply a rotation to <code>this</code> that rotates the <tt>fromDir</tt> vector to point along <tt>toDir</tt>.
+	 * <p>
+	 * Since there can be multiple possible rotations, this method chooses the one with the shortest arc.
+	 * <p>
+	 * If <code>Q</code> is <code>this</code> quaternion and <code>R</code> the quaternion representing the specified rotation, then the new quaternion will be <code>Q * R</code>. So when
+	 * transforming a vector <code>v</code> with the new quaternion by using <code>Q * R * v</code>, the rotation added by this method will be applied first!
+	 *
+	 * @param fromDirX the x-coordinate of the direction to rotate into the destination direction
+	 * @param fromDirY the y-coordinate of the direction to rotate into the destination direction
+	 * @param fromDirZ the z-coordinate of the direction to rotate into the destination direction
+	 * @param toDirX   the x-coordinate of the direction to rotate to
+	 * @param toDirY   the y-coordinate of the direction to rotate to
+	 * @param toDirZ   the z-coordinate of the direction to rotate to
+	 * @return this
+	 * @see #rotateTo(double, double, double, double, double, double, Quat)
+	 */
+	public Quat rotateTo(double fromDirX, double fromDirY, double fromDirZ, double toDirX, double toDirY, double toDirZ) {
+		return rotateTo(fromDirX, fromDirY, fromDirZ, toDirX, toDirY, toDirZ, this);
+	}
+
+	/**
+	 * Apply a rotation to <code>this</code> that rotates the <code>fromDir</code> vector to point along <code>toDir</code> and store the result in <code>dest</code>.
+	 * <p>
+	 * Because there can be multiple possible rotations, this method chooses the one with the shortest arc.
+	 * <p>
+	 * If <code>Q</code> is <code>this</code> quaternion and <code>R</code> the quaternion representing the specified rotation, then the new quaternion will be <code>Q * R</code>. So when
+	 * transforming a vector <code>v</code> with the new quaternion by using <code>Q * R * v</code>, the rotation added by this method will be applied first!
+	 *
+	 * @param fromDir the starting direction
+	 * @param toDir   the destination direction
+	 * @param dest    will hold the result
+	 * @return this
+	 * @see #rotateTo(double, double, double, double, double, double, Quat)
+	 */
+	public Quat rotateTo(Vec3 fromDir, Vec3 toDir, Quat dest) {
+		return rotateTo(fromDir.x, fromDir.y, fromDir.z, toDir.x, toDir.y, toDir.z, dest);
+	}
+
+	/**
+	 * Apply a rotation to <code>this</code> that rotates the <code>fromDir</code> vector to point along <code>toDir</code>.
+	 * <p>
+	 * Because there can be multiple possible rotations, this method chooses the one with the shortest arc.
+	 * <p>
+	 * If <code>Q</code> is <code>this</code> quaternion and <code>R</code> the quaternion representing the specified rotation, then the new quaternion will be <code>Q * R</code>. So when
+	 * transforming a vector <code>v</code> with the new quaternion by using <code>Q * R * v</code>, the rotation added by this method will be applied first!
+	 *
+	 * @param fromDir the starting direction
+	 * @param toDir   the destination direction
+	 * @return this
+	 * @see #rotateTo(double, double, double, double, double, double, Quat)
+	 */
+	public Quat rotateTo(Vec3 fromDir, Vec3 toDir) {
+		return rotateTo(fromDir.x, fromDir.y, fromDir.z, toDir.x, toDir.y, toDir.z, this);
+	}
+
+	/**
+	 * Apply a rotation to <code>this</code> quaternion rotating the given radians about the basis unit axes of the cartesian space and store the result in <code>dest</code>.
+	 * <p>
+	 * If <code>Q</code> is <code>this</code> quaternion and <code>R</code> the quaternion representing the specified rotation, then the new quaternion will be <code>Q * R</code>. So when
+	 * transforming a vector <code>v</code> with the new quaternion by using <code>Q * R * v</code>, the rotation added by this method will be applied first!
+	 *
+	 * @param anglesXYZ the angles in radians to rotate about the x, y and z axes, respectively
+	 * @param dest      will hold the result
+	 * @return this
+	 * @see #rotate(double, double, double, Quat)
+	 */
+	public Quat rotate(Vec3 anglesXYZ, Quat dest) {
+		return rotate(anglesXYZ.x, anglesXYZ.y, anglesXYZ.z, dest);
+	}
+
+	/**
+	 * Apply a rotation to <code>this</code> quaternion rotating the given radians about the basis unit axes of the cartesian space.
+	 * <p>
+	 * If <code>Q</code> is <code>this</code> quaternion and <code>R</code> the quaternion representing the specified rotation, then the new quaternion will be <code>Q * R</code>. So when
+	 * transforming a vector <code>v</code> with the new quaternion by using <code>Q * R * v</code>, the rotation added by this method will be applied first!
+	 *
+	 * @param anglesXYZ the angles in radians to rotate about the x, y and z axes, respectively
+	 * @return this
+	 * @see #rotate(double, double, double, Quat)
+	 */
+	public Quat rotate(Vec3 anglesXYZ) {
+		return rotate(anglesXYZ.x, anglesXYZ.y, anglesXYZ.z, this);
+	}
+
+	/**
+	 * Apply a rotation to <code>this</code> quaternion rotating the given radians about the basis unit axes of the cartesian space.
+	 * <p>
+	 * If <code>Q</code> is <code>this</code> quaternion and <code>R</code> the quaternion representing the specified rotation, then the new quaternion will be <code>Q * R</code>. So when
+	 * transforming a vector <code>v</code> with the new quaternion by using <code>Q * R * v</code>, the rotation added by this method will be applied first!
+	 *
+	 * @param angleX the angle in radians to rotate about the x axis
+	 * @param angleY the angle in radians to rotate about the y axis
+	 * @param angleZ the angle in radians to rotate about the z axis
+	 * @return this
+	 * @see #rotate(double, double, double, Quat)
+	 */
+	public Quat rotate(double angleX, double angleY, double angleZ) {
+		return rotate(angleX, angleY, angleZ, this);
+	}
+
+	/**
+	 * Apply a rotation to <code>this</code> quaternion rotating the given radians about the basis unit axes of the cartesian space and store the result in <code>dest</code>.
+	 * <p>
+	 * If <code>Q</code> is <code>this</code> quaternion and <code>R</code> the quaternion representing the specified rotation, then the new quaternion will be <code>Q * R</code>. So when
+	 * transforming a vector <code>v</code> with the new quaternion by using <code>Q * R * v</code>, the rotation added by this method will be applied first!
+	 *
+	 * @param angleX the angle in radians to rotate about the x axis
+	 * @param angleY the angle in radians to rotate about the y axis
+	 * @param angleZ the angle in radians to rotate about the z axis
+	 * @param dest   will hold the result
+	 * @return this
+	 * @see #rotate(double, double, double, Quat)
+	 */
+	public Quat rotate(double angleX, double angleY, double angleZ, Quat dest) {
+		double thetaX = angleX * 0.5;
+		double thetaY = angleY * 0.5;
+		double thetaZ = angleZ * 0.5;
+		double thetaMagSq = thetaX * thetaX + thetaY * thetaY + thetaZ * thetaZ;
+		double s;
+		double dqX, dqY, dqZ, dqW;
+		if (thetaMagSq * thetaMagSq / 24.0 < 1E-8f) {
+			dqW = 1.0 - thetaMagSq / 2.0;
+			s = 1.0 - thetaMagSq / 6.0;
+		} else {
+			double thetaMag = Math.sqrt(thetaMagSq);
+			dqW = Math.cos(thetaMag);
+			s = Math.sin(thetaMag) / thetaMag;
+		}
+		dqX = thetaX * s;
+		dqY = thetaY * s;
+		dqZ = thetaZ * s;
+        /* Post-multiplication (like matrices multiply) */
+		dest.set(w * dqX + x * dqW + y * dqZ - z * dqY, w * dqY - x * dqZ + y * dqW + z * dqX, w * dqZ + x * dqY - y * dqX + z * dqW, w * dqW - x * dqX - y * dqY - z * dqZ);
+		return this;
+	}
+
+	/**
+	 * Apply a rotation to <code>this</code> quaternion rotating the given radians about the x axis.
+	 * <p>
+	 * If <code>Q</code> is <code>this</code> quaternion and <code>R</code> the quaternion representing the specified rotation, then the new quaternion will be <code>Q * R</code>. So when
+	 * transforming a vector <code>v</code> with the new quaternion by using <code>Q * R * v</code>, the rotation added by this method will be applied first!
+	 *
+	 * @param angle the angle in radians to rotate about the x axis
+	 * @return this
+	 * @see #rotate(double, double, double, Quat)
+	 */
+	public Quat rotateX(double angle) {
+		return rotate(angle, 0.0, 0.0, this);
+	}
+
+	/**
+	 * Apply a rotation to <code>this</code> quaternion rotating the given radians about the x axis and store the result in <code>dest</code>.
+	 * <p>
+	 * If <code>Q</code> is <code>this</code> quaternion and <code>R</code> the quaternion representing the specified rotation, then the new quaternion will be <code>Q * R</code>. So when
+	 * transforming a vector <code>v</code> with the new quaternion by using <code>Q * R * v</code>, the rotation added by this method will be applied first!
+	 *
+	 * @param angle the angle in radians to rotate about the x axis
+	 * @param dest  will hold the result
+	 * @return this
+	 * @see #rotate(double, double, double, Quat)
+	 */
+	public Quat rotateX(double angle, Quat dest) {
+		return rotate(angle, 0.0, 0.0, dest);
+	}
+
+	/**
+	 * Apply a rotation to <code>this</code> quaternion rotating the given radians about the y axis.
+	 * <p>
+	 * If <code>Q</code> is <code>this</code> quaternion and <code>R</code> the quaternion representing the specified rotation, then the new quaternion will be <code>Q * R</code>. So when
+	 * transforming a vector <code>v</code> with the new quaternion by using <code>Q * R * v</code>, the rotation added by this method will be applied first!
+	 *
+	 * @param angle the angle in radians to rotate about the y axis
+	 * @return this
+	 * @see #rotate(double, double, double, Quat)
+	 */
+	public Quat rotateY(double angle) {
+		return rotate(0.0, angle, 0.0, this);
+	}
+
+	/**
+	 * Apply a rotation to <code>this</code> quaternion rotating the given radians about the y axis and store the result in <code>dest</code>.
+	 * <p>
+	 * If <code>Q</code> is <code>this</code> quaternion and <code>R</code> the quaternion representing the specified rotation, then the new quaternion will be <code>Q * R</code>. So when
+	 * transforming a vector <code>v</code> with the new quaternion by using <code>Q * R * v</code>, the rotation added by this method will be applied first!
+	 *
+	 * @param angle the angle in radians to rotate about the y axis
+	 * @param dest  will hold the result
+	 * @return this
+	 * @see #rotate(double, double, double, Quat)
+	 */
+	public Quat rotateY(double angle, Quat dest) {
+		return rotate(0.0, angle, 0.0, dest);
+	}
+
+	/**
+	 * Apply a rotation to <code>this</code> quaternion rotating the given radians about the z axis.
+	 * <p>
+	 * If <code>Q</code> is <code>this</code> quaternion and <code>R</code> the quaternion representing the specified rotation, then the new quaternion will be <code>Q * R</code>. So when
+	 * transforming a vector <code>v</code> with the new quaternion by using <code>Q * R * v</code>, the rotation added by this method will be applied first!
+	 *
+	 * @param angle the angle in radians to rotate about the z axis
+	 * @return this
+	 * @see #rotate(double, double, double, Quat)
+	 */
+	public Quat rotateZ(double angle) {
+		return rotate(0.0, 0.0, angle, this);
+	}
+
+	/**
+	 * Apply a rotation to <code>this</code> quaternion rotating the given radians about the z axis and store the result in <code>dest</code>.
+	 * <p>
+	 * If <code>Q</code> is <code>this</code> quaternion and <code>R</code> the quaternion representing the specified rotation, then the new quaternion will be <code>Q * R</code>. So when
+	 * transforming a vector <code>v</code> with the new quaternion by using <code>Q * R * v</code>, the rotation added by this method will be applied first!
+	 *
+	 * @param angle the angle in radians to rotate about the z axis
+	 * @param dest  will hold the result
+	 * @return this
+	 * @see #rotate(double, double, double, Quat)
+	 */
+	public Quat rotateZ(double angle, Quat dest) {
+		return rotate(0.0, 0.0, angle, dest);
+	}
+
+	/**
+	 * Apply a rotation to <code>this</code> quaternion rotating the given radians about the cartesian base unit axes, called the euler angles using rotation sequence <tt>XYZ</tt>.
+	 * <p>
+	 * This method is equivalent to calling: <tt>rotateX(angles.x).rotateY(angles.y).rotateZ(angles.z)</tt>
+	 * <p>
+	 * If <code>Q</code> is <code>this</code> quaternion and <code>R</code> the quaternion representing the specified rotation, then the new quaternion will be <code>Q * R</code>. So when
+	 * transforming a vector <code>v</code> with the new quaternion by using <code>Q * R * v</code>, the rotation added by this method will be applied first!
+	 *
+	 * @param angles the euler angles in radians
+	 * @return this
+	 */
+	public Quat rotateXYZ(Vec3 angles) {
+		return rotateXYZ(angles.x, angles.y, angles.z);
+	}
+
+	/**
+	 * Apply a rotation to <code>this</code> quaternion rotating the given radians about the cartesian base unit axes, called the euler angles using rotation sequence <tt>ZYX</tt>.
+	 * <p>
+	 * This method is equivalent to calling: <tt>rotateZ(angles.z).rotateY(angles.y).rotateX(angles.x)</tt>
+	 * <p>
+	 * If <code>Q</code> is <code>this</code> quaternion and <code>R</code> the quaternion representing the specified rotation, then the new quaternion will be <code>Q * R</code>. So when
+	 * transforming a vector <code>v</code> with the new quaternion by using <code>Q * R * v</code>, the rotation added by this method will be applied first!
+	 *
+	 * @param angles the euler angles in radians
+	 * @return this
+	 */
+	public Quat rotateZYX(Vec3 angles) {
+		return rotateZYX(angles.z, angles.y, angles.x);
+	}
+
+	/**
+	 * Apply a rotation to <code>this</code> quaternion rotating the given radians about the cartesian base unit axes, called the euler angles using rotation sequence <tt>XYZ</tt>.
+	 * <p>
+	 * This method is equivalent to calling: <tt>rotateX(angleX).rotateY(angleY).rotateZ(angleZ)</tt>
+	 * <p>
+	 * If <code>Q</code> is <code>this</code> quaternion and <code>R</code> the quaternion representing the specified rotation, then the new quaternion will be <code>Q * R</code>. So when
+	 * transforming a vector <code>v</code> with the new quaternion by using <code>Q * R * v</code>, the rotation added by this method will be applied first!
+	 *
+	 * @param angleX the angle in radians to rotate about the x axis
+	 * @param angleY the angle in radians to rotate about the y axis
+	 * @param angleZ the angle in radians to rotate about the z axis
+	 * @return this
+	 */
+	public Quat rotateXYZ(double angleX, double angleY, double angleZ) {
+		return rotateX(angleX).rotateY(angleY)
+				      .rotateZ(angleZ);
+	}
+
+	/**
+	 * Apply a rotation to <code>this</code> quaternion rotating the given radians about the cartesian base unit axes, called the euler angles, using the rotation sequence <tt>ZYX</tt>.
+	 * <p>
+	 * This method is equivalent to calling: <tt>rotateZ(angleZ).rotateY(angleY).rotateX(angleX)</tt>
+	 * <p>
+	 * If <code>Q</code> is <code>this</code> quaternion and <code>R</code> the quaternion representing the specified rotation, then the new quaternion will be <code>Q * R</code>. So when
+	 * transforming a vector <code>v</code> with the new quaternion by using <code>Q * R * v</code>, the rotation added by this method will be applied first!
+	 *
+	 * @param angleX the angle in radians to rotate about the x axis
+	 * @param angleY the angle in radians to rotate about the y axis
+	 * @param angleZ the angle in radians to rotate about the z axis
+	 * @return this
+	 */
+	public Quat rotateZYX(double angleX, double angleY, double angleZ) {
+		return rotateZ(angleZ).rotateY(angleY)
+				      .rotateX(angleX);
+	}
+
+	/**
+	 * Get the euler angles in radians in rotation sequence <tt>XYZ</tt> of this quaternion and store them in the provided parameter <code>eulerAngles</code>.
+	 *
+	 * @param eulerAngles will hold the euler angles in radians
+	 * @return the passed in vector
+	 */
+	public Vec3 getEulerAnglesXYZ(Vec3 eulerAngles) {
+		eulerAngles.x = Math.atan2(2.0 * (x * w - y * z), 1.0 - 2.0 * (x * x + y * y));
+		eulerAngles.y = Math.asin(2.0 * (x * z + y * w));
+		eulerAngles.z = Math.atan2(2.0 * (z * w - x * y), 1.0 - 2.0 * (y * y + z * z));
+		return eulerAngles;
+	}
+
+	/**
+	 * Apply a rotation to <code>this</code> quaternion rotating the given radians about the specified axis and store the result in <code>dest</code>.
+	 * <p>
+	 * If <code>Q</code> is <code>this</code> quaternion and <code>R</code> the quaternion representing the specified rotation, then the new quaternion will be <code>Q * R</code>. So when
+	 * transforming a vector <code>v</code> with the new quaternion by using <code>Q * R * v</code>, the rotation added by this method will be applied first!
+	 *
+	 * @param angle the angle in radians to rotate about the specified axis
+	 * @param axisX the x coordinate of the rotation axis
+	 * @param axisY the y coordinate of the rotation axis
+	 * @param axisZ the z coordinate of the rotation axis
+	 * @param dest  will hold the result
+	 * @return this
+	 */
+	public Quat rotateAxis(double angle, double axisX, double axisY, double axisZ, Quat dest) {
+		double hangle = angle / 2.0;
+		double sinAngle = Math.sin(hangle);
+		double vLength = Math.sqrt(axisX * axisX + axisY * axisY + axisZ * axisZ);
+
+		double rx = (axisX / vLength) * sinAngle;
+		double ry = (axisY / vLength) * sinAngle;
+		double rz = (axisZ / vLength) * sinAngle;
+		double rw = Math.cos(hangle);
+
+		dest.set(w * rx + x * rw + y * rz - z * ry, w * ry - x * rz + y * rw + z * rx, w * rz + x * ry - y * rx + z * rw, w * rw - x * rx - y * ry - z * rz);
+		return this;
+	}
+
+	/**
+	 * Apply a rotation to <code>this</code> quaternion rotating the given radians about the specified axis and store the result in <code>dest</code>.
+	 * <p>
+	 * If <code>Q</code> is <code>this</code> quaternion and <code>R</code> the quaternion representing the specified rotation, then the new quaternion will be <code>Q * R</code>. So when
+	 * transforming a vector <code>v</code> with the new quaternion by using <code>Q * R * v</code>, the rotation added by this method will be applied first!
+	 *
+	 * @param angle the angle in radians to rotate about the specified axis
+	 * @param axis  the rotation axis
+	 * @param dest  will hold the result
+	 * @return this
+	 * @see #rotateAxis(double, double, double, double, Quat)
+	 */
+	public Quat rotateAxis(double angle, Vec3 axis, Quat dest) {
+		return rotateAxis(angle, axis.x, axis.y, axis.z, dest);
+	}
+
+	/**
+	 * Apply a rotation to <code>this</code> quaternion rotating the given radians about the specified axis.
+	 * <p>
+	 * If <code>Q</code> is <code>this</code> quaternion and <code>R</code> the quaternion representing the specified rotation, then the new quaternion will be <code>Q * R</code>. So when
+	 * transforming a vector <code>v</code> with the new quaternion by using <code>Q * R * v</code>, the rotation added by this method will be applied first!
+	 *
+	 * @param angle the angle in radians to rotate about the specified axis
+	 * @param axis  the rotation axis
+	 * @return this
+	 * @see #rotateAxis(double, double, double, double, Quat)
+	 */
+	public Quat rotateAxis(double angle, Vec3 axis) {
+		return rotateAxis(angle, axis.x, axis.y, axis.z, this);
+	}
+
+	/**
+	 * Apply a rotation to <code>this</code> quaternion rotating the given radians about the specified axis.
+	 * <p>
+	 * If <code>Q</code> is <code>this</code> quaternion and <code>R</code> the quaternion representing the specified rotation, then the new quaternion will be <code>Q * R</code>. So when
+	 * transforming a vector <code>v</code> with the new quaternion by using <code>Q * R * v</code>, the rotation added by this method will be applied first!
+	 *
+	 * @param angle the angle in radians to rotate about the specified axis
+	 * @param axisX the x coordinate of the rotation axis
+	 * @param axisY the y coordinate of the rotation axis
+	 * @param axisZ the z coordinate of the rotation axis
+	 * @return this
+	 * @see #rotateAxis(double, double, double, double, Quat)
+	 */
+	public Quat rotateAxis(double angle, double axisX, double axisY, double axisZ) {
+		return rotateAxis(angle, axisX, axisY, axisZ, this);
+	}
+
+	/**
+	 * Return the specified {@link Vec3}.
+	 * <p>
+	 * When using method chaining in a fluent interface style, this method can be used to switch the <i>context object</i>, on which further method invocations operate, to be the given vector.
+	 *
+	 * @param v the {@link Vec3} to return
+	 * @return that vector
+	 */
+	public Vec3 with(Vec3 v) {
+		return v;
+	}
+
+	/**
+	 * Return the specified {@link Vec4}.
+	 * <p>
+	 * When using method chaining in a fluent interface style, this method can be used to switch the <i>context object</i>, on which further method invocations operate, to be the given vector.
+	 *
+	 * @param v the {@link Vec4} to return
+	 * @return that vector
+	 */
+	public Vec4 with(Vec4 v) {
+		return v;
+	}
+
+	/**
+	 * Return the specified {@link Quat}.
+	 * <p>
+	 * When using method chaining in a fluent interface style, this method can be used to switch the <i>context object</i>, on which further method invocations operate, to be the given
+	 * quaternion.
+	 *
+	 * @param q the {@link Quat} to return
+	 * @return that quaternion
+	 */
+	public Quat with(Quat q) {
+		return q;
+	}
+
+	/**
+	 * Return the specified {@link AxisAngle}.
+	 * <p>
+	 * When using method chaining in a fluent interface style, this method can be used to switch the <i>context object</i>, on which further method invocations operate, to be the given {@link
+	 * AxisAngle}.
+	 *
+	 * @param a the {@link AxisAngle} to return
+	 * @return that quaternion
+	 */
+	public AxisAngle with(AxisAngle a) {
+		return a;
+	}
+
+	/**
+	 * Return the specified {@link Mat3}.
+	 * <p>
+	 * When using method chaining in a fluent interface style, this method can be used to switch the <i>context object</i>, on which further method invocations operate, to be the given matrix.
+	 *
+	 * @param m the {@link Mat3} to return
+	 * @return that matrix
+	 */
+	public Mat3 with(Mat3 m) {
+		return m;
+	}
+
+	/**
+	 * Return the specified {@link Mat4}.
+	 * <p>
+	 * When using method chaining in a fluent interface style, this method can be used to switch the <i>context object</i>, on which further method invocations operate, to be the given matrix.
+	 *
+	 * @param m the {@link Mat4} to return
+	 * @return that matrix
+	 */
+	public Mat4 with(Mat4 m) {
+		return m;
+	}
+
+	/**
+	 * a Quat is a Supplier of type Quat
+	 *
+	 * @return this
+	 */
+	public Quat get() {
+		return this;
+	}
 }

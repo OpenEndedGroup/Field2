@@ -188,14 +188,14 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 		Vec2 a = last().to.toVec2();
 		Vec2 d = Vec2.sub(destination, a, new Vec2());
 
-		Vec2 c1 = new Vec2(d).scale(r1 / 3);
-		Vec2 c2 = new Vec2(d).scale(-r2 / 3);
+		Vec2 c1 = new Vec2(d).mul(r1 / 3);
+		Vec2 c2 = new Vec2(d).mul(-r2 / 3);
 
-		c1 = new Quat().setFromAxisAngle(new Vec3(0, 0, 1), theta1)
-			       .rotate(c1)
+		c1 = new Quat().setAngleAxis(theta1, new Vec3(0, 0, 1))
+			       .transform(c1.toVec3())
 			       .toVec2();
-		c2 = new Quat().setFromAxisAngle(new Vec3(0, 0, 1), theta2)
-			       .rotate(c2)
+		c2 = new Quat().setAngleAxis(theta2, new Vec3(0, 0, 1))
+			       .transform(c2.toVec3())
 			       .toVec2();
 
 		Vec2.add(c1, a, c1);
@@ -209,9 +209,9 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 	 * A Cubic segment that's offset from the cubic segment that would give a straight line between the current position and 'destination'
 	 *
 	 * @param r1            -- 'radius' multiplier of first control point. 1 = 1/3 of the distance from the current position to the destination
-	 * @param theta1        -- 'angle' of the first control point. 0 = lies on the line between current position and the destination
+	 * @param theta1        -- 'angle' of the first control point. 0 = lies on the line between current position and the destination. Positive values are anti-clockwise around the current position.
 	 * @param r2            -- 'radius' multiplier of second control point. 1 = 1/3 of the distance from the current position to the destination
-	 * @param theta2        -- 'angle' of the second control point. 0 = lies on the line between current position and the destination
+	 * @param theta2        -- 'angle' of the second control point. 0 = lies on the line between current position and the destination. Positive values are anti-clockwise around the 'destination'.
 	 * @param destinationx, destinationy
 	 * @return
 	 */
@@ -492,6 +492,14 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 	 *
 	 * @param v
 	 */
+	public FLine smoothTo(Vec2 v) {
+		return smoothTo(v.toVec3());
+	}
+		/**
+		 * "smoothly" builds a cubic segment to this point. This will rewrite the previous node to have the correct tangent.
+		 *
+		 * @param v
+		 */
 	public FLine smoothTo(Vec3 v) {
 		if (this.nodes.size() == 0) return moveTo(v);
 		if (this.nodes.size() == 1) return lineTo(v);
@@ -510,14 +518,14 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 			Vec3 tan = new Vec3(p3).sub(p1);
 			Vec3 tan2 = new Vec3(p2).sub(p1);
 
-			tan.normalise();
+			tan.normalize();
 
-			double d1 = p2.distanceFrom(p1);
-			double d2 = p2.distanceFrom(p3);
+			double d1 = p2.distance(p1);
+			double d2 = p2.distance(p3);
 
-			Vec3 c12 = new Vec3(p2).add(tan, -d1 / 3);
-			Vec3 c21 = new Vec3(p2).add(tan, d2 / 3);
-			Vec3 c22 = new Vec3(p3).add(tan2, -1 / 3);
+			Vec3 c12 = new Vec3(p2).fma(tan, -d1 / 3);
+			Vec3 c21 = new Vec3(p2).fma(tan, d2 / 3);
+			Vec3 c22 = new Vec3(p3).fma(tan2, -1 / 3);
 
 			((CubicTo) b).c2.set(c12);
 
@@ -533,14 +541,14 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 			Vec3 tan2 = new Vec3(p3).sub(p2);
 			Vec3 tan1 = new Vec3(p2).sub(p1);
 
-			tan2.normalise();
-			tan1.normalise();
+			tan2.normalize();
+			tan1.normalize();
 
-			double d1 = p2.distanceFrom(p1);
-			double d2 = p2.distanceFrom(p3);
+			double d1 = p2.distance(p1);
+			double d2 = p2.distance(p3);
 
-			Vec3 c21 = new Vec3(p2).add(tan1, d1 / 3);
-			Vec3 c22 = new Vec3(p3).add(tan2, -d2 / 3);
+			Vec3 c21 = new Vec3(p2).fma(tan1, d1 / 3);
+			Vec3 c22 = new Vec3(p3).fma(tan2, -d2 / 3);
 
 			cubicTo(c21, c22, p3);
 		}
@@ -968,19 +976,19 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 		Vec3 t = new Vec3(center2).sub(center);
 
 		Vec3 cD = new Vec3(cEnd).sub(cStart)
-					.normalise();
+					.normalize();
 		Vec3 d = new Vec3(end).sub(start);
 
-		Quat q = cD.isNaN() || d.isNaN() ? new Quat() : new Quat().setFromTwoVec3(d, cD);
+		Quat q = cD.isNaN() || d.isNaN() ? new Quat() : new Quat().rotateTo(d, cD);
 
-		double s = end.distanceFrom(start) / cEnd.distanceFrom(cStart);
+		double s = end.distance(start) / cEnd.distance(cStart);
 
 		if (Double.isNaN(s)) s = 1;
 
 		double fs = s;
 
-		return byTransforming(x -> q.rotate(new Vec3(x).sub(center))
-					    .scale(fs)
+		return byTransforming(x -> q.transform(new Vec3(x).sub(center))
+					    .mul(fs)
 					    .add(center)
 					    .add(t));
 
@@ -1427,6 +1435,10 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 			return l;
 		}
 
+		@Override
+		public String toString() {
+			return "m["+to.x+","+to.y+","+to.z+"]";
+		}
 	}
 
 	public class LineTo extends Node {
@@ -1447,6 +1459,10 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 			LineTo l = new LineTo(to);
 			l.attributes.putAll(attributes);
 			return l;
+		}
+		@Override
+		public String toString() {
+			return "l["+to.x+","+to.y+","+to.z+"]";
 		}
 	}
 
@@ -1484,6 +1500,10 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 			CubicTo l = new CubicTo(c1, c2, to);
 			l.attributes.putAll(attributes);
 			return l;
+		}
+		@Override
+		public String toString() {
+			return "c["+c1.x+","+c1.y+","+c1.z+";"+c2.x+","+c2.y+","+c2.z+";"+to.x+","+to.y+","+to.z+"]";
 		}
 
 	}

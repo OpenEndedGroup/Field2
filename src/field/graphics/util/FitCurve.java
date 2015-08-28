@@ -43,9 +43,9 @@ public class FitCurve {
 				A1 = A1 + B1 * B1;
 				A2 = A2 + B2 * B2;
 				A12 = A12 + B1 * B2;
-				Vec2 temp = (new Vec2(p[i]).sub(new Vec2(P0).scale(B0)).sub(new Vec2(P3).scale(B3)));
-				C1.add(temp, (float) B1);
-				C2.add(temp, (float) B2);
+				Vec2 temp = (new Vec2(p[i]).sub(new Vec2(P0).mul(B0)).sub(new Vec2(P3).mul(B3)));
+				C1.fma((float) B1, temp);
+				C2.fma((float) B2, temp);
 
 			}
 
@@ -54,8 +54,8 @@ public class FitCurve {
 				P1 = P0;
 				P2 = P3;
 			} else {
-				P1 = (new Vec2(C1).scale(A2).sub( new Vec2(C2).scale(A12))).scale(1 / DENOM);
-				P2 = (new Vec2(C2).scale(A1).sub(  new Vec2(C1).scale(A12))).scale(1 / DENOM);
+				P1 = (new Vec2(C1).mul(A2).sub( new Vec2(C2).mul(A12))).mul(1 / DENOM);
+				P2 = (new Vec2(C2).mul(A1).sub(  new Vec2(C1).mul(A12))).mul(1 / DENOM);
 			}
 
 		}

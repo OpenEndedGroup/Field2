@@ -69,7 +69,7 @@ public class Plane {
 	 * @param dist distance from origin
 	 */
 	public Plane(Vec3 normal, double dist) {
-		this.normal = new Vec3(normal).normalise();
+		this.normal = new Vec3(normal).normalize();
 		this.dist = dist;
 	}
 
@@ -83,21 +83,21 @@ public class Plane {
 	 */
 	public static Plane createFromPoints(Vec3 a, Vec3 b, Vec3 c) {
 
-		Vec3 n = Vec3.cross(Vec3.sub(b, a, new Vec3()), Vec3.sub(c, a, new Vec3()), new Vec3()).normalise();
+		Vec3 n = Vec3.cross(Vec3.sub(b, a, new Vec3()), Vec3.sub(c, a, new Vec3()), new Vec3()).normalize();
 
 		return new Plane(n, Vec3.dot(a, n));
 	}
 
 	@Override
 	public Plane clone() {
-		return new Plane(normal.clone(), dist);
+		return new Plane(normal.duplicate(), dist);
 	}
 
 	/**
 	 * Flips this plane.
 	 */
 	public void flip() {
-		normal.scale(-1);
+		normal.mul(-1);
 		dist = -dist;
 	}
 

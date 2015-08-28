@@ -67,12 +67,12 @@ public class Cylinder implements Primitive {
 		final Vec3 s = getStart();
 		Vec3 e = getEnd();
 		final Vec3 ray = Vec3.sub(e, s, new Vec3());
-		final Vec3 axisZ = new Vec3(ray).normalise();
+		final Vec3 axisZ = new Vec3(ray).normalize();
 		boolean isY = (Math.abs(axisZ.y) > 0.5);
-		final Vec3 axisX = Vec3.cross(new Vec3(isY ? 1 : 0, !isY ? 1 : 0, 0), axisZ, new Vec3()).normalise();
-		final Vec3 axisY = Vec3.cross(axisX, axisZ, new Vec3()).normalise();
-		Vertex startV = new Vertex(s, new Vec3(axisZ).scale(-1));
-		Vertex endV = new Vertex(e, new Vec3(axisZ).normalise());
+		final Vec3 axisX = Vec3.cross(new Vec3(isY ? 1 : 0, !isY ? 1 : 0, 0), axisZ, new Vec3()).normalize();
+		final Vec3 axisY = Vec3.cross(axisX, axisZ, new Vec3()).normalize();
+		Vertex startV = new Vertex(s, new Vec3(axisZ).mul(-1));
+		Vertex endV = new Vertex(e, new Vec3(axisZ).normalize());
 		List<Polygon> polygons = new ArrayList<>();
 
 		for (int i = 0; i < numSlices; i++) {
@@ -99,9 +99,9 @@ public class Cylinder implements Primitive {
 		    Vec3 axisX, Vec3 axisY, Vec3 axisZ, Vec3 ray, Vec3 s,
 		    double r, double stack, double slice, double normalBlend) {
 		double angle = slice * Math.PI * 2;
-		Vec3 out = Vec3.add(new Vec3(axisX).scale(Math.cos(angle)), (new Vec3(axisY).scale(Math.sin(angle))), new Vec3());
-		Vec3 pos = Vec3.add(Vec3.add(s, new Vec3(ray).scale(stack), new Vec3()), new Vec3(out).scale(r), new Vec3());
-		Vec3 normal = Vec3.add(new Vec3(out).scale(1.0 - Math.abs(normalBlend)), new Vec3(axisZ).scale(normalBlend), new Vec3());
+		Vec3 out = Vec3.add(new Vec3(axisX).mul(Math.cos(angle)), (new Vec3(axisY).mul(Math.sin(angle))), new Vec3());
+		Vec3 pos = Vec3.add(Vec3.add(s, new Vec3(ray).mul(stack), new Vec3()), new Vec3(out).mul(r), new Vec3());
+		Vec3 normal = Vec3.add(new Vec3(out).mul(1.0 - Math.abs(normalBlend)), new Vec3(axisZ).mul(normalBlend), new Vec3());
 		return new Vertex(pos, normal);
 	}
 

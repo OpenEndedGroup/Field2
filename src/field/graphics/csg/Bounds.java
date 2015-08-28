@@ -26,8 +26,8 @@ public class Bounds {
 			    Math.abs(max.y - min.y),
 			    Math.abs(max.z - min.z));
 
-		this.min = min.clone();
-		this.max = max.clone();
+		this.min = min.duplicate();
+		this.max = max.duplicate();
 
 	}
 
@@ -39,7 +39,7 @@ public class Bounds {
 
 	@Override
 	public Bounds clone() {
-		return new Bounds(min.clone(), max.clone());
+		return new Bounds(min.duplicate(), max.duplicate());
 	}
 
 	/**
