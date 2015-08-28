@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
  */
 public class BridgedTernSupport {
 
-	public void inject(Consumer<String> engine) {
+	public void inject(Consumer<String> engine, boolean doAllPlaylist) {
 		List<String> s = Arrays.asList(new String[]{"acorn.js", "acorn_loose.js", "walk.js", "defs.js", "signal.js", "infer.js", "tern.js", "comment.js", "condense.js"});
 
 		Collection<File> f = s.stream()
@@ -44,6 +44,7 @@ public class BridgedTernSupport {
 		engine.accept("delete __ecma5json");
 
 
+		if (doAllPlaylist)
 		for (String name : ServerSupport.playlist) {
 			JSONStringer j = new JSONStringer();
 //			Log.log("TERN", " quoting ");
@@ -87,10 +88,14 @@ public class BridgedTernSupport {
 		s.endObject();
 
 		engine.accept("__someFile=" + s.toString() + ".at");
-		engine.accept("var __completions = []");
+		engine.accept("__completions = []");
 		engine.accept("self.ternServer.request({query:{type:\"completions\", types:true, docs:true, file:\"#0\", end:{line:" + line + ",ch:" + ch + "}}, \n" +
 			    "files:[{type:\"full\",name:\"" + boxName + ".js\",text:__someFile}]},\n" +
 			    "	function (e,r){\n" +
+					  "	post('A'+e)\n"+
+					  "	post('A'+r)\n"+
+					  "	post('A'+r.completions)\n"+
+					  "	post('A'+r.completions.length)\n"+
 			    "		for(var i=0;i<r.completions.length;i++)" +
 			    "			__completions = __completions.concat([[r.start, r.end, r.completions[i].name, '<span class=type>'+r.completions[i].type+'</span>']])" +
 			    "	})");

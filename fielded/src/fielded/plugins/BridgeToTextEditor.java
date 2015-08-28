@@ -82,7 +82,7 @@ public class BridgeToTextEditor extends Box {
 		Log.log("startup.editor", " editor plugin is going to init Tern ");
 
 		tern = new BridgedTernSupport();
-		tern.inject(x -> delegate.sendJavaScript(x));
+		tern.inject(x -> delegate.sendJavaScript(x), true);
 
 		Log.log("startup.editor", " editor plugin has finished starting up ");
 
