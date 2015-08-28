@@ -396,8 +396,8 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 		if (end > start) {
 			if (vertexCursor - 1 - (start + 1) < 0)
 				throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with start " + start + " > " + (vertexCursor - 1));
-			if (vertexCursor - 1 - (end + 1) < 0)
-				throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with end " + start + " > " + (vertexCursor - 1));
+			if (vertexCursor - 1 - (end-1 + 1) < 0)
+				throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with end " + end + " > " + (vertexCursor - 1));
 
 			for (int a = start; a < end; a++) {
 				dest.put(vertexCursor - 1 - a);
@@ -407,8 +407,8 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 		} else {
 			if (vertexCursor - 1 - (start - 1) < 0)
 				throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with start " + start + " > " + (vertexCursor - 1));
-			if (vertexCursor - 1 - (end - 1) < 0)
-				throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with end " + start + " > " + (vertexCursor - 1));
+			if (vertexCursor - 1 - (end+1 - 1) < 0)
+				throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with end " + end + " > " + (vertexCursor - 1));
 
 			for (int a = start - 1; a > end; a--) {
 				dest.put(vertexCursor - 1 - a);
@@ -417,6 +417,21 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 			}
 		}
 
+		return this;
+	}
+
+	/** Adds a string of line segments corresponding to the Vec3's in this List. (note, nothing will happen if line.size()<=1
+	 *
+	 */
+	public MeshBuilder nextLine(List<Vec3> line)
+	{
+		if(line.size()<=1) return this;
+
+		for(int i=0;i<line.size();i++)
+		{
+			nextVertex(line.get(i));
+		}
+		nextLine(0, line.size()-1);
 		return this;
 	}
 
