@@ -39,6 +39,7 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 		global = new SimpleBindings();
 		try {
 			global.put("__fieldglobal", engine.eval("({})"));
+			global.put("global", global);
 			Log.log("bindings", "__fieldglobal set up to be :" + global.get("__fieldglobal"));
 		} catch (ScriptException e) {
 			e.printStackTrace();
