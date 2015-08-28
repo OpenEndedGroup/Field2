@@ -92,7 +92,7 @@ public class Processing extends Execution {
 
 	public Execution.ExecutionSupport support(Box box, Dict.Prop<String> prop) {
 		FunctionOfBox<Boolean> ef = this.properties.get(executionFilter);
-		if (box==this || ef == null || ef.apply(box)) wrap(box, prop);
+		if (box==this || ef == null || ef.apply(box)) return wrap(box, prop);
 		return null;
 	}
 
@@ -164,7 +164,7 @@ public class Processing extends Execution {
 			@Override
 			public void end(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
 				System.out.println(" WRAPPED (end)");
-				Execution delegateTo = box.find(Execution.execution, box.upwards())
+				Execution delegateTo = box.find(Execution.execution, box.upwards()).filter(x -> x != Processing.this)
 							  .findFirst()
 							  .orElseThrow(() -> new IllegalArgumentException(" can't instantiate Processing execution - no default execution found"));
 				Execution.ExecutionSupport s = delegateTo.support(box, prop);
@@ -174,7 +174,7 @@ public class Processing extends Execution {
 			@Override
 			public void setConsoleOutput(Consumer<String> stdout, Consumer<String> stderr) {
 				System.out.println(" WRAPPED (stdout)");
-				Execution delegateTo = box.find(Execution.execution, box.upwards())
+				Execution delegateTo = box.find(Execution.execution, box.upwards()).filter(x -> x != Processing.this)
 							  .findFirst()
 							  .orElseThrow(() -> new IllegalArgumentException(" can't instantiate Processing execution - no default execution found"));
 				Execution.ExecutionSupport s = delegateTo.support(box, prop);
@@ -184,7 +184,7 @@ public class Processing extends Execution {
 			@Override
 			public void completion(String allText, int line, int ch, Consumer<List<Completion>> results) {
 				System.out.println(" WRAPPED (completion) "+allText);
-				Execution delegateTo = box.find(Execution.execution, box.upwards())
+				Execution delegateTo = box.find(Execution.execution, box.upwards()).filter(x -> x != Processing.this)
 							  .findFirst()
 							  .orElseThrow(() -> new IllegalArgumentException(" can't instantiate Processing execution - no default execution found"));
 				Execution.ExecutionSupport s = delegateTo.support(box, prop);
@@ -194,7 +194,7 @@ public class Processing extends Execution {
 			@Override
 			public void imports(String allText, int line, int ch, Consumer<List<Completion>> results) {
 				System.out.println(" WRAPPED (imports) "+allText);
-				Execution delegateTo = box.find(Execution.execution, box.upwards())
+				Execution delegateTo = box.find(Execution.execution, box.upwards()).filter(x -> x != Processing.this)
 							  .findFirst()
 							  .orElseThrow(() -> new IllegalArgumentException(" can't instantiate Processing execution - no default execution found"));
 				Execution.ExecutionSupport s = delegateTo.support(box, prop);
@@ -203,7 +203,7 @@ public class Processing extends Execution {
 
 			@Override
 			public String getCodeMirrorLanguageName() {
-				Execution delegateTo = box.find(Execution.execution, box.upwards())
+				Execution delegateTo = box.find(Execution.execution, box.upwards()).filter(x -> x != Processing.this)
 							  .findFirst()
 							  .orElseThrow(() -> new IllegalArgumentException(" can't instantiate Processing execution - no default execution found"));
 				Execution.ExecutionSupport s = delegateTo.support(box, prop);
@@ -212,7 +212,7 @@ public class Processing extends Execution {
 
 			@Override
 			public String getDefaultFileExtension() {
-				Execution delegateTo = box.find(Execution.execution, box.upwards())
+				Execution delegateTo = box.find(Execution.execution, box.upwards()).filter(x -> x != Processing.this)
 							  .findFirst()
 							  .orElseThrow(() -> new IllegalArgumentException(" can't instantiate Processing execution - no default execution found"));
 				Execution.ExecutionSupport s = delegateTo.support(box, prop);
