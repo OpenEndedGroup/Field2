@@ -40,7 +40,6 @@ public class EDN {
 		return null;
 	}
 
-	;
 
 	private final Parser.Config.Builder builder;
 
@@ -49,7 +48,6 @@ public class EDN {
 	static public final Tag EXTERNAL = Tag.newTag("field", "external");
 	static public final Tag FILESPEC = Tag.newTag("field", "filespec");
 	static public final Tag BOXREF = Tag.newTag("field", "boxref");
-	static public final Tag JSREF = Tag.newTag("field", "JS");
 
 	private final Protocol.Builder<Printer.Fn<?>> printer;
 	private final Parser theParser;
@@ -61,7 +59,7 @@ public class EDN {
 		builder.putTagHandler(EXTERNAL, simpleDeserializeFromMap(IO.External.class));
 		builder.putTagHandler(FILESPEC, simpleDeserializeFromMap(IO.Filespec.class));
 		builder.putTagHandler(BOXREF, simpleDeserializeFromMap(BoxRef.class));
-//		builder.putTagHandler(JSREF, serializeViaNashornEval());
+
 		builder.setSetFactory(new CollectionBuilder.Factory() {
 
 			public CollectionBuilder builder() {
