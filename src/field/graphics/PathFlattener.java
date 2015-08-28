@@ -38,7 +38,7 @@ public class PathFlattener {
 			Vec3[] v = cursor.next();
 //			System.out.println(" cursor :"+ Arrays.asList(v)+" "+index);
 			if (v.length==4) {
-				emitCubicFrame(index, index+1, v[0], v[1], v[2], v[3]);
+				emitCubicFrame(index, index+1, v[0], v[1], v[2], v[3], 0);
 			} else if (v.length==2) {
 				emitLinearFrame(index, index+1, v[0], v[1]);
 			}
@@ -136,16 +136,22 @@ public class PathFlattener {
 		m.dotStart = dotStart;
 		m.dotEnd = dotEnd;
 		if (mappings.size() == 0)
-			m.cumulativeDistanceAtEnd = b.distanceFrom(a);
+			m.cumulativeDistanceAtEnd = b.distance(a);
 		else
-			m.cumulativeDistanceAtEnd = b.distanceFrom(a) + mappings.get(mappings.size() - 1).cumulativeDistanceAtEnd;
+			m.cumulativeDistanceAtEnd = b.distance(a) + mappings.get(mappings.size() - 1).cumulativeDistanceAtEnd;
 		mappings.add(m);
 	}
 
 	Vec3 tmp = new Vec3();
 
-	private void emitCubicFrame(double dotStart, double dotEnd, Vec3 a, Vec3 c1, Vec3 c2, Vec3 b) {
+	static int maxSubDiv = 10;
+	private void emitCubicFrame(double dotStart, double dotEnd, Vec3 a, Vec3 c1, Vec3 c2, Vec3 b, int sub) {
 
+		if (sub>maxSubDiv)
+		{
+			System.err.println("warning: maxSubDiv reached :"+dotStart+" "+dotEnd+" "+a+" "+c1+" "+c2+" "+b+" -> "+flatnessFor(a, c1, c2, b));
+			return;
+		}
 		double f = flatnessFor(a, c1, c2, b);
 		if (f > tol) {
 			Vec3 c12 = new Vec3();
@@ -156,8 +162,8 @@ public class PathFlattener {
 
 			double mp = dotStart + (dotEnd - dotStart) * 0.5f;
 
-			emitCubicFrame(dotStart, mp, a, c1, c12, m);
-			emitCubicFrame(mp, dotEnd, m, c21, c2, b);
+			emitCubicFrame(dotStart, mp, a, c1, c12, m, sub+1);
+			emitCubicFrame(mp, dotEnd, m, c21, c2, b, sub+1);
 		} else {
 			emitLinearFrame(dotStart, dotEnd, a, b);
 		}
