@@ -17,6 +17,7 @@ public class MappedFloatArray {
 	private final ByteBuffer buffer;
 	private final DoubleBuffer dbuffer;
 	private final IntBuffer ibuffer;
+	int preferredDimension = 3;
 
 	public MappedFloatArray(String filename) throws IOException {
 		raf = new RandomAccessFile(filename, "r");
@@ -29,79 +30,73 @@ public class MappedFloatArray {
 		ibuffer = buffer.asIntBuffer();
 	}
 
-	int preferredDimension = 3;
-
-	public MappedFloatArray setPreferredDimension(int p)
-	{
+	public MappedFloatArray setPreferredDimension(int p) {
 		preferredDimension = p;
 		return this;
 	}
 
-	public Vec3 get3f(int index)
-	{
-		return new Vec3(fbuffer.get(index), fbuffer.get(index+1), fbuffer.get(index+2));
+	public Vec3 get3f(int index) {
+		return new Vec3(fbuffer.get(index), fbuffer.get(index + 1), fbuffer.get(index + 2));
 	}
 
-	public int length3f()
-	{
-		return fbuffer.limit()/3;
+	public int length3f() {
+		return fbuffer.limit() / 3;
 	}
 
-	public Vec2 get2f(int index)
-	{
-		return new Vec2(fbuffer.get(index), fbuffer.get(index+1));
+	public Vec2 get2f(int index) {
+		return new Vec2(fbuffer.get(index), fbuffer.get(index + 1));
 	}
 
-	public int length2f()
-	{
-		return fbuffer.limit()/2;
+	public int length2f() {
+		return fbuffer.limit() / 2;
 	}
 
-	public float get1f(int index)
-	{
+	public float get1f(int index) {
 		return fbuffer.get(index);
 	}
 
-	public int length1f()
-	{
+	public int length1f() {
 		return fbuffer.limit();
 	}
 
-	public int length()
-	{
-		switch (preferredDimension)
-		{
-			case 1 : return length1f();
-			case 2 : return length2f();
-			case 3 : return length3f();
-			default: throw new IllegalArgumentException();
+	public int length() {
+		switch (preferredDimension) {
+			case 1:
+				return length1f();
+			case 2:
+				return length2f();
+			case 3:
+				return length3f();
+			default:
+				throw new IllegalArgumentException();
 		}
 	}
 
-	public Vec3 toVec3(int index)
-	{
-		switch (preferredDimension)
-		{
-			case 1 : new Vec3(get1f(index), 0, 0);
-			case 2 : get2f(index).toVec3();
-			case 3 : get3f(index);
-			default: throw new IllegalArgumentException();
+	public Vec3 toVec3(int index) {
+		switch (preferredDimension) {
+			case 1:
+				new Vec3(get1f(index), 0, 0);
+			case 2:
+				get2f(index).toVec3();
+			case 3:
+				get3f(index);
+			default:
+				throw new IllegalArgumentException();
 		}
 	}
 
-	public int preferredDimension(){
+	public int preferredDimension() {
 		return preferredDimension;
 	}
 
-	public Iterator<Vec3> getVec3s()
-	{
+	public Iterator<Vec3> getVec3s() {
 		return new Iterator<Vec3>() {
 
 			int index = 0;
 
 			@Override
 			public boolean hasNext() {
-				return index<length();
+				return index < length();
 			}
 
 			@Override
