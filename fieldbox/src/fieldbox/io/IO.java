@@ -12,139 +12,66 @@ import fieldbox.execution.Execution;
 
 import java.io.*;
 import java.lang.reflect.Constructor;
+import java.nio.file.Files;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
- * This class handles the persistence of Box graphs to disk. Key design challenge here is to allow
- * individual properties of boxes to exist as separate files on disk if it makes sense to do so (for
- * example disparate pieces of source code), and otherwise have properties associated with a box
- * bound up in a single file the rides near these source code files. These boxes are free to float
- * around the filesystem and to be shared between documents. This is in stark contrast to the Field1
- * design where a Field "sheet" was a directory that contained all of its boxes. Sharing boxes
- * between documents was therefore completely impossible. This structure will give us the ability to
- * drag and drop documents into the Field window and save side-car .fieldbox files next to them that
- * contain the properties.
+ * This class handles the persistence of Box graphs to disk. Key design challenge here is to allow individual properties of boxes to exist as separate files on disk if it makes sense to do so (for
+ * example disparate pieces of source code), and otherwise have properties associated with a box bound up in a single file the rides near these source code files. These boxes are free to float around
+ * the filesystem and to be shared between documents. This is in stark contrast to the Field1 design where a Field "sheet" was a directory that contained all of its boxes. Sharing boxes between
+ * documents was therefore completely impossible. This structure will give us the ability to drag and drop documents into the Field window and save side-car .box files next to them that contain the
+ * properties.
  * <p>
- * .box (the properties) and .field2 (the master document) files are stored as EDN files (see
- * EDN.java for specifics).
+ * .box (the properties) and .field2 (the master document) files are stored as EDN files (see EDN.java for specifics).
  */
 public class IO {
 	static public final String WORKSPACE = "{{workspace}}";
 	static public final String EXECUTION = "{{execution}}";
 	static public final String TEMPLATES = "{{templates}}";
-
-
-	/**
-	 * tag interface for boxes, method will be called after all boxes have been loaded (and all
-	 * properties set). Boxes that throw exceptions won't be loaded after all.
-	 */
-	static public interface Loaded {
-		public void loaded();
-	}
-
-	private final String defaultDirectory;
-	private final String templateDirectory;
-	static Set<String> knownProperties = new LinkedHashSet<String>();
-	static Map<String, Filespec> knownFiles = new HashMap<String, Filespec>();
-
 	public static final Dict.Prop<String> id = new Dict.Prop<>("__id__");
-	public static final Dict.Prop<String> desiredBoxClass = new Dict.Prop<>("__desiredBoxClassdesiredBoxClass__");
+	public static final Dict.Prop<String> desiredBoxClass = new Dict.Prop<>("__desiredBoxClass__");
 	public static final Dict.Prop<String> comment = new Dict.Prop<>("comment").toCannon()
 										  .type()
 										  .doc("A comment string that's easily searchable");
-	public static final Dict.Prop<List<String>> classpath = new Dict.Prop<>(
-		    "classpath").toCannon()
-				.type()
-				.doc("This box asks the classloader to extend the classpath by this list of paths");
+
+	public static final Dict.Prop<String> language = new Dict.Prop<>("language").toCannon()
+										    .type()
+										    .doc("marks a property's editable (CodeMirror) language")
+										    .set(Dict.domain, "*/attributes");
+	public static final Dict.Prop<Boolean> persistent = new Dict.Prop<>("persistent").toCannon()
+											 .type()
+											 .doc("marks a property as being saved to disk")
+											 .set(Dict.domain, "*/attributes");
+	public static final Dict.Prop<Boolean> perDocument = new Dict.Prop<>("perDocument").toCannon()
+											   .type()
+											   .doc("marks a property as being saved, conceptually, with the document rather than with the box (which might be shared between documents).")
+											   .set(Dict.domain, "*/attributes");
+
+	public static final Dict.Prop<List<String>> classpath = new Dict.Prop<>("classpath").toCannon()
+											    .type()
+											    .doc("This box asks the classloader to extend the classpath by this list of paths");
+	static Set<String> knownProperties = new LinkedHashSet<String>();
+	static Map<String, Filespec> knownFiles = new HashMap<String, Filespec>();
 
 	static {
 		persist(id);
 		persist(comment);
 		persist(classpath);
+		persist(perDocument);
 	}
 
+	private final String defaultDirectory;
+	private final String templateDirectory;
+	boolean lastWasNew = false;
+	EDN edn = new EDN();
 	private PluginList pluginList;
 
-	public void addFilespec(String name, String defaultSuffix, String language) {
-		Filespec f = new Filespec();
-		f.name = name;
-		f.defaultSuffix = defaultSuffix;
-		f.language = language;
-		knownFiles.put(f.name, f);
-	}
-
-
-	public Dict.Prop<String> lookupFileSuffix(String filename, Box root) {
-		String[] pieces = filename.split("\\.");
-		if (pieces.length < 2) return null;
-		for (Filespec f : knownFiles.values()) {
-			if (f.defaultSuffix.equals(pieces[pieces.length - 1]))
-				return new Dict.Prop<String>(f.name).findCannon();
-			if (f.defaultSuffix.equals(EXECUTION)) {
-				Optional<Execution> e = root.find(Execution.execution, root.both())
-							    .findFirst();
-				if (e.isPresent()) if (e.get()
-							.support(root,
-								 new Dict.Prop<String>(f.name))
-							.getDefaultFileExtension()
-							.equals(pieces[pieces.length - 1]))
-					return new Dict.Prop<String>(f.name).findCannon();
-			}
-		}
-
-		return null;
-	}
-
-	public String getLanguageForProperty(Dict.Prop<String> editingProperty) {
-		for (Filespec f : knownFiles.values()) {
-			if (f.name.equals(editingProperty.getName())) return f.language;
-		}
-		return null;
-	}
-
-
-	public boolean isBoxFile(String filename) {
-		String[] pieces = filename.split("\\.");
-		if (pieces.length < 2) return false;
-		return pieces[pieces.length - 1].equals("box");
-	}
-
-	public class Filespec {
-		public String name;
-		private String defaultSuffix;
-		private String language;
-
-		public String getDefaultSuffix(Box box) {
-
-			if (defaultSuffix.equals(EXECUTION)) {
-				Execution e = box.first(Execution.execution)
-						 .orElseThrow(() -> new IllegalArgumentException(
-							     " no execution for box " + box));
-				return e.support(e, new Dict.Prop<String>(name))
-					.getDefaultFileExtension();
-			}
-
-			return defaultSuffix;
-		}
-
-		public String getLanguage(Box box) {
-
-			if (defaultSuffix.equals(EXECUTION)) {
-				Execution e = box.first(Execution.execution)
-						 .orElseThrow(() -> new IllegalArgumentException(
-							     " no execution for box " + box));
-				return e.support(e, new Dict.Prop<String>(name))
-					.getDefaultFileExtension();
-			}
-
-			return language;
-		}
-	}
 
 	public IO(String defaultDirectory) {
 		this.defaultDirectory = defaultDirectory;
-		this.templateDirectory= Main.app+"/templates/";
+		this.templateDirectory = Main.app + "/templates/";
 
 		if (!new File(defaultDirectory).exists()) new File(defaultDirectory).mkdir();
 
@@ -155,9 +82,129 @@ public class IO {
 		knownProperties.add(FrameManipulation.lockWidth.getName());
 	}
 
+	static public String readFromFile(File f) {
+		try{
+			return Files.readAllLines(f.toPath()).stream().reduce("", (a, b) -> a+"\n"+b);
+		}
+		catch(IOException e)
+		{
+			e.printStackTrace();
+		}
+		return "";
+	}
+
+	static private String pad(int n) {
+		String r = "" + n;
+		while (r.length() < 5) r = "0" + r;
+		return r;
+	}
+
+	static public void persist(Dict.Prop prop) {
+		knownProperties.add(prop.getName());
+	}
+
+	public static boolean isPeristant(Dict.Prop prop) {
+		return knownProperties.contains(prop.getName()) || (prop.findCannon() != null && prop.findCannon()
+												     .getAttributes()
+												     .isTrue(persistent, false));
+	}
+
+	public static void uniqify(Box x) {
+		ArrayList<Dict.Prop> k = new ArrayList<>(x.properties.getMap()
+								     .keySet());
+		for (Dict.Prop kk : k) {
+			if (kk.getName()
+			      .startsWith("__filename__") || kk.getName()
+							       .startsWith("__datafilename__")) {
+				x.properties.remove(kk);
+			}
+		}
+
+		x.properties.put(IO.id, Box.newID());
+	}
+
+	public static boolean uniqifyIfNecessary(Box root, Box x) {
+
+		String id = x.properties.computeIfAbsent(IO.id, k -> Box.newID());
+
+		Set<String> ids = root.breadthFirst(root.both())
+				      .filter(bx -> bx != x)
+				      .map(bx -> bx.properties.computeIfAbsent(IO.id, k -> Box.newID()))
+				      .collect(Collectors.toSet());
+
+		Log.log("updatebox", "all ids are " + ids + " looked for " + id + " " + ids.contains(id));
+
+
+		if (ids.contains(id)) {
+			ArrayList<Dict.Prop> k = new ArrayList<>(x.properties.getMap()
+									     .keySet());
+			for (Dict.Prop kk : k) {
+				if (kk.getName()
+				      .startsWith("__filename__") || kk.getName()
+								       .startsWith("__datafilename__")) {
+					x.properties.remove(kk);
+				}
+			}
+
+			x.properties.put(IO.id, Box.newID());
+			return true;
+		}
+		return false;
+	}
+
+	public void addFilespec(String name, String defaultSuffix, String language) {
+		Filespec f = new Filespec();
+		f.name = name;
+		f.defaultSuffix = defaultSuffix;
+		f.language = language;
+		knownFiles.put(f.name, f);
+	}
+
+	public Dict.Prop<String> lookupFileSuffix(String filename, Box root) {
+		String[] pieces = filename.split("\\.");
+		if (pieces.length < 2) return null;
+		for (Filespec f : knownFiles.values()) {
+			if (f.defaultSuffix.equals(pieces[pieces.length - 1])) return new Dict.Prop<String>(f.name).findCannon();
+			if (f.defaultSuffix.equals(EXECUTION)) {
+				Optional<Execution> e = root.find(Execution.execution, root.both())
+							    .findFirst();
+				if (e.isPresent()) if (e.get()
+							.support(root, new Dict.Prop<String>(f.name))
+							.getDefaultFileExtension()
+							.equals(pieces[pieces.length - 1])) return new Dict.Prop<String>(f.name).findCannon();
+			}
+		}
+
+		return null;
+	}
+
+	public String getLanguageForProperty(Dict.Prop<String> editingProperty) {
+		for (Filespec f : knownFiles.values()) {
+			if (f.name.equals(editingProperty.getName())) return f.language;
+		}
+
+		return editingProperty.getAttributes()
+				      .get(language);
+	}
+
+	public boolean isBoxFile(String filename) {
+		String[] pieces = filename.split("\\.");
+		if (pieces.length < 2) return false;
+		return pieces[pieces.length - 1].equals("box");
+	}
+
+	public boolean isFieldFile(String filename) {
+		return filename.endsWith(".field2") || filename.endsWith(".field");
+	}
+
 	public Document compileDocument(String defaultSubDirectory, Box documentRoot, Map<Box, String> specialBoxes) {
+		return compileDocument(defaultSubDirectory, documentRoot, x -> true, specialBoxes);
+	}
+
+	public Document compileDocument(String defaultSubDirectory, Box documentRoot, Predicate<Box> include, Map<Box, String> specialBoxes) {
 		Document d = new Document();
 		d.externalList = documentRoot.breadthFirst(documentRoot.downwards())
+					     .filter(include)
 					     .map(box -> toExternal(defaultSubDirectory, box, specialBoxes))
 					     .filter(x -> x != null)
 					     .collect(Collectors.toList());
@@ -173,9 +220,6 @@ public class IO {
 	public String getTemplateDirectory() {
 		return templateDirectory;
 	}
-
-
-	boolean lastWasNew = false;
 
 	public IO setPluginList(PluginList pluginList) {
 		this.pluginList = pluginList;
@@ -224,15 +268,13 @@ public class IO {
 				Box mc = specialBoxes.getOrDefault(id, loaded.get(id));
 
 				if (mc != null) e.box.connect(mc);
-				else Log.log("io.error",
-					     " lost child ? " + id + " of " + e.box + " " + specialBoxes);
+				else Log.log("io.error", " lost child ? " + id + " of " + e.box + " " + specialBoxes);
 			}
 			for (String id : e.parents) {
 				Box mc = specialBoxes.getOrDefault(id, loaded.get(id));
 
 				if (mc != null) mc.connect(e.box);
-				else Log.log("io.error",
-					     " lost child ? " + id + " of " + e.box + " " + specialBoxes);
+				else Log.log("io.error", " lost child ? " + id + " of " + e.box + " " + specialBoxes);
 			}
 		}
 		created.addAll(loaded.values());
@@ -245,20 +287,19 @@ public class IO {
 			      try {
 				      ((Loaded) b).loaded();
 			      } catch (Throwable t) {
-				      Log.log("io.error",
-					      " exception thrown while finishing loading for box " + b);
+				      Log.log("io.error", " exception thrown while finishing loading for box " + b);
 				      Log.log("io.error", t);
 				      Log.log("io.error", " continuing on (box will be deleted from the graph without notification)");
 				      failed.add(b);
 			      }
 		      });
 
-		loaded.values().removeAll(failed);
+		loaded.values()
+		      .removeAll(failed);
 		loaded.values()
 		      .forEach(b -> Callbacks.load(b));
 
-		for(Box b : failed)
-		{
+		for (Box b : failed) {
 			b.disconnectFromAll();
 		}
 		return d;
@@ -269,6 +310,8 @@ public class IO {
 	private void fromExternal(External ex, Map<String, Box> specialBoxes) {
 
 		File dataFile = filenameFor(ex.dataFile);
+
+		String currentPrefix = dataFile.getParent();
 
 		Map<String, List<Object>> options = null;
 		if (pluginList != null) try {
@@ -286,22 +329,23 @@ public class IO {
 				Constructor<Box> cc = c.getDeclaredConstructor();
 				cc.setAccessible(true);
 				ex.box = (Box) cc.newInstance();
+				ex.box.properties.put(desiredBoxClass, ex.boxClass);
 			} catch (NoSuchMethodException e) {
 				Constructor<Box> cc = c.getDeclaredConstructor(Box.class);
 				cc.setAccessible(true);
 				ex.box = (Box) cc.newInstance(specialBoxes.get(">>root<<"));
 			}
 		} catch (Throwable e) {
-			Log.log("io.error",
-				" while looking for class <" + ex.boxClass + "> needed for <" + ex.id + " / " + ex.textFiles + "> an exception was thrown");
+			Log.log("io.error", " while looking for class <" + ex.boxClass + "> needed for <" + ex.id + " / " + ex.textFiles + "> an exception was thrown");
 			Log.log("io.error", e);
-			Log.log("io.error",
-				" will proceed with just a vanilla Box class, but custom behavior will be lost ");
+			Log.log("io.error", " will proceed with just a vanilla Box class, but custom behavior will be lost ");
 			ex.box = new Box();
+
+			ex.box.properties.put(desiredBoxClass, ex.boxClass);
 		}
 
 		for (Map.Entry<String, String> e : ex.textFiles.entrySet()) {
-			File filename = filenameFor(e.getValue());
+			File filename = filenameFor(currentPrefix, e.getValue());
 			String text = readFromFile(filename);
 			ex.box.properties.put(new Dict.Prop<String>(e.getKey()), text);
 		}
@@ -314,20 +358,29 @@ public class IO {
 				for (Map.Entry<?, ?> entry : m.entrySet()) {
 					ex.box.properties.put(new Dict.Prop((String) entry.getKey()), entry.getValue());
 				}
-			}
-			catch(Exception e)
-			{
-				Log.log("io.error", "trouble loading external "+dataFile+". Corrupt file?");
+			} catch (Exception e) {
+				Log.log("io.error", "trouble loading external " + dataFile + ". Corrupt file?");
 				e.printStackTrace();
 			}
 		}
 
+		if (ex.overriddenProperties != null) {
+			ex.overriddenProperties.forEach((k, v) -> {
+				Dict.Prop p = new Dict.Prop("" + k);
+				ex.box.properties.put(p, v);
+				p.toCannon()
+				 .getAttributes()
+				 .put(perDocument, true);
+				p.toCannon()
+				 .getAttributes()
+				 .put(persistent, true);
+			});
+		}
 
 	}
 
 	/**
-	 * notes: it's up to the caller to call .loaded() once this box has been connected to the
-	 * graph
+	 * notes: it's up to the caller to call .loaded() once this box has been connected to the graph
 	 */
 	public Box loadSingleBox(String f, Box root) {
 
@@ -358,51 +411,68 @@ public class IO {
 				box = (Box) cc.newInstance(root);
 			}
 		} catch (Throwable e) {
-			Log.log("io.error",
-				" while looking for class <" + boxClass + "> an exception was thrown");
+			Log.log("io.error", " while looking for class <" + boxClass + "> an exception was thrown");
 			Log.log("io.error", e);
-			Log.log("io.error",
-				" will proceed with just a vanilla Box class, but custom behavior will be lost ");
+			Log.log("io.error", " will proceed with just a vanilla Box class, but custom behavior will be lost ");
 			box = new Box();
 		}
 
 
 		String selfFilename = m.getOrDefault("__datafilename__", null);
-		String selfPrefix = new File(selfFilename).getParent();
 
 		String currentPrefix = new File(f).getParent();
+
 
 		for (Map.Entry<?, ?> entry : m.entrySet()) {
 			if (!(entry.getKey() instanceof String)) continue;
 
-			box.properties.put(new Dict.Prop((String) entry.getKey()),
-					   entry.getValue());
+			box.properties.put(new Dict.Prop((String) entry.getKey()), entry.getValue());
 
 			if (((String) entry.getKey()).startsWith("__filename__")) {
-				String suffix = ((String) entry.getKey()).substring(
-					    "__filename__".length());
+				String suffix = ((String) entry.getKey()).substring("__filename__".length());
 
 				String p = (String) entry.getValue();
 
-				//TODO: rewrite p if it's prefixed with selfFilename (splitting by '/' to handle subdirectories)
+				String additionalSearchPath = p.replace(WORKSPACE, currentPrefix + "/");
+				if (new File(additionalSearchPath).exists()) {
+					String p1 = readFromFile(new File(additionalSearchPath));
+					box.properties.put(new Dict.Prop<String>(suffix), p1);
+				} else {
 
-				File path = filenameFor(p);
+					File path = filenameFor(p);
+					try {
 
-				box.properties.put(new Dict.Prop<String>(suffix),
-						   readFromFile(path));
+						String p1 = readFromFile(path);
+						box.properties.put(new Dict.Prop<String>(suffix), p1);
+					} catch (Exception e) {
+						System.out.println(" exception thrown while loading a file :" + path + " for property :" + entry + " in box +" + box);
+						e.printStackTrace();
+						System.out.println(" continuing on");
+					}
+				}
 			}
-
 		}
 
-		if (m.get("__boxclass__")!=null)
-			box.properties.put(desiredBoxClass, m.get("__boxclass__"));
+		for (Map.Entry<String, Filespec> e : knownFiles.entrySet()) {
+			File filename = filenameFor(f + (e.getValue()
+							  .getDefaultSuffix(root)
+							  .startsWith(".") ? "" : ".") + e.getValue()
+											  .getDefaultSuffix(root));
+
+			System.out.println(" checking for default override :" + filename);
+
+			if (filename.exists()) {
+				String text = readFromFile(filename);
+				box.properties.put(new Dict.Prop<String>(e.getKey()), text);
+			}
+		}
+
+		if (m.get("__boxclass__") != null) box.properties.put(desiredBoxClass, m.get("__boxclass__"));
 
 
 		return box;
 
-
 	}
-
 
 	protected External toExternal(String defaultSubDirectory, Box box, Map<Box, String> specialBoxes) {
 		if (specialBoxes.containsKey(box)) return null;
@@ -411,8 +481,7 @@ public class IO {
 
 		External ex = new External();
 
-		for (Map.Entry<Dict.Prop, Object> e : new LinkedHashMap<>(
-			    box.properties.getMap()).entrySet()) {
+		for (Map.Entry<Dict.Prop, Object> e : new LinkedHashMap<>(box.properties.getMap()).entrySet()) {
 			Log.log("io.general", "checking :" + e.getKey()
 							      .getName() + " against " + knownFiles.keySet());
 			if (knownFiles.containsKey(e.getKey()
@@ -420,18 +489,13 @@ public class IO {
 				Filespec f = knownFiles.get(e.getKey()
 							     .getName());
 
-				String extantFilename = box.properties.get(new Dict.Prop<String>(
-					    "__filename__" + e.getKey()
-							      .getName()));
-				Log.log("io.general",
-					"extant filename is :" + extantFilename + " for " + e.getKey()
-											     .getName() + " from " + box.properties);
+				String extantFilename = box.properties.get(new Dict.Prop<String>("__filename__" + e.getKey()
+														   .getName()));
+				Log.log("io.general", "extant filename is :" + extantFilename + " for " + e.getKey()
+													   .getName() + " from " + box.properties);
 				if (extantFilename == null) {
-					box.properties.put(new Dict.Prop<String>(
-								       "__filename__" + e.getKey()
-											 .getName()),
-							   extantFilename = makeFilenameFor(defaultSubDirectory, f,
-											    box));
+					box.properties.put(new Dict.Prop<String>("__filename__" + e.getKey()
+												   .getName()), extantFilename = makeFilenameFor(defaultSubDirectory, f, box));
 				}
 				knownProperties.add("__filename__" + e.getKey()
 								      .getName());
@@ -440,9 +504,7 @@ public class IO {
 			}
 		}
 
-		ex.dataFile = box.properties.computeIfAbsent(
-			    new Dict.Prop<String>("__datafilename__"),
-			    (k) -> makeDataFilenameFor(defaultSubDirectory, ex, box));
+		ex.dataFile = box.properties.computeIfAbsent(new Dict.Prop<String>("__datafilename__"), (k) -> makeDataFilenameFor(defaultSubDirectory, ex, box));
 		knownProperties.add("__datafilename__");
 		ex.box = box;
 		ex.id = box.properties.computeIfAbsent(id, (k) -> UUID.randomUUID()
@@ -454,53 +516,80 @@ public class IO {
 		Set<Box> p = box.parents();
 		for (Box pp : p) {
 			if (specialBoxes.containsKey(pp)) ex.parents.add(specialBoxes.get(pp));
-			else ex.parents.add(pp.properties.computeIfAbsent(id,
-									  (k) -> UUID.randomUUID()
-										     .toString()));
+			else ex.parents.add(pp.properties.computeIfAbsent(id, (k) -> UUID.randomUUID()
+											 .toString()));
 		}
 
 		p = box.children();
 		for (Box pp : p) {
 			if (specialBoxes.containsKey(pp)) ex.children.add(specialBoxes.get(pp));
-			else ex.children.add(pp.properties.computeIfAbsent(id,
-									   (k) -> UUID.randomUUID()
-										      .toString()));
+			else ex.children.add(pp.properties.computeIfAbsent(id, (k) -> UUID.randomUUID()
+											  .toString()));
 		}
 
-		ex.boxClass = box.getClass().equals(Box.class) ? box.properties.getOr(desiredBoxClass, () -> Box.class.getName()) : box.getClass()
-				 .getName();
+		ex.boxClass = box.getClass()
+				 .equals(Box.class) ? box.properties.getOr(desiredBoxClass, () -> Box.class.getName()) : box.getClass()
+															    .getName();
 
 		return ex;
 	}
 
 	public void writeOutDocument(String filename, Document d) throws IOException {
+
+		String prefix = new File(filename).getParent() + "/";
+
 		for (External e : d.externalList)
-			writeOutExternal(e);
+			writeOutExternal(prefix, e);
+
 		writeToFile(filenameFor(filename), serializeToString(d));
 	}
 
-
-	protected void writeOutExternal(External external) throws IOException {
+	protected void writeOutExternal(String defaultPrefix, External external) throws IOException {
 		for (Map.Entry<String, String> e : external.textFiles.entrySet()) {
-			String text = external.box.properties.get(
-				    new Dict.Prop<String>(e.getKey()));
+			String text = external.box.properties.get(new Dict.Prop<String>(e.getKey()));
 			if (text == null) continue;
-			File filename = filenameFor(e.getValue());
-			writeToFile(filename, text);
+			File filename = filenameFor(defaultPrefix, e.getValue());
+
+			System.out.println(" filename for :" + defaultPrefix + " " + e.getValue() + " is " + filename);
+			try {
+				writeToFile(filename, text);
+			} catch (Exception ex) {
+				System.out.println(" exception thrown while saving out a file :" + filename + " for property :" + e + " in box +" + external.box);
+				ex.printStackTrace();
+				System.out.println(" continuing on");
+			}
 		}
-		;
 
 		File dataFile = filenameFor(external.dataFile);
+
 		if (dataFile != null) {
 			Map<String, Object> data = new LinkedHashMap<String, Object>();
-			for (String kp : knownProperties) {
-				Object d = external.box.properties.get(new Dict.Prop(kp));
-				if (d != null) data.put(kp, d);
-			}
+
+			Set<Map.Entry<Dict.Prop, Object>> es = external.box.properties.getMap()
+										      .entrySet();
+			for (Map.Entry<Dict.Prop, Object> e : es)
+				if (isPeristant(e.getKey())) data.put(e.getKey()
+								       .getName(), e.getValue());
+
 
 			data.put("__boxclass__", external.boxClass);
 
 			writeToFile(dataFile, serializeToString(data));
+		}
+
+		Log.log("io.general", "sweep for persistent, perDocument properties");
+		for (Map.Entry<Dict.Prop, Object> e : external.box.properties.getMap()
+									     .entrySet()) {
+			Log.log("io.general", "property :" + e.getKey()
+							      .toCannon() + " attributes are " + e.getKey()
+												  .toCannon()
+												  .getAttributes());
+
+			if (e.getKey()
+			     .toCannon()
+			     .getAttributes()
+			     .isTrue(perDocument, false) && isPeristant(e.getKey())) external.overriddenProperties.put(e.getKey()
+															.getName(), e.getValue());
 		}
 	}
 
@@ -515,26 +604,12 @@ public class IO {
 		return written;
 	}
 
-	EDN edn = new EDN();
-
 	private void writeToFile(File filename, String text) throws IOException {
 		Log.log("io.general", " will write :" + text + " to " + filename);
 		BufferedWriter w = new BufferedWriter(new FileWriter(filename));
 		w.append(text);
 		w.close();
 	}
-
-	static public String readFromFile(File f) {
-		try (BufferedReader r = new BufferedReader(new FileReader(f))) {
-			String m = "";
-			while (r.ready()) m += r.readLine() + "\n";
-			return m;
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return "";
-	}
-
 
 	public File filenameFor(String value) {
 		if (value.startsWith(TEMPLATES)) {
@@ -546,6 +621,18 @@ public class IO {
 					/*safe*/(value.substring(WORKSPACE.length())));
 		}
 		return new File(value);
+	}
+
+	public File filenameFor(String defaultPrefix, String value) {
+		if (value.startsWith(TEMPLATES)) {
+			return new File(templateDirectory,
+					/*safe*/(value.substring(TEMPLATES.length())));
+		}
+		if (value.startsWith(WORKSPACE)) {
+			return new File(defaultDirectory,
+					/*safe*/(value.substring(WORKSPACE.length())));
+		}
+		return filenameFor(defaultPrefix + "/" + value);
 	}
 
 	private String safe(String filename) {
@@ -568,7 +655,7 @@ public class IO {
 
 	private String makeFilenameFor(String defaultSubDirectory, String defaultSuffix, String defaultName, Box box) {
 
-		System.out.println(" makeFilenameFor "+defaultSubDirectory+" "+defaultSuffix+" "+defaultName+" "+box);
+		System.out.println(" makeFilenameFor " + defaultSubDirectory + " " + defaultSuffix + " " + defaultName + " " + box);
 
 		String name = box.properties.get(Box.name);
 		if (name == null) name = "untitled_box";
@@ -577,32 +664,58 @@ public class IO {
 		name = safe(name + suffix);
 
 		int n = 0;
-		if (filenameFor(WORKSPACE+"/"+defaultSubDirectory+"/"+name).exists()) {
+		if (filenameFor(WORKSPACE + "/" + defaultSubDirectory + "/" + name).exists()) {
 			String n2 = name;
-			while (filenameFor(WORKSPACE+"/"+defaultSubDirectory+"/"+n2).exists()) {
-				n2 = name.substring(0, name.length() - suffix.length()) + pad(
-					    n) + suffix;
+			while (filenameFor(WORKSPACE + "/" + defaultSubDirectory + "/" + n2).exists()) {
+				n2 = name.substring(0, name.length() - suffix.length()) + pad(n) + suffix;
 				n++;
 			}
 			name = n2;
 
 			// create it now, so that other calls to makeFilenameFor still create unique names
 			try {
-				filenameFor(WORKSPACE+"/"+defaultSubDirectory+"/"+name).createNewFile();
+				filenameFor(WORKSPACE + "/" + defaultSubDirectory + "/" + name).createNewFile();
 			} catch (IOException e) {
 			}
 
 		}
 
-		System.out.println("      is "+(WORKSPACE + (defaultSubDirectory.equals("") ? "" : (defaultSubDirectory+"/")) + name));
-		return WORKSPACE + (defaultSubDirectory.equals("") ? "" : (defaultSubDirectory+"/")) + name;
+		System.out.println("      is " + (WORKSPACE + (defaultSubDirectory.equals("") ? "" : (defaultSubDirectory + "/")) + name));
+		return WORKSPACE + (defaultSubDirectory.equals("") ? "" : (defaultSubDirectory + "/")) + name;
+	}
+
+	public String findTemplateCalled(String name) {
+		System.out.println(" template path is :" + templateDirectory);
+		String q = findTemplateCalled(name, templateDirectory);
+		if (q != null) return q;
+		q = findTemplateCalled(name, defaultDirectory);
+		return q;
+	}
+
+	protected String findTemplateCalled(String name, String dir) {
+		File[] n = new File(dir).listFiles((x) -> x.getName()
+							   .endsWith(".box"));
+		if (n != null) {
+			for (File f : n) {
+				String[] pieces = f.getName()
+						   .split("[_\\.]");
+
+				if (pieces[0].toLowerCase()
+					     .equals(name.toLowerCase())) return f.getAbsolutePath();
+			}
+		}
+
+		if (new File(dir + "/" + name + ".box").exists()) return new File(dir + "/" + name + ".box").getAbsolutePath();
+
+		return null;
 	}
 
 
-	static private String pad(int n) {
-		String r = "" + n;
-		while (r.length() < 5) r = "0" + r;
-		return r;
+	/**
+	 * tag interface for boxes, method will be called after all boxes have been loaded (and all properties set). Boxes that throw exceptions won't be loaded after all.
+	 */
+	static public interface Loaded {
+		public void loaded();
 	}
 
 	static public class Document {
@@ -616,95 +729,41 @@ public class IO {
 		public String dataFile;
 		public String id;
 		public String boxClass;
-
-		transient Box box;
-
 		public Collection<String> parents;
 		public Collection<String> children;
+		public Map overriddenProperties = new LinkedHashMap<>();
+		transient Box box;
 	}
 
+	public class Filespec {
+		public String name;
+		private String defaultSuffix;
+		private String language;
 
-	static public void persist(Dict.Prop prop) {
-		knownProperties.add(prop.getName());
-	}
+		public String getDefaultSuffix(Box box) {
 
-	public static boolean isPeristant(Dict.Prop prop) {
-		return knownProperties.contains(prop.getName());
-	}
-
-
-	public static void uniqify(Box x) {
-		ArrayList<Dict.Prop> k = new ArrayList<>(x.properties.getMap()
-								     .keySet());
-		for (Dict.Prop kk : k) {
-			if (kk.getName()
-			      .startsWith("__filename__") || kk.getName()
-							       .startsWith("__datafilename__")) {
-				x.properties.remove(kk);
-			}
-		}
-
-		x.properties.put(IO.id, Box.newID());
-	}
-
-	public static boolean uniqifyIfNecessary(Box root, Box x) {
-
-		String id = x.properties.computeIfAbsent(IO.id, k -> Box.newID());
-
-		Set<String> ids = root.breadthFirst(root.both())
-				      .filter(bx -> bx != x)
-				      .map(bx -> bx.properties.computeIfAbsent(IO.id,
-									       k -> Box.newID()))
-				      .collect(Collectors.toSet());
-
-		Log.log("updatebox",
-			"all ids are " + ids + " looked for " + id + " " + ids.contains(id));
-
-
-		if (ids.contains(id)) {
-			ArrayList<Dict.Prop> k = new ArrayList<>(x.properties.getMap()
-									     .keySet());
-			for (Dict.Prop kk : k) {
-				if (kk.getName()
-				      .startsWith("__filename__") || kk.getName()
-								       .startsWith("__datafilename__")) {
-					x.properties.remove(kk);
-				}
+			if (defaultSuffix.equals(EXECUTION)) {
+				Execution e = box.first(Execution.execution)
+						 .orElseThrow(() -> new IllegalArgumentException(" no execution for box " + box));
+				return e.support(e, new Dict.Prop<String>(name))
+					.getDefaultFileExtension();
 			}
 
-			x.properties.put(IO.id, Box.newID());
-			return true;
+			return defaultSuffix;
 		}
-		return false;
-	}
 
+		public String getLanguage(Box box) {
 
-	public String findTemplateCalled(String name) {
-		System.out.println(" template path is :"+templateDirectory);
-		String q = findTemplateCalled(name, templateDirectory);
-		if (q!=null) return q;
-		q = findTemplateCalled(name, defaultDirectory);
-		return q;
-	}
-
-	protected String findTemplateCalled(String name, String dir)
-	{
-		File[] n = new File(dir).listFiles((x) -> x.getName()
-									.endsWith(".box"));
-		if (n!=null)
-		{
-			for(File f : n)
-			{
-				String[] pieces = f.getName().split("[_\\.]");
-
-				System.out.println(" template pieces are "+Arrays.asList(pieces));
-
-				if (pieces[0].toLowerCase().equals(name.toLowerCase())) return f.getAbsolutePath();
+			if (defaultSuffix.equals(EXECUTION)) {
+				Execution e = box.first(Execution.execution)
+						 .orElseThrow(() -> new IllegalArgumentException(" no execution for box " + box));
+				return e.support(e, new Dict.Prop<String>(name))
+					.getDefaultFileExtension();
 			}
-		}
-		return null;
-	}
 
+			return language;
+		}
+	}
 
 
 }

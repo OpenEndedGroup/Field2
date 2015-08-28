@@ -20,6 +20,7 @@ import fielded.RemoteEditor;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -140,7 +141,7 @@ public class FileBrowser extends Box implements IO.Loaded {
 							     // doit
 
 //							     Log.log("insertbox", "would insert file :" + f.name);
-							     Set<Box> loaded = Open.doOpen(root, f.name);
+							     Set<Box> loaded = Open.doOpen(root, f.id);
 
 							     if (f.copyOnly) for (Box b : loaded)
 								     IO.uniqify(b);
@@ -433,37 +434,49 @@ public class FileBrowser extends Box implements IO.Loaded {
 	public void parse(String dir, boolean copyOnly) {
 		Log.log("INSERT", "parsing directory :" + dir);
 
-		File[] boxes = new File(dir).listFiles(x -> x.getName()
-							     .endsWith(".box"));
-		if (boxes != null) {
 
-			Log.log("INSERT", "boxes are :" + Arrays.asList(boxes));
+		try {
+			List<Path> boxes = Files.walk(new File(dir).toPath())
+						  .filter(x -> x.toString().endsWith(".box"))
+						  .collect(Collectors.toList());
 
-			for (File from : boxes)
-				RunLoop.workerPool.submit(() -> {
+			if (boxes != null) {
 
-					Log.log("INSERT", from);
-					FieldBox ff = newFieldBox(from);
-					ff.copyOnly = copyOnly;
-					synchronized (files) {
-						FieldBox displaced = FileBrowser.this.boxes.put(ff.id, ff);
-					}
-				});
+				Log.log("INSERT", "boxes are :" + Arrays.asList(boxes));
+
+				for (Path from : boxes)
+					RunLoop.workerPool.submit(() -> {
+
+						Log.log("INSERT", from);
+						FieldBox ff = newFieldBox(from.toFile());
+						ff.copyOnly = copyOnly;
+						synchronized (files) {
+							FieldBox displaced = FileBrowser.this.boxes.put(ff.id, ff);
+						}
+					});
+			}
+
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 
-		File[] sheets = new File(dir).listFiles(x -> x.getName()
-							      .endsWith(".field2") || x.getName()
-										       .equals(".field"));
 
+		try {
+
+		List<Path> sheets = Files.walk(new File(dir).toPath())
+					 .filter(x -> x.toString().endsWith(".field") || x.toString().endsWith(".field2"))
+					 .collect(Collectors.toList());
 		if (sheets != null) {
+
+
 			Log.log("INSERT", "sheets are :" + Arrays.asList(sheets));
-			for (File from : sheets) {
+			for (Path from : sheets) {
 				sheetsInFlight.incrementAndGet();
 				RunLoop.workerPool.submit(() -> {
 					Log.log("INSERT", from);
 
 					try {
-						FieldFile ff = newFieldFile(from);
+						FieldFile ff = newFieldFile(from.toFile());
 						ff.copyOnly = copyOnly;
 
 						synchronized (files) {
@@ -476,6 +489,11 @@ public class FileBrowser extends Box implements IO.Loaded {
 			}
 
 		}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+
 	}
 
 	private Stream<Box> selection() {
