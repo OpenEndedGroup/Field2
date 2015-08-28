@@ -10,13 +10,12 @@ import fieldbox.boxes.Box;
 import fieldbox.boxes.Callbacks;
 import fieldbox.boxes.Drawing;
 import fieldbox.boxes.Drops;
-import fieldbox.io.IO;
 import fieldbox.execution.Execution;
+import fieldbox.io.IO;
 import fielded.RemoteEditor;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Plugin that lets you drag files onto the canvas. Files are now kept out of the workspace.
@@ -44,8 +43,6 @@ public class DragFilesToCanvas extends Box {
 		List<Box> loaded = new ArrayList<>();
 		for (String f : files) {
 
-			//we're assuming this is a textfile full of code, but if it was a .box file it could link to many files instead (think about a box with a complete shader in it. For that we'd want to call stuff inside IO directly.
-
 			boolean isPartOfWorkspace = false;
 			String ff = new File(f).getAbsolutePath();
 			if (ff.startsWith(FieldBox.fieldBox.io.getDefaultDirectory())) {
@@ -61,7 +58,6 @@ public class DragFilesToCanvas extends Box {
 			}
 
 
-
 			Box b1;
 
 			if (FieldBox.fieldBox.io.isBoxFile(f))
@@ -69,7 +65,25 @@ public class DragFilesToCanvas extends Box {
 				b1  = loadBox(f, position);
 				r = true;
 			}
-			else {
+			else if (FieldBox.fieldBox.io.isFieldFile(f))
+			{
+				Set<Box> ll =  loadBoxes(f, position);
+				loaded.addAll(ll);
+
+				Vec2 center = new Vec2();
+				ll.stream().map(x -> x.properties.get(Box.frame)).filter(x -> x!=null).forEach(x-> center.add(new Vec2(x.x+x.w/2, x.y+x.h/2)));
+				center.mul(1f/ll.size());
+
+				final Vec2 finalPosition = position;
+				ll.stream().map(x -> x.properties.get(Box.frame)).filter(x -> x != null).forEach(x -> {
+					x.x -= center.x;
+					x.x += finalPosition.x;
+					x.y -= center.x;
+					x.y += finalPosition.y;
+				});
+
+				continue;
+			} else {
 
 				b1 = new Box();
 				root.connect(b1);
@@ -88,14 +102,11 @@ public class DragFilesToCanvas extends Box {
 
 				Log.log("drags", "final filename is :"+ff);
 				b1.properties.put(new Dict.Prop<String>("__filename__" + code.getName()), ff);
+				b1.properties.put(Box.name, (isPartOfWorkspace ? ""  : new File(f).getParentFile().getName() + "/") + new File(f).getName());
 
-
-
-				//TODO what if there's already a sidecar .box file. Need to read that in a set properties (a job for IO) otherwise we'll probably blow it away on save?
 			}
 			float w = 25;
 			b1.properties.put(frame, new Rect(position.x - w * 4, position.y - w, w * 8, w * 2));
-			b1.properties.put(Box.name, (isPartOfWorkspace ? ""  : new File(f).getParentFile().getName() + "/") + new File(f).getName());
 			Drawing.dirty(b1);
 
 			position.y += w + 5;
@@ -105,15 +116,26 @@ public class DragFilesToCanvas extends Box {
 		}
 
 		loaded.forEach(x -> {
+			IO.uniqify(x);
 			if (x instanceof IO.Loaded) ((IO.Loaded) x).loaded();
 			Callbacks.load(x);
 		});
 		return r;
 	}
 
+	private Set<Box> loadBoxes(String f, Vec2 position) {
+		Map<String, Box> special = new LinkedHashMap<>();
+		special.put(">>root<<", root);
+		Set<Box> created = new LinkedHashSet<Box>();
+		IO.Document doc = FieldBox.fieldBox.io.readDocument(f, special, created);
+		created.forEach(x -> IO.uniqify(x));
+		return created;
+	}
+
 	private Box loadBox(String f, Vec2 position) {
 
 		Box b = FieldBox.fieldBox.io.loadSingleBox(f, root);
+
 		root.connect(b);
 		Drawing.dirty(b);
 
