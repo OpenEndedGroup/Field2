@@ -42,7 +42,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 									    .doc("the name of this box");
 	static public final Dict.Prop<Rect> frame = new Dict.Prop<>("frame").type()
 									    .toCannon()
-									    .doc("the rectangle that this box occupies");
+									    .doc("the rectangle that this box occupies").set(IO.persistent, true).set(IO.perDocument, true);
 	static public final Dict.Prop<Boolean> hidden = new Dict.Prop<>("hidden").type()
 										 .toCannon()
 										 .doc("set this to true to hide this box (but be careful, for if it's hidden, how will you get it back again?)");
