@@ -165,25 +165,34 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 	private void handleScriptException(Throwable e, Consumer<Pair<Integer, String>> lineErrors, Function<Integer, Integer> lineTransform) {
 		System.out.println(" handling exception to :" + lineErrors);
-		if (e instanceof ScriptException) {
-			lineErrors.accept(new Pair<>(lineTransform.apply(  ((ScriptException) e).getLineNumber()), e.getMessage()));
-			e.printStackTrace();
-		} else {                        // let's see if we can't scrape a line number out of the exception stacktrace
-			StackTraceElement[] s = e.getStackTrace();
-			boolean found = false;
-			if (s != null) {
-				for (int i = 0; i < s.length; i++) {
-					if (s[i].getFileName() != null && s[i].getFileName()
-									      .startsWith("bx[")) {
-						lineErrors.accept(new Pair<>(lineTransform.apply(s[i].getLineNumber()), e.getMessage()));
-						found = true;
+		try {
+			if (e instanceof ScriptException) {
+				lineErrors.accept(new Pair<>(lineTransform.apply(((ScriptException) e).getLineNumber()), e.getMessage()));
+				e.printStackTrace();
+			} else {                        // let's see if we can't scrape a line number out of the exception stacktrace
+				StackTraceElement[] s = e.getStackTrace();
+				boolean found = false;
+				if (s != null) {
+					for (int i = 0; i < s.length; i++) {
+						if (s[i].getFileName() != null && s[i].getFileName()
+										      .startsWith("bx[")) {
+							lineErrors.accept(new Pair<>(lineTransform.apply(s[i].getLineNumber()), e.getMessage()));
+							found = true;
+						}
 					}
 				}
+				if (!found) {
+					lineErrors.accept(new Pair<>(-1, e.getMessage()));
+				}
+				e.printStackTrace();
 			}
-			if (!found) {
-				lineErrors.accept(new Pair<>(-1, e.getMessage()));
-			}
-			e.printStackTrace();
+		}
+		catch(Throwable t)
+		{
+			System.err.println(" exception thrown while handling an exception (!) (malfunctioning lineTransform?) ");
+			t.printStackTrace();
+			System.err.println(" original error is :"+e.getMessage());
+			lineErrors.accept(new Pair<>(-1, e.getMessage()));
 		}
 	}
 
@@ -279,6 +288,9 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	@Override
 	public void completion(String allText, int line, int ch, Consumer<List<Completion>> results) {
 		List<Completion> r1 = ternSupport.completion(engine, box.properties.get(IO.id), allText, line, ch);
+
+		System.out.println(" using completion :"+r1);
+
 		if (r1 != null) {
 			results.accept(r1);
 		}
