@@ -5,6 +5,7 @@ import field.graphics.Scene;
 import field.utility.Dict;
 import fieldbox.io.IO;
 import fieldbox.ui.FieldBoxWindow;
+import fielded.Commands;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -48,6 +49,8 @@ public class Boxes {
 		origin.properties.getOrConstruct(Callbacks.onLoad);
 		origin.properties.getOrConstruct(Callbacks.onFrameChanged);
 
+		origin.properties.getOrConstruct(Commands.command);
+		origin.properties.getOrConstruct(Commands.commandDoc);
 	}
 
 	protected Set<Box> population = Collections.emptySet();
