@@ -1,6 +1,7 @@
 package fieldbox.boxes;
 
 import field.graphics.Window;
+import field.linalg.Vec2;
 import field.utility.Dict;
 import field.utility.IdempotencyMap;
 import field.utility.Util;
@@ -40,6 +41,17 @@ public class Mouse {
 	Map<Integer, Collection<Dragger>> ongoingDrags = new HashMap<Integer, Collection<Dragger>>();
 
 	public void dispatch(Box root, Window.Event<Window.MouseState> event) {
+
+		Optional<Drawing> drawing = root.find(Drawing.drawing, root.both())
+						.findFirst();
+		if (drawing.isPresent())
+		{
+			fixDrawingSpace(drawing, event.after);
+			fixDrawingSpace(drawing, event.before);
+		}
+
+
+
 
 		Box startAt = Intersects.startAt(event.after, root);
 
@@ -126,6 +138,22 @@ public class Mouse {
 		}
 
 	}
+
+	private void fixDrawingSpace(Optional<Drawing> drawing, Window.MouseState after) {
+		Vec2 af = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(after.x, after.y)))
+				 .get();
+
+		after.mx = af.x;
+		after.my = af.y;
+
+		Vec2 daf = drawing.map(x -> x.windowSystemToDrawingSystemDelta(new Vec2(after.dx, after.dy)))
+				  .get();
+
+		after.mdx = daf.x;
+		after.mdy = daf.y;
+
+	}
+
 	public interface Dragger {
 		public boolean update(Window.Event<Window.MouseState> e, boolean termination);
 	}

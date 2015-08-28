@@ -51,8 +51,7 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 
 			Optional<Drawing> drawing = this.find(Drawing.drawing, both())
 							.findFirst();
-			Vec2 point = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e.after.x, e.after.y)))
-					    .orElseThrow(() -> new IllegalArgumentException(" can't mouse around something without drawing support (to provide coordinate system)"));
+			Vec2 point =new Vec2(e.after.mx, e.after.my);
 
 			Optional<Box> hit = breadthFirst(both()).filter(b -> frame(b) != null)
 								.filter(b -> !b.properties.isTrue(Box.hidden, false))
@@ -81,8 +80,6 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 				find(Boxes.window, both()).findFirst()
 							  .ifPresent(x -> {
 								  Cursors.clear(x);
-
-
 							  });
 			}
 			return null;
@@ -160,8 +157,7 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 	public Mouse.Dragger button2(Window.Event<Window.MouseState> e) {
 		Optional<Drawing> drawing = this.find(Drawing.drawing, both())
 						.findFirst();
-		Vec2 point = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e.after.x, e.after.y)))
-				    .orElseThrow(() -> new IllegalArgumentException(" can't mouse around something without drawing support (to provide coordinate system)"));
+		Vec2 point = new Vec2(e.after.mx, e.after.my);
 
 		Optional<Box> hit = breadthFirst(both()).filter(b -> frame(b) != null)
 							.filter(b -> !b.properties.isTrue(Box.hidden, false))
@@ -175,15 +171,36 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 
 			Drawing d = drawing.get();
 			Vec2 originalT = d.getTranslation();
+			Vec2 originalScale = d.getScale();
 
 			return (Mouse.Dragger) (drag, termination) -> {
 				Vec2 deltaNow = drawing.map(x -> x.windowSystemToDrawingSystemDelta(new Vec2(drag.after.x - e.after.x, drag.after.y - e.after.y)))
 						       .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
 
-				if (drawing.isPresent()) {
-					Vec2 t = new Vec2(originalT).add(deltaNow.x, deltaNow.y);
 
-					d.setTranslation(FrameManipulation.this, t);
+				if (drawing.isPresent()) {
+
+
+					if (drag.after.keyboardState.isShiftDown())
+					{
+						Vec2 t = new Vec2(originalScale);
+
+						if (deltaNow.y<0)
+						{
+							t.x = t.y = t.y*Math.pow(2, -deltaNow.y/50f);
+						}
+						else
+						{
+							t.x = t.y = t.y/Math.pow(2, deltaNow.y/50f);
+						}
+
+
+						d.setScale(FrameManipulation.this, t);
+					}
+					else {
+						Vec2 t = new Vec2(originalT).add(deltaNow.x, deltaNow.y);
+						d.setTranslation(FrameManipulation.this, t);
+					}
 					continueTranslationFeedback(FrameManipulation.this, termination);
 				}
 				return !termination;
@@ -200,8 +217,8 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 		System.out.println(" starting consumed by code ? " + e.properties.isTrue(Window.consumed, false));
 		Optional<Drawing> drawing = this.find(Drawing.drawing, both())
 						.findFirst();
-		Vec2 point = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e.after.x, e.after.y)))
-				    .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
+
+		Vec2 point = new Vec2(e.after.mx, e.after.my);
 
 		Optional<Box> hit = breadthFirst(both()).filter(b -> frame(b) != null)
 							.filter(b -> !b.properties.isTrue(Box.hidden, false))

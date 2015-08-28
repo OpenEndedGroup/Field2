@@ -171,18 +171,17 @@ public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove
 
 		Optional<Drawing> drawing = this.find(Drawing.drawing, both())
 						.findFirst();
-		Vec2 pos = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e.after.x, e.after.y)))
-				  .orElseThrow(() -> new IllegalArgumentException(" can't mouse around something without drawing support (to provide coordinate system)"));
+		Vec2 pos = new Vec2(e.after.mx, e.after.my);
 
 
 		Log.log("handles", "onMouseDown :" + pos);
 
 		Draggable selected = d.stream()
 				      .filter(x -> x.getPosition()
-						    .distanceFrom(pos) < r)
+						    .distance(pos) < r)
 				      .sorted((a, b) -> -Double.compare(a.getPosition()
-									 .distanceFrom(pos), b.getPosition()
-											      .distanceFrom(pos)))
+									 .distance(pos), b.getPosition()
+											      .distance(pos)))
 				      .findFirst()
 				      .orElse(null);
 

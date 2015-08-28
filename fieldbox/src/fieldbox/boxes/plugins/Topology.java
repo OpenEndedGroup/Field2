@@ -76,8 +76,7 @@ public class Topology extends Box implements Mouse.OnMouseDown {
 
 		Optional<Drawing> drawing = this.find(Drawing.drawing, both())
 						.findFirst();
-		Vec2 point = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e.after.x, e.after.y)))
-				    .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
+		Vec2 point = new Vec2(e.after.mx, e.after.my);
 
 		Optional<Box> hit = breadthFirst(both()).filter(b -> frame(b) != null)
 							.filter(x -> !x.properties.isTrue(Box.hidden, false))
@@ -94,10 +93,7 @@ public class Topology extends Box implements Mouse.OnMouseDown {
 				@Override
 				public boolean update(Window.Event<Window.MouseState> e, boolean termination) {
 
-					Optional<Drawing> drawing = Topology.this.find(Drawing.drawing, both())
-										 .findFirst();
-					Vec2 point = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e.after.x, e.after.y)))
-							    .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
+					Vec2 point = new Vec2(e.after.mx, e.after.my);
 
 					Optional<Box> hit = breadthFirst(both()).filter(x -> !x.properties.isTrue(Box.hidden, false))
 										.filter(b -> frame(b) != null)

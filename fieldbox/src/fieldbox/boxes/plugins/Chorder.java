@@ -57,8 +57,7 @@ public class Chorder extends Box {
 
 			Optional<Drawing> drawing = this.find(Drawing.drawing, both())
 							.findFirst();
-			Vec2 point = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e.after.x, e.after.y)))
-					    .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
+			Vec2 point = new Vec2(e.after.mx, e.after.my);
 
 			Stream<Pair<Box, Rect>> fr = breadthFirst(both()).map(b -> new Pair<>(b, frame(b)))
 									 .filter(b -> !b.first.properties.isTrue(nox, false))
@@ -171,12 +170,8 @@ public class Chorder extends Box {
 
 			Optional<Drawing> drawing = this.find(Drawing.drawing, both())
 							.findFirst();
-			Vec2 point = drawing.map(x -> x.windowSystemToDrawingSystem(
-				    new Vec2(e.after.x, e.after.y)))
-					    .orElseThrow(() -> new IllegalArgumentException(
-							" cant mouse around something without drawing support (to provide coordinate system)"));
-
-
+			Vec2 point =
+				    new Vec2(e.after.mx, e.after.my);
 			chordOver(frames, start, point, end);
 
 			if (end && !once[0]) {
@@ -311,7 +306,7 @@ public class Chorder extends Box {
 			int[] counter = {1};
 
 			Vec2 delta = new Vec2(end.y - start.y, start.x - end.x);
-			delta.normalise();
+			delta.normalize();
 			i.stream()
 			 .filter(x -> x != null)
 			 .forEach((x) -> {
@@ -355,7 +350,7 @@ public class Chorder extends Box {
 			Collections.sort(al, (a, b) -> {
 				if (a == null) return b == null ? 0 : 1;
 				if (b == null) return -1;
-				return Double.compare(a.distanceFrom(start), b.distanceFrom(start));
+				return Double.compare(a.distance(start), b.distance(start));
 			});
 
 			if (al.get(0) == null) {
@@ -364,7 +359,7 @@ public class Chorder extends Box {
 			}
 
 			ret.add(new Triple<>(al.get(0), (float) al.get(0)
-								  .distanceFrom(start), br.first));
+								  .distance(start), br.first));
 		}
 
 		return ret;

@@ -12,10 +12,7 @@ import java.util.Optional;
 public class Intersects {
 
 	static public Box startAt(Window.MouseState e, Box root) {
-		Optional<Drawing> drawing = root.find(Drawing.drawing, root.both())
-						.findFirst();
-		Vec2 point = e == null ? null : drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e.x, e.y)))
-						       .orElseThrow(() -> new IllegalArgumentException(" can't mouse around something without drawing support (to provide coordinate system)"));
+		Vec2 point = e == null ? null : new Vec2(e.mx, e.my);
 
 		Optional<Box> hit = point == null ? Optional.empty() : root.breadthFirst(root.both())
 									   .filter(b -> frame(b) != null)

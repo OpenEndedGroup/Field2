@@ -92,6 +92,7 @@ public class Window implements ProvidesGraphicsContext {
 
 		glcontext = GLContext.createFromCurrent();
 
+
 		GL11.glClearColor(0.25f, 0.25f, 0.25f, 1);
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 		glfwSwapBuffers(window);
@@ -115,8 +116,6 @@ public class Window implements ProvidesGraphicsContext {
 
 
 		modifiers = new CannonicalModifierKeys(window);
-
-
 
 		new Thread()
 		{
@@ -387,6 +386,15 @@ public class Window implements ProvidesGraphicsContext {
 					  .apply(event)) i.remove();
 	}
 
+	private void fireMouseTransitionNoMods(MouseState before, MouseState after) {
+		after.keyboardState = keyboardState;
+
+		Iterator<Function<Event<MouseState>, Boolean>> i = mouseHandlers.iterator();
+		Event<MouseState> event = new Event<>(before, after);
+		while (i.hasNext()) if (!i.next()
+					  .apply(event)) i.remove();
+	}
+
 	private void fireKeyboardTransition(KeyboardState before, KeyboardState after) {
 		after.mouseState = mouseState;
 		Iterator<Function<Event<KeyboardState>, Boolean>> i = keyboardHandlers.iterator();
@@ -452,9 +460,11 @@ public class Window implements ProvidesGraphicsContext {
 			public void scroll(long window, double scrollX, double scrollY) {
 				if (window == Window.this.window) {
 					MouseState next = mouseState.withScroll(scrollX, scrollY);
-					fireMouseTransition(mouseState, next);
+					next.keyboardState = keyboardState;
+					fireMouseTransitionNoMods(mouseState, next);
 					next = mouseState.withScroll(0, 0);
 					mouseState = next;
+					next.keyboardState = keyboardState;
 				}
 			}
 
@@ -551,10 +561,19 @@ public class Window implements ProvidesGraphicsContext {
 	static public class MouseState implements HasPosition {
 		public final Set<Integer> buttonsDown = new LinkedHashSet<Integer>();
 		public final long time;
+
 		public final double dx;
 		public final double dy;
 		public final double x;
 		public final double y;
+
+
+		public double mx; // in drawing space
+		public double my;
+		public double mdx;
+		public double mdy;
+
+
 		public final float dwheel;
 		public final float dwheely;
 		public final int mods;
@@ -611,6 +630,11 @@ public class Window implements ProvidesGraphicsContext {
 			else if (!bs && button != -1) buttonsDown.remove(button);
 			MouseState m = new MouseState(buttonsDown, x, y, dwheel, dwheely, 0, 0, time, mods);
 			return m;
+		}
+
+		public MouseState withMods(int mods)
+		{
+			return new MouseState(buttonsDown, x, y, dwheel, dwheely, x-this.x, y-this.y, time, mods);
 		}
 
 		// currently we ignore sy

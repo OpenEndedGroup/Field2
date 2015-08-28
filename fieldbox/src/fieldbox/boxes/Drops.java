@@ -7,7 +7,6 @@ import field.utility.IdempotencyMap;
 import field.utility.Rect;
 
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Entry-point for File drops from GLFW into Field
@@ -18,14 +17,6 @@ public class Drops {
 											    .toCannon().autoConstructs(() -> new IdempotencyMap<OnDrop>(OnDrop.class));
 
 	public void dispatch(Box root, Window.Event<Window.Drop> drop) {
-
-
-
-		Optional<Drawing> drawing = root.find(Drawing.drawing, root.both())
-						.findFirst();
-
-		Vec2 point = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(drop.after.position().get().x, drop.after.position().get().y)))
-				    .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
 
 		Box startAt = Intersects.startAt(drop.after.mouseState, root);
 

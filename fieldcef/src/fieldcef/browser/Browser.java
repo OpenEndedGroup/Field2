@@ -276,8 +276,7 @@ public class Browser extends Box implements IO.Loaded {
 
 			Optional<Drawing> drawing = this.find(Drawing.drawing, both())
 							.findFirst();
-			Vec2 point = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e.after.x, e.after.y)))
-					    .orElseThrow(() -> new IllegalArgumentException(" can't mouse around something without drawing support (to provide coordinate system)"));
+			Vec2 point = new Vec2(e.after.mx, e.after.my);
 
 			if (isSelected() && properties.isTrue(Mouse.isSticky, false)) e.properties.put(Window.consumed, true);
 			else {
@@ -295,8 +294,7 @@ public class Browser extends Box implements IO.Loaded {
 
 			return (e2, term) -> {
 
-				Vec2 point2 = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e2.after.x, e2.after.y)))
-						     .orElseThrow(() -> new IllegalArgumentException(" can't mouse around something without drawing support (to provide coordinate system)"));
+				Vec2 point2 = new Vec2(e2.after.mx, e2.after.my);
 
 				e2.properties.put(Window.consumed, true);
 
@@ -327,8 +325,7 @@ public class Browser extends Box implements IO.Loaded {
 
 			Optional<Drawing> drawing = this.find(Drawing.drawing, both())
 							.findFirst();
-			Vec2 point = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e.after.x, e.after.y)))
-					    .orElseThrow(() -> new IllegalArgumentException(" can't mouse around something without drawing support (to provide coordinate system)"));
+			Vec2 point = new Vec2(e.after.mx, e.after.my);
 
 
 			browser.sendMouseEvent(
@@ -349,10 +346,7 @@ public class Browser extends Box implements IO.Loaded {
 			e.properties.put(Window.consumed, true);
 
 
-			Optional<Drawing> drawing = this.find(Drawing.drawing, both())
-							.findFirst();
-			Vec2 point = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e.after.x, e.after.y)))
-					    .orElseThrow(() -> new IllegalArgumentException(" can't mouse around something without drawing support (to provide coordinate system)"));
+			Vec2 point = new Vec2(e.after.mx, e.after.my);
 
 
 			float dy = e.after.dwheely * 8;

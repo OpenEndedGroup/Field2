@@ -62,14 +62,12 @@ public class DragToCopy extends Box {
 
 		Optional<Drawing> drawing = this.find(Drawing.drawing, both())
 						.findFirst();
-		Vec2 downAt = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e.after.x, e.after.y)))
-				    .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
+		Vec2 downAt = new Vec2(e.after.mx, e.after.my);
 
 
 		return (d, term) -> {
 
-			Vec2 next = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(d.after.x, d.after.y)))
-					     .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
+			Vec2 next = new Vec2(d.after.mx, d.after.my);
 
 			Vec2 delta = new Vec2(next).sub(downAt);
 

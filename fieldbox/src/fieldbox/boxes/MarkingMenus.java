@@ -118,7 +118,7 @@ public class MarkingMenus extends Box {
 					Drawing.dirty(startAt);
 				}
 
-				return runMenu(this, convertCoordinateSystem(this, new Vec2(event.after.x, event.after.y)), m);
+				return runMenu(this, new Vec2(event.after.mx, event.after.my), m);
 			} else {
 				log("debug.markingmenus", " no menuSpecs for event ");
 				return null;
@@ -127,12 +127,7 @@ public class MarkingMenus extends Box {
 
 	}
 
-	static public Vec2 convertCoordinateSystem(Box from, Vec2 event) {
-		Optional<Drawing> drawing = from.find(Drawing.drawing, from.both())
-						.findFirst();
-		return drawing.map(x -> x.windowSystemToDrawingSystem(event))
-			      .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
-	}
+
 
 	static public Mouse.Dragger runMenu(Box origin, Vec2 center, MenuSpecification m) {
 		MarkingMenus menus = origin.first(markingMenus, origin.both())
@@ -165,7 +160,7 @@ public class MarkingMenus extends Box {
 					if (sub != null) {
 						menus.hide();
 						log("marking", "going submenu");
-						replaceWith[0] = runMenu(origin, convertCoordinateSystem(origin, new Vec2(event.after.x, event.after.y)), sub);
+						replaceWith[0] = runMenu(origin, new Vec2(event.after.mx, event.after.my), sub);
 					}
 				}
 			}
@@ -351,8 +346,8 @@ public class MarkingMenus extends Box {
 		final public Vec2 pos;
 
 		Position(float x, float y, float length) {
-			this.pos = new Vec2(x, y).normalise()
-						 .scale(length);
+			this.pos = new Vec2(x, y).normalize()
+						 .mul(length);
 			this.pos.x *= 1.5f;
 		}
 	}
