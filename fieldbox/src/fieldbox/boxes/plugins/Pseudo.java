@@ -61,13 +61,10 @@ public class Pseudo extends Box {
 														.type()
 														.autoConstructs(() -> new IdempotencyMap<>(Runnable.class));
 
-	static public Dict.Prop<FunctionOfBoxValued<Replacer>> replace = new Dict.Prop<FunctionOfBoxValued<Replacer>>("replace").doc(
-		    "_.replace.x = 10 replaces the value of 'x' where it is found (e.g. here or some parent).")
-																.toCannon()
-//	static public Dict.Prop<FunctionOfBoxValued<Ref>> replace = new Dict.Prop<FunctionOfBoxValued<Ref>>("ref").doc(
-//		    "_.ref.x is equivalent to function(){ return _.x }");
-																.type();
+	static public Dict.Prop<FunctionOfBoxValued<Replacer>> replace = new Dict.Prop<FunctionOfBoxValued<Replacer>>("replace").doc("_.replace.x = 10 replaces the value of 'x' where it is found (e.g. here or some parent).")
+																.toCannon();
 
+	static public Dict.Prop<FunctionOfBoxValued<Refer>> ref = new Dict.Prop<FunctionOfBoxValued<Refer>>("ref").toCannon().type().doc("_.ref.x is equivalent to function(){ return _.x }");
 
 	static public Dict.Prop<FunctionOfBoxValued<XPath>> query = new Dict.Prop<>("query").toCannon().type();
 	static public Dict.Prop<FunctionOfBoxValued<Namer>> named = new Dict.Prop<>("named").toCannon().type();
@@ -84,6 +81,7 @@ public class Pseudo extends Box {
 		this.properties.put(yieldUntil, Until::new);
 		this.properties.put(replace, Replacer::new);
 		this.properties.put(query, XPath::new);
+		this.properties.put(ref, Refer::new);
 		this.properties.put(named, Namer::new);
 
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__next__", () -> {
@@ -317,6 +315,21 @@ public class Pseudo extends Box {
 
 	}
 
+
+	static public class Refer extends First implements AsMap {
+
+		public Refer(Box on) {
+			super(on);
+		}
+
+
+		@Override
+		public Object asMap_get(String s) {
+			return new Dict.Prop(s).toCannon();
+		}
+
+
+	}
 
 	static public class Replacer extends First implements AsMap {
 

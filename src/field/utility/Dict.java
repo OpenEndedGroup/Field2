@@ -1,6 +1,7 @@
 package field.utility;
 
 import com.google.common.collect.MapMaker;
+import fieldbox.execution.Execution;
 import fieldlinker.Linker;
 import sun.reflect.CallerSensitive;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -58,10 +59,13 @@ public class Dict implements Serializable, Linker.AsMap {
 
 	}
 
+	static public Dict.Prop<String> domain = new Dict.Prop<>("domain").toCannon();
+	static {
+		domain.set(domain, "attributes");
+	}
 
-	static public class Prop<T> implements Serializable {
+	static public class Prop<T> implements Serializable, Linker.AsMap{
 		String name;
-		int flags;
 
 		// optional type information
 		private List<Class> typeInformation;
@@ -70,6 +74,10 @@ public class Dict implements Serializable, Linker.AsMap {
 
 		public Supplier<T> autoConstructor;
 
+		private Dict attributes;
+
+
+		private boolean cannon = false;
 
 		public Prop(String name) {
 			this.name = name;
@@ -115,11 +123,11 @@ public class Dict implements Serializable, Linker.AsMap {
 		}
 
 		protected void setCannon() {
-			flags |= 1;
+			cannon = true;
 		}
 
 		public boolean isCannon() {
-			return (flags & 1) != 0;
+			return cannon;
 		}
 
 		public <T> Prop<T> toCannon() {
@@ -127,8 +135,23 @@ public class Dict implements Serializable, Linker.AsMap {
 		}
 
 		public <T> Prop<T> doc(String doc) {
-			this.documentation = doc;
-			return (Prop<T>) this;
+			Prop on = this;
+			if (!isCannon())
+			{
+				Prop<T> already = (Prop<T>) findCannon();
+				if (already==null)
+				{
+					toCannon();
+					on.setCannon();
+				}
+				else
+				{
+					on = already;
+				}
+			}
+
+			on.documentation = doc;
+			return (Prop<T>) on;
 		}
 
 		public String getDocumentation() {
@@ -137,9 +160,25 @@ public class Dict implements Serializable, Linker.AsMap {
 
 		@CallerSensitive
 		public <T> Prop<T> type() {
+
+			Prop on = this;
+			if (!isCannon())
+			{
+				Prop<T> already = (Prop<T>) findCannon();
+				if (already==null)
+				{
+					toCannon();
+					on.setCannon();
+				}
+				else
+				{
+					on = already;
+				}
+			}
+
 			Class c = sun.reflect.Reflection.getCallerClass(2);
 
-			definedInClass = c;
+			on.definedInClass = c;
 
 			Field f = null;
 			try {
@@ -165,18 +204,33 @@ public class Dict implements Serializable, Linker.AsMap {
 			if (f == null)
 				throw new IllegalStateException(" cannot type a Dict.Prop<T> that we can't find. Name is :" + name + " class is :" + c);
 
-			typeInformation = Conversions.linearize(f.getGenericType());
+			on.typeInformation = Conversions.linearize(f.getGenericType());
 
-			typeInformation.remove(0);
+			on.typeInformation.remove(0);
 
-			setCannon();
 
-			return (Prop<T>) this;
+			return (Prop<T>) on;
 		}
 
 		public <T> Prop<T> autoConstructs(Supplier<T> t) {
-			this.autoConstructor = (Supplier) t;
-			return (Prop<T>) this;
+			Prop on = this;
+			if (!isCannon())
+			{
+				Prop<T> already = (Prop<T>) findCannon();
+				if (already==null)
+				{
+					toCannon();
+					on.setCannon();
+				}
+				else
+				{
+					on = already;
+				}
+			}
+
+
+			on.autoConstructor = (Supplier) t;
+			return (Prop<T>) on;
 		}
 
 
@@ -187,14 +241,104 @@ public class Dict implements Serializable, Linker.AsMap {
 		public Prop<T> findCannon() {
 			return Canonical.findCannon(this);
 		}
+
+		public Dict getAttributes() {
+			Prop on = this;
+			if (!isCannon())
+			{
+				Prop<T> already = (Prop<T>) findCannon();
+				if (already==null)
+				{
+					toCannon();
+					on.setCannon();
+				}
+				else
+				{
+					on = already;
+				}
+			}
+			return on.attributes==null ? (on.attributes=new Dict()) : on.attributes;
+		}
+
+		// typing issues with javac, no need for this additional <V>
+		public <Q,V> Prop<V> set(Prop<Q> p, Q v)
+		{
+			getAttributes().put(p, v);
+			return (Prop<V>)this;
+		}
+
+		@Override
+		public boolean asMap_isProperty(String p) {
+			return Canonical.findCannon(p)!=null;
+		}
+
+		@Override
+		public Object asMap_call(Object o, Object o1) {
+			return new IllegalArgumentException(""+o+" / "+o1);
+		}
+
+		@Override
+		public Object asMap_call(Object o) {
+			return Execution.context.get().peek().asMap_get(this.getName());
+		}
+
+		@Override
+		public Object asMap_get(String p) {
+			return getAttributes().asMap_get(p);
+		}
+
+		@Override
+		public Object asMap_new(Object a) {
+			return null;
+		}
+
+		@Override
+		public Object asMap_getElement(int element) {
+			return asMap_get(element+"");
+		}
+
+		@Override
+		public Object asMap_getElement(Object element) {
+			return asMap_get(""+element);
+		}
+
+		@Override
+		public Object asMap_new(Object a, Object b) {
+			return null;
+		}
+
+		@Override
+		public Object asMap_set(String p, Object o) {
+			return getAttributes().asMap_set(p, o);
+		}
+
+		@Override
+		public Object asMap_setElement(int element, Object o) {
+			return getAttributes().asMap_setElement(element, o);
+		}
+
+		@Override
+		public boolean asMap_delete(Object o) {
+			return getAttributes().asMap_delete(o);
+		}
 	}
 
 	Map<Prop, Object> dictionary = new MapMaker().concurrencyLevel(2)
 						     .makeMap();
 
+	Function<Prop, Object> failure = null;
+
 	@SuppressWarnings("unchecked")
 	public <T> T get(Prop<T> key) {
-		return (T) dictionary.get(key);
+		Object o = dictionary.get(key);
+		if (failure!=null && o==null && !dictionary.containsKey(key))
+			return (T)failure.apply(key);
+		return (T)o;
+	}
+
+	public Dict setFailure(Function<Prop, Object> failure) {
+		this.failure = failure;
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -475,6 +619,7 @@ public class Dict implements Serializable, Linker.AsMap {
 
 	@Override
 	public boolean asMap_isProperty(String p) {
+
 //		return has(new Prop(p));
 		return true;
 	}
@@ -494,9 +639,7 @@ public class Dict implements Serializable, Linker.AsMap {
 
 	@Override
 	public Object asMap_set(String p, Object o) {
-		System.err.println(" -- asmap set :"+p+" -> "+o+" -- ");
 		Dict r = put(new Prop(p), o);
-		System.err.println(" -- asmap now :"+this);
 		return r;
 	}
 
