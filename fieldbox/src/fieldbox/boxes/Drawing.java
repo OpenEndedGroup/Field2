@@ -62,7 +62,8 @@ public class Drawing extends Box {
 	Vec2 nextDimensions = null;
 	private Vec2 translation = new Vec2(0, 0);
 	private Vec2 translationNext = null;
-	private Vec2 scale = new Vec2(1,1);
+	private Vec2 scale = new Vec2(1.f, 1.f);
+	private Vec2 scaleNext = null;
 	private Vec2 boxScale = new Vec2(1,1);
 	private float opacity = 1f;
 
@@ -362,8 +363,8 @@ public class Drawing extends Box {
 
 		x = x / scale.x;
 		y = y / scale.y;
-		x -= translation.x;
-		y -= translation.y;
+		x -= translation.x/scale.x;
+		y -= translation.y/scale.y;
 
 		return new Vec2(x, y);
 	}
@@ -405,12 +406,17 @@ public class Drawing extends Box {
 						  nextDimensions = new Vec2(x.getWidth(), x.getHeight());
 					  });
 
-		if (translationNext != null || (lastDimensions != null && !Util.safeEq(lastDimensions, nextDimensions))) {
-			updateWindowSpaceBoxes(translation, translationNext == null ? translation : translationNext, lastDimensions == null ? nextDimensions : lastDimensions, nextDimensions);
+		if (translationNext != null || (lastDimensions != null && !Util.safeEq(lastDimensions, nextDimensions))  || scaleNext != null) {
+			updateWindowSpaceBoxes(translation, translationNext == null ? translation : translationNext, lastDimensions == null ? nextDimensions : lastDimensions, nextDimensions, scale, scaleNext ==null ? scale : scaleNext);
 
 			translation.x = (translationNext == null ? translation : translationNext).x;
 			translation.y = (translationNext == null ? translation : translationNext).y;
 			translationNext = null;
+
+			scale.x = (scaleNext == null ? scale : scaleNext).x;
+			scale.y = (scaleNext == null ? scale : scaleNext).y;
+			scaleNext = null;
+
 		}
 
 		try (AutoCloseable ignored = closeable(bracketableList)) {
@@ -465,7 +471,7 @@ public class Drawing extends Box {
 		}
 	}
 
-	private void updateWindowSpaceBoxes(Vec2 translation, Vec2 translationNext, Vec2 dimensions, Vec2 dimensionsNext) {
+	private void updateWindowSpaceBoxes(Vec2 translation, Vec2 translationNext, Vec2 dimensions, Vec2 dimensionsNext, Vec2 scale, Vec2 scaleNext) {
 		this.breadthFirst(both())
 		    .filter(x -> x.properties.get(windowSpace) != null)
 		    .forEach(box -> {
@@ -475,8 +481,8 @@ public class Drawing extends Box {
 			    Rect f = box.properties.get(Box.frame);
 			    f = new Rect(f.x, f.y, f.w, f.h);
 
-			    f.x = (float) (f.x + (translation.x + dimensionsNext.x * v.x) - (translationNext.x + dimensions.x * v.x));
-			    f.y = (float) (f.y + (translation.y + dimensionsNext.y * v.y) - (translationNext.y + dimensions.y * v.y));
+			    f.x = (float) (f.x + ((translation.x/scale.x + dimensionsNext.x * v.x/scaleNext.x) - (translationNext.x/scaleNext.x + dimensions.x * v.x/scale.x)) );
+			    f.y = (float) (f.y + ((translation.y/scale.y + dimensionsNext.y * v.y/scaleNext.y) - (translationNext.y/scaleNext.y + dimensions.y * v.y/scale.y)) );
 			    box.properties.put(Box.frame, f);
 		    });
 	}
@@ -505,12 +511,25 @@ public class Drawing extends Box {
 	 * which the transformation changes half way through.
 	 */
 	public void setTranslation(Box root, Vec2 t) {
-		if (this.translation.distanceFrom(t) > 1e-10)
+		if (this.translation.distance(t) > 1e-10)
 		{
 			dirty(root);
 			dirty(root, "glass");
 		}
 		this.translationNext = new Vec2(t);
+	}
+
+	/**
+	 * sets the translation of the canvas. Note, we defer actually handing this off to the graphics system (or getTranslation) until the next draw cycle. This way we do not get repaints during
+	 * which the transformation changes half way through.
+	 */
+	public void setScale(Box root, Vec2 t) {
+		if (this.scale.distance(t) > 1e-10)
+		{
+			dirty(root);
+			dirty(root, "glass");
+		}
+		this.scaleNext = new Vec2(t);
 	}
 
 	/**

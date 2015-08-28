@@ -23,11 +23,30 @@ public class Scrolling extends Box {
 				this.find(Drawing.drawing, this.both())
 				    .findFirst()
 				    .ifPresent(x -> {
-					    Vec2 t = x.getTranslation();
-					    t.x += e.after.dwheel * 8;
-					    t.y += e.after.dwheely * 8;
 
-					    x.setTranslation(this, t);
+					    System.err.println(" a :"+e.after.keyboardState+" "+e.after.mods);
+
+					    if (e.after.keyboardState.isShiftDown()) {
+						    Vec2 t = new Vec2(x.getScale());
+
+						    Vec2 d = new Vec2(e.after.mx, e.after.my);
+
+						    double sc = x.getScale().x;
+
+						    t.x = t.y = t.y * Math.pow(2, e.after.dwheely / 50f);
+
+						    x.setScale(this, t);
+
+						    double r = -(t.x/sc-1);
+
+						    x.setTranslation(this, x.getTranslation().add(d.x*r, d.y*r));
+					    } else {
+						    Vec2 t = x.getTranslation();
+						    t.x += e.after.dwheel * 8;
+						    t.y += e.after.dwheely * 8;
+
+						    x.setTranslation(this, t);
+					    }
 
 					    FrameManipulation.continueTranslationFeedback(root_unused, false);
 				    });
