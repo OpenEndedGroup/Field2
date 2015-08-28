@@ -172,7 +172,7 @@ public class TernSupport {
 					e = ((StaticClass) e).getRepresentedClass();
 
 					Log.log("completion.debug", " asking java for completions for CLASS " + e);
-					List<Completion> fromJava = javaSupport.getCompletionsFor(e, right);
+					List<Completion> fromJava = javaSupport.getCompletionsFor(e, right, s.lastIndexOf('.')==-1);
 					Log.log("completion.debug", " got completions :" + fromJava);
 					for (Completion x : fromJava) {
 						if (x.start == -1) x.start = c - right.length();
