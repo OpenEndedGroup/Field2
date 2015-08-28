@@ -1,4 +1,9 @@
+var ignoreChange = false;
+
 cm.on("change", function (cm, change) {
+	if (ignoreChange) return;
+
+	console.log(">>change");
 
     if (cm.currentbox && cm.currentproperty)
     {
@@ -21,6 +26,8 @@ cm.on("change", function (cm, change) {
 						"cookie": cookie
 				})
     }
+    	console.log("<<change ("+cookie.brackets+")");
+
 })
 
 _messageBus.subscribe("focus", function (d, e) {
@@ -40,6 +47,9 @@ serializeAllWidgets = function () {
 
 _messageBus.subscribe("selection.changed", function (d, e) {
 
+	ignoreChange = true;
+
+	console.log(">>Selection.changed");
     if (cm.currentbox) {
         cookie = {}
         cookie.brackets = serializeAllBrackets()
@@ -106,7 +116,6 @@ _messageBus.subscribe("selection.changed", function (d, e) {
             cm.scrollIntoView({line: 0, ch: 0}, 100);
             cm.setCursor(d.cookie.currentpos);
             cm.scrollIntoView(null, 100);
-
         }
 
         if (d.cookie.widgets) {
@@ -121,5 +130,8 @@ _messageBus.subscribe("selection.changed", function (d, e) {
     if (boxOutputs[d.box]) {
         appendRemoteOutputToLine(cm.lineCount() - 1, boxOutputs[d.box], "Field-remoteOutput-error", "Field-remoteOutput", false)
     }
+
+	console.log("<<Selection.changed");
+	ignoreChange = false;
 
 })
