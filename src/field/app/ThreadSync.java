@@ -86,8 +86,7 @@ public class ThreadSync {
 
 	static public Object wait(int n) throws InterruptedException, Stop {
 		Object q = null;
-		for(int i=0;i<n;i++)
-		{
+		for (int i = 0; i < n; i++) {
 			q = yield(null);
 		}
 		return q;
@@ -109,11 +108,11 @@ public class ThreadSync {
 
 	private static Object isFalse(Object o) {
 
-		System.out.println(" isFalse :"+o);
+		System.out.println(" isFalse :" + o);
 
-		if (o==null) return true;
+		if (o == null) return true;
 		if (o instanceof Collection) return o;
-		if (o instanceof Boolean) return !((Boolean)o).booleanValue();
+		if (o instanceof Boolean) return !((Boolean) o).booleanValue();
 
 		// !
 		if (o instanceof Undefined) return true;
@@ -137,7 +136,8 @@ public class ThreadSync {
 			try {
 				Thread.currentThread()
 				      .setName("running fiber");
-				Thread.currentThread().setContextClassLoader(loader);
+				Thread.currentThread()
+				      .setContextClassLoader(loader);
 				fiber.set(f);
 				f.input.take();
 				Object a = r.call();
@@ -225,17 +225,14 @@ public class ThreadSync {
 					i.remove();
 				}
 			} else {
-				System.out.println(" -- getting paused for :"+f);
+				System.out.println(" -- getting paused for :" + f);
 				Object p = f.paused.get();
 				f.wasPaused = true;
 
-				if (p==null)
-					continue;
+				if (p == null) continue;
 
-				if (p instanceof Collection)
-				{
-					if (((Collection)p).size()==0)
-					{
+				if (p instanceof Collection) {
+					if (((Collection) p).size() == 0) {
 						repost.add(f);
 						continue;
 					}
@@ -249,7 +246,8 @@ public class ThreadSync {
 						repost.add(f);
 						continue;
 					}
-				};
+				}
+				;
 
 				f.wasPaused = false;
 
@@ -275,6 +273,11 @@ public class ThreadSync {
 
 	public List<Fiber> getFibers() {
 		return new ArrayList<>(live);
+	}
+
+	public Stream<Fiber> findByTag(Object tag) {
+		return live.stream()
+			   .filter(x -> Util.safeEq(x, tag));
 	}
 
 	public static class Stop extends RuntimeException {
@@ -316,11 +319,6 @@ public class ThreadSync {
 		public volatile boolean wasPaused = false;
 
 		public Object tag;
-	}
-
-	public Stream<Fiber> findByTag(Object tag)
-	{
-		return live.stream().filter(x -> Util.safeEq(x, tag));
 	}
 
 }
