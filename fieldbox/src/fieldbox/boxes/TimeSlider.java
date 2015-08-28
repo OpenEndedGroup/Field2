@@ -70,7 +70,7 @@ public class TimeSlider extends Box {
 	protected boolean forceOnscreen() {
 		Rect f = properties.get(frame);
 
-		if (was!=null && was.equals(f)) return true;
+//		if (was!=null && was.equals(f)) return true;
 
 		Rect w = f.inset(0);
 
