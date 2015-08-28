@@ -40,8 +40,23 @@ public class Translate implements SourceTransformer {
 		first = true;
 	}
 
-	static public final String preamble = "load(\""+ Thread.currentThread().getContextClassLoader().getResource("regenerator.js")+"\")\n";
+	static public  String preamble;
 
+	{
+		try{
+			preamble = Files.readAllLines(new File("/Users/marc/fieldwork2/out/production/fieldnashorn/polyfill.js").toPath())
+					.stream()
+					.reduce("", (a, b) -> a + "\n" + b)+"\n\n";
+
+			preamble += Files.readAllLines(new File("/Users/marc/fieldwork2/out/production/fieldnashorn/regenerator.js").toPath())
+					.stream()
+					.reduce("", (a, b) -> a + "\n" + b)+"\n\n";
+
+		}catch(IOException e)
+		{
+			e.printStackTrace();
+		}
+	}
 	@Override
 	public Pair<String, Function<Integer, Integer>> transform(String c) throws TranslationFailedException {
 		String t = codeCache.get(c);
@@ -83,9 +98,15 @@ public class Translate implements SourceTransformer {
 
 				codeCache.put(c, code);
 
-				Function<Integer, Integer> fn = x -> sm.getMappingForLine(x, 1)
-								       .getLineNumber();
-				mapCache.put(c, fn);
+				Function<Integer, Integer> fn = x -> x;
+				try {
+					fn = x -> sm.getMappingForLine(x, 1)
+									       .getLineNumber();
+					mapCache.put(c, fn);
+				} catch (NullPointerException e)
+				{
+					e.printStackTrace();
+				}
 
 
 				System.out.println(" code is :"+(first ? preamble : "")+code);
