@@ -7,6 +7,8 @@ _field.sendWithReturn("request.imports", {
             },
             function (d, e) {
                 var completions = d
+                anchorLine = cm.lineCount() - 1
+
                 completionFunction = function (e) {
                     var m = []
                     for (var i = 0; i < completions.length; i++) {

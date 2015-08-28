@@ -9,9 +9,6 @@ function Autocomplete() {
             ch: cm.listSelections()[0].anchor.ch
         },
         function (d, e) {
-
-//			console.log(" -- about to go completion --", __extraCompletions, completions);
-
             var completions = d
             completionFunction = function (e) {
                 var m = []
