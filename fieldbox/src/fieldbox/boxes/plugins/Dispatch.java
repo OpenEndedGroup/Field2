@@ -113,8 +113,7 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 
 		Optional<Drawing> drawing = this.find(Drawing.drawing, both())
 						.findFirst();
-		Vec2 point = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e.after.x, e.after.y)))
-				    .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
+		Vec2 point = new Vec2(e.after.mx, e.after.my);
 
 		Optional<Box> hit = breadthFirst(both()).filter(b -> frame(b) != null)
 							.filter(x -> !x.properties.isTrue(Box.hidden, false))
@@ -131,10 +130,7 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 				@Override
 				public boolean update(Window.Event<Window.MouseState> e, boolean termination) {
 
-					Optional<Drawing> drawing = Dispatch.this.find(Drawing.drawing, both())
-										 .findFirst();
-					Vec2 point = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e.after.x, e.after.y)))
-							    .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
+					Vec2 point = new Vec2(e.after.mx, e.after.my);
 
 					Optional<Box> hit = breadthFirst(both()).filter(x -> !x.properties.isTrue(Box.hidden, false))
 										.filter(b -> frame(b) != null)
@@ -237,7 +233,7 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 		int[] da = {0, 0};
 		for (int x = 0; x < a.length; x++)
 			for (int y = 0; y < b.length; y++) {
-				float z = (float) a[x].distanceFrom(b[y]);
+				float z = (float) a[x].distance(b[y]);
 				if (z < d) {
 					d = z;
 					da[0] = x;
@@ -249,23 +245,23 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 
 		Vec2 normal = Vec2.sub(b[da[1]], a[da[0]], new Vec2());
 
-		Vec2 tan = new Vec2(-normal.y, normal.x).normalise()
-							.scale(-d * 0.15f);
-//		if (normal.x > 0) tan.scale(-1);
+		Vec2 tan = new Vec2(-normal.y, normal.x).normalize()
+							.mul(-d * 0.15f);
+//		if (normal.x > 0) tan.mul(-1);
 
-		Vec2 midPoint1 = new Vec2(a[da[0]].x + b[da[1]].x, a[da[0]].y + b[da[1]].y).scale(1 / 2f)
+		Vec2 midPoint1 = new Vec2(a[da[0]].x + b[da[1]].x, a[da[0]].y + b[da[1]].y).mul(1 / 2f)
 											   .add(tan.x, tan.y);
-		Vec2 midPoint2 = new Vec2(a[da[0]].x + b[da[1]].x, a[da[0]].y + b[da[1]].y).scale(1 / 2f)
+		Vec2 midPoint2 = new Vec2(a[da[0]].x + b[da[1]].x, a[da[0]].y + b[da[1]].y).mul(1 / 2f)
 											   .add(-tan.x, -tan.y);
 
 		float d1 = 0;
 		float d2 = 0;
-		for (Vec2 vv : a) d1 += vv.distanceFrom(midPoint1);
-		for (Vec2 vv : a) d2 += vv.distanceFrom(midPoint2);
-		for (Vec2 vv : b) d1 += vv.distanceFrom(midPoint1);
-		for (Vec2 vv : b) d2 += vv.distanceFrom(midPoint2);
+		for (Vec2 vv : a) d1 += vv.distance(midPoint1);
+		for (Vec2 vv : a) d2 += vv.distance(midPoint2);
+		for (Vec2 vv : b) d1 += vv.distance(midPoint1);
+		for (Vec2 vv : b) d2 += vv.distance(midPoint2);
 
-		if (d2 > d1) tan.scale(-1);
+		if (d2 > d1) tan.mul(-1);
 
 		Vec2 c1 = new Vec2(a[da[0]].x + normal.x * 1 / 3f + tan.x, a[da[0]].y + normal.y * 1 / 3f + tan.y);
 		Vec2 c2 = new Vec2(a[da[0]].x + normal.x * 2 / 3f + tan.x, a[da[0]].y + normal.y * 2 / 3f + tan.y);
@@ -284,7 +280,7 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 
 		Vec3 tang = c.tangentForward();
 		if (tang != null) {
-			tang.normalise();
+			tang.normalize();
 			Vec3 norm = new Vec3(-tang.y, tang.x, tang.z);
 
 
@@ -311,11 +307,11 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 
 		f = FLinesAndJavaShapes.javaShapeToFLine(r1);
 
-		f.attributes.put(fillColor, selected ? new Vec4(0, 0, 0, 1.0f * o) : new Vec4(0, 0, 0, 0.25f * o));
-		f.attributes.put(strokeColor, selected ? new Vec4(0, 0, 0, 1.0f * o) : new Vec4(0, 0, 0, 0.25f * o));
+		f.attributes.put(fillColor, selected ? new Vec4(0, 0, 0, 1.0f ) : new Vec4(0, 0, 0, 0.25f * o));
+		f.attributes.put(strokeColor, selected ? new Vec4(0, 0, 0, 1.0f ) : new Vec4(0, 0, 0, 0.25f * o));
 //		f.attributes.put(thicken, new BasicStroke(selected ? 3.25f : 1.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
 
-//		f.attributes.put(filled, true);
+		if (selected) f.attributes.put(filled, true);
 		f.attributes.put(stroked, true);
 
 		return new Pair<>(f, midpoint);
