@@ -287,6 +287,14 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 		return this;
 	}
 
+	public int getPBOSource(GraphicsContext context)
+	{
+		State s = context.get(this);
+		if (isDoubleBuffered) throw new IllegalArgumentException("can't reliably get the pbo source of a double buffered texture");
+		mod++;
+		return s.pboA;
+	}
+
 	@Override
 	public int[] getPasses() {
 		return new int[]{-1};
