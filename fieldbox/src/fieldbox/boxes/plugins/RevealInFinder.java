@@ -1,6 +1,8 @@
 package fieldbox.boxes.plugins;
 
+import com.google.common.io.Files;
 import field.utility.Pair;
+import field.utility.SimpleCommand;
 import fieldagent.Main;
 import fieldbox.FieldBox;
 import fieldbox.Open;
@@ -8,10 +10,8 @@ import fieldbox.boxes.Box;
 import fieldbox.boxes.Mouse;
 import fielded.Commands;
 
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
 import java.io.File;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -105,23 +105,38 @@ public class RevealInFinder extends Box {
 					    .map(x -> "\"" + x + "\"")
 					    .collect(Collectors.toList());
 
-		String theApplescript = "set p to \"" +dir+"\"\n" +
-			    "set my_list to {"+String.join(",", c)+"}\n" +
-			    "tell application \"Finder\"\n" +
-			    "\tset f to reveal folder (POSIX file p as text)\n" +
-			    "\tselect (every item of f whose name is in my_list)\n" +
-			    "activate\n"+
-			    "end tell\n";
+		String theApplescript ="set myValues to {"+String.join(",", c)+"}\n" +
+			    "set p to \""+dir+"\"\n" +
+			    "tell application \"Finder\" to reveal folder (POSIX file p as text)\n" +
+			    "\n" +
+			    "tell application \"Finder\" to set fileList to files of target of front Finder window as alias list\n" +
+			    "set matchedFiles to {}\n" +
+			    "repeat with aFile in my fileList\n" +
+			    "\trepeat with aValue in myValues\n" +
+			    "\t\ttell application \"System Events\" to if aFile's name contains (contents of aValue) then set end of matchedFiles to (aFile as text)\n" +
+			    "\tend repeat\n" +
+			    "end repeat\n" +
+			    "\n" +
+			    "if matchedFiles ≠ {} then\n" +
+			    "\ttell application \"Finder\"\n" +
+			    "\t\tselect matchedFiles\n" +
+			    "\tend tell\n" +
+			    "end if";
 
-		System.out.println(" executing\n" + theApplescript);
 
 		try {
+
+			File tmp = File.createTempFile("field",".applescript");
+			tmp.deleteOnExit();
+			Files.write(theApplescript, tmp, Charset.defaultCharset());
+
+			SimpleCommand.go(new File("."), "/usr/bin/osascript", tmp.getAbsolutePath());
 //			Object r = new AppleScriptEngineFactory().getScriptEngine()
 //								    .eval(theApplescript);
 
-			ScriptEngine engine = new ScriptEngineManager().getEngineByName("AppleScript");
-			engine.eval(theApplescript);
-		} catch (ScriptException e) {
+//			ScriptEngine engine = new ScriptEngineManager().getEngineByName("AppleScript");
+//			engine.eval(theApplescript);
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
