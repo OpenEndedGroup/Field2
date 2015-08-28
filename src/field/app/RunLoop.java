@@ -43,7 +43,6 @@ public class RunLoop {
 		mainThread = Thread.currentThread();
 
 
-
 		while (true) {
 			try {
 				tick++;
@@ -66,9 +65,19 @@ public class RunLoop {
 	}
 
 	public void once(Runnable r) {
+
 		mainLoop.attach(i -> {
-			r.run();
-			return false;
+			try {
+				r.run();
+			}
+			catch(Throwable t)
+			{
+				t.printStackTrace();
+			}
+			finally {
+				return false;
+			}
+
 		});
 	}
 
