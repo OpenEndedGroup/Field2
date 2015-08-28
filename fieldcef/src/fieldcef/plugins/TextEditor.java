@@ -79,11 +79,19 @@ public class TextEditor extends Box implements IO.Loaded {
 					    .findFirst()
 					    .get();
 
+		Drawing drawing = root.first(Drawing.drawing)
+				      .orElseThrow(() -> new IllegalArgumentException(" can't install text-drawing into something without drawing support"));
+
+
 		maxh = window.getHeight() - 25 - 10 - 10 - 2;
 
 
 		browser = new Browser();
-		browser.properties.put(Box.frame, new Rect(window.getWidth() - maxw - 10, 10, maxw, 1500/*maxh*/));
+
+		Vec2 v = drawing.windowSystemToDrawingSystem(new Vec2(window.getWidth() - maxw - 10, 10));
+		Vec2 vd = drawing.windowSystemToDrawingSystemDelta(new Vec2(maxw, 1500));
+
+		browser.properties.put(Box.frame, new Rect(v.x, v.y, vd.x, vd.y));
 
 		maxhOnCreation = 1500;
 
