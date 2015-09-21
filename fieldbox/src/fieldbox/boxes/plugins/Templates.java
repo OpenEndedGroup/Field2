@@ -6,6 +6,8 @@ import field.utility.Pair;
 import field.utility.Rect;
 import fieldbox.FieldBox;
 import fieldbox.boxes.*;
+import fieldbox.execution.Completion;
+import fieldbox.execution.QuoteCompletionHelpers;
 import fieldbox.io.IO;
 import fielded.Commands;
 import fielded.RemoteEditor;
@@ -19,25 +21,27 @@ import java.util.stream.Stream;
 /**
  * Created by marc on 3/24/15.
  */
-public class Templates extends Box {
+public class Templates extends Box implements IO.Loaded {
 
-	static public final Dict.Prop<Box.BiFunctionOfBoxAnd<String, Box>> templateChild = new Dict.Prop<Box.BiFunctionOfBoxAnd<Class, Box>>("templateChild").toCannon()
+	static public final Dict.Prop<Box.BiFunctionOfBoxAnd<String, Box>> templateChild = new Dict.Prop<>("templateChild").toCannon()
 																			     .type()
-																			     .doc("_.templateChild(\"template\") create a new box that's a child of this one, copied from 'template'");
+																			     .doc("`_.templateChild('template')` create a new box that's a child of this one, copied from 'template'");
 
-	static public final Dict.Prop<Box.TriFunctionOfBoxAnd<String, String, Box>> ensureChildTemplated = new Dict.Prop<Box.BiFunctionOfBoxAnd<Class, Box>>("ensureChildTemplated").toCannon()
+	static public final Dict.Prop<Box.TriFunctionOfBoxAnd<String, String, Box>> ensureChildTemplated = new Dict.Prop<>("ensureChildTemplated").toCannon()
 																						    .type()
-																						    .doc("_.ensureChildTemplated(\"template\", \"a\") create a new box that's a child of this one, copied from 'template', called 'a'. If there's already something called 'a', just return that");
+																						    .doc("`_.ensureChildTemplated('template', 'a')` create a new box that's a child of this one, copied from `template`, called `a`. If there's already something called `a`, just return that");
 
 	static public final Dict.Prop<Box.BiFunctionOfBoxAnd<String, Box>> saveAsTemplate = new Dict.Prop<>("saveAsTemplate").type()
 															     .toCannon()
-															     .doc("_.saveAsTemplate('name'). Save this box as a template called 'name'");
+															     .doc("`_.saveAsTemplate('name')`. Save this box as a template called `name`");
 
 	private final Box root;
+	FileBrowser fileBrowser;
 
 	public Templates(Box root) {
 
 		this.root = root;
+
 
 		properties.put(saveAsTemplate, (box, name) -> saveAsTemplate(Collections.singleton(box), name));
 
@@ -59,6 +63,15 @@ public class Templates extends Box {
 			return c;
 
 		});
+
+		QuoteCompletionHelpers.wrap(properties, templateChild, Box.BiFunctionOfBoxAnd.class, x -> {
+
+			List<String> matches = fieldbox.FieldBox.fieldBox.io.findTemplateStartingWith(x);
+
+			return matches.stream().map(y -> new Completion(-1, -1, y, "")).collect(Collectors.toList());
+
+		});
+
 		properties.put(ensureChildTemplated, (box, template, name) -> {
 
 
@@ -124,10 +137,9 @@ public class Templates extends Box {
 							      public void run() {
 
 								      if (altWas != null)
-
 									      saveAsTemplate(selection().collect(Collectors.toSet()), altWas);
 
-								      if (feedback != null) feedback.accept("Renamed to \"" + altWas + "\"");
+								      if (feedback != null) feedback.accept("Loaded \"" + altWas + "\"");
 
 							      }
 						      });
@@ -135,6 +147,14 @@ public class Templates extends Box {
 				      });
 			return m;
 		});
+	}
+
+	@Override
+	public void loaded() {
+		fileBrowser = (FileBrowser) breadthFirst(both()).filter(x -> x instanceof FileBrowser)
+						      .findFirst()
+						      .orElseThrow(() -> new IllegalArgumentException("can't find filebrowser"));
+
 	}
 
 	static public Box saveAsTemplate(Set<Box> b, String filename) {
@@ -157,10 +177,6 @@ public class Templates extends Box {
 		IO.Document doc = FieldBox.fieldBox.io.compileDocument(path, root, x -> b.contains(x), special);
 
 		doc.externalList.forEach(x -> {
-			x.dataFile =path+ filename + ".box";
-			x.textFiles.entrySet()
-				   .forEach(z -> z.setValue(keepPrefix(filename + ".box", z.getValue()
-											   .replace(IO.WORKSPACE, path))));
 			x.id = Box.newID();
 		});
 
@@ -174,6 +190,10 @@ public class Templates extends Box {
 			error = true;
 		}
 
+		b.forEach(x -> {
+			IO.uniqify(x);
+		});
+		
 		return b.iterator()
 			.next();
 	}
@@ -196,6 +216,8 @@ public class Templates extends Box {
 	private Box loadBox(String f, Vec2 position) {
 
 		Box b = fieldbox.FieldBox.fieldBox.io.loadSingleBox(f, root);
+
+		IO.uniqify(b);
 
 		Rect fr = b.properties.get(Box.frame);
 		fr.x = (float) (position.x - fr.w / 2);

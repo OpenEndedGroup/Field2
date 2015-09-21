@@ -10,7 +10,10 @@ import fieldbox.boxes.FrameManipulation;
 import fieldbox.boxes.plugins.PluginList;
 import fieldbox.execution.Execution;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.nio.file.Files;
 import java.util.*;
@@ -62,16 +65,21 @@ public class IO {
 		persist(perDocument);
 	}
 
-	private final String defaultDirectory;
-	private final String templateDirectory;
+	private String defaultDirectory;
+	private String templateDirectory;
 	boolean lastWasNew = false;
 	EDN edn = new EDN();
 	private PluginList pluginList;
 
 
 	public IO(String defaultDirectory) {
-		this.defaultDirectory = defaultDirectory;
-		this.templateDirectory = Main.app + "/templates/";
+		try {
+			this.defaultDirectory = new File(defaultDirectory).getCanonicalPath();
+			this.templateDirectory = new File(Main.app + "/templates/").getCanonicalPath();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
 
 		if (!new File(defaultDirectory).exists()) new File(defaultDirectory).mkdir();
 
@@ -83,11 +91,11 @@ public class IO {
 	}
 
 	static public String readFromFile(File f) {
-		try{
-			return Files.readAllLines(f.toPath()).stream().reduce("", (a, b) -> a+"\n"+b);
-		}
-		catch(IOException e)
-		{
+		try {
+			return Files.readAllLines(f.toPath())
+				    .stream()
+				    .reduce((a, b) -> a + "\n" + b).orElse("");
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return "";
@@ -417,9 +425,6 @@ public class IO {
 			box = new Box();
 		}
 
-
-		String selfFilename = m.getOrDefault("__datafilename__", null);
-
 		String currentPrefix = new File(f).getParent();
 
 
@@ -438,7 +443,6 @@ public class IO {
 					String p1 = readFromFile(new File(additionalSearchPath));
 					box.properties.put(new Dict.Prop<String>(suffix), p1);
 				} else {
-
 					File path = filenameFor(p);
 					try {
 
@@ -481,6 +485,17 @@ public class IO {
 
 		External ex = new External();
 
+		ex.id = box.properties.computeIfAbsent(id, (k) -> UUID.randomUUID()
+								      .toString());
+		ex.box = box;
+
+		ex.dataFile = relativize(box.properties.computeIfAbsent(new Dict.Prop<String>("__datafilename__"), (k) -> relativize(makeDataFilenameFor(defaultSubDirectory, ex, box))));
+		box.properties.put(new Dict.Prop<String>("__datafilename__"), ex.dataFile);
+
+		System.out.println(" set datafilename to be :" + ex.dataFile);
+
+		knownProperties.add("__datafilename__");
+
 		for (Map.Entry<Dict.Prop, Object> e : new LinkedHashMap<>(box.properties.getMap()).entrySet()) {
 			Log.log("io.general", "checking :" + e.getKey()
 							      .getName() + " against " + knownFiles.keySet());
@@ -493,22 +508,25 @@ public class IO {
 														   .getName()));
 				Log.log("io.general", "extant filename is :" + extantFilename + " for " + e.getKey()
 													   .getName() + " from " + box.properties);
+
+				// this is wrong. Don't set a name if we are just going to use a default; otherwise, when you move the file you have to update it.
+				// key it on the datafilename
+
 				if (extantFilename == null) {
+					extantFilename = relativize(ex.dataFile + f.getDefaultSuffix(box));
 					box.properties.put(new Dict.Prop<String>("__filename__" + e.getKey()
-												   .getName()), extantFilename = makeFilenameFor(defaultSubDirectory, f, box));
+												   .getName()), relativize(extantFilename));
+					ex.textFiles.put(e.getKey()
+							  .getName(), relativize(extantFilename));
+				} else {
+					ex.textFiles.put(e.getKey()
+							  .getName(), relativize(extantFilename));
 				}
 				knownProperties.add("__filename__" + e.getKey()
 								      .getName());
-				ex.textFiles.put(e.getKey()
-						  .getName(), extantFilename);
 			}
 		}
 
-		ex.dataFile = box.properties.computeIfAbsent(new Dict.Prop<String>("__datafilename__"), (k) -> makeDataFilenameFor(defaultSubDirectory, ex, box));
-		knownProperties.add("__datafilename__");
-		ex.box = box;
-		ex.id = box.properties.computeIfAbsent(id, (k) -> UUID.randomUUID()
-								      .toString());
 
 		ex.parents = new ArrayList<>();
 		ex.children = new ArrayList<>();
@@ -606,6 +624,9 @@ public class IO {
 
 	private void writeToFile(File filename, String text) throws IOException {
 		Log.log("io.general", " will write :" + text + " to " + filename);
+
+		if (!filename.getParentFile().exists()) filename.getParentFile().mkdirs();
+
 		BufferedWriter w = new BufferedWriter(new FileWriter(filename));
 		w.append(text);
 		w.close();
@@ -641,11 +662,11 @@ public class IO {
 	}
 
 	private String makeDataFilenameFor(String defaultSubDirectory, External ex, Box box) {
-		if (ex.textFiles.size() > 0) {
-			return ex.textFiles.values()
-					   .iterator()
-					   .next() + ".box";
-		}
+//		if (ex.textFiles.size() > 0) {
+//			return ex.textFiles.values()
+//					   .iterator()
+//					   .next() + ".box";
+//		}
 		return makeFilenameFor(defaultSubDirectory, ".box", "", box);
 	}
 
@@ -660,28 +681,45 @@ public class IO {
 		String name = box.properties.get(Box.name);
 		if (name == null) name = "untitled_box";
 
-		String suffix = "_" + defaultName + (defaultSuffix == null ? "" : defaultSuffix);
+		String suffix = defaultName + (defaultSuffix == null ? "" : defaultSuffix);
 		name = safe(name + suffix);
 
 		int n = 0;
-		if (filenameFor(WORKSPACE + "/" + defaultSubDirectory + "/" + name).exists()) {
+		if (filenameFor(WORKSPACE, defaultSubDirectory + "/" + name).exists()) {
 			String n2 = name;
-			while (filenameFor(WORKSPACE + "/" + defaultSubDirectory + "/" + n2).exists()) {
+			while (filenameFor(WORKSPACE, defaultSubDirectory + "/" + n2).exists()) {
 				n2 = name.substring(0, name.length() - suffix.length()) + pad(n) + suffix;
 				n++;
 			}
 			name = n2;
-
-			// create it now, so that other calls to makeFilenameFor still create unique names
-			try {
-				filenameFor(WORKSPACE + "/" + defaultSubDirectory + "/" + name).createNewFile();
-			} catch (IOException e) {
-			}
-
 		}
 
-		System.out.println("      is " + (WORKSPACE + (defaultSubDirectory.equals("") ? "" : (defaultSubDirectory + "/")) + name));
-		return WORKSPACE + (defaultSubDirectory.equals("") ? "" : (defaultSubDirectory + "/")) + name;
+		// create it now, so that other calls to makeFilenameFor still create unique names
+		try {
+			filenameFor(WORKSPACE, defaultSubDirectory + "/" + name).createNewFile();
+		} catch (IOException e) {
+		}
+
+		String q = filenameFor(WORKSPACE, defaultSubDirectory + "/" + name).getAbsolutePath();
+
+		return relativize(q);
+	}
+
+	private String relativize(String q) {
+
+		System.out.println(" relativize :" + q + " " + defaultDirectory + " " + templateDirectory);
+		if (q.contains("{{")) {
+			q = q.substring(q.lastIndexOf("{{"));
+		}
+
+		while (q.contains("//")) q = q.replace("//", "/");
+
+		String q2 = q.replace(defaultDirectory, WORKSPACE)
+			     .replace(templateDirectory, TEMPLATES);
+		System.out.println("    -> " + q2);
+		return q2;
+
+
 	}
 
 	public String findTemplateCalled(String name) {
@@ -692,30 +730,87 @@ public class IO {
 		return q;
 	}
 
+	public List<String> findTemplateStartingWith(String x) {
+		List<String> r = new ArrayList<>();
+		r.addAll(findTemplateStartingWith(x, templateDirectory));
+		r.addAll(findTemplateStartingWith(x, defaultDirectory));
+		return r;
+	}
+
+
 	protected String findTemplateCalled(String name, String dir) {
-		File[] n = new File(dir).listFiles((x) -> x.getName()
-							   .endsWith(".box"));
-		if (n != null) {
-			for (File f : n) {
-				String[] pieces = f.getName()
-						   .split("[_\\.]");
+		{
+			File[] n = new File(dir).listFiles((x) -> x.getName()
+								   .endsWith(".box"));
+			if (n != null) {
+				for (File f : n) {
+					String[] pieces = f.getName()
+							   .split("[_\\.]");
 
-				if (pieces[0].toLowerCase()
-					     .equals(name.toLowerCase())) return f.getAbsolutePath();
+					if (pieces[0].toLowerCase()
+						     .equals(name.toLowerCase())) return f.getAbsolutePath();
+				}
 			}
-		}
 
-		if (new File(dir + "/" + name + ".box").exists()) return new File(dir + "/" + name + ".box").getAbsolutePath();
+			if (new File(dir + "/" + name + ".box").exists()) return new File(dir + "/" + name + ".box").getAbsolutePath();
+		}
+		// single box directory case
+		{
+			File[] n = new File(dir).listFiles((x) -> x.isDirectory() && x.getName().endsWith(name) && x.listFiles(y -> y.getName().endsWith(".box")).length==1);
+
+			if (n!=null && n.length>0)
+			{
+				return n[0].listFiles(x -> x.getName().endsWith(".box"))[0].getAbsolutePath();
+			}
+
+
+		}
 
 		return null;
 	}
+
+	protected List<String> findTemplateStartingWith(String prefix, String dir) {
+		List<String> r = new ArrayList<>();
+		{
+			File[] n = new File(dir).listFiles((x) -> x.getName()
+								   .endsWith(".box"));
+			if (n != null) {
+				for (File f : n) {
+					String[] pieces = f.getName()
+							   .split("[_\\.]");
+
+					if (pieces[0].toLowerCase()
+						     .startsWith(prefix.toLowerCase())) r.add(pieces[0].toLowerCase());
+				}
+			}
+
+			if (new File(dir + "/" + prefix + ".box").exists()) r.add(prefix);
+		}
+		// single box directory case
+		{
+			File[] n = new File(dir).listFiles((x) -> x.isDirectory() && x.getName().startsWith(prefix) && x.listFiles(y -> y.getName().endsWith(".box")).length==1);
+
+			if (n!=null && n.length>0)
+			{
+				for(File nn : n)
+				{
+					r.add(nn.getName());
+				}
+			}
+
+
+		}
+
+		return r;
+	}
+
 
 
 	/**
 	 * tag interface for boxes, method will be called after all boxes have been loaded (and all properties set). Boxes that throw exceptions won't be loaded after all.
 	 */
-	static public interface Loaded {
-		public void loaded();
+	 public interface Loaded {
+		void loaded();
 	}
 
 	static public class Document {

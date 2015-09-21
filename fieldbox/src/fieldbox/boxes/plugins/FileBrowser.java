@@ -5,6 +5,7 @@ import field.graphics.FLine;
 import field.graphics.FLinesAndJavaShapes;
 import field.graphics.StandardFLineDrawing;
 import field.linalg.Vec2;
+import field.linalg.Vec3;
 import field.linalg.Vec4;
 import field.utility.Dict;
 import field.utility.Log;
@@ -19,10 +20,10 @@ import fielded.RemoteEditor;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -37,6 +38,14 @@ public class FileBrowser extends Box implements IO.Loaded {
 		    "property is set to true if this box is used in other sheets, and you are editing all of them at the same time")
 											    .type()
 											    .toCannon();
+
+	static public final Dict.Prop<BiFunction<String, Vec2, Set<Box>>> copyFromFileCalled = new Dict.Prop<>("copyFromFileCalled").toCannon()
+																    .type()
+																    .doc("`_.copyFromFileCalled('banana', new Vec2(0,0))` will copy into this document any file (.field2 file or box or template) called 'banana', centering all the boxes loaded on the origin");
+	static public final Dict.Prop<BiFunction<String, Vec2, Set<Box>>> insertFromFileCalled = new Dict.Prop<>("insertFromFileCalled").toCannon()
+																	.type()
+																	.doc("`_.copyFromFileCalled('banana', new Vec2(0,0))` will insert a live reference into this document any file (.field2 file or box or template) called 'banana', centering all the boxes loaded on the origin");
+
 	static AtomicInteger sheetsInFlight = new AtomicInteger();
 	private final Box root;
 	LinkedHashMap<String, FieldFile> files = new LinkedHashMap<>();
@@ -47,7 +56,8 @@ public class FileBrowser extends Box implements IO.Loaded {
 
 		this.root = root;
 
-		Log.log("INSERT", "FileBrowser is alive");
+		properties.put(copyFromFileCalled, this::copyFromFileCalled);
+		properties.put(insertFromFileCalled, this::insertFromFileCalled);
 
 		properties.put(Commands.commands, () -> {
 
@@ -162,26 +172,26 @@ public class FileBrowser extends Box implements IO.Loaded {
 						     m.put(new Pair<>(f.name + " " + (f.customClass != null ? "<b>custom</b>" : ""),
 								      ("used in " + ui.size() + " file" + (ui.size() == 1 ? "" : "s") + " " + (f.copyOnly ? "<i>(Template)</i>" : ""))), () -> {
 
-								   // doit
+							     // doit
 //								   Log.log("insertbox", "would insert box :" + f.name);
 
 
-								   FieldBoxWindow w = first(Boxes.window, both()).get();
-								   Vec2 p = w.getCurrentMouseState()
-									     .position()
-									     .get();
+							     FieldBoxWindow w = first(Boxes.window, both()).get();
+							     Vec2 p = w.getCurrentMouseState()
+								       .position()
+								       .get();
 
 
-								   Vec2 position = first(Drawing.drawing, both()).get()
-														 .windowSystemToDrawingSystem(p);
+							     Vec2 position = first(Drawing.drawing, both()).get()
+													   .windowSystemToDrawingSystem(p);
 
 
-								   if (f.copyOnly) {
-									   IO.uniqify(loadBox(f.filename.getAbsolutePath(), position));
-								   } else IO.uniqifyIfNecessary(root, loadBox(f.filename.getAbsolutePath(), position));
+							     if (f.copyOnly) {
+								     IO.uniqify(loadBox(f.filename.getAbsolutePath(), position));
+							     } else IO.uniqifyIfNecessary(root, loadBox(f.filename.getAbsolutePath(), position));
 
 
-							   });
+						     });
 					     });
 
 					p.prompt("Search workspace...", m, null);
@@ -296,6 +306,111 @@ public class FileBrowser extends Box implements IO.Loaded {
 
 		}, () -> allFrameHashSalt));
 	}
+
+	public Set<Box> copyFromFileCalled(String name, Vec2 centeredOn) {
+
+		Set<Box> m = new LinkedHashSet<>();
+
+		files.values()
+		     .stream()
+		     .filter(f -> {
+			     System.out.println(" checking :" + f.name + " " + name + " " + f.name.equals(name));
+			     return true;
+		     })
+		     .filter(f -> f.name != null)
+		     .filter(f -> matchNoSuffix(f.name, name))
+		     .forEach(f -> {
+			     Open.doOpen(root, f.id)
+				 .forEach(x -> {
+					 IO.uniqify(x);
+					 m.add(x);
+				 });
+		     });
+
+		boxes.values()
+		     .stream()
+		     .filter(f -> f.name != null)
+		     .filter(f -> matchNoSuffix(f.name, name))
+		     .forEach(f -> {
+
+
+			     FieldBoxWindow w = first(Boxes.window, both()).get();
+
+			     Box b = loadBox(f.filename.getAbsolutePath(), centeredOn);
+			     IO.uniqify(b);
+			     m.add(b);
+
+		     });
+
+		Vec3 c = new Vec3();
+		m.stream()
+		 .map(x -> x.properties.get(Box.frame))
+		 .filter(x -> x != null)
+		 .forEach(x -> {
+			 c.add(new Vec3(x.x + x.w / 2, x.y + x.h / 2, 1));
+		 });
+
+		c.x /= c.z;
+		c.y /= c.z;
+
+		m.stream()
+		 .map(x -> x.properties.get(Box.frame))
+		 .filter(x -> x != null)
+		 .forEach(x -> {
+			 x.x += -c.x + centeredOn.x;
+			 x.y += -c.y + centeredOn.y;
+		 });
+
+		return m;
+
+	}
+
+	private boolean matchNoSuffix(String n1, String n2) {
+		if (n1.contains(".")) n1 = n1.split("\\.")[0];
+		if (n2.contains(".")) n2 = n2.split("\\.")[0];
+		return n1.toLowerCase()
+			 .matches(n2.toLowerCase());
+	}
+
+	public Set<Box> insertFromFileCalled(String name, Vec2 centeredOn) {
+
+		Set<Box> m = new LinkedHashSet<>();
+
+		files.values()
+		     .stream()
+		     .filter(f -> f.name != null)
+		     .filter(f -> f.name.equals(name))
+		     .forEach(f -> {
+
+			     Open.doOpen(root, f.name)
+				 .forEach(x -> {
+					 IO.uniqify(x);
+					 m.add(x);
+				 });
+		     });
+
+		boxes.values()
+		     .stream()
+		     .filter(f -> f.name != null)
+		     .filter(f -> f.name.equals(name))
+		     .forEach(f -> {
+
+
+			     FieldBoxWindow w = first(Boxes.window, both()).get();
+			     Vec2 p = w.getCurrentMouseState()
+				       .position()
+				       .get();
+
+			     Box b = loadBox(f.filename.getAbsolutePath(), centeredOn);
+			     IO.uniqify(b);
+			     m.add(b);
+
+		     });
+
+		return m;
+
+	}
+
 
 	static public FieldBox newFieldBox(File from) {
 		return newFieldBox(from, false);
@@ -434,11 +549,43 @@ public class FileBrowser extends Box implements IO.Loaded {
 	public void parse(String dir, boolean copyOnly) {
 		Log.log("INSERT", "parsing directory :" + dir);
 
+		List<String> added = new ArrayList<>();
+
+		try {
+			WatchService w = FileSystems.getDefault()
+						    .newWatchService();
+			WatchKey r = new File(dir).toPath()
+						  .register(w, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE);
+			new Thread(() -> {
+				try {
+					WatchKey k = w.take();
+
+					RunLoop.main.once(() -> {
+						Log.log("INSERT", "reparsing directory <"+dir+">");
+						files.keySet()
+						     .removeAll(added);
+						FileBrowser.this.boxes.keySet()
+								      .removeAll(added);
+						parse(dir, copyOnly);
+					});
+
+					w.close();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}).start();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
 
 		try {
 			List<Path> boxes = Files.walk(new File(dir).toPath())
-						  .filter(x -> x.toString().endsWith(".box"))
-						  .collect(Collectors.toList());
+						.filter(x -> x.toString()
+							      .endsWith(".box"))
+						.collect(Collectors.toList());
 
 			if (boxes != null) {
 
@@ -452,6 +599,7 @@ public class FileBrowser extends Box implements IO.Loaded {
 						ff.copyOnly = copyOnly;
 						synchronized (files) {
 							FieldBox displaced = FileBrowser.this.boxes.put(ff.id, ff);
+							added.add(ff.id);
 						}
 					});
 			}
@@ -463,32 +611,35 @@ public class FileBrowser extends Box implements IO.Loaded {
 
 		try {
 
-		List<Path> sheets = Files.walk(new File(dir).toPath())
-					 .filter(x -> x.toString().endsWith(".field") || x.toString().endsWith(".field2"))
-					 .collect(Collectors.toList());
-		if (sheets != null) {
+			List<Path> sheets = Files.walk(new File(dir).toPath())
+						 .filter(x -> x.toString()
+							       .endsWith(".field") || x.toString()
+										       .endsWith(".field2"))
+						 .collect(Collectors.toList());
+			if (sheets != null) {
 
 
-			Log.log("INSERT", "sheets are :" + Arrays.asList(sheets));
-			for (Path from : sheets) {
-				sheetsInFlight.incrementAndGet();
-				RunLoop.workerPool.submit(() -> {
-					Log.log("INSERT", from);
+				Log.log("INSERT", "sheets are :" + Arrays.asList(sheets));
+				for (Path from : sheets) {
+					sheetsInFlight.incrementAndGet();
+					RunLoop.workerPool.submit(() -> {
+						Log.log("INSERT", from);
 
-					try {
-						FieldFile ff = newFieldFile(from.toFile());
-						ff.copyOnly = copyOnly;
+						try {
+							FieldFile ff = newFieldFile(from.toFile());
+							ff.copyOnly = copyOnly;
 
-						synchronized (files) {
-							files.put(ff.id, ff);
+							synchronized (files) {
+								files.put(ff.id, ff);
+								added.add(ff.id);
+							}
+						} finally {
+							sheetsInFlight.decrementAndGet();
 						}
-					} finally {
-						sheetsInFlight.decrementAndGet();
-					}
-				});
-			}
+					});
+				}
 
-		}
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

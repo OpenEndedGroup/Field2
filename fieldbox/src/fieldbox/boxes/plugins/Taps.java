@@ -33,7 +33,6 @@ public class Taps extends Box implements IO.Loaded {
 											 .toCannon(); //doc!
 
 
-
 	boolean selectionHasChanged = false;
 	Box selectionWas = null;
 	boolean editorLoaded = false;
@@ -52,7 +51,9 @@ public class Taps extends Box implements IO.Loaded {
 //				 .apply(x, string, Box.class);// todo, templates?
 
 
-			Box c = x.first(Templates.ensureChildTemplated).get().apply(x, "tap-"+string.substring(0, string.lastIndexOf(":")), string);
+			Box c = x.first(Templates.ensureChildTemplated)
+				 .get()
+				 .apply(x, "tap-" + string.substring(0, string.lastIndexOf(":")), string);
 
 			// do something with 'c' -> function
 
@@ -162,7 +163,8 @@ public class Taps extends Box implements IO.Loaded {
 								     updatePosition(b, names.get(b.canvasId));
 								     b.lastSocket = Server.currentWebSocket.get();
 							     });
-					      }); return payload;
+					      });
+					      return payload;
 				      });
 
 				// snoop editor changed to set active / unactive.
@@ -196,8 +198,7 @@ public class Taps extends Box implements IO.Loaded {
 
 
 	private void updatePosition(Binding binding, Rect at) {
-		if (binding.editorPosition==null || !binding.editorPosition.equals(at) && binding.target!=null)
-			Drawing.dirty(binding.target);
+		if (binding.editorPosition == null || !binding.editorPosition.equals(at) && binding.target != null) Drawing.dirty(binding.target);
 
 		binding.editorPosition = new Rect(at.x, at.y, at.w, at.h);
 
@@ -209,15 +210,10 @@ public class Taps extends Box implements IO.Loaded {
 	 * <p>
 	 * _.tap(_, "type:name")
 	 * <p>
-	 * this will create on demand a box called 'name' and 'connect' it to this part of the text (and have it parented to this box).
-	 * <p>
-	 * We can build a factory for taps of type "type" and a menuSpecs item for inserting this string (hidden by a canvas) directly
-	 * <p>
-	 * we'll arrange things so that _.tap("_, "type:name")(x) executes something inside this box.
-	 * <p>
-	 * we'll arrange to broadcast the position of all of these widgets on every text change; boxes can use this to change their position, or hide.
-	 * <p>
-	 * boxes can send javascript to the browser to alter the drawing of the canvas that is this widget.
+	 * this will create on demand a box called 'name' and 'connect' it to this part of the text (and have it parented to this box). We can build a factory for taps of type "type" and a menuSpecs
+	 * item for inserting this string (hidden by a canvas) directly we'll arrange things so that _.tap("_, "type:name")(x) executes something inside this box. we'll arrange to broadcast the
+	 * position of all of these widgets on every text change; boxes can use this to change their position, or hide. boxes can send javascript to the browser to alter the drawing of the canvas that
+	 * is this widget.
 	 */
 
 	public class Binding {
@@ -237,21 +233,21 @@ public class Taps extends Box implements IO.Loaded {
 		}
 
 		public void execute(String javascript) {
-			if (lastSocket!=null) server.send(lastSocket, javascript);
+			if (lastSocket != null) server.send(lastSocket, javascript);
 		}
 
 
-		public Function<Box, FLine> connective()
-		{
+		public Function<Box, FLine> connective() {
 			TextEditor t = inside.find(TextEditor.textEditor, inside.both())
-							   .findFirst().get();
+					     .findFirst()
+					     .get();
 			return (x) -> {
 
-				if (editorPosition==null)
-					return new FLine(); // check current editable
+				if (editorPosition == null) return new FLine(); // check current editable
 
 
-				Rect f0 = t.browser.properties.get(Box.frame).duplicate();
+				Rect f0 = t.browser.properties.get(Box.frame)
+							      .duplicate();
 				Rect f1 = target.properties.get(Box.frame);
 
 				f0.x += editorPosition.x;
@@ -266,14 +262,14 @@ public class Taps extends Box implements IO.Loaded {
 
 				f.moveTo(f0.x, f0.y);
 				f.lineTo(f1.x, f1.y);
-				f.moveTo(f0.x+editorPosition.w, f0.y);
-				f.lineTo(f1.x+f1.w, f1.y);
-				f.moveTo(f0.x+editorPosition.w, f0.y+editorPosition.h);
-				f.lineTo(f1.x+f1.w, f1.y+f1.h);
-				f.moveTo(f0.x, f0.y+editorPosition.h);
-				f.lineTo(f1.x, f1.y+f1.h);
+				f.moveTo(f0.x + editorPosition.w, f0.y);
+				f.lineTo(f1.x + f1.w, f1.y);
+				f.moveTo(f0.x + editorPosition.w, f0.y + editorPosition.h);
+				f.lineTo(f1.x + f1.w, f1.y + f1.h);
+				f.moveTo(f0.x, f0.y + editorPosition.h);
+				f.lineTo(f1.x, f1.y + f1.h);
 
-				f.attributes.put(StandardFLineDrawing.color, new Vec4(0,0,0,0.1));
+				f.attributes.put(StandardFLineDrawing.color, new Vec4(0, 0, 0, 0.1));
 
 				return f;
 
