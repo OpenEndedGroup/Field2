@@ -155,7 +155,6 @@ public class TextEditor extends Box implements IO.Loaded {
 
 			 });
 
-
 		});
 
 		first(Boxes.window, both()).ifPresent(x -> x.addKeyboardHandler(event -> {
@@ -172,13 +171,10 @@ public class TextEditor extends Box implements IO.Loaded {
 
 				    int maxh = window.getHeight() - 25 - 10 - 10 - 2;
 				    Rect f = browser.properties.get(Box.frame);
-				    if (f.h!=maxh)
+				    if (f.h!=Math.min(maxhOnCreation-40, maxh))
 				    {
 					    f = f.duplicate();
-					    f.h = Math.min(maxhOnCreation-40, maxh);
-//					    executeJavaScript("cm.setSize(" + maxw + ", " + maxh + ")");
 					    executeJavaScript("$(\".CodeMirror\").css(\"height\", "+Math.min(maxh, maxhOnCreation-40)+")");
-//					    executeJavaScript("$(\".CodeMirror\").css(\"width\", "+maxw+")");
 				    }
 
 				    return true;
@@ -275,5 +271,18 @@ public class TextEditor extends Box implements IO.Loaded {
 		browser.executeJavaScript_queued(js);
 	}
 
+	/**
+	 * reloads this text editor. Useful if you are hacking on the CSS or JavaScript that backs the editor
+	 */
+	public void reload()
+	{
+		browser.reload();
+	}
 
+
+	public void setURL(String url)
+	{
+		browser.properties.put(browser.url, url);
+	}
 }
+
