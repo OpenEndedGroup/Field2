@@ -138,14 +138,17 @@ public class Server {
 					if (h instanceof HandlerInMainThread) {
 						if (((HandlerInMainThread) h).will(Server.this, webSocket, address, payload)) {
 							final Object p = payload;
-							try {
-								payload = queue(() -> {
+//							try {
+								queue(() -> {
 									currentWebSocket.set(webSocket);
 									return h.handle(Server.this, webSocket, address, p);
-								}).get();
-							} catch (InterruptedException | ExecutionException e) {
-								Log.log("remote.error"," exception thrown by asynchronous websocket handler <" + h + "> while servicing <" + s + " / " + address + " -> " + originalPayload + " " + p, e);
-							}
+								});
+
+							// not threading these all through the main thread means that we don't get backlogged nearly as easily
+
+//							} catch (InterruptedException | ExecutionException e) {
+//								Log.log("remote.error"," exception thrown by asynchronous websocket handler <" + h + "> while servicing <" + s + " / " + address + " -> " + originalPayload + " " + p, e);
+//							}
 						}
 					} else {
 						currentWebSocket.set(webSocket);
