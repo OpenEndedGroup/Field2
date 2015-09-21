@@ -7,10 +7,18 @@ import fieldbox.io.IO;
 import fielded.ServerSupport;
 import fielded.webserver.NanoHTTPD;
 import fielded.webserver.Server;
+import org.pegdown.Extensions;
+import org.pegdown.LinkRenderer;
+import org.pegdown.Parser;
+import org.pegdown.PegDownProcessor;
+import org.pegdown.ast.AutoLinkNode;
+import org.pegdown.ast.WikiLinkNode;
+import org.pegdown.plugins.PegDownPlugins;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
  * In progress
@@ -18,8 +26,11 @@ import java.util.Optional;
 public class BoxBrowser extends Box implements IO.Loaded {
 
 	static public final String NAMED = "/named/";
+	static public final String ID = "/id/";
 	private final Box root;
 	private Server s;
+
+	PegDownProcessor proc = new PegDownProcessor(1000, Extensions.WIKILINKS);
 
 	public BoxBrowser(Box root) {
 		this.root = root;
@@ -33,11 +44,16 @@ public class BoxBrowser extends Box implements IO.Loaded {
 
 		s.addDocumentRoot(fieldagent.Main.app + "/fieldbox/resources/");
 		s.addURIHandler((uri, method, headers, params, files) -> {
-			System.out.println(" checking uri :<" + uri + ">");
 			if (uri.startsWith(NAMED)) {
 				uri = uri.substring(NAMED.length());
 				String[] pieces = uri.split("/");
-				return handleByName(pieces);
+				return handleBy(x -> x.properties.has(Box.name) && x.properties.get(Box.name)
+											       .equals(pieces[0]), pieces.length>1 ? pieces[1] : null);
+			} else if (uri.startsWith(ID)) {
+				uri = uri.substring(ID.length());
+				String[] pieces = uri.split("/");
+				return handleBy(x -> x.properties.has(IO.id) && x.properties.get(IO.id)
+											       .equals(pieces[0]), pieces.length>1 ? pieces[1] : null);
 			} else return null;
 		});
 	}
@@ -54,23 +70,22 @@ public class BoxBrowser extends Box implements IO.Loaded {
 		    "</head><body>";
 	static public final String postamble = "</body>";
 
-	private NanoHTTPD.Response handleByName(String[] pieces) {
+	private NanoHTTPD.Response handleBy(Predicate<Box> b, String propName) {
 
 		Optional<Box> first = root.breadthFirst(root.both())
-					  .filter(x -> x.properties.has(Box.name))
-					  .filter(x -> x.properties.get(Box.name)
-								   .equals(pieces[0]))
+					  .filter(b)
 					  .findFirst();
-		if (!first.isPresent()) return new NanoHTTPD.Response(NanoHTTPD.Response.Status.NOT_FOUND, null, "can't find box by name " + pieces[0]);
 
-		String propName = (pieces.length > 1) ? pieces[1] : Execution.code.getName();
+		if (!first.isPresent()) return new NanoHTTPD.Response(NanoHTTPD.Response.Status.NOT_FOUND, null, "can't find box matching request");
+
+		propName =propName==null ?  Execution.code.getName() : propName;
 
 		return handleBox(first.get(), new Dict.Prop<Object>(propName));
 
 	}
 
 	private NanoHTTPD.Response handleBox(Box box, Dict.Prop<Object> property) {
-		if (!box.properties.has(property)) return new NanoHTTPD.Response(NanoHTTPD.Response.Status.NOT_FOUND, null, "can't find a property called " + property.getName() + " in box " + box);
+		if (!box.properties.has(property)) return new NanoHTTPD.Response(NanoHTTPD.Response.Status.OK, null, preamble + "<p>no property called "+proc.markdownToHtml("`"+property.getName()+"`") + "</p>"+postamble);
 
 		String source = box.properties.get(property) + "";
 
@@ -98,7 +113,7 @@ public class BoxBrowser extends Box implements IO.Loaded {
 
 		for (int i = 0; i < ss.length; i++) {
 
-			String z = ss[i].trim();
+			String z = ss[i]/*.trim()*/;
 			if (z.equals(commentStart)) {
 				Section s2 = new Section();
 				s2.a = "";
@@ -116,7 +131,10 @@ public class BoxBrowser extends Box implements IO.Loaded {
 			}
 		}
 
-		if (sections.size() == 0) return new NanoHTTPD.Response(NanoHTTPD.Response.Status.NO_CONTENT, null, "can't find a property called " + property.getName() + " in box " + box);
+		if (sections.size() == 0) {
+//			return new NanoHTTPD.Response(NanoHTTPD.Response.Status.NO_CONTENT, null, "can't find a property called " + property.getName() + " in box " + box);
+			return new NanoHTTPD.Response(NanoHTTPD.Response.Status.OK, null, preamble + "<p>nothing in property called "+proc.markdownToHtml("`"+property.getName()+"`") + "</p>"+postamble);
+		}
 
 
 		String o = sections.stream()
@@ -133,12 +151,26 @@ public class BoxBrowser extends Box implements IO.Loaded {
 	int cn = 0;
 	private String render(Box box, Dict.Prop<Object> property, Section x) {
 		if (x.comment > 0) {
-			return "<p>" + x.a + "</p>";
+
+			String h = proc.markdownToHtml(x.a, new LinkRenderer() {
+				@Override
+				public Rendering render(WikiLinkNode node) {
+
+					// interpose awesome here (evening sketch)
+
+					return super.render(node);
+				}
+			});
+
+			return "<p>" + h + "</p>";
 		} else {
 			cn++;
+
+			System.out.println(" Text in section is ||"+x.a.trim()+"||");
+
 			return "<textarea readonly class='ta_"+(cn)+"'>"+x.a.trim()+"</textarea>"
 				    +
-				    "<script language='javascript'>CodeMirror.fromTextArea($('.ta_"+cn+"')[0], {viewportMargin:Infinity, mode:'javascript'})</script>";
+				    "<script language='javascript'>CodeMirror.fromTextArea($('.ta_"+cn+"')[0], {viewportMargin:Infinity, mode:'javascript', readOnly:true})</script>";
 		}
 	}
 }
