@@ -70,7 +70,7 @@ html {
 body {
     background: #2d3133;
     color: #aaa;
-    font-size: 13px;
+    font-size: 17px;
     font-family: "Source Sans Pro";
     margin: 10px;
 
@@ -89,12 +89,13 @@ a {
 p {
     padding-left: 4px;
     padding-right: 4px;
-    font-size: 14px;
+    font-size: 15px;
 }
 
 .CodeMirror
 {
     background:rgba(0,0,0,0.2);
+    color:#eee;
     height: auto;
     font-size: 12px;
 }

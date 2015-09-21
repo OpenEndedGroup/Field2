@@ -18,6 +18,7 @@ import fieldbox.ui.Compositor;
 import fieldbox.ui.FieldBoxWindow;
 import fielded.ServerSupport;
 import fielded.boxbrowser.BoxBrowser;
+import fielded.plugins.Out;
 import fieldlinker.Linker;
 import fieldnashorn.Nashorn;
 import org.lwjgl.opengl.GL11;
@@ -234,6 +235,12 @@ public class Open {
 		new MissingStream(boxes.root()).connect(boxes.root());
 
 		new KeyboardShortcuts(boxes.root()).connect(boxes.root());
+
+		new PresentationMode(boxes.root()).connect(boxes.root());
+
+		new Increment(boxes.root()).connect(boxes.root());
+
+		new Out(boxes.root()).connect(boxes.root());
 
 		if (ThreadSync.enabled)
 			new ThreadSyncFeedback(boxes.root()).connect(boxes.root());

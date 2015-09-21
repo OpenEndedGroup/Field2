@@ -13,6 +13,7 @@ import fieldbox.io.IO;
 import fieldbox.ui.FieldBoxWindow;
 import fieldcef.plugins.BrowserKeyboardHacks;
 import fielded.TextUtils;
+import fielded.plugins.Out;
 import org.cef.browser.CefRendererBrowserBuffer;
 import org.json.JSONObject;
 import org.json.JSONWriter;
@@ -118,6 +119,8 @@ public class Browser extends Box implements IO.Loaded {
 	private Drawing drawing;
 	private Box root;
 	private Rect damage = new Rect(0, 0, 0, 0);
+	public Runnable callbackOnNextReload = null;
+	private Object outCached;
 
 	public Browser() {
 	}
@@ -155,7 +158,20 @@ public class Browser extends Box implements IO.Loaded {
 			      .orElseThrow(() -> new IllegalArgumentException(" can't install text-drawing into something without drawing support"));
 
 
-		browser = CefSystem.cefSystem.makeBrowser(w * window.getRetinaScaleFactor(), h * window.getRetinaScaleFactor(), this::paint, this::message);
+		browser = CefSystem.cefSystem.makeBrowser(w * window.getRetinaScaleFactor(), h * window.getRetinaScaleFactor(), this::paint, this::message, () -> {
+			try {
+				if (callbackOnNextReload != null) {
+					callbackOnNextReload.run();
+				}
+			} catch (Throwable t) {
+				t.printStackTrace();
+
+			} finally {
+				callbackOnNextReload = null;
+			}
+
+		});
+
 
 		keyboardHacks = new BrowserKeyboardHacks(browser);
 		source = ByteBuffer.allocateDirect(w * h * 4 * window.getRetinaScaleFactor() * window.getRetinaScaleFactor());
@@ -205,10 +221,10 @@ public class Browser extends Box implements IO.Loaded {
 		shader.attach(new Uniform<Vec2>("scale", () -> drawing.getScale()));
 		shader.attach(new Uniform<Vec2>("bounds", () -> new Vec2(Window.getCurrentWidth(), Window.getCurrentHeight())));
 
-		shader.attach(-2, x -> {
-			Rect r = properties.get(Box.frame);
-			update(r.x, r.y, 1/*r.w/w*/);
-		});
+		shader.attach(-2, "__rectupdate__", x -> {
+					Rect r = properties.get(Box.frame);
+					update(r.x, r.y, 1/*r.w/w*/);
+				});
 
 		shader.attach(q);
 		shader.attach(texture);
@@ -262,7 +278,7 @@ public class Browser extends Box implements IO.Loaded {
 
 		this.properties.putToMap(Mouse.onMouseDown, "__browser__", (e, button) -> {
 
-			Log.log("selection", "is browser hidden ? "+properties.isTrue(Box.hidden, false)+" "+this);
+			Log.log("selection", "is browser hidden ? " + properties.isTrue(Box.hidden, false) + " " + this);
 
 			Rect r = properties.get(Box.frame);
 
@@ -271,7 +287,7 @@ public class Browser extends Box implements IO.Loaded {
 			if (properties.isTrue(Box.hidden, false)) return null;
 //			if (e.after.keyboardState.isAltDown())
 //			{
-				e.properties.put(Window.consumed, true);
+			e.properties.put(Window.consumed, true);
 //			}
 
 			Optional<Drawing> drawing = this.find(Drawing.drawing, both())
@@ -299,9 +315,9 @@ public class Browser extends Box implements IO.Loaded {
 				e2.properties.put(Window.consumed, true);
 
 				if (!term) {
-					browser.sendMouseEvent(
-						    new MouseEvent(component, MouseEvent.MOUSE_DRAGGED, 0, MouseEvent.getMaskForButton(button + 1), (int) (point2.x - r.x) * window.getRetinaScaleFactor(),
-								   (int) (point2.y - r.y) * window.getRetinaScaleFactor(), 1, false, button + 1));
+					browser.sendMouseEvent(new MouseEvent(component, MouseEvent.MOUSE_DRAGGED, 0, MouseEvent.getMaskForButton(button + 1),
+									      (int) (point2.x - r.x) * window.getRetinaScaleFactor(), (int) (point2.y - r.y) * window.getRetinaScaleFactor(), 1, false,
+									      button + 1));
 				} else browser.sendMouseEvent(
 					    new MouseEvent(component, MouseEvent.MOUSE_RELEASED, 0, MouseEvent.getMaskForButton(button + 1), (int) (point2.x - r.x) * window.getRetinaScaleFactor(),
 							   (int) (point2.y - r.y) * window.getRetinaScaleFactor(), 1, false, button + 1));
@@ -328,9 +344,8 @@ public class Browser extends Box implements IO.Loaded {
 			Vec2 point = new Vec2(e.after.mx, e.after.my);
 
 
-			browser.sendMouseEvent(
-				    new MouseEvent(component, MouseEvent.MOUSE_MOVED, 0, 0, (int) (point.x - r.x) * window.getRetinaScaleFactor(), (int) (point.y - r.y) * window.getRetinaScaleFactor(), 0,
-						   false));
+			browser.sendMouseEvent(new MouseEvent(component, MouseEvent.MOUSE_MOVED, 0, 0, (int) (point.x - r.x) * window.getRetinaScaleFactor(),
+							      (int) (point.y - r.y) * window.getRetinaScaleFactor(), 0, false));
 			return null;
 		});
 
@@ -357,7 +372,6 @@ public class Browser extends Box implements IO.Loaded {
 			browser.sendMouseWheelEvent(new MouseWheelEvent(component, MouseWheelEvent.MOUSE_WHEEL, KeyEvent.SHIFT_DOWN_MASK, 0, (int) (point.x - r.x) * window.getRetinaScaleFactor(),
 									(int) (point.y - r.y) * window.getRetinaScaleFactor(), (int) (point.x - r.x) * window.getRetinaScaleFactor(),
 									(int) (point.y - r.y) * window.getRetinaScaleFactor(), 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, 1, (int) dx, dx));
-
 
 
 		});
@@ -429,7 +443,7 @@ public class Browser extends Box implements IO.Loaded {
 
 
 //			if (!isSelected() && !focussed) return;
-			if (!getFocus()) return ;
+			if (!getFocus()) return;
 			if (properties.isTrue(Box.hidden, false)) return;
 
 			if (true) {
@@ -492,36 +506,32 @@ public class Browser extends Box implements IO.Loaded {
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__pullFocus__", () -> {
 
 			if (!isSelected() && !getFocus()) {
-				getKeyboardFocus()
-									  .disclaimFocus(this);
+				getKeyboardFocus().disclaimFocus(this);
 			} else if (properties.isTrue(Box.hidden, false)) {
-				getKeyboardFocus()
-									  .disclaimFocus(this);
+				getKeyboardFocus().disclaimFocus(this);
 			} else {
 
-				getKeyboardFocus()
-									  .claimFocus(this);
+				getKeyboardFocus().claimFocus(this);
 			}
 			return true;
 		});
 
 		this.properties.putToMap(Callbacks.onSelect, "__pullFocus__", (k) -> {
-			if (!(k instanceof Browser)) getKeyboardFocus()
-											       .claimFocus((Box) k);
+			if (!(k instanceof Browser)) getKeyboardFocus().claimFocus((Box) k);
 			return null;
 		});
 
 		this.properties.putToMap(Callbacks.onDeselect, "__pullFocus__", (k) -> {
-			if (!(k instanceof Browser)) getKeyboardFocus()
-											       .disclaimFocus((Box) k);
+			if (!(k instanceof Browser)) getKeyboardFocus().disclaimFocus((Box) k);
 			return null;
 		});
 	}
 
 	KeyboardFocus cachedFocus = null;
+
 	private KeyboardFocus getKeyboardFocus() {
-		return cachedFocus==null ? cachedFocus = find(KeyboardFocus._keyboardFocus, both()).findFirst()
-							  .get() : cachedFocus;
+		return cachedFocus == null ? cachedFocus = find(KeyboardFocus._keyboardFocus, both()).findFirst()
+												     .get() : cachedFocus;
 	}
 
 	private boolean isSelected() {
@@ -642,14 +652,14 @@ public class Browser extends Box implements IO.Loaded {
 
 		if (paused) return;
 
-		if (this.dirty.getAndSet(false) && damage!=null) {
+		if (this.dirty.getAndSet(false) && damage != null) {
 			Log.log("cef.debug", " texture was dirty, uploading ");
 //			texture.upload(source, true);
 			texture.upload(source, true, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (damage.h + damage.y));
 			Drawing.dirty(this);
 			again = 4;
 			hasRepainted = true;
-		} else if (again > 0  && damage!=null) {
+		} else if (again > 0 && damage != null) {
 			Log.log("cef.debug", " texture was dirty " + again + " call, uploading ");
 			texture.upload(source, true, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (damage.h + damage.y));
 //			texture.upload(source, true);
@@ -703,13 +713,30 @@ public class Browser extends Box implements IO.Loaded {
 
 	}
 
+	Out out_cached = null;
+
+
 	public void printHTML(String text) {
 		executeJavaScript_queued("$(document.body).append('" + TextUtils.html(text) + "');" + scrollDown());
 	}
 
-	public void print(String text) {
-		executeJavaScript_queued("$(document.body).append('<pre style=\"padding:3px;margin:3px;\">" + TextUtils.quoteNoOuter(text.replace("'", "\"")) + "</pre>');" + scrollDown());
+	public void print(Object text) {
+
+		getOutCached();
+		String texts = "";
+
+		if (out_cached!=null)
+		{
+			texts = out_cached.convert(text);
+		}
+		else
+		{
+			texts = text+"";
+		}
+
+		executeJavaScript_queued("$(document.body).append('"+TextUtils.quoteNoOuter(texts.replace("'", "\""))+"');" + scrollDown());
 	}
+
 	public void println(String text) {
 		executeJavaScript_queued("$(document.body).append('<pre style=\"padding:3px;margin:3px;\">" + TextUtils.quoteNoOuter(text.replace("'", "\"")) + "</pre>');" + scrollDown());
 	}
@@ -724,8 +751,7 @@ public class Browser extends Box implements IO.Loaded {
 	}
 
 	public boolean getFocus() {
-		return getKeyboardFocus()
-								 .isFocused(this);
+		return getKeyboardFocus().isFocused(this);
 	}
 
 	public void setFocus(boolean f) {
@@ -733,11 +759,9 @@ public class Browser extends Box implements IO.Loaded {
 
 		browser.setFocus(f);
 		if (f) {
-			getKeyboardFocus()
-								  .claimFocus(this);
+			getKeyboardFocus().claimFocus(this);
 		} else {
-			getKeyboardFocus()
-								  .disclaimFocus(this);
+			getKeyboardFocus().disclaimFocus(this);
 
 		}
 	}
@@ -749,9 +773,21 @@ public class Browser extends Box implements IO.Loaded {
 						     "document.body.appendChild(css);");
 	}
 
+	public Out getOutCached() {
+		if (out_cached!=null) return out_cached;
+
+		out_cached = find(Out.__out, both()).findAny().orElseGet(() -> null);
+
+		return out_cached;
+	}
+
 	public interface Handler {
 		public void handle(String address, JSONObject payload, Consumer<String> reply);
 	}
 
+
+	public void reload() {
+		browser.reload();
+	}
 
 }

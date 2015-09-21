@@ -37,7 +37,8 @@ import static fieldbox.boxes.FLineDrawing.*;
  */
 public class RemoteEditor extends Box {
 
-	static public final Dict.Prop<EditorUtils> editorUtils = new Dict.Prop<EditorUtils>("editorUtils").toCannon().doc("utility class for manipulating the editor at a high level");
+	static public final Dict.Prop<EditorUtils> editorUtils = new Dict.Prop<EditorUtils>("editorUtils").toCannon()
+													  .doc("utility class for manipulating the editor at a high level");
 
 	static public final Dict.Prop<Supplier<Map<Pair<String, String>, Runnable>>> hotkeyCommands = new Dict.Prop<>("hotkeyCommands").type()
 																       .doc("commands injected into the editor as hotkey menuSpecs")
@@ -67,8 +68,36 @@ public class RemoteEditor extends Box {
 			return stringRunnablePair.first;
 		}
 
+		String lastSend = "";
+		boolean warned = false;
+		long prevTick = RunLoop.tick;
+
 		@Override
 		protected void send(String key, Collection<Pair<String, String>> value) {
+
+			if (value.size() == 0) return;
+
+			boolean unequal = false;
+			for (Pair<String, String> v : value)
+				if (!v.second.equals(lastSend)) {
+					unequal = true;
+					break;
+				}
+
+			if (!unequal && RunLoop.tick - prevTick < 2) {
+				prevTick = RunLoop.tick;
+
+
+				if (!warned) {
+//					server.send(socketName, "_messageBuss.publish(" + key + ", 'message repeats')+");
+					warned = true;
+					return;
+				} else return;
+			}
+			prevTick = RunLoop.tick;
+			warned = false;
+			lastSend = value.iterator()
+					.next().second.toString();
 
 			Log.log("remote.trace", " >> " + key + " " + value.size());
 
@@ -290,9 +319,9 @@ public class RemoteEditor extends Box {
 
 			Log.log("remote.debug", "lineoffset ;" + lineoffset + " " + p.has("lineoffset"));
 
-			String suffix = address.length()<"execution.fragment.".length() ? "" : address.substring("execution.fragment.".length());
+			String suffix = address.length() < "execution.fragment.".length() ? "" : address.substring("execution.fragment.".length());
 
-			System.out.println(" SUFFIX IS :"+suffix);
+			System.out.println(" SUFFIX IS :" + suffix);
 
 			Execution.ExecutionSupport support = getExecution(box.get(), new Dict.Prop<String>(prop)).support(box.get(), new Dict.Prop<String>(prop));
 			support.setLineOffsetForFragment(lineoffset);
@@ -709,22 +738,27 @@ public class RemoteEditor extends Box {
 	}
 
 	static public void boxFeedback(Optional<Box> box, Vec4 color) {
+		boxFeedback(box, color, "__edited__", 0, 60);
+	}
 
-		// this little flicker is causing a repaint of the underlying layer while we are typing. Forget it until we can put this into an overlay layer
-		if (true) return;
-
+	static public void boxFeedback(Optional<Box> box, Vec4 color, String name, int index, int duration) {
 		if (box.get().properties.get(frameDrawing) != null) // we only decorate things that are drawn
-			box.get().properties.putToMap(frameDrawing, "__edited__", expires(boxOrigin((bx) -> {
+			box.get().properties.putToMap(frameDrawing, name, expires(boxOrigin((bx) -> {
 
 				FLine f = new FLine();
-				f.rect(-5, -5, 10, 10);
+				f.rect(-5 + index * 10, -5, 10, 10);
 				f.attributes.put(filled, true);
 				f.attributes.put(stroked, false);
 				f.attributes.put(StandardFLineDrawing.color, color);
 				return f;
 
-			}, new Vec2(1, 1)), 60));
+			}, new Vec2(1, 1)), duration));
 		Drawing.dirty(box.get());
+	}
+
+	static public void removeBoxFeedback(Optional<Box> box, String name) {
+		if (box.get().properties.get(frameDrawing) != null) // we only decorate things that are drawn
+			box.get().properties.removeFromMap(frameDrawing, name);
 	}
 
 	// Function to gather all javascript files in a directory as a list of strings
@@ -1043,6 +1077,7 @@ public class RemoteEditor extends Box {
 	static public interface SupportsPrompt {
 		public void prompt(String prompt, Map<Pair<String, String>, Runnable> options, ExtendedCommand alternative);
 	}
+
 	static {
 		IO.persist(defaultEditorProperty);
 		IO.persist(new Dict.Prop<String>("_" + defaultEditorProperty.getName() + "_cookie"));

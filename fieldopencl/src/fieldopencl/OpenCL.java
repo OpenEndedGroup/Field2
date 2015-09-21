@@ -28,15 +28,15 @@ public class OpenCL extends Box implements field.graphics.Scene.Perform {
 
 	static public final Dict.Prop<List<Kernel>> kernels = new Dict.Prop<>("kernels").doc(" An OpenCL kernel derived from this box").type().toCannon();
 	static public final Dict.Prop<String> openCL = new Dict.Prop<>("openCL").doc("OpenCL source code for a program");
-	static public final Dict.Prop<BiFunctionOfBoxAnd<String, Kernel>> newOpenCLKernel = new Dict.Prop<>("newOpenCLKernel").doc("_.newOpenCLKernel('k') creates an OpenCL kernel from this program with entry-point 'k'").type().toCannon();
+	static public final Dict.Prop<BiFunctionOfBoxAnd<String, Kernel>> newOpenCLKernel = new Dict.Prop<>("newOpenCLKernel").doc("`_.newOpenCLKernel('k')` creates an OpenCL kernel from this program with entry-point 'k'").type().toCannon();
 
-	static public final Dict.Prop<BiFunctionOfBoxAnd<Integer, Buffer>> newBufferIn = new Dict.Prop<>("newBufferIn").doc("_.newBufferIn(20) creates a new OpenCL input float array of length 20 ").type().toCannon();
-	static public final Dict.Prop<BiFunctionOfBoxAnd<Integer, Buffer>> newBufferOut = new Dict.Prop<>("newBufferOut").doc("_.newBufferOut(20) creates a new OpenCL output float array of length 20 ").type().toCannon();
+	static public final Dict.Prop<BiFunctionOfBoxAnd<Integer, Buffer>> newBufferIn = new Dict.Prop<>("newBufferIn").doc("`_.newBufferIn(20)` creates a new OpenCL input float array of length 20 ").type().toCannon();
+	static public final Dict.Prop<BiFunctionOfBoxAnd<Integer, Buffer>> newBufferOut = new Dict.Prop<>("newBufferOut").doc("`_.newBufferOut(20)` creates a new OpenCL output float array of length 20 ").type().toCannon();
 
-	static public final Dict.Prop<BiFunction<SimpleArrayBuffer, ProvidesGraphicsContext, VertexBuffer>> newGLBufferIn = new Dict.Prop<>("newGLBufferIn").doc("_.newGLBufferIn(20) creates a new OpenCL input float array of length 20 ").type().toCannon();
-	static public final Dict.Prop<BiFunction<SimpleArrayBuffer, ProvidesGraphicsContext, VertexBuffer>> newGLBufferOut = new Dict.Prop<>("newGLBufferOut").doc("_.newGLBufferOut(20) creates a new OpenCL output float array of length 20 ").type().toCannon();
+	static public final Dict.Prop<BiFunction<SimpleArrayBuffer, ProvidesGraphicsContext, VertexBuffer>> newGLBufferIn = new Dict.Prop<>("newGLBufferIn").doc("`_.newGLBufferIn(20)` creates a new OpenCL input float array of length 20 ").type().toCannon();
+	static public final Dict.Prop<BiFunction<SimpleArrayBuffer, ProvidesGraphicsContext, VertexBuffer>> newGLBufferOut = new Dict.Prop<>("newGLBufferOut").doc("`_.newGLBufferOut(20)` creates a new OpenCL output float array of length 20 ").type().toCannon();
 
-	static public final Dict.Prop<BiFunction<Texture, ProvidesGraphicsContext, TextureBuffer>> newGLTextureOut = new Dict.Prop<>("newGLTextureOut").doc("_.newBufferOut(texture) creates a new OpenCL output to a texture").type().toCannon();
+	static public final Dict.Prop<BiFunction<Texture, ProvidesGraphicsContext, TextureBuffer>> newGLTextureOut = new Dict.Prop<>("newGLTextureOut").doc("`_.newBufferOut(texture)` creates a new OpenCL output to a texture").type().toCannon();
 
 
 	public class Kernel {

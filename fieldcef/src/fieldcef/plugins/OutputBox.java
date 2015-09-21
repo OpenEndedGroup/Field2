@@ -13,6 +13,7 @@ import fieldbox.execution.Execution;
 import fieldbox.io.IO;
 import fieldcef.browser.Browser;
 import fielded.ServerSupport;
+import fielded.plugins.Out;
 import fielded.webserver.Server;
 
 import java.io.BufferedReader;
@@ -32,10 +33,12 @@ import java.util.stream.Stream;
 public class OutputBox extends Box implements IO.Loaded {
 
 
-	static public final Dict.Prop<FunctionOfBoxValued<TemplateMap<Browser>>> output = new Dict.Prop<>("output").type().doc("_.output.blah.print('something') will print to (and, if necessary, create) an html output box")
+	static public final Dict.Prop<FunctionOfBoxValued<TemplateMap<Browser>>> output = new Dict.Prop<>("output").type().doc("`_.output.blah.print('something')` will print to (and, if necessary, create) an html output box")
 														   .toCannon();
 
 	private final Box root;
+
+	Out out = null;
 
 	List<String> playlist = Arrays.asList("preamble.js", "jquery-2.1.0.min.js", "jquery.autosize.input.js", "modal.js");
 	String styleSheet = "field-codemirror.css";
@@ -46,16 +49,29 @@ public class OutputBox extends Box implements IO.Loaded {
 		this.root = root;
 
 		this.properties.put(output, (box) -> new TemplateMap<Browser>(box, "output", Browser.class, x -> make(400, 300, x)).makeCallable((map, param) -> {
-			((Browser) map.asMap_get("default")).print("" + param);
+
+			((Browser) map.asMap_get("default")).print(toHTML(param));
+
 			return null;
 		}));
 
+	}
+
+	private String toHTML(Object param) {
+		if (out==null)
+			return ""+param;
+		else
+			return out.convert(param);
 	}
 
 	int tick = 0;
 
 	@Override
 	public void loaded() {
+
+		out = find(Out.__out, both()).findAny().orElseGet(() -> null);
+
+		System.out.println(" found output as :"+out);
 
 	}
 

@@ -1,3 +1,5 @@
+
+
 @font-face {
     font-family: 'Source Code Pro';
     src: url('/field/filesystem/fonts/SourceCodePro-Regular.ttf.woff') format('woff');
@@ -123,9 +125,6 @@ a {
     background: rgba(25, 25, 25, 1);
 }
 
-.outputbox ::-webkit-scrollbar-resize {
-    background: rgba(25, 25, 25, 1);
-}
 
 ::-webkit-scrollbar {
     width: 3px;
@@ -170,7 +169,8 @@ a {
 }
 
 .CodeMirror div.CodeMirror-cursor {
-    border-left: 4px solid red;
+    border: 2px solid red;
+    background: #a00;
 }
 
 /* Shown when moving in bi-directional text */
@@ -190,6 +190,85 @@ a {
 
 .CodeMirror-hints.empty {
     display: none;
+}
+
+.maptable {
+    font-family: "Source Code Pro";
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 2px;
+}
+
+.maptable-entry
+{
+    display:inline-flex;
+    margin:2px;
+    border:1px solid rgba(0,0,0,0.1);
+    border-radius:2px;
+}
+
+.smaller {
+    font-size: 65%;
+    opacity: 0.5;
+    padding-left: 0.2em;
+    padding-right: 0.2em;
+    padding-top: 0.35em;
+    font-weight: normal;
+    font-variant: small-caps;
+    display: block;
+}
+
+.smaller-inframe {
+    font-size: 65%;
+    opacity: 0.5;
+    padding-left: 0.2em;
+    padding-right: 0.2em;
+    padding-top: 0.35em;
+    font-weight: normal;
+    font-variant: small-caps;
+    float:right;
+    margin-right: 0.35em;
+}
+
+
+
+.maptable-key {
+    padding:4px;
+    display:block;
+    text-align:right;
+    flex:1 auto;
+    border-right: 3px solid rgba(255,255,255,0.1);
+    color: rgba(255,200,128, 0.7);
+}
+
+.maptable-value {
+    padding:4px;
+    display:block;
+    flex:1 auto;
+    color: rgba(128,200,255, 0.7);
+}
+
+.maptable-key > .maptable-entry
+{
+    display:block;
+}
+.maptable-value > .maptable-entry
+{
+    display:block;
+}
+
+.number
+{
+    color:rgba(200,200,200,0.7);
+}
+
+.operator
+{
+    color:rgba(255,200,128,0.7);
+}
+
+.number > .operator
+{
+    color:rgba(200,200,200,0.7);
 }
 
 .CodeMirror-hints {
@@ -258,9 +337,7 @@ a {
     margin-top: 2px;
     margin-left: 25px;
     display: block;
-    white-space: pre;
     overflow: scroll;
-    font-size: 75%;
     max-height: 60px;
     min-height: 27px;
     pointer-events: all;
@@ -279,9 +356,7 @@ a {
     padding-left: 10px;
     margin-left: 26px;
     display: block;
-    white-space: pre;
     overflow: scroll;
-    font-size: 75%;
     max-height: 150px;
     min-height: 27px;
     pointer-events: all;
@@ -298,7 +373,6 @@ a {
     margin-top: 2px;
     margin-left: 26px;
     display: block;
-    white-space: pre;
     overflow: scroll;
     font-size: 75%;
     max-height: 60px;
@@ -319,7 +393,6 @@ a {
     margin-left: 26px;
     white-space: pre;
     overflow: scroll;
-    font-size: 75%;
     pointer-events: all;
     border: 1px solid rgba(0, 0, 0, 0.1);
     overflow: hidden;
@@ -335,8 +408,6 @@ a {
     margin-top: 2px;
     margin-left: 2px;
     white-space: pre;
-    overflow: scroll;
-    font-size: 75%;
     pointer-events: all;
     border: 1px solid rgba(0, 0, 0, 0.1);
 }
@@ -382,6 +453,29 @@ a {
     border: 1px solid rgba(0, 0, 0, 0.1);
     background: rgba(0, 0, 0, 0.1);
 }
+
+.Field-expandBoxInline {
+    position: absolute;
+    border-radius: 3px;
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+
+    top: -2px;
+    left: -16px;
+
+    margin-top: 0px;
+    background: #333;
+    width: 14px;
+    height: 14px;
+    text-align: center;
+    pointer-events: all;
+    cursor: pointer;
+    font-weight: 700;
+    z-index: 10;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    background: rgba(0, 0, 0, 0.1);
+}
+
 
 .close-expand {
     margin: 0px;
@@ -475,7 +569,7 @@ input {
 
 .Field-modal ol {
     color: #bbb;
-    list-style-type: 1;
+    list-style-type: circle;
     padding: 0px;
     margin: 0px;
     font-family: "Source Sans Pro";
@@ -487,7 +581,7 @@ input {
 
 .Field-modal-positioned ol {
     color: #bbb;
-    list-style-type: 1;
+    list-style-type: circle;
     padding: 0px;
     margin: 0px;
     font-family: "Source Sans Pro";
@@ -551,7 +645,7 @@ input {
     max-height: 80vh;
 }
 
-$
+
 .Field-modal-positioned ol {
     list-style-type: none;
     margin-left: 0;
@@ -610,7 +704,7 @@ $
 .Field-modal-positioned ol li span.doc,
 .Field-modal ol li span.doc {
     opacity: 0.5;
-    text-height: 120%;
+    /*text-height: 120%;*/
     float: left;
     clear: both;
     margin-left: 25px;
@@ -627,8 +721,6 @@ $
     padding-top: 3px;
 }
 
-/
-/
 .Field-modal ol li:after {
 / / content : ".";
 / / display : block;
@@ -643,8 +735,6 @@ $
     width: 100%;
 }
 
-/
-/
 .Field-modal-positioned ol li:after {
 / / content : ".";
 / / display : block;
