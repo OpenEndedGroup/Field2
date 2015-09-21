@@ -107,7 +107,7 @@ public class Window implements ProvidesGraphicsContext {
 		dest.rewind();
 		Glfw.glfwSetCursor(window, Glfw.glfwCreateCursor(dest, 32, 32, 32, 32));
 
-		Glfw.glfwSetInputMode(window, Glfw.GLFW_STICKY_KEYS, GL.GL_TRUE);
+//		Glfw.glfwSetInputMode(window, Glfw.GLFW_STICKY_KEYS, GL.GL_TRUE);
 		Glfw.glfwSetInputMode(window, Glfw.GLFW_STICKY_MOUSE_BUTTONS, GL.GL_TRUE);
 
 		retinaScaleFactor = permitRetina ? (int) (Options.dict().getFloat(new Dict.Prop<Number>("retina"), 0f)+1) : 1;
@@ -131,6 +131,20 @@ public class Window implements ProvidesGraphicsContext {
 						lastWas = frame;
 						lastAt = System.currentTimeMillis();
 					}
+
+					boolean a = glfwGetKey(window, GLFW_KEY_A);
+					if (a)
+						System.out.print("a");
+					else
+						System.out.print("n");
+
+					if (keyboardState.charsDown.size()>0)
+					{
+						System.out.println("A<"+keyboardState+">");
+					}
+					else
+						System.out.println("N");
+
 					try {
 						Thread.sleep(5000);
 					} catch (InterruptedException e) {
