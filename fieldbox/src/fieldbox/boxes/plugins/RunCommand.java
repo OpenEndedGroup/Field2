@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
  */
 public class RunCommand extends Box {
 
-	static public final Dict.Prop<BiFunctionOfBoxAnd<String, Boolean>> runCommand = new Dict.Prop<>("runCommand").doc("_.runCommand(x) runs commands for box '_' that match string 'x'")
+	static public final Dict.Prop<BiFunctionOfBoxAnd<String, Boolean>> runCommand = new Dict.Prop<>("runCommand").doc("`_.runCommand(x)` runs commands for box `_` that match string `x`")
 															      .type()
 															      .toCannon();
 
@@ -39,18 +39,22 @@ public class RunCommand extends Box {
 
 		// Nashorn doesn't like a lambda here
 
+		boolean[] found  = {false};
+
 		commands.stream().filter(x -> stripFormatting(x.first.toLowerCase()).equals(of.toLowerCase())).forEach(r -> {
 			if (r.third instanceof RemoteEditor.ExtendedCommand) {
 				((RemoteEditor.ExtendedCommand) r.third).begin((pr, o, a) -> {
 					a.begin(null, null); // SHOULD BE AN ARG
 					a.run();
+					found[0] = true;
 				}, null);
 				((RemoteEditor.ExtendedCommand) r.third).run();
 			} else {
 				r.third.run();
+				found[0] = true;
 			}
 		});
-		return true;
+		return found[0];
 	}
 
 	private String stripFormatting(String s) {

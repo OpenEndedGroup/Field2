@@ -31,6 +31,7 @@ import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.List;
 import java.util.function.Supplier;
 
 /**
@@ -56,6 +57,16 @@ public class Vec2 implements Externalizable, Supplier<Vec2> {
 	 * Create a new {@link Vec2} and initialize its components to zero.
 	 */
 	public Vec2() {
+	}
+
+	public Vec2(List<Number> from)
+	{
+		this(from.get(0).doubleValue(), from.get(1).doubleValue());
+	}
+
+	public Vec2(List<Number> from, int offset)
+	{
+		this(from.get(offset).doubleValue(), from.get(offset+1).doubleValue());
 	}
 
 	/**
@@ -1251,8 +1262,9 @@ public class Vec2 implements Externalizable, Supplier<Vec2> {
 	 * @return the string representation
 	 */
 	public String toString() {
-		DecimalFormat formatter = new DecimalFormat(" 0.000E0;-"); //$NON-NLS-1$
-		return toString(formatter).replaceAll("E(\\d+)", "E+$1"); //$NON-NLS-1$ //$NON-NLS-2$
+		return "["+x+", "+y+"]";
+//		DecimalFormat formatter = new DecimalFormat(" 0.000E0;-"); //$NON-NLS-1$
+//		return toString(formatter).replaceAll("E(\\d+)", "E+$1"); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	/**

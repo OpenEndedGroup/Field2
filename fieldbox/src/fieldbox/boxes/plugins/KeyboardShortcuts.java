@@ -9,15 +9,16 @@ import fieldbox.boxes.Keyboard;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.function.Function;
 
 public class KeyboardShortcuts extends Box {
 
 	static protected final Dict.Prop<Boolean> __deltwith = new Dict.Prop<>("__deltwith");
 
-	static public final Dict.Prop<IdempotencyMap<FunctionOfBox>> shortcut = new Dict.Prop<>("shortcut").type()
+	static public final Dict.Prop<IdempotencyMap<Function<Box, Void>>> shortcut = new Dict.Prop<>("shortcut").type()
 													   .toCannon()
-													   .doc("A map for keyboard shortcuts. For example _.shortcut.ctrl_f = function(box){...}. In order to qualify as a keyboard shortcut, alt, ctrl or meta (aka command) must be pressed")
-													   .autoConstructs(() -> new IdempotencyMap<>(Box.FunctionOfBox.class));
+													   .doc("A map for keyboard shortcuts. For example `_.shortcut.ctrl_f = function(box){...}`. In order to qualify as a keyboard shortcut, alt, ctrl or meta (aka command) must be pressed")
+													   .autoConstructs(() -> new IdempotencyMap<>(Function.class));
 
 
 	public KeyboardShortcuts(Box root) {
@@ -38,9 +39,9 @@ public class KeyboardShortcuts extends Box {
 			// could be a keyboard shortcut;
 
 			Box start = Intersects.startAt(k.after.mouseState, root);
-			IdempotencyMap<FunctionOfBox> all = start.find(shortcut, start.upwards())
-								 .reduce(new IdempotencyMap<FunctionOfBox>(FunctionOfBox.class), (a1, a2) -> {
-									 IdempotencyMap<FunctionOfBox> q = new IdempotencyMap<>(FunctionOfBox.class);
+			IdempotencyMap<Function<Box, Void>> all = start.find(shortcut, start.upwards())
+								 .reduce(new IdempotencyMap<Function<Box, Void>>(Function.class), (a1, a2) -> {
+									 IdempotencyMap<Function<Box, Void>> q = new IdempotencyMap<>(Function.class);
 									 q.putAll(a1);
 									 q.putAll(a2);
 									 return q;

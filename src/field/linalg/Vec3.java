@@ -1181,7 +1181,7 @@ public class Vec3 implements Externalizable, Supplier<Vec3> {
 	 * @return the string representation
 	 */
 	public String toString() {
-		DecimalFormat formatter = new DecimalFormat(" 0.000E0;-"); //$NON-NLS-1$
+		DecimalFormat formatter = new DecimalFormat("0.000E0;-"); //$NON-NLS-1$
 		return toString(formatter).replaceAll("E(\\d+)", "E+$1"); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
