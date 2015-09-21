@@ -5,13 +5,11 @@ import field.nashorn.internal.runtime.ConsString;
 import field.utility.*;
 import fieldbox.DefaultMenus;
 import fieldbox.boxes.plugins.Missing;
-import fieldbox.execution.Completion;
-import fieldbox.execution.Execution;
-import fieldbox.execution.HandlesCompletion;
-import fieldbox.execution.JavaSupport;
+import fieldbox.execution.*;
 import fieldbox.io.IO;
 import fieldlinker.Linker;
 import fieldnashorn.annotations.HiddenInAutocomplete;
+import org.pegdown.PegDownProcessor;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.lang.reflect.Field;
@@ -62,6 +60,9 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	protected Set<String> knownNonProperties;
 	private String __cachedSimpleName = null;
 	private long tick = 0;
+
+	PegDownProcessor peg = new PegDownProcessor();
+
 
 	public Box() {
 		properties.put(IO.id, newID());
@@ -295,9 +296,8 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 
 		if (knownNonProperties == null) knownNonProperties = computeKnownNonProperties();
 
-		if (knownNonProperties.contains(p)) return false;
+		return !knownNonProperties.contains(p);
 
-		return true;
 	}
 
 	protected Set<String> computeKnownNonProperties() {
@@ -342,12 +342,14 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 
 		if (ret instanceof Box.BiFunctionOfBoxAnd) {
 			final Object fret = ret;
-			return ((Function) ((c) -> ((Box.BiFunctionOfBoxAnd) fret).apply(this, c)));
+			return (Function<Object, Object>)QuoteCompletionHelpers.curry( (BiFunction<Box, Object, Object>)ret, () -> this);
+//			return ((Function) ((c) -> ((Box.BiFunctionOfBoxAnd) fret).apply(this, c)));
 		}
 
 		if (ret instanceof Box.TriFunctionOfBoxAnd) {
 			final Object fret = ret;
-			return ((BiFunction) ((a, b) -> ((Box.TriFunctionOfBoxAnd) fret).apply(this, a, b)));
+			return (BiFunction<Object, Object, Object>)QuoteCompletionHelpers.curry( (TriFunctionOfBoxAnd<Object, Object, Object>)ret, () -> this);
+//			return ((BiFunction) ((a, b) -> ((Box.TriFunctionOfBoxAnd) fret).apply(this, a, b)));
 		}
 
 		if (ret instanceof Box.FunctionOfBoxValued) {
@@ -367,7 +369,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	public Object asMap_set(String name, Object value) {
 
 		// workaround bug in Nashorn
-		if (value instanceof ConsString) value = ((ConsString) value).toString();
+		if (value instanceof ConsString) value = value.toString();
 
 
 //		Log.log("underscore.debug", " underscore box set :" + name + " to " + value.getClass() + " <" + Function.class.getName() + ">");
@@ -461,6 +463,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 		}
 
 
+
 		List<Completion> l1 = s1.stream()
 					.filter(x -> x.startsWith(prefix))
 					.sorted()
@@ -469,7 +472,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 						if (q == null) {
 							return null;
 						} else return new Completion(-1, -1, x, "<span class='type'>" + Conversions.fold(q.getTypeInformation(), t -> compress(
-							    t)) + "</span> <span class='doc'>" + q.getDocumentation() + "</span>");
+							    t)) + "</span> <span class='doc'>" +  format(q.getDocumentation()) + "</span>");
 					})
 					.filter(x -> x != null)
 					.collect(Collectors.toList());
@@ -490,6 +493,17 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 		return l1;
 	}
 
+	private String format(String documentation) {
+		String doc = peg.markdownToHtml(documentation == null ? "" : documentation);
+		doc = doc.trim();
+		System.out.println(" doc is ||"+doc+"||");
+		if (doc.startsWith("<p>") && doc.endsWith("</p>"))
+		{
+			doc = doc.replaceFirst("<p>", "").substring(0, doc.length()-4);
+		}
+		return doc;
+	}
+
 	protected Set<String> getAllPublicMethods() {
 		Set<String> m1 = new LinkedHashSet<>();
 		Method[] m = this.getClass()
@@ -505,28 +519,28 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	/**
 	 * Marker interface, marks functions as taking a box as a parameter. Allows us to finesse the dispatch of functions stored in properties
 	 */
-	static public interface FunctionOfBox<T> extends Function<Box, T> {
+	public interface FunctionOfBox<T> extends Function<Box, T> {
 	}
 
 	/**
 	 * Marker interface, marks functions as taking a box as a parameter. Allows us to finesse the dispatch of functions stored in properties. Unlike FunctionOfBox this function is called before
 	 * being returned
 	 */
-	static public interface FunctionOfBoxValued<T> extends Function<Box, T> {
+	public interface FunctionOfBoxValued<T> extends Function<Box, T> {
 	}
 
 
 	/**
 	 * Marker interface, marks functions as taking a box and something else as a parameter. Allows us to finesse the dispatch of functions stored in properties
 	 */
-	static public interface BiFunctionOfBoxAnd<T, R> extends BiFunction<Box, T, R> {
+	public interface BiFunctionOfBoxAnd<T, R> extends BiFunction<Box, T, R> {
 	}
 
 	/**
 	 * Marker interface, marks functions as taking a box and something else as a parameter. Allows us to finesse the dispatch of functions stored in properties
 	 */
-	static public interface TriFunctionOfBoxAnd<T1, T2, R> {
-		public R apply(Box b, T1 t, T2 u);
+	public interface TriFunctionOfBoxAnd<T1, T2, R> {
+		R apply(Box b, T1 t, T2 u);
 	}
 
 	static public class Subscope implements Linker.AsMap {
@@ -535,8 +549,8 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 
 		public Subscope(Linker.AsMap from) {
 
-			this.prefix = ((Box) Execution.context.get()
-							      .peek());
+			this.prefix = Execution.context.get()
+							      .peek();
 			this.delegateTo = from;
 		}
 

@@ -6,6 +6,7 @@ import field.utility.Log;
 import field.utility.Pair;
 import fieldbox.boxes.Box;
 import fieldbox.execution.Completion;
+import fieldbox.execution.HandlesQuoteCompletion;
 import fieldbox.execution.JavaSupport;
 
 import javax.script.Bindings;
@@ -13,10 +14,11 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.text.DecimalFormat;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZonedDateTime;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -29,7 +31,7 @@ public class TernSupport {
 
 
 	public TernSupport() {
-		if (javaSupport==null) javaSupport = new JavaSupport();
+		if (javaSupport == null) javaSupport = new JavaSupport();
 	}
 
 	public void inject(ScriptEngine engine) {
@@ -42,9 +44,11 @@ public class TernSupport {
 				      .collect(Collectors.toList());
 
 		Log.log("bindings", "global scope bindings :" + engine.getContext()
-								      .getBindings(ScriptContext.GLOBAL_SCOPE).keySet());
+								      .getBindings(ScriptContext.GLOBAL_SCOPE)
+								      .keySet());
 		Log.log("bindings", "engine scope bindings :" + engine.getContext()
-								      .getBindings(ScriptContext.ENGINE_SCOPE).keySet());
+								      .getBindings(ScriptContext.ENGINE_SCOPE)
+								      .keySet());
 
 		try {
 			engine.eval("__fieldglobal.self = {}");
@@ -123,22 +127,66 @@ public class TernSupport {
 
 			Log.log("completion.debug", " line :" + line + " -> " + ch + " -> " + c + " alltext is <" + allText + ">");
 
-			engine.eval("__c=new __fieldglobal.self.tern.Context()");
 			try {
-				Object[] ret = (Object[]) engine.eval("__fieldglobal.self.tern.withContext(__c, function(){\n" +
-										  "\tvar a = __fieldglobal.self.tern.parse(__someFile)\n" +
-										  "\t__fieldglobal.self.tern.analyze(a)\n" +
-										  "\tvar n = __fieldglobal.self.tern.findExpressionAround(a, " + c + ", " + c + ")\n" +
-										  "\tif (n!=null)\n" +
-										  "\treturn Java.to([n.node.start, n.node.end]);\n" + "\treturn null;}) ");
+				int[] ret = expressionRangeForPosition(engine, c);
+
 				if (ret == null) return r;
 				if (ret.length == 0) return r;
 
-				Log.log("completion.debug",
-					" expression to analyze is :" + ret[0] + " " + ret[1] + " " + allText.substring(((Number) ret[0]).intValue(), ((Number) ret[1]).intValue()));
+				Log.log("completion.debug", " expression to analyze is :" + ret[0] + " " + ret[1] + " " + allText.substring(ret[0], ret[1]));
 
 
-				String s = allText.substring(((Number) ret[0]).intValue(), ((Number) ret[1]).intValue());
+				String s = allText.substring(ret[0], ret[1]);
+
+				if (s.trim()
+				     .startsWith("\"")) {
+					// we have quote completion, do that instead
+
+					String quoteSoFar = s.trim()
+							     .substring(1);
+
+					boolean customCompleted = false;
+
+
+					try {
+						int[] previously = expressionRangeForPosition(engine, ret[0] - 1);
+
+						Log.log("completion.debug", "previous expression is :" + previously[0] + " " + previously[1] + " " + allText.substring(previously[0], previously[1]));
+
+						String previousS = allText.substring(previously[0], previously[1]);
+
+
+						Object e = engine.eval("_e=eval('" + previousS.replace("'", "\\'") + "')");
+						Log.log("completion.debug", "PREVIOUS e is :" + e + " " + e.getClass() + " computed prefix from <" + s + "> <" + s.lastIndexOf('.') + ">");
+
+
+						r.clear();
+
+						if (e instanceof HandlesQuoteCompletion) {
+							List<Completion> completions = ((HandlesQuoteCompletion) e).getQuoteCompletionsFor(quoteSoFar);
+							for (Completion x : completions) {
+								if (x.start == -1) x.start = c - quoteSoFar.length();
+								if (x.end == -1) x.end = c;
+							}
+							r.addAll(completions);
+							customCompleted = true;
+						}
+					} catch (Throwable t) {
+						Log.log("completion.error", "quote completion threw an exception, but we'll continue on anyway");
+						t.printStackTrace();
+					}
+
+					if (!customCompleted) {
+						List<Completion> completions = getQuoteCompletionsForFileSystems(quoteSoFar);
+						for (Completion x : completions) {
+							if (x.start == -1) x.start = c - quoteSoFar.length();
+							if (x.end == -1) x.end = c;
+						}
+						r.addAll(completions);
+					}
+					return r;
+				}
+
 
 				String left = s, right = "";
 
@@ -172,7 +220,7 @@ public class TernSupport {
 					e = ((StaticClass) e).getRepresentedClass();
 
 					Log.log("completion.debug", " asking java for completions for CLASS " + e);
-					List<Completion> fromJava = javaSupport.getCompletionsFor(e, right, s.lastIndexOf('.')==-1);
+					List<Completion> fromJava = javaSupport.getCompletionsFor(e, right, s.lastIndexOf('.') == -1);
 					Log.log("completion.debug", " got completions :" + fromJava);
 					for (Completion x : fromJava) {
 						if (x.start == -1) x.start = c - right.length();
@@ -195,6 +243,7 @@ public class TernSupport {
 
 			} catch (Throwable t) {
 				Log.log("completion.error", " suppressed exception in autoevaluating completion <" + t + ">");
+				t.printStackTrace();
 			}
 		} catch (ScriptException e) {
 			e.printStackTrace();
@@ -202,6 +251,128 @@ public class TernSupport {
 
 
 		return r;
+	}
+
+	private List<Completion> getQuoteCompletionsForFileSystems(String name) {
+		File f = new File(name).getParentFile();
+		File[] ff = f.listFiles(x -> x.getName()
+					      .toLowerCase()
+					      .startsWith(new File(name).getName()
+									.toString()
+									.toLowerCase()));
+
+		if (ff == null) return Collections.emptyList();
+
+		List<Completion> ret = new ArrayList<>();
+
+		for (File fff : ff) {
+			if (fff.isDirectory()) {
+				String[] q = fff.list();
+				int n = q == null ? 0 : q.length;
+				Completion c = new Completion(-1, -1, fff.getAbsolutePath(), "&nbsp;" + n + " file" + (n == 1 ? "" : "s") + "<span class=doc><i>completion from filesystem</i></span>");
+				ret.add(c);
+			} else {
+				long length = fff.length();
+				long time = fff.lastModified();
+				Completion c = new Completion(-1, -1, fff.getAbsolutePath(),
+							      "&nbsp;" + formatSize(length) + " " + formatDate(time) + " ago <span class=doc><i>completion from filesystem</i></span>");
+				ret.add(c);
+			}
+		}
+
+		return ret;
+	}
+
+	private String formatSize(long length) {
+		return convertToStringRepresentation(length);
+	}
+
+	private String formatDate(long time) {
+
+//		Duration du = Duration.between(date.toInstant().atZone(ZoneId.systemDefault()), LocalTime.now());
+		Duration du = Duration.between(Instant.ofEpochMilli(time), ZonedDateTime.now());
+		long y = du.toDays()/365;
+		if (y > 0) {
+			return y + " year" + (y == 1 ? "" : "s");
+		} else {
+			y = du.toDays()/30;
+			if (y > 0) {
+				return y + " month" + (y == 1 ? "" : "s");
+			} else {
+				y = du.toDays()/7;
+				if (y > 0) {
+					return y + " week" + (y == 1 ? "" : "s");
+				} else {
+					y = du.toDays();
+					if (y > 0) {
+						return y + " day" + (y == 1 ? "" : "s");
+					} else {
+
+						y = du.toHours();
+						if (y > 0) {
+							return y + " hour" + (y == 1 ? "" : "s");
+						} else {
+
+
+							y = du.toMinutes();
+							if (y > 0) {
+								return y + " minute" + (y == 1 ? "" : "s");
+							} else {
+
+								y = du.getSeconds();
+								if (y > 0) {
+									return y + " year" + (y == 1 ? "" : "s");
+								} else {
+									return Instant.ofEpochMilli(time)+"";
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+	}
+
+
+	private static final long K = 1024;
+	private static final long M = K * K;
+	private static final long G = M * K;
+	private static final long T = G * K;
+
+	public static String convertToStringRepresentation(final long value) {
+		final long[] dividers = new long[]{T, G, M, K, 1};
+		final String[] units = new String[]{"TB", "GB", "MB", "KB", "B"};
+		if (value < 1) throw new IllegalArgumentException("Invalid file size: " + value);
+		String result = null;
+		for (int i = 0; i < dividers.length; i++) {
+			final long divider = dividers[i];
+			if (value >= divider) {
+				result = format(value, divider, units[i]);
+				break;
+			}
+		}
+		return result;
+	}
+
+	private static String format(final long value, final long divider, final String unit) {
+		final double result = divider > 1 ? (double) value / (double) divider : (double) value;
+		return new DecimalFormat("#,##0.#").format(result) + " " + unit;
+	}
+
+	private int[] expressionRangeForPosition(ScriptEngine engine, int c) throws ScriptException {
+		engine.eval("__c=new __fieldglobal.self.tern.Context()");
+		Object[] o = (Object[]) engine.eval("__fieldglobal.self.tern.withContext(__c, function(){\n" +
+								"\tvar a = __fieldglobal.self.tern.parse(__someFile)\n" +
+								"\t__fieldglobal.self.tern.analyze(a)\n" +
+								"\tvar n = __fieldglobal.self.tern.findExpressionAround(a, " + c + ", " + c + ")\n" +
+								"\tif (n!=null)\n" +
+								"\treturn Java.to([n.node.start, n.node.end]);\n" + "\treturn null;}) ");
+
+		if (o == null) return null;
+		if (o.length == 0) return null;
+
+		return new int[]{((Number) o[0]).intValue(), ((Number) o[1]).intValue()};
 	}
 
 	public List<Completion> imports(ScriptEngine engine, String boxName, String allText, int line, int ch) {
