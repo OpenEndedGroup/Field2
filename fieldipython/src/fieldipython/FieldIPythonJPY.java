@@ -24,7 +24,7 @@ import java.util.stream.Stream;
  */
 public class FieldIPythonJPY extends Execution {
 
-	static public final Dict.Prop<JpySystem> buffers = new Dict.Prop<>("buffers").toCannon().doc("Access live updating NumPy memory views at little to no cost. This is set on _.root not on the Ipython box.");
+	static public final Dict.Prop<JpySystem> buffers = new Dict.Prop<>("buffers").toCannon().doc("Access live updating NumPy memory views at little to no cost. This is set on `_.root` not on the Ipython box.");
 
 	public final IPythonInterface i;
 	private JpySystem jpySystem;

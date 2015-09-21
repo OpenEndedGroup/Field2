@@ -27,7 +27,7 @@ public class GraphicsSupport extends Box {
 	static public Dict.Prop<String> vertex = new Dict.Prop<>("vertex").doc("vertex shader text").type().toCannon();
 
 	static public Dict.Prop<FunctionOfBox> newShader = new Dict.Prop<>("newShader")
-		    .doc("creates a shader from a box, populating the <i>vertex</i> and <i>geometry</i> properties with defaults").type().toCannon();
+		    .doc("creates a shader from a box, populating the _vertex_,  _geometry_ and _fragment_ properties with defaults").type().toCannon();
 
 	static public Dict.Prop<List<Shader>> _shaders = new Dict.Prop<>("_shaders");
 
@@ -70,7 +70,7 @@ public class GraphicsSupport extends Box {
 			});
 
 			if (s != null) m.put(new Pair<>("Reload shader", "Reloads all " + s.size() + " shader" + (s
-				    .size() == 1 ? "" : "s") + " associated with this box via _.newShader()"), () -> {
+				    .size() == 1 ? "" : "s") + " associated with this box via `_.newShader()`"), () -> {
 				reload(box, s);
 			});
 
@@ -135,6 +135,7 @@ public class GraphicsSupport extends Box {
 		String gs = b.properties.computeIfAbsent(geometry, k -> "");
 
 		s.addSource(Shader.Type.vertex, vs).setOnError(errorHandler(b, "vertex shader"));
+
 		if (gs.trim().length() > 0) s.addSource(Shader.Type.geometry, gs).setOnError(errorHandler(b, "geometry shader"));;
 		s.addSource(Shader.Type.fragment, fs).setOnError(errorHandler(b, "fragment shader"));;
 

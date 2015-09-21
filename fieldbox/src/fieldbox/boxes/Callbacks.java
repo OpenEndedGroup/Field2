@@ -134,7 +134,7 @@ public class Callbacks {
 
 	static public final Dict.Prop<IdempotencyMap<Supplier<Object>>> main = new Dict.Prop<IdempotencyMap<Supplier<Object>>>("main").toCannon()
 																      .type()
-																      .doc("_.main.name = function(){...} defines what happens when a box is 'called' (e.g. _()). If this isn't defined or is empty, the whole box is executed instead (and, should that result in _.main being defined, then that's called")
+																      .doc("`_.main.name = function(){...}` defines what happens when a box is 'called' (e.g. _()). If this isn't defined or is empty, the whole box is executed instead (and, should that result in `_.main` being defined, then that's called")
 																      .autoConstructs(() -> new IdempotencyMap<>(Supplier.class));
 
 

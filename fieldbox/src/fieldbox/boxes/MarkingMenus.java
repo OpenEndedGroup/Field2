@@ -37,7 +37,7 @@ public class MarkingMenus extends Box {
 
 	// easy interface
 	static public Dict.Prop<IdempotencyMap<FunctionOfBox>> menu = new Dict.Prop<>("menu").toCannon()
-											.autoConstructs(() -> new IdempotencyMap<>(FunctionOfBox.class)).doc("Adds a menu item to a box at a particular direction. For example <pre>_.menu.show_something_n = function(_) { ... }</pre> will place a menu item 'show something' at the 'N' position. Note this position can get 'bumped' by other items.");
+											.autoConstructs(() -> new IdempotencyMap<>(FunctionOfBox.class)).doc("Adds a menu item to a box at a particular direction. For example `_.menu.show_something_n = function(_) { ... }` will place a menu item 'show something' at the 'N(orth)' position. Note this position can get 'bumped' by other items.");
 
 
 	public MarkingMenus(Box root) {

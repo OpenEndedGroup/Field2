@@ -76,11 +76,14 @@ public class Dict implements Serializable, Linker.AsMap {
 
 		private Dict attributes;
 
-
 		private boolean cannon = false;
 
 		public Prop(String name) {
 			this.name = name;
+			StackTraceElement[] s = new Exception().getStackTrace();
+			String[] pieces = s[1].getClassName()
+					     .split("\\.");
+			documentation = "undocumented (defined inside <b>"+pieces[pieces.length-1]+"</b>)";
 		}
 
 		public boolean containsSuffix(String string) {

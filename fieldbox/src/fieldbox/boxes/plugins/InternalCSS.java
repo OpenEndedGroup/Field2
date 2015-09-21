@@ -36,14 +36,9 @@ public class InternalCSS extends Box {
 			if (box == null) return m;
 
 			if (!cep.equals(css) && (box.first(css, box.upwards()).isPresent()))
-				m.put(new Pair<>("Edit <i>CSS</i>", "Switch to editing css file associated with this box. You can inject this css into a browser with _.injectCSS(_.css). So, for example, _.textEditor.injectCSS(_.css) will dump the css in this box into the _.textEditor"), () -> {
+				m.put(new Pair<>("Edit <i>CSS</i>", "Switch to editing css file associated with this box. You can inject this css into a browser with `_.injectCSS(_.css)`. So, for example, `_.textEditor.injectCSS(_.css)` will dump the css in this box into the `_.textEditor`"), () -> {
 					ed.setCurrentlyEditingProperty(css);
 				});
-
-
-
-
-
 			return m;
 		});
 	}

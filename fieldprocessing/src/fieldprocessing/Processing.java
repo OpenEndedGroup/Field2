@@ -28,7 +28,7 @@ import java.util.stream.Stream;
  */
 public class Processing extends Execution {
 
-	static public final Dict.Prop<FieldProcessingAppletDelgate> P = new Dict.Prop<FieldProcessingAppletDelgate>("P").toCannon().type().doc("the Processing Applet. e.g. _.P.background(0) sets the background to black.");
+	static public final Dict.Prop<FieldProcessingAppletDelgate> P = new Dict.Prop<FieldProcessingAppletDelgate>("P").toCannon().type().doc("the Processing Applet. e.g. `_.P.background(0)` sets the background to black.");
 
 	private ProcessingExecution processingExecution;
 	public FieldProcessingApplet __applet;

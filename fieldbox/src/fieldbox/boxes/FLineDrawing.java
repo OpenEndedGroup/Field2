@@ -62,12 +62,12 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 
 	static public final Dict.Prop<Boolean> dirty = new Dict.Prop<>("dirty").type()
 									       .toCannon()
-									       .doc("set _.dirty=1 to cause a repaint of the window on the next animation cycle");
+									       .doc("set `_.dirty=1` to cause a repaint of the window on the next animation cycle");
 
 
 	static public final Dict.Prop<String> layer = new Dict.Prop<>("layer").type()
 									      .toCannon()
-									      .doc("which layer to draw to? Defaults to __main__, the other alternative right now is 'glass' to draw on the blur layer above Field");
+									      .doc("which layer to draw to? Defaults to `__main__`, the other alternative right now is `__glass__` to draw on the blur layer above Field");
 
 	public FLineDrawing(Box root) {
 		this.properties.putToList(Drawing.drawers, this);

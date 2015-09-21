@@ -24,14 +24,14 @@ public class DefaultMenus extends Box {
 
 	//TODO: consider being able to .toCommand("A command") Suppliers and FunctionOfBox's
 	static public final Dict.Prop<FunctionOfBox<Box>> newBox = new Dict.Prop<FunctionOfBox<Box>>("newBox").toCannon()
-													      .doc("create a new box that's a peer of this one");
+													      .doc("`_.newBox()` will create a new box that's a peer of this one");
 	static public final Dict.Prop<BiFunctionOfBoxAnd<Class, Box>> newBoxOfClass = new Dict.Prop<BiFunctionOfBoxAnd<Class, Box>>("newBoxOfClass").toCannon()
-																		    .doc("_.newBoxOfClass(c) create a new box that's a peer of this one, with a custom class 'c'");
+																		    .doc("`_.newBoxOfClass(c)` create a new box that's a peer of this one, with a custom class `c`");
 
 	static public final Dict.Prop<BiFunctionOfBoxAnd<String, Box>> ensureChild = new Dict.Prop<FunctionOfBox<Box>>("ensureChild").toCannon()
-																     .doc("_.ensureChild('name') creates a new box that's a child of this one, if there already isn't one with this name");
+																     .doc("`_.ensureChild('name')` creates a new box that's a child of this one, if there already isn't one with this `name`");
 	static public final Dict.Prop<TriFunctionOfBoxAnd<String, Class, Box>> ensureChildOfClass = new Dict.Prop<BiFunctionOfBoxAnd<Class, Box>>("ensureChildOfClass").toCannon()
-																				       .doc("_.ensureChildOfClass('name', c) create a new box that's a peer of this one, with a custom class 'c', if one called 'name' doesn't already exist");
+																				       .doc("`_.ensureChildOfClass('name', c)` create a new box that's a peer of this one, with a custom class `c`, if one called `name` doesn't already exist");
 
 
 	static public final Dict.Prop<FunctionOfBox<Box>> delete = new Dict.Prop<FunctionOfBox<Box>>("delete").toCannon()

@@ -17,7 +17,7 @@ public class Auto extends Box implements IO.Loaded {
 
 	static public final Dict.Prop<Number> auto = new Dict.Prop<>("auto").type()
 									     .toCannon()
-									     .doc("set to non-zero integer to make this box automatically _.begin() when it is loaded; the integer gives the order: all boxes marked '1' are run before boxes marked '2'. In addition boxes are executed from top to bottom ");
+									     .doc("set to non-zero integer to make this box automatically `_.begin()` when it is loaded; the integer gives the order: all boxes marked '1' are run before boxes marked '2'. In addition boxes are executed from top to bottom ");
 
 	static {
 		IO.persist(auto);

@@ -20,51 +20,51 @@ import java.util.stream.Collectors;
 public class Pseudo extends Box {
 
 	static public Dict.Prop<FunctionOfBoxValued<First>> where = new Dict.Prop<FunctionOfBoxValued<First>>("where").doc(
-		    " _.where.x returns the box that contains the property _.x. _.where.x=someOtherBox can be used to move properties around.")
+		    "`_.where.x` returns the box that contains the property `_.x`. This means that `_.where.x=someOtherBox` can be used to move properties around.")
 														      .toCannon()
 														      .type();
-	static public Dict.Prop<FunctionOfBoxValued<All>> all = new Dict.Prop<FunctionOfBoxValued<All>>("all").doc(" _.all.x returns all values of x above this box")
+	static public Dict.Prop<FunctionOfBoxValued<All>> all = new Dict.Prop<FunctionOfBoxValued<All>>("all").doc(" `_.all.x` returns all values of `x` above this box")
 													      .toCannon()
 													      .type();
-	static public Dict.Prop<FunctionOfBoxValued<Has>> has = new Dict.Prop<FunctionOfBoxValued<All>>("has").doc(" _.has.x returns true if this box, or any box above it, has a property x ")
+	static public Dict.Prop<FunctionOfBoxValued<Has>> has = new Dict.Prop<FunctionOfBoxValued<All>>("has").doc(" `_.has.x` returns true if this box, or any box above it, has a property `x` ")
 													      .toCannon()
 													      .type();
-	static public Dict.Prop<FunctionOfBoxValued<Signal>> signal = new Dict.Prop<FunctionOfBoxValued<All>>("signal").doc(" _.signal.x returns _.has.x, and deletes this value at the same time. ")
+	static public Dict.Prop<FunctionOfBoxValued<Signal>> signal = new Dict.Prop<FunctionOfBoxValued<All>>("signal").doc(" `_.signal.x` returns `_.has.x`, and deletes this value at the same time. ")
 														       .toCannon()
 														       .type();
 
-	static public Dict.Prop<FunctionOfBoxValued<Queue>> queue = new Dict.Prop<FunctionOfBoxValued<Queue>>("queue").doc(" _.queue.A = 10, pushes a value to queue A, _.queue.A pops it")
+	static public Dict.Prop<FunctionOfBoxValued<Queue>> queue = new Dict.Prop<FunctionOfBoxValued<Queue>>("queue").doc(" `_.queue.A = 10`, pushes a value to queue `A`, `_.queue.A` pops it")
 														      .toCannon()
 														      .type();
 	static public Dict.Prop<FunctionOfBoxValued<Peek>> peek = new Dict.Prop<FunctionOfBoxValued<Queue>>("peek").doc(
-		    " _.peek.A = 10, pushes a value to queue A, _.peek.A peeks at it (returns it without popping)")
+		    " `_.peek.A = 10`, pushes a value to queue `A`, `_.peek.A` peeks at it (returns it without popping)")
 														   .toCannon()
 														   .type();
 
 
 	static public Dict.Prop<FunctionOfBoxValued<Until>> yieldUntil = new Dict.Prop<FunctionOfBoxValued<Until>>("yieldUntil").doc(
-		    " _.yieldUntil.A yields until property A is non-null / non-false, _yieldUntil.A=10, yields until A==10")
+		    " `_.yieldUntil.A` yields until property `A` is non-null / non-false,`_yieldUntil.A=10`, yields until `A==10`")
 																.toCannon()
 																.type();
 
-	static public Dict.Prop<FunctionOfBoxValued<Down>> down = new Dict.Prop<FunctionOfBoxValued<Down>>("down").doc(" _.down.x searches for 'x' <i>down</i> the dispatch graph rather than upwards ")
+	static public Dict.Prop<FunctionOfBoxValued<Down>> down = new Dict.Prop<FunctionOfBoxValued<Down>>("down").doc(" `_.down.x` searches for `x` _down_ the dispatch graph rather than upwards ")
 														  .toCannon()
 														  .type();
 	static public Dict.Prop<FunctionOfBoxValued<AllDown>> allDown = new Dict.Prop<FunctionOfBoxValued<AllDown>>("allDown").doc(
-		    " _.allDown.x searches for 'x' <i>down</i> the dispatch graph rather than upwards, and returns all results")
+		    "`_.allDown.x` searches for `x` _down_ the dispatch graph rather than upwards, and returns all results")
 															      .toCannon()
 															      .type();
 
 	static public Dict.Prop<IdempotencyMap<Runnable>> next = new Dict.Prop<IdempotencyMap<Runnable>>("next").doc(
-		    " _.next.A = function(){} executes this function in the next update cycle. Note, 'A' will overwrite anything else that's been set in this box with this name for this cycle")
+		    "`_.next.A = function(){}` executes this function in the next update cycle. Note, `A` will overwrite anything else that's been set in this box with this name for this cycle")
 														.toCannon()
 														.type()
 														.autoConstructs(() -> new IdempotencyMap<>(Runnable.class));
 
-	static public Dict.Prop<FunctionOfBoxValued<Replacer>> replace = new Dict.Prop<FunctionOfBoxValued<Replacer>>("replace").doc("_.replace.x = 10 replaces the value of 'x' where it is found (e.g. here or some parent).")
+	static public Dict.Prop<FunctionOfBoxValued<Replacer>> replace = new Dict.Prop<FunctionOfBoxValued<Replacer>>("replace").doc("`_.replace.x = 10` replaces the value of `x` where it is found (e.g. here or some parent).")
 																.toCannon();
 
-	static public Dict.Prop<FunctionOfBoxValued<Refer>> ref = new Dict.Prop<FunctionOfBoxValued<Refer>>("ref").toCannon().type().doc("_.ref.x is equivalent to function(){ return _.x }");
+	static public Dict.Prop<FunctionOfBoxValued<Refer>> ref = new Dict.Prop<FunctionOfBoxValued<Refer>>("ref").toCannon().type().doc("`_.ref.x` is equivalent to `function(){ return _.x }`");
 
 	static public Dict.Prop<FunctionOfBoxValued<XPath>> query = new Dict.Prop<>("query").toCannon().type();
 	static public Dict.Prop<FunctionOfBoxValued<Namer>> named = new Dict.Prop<>("named").toCannon().type();

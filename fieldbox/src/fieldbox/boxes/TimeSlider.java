@@ -29,7 +29,7 @@ import static fieldbox.boxes.FLineDrawing.frameDrawing;
  */
 public class TimeSlider extends Box {
 
-	static public final Dict.Prop<TimeSlider> time = new Dict.Prop<>("time").toCannon().doc("the defualt red-line time slider. Set _.time.frame.x = something to move it around.");
+	static public final Dict.Prop<TimeSlider> time = new Dict.Prop<>("time").toCannon().doc("the defualt red-line time slider. Set `_.time.frame.x` = something to move it around.");
 
 	Rect was = null;
 

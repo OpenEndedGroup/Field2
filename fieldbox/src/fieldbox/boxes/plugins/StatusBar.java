@@ -26,7 +26,7 @@ public class StatusBar extends Box {
 	static public Dict.Prop<Map<String, Supplier<String>>> statuses = new Dict.Prop<>("statuses").type()
 												     .toCannon()
 												     .autoConstructs(() -> new IdempotencyMap<>(Supplier.class))
-												     .doc("Add things here to the status bar, and call <code>_.statusBar.update()</code> to update/repaint");
+												     .doc("Add things here to the status bar, and call `_.statusBar.update()` to update/repaint");
 	int insetW = 10;
 	int insetH = 10;
 	int height = 25;

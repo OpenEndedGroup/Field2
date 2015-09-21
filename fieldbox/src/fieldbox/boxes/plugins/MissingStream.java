@@ -17,7 +17,7 @@ public class MissingStream extends Box {
 
 	static public final Dict.Prop<FunctionOfBoxValued<FilteredLogStreamMap>> log = new Dict.Prop<FunctionOfBoxValued<FilteredLogStreamMap>>("log").type()
 																		      .toCannon()
-																		      .doc("returns a map that can be used to build readers for the properties log. For example _.log.myreader will return, incrementally, all the items of the log (in the absence of buffer overruns). Note this only returns log events that have something to do with this part of the hierarchy (and all children), but readers, once created, are visible from children. _.log(\".*x\").somename creates a reader that filters by property names ending in x. _.log(function(l) l...).somename also works");
+																		      .doc("returns a map that can be used to build readers for the properties log. For example `_.log.myreader` will return, incrementally, all the items of the log (in the absence of buffer overruns). Note this only returns log events that have something to do with this part of the hierarchy (and all children), but readers, once created, are visible from children. `_.log(\".*x\").somename` creates a reader that filters by property names ending in `x`. `_.log(function(l) l...).somename` also works");
 
 	public MissingStream(Box root_unused) {
 		this.properties.put(log, x -> new FilteredLogStreamMap(x, "", null));
