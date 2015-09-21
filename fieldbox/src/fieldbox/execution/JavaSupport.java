@@ -50,7 +50,7 @@ public class JavaSupport {
 
 		builder = new JavaProjectBuilder();
 
-		List<Path> all = new ArrayList<>();
+		Set<Path> all = new LinkedHashSet<>();
 
 		ClassLoader classLoader = Thread.currentThread()
 						.getContextClassLoader();
@@ -77,7 +77,7 @@ public class JavaSupport {
 							while (f != null) {
 								if (f.isDirectory()) {
 									if (new File(f, "src.zip").exists()) {
-										Log.log("jar.indexer", "found a src.zip in classpath <"+f+">");
+										Log.log("jar.indexer", "found a src.zip in classpath <" + f + ">");
 
 										String p = new File(f, "src.zip").getAbsolutePath();
 										synchronized (srcZipsDeltWith) {
@@ -91,6 +91,13 @@ public class JavaSupport {
 											break;
 										}
 									}
+								}
+								if (new File(f, "src").exists() && new File(f, "src").isDirectory()) {
+									String p = new File(f, "src").getAbsolutePath();
+									if (srcZipsDeltWith.contains(p)) break;
+									srcZipsDeltWith.add(p);
+									Log.log("jar.indexer", " added " + p+ " to source path given classpath");
+									builder.addSourceTree(new File(p));
 								}
 								f = f.getParentFile();
 							}
@@ -109,11 +116,11 @@ public class JavaSupport {
 						public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
 							if (dir.endsWith("temp")) return FileVisitResult.SKIP_SUBTREE;
 							if (dir.endsWith("src")) {
-								Log.log("completion.debug", " added " + dir + " to source path");
+								Log.log("jar.indexer", " added " + dir + " to source path");
 								all.add(dir);
 								try {
 									builder.addSourceTree(dir.toFile(),
-											      f -> Log.log("completion.error", " error parsing file " + f + ", but we'll continue on anyway..."));
+											      f -> Log.log("jar.indexer", " error parsing file " + f + ", but we'll continue on anyway..."));
 								} catch (ParseException e) {
 									e.printStackTrace();
 								}
@@ -145,6 +152,9 @@ public class JavaSupport {
 	}
 
 	static public String compress(String name, String signature) {
+
+		System.out.println(" compress :"+name+" = "+signature);
+
 		signature = " " + signature;
 
 		Pattern p = Pattern.compile("([A-Za-z]*?)\\.([A-Za-z]*?)");
@@ -157,13 +167,21 @@ public class JavaSupport {
 
 		signature = signature.replace(" public ", " ");
 		signature = signature.replace(" final ", " ");
-		signature = signature.replace(" void ", " ");
+		signature = signature.replace(" static ", " ");
+//		signature = signature.replace(" void ", " ");
 
-		p = Pattern.compile(" " + name + "[ \\(]");
-		m = p.matcher(signature);
-		if (m.find()) {
-			signature = m.replaceAll("&larr;(");
+		signature = signature.trim();
+		String[] leader = signature.split(" ");
+		if (signature.contains(name)) {
+			signature = signature.replaceFirst(leader[0], "") + " &rarr; " + leader[0];
+			signature = signature.replaceFirst(name, "");
 		}
+
+//		p = Pattern.compile(" " + name + "[ \\(]");
+//		m = p.matcher(signature);
+//		if (m.find()) {
+//			signature = m.replaceAll("&rarr;(");
+//		}
 
 		signature = signature.replace("  ", " ");
 		signature = signature.replace("  ", " ");
@@ -177,7 +195,7 @@ public class JavaSupport {
 		while (entries.hasMoreElements()) {
 			ZipEntry zipEntry = (ZipEntry) entries.nextElement();
 			String u = "jar:file://" + filename + "!/" + zipEntry.getName();
-			Log.log("jar.indexer", "will index a source :"+u);
+			Log.log("jar.indexer", "will index a source file from a jar:"+u);
 			builder.addSource(new URL(u));
 		}
 		;
@@ -391,7 +409,13 @@ public class JavaSupport {
 
 								m.getParameters().forEach(x -> System.out.println(x.getName()));
 
-								Completion cc = new Completion(-1, -1, m.getName(), val + "<span class=type>" + compress(m.getName(), "("+m.getParameters().stream().map(x -> x.getType()+" "+x.getName()).reduce("", (a,b) -> a+", "+b).substring(m.getParameters().size()>0 ? 2 :0) ) + ")</span>" + (m.getComment() != null ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + m.getComment() + "</span>" : ""));
+								Completion cc = new Completion(-1, -1, m.getName(), val + "<span class=type>" + compress(m.getName(), "(" + m.getParameters()
+																					     .stream()
+																					     .map(x -> x.getType() + " " + x.getName())
+																					     .reduce("",
+																						     (a, b) -> a + ", " + b)
+																					     .substring(m.getParameters()
+																							 .size() > 0 ? 2 : 0)) + ")</span>" + (m.getComment() != null ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + m.getComment() + "</span>" : ""));
 								add(val.length() > 0, r, cc);
 								cc.rank += tostring ? 100 : 0;
 								cc.rank+= m.getComment()!=null ? 10 : 0;

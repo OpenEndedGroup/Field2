@@ -2,6 +2,7 @@ package fieldagent;
 
 import com.google.common.collect.MapMaker;
 import com.google.common.io.ByteStreams;
+import sun.misc.Resource;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -20,7 +21,8 @@ import java.util.*;
  */
 public class Trampoline {
 
-	static public final boolean traceLoader = false;
+	static public  final boolean traceLoader = false;
+	static public  boolean whereLoaded = false;
 
 	static protected Transform transform = new Transform();
 
@@ -75,6 +77,7 @@ public class Trampoline {
 		}
 
 		protected Class loadClass(String name, boolean resolve) throws ClassNotFoundException {
+
 			if (!shouldLoad(name)) return super.loadClass(name, resolve);
 
 			if (traceLoader) System.out.println("C(lc): " + name);
@@ -87,8 +90,39 @@ public class Trampoline {
 			// if not loaded, search the local (child) resources
 			if (c == null) {
 				try {
+					if (whereLoaded){
+						URL r = this.getResource(name.replace('.', '/')
+									     .concat(".class"));
+						if (r!=null)
+							System.out.println(name+" <- "+r);
+					}
+
 					c = findClass(name);
-					if (traceLoader) System.out.println("C(lc): found  " + c);
+					if (traceLoader) System.out.println("C(lc): found  " + c + "we're done here");
+					if (traceLoader && c!=null)System.out.println("C(lc): code source is :"+c.getProtectionDomain().getCodeSource().getLocation());
+
+					try{
+
+						File f = new File(c.getProtectionDomain()
+								      .getCodeSource()
+								      .getLocation()
+								      .getFile(), name.replace(".", "/") + ".class");
+
+						System.out.println(" file is :"+f);
+
+						if (f.exists())
+						{
+							Record rec = new Record(f.getAbsolutePath(), f.lastModified());
+							if (rec.modification != 0) {
+								loadMap.put(c, rec);
+							};
+						}
+					}
+					catch(Throwable t)
+					{
+						t.printStackTrace();
+					}
+
 				} catch (ClassNotFoundException cnfe) {
 					{
 						String fn = name.replace(".", "/") + ".class";
@@ -101,7 +135,12 @@ public class Trampoline {
 								c = defineClass(name, b, 0, b.length);
 
 								Record rec = new Record(r.getFile(), new File(r.getFile()).lastModified());
-								if (rec.modification != 0) loadMap.put(c, rec);
+								if (rec.modification != 0) {
+									loadMap.put(c, rec);
+									if (traceLoader)System.err.println(" made loadmap rec for "+r.getFile());
+								}
+								else
+								if (traceLoader)System.err.println(" couldn't find file for "+r.getFile());
 
 								if (traceLoader) System.out.println(" loaded " + loadMap.size());
 							}
