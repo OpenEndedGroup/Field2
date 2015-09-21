@@ -5,6 +5,7 @@ import com.google.common.collect.HashBiMap;
 import field.utility.*;
 import fieldbox.boxes.Box;
 import fieldbox.execution.Completion;
+import fieldbox.execution.Errors;
 import fieldlinker.Linker;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -232,7 +233,7 @@ public class Scene extends Box implements Linker.AsMap {
 			}
 		} catch (NullPointerException e) {
 			e.printStackTrace();
-			System.exit(0);
+//			System.exit(0);
 		}
 
 		return ret;
@@ -245,14 +246,25 @@ public class Scene extends Box implements Linker.AsMap {
 	private boolean wrappedCall(Consumer<Integer> c, Integer i) {
 		if (c == null) return false;
 		try {
-			if (c instanceof Perform) return ((Perform) c).perform(i);
-			c.accept(i);
+			if (c instanceof Perform)
+				return ((Perform) c).perform(i);
+			else
+				c.accept(i);
+
 			return true;
 		} catch (Throwable t) {
 			if (!(t instanceof Cancel)) exceptions.add(t);
-			return false;
+			else return false;
+			return true;
 		} finally {
-			GraphicsContext.checkError(() -> "error on "+c);
+			try {
+				GraphicsContext.checkError(() -> "error on " + c);
+			}
+			catch(IllegalStateException e)
+			{
+				Errors.tryToReportTo(e, "pass "+i, c);
+			}
+
 		}
 	}
 
@@ -262,7 +274,9 @@ public class Scene extends Box implements Linker.AsMap {
 			return middle.call();
 		} catch (Throwable t) {
 			if (!(t instanceof Cancel)) exceptions.add(t);
-			return false;
+			else return false;
+//			return false;
+			return true;
 		} finally {
 			GraphicsContext.checkError(() -> "error on "+middle);
 		}
@@ -309,9 +323,8 @@ public class Scene extends Box implements Linker.AsMap {
 	@HiddenInAutocomplete
 	public boolean asMap_isProperty(String p) {
 		if (knownNonProperties == null) knownNonProperties = computeKnownNonProperties();
-		if (knownNonProperties.contains(p)) return false;
+		return !knownNonProperties.contains(p);
 
-		return true;
 	}
 
 	protected Set<String> computeKnownNonProperties() {
@@ -369,7 +382,7 @@ public class Scene extends Box implements Linker.AsMap {
 		Object fo = Conversions.convert(o, Supplier.class);
 		if (fo instanceof Supplier) return getDefaultBundle().set(p, (Supplier) fo);
 		if (fo instanceof InvocationHandler) {
-			return getDefaultBundle().set(p, (Supplier) () -> {
+			return getDefaultBundle().set(p, () -> {
 				try {
 					return ((InvocationHandler) fo).invoke(fo, supplier_get, nothing);
 				} catch (Throwable throwable) {
@@ -418,15 +431,23 @@ public class Scene extends Box implements Linker.AsMap {
 	/**
 	 * Although we can build the Scene structure out of (int, Consumer<int>) tuples, it's more along the grain of Java's type system to use an interface with both
 	 */
-	static public interface Perform extends Consumer<Integer> {
-		public boolean perform(int pass);
+	 public interface Perform extends Consumer<Integer>, Errors.SavesErrorConsumer {
+		boolean perform(int pass);
 
-		default public int[] getPasses() {
+		default int[] getPasses() {
 			return new int[]{0};
 		}
 
-		default public void accept(Integer p) {
+		default void accept(Integer p) {
 			perform(p);
+		}
+
+		default Errors.ErrorConsumer getErrorConsumer() {
+			return Errors.errors.retrieve(this);
+		}
+
+		default void setErrorConsumer(Errors.ErrorConsumer c) {
+			Errors.errors.store(this, c);
 		}
 	}
 
@@ -442,16 +463,19 @@ public class Scene extends Box implements Linker.AsMap {
 		public Transient(Perform p) {
 			this.passes = p.getPasses();
 			this.call = (x) -> p.perform(x);
+			ec = Errors.errors.get();
 		}
 
 		public Transient(Runnable p, int... passes) {
 			this.passes = passes;
 			this.call = (x) -> p.run();
+			ec = Errors.errors.get();
 		}
 
 		public Transient(Consumer<Integer> m, int... passes) {
 			this.passes = passes;
 			this.call = (x) -> m.accept(x);
+			ec = Errors.errors.get();
 		}
 
 		/**
@@ -471,6 +495,18 @@ public class Scene extends Box implements Linker.AsMap {
 		@Override
 		public int[] getPasses() {
 			return passes;
+		}
+
+		Errors.ErrorConsumer ec;
+
+		@Override
+		public void setErrorConsumer(Errors.ErrorConsumer c) {
+			 ec = c;
+		}
+
+		@Override
+		public Errors.ErrorConsumer getErrorConsumer() {
+			return ec;
 		}
 	}
 

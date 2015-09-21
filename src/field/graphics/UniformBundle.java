@@ -1,6 +1,7 @@
 package field.graphics;
 
 import field.utility.Dict;
+import fieldbox.execution.Errors;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,6 +15,16 @@ import java.util.function.Supplier;
 public class UniformBundle implements Scene.Perform {
 
 	Map<Dict.Prop<?>, Uniform> uniforms = new HashMap<>();
+
+	/** Uniform Bundles pass all errors onto the Uniforms themselves */
+	@Override
+	public Errors.ErrorConsumer getErrorConsumer() {
+		return null;
+	}
+
+	@Override
+	public void setErrorConsumer(Errors.ErrorConsumer c) {
+	}
 
 	@Override
 	public boolean perform(int pass) {

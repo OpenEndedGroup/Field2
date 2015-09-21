@@ -2,6 +2,7 @@ package field.graphics;
 
 
 import field.utility.Util;
+import fieldbox.execution.Errors;
 
 /**
  * this Base class codifies a general pattern for Scene.Perform classes:
@@ -17,6 +18,8 @@ public abstract class BaseScene<t_state extends BaseScene.Modifiable> extends Sc
 		int mod = 0;
 	}
 
+	Errors.ErrorConsumer ec;
+
 	protected BaseScene() {
 		// its generally important that things get initialized as early as possible (and, furthermore, not in some random spot in the Scene update)
 		GraphicsContext.preQueueInAllContexts(() -> {
@@ -24,6 +27,19 @@ public abstract class BaseScene<t_state extends BaseScene.Modifiable> extends Sc
 				GraphicsContext.put(this, setup());
 			}
 		});
+
+
+		ec = Errors.errors.get();
+	}
+
+	@Override
+	public void setErrorConsumer(Errors.ErrorConsumer c) {
+		this.ec = c;
+	}
+
+	@Override
+	public Errors.ErrorConsumer getErrorConsumer() {
+		return this.ec;
 	}
 
 	protected int mod = 0;

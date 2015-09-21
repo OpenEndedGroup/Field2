@@ -1,6 +1,7 @@
 package field.graphics;
 
 import field.utility.Log;
+import fieldbox.execution.Errors;
 import org.lwjgl.opengl.ARBTextureStorage;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL21;
@@ -35,10 +36,12 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 	int mod = 0;
 	boolean isDoubleBuffered = true;
 	AtomicInteger pendingUploads = new AtomicInteger(0);
+	private Errors.ErrorConsumer ec;
 
 	public Texture(TextureSpecification specification) {
 		this.specification = specification;
 		if (this.specification.forceSingleBuffered) setIsDoubleBuffered(false);
+		setErrorConsumer(Errors.errors.get());
 	}
 
 	/**
@@ -312,6 +315,16 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 		if (s == null) return null;
 		return s.name;
 
+	}
+
+	@Override
+	public void setErrorConsumer(Errors.ErrorConsumer c) {
+		this.ec = c;
+	}
+
+	@Override
+	public Errors.ErrorConsumer getErrorConsumer() {
+		return ec;
 	}
 
 	static public class TextureSpecification {

@@ -11,11 +11,14 @@ import fieldbox.boxes.Boxes;
 import fieldbox.boxes.Drawing;
 import fieldbox.boxes.plugins.IsExecuting;
 import fieldbox.execution.Completion;
+import fieldbox.execution.Errors;
 import fieldbox.execution.Execution;
 import fieldbox.io.IO;
 import fielded.Animatable;
 import fielded.DisabledRangeHelper;
 import fielded.RemoteEditor;
+import fielded.boxbrowser.ObjectToHTML;
+import fielded.plugins.Out;
 import fieldnashorn.babel.SourceTransformer;
 
 import javax.script.ScriptContext;
@@ -30,18 +33,23 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * An implementation of Execution.ExecutionSupport for Nashorn/Javascript
  */
 public class NashornExecution implements Execution.ExecutionSupport {
 
-	static public final Dict.Prop<SourceTransformer> sourceTransformer = new Dict.Prop<SourceTransformer>("sourceTransformer").doc("an instanceof of a SourceTransformer that will take the source code here and transform it into JavaScript. This allows things like Babel.js to be used in Field").toCannon();
+	static public final Dict.Prop<SourceTransformer> sourceTransformer = new Dict.Prop<SourceTransformer>("sourceTransformer").doc(
+		    "an instanceof of a SourceTransformer that will take the source code here and transform it into JavaScript. This allows things like Babel.js to be used in Field")
+																  .toCannon();
 
 	private final Dict.Prop<String> property;
 	private final Box box;
 	private final ScriptContext context;
 	private final ScriptEngine engine;
+	private final Out output;
 	public String filename = null;
 	int uniq = 0;
 	private TernSupport ternSupport;
@@ -53,22 +61,52 @@ public class NashornExecution implements Execution.ExecutionSupport {
 		this.property = property;
 		this.context = b;
 		this.engine = engine;
+
+		output = box.find(Out.__out, box.both()).findFirst().orElseThrow(() -> new IllegalStateException("Can't find html output support"));
 	}
 
 	@Override
 	public void executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors) {
 		if (suffix.equals("print")) {
 			executeAndReturn("print(" + textFragment + ")", lineErrors, success, false);
-
-		} else executeAndReturn(textFragment, lineErrors, success, false);
+		} else executeAndReturn(textFragment, lineErrors, success, !suffix.equals("noprint"));
 	}
 
 	Function<Integer, Integer> lineTransform;
-	protected void executeAndReturn(String textFragment, Consumer<Pair<Integer, String>> lineErrors, final Consumer<String> success, boolean printResult) {
 
+	protected void executeAndReturn(String textFragment, Consumer<Pair<Integer, String>> lineErrors, final Consumer<String> success, boolean printResult) {
 		try {
 			Execution.context.get()
 					 .push(box);
+
+			Errors.errors.push((t, m) -> {
+				System.out.println(" exception thrown inside box " + box);
+				System.out.println(" message is :" + m);
+				t.printStackTrace();
+
+				int ln = -1;
+				Matcher matcher = Pattern.compile("LN<(.*)@(.*)>")
+							 .matcher(m);
+
+				if (matcher.find()) {
+					try {
+						ln = Integer.parseInt(matcher.group(1));
+					} catch (NumberFormatException e) {
+						System.err.println(" malformed number ? " + matcher.group(1));
+						ln = -1;
+					}
+
+					String boxName = matcher.group(2);
+
+					lineErrors.accept(new Pair<>(ln, "Error in deferred execution on line " + ln + " in box " + boxName+"\n"+"Full message is " + m + " / " + t.getMessage()));
+				} else {
+					lineErrors.accept(new Pair<>(ln, "Error in deferred execution '" + m + "'\n"+t.getMessage()));
+				}
+
+				RemoteEditor.boxFeedback(Optional.of(box), new Vec4(1,0,0,1), "__redmark__", 1, 1000);
+
+			});
+
 			Writer writer = null;
 			boolean[] written = {false};
 			if (success != null) {
@@ -119,33 +157,37 @@ public class NashornExecution implements Execution.ExecutionSupport {
 			SourceTransformer st = box.properties.get(sourceTransformer);
 
 
-			if (st!=null)
-			{
-				try{
+			if (st != null) {
+				try {
 					Pair<String, Function<Integer, Integer>> transformation = st.transform(textFragment);
 					textFragment = transformation.first;
 					lineTransform = transformation.second;
-				}
-				catch(SourceTransformer.TranslationFailedException t)
-				{
+				} catch (SourceTransformer.TranslationFailedException t) {
 					lineErrors.accept(new Pair<>(-1, t.getMessage()));
 					return;
 				}
-			}
-			else
-			{
+			} else {
 				lineTransform = x -> x;
 			}
+
+			RemoteEditor.removeBoxFeedback(Optional.of(box), "__redmark__");
+
+			output.setWriter(writer);
 
 			Object ret = engineeval(textFragment, context, e -> handleScriptException(e, lineErrors, lineTransform));
 
 			Log.log("nashorn.general", () -> "\n<<javascript out" + ret + " " + (ret != null ? ret.getClass() + "" : ""));
 			if (writer != null) writer.flush();
-			if (success != null) {
+			if (success != null && printResult) {
 				if (ret != null) {
 					if (ret instanceof ScriptObjectMirror && ((ScriptObjectMirror) ret).isFunction()) {
 						success.accept("[function defined]");
-					} else success.accept("" + ret);
+					} else {
+
+						success.accept(output.convert(ret));
+
+						//success.accept("" + ret);
+					}
 				} else if (!written[0]) success.accept(" &#10003; ");
 			}
 
@@ -160,6 +202,8 @@ public class NashornExecution implements Execution.ExecutionSupport {
 			lineOffset = 0;
 			Execution.context.get()
 					 .pop();
+
+			Errors.errors.pop();
 		}
 	}
 
@@ -186,12 +230,10 @@ public class NashornExecution implements Execution.ExecutionSupport {
 				}
 				e.printStackTrace();
 			}
-		}
-		catch(Throwable t)
-		{
+		} catch (Throwable t) {
 			System.err.println(" exception thrown while handling an exception (!) (malfunctioning lineTransform?) ");
 			t.printStackTrace();
-			System.err.println(" original error is :"+e.getMessage());
+			System.err.println(" original error is :" + e.getMessage());
 			lineErrors.accept(new Pair<>(-1, e.getMessage()));
 		}
 	}
@@ -219,7 +261,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	@Override
 	public void executeAll(String allText, Consumer<field.utility.Pair<Integer, String>> lineErrors, Consumer<String> success) {
 		lineOffset = 0;
-		executeAndReturn(allText, lineErrors, success, false);
+		executeAndReturn(allText, lineErrors, success, true);
 		lineOffset = 0;
 	}
 
@@ -237,7 +279,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 		String allText = DisabledRangeHelper.getStringWithDisabledRanges(box, property, "/*", "*/");
 
-		executeAndReturn(allText, lineErrors, success, false);
+		executeAndReturn(allText, lineErrors, success, true);
 		Object _r = context.getBindings(ScriptContext.ENGINE_SCOPE)
 				   .get("_r");
 
@@ -289,7 +331,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	public void completion(String allText, int line, int ch, Consumer<List<Completion>> results) {
 		List<Completion> r1 = ternSupport.completion(engine, box.properties.get(IO.id), allText, line, ch);
 
-		System.out.println(" using completion :"+r1);
+		System.out.println(" using completion :" + r1);
 
 		if (r1 != null) {
 			results.accept(r1);

@@ -1,6 +1,7 @@
 package field.app;
 
 import field.graphics.Scene;
+import fieldbox.execution.Errors;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -42,7 +43,6 @@ public class RunLoop {
 	public void enterMainLoop() {
 		mainThread = Thread.currentThread();
 
-
 		while (true) {
 			try {
 				tick++;
@@ -65,7 +65,6 @@ public class RunLoop {
 	}
 
 	public void once(Runnable r) {
-
 		mainLoop.attach(i -> {
 			try {
 				r.run();
@@ -90,18 +89,57 @@ public class RunLoop {
 				p0.run();
 				return t++ < n;
 			}
+
+			Errors.ErrorConsumer ec = Errors.errors.get();
+
+			@Override
+			public void setErrorConsumer(Errors.ErrorConsumer c) {
+				this.ec = ec;
+			}
+
+			@Override
+			public Errors.ErrorConsumer getErrorConsumer() {
+				if (p0 instanceof Errors.ErrorConsumer)
+					return ((Errors.ErrorConsumer)p0);
+				if (p0 instanceof Errors.SavesErrorConsumer)
+					return ((Errors.SavesErrorConsumer)p0).getErrorConsumer();
+				return ec;
+			}
 		});
 	}
 
 	public void delay(Runnable p0, int ms) {
 		long now = System.currentTimeMillis();
-		mainLoop.attach(pass -> {
-			if (System.currentTimeMillis() - now > ms) {
-				p0.run();
-				return false;
+
+		mainLoop.attach(new Scene.Perform() {
+			int t = 0;
+
+			@Override
+			public boolean perform(int pass) {
+				if (System.currentTimeMillis() - now > ms) {
+					p0.run();
+					return false;
+				}
+				return true;
 			}
-			return true;
+
+			Errors.ErrorConsumer ec = Errors.errors.get();
+
+			@Override
+			public void setErrorConsumer(Errors.ErrorConsumer c) {
+				this.ec = ec;
+			}
+
+			@Override
+			public Errors.ErrorConsumer getErrorConsumer() {
+				if (p0 instanceof Errors.ErrorConsumer)
+					return ((Errors.ErrorConsumer)p0);
+				if (p0 instanceof Errors.SavesErrorConsumer)
+					return ((Errors.SavesErrorConsumer)p0).getErrorConsumer();
+				return ec;
+			}
 		});
+
 	}
 
 	public void exit() {
@@ -117,11 +155,6 @@ public class RunLoop {
 				}
 				if (Thread.currentThread() != shutdownThread) System.exit(0);
 			}
-//			System.err.println(":: halting now");
-//			System.exit(0);
-//
-//			Thread.sleep(1000);
-//			Runtime.getRuntime().halt(0);
 		} catch (Throwable t) {
 			System.err.println(" unexpected exception thrown during exit ");
 			t.printStackTrace();
