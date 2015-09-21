@@ -29,7 +29,7 @@ public class Notifications extends Box {
 		this.properties.put(badges, x -> x.properties.computeIfAbsent(_badgesList, (kk) -> {
 
 			IdempotencyMap<String> s = new IdempotencyMap<String>(String.class) {
-				protected String _put(String key, String v) {
+				public String _put(String key, String v) {
 					badge(x, v, key, () -> {
 						this.remove(key);
 						System.out.println(" running exit handler for " + key);

@@ -68,6 +68,8 @@ public class IdempotencyMap<T> extends LinkedHashMapAndArrayList<T> implements M
 
 	@Override
 	public T get(Object key) {
+		key = massageKey(""+key);
+
 		if (!containsKey(key) && autoConstructor!=null)
 		{
 			T t = autoConstructor.apply((String)key);
@@ -93,10 +95,6 @@ public class IdempotencyMap<T> extends LinkedHashMapAndArrayList<T> implements M
 
 	@Override
 	public Object asMap_get(String s) {
-
-
-		System.out.println("\n\n >> get :"+s+" \n\n");
-
 		return get(s);
 	}
 
