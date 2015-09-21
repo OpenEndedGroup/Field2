@@ -6,6 +6,7 @@ import org.json.JSONStringer;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -16,17 +17,22 @@ public class Commands extends Box {
 
 
 	static public final Dict.Prop<Supplier<Map<Pair<String, String>, Runnable>>> commands = new Dict.Prop<>("commands").type()
-															   .doc("commands injected into the editor as ctrl-space menuSpecs. For a simpler, static, interface you might try _.command")
+															   .doc("commands injected into the editor as ctrl-space menuSpecs. For a simpler, static, interface you might try `_.command`")
 															   .toCannon();
 
-	static public final Dict.Prop<IdempotencyMap<FunctionOfBox>> command = new Dict.Prop<>("command").type()
-													       .toCannon()
-													       .doc("commands for this box (and all boxes below). For example _.command.foo = function(_) bar(_)")
-													       .autoConstructs(() -> new IdempotencyMap<>(Box.FunctionOfBox.class));
+	static public final Dict.Prop<IdempotencyMap<Function<Box, Void>>> command = new Dict.Prop<>("command").type()
+													 .toCannon()
+													 .doc("commands for this box (and all boxes below). For example `_.command.foo = function(_) bar(_)`")
+													 .autoConstructs(() -> new IdempotencyMap<>(Function.class));
+	static public final Dict.Prop<IdempotencyMap<Function<Box, Boolean>>> commandGuard = new Dict.Prop<>("commandGuard").type()
+															    .toCannon()
+															    .doc("a predicate that allows you to turn on and off a command. `_.commandGuard.foo = function(_) false` will turn off command `foo` for this box and all progengy")
+															    .autoConstructs(() -> new IdempotencyMap<>(Function.class));
+
 	static public final Dict.Prop<IdempotencyMap<String>> commandDoc = new Dict.Prop<>("commandDoc").type()
-													       .toCannon()
-													       .doc("documentation for commands for this box (and all boxes below). For example _.commandDoc.foo = \"foos the bar\"")
-													       .autoConstructs(() -> new IdempotencyMap<>(String.class));
+													.toCannon()
+													.doc("documentation for commands for this box (and all boxes below). For example `_.commandDoc.foo = \"foos the bar\"`")
+													.autoConstructs(() -> new IdempotencyMap<>(String.class));
 
 	public LinkedHashMap<String, Runnable> callTable = new LinkedHashMap<>();
 	public RemoteEditor.ExtendedCommand callTable_alternative = null;
@@ -66,47 +72,76 @@ public class Commands extends Box {
 
 	}
 
+	static public void exportAsCommand(Box inside, Runnable r, String name, String doc) {
+		inside.properties.getOrConstruct(command)
+				 .put(name, (FunctionOfBox) (x) -> {
+					 r.run();
+					 return null;
+				 });
+		inside.properties.getOrConstruct(commandDoc)
+				 .put(name, doc);
+	}
+
+	static public void exportAsCommand(Box inside, Runnable r, FunctionOfBox<Boolean> guard, String name, String doc) {
+		inside.properties.getOrConstruct(command)
+				 .put(name, (FunctionOfBox) (x) -> {
+					 r.run();
+					 return null;
+				 });
+		inside.properties.getOrConstruct(commandDoc)
+				 .put(name, doc);
+		inside.properties.getOrConstruct(commandGuard)
+				 .put(name, guard);
+	}
+
 	public static List<Triple<String, String, Runnable>> getCommandsAndDocs(Box box) {
-		List<Triple<String, String, Runnable>> commands = (List<Triple<String, String, Runnable>>) box
-																.find(Commands.commands, box
-																			    .both())
-																.flatMap(m -> m.get()
-																	       .entrySet()
-																	       .stream()).map(
-					x -> new Triple<>(x.getKey().first, x.getKey().second, x.getValue()))
-																.collect(Collectors.toList());
+		List<Triple<String, String, Runnable>> commands = (List<Triple<String, String, Runnable>>) box.find(Commands.commands, box.both())
+													      .flatMap(m -> m.get()
+															     .entrySet()
+															     .stream())
+													      .map(x -> new Triple<>(x.getKey().first, x.getKey().second, x.getValue()))
+													      .collect(Collectors.toList());
 
 
-		IdempotencyMap<FunctionOfBox> map = box
-							     .find(command, box
-									       .upwards())
-							     .reduce(new IdempotencyMap<FunctionOfBox>(FunctionOfBox.class), (a1, a2) -> {
-								     IdempotencyMap<FunctionOfBox> q = new IdempotencyMap<>(FunctionOfBox.class);
-								     q.putAll(a1);
-								     q.putAll(a2);
-								     return q;
-							     });
-		IdempotencyMap<String> mapDoc = box
-							     .find(commandDoc, box
-									       .upwards())
-							     .reduce(new IdempotencyMap<String>(String.class), (a1, a2) -> {
-								     IdempotencyMap<String> q = new IdempotencyMap<>(String.class);
-								     q.putAll(a1);
-								     q.putAll(a2);
-								     return q;
-							     });
+		IdempotencyMap<Function<Box, Void>> map = box.find(command, box.upwards())
+						       .reduce(new IdempotencyMap<Function<Box, Void>>(Function.class), (a1, a2) -> {
+							       IdempotencyMap<Function<Box, Void>
+									   > q = new IdempotencyMap<>(Function.class);
+							       q.putAll(a1);
+							       q.putAll(a2);
+							       return q;
+						       });
+		IdempotencyMap<String> mapDoc = box.find(commandDoc, box.upwards())
+						   .reduce(new IdempotencyMap<String>(String.class), (a1, a2) -> {
+							   IdempotencyMap<String> q = new IdempotencyMap<>(String.class);
+							   q.putAll(a1);
+							   q.putAll(a2);
+							   return q;
+						   });
+
+		IdempotencyMap<Function<Box, Boolean>> guardDoc = box.find(commandGuard, box.upwards())
+								     .reduce(new IdempotencyMap<Function<Box, Boolean>>(FunctionOfBox.class), (a1, a2) -> {
+									     IdempotencyMap<Function<Box, Boolean>> q = new IdempotencyMap<>(FunctionOfBox.class);
+									     q.putAll(a1);
+									     q.putAll(a2);
+									     return q;
+								     });
 
 		map.entrySet()
 		   .forEach(x -> {
-			   String name = rewriteCamelCase(x.getKey());
-			   String doc = mapDoc.getOrDefault(x.getKey(), "");
-			   commands.add(new Triple<String, String, Runnable>(name, doc, () -> x.getValue().apply(box)));
-		   });
-		return commands;
+			   Function<Box, Boolean> g = guardDoc.get(x.getKey());
+			   if (g == null || g.apply(box)) {
+				   String name = rewriteCamelCase(x.getKey());
+				   String doc = mapDoc.getOrDefault(x.getKey(), "");
+				   commands.add(new Triple<String, String, Runnable>(name, doc, () -> {
+					   x.getValue().apply(box);
+				   }));
+			   }
+		   }); return commands;
 	}
 
 	static private String rewriteCamelCase(String key) {
-		return key.replace("_"," ");
+		return key.replace("_", " ");
 	}
 
 	public RemoteEditor.SupportsPrompt supportsPrompt(Consumer<String> ret) {

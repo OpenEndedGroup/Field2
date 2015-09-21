@@ -109,9 +109,13 @@ public class CefSystem {
 				Log.log("cef.debug", "load start:" + browser + " -> " + frameIdentifer);
 			}
 
+
 			@Override
 			public void onLoadEnd(CefBrowser browser, int frameIdentifier, int httpStatusCode) {
 				Log.log("cef.debug", "load end:" + browser + " -> " + frameIdentifier);
+				Runnable r =completionCallbacks.get(browser);
+				if (r!=null)
+					    r.run();
 			}
 
 			@Override
@@ -176,8 +180,9 @@ public class CefSystem {
 	}
 
 	Map<CefBrowser, MessageCallback> callbacks = new MapMaker().weakKeys().makeMap();
+	Map<CefBrowser, Runnable> completionCallbacks = new MapMaker().weakKeys().makeMap();
 
-	public CefRendererBrowserBuffer makeBrowser(int w, int h, PaintCallback callback, MessageCallback message)
+	public CefRendererBrowserBuffer makeBrowser(int w, int h, PaintCallback callback, MessageCallback message, Runnable completionCallback)
 	{
 		CefRenderer cefRenderer = new CefRenderer() {
 			@Override
@@ -194,6 +199,7 @@ public class CefSystem {
 			    .createBrowser(null, true, CefBrowserFactory.RenderType.RENDER_BYTE_BUFFER, null, w, h, cefRenderer);
 
 		callbacks.put(browser, message);
+		completionCallbacks.put(browser, completionCallback);
 
 
 

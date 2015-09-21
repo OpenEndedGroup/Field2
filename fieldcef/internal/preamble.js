@@ -110,6 +110,18 @@
 														 })
 												 })
 										 }
+										 else if (completions[i].info.search(fuzzyPattern)!=-1)
+										 {
+												 matched = completions[i].name;
+												 m.push({
+														 text: matched + " <span class=doc>" + completions[i].info.replace(fuzzyPattern, replacer) + "</span>",
+														 callback: function() {
+																 completions[this.i].callback()
+														 }.bind({
+																 "i": i
+														 })
+												 })
+										 }
 								 }
 								 return m
 						 }
