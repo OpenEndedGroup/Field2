@@ -11,6 +11,7 @@ cm.setOption("foldGutter", true);
 cm.setOption("gutters", ["CodeMirror-foldgutter", "CodeMirror-linenumbers"]);
 cm.setOption("matchBrackets", true);
 cm.setOption("closeBrackets", true);
+cm.setOption("cursorBlinkRate", 0);
 
 colorpickernum = 0;
 
@@ -214,7 +215,6 @@ overrides = ["Ctrl-H", "Shift-Ctrl-O", "Ctrl-W", "Ctrl-J", "Ctrl-N", "Shift-Ctrl
 cmdKey = (navigator.appVersion.indexOf("Mac") != -1) ? "Cmd-" : "Ctrl-";
 
 extraKeys = {
-    // should this be alt-Left on Linux?
     "Alt-Left": function (cm) {
         Current_Bracket();
     },
