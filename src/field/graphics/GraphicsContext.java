@@ -131,8 +131,9 @@ public class GraphicsContext {
 	public static void checkError(Supplier<String> message) {
 		if (noChecks) return;
 		int e = GL11.glGetError();
-		if (e!=0)
-			throw new IllegalStateException("GLERROR:"+ GLContext.translateGLErrorString(e)+" -- "+message.get());
+		if (e!=0) {
+			throw new IllegalStateException("GLERROR:" + GLContext.translateGLErrorString(e) + " -- " + message.get()+"\nState tracker is:"+stateTracker.dumpOutput());
+		}
 	}
 
 	static public class Sticky implements Runnable {
