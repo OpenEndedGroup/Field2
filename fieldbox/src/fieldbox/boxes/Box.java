@@ -61,7 +61,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	private String __cachedSimpleName = null;
 	private long tick = 0;
 
-	PegDownProcessor peg = new PegDownProcessor();
+	static public final PegDownProcessor peg = new PegDownProcessor();
 
 
 	public Box() {
@@ -495,6 +495,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 
 	private String format(String documentation) {
 		String doc = peg.markdownToHtml(documentation == null ? "" : documentation);
+//		String doc = documentation;
 		doc = doc.trim();
 		System.out.println(" doc is ||"+doc+"||");
 		if (doc.startsWith("<p>") && doc.endsWith("</p>"))
