@@ -41,7 +41,7 @@ public class Browser extends Box implements IO.Loaded {
 
 	static public final Dict.Prop<String> url = new Dict.Prop<String>("url").type()
 										.toCannon()
-										.doc("URL for the browser. Setting this will cause the browser to nagivate, and repaint automatically");
+										.doc("URL for the browser. Setting this will cause the browser to navigate, and repaint automatically");
 	static public final Dict.Prop<String> html = new Dict.Prop<String>("html").type()
 										  .toCannon()
 										  .doc("HTML for the browser. Setting this will cause the browser to reload it's contents from this string, and repaint automatically");
@@ -222,9 +222,9 @@ public class Browser extends Box implements IO.Loaded {
 		shader.attach(new Uniform<Vec2>("bounds", () -> new Vec2(Window.getCurrentWidth(), Window.getCurrentHeight())));
 
 		shader.attach(-2, "__rectupdate__", x -> {
-					Rect r = properties.get(Box.frame);
-					update(r.x, r.y, 1/*r.w/w*/);
-				});
+			Rect r = properties.get(Box.frame);
+			update(r.x, r.y, 1/*r.w/w*/);
+		});
 
 		shader.attach(q);
 		shader.attach(texture);
@@ -350,8 +350,6 @@ public class Browser extends Box implements IO.Loaded {
 		});
 
 		this.properties.putToMap(Mouse.onMouseScroll, "__browser__", (e) -> {
-
-
 			Rect r = properties.get(Box.frame);
 			if (!intersects(r, e)) return;
 			if (!isSelected() && !getFocus()) return;
@@ -372,8 +370,6 @@ public class Browser extends Box implements IO.Loaded {
 			browser.sendMouseWheelEvent(new MouseWheelEvent(component, MouseWheelEvent.MOUSE_WHEEL, KeyEvent.SHIFT_DOWN_MASK, 0, (int) (point.x - r.x) * window.getRetinaScaleFactor(),
 									(int) (point.y - r.y) * window.getRetinaScaleFactor(), (int) (point.x - r.x) * window.getRetinaScaleFactor(),
 									(int) (point.y - r.y) * window.getRetinaScaleFactor(), 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, 1, (int) dx, dx));
-
-
 		});
 
 		this.properties.putToMap(Keyboard.onKeyDown, "__browser__", (e, k) -> {
@@ -552,6 +548,9 @@ public class Browser extends Box implements IO.Loaded {
 	 * called from some random thread, buffer only good for duration of call. ?
 	 */
 	protected void paint(boolean popup, Rectangle[] dirty, ByteBuffer buffer, int w, int h) {
+
+		System.err.println("PAINT :"+w+" "+h);
+
 		if (dirty.length == 0) return;
 
 		sourceView.clear();
@@ -725,16 +724,13 @@ public class Browser extends Box implements IO.Loaded {
 		getOutCached();
 		String texts = "";
 
-		if (out_cached!=null)
-		{
+		if (out_cached != null) {
 			texts = out_cached.convert(text);
-		}
-		else
-		{
-			texts = text+"";
+		} else {
+			texts = text + "";
 		}
 
-		executeJavaScript_queued("$(document.body).append('"+TextUtils.quoteNoOuter(texts.replace("'", "\""))+"');" + scrollDown());
+		executeJavaScript_queued("$(document.body).append('" + TextUtils.quoteNoOuter(texts.replace("'", "\"")) + "');" + scrollDown());
 	}
 
 	public void println(String text) {
@@ -774,9 +770,10 @@ public class Browser extends Box implements IO.Loaded {
 	}
 
 	public Out getOutCached() {
-		if (out_cached!=null) return out_cached;
+		if (out_cached != null) return out_cached;
 
-		out_cached = find(Out.__out, both()).findAny().orElseGet(() -> null);
+		out_cached = find(Out.__out, both()).findAny()
+						    .orElseGet(() -> null);
 
 		return out_cached;
 	}
