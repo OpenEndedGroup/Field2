@@ -3,11 +3,13 @@ package field.graphics;
 import field.utility.Log;
 import field.utility.Util;
 import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.GL30;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -45,7 +47,9 @@ public class StateTracker {
 	static public State<Integer> fbo = new State<Integer>() {
 		@Override
 		protected void apply(Integer value) {
+			Log.log("graphics.trace", "setting framebuffer to " + value+" <- "+fbo.value+" "+ GL30.glCheckFramebufferStatus(GL30.GL_DRAW_FRAMEBUFFER));
 			glBindFramebuffer(GL_FRAMEBUFFER, value == null ? 0 : value);
+			Log.log("graphics.trace", "set framebuffer to " + value+" <- "+fbo.value+" "+ GL30.glCheckFramebufferStatus(GL30.GL_DRAW_FRAMEBUFFER));
 		}
 	};
 	static public State<int[]> blendState = new State<int[]>()
@@ -99,6 +103,19 @@ public class StateTracker {
 		} finally {
 //				GraphicsContext.checkError();
 		}
+	}
+
+	/**
+	 * dumps the current state to a string
+	 * @return
+	 */
+	public String dumpOutput() {
+		String s = "";
+		for(Map.Entry<String, State> e : allStates.entrySet())
+		{
+			s+= e.getKey()+" = "+e.getValue().value+"\n";
+		}
+		return s;
 	}
 
 	static public abstract class State<T> {
