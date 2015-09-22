@@ -75,6 +75,7 @@ public class Windows {
 
 			@Override
 			public void error(int error, String description) {
+				System.err.println(" ERROR in GLFW windowing system :" + error + " / " + description);
 				Runnable r = () -> {
 					checkClassLoader();
 					System.err.println(" ERROR in GLFW windowing system :" + error + " / " + description);

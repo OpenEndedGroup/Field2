@@ -71,7 +71,7 @@ public class Window implements ProvidesGraphicsContext {
 		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, 1);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-		glfwWindowHint(GLFW_SAMPLES, 1);
+		glfwWindowHint(GLFW_DOUBLEBUFFER, 0);
 
 		glfwWindowHint(GLFW_DECORATED, title == null ? 0 : 1);
 
@@ -79,10 +79,9 @@ public class Window implements ProvidesGraphicsContext {
 		this.h = h;
 
 		window = glfwCreateWindow(w, h, title, 0, 0);
+		Windows.windows.register(window, makeCallback());
 
 		glfwSetWindowPos(window, x, y);
-
-		Windows.windows.register(window, makeCallback());
 		glfwShowWindow(window);
 
 		glfwMakeContextCurrent(window);
@@ -92,7 +91,6 @@ public class Window implements ProvidesGraphicsContext {
 
 		glcontext = GLContext.createFromCurrent();
 
-
 		GL11.glClearColor(0.25f, 0.25f, 0.25f, 1);
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 		glfwSwapBuffers(window);
@@ -100,14 +98,7 @@ public class Window implements ProvidesGraphicsContext {
 		RunLoop.main.getLoop()
 			    .attach(0, (i) -> loop());
 
-		ByteBuffer dest = ByteBuffer.allocateDirect(32 * 32 * 4);
-		for (int i = 0; i < 32 * 32 * 4; i++)
-			dest.put((byte) (Math.random() * 255));
 
-		dest.rewind();
-		Glfw.glfwSetCursor(window, Glfw.glfwCreateCursor(dest, 32, 32, 32, 32));
-
-//		Glfw.glfwSetInputMode(window, Glfw.GLFW_STICKY_KEYS, GL.GL_TRUE);
 		Glfw.glfwSetInputMode(window, Glfw.GLFW_STICKY_MOUSE_BUTTONS, GL.GL_TRUE);
 
 		retinaScaleFactor = permitRetina ? (int) (Options.dict().getFloat(new Dict.Prop<Number>("retina"), 0f)+1) : 1;
@@ -204,7 +195,7 @@ public class Window implements ProvidesGraphicsContext {
 		glfwMakeContextCurrent(window);
 		glfwSwapInterval(1);
 
-		glcontext.makeCurrent(0);
+//		glcontext.makeCurrent(0);
 		GraphicsContext.checkError(() -> "initially");
 
 		int w = glfwGetWindowWidth(window);
