@@ -132,9 +132,11 @@ _messageBus.subscribe("selection.changed", function (d, e) {
 
 	}
 
-	if (boxOutputs[d.box]) {
-		appendRemoteOutputToLine(cm.lineCount() - 1, boxOutputs[d.box], "Field-remoteOutput-error", "Field-remoteOutput", false)
-	}
+	// need to be able to delete these outputs for good
+
+	//if (boxOutputs[d.box]) {
+	//	appendRemoteOutputToLine(cm.lineCount() - 1, boxOutputs[d.box], "Field-remoteOutput-error", "Field-remoteOutput", false)
+	//}
 
 	console.log("<<Selection.changed");
 	ignoreChange = false;
