@@ -123,7 +123,7 @@ public class Chorder extends Box {
 
 			box.first(Execution.execution)
 					  .ifPresent(x -> x.support(box, Execution.code)
-							   .begin(box, Collections.singletonMap("_t", Collections.singletonMap("_t", i))));
+							   .begin(box, Collections.singletonMap("_t",  i)));
 			// with remote back ends it's possible we'll have to defer this to the next update cycle to give them a chance to acknowledge that were actually executing
 			int count1 = box.properties.computeIfAbsent(IsExecuting.executionCount,
 								    (k) -> 0);
@@ -168,8 +168,6 @@ public class Chorder extends Box {
 
 		return (e, end) -> {
 
-			Optional<Drawing> drawing = this.find(Drawing.drawing, both())
-							.findFirst();
 			Vec2 point =
 				    new Vec2(e.after.mx, e.after.my);
 			chordOver(frames, start, point, end);
