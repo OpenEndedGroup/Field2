@@ -5,7 +5,7 @@ import com.google.common.collect.SetMultimap;
 import field.dynalink.beans.StaticClass;
 import field.nashorn.api.scripting.ScriptObjectMirror;
 import field.nashorn.api.scripting.ScriptUtils;
-import field.nashorn.internal.objects.ScriptFunctionImpl;
+import field.nashorn.internal.runtime.ScriptFunction;
 import field.nashorn.internal.runtime.ScriptObject;
 import field.nashorn.internal.runtime.linker.JavaAdapterFactory;
 import fieldbox.execution.Errors;
@@ -400,7 +400,7 @@ public class Conversions {
 		if (value instanceof ScriptObjectMirror) return convert(ScriptUtils.unwrap(value), fit);
 
 
-		if (value instanceof ScriptFunctionImpl) {
+		if (value instanceof ScriptFunction) {
 			StaticClass adapterClassFor = JavaAdapterFactory.getAdapterClassFor(new Class[]{fit.get(0)}, (ScriptObject) value, MethodHandles.lookup());
 
 			try {

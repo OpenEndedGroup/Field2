@@ -3,8 +3,8 @@ package field.graphics;
 import field.dynalink.beans.StaticClass;
 import field.linalg.*;
 import field.nashorn.api.scripting.ScriptUtils;
-import field.nashorn.internal.objects.ScriptFunctionImpl;
 import field.nashorn.internal.runtime.ConsString;
+import field.nashorn.internal.runtime.ScriptFunction;
 import field.nashorn.internal.runtime.ScriptObject;
 import field.nashorn.internal.runtime.linker.JavaAdapterFactory;
 import field.utility.*;
@@ -59,6 +59,15 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 	private Map<Integer, String> auxProperties;
 
 	public FLine() {
+	}
+
+	public FLine(Map<Object, Object> attributes)
+	{
+		for(Map.Entry e : attributes.entrySet())
+		{
+			String name = (String)Conversions.convert(e.getKey(), String.class);
+			asMap_set(name, e.getValue());
+		}
 	}
 
 	@HiddenInAutocomplete
@@ -1113,7 +1122,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 
 		}
 
-		if (value instanceof ScriptFunctionImpl) {
+		if (value instanceof ScriptFunction) {
 			StaticClass adapterClassFor = JavaAdapterFactory.getAdapterClassFor(new Class[]{fit.get(0)}, (ScriptObject) value, MethodHandles.lookup());
 			try {
 				return adapterClassFor.getRepresentedClass()
@@ -1303,7 +1312,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 
 			}
 
-			if (value instanceof ScriptFunctionImpl) {
+			if (value instanceof ScriptFunction) {
 				StaticClass adapterClassFor = JavaAdapterFactory.getAdapterClassFor(new Class[]{fit.get(0)}, (ScriptObject) value, MethodHandles.lookup());
 				try {
 					return adapterClassFor.getRepresentedClass()

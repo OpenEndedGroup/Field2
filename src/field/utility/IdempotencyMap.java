@@ -3,7 +3,7 @@ package field.utility;
 import field.dynalink.beans.StaticClass;
 import field.nashorn.api.scripting.ScriptObjectMirror;
 import field.nashorn.api.scripting.ScriptUtils;
-import field.nashorn.internal.objects.ScriptFunctionImpl;
+import field.nashorn.internal.runtime.ScriptFunction;
 import field.nashorn.internal.runtime.ScriptObject;
 import field.nashorn.internal.runtime.linker.JavaAdapterFactory;
 import fieldlinker.Linker;
@@ -29,7 +29,6 @@ public class IdempotencyMap<T> extends LinkedHashMapAndArrayList<T> implements M
 		return this;
 	}
 
-
 	@Override
 	protected T massage(Object value) {
 		if (t==null) return (T)value;
@@ -39,7 +38,7 @@ public class IdempotencyMap<T> extends LinkedHashMapAndArrayList<T> implements M
 		if (value instanceof ScriptObjectMirror)
 			value = ScriptUtils.unwrap(value);
 
-		if (value instanceof ScriptFunctionImpl) {
+		if (value instanceof ScriptFunction) {
 			StaticClass adapterClassFor = JavaAdapterFactory.getAdapterClassFor(new Class[]{t}, (ScriptObject) value, MethodHandles.lookup());
 			try {
 				return (T) adapterClassFor.getRepresentedClass()

@@ -242,9 +242,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 		if (ThreadSync.enabled && Thread.currentThread() == ThreadSync.get().mainThread) {
 			try {
 				ThreadSync.Fiber f = ThreadSync.get()
-							       .run(() -> {
-								       return engine.eval(textFragment, context);
-							       }, exception);
+							       .run(() -> engine.eval(textFragment, context), exception);
 				f.tag = box;
 				return f.lastReturn;
 
