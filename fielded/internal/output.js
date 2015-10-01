@@ -6,6 +6,11 @@ function escapeHtml(str) {
 
 function appendRemoteOutputToLine(line, text, checkClass, lineClass, append) {
 	lh = cm.getLineHandle(line)
+	if (!lh) {
+		console.log(" -- appendRemoteOutputToLine failed, no line :"+line);
+		return;
+	}
+
 	w = cm.lineInfo(lh).widgets
 	found = null;
 
