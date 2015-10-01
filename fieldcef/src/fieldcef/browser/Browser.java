@@ -737,13 +737,19 @@ public class Browser extends Box implements IO.Loaded {
 		executeJavaScript_queued("$(document.body).append('"+TextUtils.quoteNoOuter(texts.replace("'", "\""))+"');" + scrollDown());
 	}
 
-	public void println(String text) {
+	public void clearAndPrint(Object text)
+	{
+		clear();
+		print(text);
+	}
+
+
+	public void printText(String text) {
 		executeJavaScript_queued("$(document.body).append('<pre style=\"padding:3px;margin:3px;\">" + TextUtils.quoteNoOuter(text.replace("'", "\"")) + "</pre>');" + scrollDown());
 	}
 
 	public void clear() {
 		executeJavaScript_queued("document.body.innerHTML=''");
-
 	}
 
 	private String scrollDown() {
