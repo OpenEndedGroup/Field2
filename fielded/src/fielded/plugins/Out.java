@@ -121,16 +121,16 @@ public class Out extends Box {
 
 	private String cheapSynax(String s) {
 
-		s = stuff.matcher(s)
-			 .replaceAll((x) -> {
-				 String found = x.group(1);
-				 if (found != null && found.length() > 0) return "<span class='number'>" + found + "</span>";
-				 else {
-					 found = x.group(3);
-					 if (found != null && found.length() > 0) return "<span class='operator'>" + found + "</span>";
-				 }
-				 return x.group(0);
-			 });
+//		s = stuff.matcher(s)
+//			 .replaceAll((x) -> {
+//				 String found = x.group(1);
+//				 if (found != null && found.length() > 0) return "<span class='number'>" + found + "</span>";
+//				 else {
+//					 found = x.group(3);
+//					 if (found != null && found.length() > 0) return "<span class='operator'>" + found + "</span>";
+//				 }
+//				 return x.group(0);
+//			 });
 
 
 		return s;
@@ -177,7 +177,7 @@ public class Out extends Box {
 					continue;
 				} else {
 					prev.put(groupName, groupValue);
-					s = s.substring(0, m.start() ) + s.substring(m.end() );
+					s = s.substring(0, m.start() ) + "<span class='smaller'>.</span>"+s.substring(m.end() );
 					continue;
 				}
 			}

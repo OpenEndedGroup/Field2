@@ -201,9 +201,12 @@ a {
 .maptable-entry
 {
     display:inline-flex;
-    margin:2px;
+    margin:0px;
     border:1px solid rgba(0,0,0,0.1);
     border-radius:2px;
+    padding:2px;
+    padding-left:4px;
+    padding-right:4px;
 }
 
 .smaller {
