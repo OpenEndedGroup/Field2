@@ -1,0 +1,6 @@
+<application>
+  <component name="NotificationConfiguration">
+    <notification groupId="Profiling" />
+    <notification groupId="System Health" displayType="STICKY_BALLOON" />
+  </component>
+</application>
