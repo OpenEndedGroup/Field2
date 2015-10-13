@@ -194,7 +194,7 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 	}
 
 	Map<Box, ScriptEngine> bindingsPerBox = new WeakHashMap<Box, ScriptEngine>();
-
+	Map<Box, NashornExecution> executionsPerBox = new WeakHashMap<Box, NashornExecution>();
 
 	Cached<Pair<Box, Dict.Prop<String>>, Pair<Box, Dict.Prop<String>>, NashornExecution> cached = new Cached<>((next, was) -> {
 
@@ -218,6 +218,6 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 
 	@Override
 	public NashornExecution apply(Box box, Dict.Prop<String> stringProp) {
-		return cached.apply(new Pair<>(box, stringProp));
+		return executionsPerBox.computeIfAbsent(box, k -> cached.apply(new Pair<>(box, stringProp)));
 	}
 }
