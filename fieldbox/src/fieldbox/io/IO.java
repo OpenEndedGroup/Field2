@@ -33,7 +33,7 @@ public class IO {
 	static public final String WORKSPACE = "{{workspace}}";
 	static public final String EXECUTION = "{{execution}}";
 	static public final String TEMPLATES = "{{templates}}";
-	public static final Dict.Prop<String> id = new Dict.Prop<>("__id__");
+	public static final Dict.Prop<String> id = new Dict.Prop<>("__id__").autoConstructs(() -> Box.newID());
 	public static final Dict.Prop<String> desiredBoxClass = new Dict.Prop<>("__desiredBoxClass__");
 	public static final Dict.Prop<String> comment = new Dict.Prop<>("comment").toCannon()
 										  .type()
