@@ -79,20 +79,20 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 
 						    int n = 0;
 						    for (Box x2 : x.children()) {
-							    if (x2.properties.has(Box.frame)) {
+							    if (x2.properties.has(Box.frame) && x2.properties.has(Box.name) && x2.properties.get(Box.name).trim().length()>0) {
 								    FLine m = arc(x.properties.get(Box.frame), x2.properties.get(Box.frame), true).first;
 								    if (f.nodes.size() == 0) f.attributes.putAll(m.attributes);
 								    f.nodes.addAll(m.nodes);
-								    if (n++>25) break; // TODO: indicate that we're giving up making boxes for things with more than 25 children
+								    if (n++>10) break; // TODO: indicate that we're giving up making boxes for things with more than 10 children
 							    }
 						    }
 
 						    for (Box x2 : x.parents()) {
-							    if (x2.properties.has(Box.frame)) {
+							    if (x2.properties.has(Box.frame)&& x2.properties.has(Box.name) && x2.properties.get(Box.name).trim().length()>0) {
 								    FLine m = arc(x2.properties.get(Box.frame), x.properties.get(Box.frame), true).first;
 								    if (f.nodes.size() == 0) f.attributes.putAll(m.attributes);
 								    f.nodes.addAll(m.nodes);
-								    if (n++>25) break; // TODO: indicate that we're giving up making boxes for things with more than 25 children
+								    if (n++>10) break; // TODO: indicate that we're giving up making boxes for things with more than 10 children
 							    }
 						    }
 					    });
