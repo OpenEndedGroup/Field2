@@ -67,9 +67,7 @@ public class Auto extends Box implements IO.Loaded {
 
 			RunLoop.main.delay(() -> {
 				t.first.find(Chorder.begin, both())
-				       .findFirst()
-				       .get()
-				       .apply(t.first);
+				       .findFirst().map( x -> x.apply(t.first));
 
 			}, 1000);
 
