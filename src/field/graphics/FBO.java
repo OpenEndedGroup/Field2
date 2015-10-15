@@ -20,10 +20,16 @@ import static org.lwjgl.opengl.GL32.glFramebufferTexture;
  * static methods to help you avoid the mess of historic OpenGL enums, we'll grow these as necessary). They can have multiple layers, optional depth
  * buffers, optional stencils, multisampling, a variety of components and bit-depths and dimensions.
  * <p>
- * TODO: right now we're confined to the GL_TEXTURE2D case, although we know from experience that they layered case is very useful for stereo
  */
-public class FBO extends BaseScene<FBO.State> implements Scene.Perform {
+public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUniform<Integer> {
 
+
+	@Override
+	public Integer getUniform() {
+		try(Util.ExceptionlessAutoCloasable st = GraphicsContext.stateTracker.save()) {
+			return specification.unit;
+		}
+	}
 
 	static public class State extends BaseScene.Modifiable {
 		int name = -1;
