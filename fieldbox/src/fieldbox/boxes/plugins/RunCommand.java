@@ -29,12 +29,12 @@ public class RunCommand extends Box {
 
 	protected boolean run(Box box, String of) {
 
-		Log.log("run.command", box + " " + of);
+		Log.log("run.command",()-> box + " " + of);
 
 		Pattern p = Pattern.compile(of);
 		List<Triple<String, String, Runnable>> commands = Commands.getCommandsAndDocs(box);
 
-		Log.log("run.command", "command size is " + commands.size());
+		Log.log("run.command", ()->"command size is " + commands.size());
 		if (commands.size() == 0) return false;
 
 		// Nashorn doesn't like a lambda here
