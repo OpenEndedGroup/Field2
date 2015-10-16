@@ -1,8 +1,16 @@
 globalCommands.push({
     "name": "Insert default tap here",
-    "info": "Inserts a tap (a function in a box that refers to this position in the text",
+    "info": "Inserts a tap (a function in a box that refers to this position in the text)",
     "callback": function () {
         insertTapHere("default", 30, 30);
+    }
+});
+
+globalCommands.push({
+    "name": "Insert execution marker here",
+    "info": "Inserts an execution marker here (a function in a box that refers to this position in the text",
+    "callback": function () {
+        insertTapHere("exec", 30, 30);
     }
 });
 
@@ -38,9 +46,11 @@ insertTap = function (selection_start, selection_end, uid, w, h) {
 }
 
 canvasForID = function (name) {
-    return $('*').filter(function () {
+    q = $('*').filter(function () {
         return $(this).data('canvasID') == name;
-    })[0].canvas;
+    })[0];
+    if (q) return q.canvas;
+    return null;
 }
 
 insertTapHere = function (ty, w, h) {
