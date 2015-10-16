@@ -41,8 +41,8 @@ public class GlassBrowser extends Box implements IO.Loaded {
 	String styleSheet = "field-codemirror.css";
 
 	// we'll need to make sure that this is centered on larger screens
-	int maxw = 2560;
-	int maxh = 1600;
+	int maxw = 1920*2;
+	int maxh = 1080*2;
 	public Browser browser;
 	public String styles;
 
@@ -55,7 +55,7 @@ public class GlassBrowser extends Box implements IO.Loaded {
 	Commands commandHelper = new Commands();
 
 	public void loaded() {
-		Log.log("glassbrowser.debug", "initializing browser");
+		Log.log("glassbrowser.debug", ()->"initializing browser");
 		browser = new Browser();
 		browser.properties.put(Box.frame, new Rect(0, 0, maxw, maxh));
 		browser.properties.put(FLineDrawing.layer, "glass2");
@@ -122,7 +122,7 @@ public class GlassBrowser extends Box implements IO.Loaded {
 					    inject2();
 					    return false;
 				    }
-				    Log.log("glassBrowser.boot", "WAITING url:" + browser.browser.getURL());
+				    Log.log("glassBrowser.boot", ()->"WAITING url:" + browser.browser.getURL());
 				    Drawing.dirty(this);
 				    return tick < 100;
 			    });
@@ -133,9 +133,9 @@ public class GlassBrowser extends Box implements IO.Loaded {
 	int ignoreHide = 0;
 
 	public void inject2() {
-		Log.log("glassbrowser.debug", "inject 2 is happening");
+		Log.log("glassbrowser.debug", ()->"inject 2 is happening");
 		for (String s : playlist) {
-			Log.log("glassbrowser.debug", "executing :" + s);
+			Log.log("glassbrowser.debug", ()->"executing :" + s);
 			browser.executeJavaScript(findAndLoad(s, true));
 		}
 		hide();
@@ -157,7 +157,7 @@ public class GlassBrowser extends Box implements IO.Loaded {
 			if (r != null) {
 				if (r instanceof RemoteEditor.ExtendedCommand)
 					((RemoteEditor.ExtendedCommand) r).begin(commandHelper.supportsPrompt(x -> {
-						Log.log("glassbrowser.debug", "continue commands " + x + "");
+						Log.log("glassbrowser.debug",()-> "continue commands " + x + "");
 						browser.executeJavaScript("continueCommands(JSON.parse('" + x + "'))");
 						ignoreHide = 4;
 						show();
@@ -175,7 +175,7 @@ public class GlassBrowser extends Box implements IO.Loaded {
 			if (r != null) {
 				if (r instanceof RemoteEditor.ExtendedCommand)
 					((RemoteEditor.ExtendedCommand) r).begin(commandHelper.supportsPrompt(x -> {
-						Log.log("glassbrowser.debug", "continue commands " + x + "");
+						Log.log("glassbrowser.debug", ()->"continue commands " + x + "");
 						browser.executeJavaScript("continueCommands(JSON.parse('" + x + "'))");
 						ignoreHide = 4;
 						show();
@@ -210,7 +210,7 @@ public class GlassBrowser extends Box implements IO.Loaded {
 
 
 	public void hide() {
-		Log.log("selection", "hidding now");
+		Log.log("selection", ()->"hidding now");
 		visible = false;
 		tick = 0;
 		RunLoop.main.getLoop()
@@ -219,7 +219,7 @@ public class GlassBrowser extends Box implements IO.Loaded {
 					    browser.setFocus(false);
 					    browser.properties.put(Box.hidden, true);
 					    browser.properties.put(Mouse.isSelected, false);
-					    Log.log("selection", "hidding now, again");
+					    Log.log("selection", ()->"hidding now, again");
 					    Drawing.dirty(this);
 				    }
 				    tick++;
@@ -282,7 +282,7 @@ public class GlassBrowser extends Box implements IO.Loaded {
 		for (String s : roots) {
 			if (new File(s + "/" + f).exists()) return readFile(s + "/" + f, append);
 		}
-		Log.log("glassbrowser.error", "Couldnt' find file in playlist :" + f);
+		Log.log("glassbrowser.error", ()->"Couldnt' find file in playlist :" + f);
 		return null;
 	}
 
