@@ -3,6 +3,7 @@ package field.graphics;
 import field.utility.Conversions;
 import field.utility.Dict;
 import field.utility.Log;
+import fieldbox.execution.HandlesCompletion;
 import fieldlinker.Linker;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 import org.lwjgl.opengl.*;
@@ -30,7 +31,7 @@ import static org.lwjgl.opengl.GL20.*;
  * Assuming that all goes well shaders take three principle kinds of inputs: vertex attributes (make and set these with aux and nextVertex calls in MeshBuilders), uniforms (make and set these with
  * calls to Uniform and UniformBundle classes here) and input from earlier shaders.
  */
-public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Linker.AsMap {
+public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Linker.AsMap, HandlesCompletion {
 
 
 	static public class State extends BaseScene.Modifiable {
@@ -111,7 +112,8 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 				GraphicsContext.put(this, s);
 			}
 
-			Log.log("graphics.trace", " shader name " + s.name);
+			final State finalS = s;
+			Log.log("graphics.trace", ()->" shader name " + finalS.name);
 
 			if (s.name == -1) {
 				s.name = GL20.glCreateShader(type.gl);
@@ -121,9 +123,9 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 
 				if (status == 0) {
 					String ret = GL20.glGetShaderInfoLog(s.name, 10000);
-					Log.log("graphics.error", type + " program failed to compile");
-					Log.log("graphics.error", " log is <" + ret + ">");
-					Log.log("graphics.error", " shader source is <" + source + ">, reporting to <" + onError + ">");
+					Log.log("graphics.error", ()->type + " program failed to compile");
+					Log.log("graphics.error", ()->" log is <" + ret + ">");
+					Log.log("graphics.error", ()->" shader source is <" + source + ">, reporting to <" + onError + ">");
 					if (onError != null) {
 						onError.beginError();
 						String log = ret;
@@ -150,7 +152,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 						}
 						onError.endError();
 					}
-					Log.log("graphics.error", " shader is not good");
+					Log.log("graphics.error", ()->" shader is not good");
 					s.good = false;
 					return false;
 				} else {
@@ -254,7 +256,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 			int validateStatus = glGetProgrami(name.name, GL20.GL_VALIDATE_STATUS);
 			if (validateStatus == 0) {
 				String ret = GL20.glGetProgramInfoLog(name.name, 10000);
-				Log.log("graphics.warning", " program failed to validate (note, this can be benign). Log is " + ret);
+				Log.log("graphics.warning",()-> " program failed to validate (note, this can be benign). Log is " + ret);
 				if (!ret.trim()
 					.toLowerCase()
 					.equals("Validation Failed: No vertex array object bound.".toLowerCase())) if (onError != null) {
@@ -272,7 +274,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 			GraphicsContext.stateTracker.shader.set(name.name);
 			GraphicsContext.getContext().uniformCache.changeShader(name.name);
 		} else {
-			Log.log("graphics.trace", "WARNING: program not valid, not being used");
+			Log.log("graphics.trace", ()->"WARNING: program not valid, not being used");
 		}
 
 		return true;
@@ -295,14 +297,6 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 		return new int[]{-2, 2};
 	}
 
-	UniformBundle defaultBundle = null;
-
-	protected UniformBundle getDefaultBundle() {
-		if (defaultBundle != null) return defaultBundle;
-		defaultBundle = new UniformBundle();
-		this.attach(defaultBundle);
-		return defaultBundle;
-	}
 
 	@Override
 	@HiddenInAutocomplete
@@ -375,7 +369,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 		if (o instanceof  OffersUniform)
 		{
 			getDefaultBundle().set(p, () -> ((OffersUniform)o).getUniform());
-			// fall through
+			// fall through -- connect things as well as set them as uniforms
 		}
 
 		return super.asMap_set(p, o);
