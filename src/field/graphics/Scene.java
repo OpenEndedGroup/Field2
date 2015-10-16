@@ -6,6 +6,7 @@ import field.utility.*;
 import fieldbox.boxes.Box;
 import fieldbox.execution.Completion;
 import fieldbox.execution.Errors;
+import fieldbox.execution.InverseDebugMapping;
 import fieldlinker.Linker;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -287,36 +288,63 @@ public class Scene extends Box implements Linker.AsMap {
 	 */
 
 	public String debugPrintScene() {
-		String ret = "" + this + "\n";
-		String prefix = "   ";
-		for (Map.Entry<Integer, Set<Consumer<Integer>>> c : scene.entrySet()) {
-			String tag = tagged.inverse()
-					   .get(c);
-			ret = ret + prefix + "" + c.getKey() + ":" + (tag == null ? "" : tag) + "\n";
-			prefix = prefix + "   ";
-			for (Consumer<Integer> cc : c.getValue())
-				ret = ret + "\n" + debugPrintScene(cc, prefix);
-			prefix = prefix.substring(3);
-		}
-		return ret;
+		Set<Object> seen = new LinkedHashSet<>();
+		return _debugPrintScene(seen);
 	}
 
-	private String debugPrintScene(Consumer<Integer> cc, String prefix) {
-		String ret = prefix + "" + cc + "\n";
-		prefix += "   ";
+	public String _debugPrintScene(Set<Object> seen) {
+
+		String ret = "" + this + "\n<p>";
+		String indent = "&nbsp;&nbsp;&nbsp;";
+		String prefix = indent;
+		if (seen.contains(this)) return ret;
+
+		for (Map.Entry<Integer, Set<Consumer<Integer>>> c : scene.entrySet()) {
+			String tag = tagged.inverse()
+					   .get(c.getValue());
+			ret = ret + prefix + "" + c.getKey() + ":" + (tag == null ? "" : tag) + "\n<p>";
+			prefix = prefix + indent;
+			for (Consumer<Integer> cc : c.getValue())
+				ret = ret + "\n<p>" + debugPrintScene(cc, prefix, seen);
+			prefix = prefix.substring(indent.length());
+		}
+		return "{HTML}" + ret;
+	}
+	private String debugPrintScene(Consumer<Integer> cc, String prefix, Set<Object> seen) {
+
+
+		String ccDesc = ""+cc;
+		if (cc.getClass().getName().startsWith("field.nashorn.javaadapters."))
+			ccDesc = "";
+
+		String desc = InverseDebugMapping.describe(cc);
+
+		if (!ccDesc.contains(desc))
+			ccDesc += ":"+desc;
+
+		String ret = prefix + "" + ccDesc + "\n<p>";
+		String indent = "&nbsp;&nbsp;&nbsp;";
+
+		if (seen.contains(cc)) return ret;
+		seen.add(cc);
 		if (cc instanceof Scene) {
 			for (Map.Entry<Integer, Set<Consumer<Integer>>> c : ((Scene) cc).scene.entrySet()) {
 				String tag = tagged.inverse()
-						   .get(c);
-				ret = ret + prefix + "" + c.getKey() + ":" + (tag == null ? "" : tag) + "\n";
-				prefix = prefix + " ";
+						   .get(c.getValue());
+				ret = ret + prefix + "" + c.getKey() + ":" + (tag == null ? "" : tag) + "\n<p>";
+				prefix = prefix + indent;
 				for (Consumer<Integer> ccc : c.getValue())
-					ret = ret + "\n" + debugPrintScene(ccc, prefix);
-				prefix = prefix.substring(3);
+					ret = ret + "\n<p>" + debugPrintScene(ccc, prefix,seen);
+				prefix = prefix.substring(indent.length());
 			}
 
 		}
 		return ret;
+	}
+
+	@Override
+	public String toString() {
+		return super.toString()+InverseDebugMapping.describe(this);
 	}
 
 	@Override
@@ -375,8 +403,25 @@ public class Scene extends Box implements Linker.AsMap {
 		return defaultBundle;
 	}
 
-
 	@Override
+	@HiddenInAutocomplete
+	public List<Completion> getCompletionsFor(String prefix) {
+
+		List<Completion> u = new ArrayList<>();
+		if (defaultBundle!=null) {
+			u.addAll(defaultBundle.getCompletionsFor(prefix));
+		}
+
+		for(Completion c : u)
+			c.rank=-100;
+
+		List<Completion> c = super.getCompletionsFor(prefix);
+
+		u.addAll(c);
+		return u;
+	}
+
+		@Override
 	@HiddenInAutocomplete
 	public Object asMap_set(String p, Object o) {
 		Object fo = Conversions.convert(o, Supplier.class);
@@ -424,9 +469,10 @@ public class Scene extends Box implements Linker.AsMap {
 	}
 
 	@Override
-	public List<Completion> getCompletionsFor(String prefix) {
-		return super.getCompletionsFor(prefix);
+	public Object asMap_setElement(int element, Object v) {
+		throw new IllegalArgumentException("Can't set ["+element+"] on a scene. Add it as a name instead (e.g scene["+element+"].something = ...");
 	}
+
 
 	/**
 	 * Although we can build the Scene structure out of (int, Consumer<int>) tuples, it's more along the grain of Java's type system to use an interface with both
@@ -538,6 +584,12 @@ public class Scene extends Box implements Linker.AsMap {
 
 		@Override
 		public Object asMap_set(String p, Object o) {
+
+			if (o instanceof Perform)
+			{
+				return attach("__"+pass+"__"+p, new PassShift(pass, ((Perform)o)));
+			}
+
 			o = Conversions.convert(o, Perform.class);
 			if (o instanceof Perform)
 			{
@@ -571,4 +623,47 @@ public class Scene extends Box implements Linker.AsMap {
 			throw new NotImplementedException();
 		}
 	}
+
+	public class PassShift implements Perform
+	{
+		private int shift;
+		private final Perform child;
+
+		public PassShift(int shift, Perform child)
+		{
+			this.shift = shift;
+			this.child = child;
+		}
+
+		@Override
+		public boolean perform(int pass) {
+			return child.perform(-pass+shift);
+		}
+
+		@Override
+		public int[] getPasses() {
+			int[] p = child.getPasses();
+			int[] p2 = new int[p.length];
+			for(int i=0;i<p.length;i++)
+				p2[i] = p[i] + shift;
+			return p2;
+		}
+
+		@Override
+		public void setErrorConsumer(Errors.ErrorConsumer c) {
+			child.setErrorConsumer(c);
+		}
+
+		@Override
+		public Errors.ErrorConsumer getErrorConsumer() {
+			return child.getErrorConsumer();
+		}
+
+
+		@Override
+		public String toString() {
+			return "<i>shift"+shift+"</i>:"+child;
+		}
+	}
+
 }

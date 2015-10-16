@@ -1,6 +1,8 @@
 package field.graphics;
 
 import fieldbox.execution.Errors;
+import fieldbox.execution.InverseDebugMapping;
+import org.apache.commons.math3.analysis.function.Inverse;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -37,14 +39,20 @@ public class Guard implements Scene.Perform {
 		this.guard = guard;
 	}
 
+	Scene.Perform last;
 	@Override
 	public boolean perform(int pass) {
-		if (guard.apply(pass)) return p.get().perform(pass);
+		if (guard.apply(pass)) return (last=p.get()).perform(pass);
 		else return true;
 	}
 
 	@Override
 	public int[] getPasses() {
 		return p.get().getPasses();
+	}
+
+	@Override
+	public String toString() {
+		return "Guard("+InverseDebugMapping.describeWithToString(last)+" | "+ InverseDebugMapping.describeWithToString(guard)+")="+InverseDebugMapping.describe(this);
 	}
 }

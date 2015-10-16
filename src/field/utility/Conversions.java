@@ -9,12 +9,14 @@ import field.nashorn.internal.objects.ScriptFunctionImpl;
 import field.nashorn.internal.runtime.ScriptObject;
 import field.nashorn.internal.runtime.linker.JavaAdapterFactory;
 import fieldbox.execution.Errors;
+import fieldbox.execution.InverseDebugMapping;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class Conversions {
 
@@ -220,7 +222,7 @@ public class Conversions {
 		inputs.put(conversion.input, conversion);
 		outputs.put(conversion.output, conversion);
 
-		Log.log("conversions.general", " REGISTERED conversion " + length + " " + conversion.input + " -> " + conversion.output);
+		Log.log("conversions.general", ()->" REGISTERED conversion " + length + " " + conversion.input + " -> " + conversion.output);
 
 	}
 
@@ -235,7 +237,7 @@ public class Conversions {
 			if (r != null) return r;
 		}
 
-		Log.log("conversions.general", " no conversion found ");
+		Log.log("conversions.general", ()->" no conversion found ");
 
 		return null;
 	}
@@ -331,6 +333,11 @@ public class Conversions {
 			ei[0] = m;
 		});
 
+		if (ei[0]!=null)
+		{
+			InverseDebugMapping.provideExtraInformation(o, ei[0]);
+		}
+
 		// set error consumer on conversion
 
 		if (o instanceof Errors.SavesErrorConsumer) {
@@ -349,7 +356,15 @@ public class Conversions {
 	private static Errors.ErrorConsumer wrap(String s, Errors.ErrorConsumer errorConsumer) {
 
 		return (t, m) -> {
-			errorConsumer.consume(t, s + "||" + m);
+			if (errorConsumer!=null)
+				errorConsumer.consume(t, s + "||" + m);
+			else
+			{
+				System.err.println(" missing error consumer in graphics scene");
+				System.err.println(" message is "+s+" / "+m);
+				System.err.println(" error is "+t.getMessage());
+				t.printStackTrace();
+			}
 		};
 
 	}
@@ -403,6 +418,8 @@ public class Conversions {
 		if (value instanceof ScriptFunctionImpl) {
 			StaticClass adapterClassFor = JavaAdapterFactory.getAdapterClassFor(new Class[]{fit.get(0)}, (ScriptObject) value, MethodHandles.lookup());
 
+			String extraString = null;
+
 			try {
 				String functionName = (String) ReflectionTools.get(value, "data/functionName");
 				Integer lineNumber = (Integer) ReflectionTools.get(value, "data/lineNumber");
@@ -419,17 +436,55 @@ public class Conversions {
 			}
 
 			try {
-				return adapterClassFor.getRepresentedClass()
-						      .newInstance();
+				Object o = adapterClassFor.getRepresentedClass()
+							  .newInstance();
+
+
+//				if (extraString!=null) {
+//					if (o instanceof Supplier) return wrapSupplierWithDetails(((Supplier) o), extraString); if (o instanceof Function) return wrapFunctionWithDetails(((Function) o), extraString);
+//				}
+				return o;
+
 			} catch (InstantiationException e) {
-				Log.log("underscore.error", " problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0), e);
+				Log.log("underscore.error", ()->" problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0)+e);
 			} catch (IllegalAccessException e) {
-				Log.log("underscore.error", " problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0), e);
+				Log.log("underscore.error", ()->" problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0)+ e);
 			}
 		}
 
 
 		return value;
 	}
+
+	private static Function wrapFunctionWithDetails(Function o, String extraString) {
+		return x -> {
+			try
+			{
+				return o.apply(x);
+			}
+			catch (Throwable t)
+			{
+				IllegalArgumentException e = new IllegalArgumentException("Exception thrown in callback "+extraString);
+				e.initCause(t);
+				throw e;
+			}
+		};
+	}
+
+	private static Supplier wrapSupplierWithDetails(Supplier o, String extraString) {
+		return () -> {
+			try
+			{
+				return o.get();
+			}
+			catch (Throwable t)
+			{
+				IllegalArgumentException e = new IllegalArgumentException("Exception thrown in callback "+extraString);
+				e.initCause(t);
+				throw e;
+			}
+		};
+	}
+
 
 }
