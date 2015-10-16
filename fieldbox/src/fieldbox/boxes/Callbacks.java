@@ -1,6 +1,8 @@
 package fieldbox.boxes;
 
+import field.nashorn.api.scripting.ScriptObjectMirror;
 import field.nashorn.api.scripting.ScriptUtils;
+import field.nashorn.internal.runtime.ScriptObject;
 import field.utility.Dict;
 import field.utility.IdempotencyMap;
 import field.utility.Log;
@@ -10,6 +12,7 @@ import fielded.DisabledRangeHelper;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -93,6 +96,19 @@ public class Callbacks {
 		return thread(from, a, onFrameChanged);
 	}
 
+	//todo: generalize
+	static public void frameModified(Box b, Consumer<Rect> r)
+	{
+		Rect rect = b.properties.get(Box.frame);
+		Rect r2 = rect.duplicate();
+		r.accept(r2);
+
+		Rect r3 = Callbacks.frameChange(b, r2);
+
+		b.properties.put(Box.frame, r3);
+
+	}
+
 	static public final Dict.Prop<IdempotencyMap<Box.BiFunctionOfBoxAnd<String, String>>>
 		    onNameChange = new Dict.Prop<>("onNameChange").type()
 								    .toCannon()
@@ -139,8 +155,6 @@ public class Callbacks {
 
 
 	public static Object call(Box box, Object a, Object b) {
-
-
 		Object call = call(box, main, b);
 		return call;
 	}
@@ -148,15 +162,15 @@ public class Callbacks {
 	private static Object call(Box box,Dict.Prop<IdempotencyMap<Supplier<Object>>> main, Object argMap) {
 		Map<String, Object> undoMap = new LinkedHashMap<>();
 
-
 		Object ret = null;
-
 
 		boolean success = false;
 		try {
 			Map<?, ?> m = null;
 
-			if (argMap instanceof Map) {
+			Class c = argMap == null ? null : argMap.getClass();
+
+			if (argMap instanceof Map || argMap instanceof ScriptObject) {
 				m = (Map<?, ?>) ScriptUtils.convert(argMap, Map.class);
 				for (Map.Entry<?, ?> e : m.entrySet()) {
 					Object was = box.properties.get(new Dict.Prop("" + e.getKey()));
@@ -192,11 +206,11 @@ public class Callbacks {
 
 				}
 
-				Log.log("calllogic", "about to reduce starting from " + box);
+				Log.log("calllogic",()-> "about to reduce starting from " + box);
 
 				IdempotencyMap<Supplier<Object>> map = box.find(main, box.upwards())
 									  .reduce(new IdempotencyMap<Supplier<Object>>(Supplier.class), (a1, a2) -> {
-										  Log.log("calllogic", "reducing " + a1 + " " + a2);
+										  Log.log("calllogic", ()->"reducing " + a1 + " " + a2);
 										  IdempotencyMap<Supplier<Object>> q = new IdempotencyMap<>(Supplier.class);
 										  q.putAll(a1);
 										  q.putAll(a2);
@@ -204,7 +218,7 @@ public class Callbacks {
 									  });
 
 
-				Log.log("calllogic", "reduced upwards to get " + map);
+				Log.log("calllogic", ()->"reduced upwards to get " + map);
 
 
 				Object[] firstRet = {null};
