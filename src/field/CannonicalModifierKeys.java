@@ -81,7 +81,7 @@ public class CannonicalModifierKeys {
 		else
 			down.remove(Glfw.GLFW_KEY_LEFT_ALT);
 
-		Log.log("finalkey", scancode+" / "+action+" -> "+shift + " " + control + " " + supr + " " + option);
+		Log.log("finalkey",()-> scancode+" / "+action+" -> "+shift + " " + control + " " + supr + " " + option);
 
 	}
 

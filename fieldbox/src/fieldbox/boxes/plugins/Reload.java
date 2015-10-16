@@ -41,18 +41,18 @@ public class Reload extends Box {
 					lastNotified = toReload.size();
 					String classList = toReload.stream().map( x-> x.getKey().getName().substring(x.getKey().getName().lastIndexOf(".")+1)).collect(Collectors.joining(", "));
 					if (classList.length()>100) classList = classList.substring(0, 100)+"...";
-					Log.log("reload", "There are classes that can be reloaded: " + classList);
-					Log.log("reload", "Use the reload command to do so");
+					String fclassList = classList;
+					Log.log("reload", ()->"There are classes that can be reloaded: " + fclassList);
+					Log.log("reload", ()->"Use the reload command to do so");
 				}
 			}
 		}).start();
-
 
 		properties.put(Commands.commands, () -> {
 			Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
 
 
-			Log.log("reload", "needing reloading...", toReload);
+			Log.log("reload", ()->"needing reloading..."+toReload);
 
 			List<Map.Entry<Class, Trampoline.Record>> toReload_copy = toReload;
 
@@ -67,7 +67,7 @@ public class Reload extends Box {
 				});
 			}
 
-			m.put(new Pair<>("do that thing", "does it work yet?"), () -> Hotswapper.doSomething());
+//			m.put(new Pair<>("do that thing", "does it work yet?"), () -> Hotswapper.doSomething());
 
 
 			return m;

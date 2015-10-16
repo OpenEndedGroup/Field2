@@ -142,7 +142,7 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 //			if (selected) f.circle(at.x, at.y, w);
 
 
-			Log.log("nub", "middle is " + at);
+			Log.log("nub", ()->"middle is " + at);
 
 			f.attributes.put(strokeColor, selected ? new Vec4(1, 1, 1, -0.1f) : new Vec4(0, 0, 0, 0.1f));
 //			if (selected) f.attributes.put(thicken, new BasicStroke(selected ? 16 : 0.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
@@ -231,7 +231,7 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 		Box h = properties.get(head)
 				  .get(this);
 		if (h == null) {
-			Log.log("huh", "failed to find head");
+			Log.log("huh", ()->"failed to find head");
 		}
 		return h;
 	}
@@ -242,7 +242,7 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 				  .get(this);
 
 		if (h == null) {
-			Log.log("huh", "failed to find tail");
+			Log.log("huh", ()->"failed to find tail");
 		}
 		return h;
 	}

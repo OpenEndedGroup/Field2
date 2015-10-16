@@ -43,10 +43,10 @@ public class TernSupport {
 				      .map(x -> new File(fieldagent.Main.app + "/fielded/external/tern/" + x))
 				      .collect(Collectors.toList());
 
-		Log.log("bindings", "global scope bindings :" + engine.getContext()
+		Log.log("bindings", ()->"global scope bindings :" + engine.getContext()
 								      .getBindings(ScriptContext.GLOBAL_SCOPE)
 								      .keySet());
-		Log.log("bindings", "engine scope bindings :" + engine.getContext()
+		Log.log("bindings", ()->"engine scope bindings :" + engine.getContext()
 								      .getBindings(ScriptContext.ENGINE_SCOPE)
 								      .keySet());
 
@@ -87,7 +87,8 @@ public class TernSupport {
 	}
 
 	public List<Completion> completion(ScriptEngine engine, String boxName, String allText, int line, int ch) {
-		List<Completion> r = new ArrayList<>();
+
+			List<Completion> r = new ArrayList<>();
 
 
 		try {
@@ -103,12 +104,13 @@ public class TernSupport {
 
 			Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
 			Log.log("completion.debug", () -> {
-				Log.log("completion.debug", "bindings are...");
+				Log.log("completion.debug", ()->"bindings are...");
 				for (Object k : bindings.keySet()) {
 					Object t = bindings.get(k);
 					if (t == null) continue;
 					if (t instanceof String) if (((String) t).split("\n").length > 0) t = ((String) t).split("\n")[0] + " ...";
-					Log.log("completion.debug", "    " + k + " " + t);
+					final Object finalT = t;
+					Log.log("completion.debug", ()->"    " + k + " " + finalT);
 				}
 				return null;
 			});
@@ -125,7 +127,8 @@ public class TernSupport {
 			c += ch;
 
 
-			Log.log("completion.debug", " line :" + line + " -> " + ch + " -> " + c + " alltext is <" + allText + ">");
+			final int finalC = c;
+			Log.log("completion.debug", ()->" line :" + line + " -> " + ch + " -> " + finalC + " alltext is <" + allText + ">");
 
 			try {
 				int[] ret = expressionRangeForPosition(engine, c);
@@ -133,7 +136,7 @@ public class TernSupport {
 				if (ret == null) return r;
 				if (ret.length == 0) return r;
 
-				Log.log("completion.debug", " expression to analyze is :" + ret[0] + " " + ret[1] + " " + allText.substring(ret[0], ret[1]));
+				Log.log("completion.debug", ()->" expression to analyze is :" + ret[0] + " " + ret[1] + " " + allText.substring(ret[0], ret[1]));
 
 
 				String s = allText.substring(ret[0], ret[1]);
@@ -151,13 +154,13 @@ public class TernSupport {
 					try {
 						int[] previously = expressionRangeForPosition(engine, ret[0] - 1);
 
-						Log.log("completion.debug", "previous expression is :" + previously[0] + " " + previously[1] + " " + allText.substring(previously[0], previously[1]));
+						Log.log("completion.debug", ()->"previous expression is :" + previously[0] + " " + previously[1] + " " + allText.substring(previously[0], previously[1]));
 
 						String previousS = allText.substring(previously[0], previously[1]);
 
 
 						Object e = engine.eval("_e=eval('" + previousS.replace("'", "\\'") + "')");
-						Log.log("completion.debug", "PREVIOUS e is :" + e + " " + e.getClass() + " computed prefix from <" + s + "> <" + s.lastIndexOf('.') + ">");
+						Log.log("completion.debug",()-> "PREVIOUS e is :" + e + " " + e.getClass() + " computed prefix from <" + s + "> <" + s.lastIndexOf('.') + ">");
 
 
 						r.clear();
@@ -172,7 +175,7 @@ public class TernSupport {
 							customCompleted = true;
 						}
 					} catch (Throwable t) {
-						Log.log("completion.error", "quote completion threw an exception, but we'll continue on anyway");
+						Log.log("completion.error", ()->"quote completion threw an exception, but we'll continue on anyway");
 						t.printStackTrace();
 					}
 
@@ -196,7 +199,8 @@ public class TernSupport {
 				}
 
 				Object e = engine.eval("_e=eval('" + left.replace("'", "\\'") + "')");
-				Log.log("completion.debug", " e is :" + e + " " + e.getClass() + " computed prefix from <" + s + "> <" + s.lastIndexOf('.') + ">");
+				final Object finalE = e;
+				Log.log("completion.debug", ()->" e is :" + finalE + " " + finalE.getClass() + " computed prefix from <" + s + "> <" + s.lastIndexOf('.') + ">");
 
 				if (right.trim()
 					 .length() != right.length()) right = "";
@@ -206,7 +210,7 @@ public class TernSupport {
 				if (e instanceof ScriptObjectMirror) {
 
 					Object[] retae = (Object[]) engine.eval("_v=[]; _p = {}; Object.bindProperties(_p, _e); for(var _k in _p) _v.push(_k); Java.to(_v)");
-					Log.log("completion.debug", " auto eval completion got :" + Arrays.asList(retae));
+					Log.log("completion.debug",()-> " auto eval completion got :" + Arrays.asList(retae));
 				} else if (e instanceof Box) {
 //					e = new UnderscoreBox((Box) e);
 					List<Completion> fromJava = javaSupport.getCompletionsFor(e, right);
@@ -219,9 +223,10 @@ public class TernSupport {
 				} else if (e instanceof StaticClass) {
 					e = ((StaticClass) e).getRepresentedClass();
 
-					Log.log("completion.debug", " asking java for completions for CLASS " + e);
+					final Object finalE1 = e;
+					Log.log("completion.debug", ()-> " asking java for completions for CLASS " + finalE1);
 					List<Completion> fromJava = javaSupport.getCompletionsFor(e, right, s.lastIndexOf('.') == -1);
-					Log.log("completion.debug", " got completions :" + fromJava);
+					Log.log("completion.debug", ()->" got completions :" + fromJava);
 					for (Completion x : fromJava) {
 						if (x.start == -1) x.start = c - right.length();
 						if (x.end == -1) x.end = c;
@@ -229,9 +234,10 @@ public class TernSupport {
 
 					r.addAll(fromJava);
 				} else {
-					Log.log("completion.debug", " asking java for completions for " + e);
+					final Object finalE2 = e;
+					Log.log("completion.debug", ()->" asking java for completions for " + finalE2);
 					List<Completion> fromJava = javaSupport.getCompletionsFor(e, right);
-					Log.log("completion.debug", " got completions :" + fromJava);
+					Log.log("completion.debug",()-> " got completions :" + fromJava);
 					for (Completion x : fromJava) {
 						if (x.start == -1) x.start = c - right.length();
 						if (x.end == -1) x.end = c;
@@ -242,13 +248,17 @@ public class TernSupport {
 
 
 			} catch (Throwable t) {
-				Log.log("completion.error", " suppressed exception in autoevaluating completion <" + t + ">");
+				Log.log("completion.error", ()->" suppressed exception in autoevaluating completion <" + t + ">");
 				t.printStackTrace();
 			}
 		} catch (ScriptException e) {
 			e.printStackTrace();
 		}
 
+		Collections.sort(r, (a, b) -> {
+			if (a.rank!=b.rank) return Double.compare(a.rank, b.rank);
+			return String.CASE_INSENSITIVE_ORDER.compare(a.replacewith, b.replacewith);
+		});
 
 		return r;
 	}
@@ -392,7 +402,8 @@ public class TernSupport {
 			c += ch;
 
 
-			Log.log("completion.debug", " line :" + line + " -> " + ch + " -> " + c);
+			final int finalC = c;
+			Log.log("completion.debug", ()->" line :" + line + " -> " + ch + " -> " + finalC);
 
 			engine.eval("__c=new __fieldglobal.self.tern.Context()");
 			Object[] ret = (Object[]) engine.eval("__fieldglobal.self.tern.withContext(__c, function(){\n" +
@@ -401,7 +412,7 @@ public class TernSupport {
 									  "\tvar n = __fieldglobal.self.tern.findExpressionAround(a, " + c + ", " + c + ")\n" +
 									  "\treturn Java.to([n.node.start, n.node.end])" +
 									  "})");
-			Log.log("completion.debug", " expression to analyze is :" + ret[0] + " " + ret[1] + " " + allText.substring(((Number) ret[0]).intValue(), ((Number) ret[1]).intValue()));
+			Log.log("completion.debug", ()->" expression to analyze is :" + ret[0] + " " + ret[1] + " " + allText.substring(((Number) ret[0]).intValue(), ((Number) ret[1]).intValue()));
 
 
 			String s = allText.substring(((Number) ret[0]).intValue(), ((Number) ret[1]).intValue());
@@ -411,11 +422,11 @@ public class TernSupport {
 				String left = s, right = "";
 
 
-				Log.log("completion.debug", " inside import help left is <" + left + ">");
+				Log.log("completion.debug", ()->" inside import help left is <" + left + ">");
 
 				List<Pair<String, String>> possibleJavaClassesFor = javaSupport.getPossibleJavaClassesFor(left);
 
-				Log.log("completion.debug", " possible javaclasses :" + possibleJavaClassesFor);
+				Log.log("completion.debug", ()->" possible javaclasses :" + possibleJavaClassesFor);
 
 				for (Pair<String, String> p : possibleJavaClassesFor) {
 					int tail = p.first.lastIndexOf(".");
@@ -426,7 +437,7 @@ public class TernSupport {
 				}
 
 			} catch (Throwable t) {
-				Log.log("completion.debug", " suppressed exception in autoevaluating completion <" + t + ">");
+				Log.log("completion.debug", ()->" suppressed exception in autoevaluating completion <" + t + ">");
 			}
 		} catch (ScriptException e) {
 			e.printStackTrace();

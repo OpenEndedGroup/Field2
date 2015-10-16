@@ -709,7 +709,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 
 		BookmarkCache c = cache.computeIfAbsent(m, (k) -> new BookmarkCache(m));
 
-		Log.log("drawing.trace", "should skip ? " + mod);
+		Log.log("drawing.trace",()-> "should skip ? " + mod);
 
 		return m.skipTo(c.start, c.end, mod, () -> {
 
@@ -719,7 +719,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 				MeshBuilder.Bookmark start = null;
 				// todo: AUX!
 
-				Log.log("drawing.trace", "ACTUALLY DRAWING");
+				Log.log("drawing.trace", ()->"ACTUALLY DRAWING");
 
 				Node a = null;
 				for (int i = 0; i < nodes.size(); i++) {
@@ -750,7 +750,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 	}
 
 	public boolean renderToLine(MeshBuilder m, int fixedSizeForCubic) {
-		Log.log("drawing.trace", "renderToLine");
+		Log.log("drawing.trace", ()->"renderToLine");
 		return renderToLine(m, this::renderMoveTo, this::renderLineTo, renderCubicTo(fixedSizeForCubic));
 	}
 
@@ -902,7 +902,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 			float[] value = to.flatAuxData[i];
 			if (value != null && channel > 0) m.aux(channel, value);
 		}
-		Log.log("drawing.trace", "moveTo " + to.to);
+		Log.log("drawing.trace",()-> "moveTo " + to.to);
 		m.nextVertex(to.to.x, to.to.y, to.to.z);
 		return to;
 	}
@@ -915,7 +915,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 			if (value != null && channel > 0) m.aux(channel, value);
 		}
 
-		Log.log("drawing.trace", "lineTo " + to.to);
+		Log.log("drawing.trace", ()->"lineTo " + to.to);
 
 		m.nextVertex(to.to.x, to.to.y, to.to.z);
 		return to;
@@ -1119,9 +1119,9 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 				return adapterClassFor.getRepresentedClass()
 						      .newInstance();
 			} catch (InstantiationException e) {
-				Log.log("underscore.error", " problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0), e);
+				Log.log("underscore.error", ()->" problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0)+e);
 			} catch (IllegalAccessException e) {
-				Log.log("underscore.error", " problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0), e);
+				Log.log("underscore.error", ()->" problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0)+e);
 			}
 		}
 
@@ -1309,9 +1309,9 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 					return adapterClassFor.getRepresentedClass()
 							      .newInstance();
 				} catch (InstantiationException e) {
-					Log.log("underscore.error", " problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0), e);
+					Log.log("underscore.error", ()->" problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0)+e);
 				} catch (IllegalAccessException e) {
-					Log.log("underscore.error", " problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0), e);
+					Log.log("underscore.error", ()->" problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0)+e);
 				}
 			}
 

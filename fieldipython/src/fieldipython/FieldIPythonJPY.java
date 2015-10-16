@@ -47,7 +47,7 @@ public class FieldIPythonJPY extends Execution {
 			e.printStackTrace();
 		}
 
-		Log.log("startup.ipython", "IPythonplugin(Jpy) is starting up ");
+		Log.log("startup.ipython", ()->"IPythonplugin(Jpy) is starting up ");
 
 		i = new IPythonTransform().get();
 
@@ -73,7 +73,7 @@ public class FieldIPythonJPY extends Execution {
 		});
 
 
-		Log.log("startup.ipython", "IPythonplugin(Jpy) has finished starting up ");
+		Log.log("startup.ipython", ()->"IPythonplugin(Jpy) has finished starting up ");
 	}
 
 

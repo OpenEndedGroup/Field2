@@ -42,7 +42,7 @@ public class Compositor {
 					l.fbo = newFBO(l.fbo.specification.unit, l.res);
 					l.fbo.setScene(sceneWas);
 					resizing= true;
-					Log.log("graphics.debug", " scene was :" + sceneWas);
+					Log.log("graphics.debug", ()->" scene was :" + sceneWas);
 				}
 			}
 		}
@@ -53,9 +53,9 @@ public class Compositor {
 				l.fbo.draw();
 			else
 			if (l.needsRedrawing > -1 || fadeup) {
-				Log.log("drawing", " drawing dependancies of " + l);
+				Log.log("drawing", ()->" drawing dependancies of " + l);
 				l.drawDependancies();
-				Log.log("drawing", " drawing because dirty " + l);
+				Log.log("drawing",()-> " drawing because dirty " + l);
 				l.fbo.draw();
 			}
 		}
@@ -169,13 +169,13 @@ public class Compositor {
 			// javaC / IDEA need these casts
 			dependsOn.put(l, new Cache(l, (Function<Layer, Long>) x -> x.mod, (Consumer<Layer>) x -> {
 				x.drawDependancies();
-				Log.log("drawing", "layer:" + x);
+				Log.log("drawing",()-> "layer:" + x);
 				x.fbo.draw();
 				x.mod++;
 			}));
 			l.dependsOn.put(this, new Cache(this, (Function<Layer, Long>) x -> x.mod, (Consumer<Layer>) x -> {
 				x.drawDependancies();
-				Log.log("drawing", "layer2:" + x);
+				Log.log("drawing",()-> "layer2:" + x);
 				x.fbo.draw();
 				x.mod++;
 			}));

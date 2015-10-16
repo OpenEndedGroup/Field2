@@ -651,7 +651,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 			this.buildNumber = MeshBuilder.this.buildNumber;
 
 			Log.log("cache",
-				"evaluating cache " + MeshBuilder.this.vertexCursor + " / " + vertexCursor + "  " + MeshBuilder.this.elementCursor + " / " + elementCursor + " " + this.externalHash + "=" + externalHash + " " + computeHash() + "=" + this.hash);
+				()->"evaluating cache " + MeshBuilder.this.vertexCursor + " / " + vertexCursor + "  " + MeshBuilder.this.elementCursor + " / " + elementCursor + " " + this.externalHash + "=" + externalHash + " " + computeHash() + "=" + this.hash);
 
 			if (MeshBuilder.this.vertexCursor != vertexCursor || MeshBuilder.this.elementCursor != elementCursor) {
 				Log.log("cache",
@@ -672,7 +672,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 				return false;
 			}
 			cacheHits++;
-			Log.log("cache", "succeeded");
+			Log.log("cache", ()->"succeeded");
 			return true;
 		}
 

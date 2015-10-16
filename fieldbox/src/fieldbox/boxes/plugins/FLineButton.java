@@ -57,7 +57,7 @@ public class FLineButton {
 	}
 
 	protected Mouse.Dragger enter(Window.Event<Window.MouseState> e) {
-		Log.log("iteractive.debug", "ENTER !");
+		Log.log("interactive.debug", ()->"ENTER !");
 
 		if (during) return null;
 
@@ -73,7 +73,7 @@ public class FLineButton {
 	}
 
 	protected Mouse.Dragger exit(Window.Event<Window.MouseState> e) {
-		Log.log("iteractive.debug", "EXIT !");
+		Log.log("interactive.debug",()-> "EXIT !");
 
 		if (during) return null;
 
@@ -97,13 +97,13 @@ public class FLineButton {
 		FLineInteraction interaction = d.properties.get(FLineInteraction.interaction);
 		d.properties.put(Window.consumed, true);
 
-		Log.log("iteractive.debug", "DOWN !, consuming " + d + " " + d.properties + " " + System.identityHashCode(d) + " " + interaction);
+		Log.log("interactive.debug", ()->"DOWN !, consuming " + d + " " + d.properties + " " + System.identityHashCode(d) + " " + interaction);
 
 		during = true;
 
 		return (e, t) -> {
 
-			Log.log("interactive.debug", "handling .... ");
+			Log.log("interactive.debug", ()->"handling .... ");
 			if (handle != null) {
 				handle.dragged(this.target, e);
 				Drawing.dirty(box);
@@ -112,7 +112,7 @@ public class FLineButton {
 			e.properties.put(Window.consumed, true);
 
 			if (t) {
-				Log.log("interactive.debug", "resetting on termination ");
+				Log.log("interactive.debug", ()->"resetting on termination ");
 				target.attributes.putAll(original, x -> implicated.contains(x.getName()));
 				target.modify();
 

@@ -36,7 +36,7 @@ public class Windows {
 					.getContextClassLoader();
 
 
-		Log.log("startup.debug", "main thread is :" + Thread.currentThread());
+		Log.log("startup.debug", ()->"main thread is :" + Thread.currentThread());
 	}
 
 	Deque<Runnable> events = new ConcurrentLinkedDeque<>();
@@ -44,7 +44,7 @@ public class Windows {
 	protected boolean events(int p) {
 		RunLoop.main.shouldSleep.remove(Windows.this);
 
-		if (events.size()>0) Log.log("event.debug", "events :"+events.size());
+		if (events.size()>0) Log.log("event.debug", ()->"events :"+events.size());
 		while (!events.isEmpty())
 		{
 			try {
@@ -53,7 +53,7 @@ public class Windows {
 			}
 			catch(Throwable t)
 			{
-				Log.log("events.error", "Exception thrown while handling event", t);
+				Log.log("events.error", ()->"Exception thrown while handling event"+ t);
 			}
 		}
 		return true;
@@ -195,7 +195,7 @@ public class Windows {
 
 			@Override
 			public void key(long window, int key, int scancode, int action, int mods) {
-				Log.log("thata", key+" "+scancode+" "+action+" "+mods);
+				Log.log("thata", ()->key+" "+scancode+" "+action+" "+mods);
 
 
 				// we occasionally get a spurious 'a' (scancode 0) on command-tabbing to our application. If it's just a plain 'a' let's assume that the character callback will handle it
@@ -217,7 +217,7 @@ public class Windows {
 
 			@Override
 			public void character(long window, char character) {
-				Log.log("thata", character);
+				Log.log("thata", ()->character);
 				Runnable r = () -> {
 					checkClassLoader();
 					GlfwCallback a = adaptors.get(window);
@@ -318,7 +318,7 @@ public class Windows {
 		ClassLoader c = Thread.currentThread()
 				      .getContextClassLoader();
 		if (c != mainClassLoader) {
-			Log.log("startup.debug", "had to change classloader from <" + c + "- >" + mainClassLoader);
+			Log.log("startup.debug", ()->"had to change classloader from <" + c + "- >" + mainClassLoader);
 			Thread.currentThread()
 			      .setContextClassLoader(mainClassLoader);
 		}

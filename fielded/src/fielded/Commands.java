@@ -44,7 +44,7 @@ public class Commands extends Box {
 		//todo: handle no box case
 		List<Triple<String, String, Runnable>> commands = getCommandsAndDocs(box.get());
 
-		Log.log("remote.trace", " commands are :" + commands);
+		Log.log("remote.trace", ()->" commands are :" + commands);
 
 		JSONStringer stringer = new JSONStringer();
 		stringer.array();
@@ -64,7 +64,7 @@ public class Commands extends Box {
 		}
 
 
-		Log.log("remote.trace", " call table looks like :" + callTable);
+		Log.log("remote.trace",()-> " call table looks like :" + callTable);
 
 		stringer.endArray();
 

@@ -67,9 +67,9 @@ public class OSXWindowTricks extends Box {
 		ProcessBuilder pb = new ProcessBuilder("osascript", "-e", CloseAll);
 		try {
 			pb.start();
-			Log.log("osxwindowtricks.trace", "****Close All****");
+			Log.log("osxwindowtricks.trace",()-> "****Close All****");
 		} catch (IOException e) {
-			Log.log("osxwindowtricks.error", "****Close Oops****", e);
+			Log.log("osxwindowtricks.error", ()->"****Close Oops****"+e);
 
 		}
 
@@ -104,9 +104,9 @@ public class OSXWindowTricks extends Box {
 		ProcessBuilder pb = new ProcessBuilder("osascript", "-e", EditorForward);
 		try {
 			pb.start();
-			Log.log("osxwindowtricks.trace", "****Editor forward****");
+			Log.log("osxwindowtricks.trace", ()->"****Editor forward****");
 		} catch (IOException e) {
-			Log.log("osxwindowtricks.error", "****Editor Oops****", e);
+			Log.log("osxwindowtricks.error", ()->"****Editor Oops****"+e);
 		}
 		return null;
 	}

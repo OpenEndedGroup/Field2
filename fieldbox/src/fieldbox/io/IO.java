@@ -140,7 +140,7 @@ public class IO {
 				      .map(bx -> bx.properties.computeIfAbsent(IO.id, k -> Box.newID()))
 				      .collect(Collectors.toSet());
 
-		Log.log("updatebox", "all ids are " + ids + " looked for " + id + " " + ids.contains(id));
+		Log.log("updatebox", ()->"all ids are " + ids + " looked for " + id + " " + ids.contains(id));
 
 
 		if (ids.contains(id)) {
@@ -237,7 +237,7 @@ public class IO {
 	public Document readDocument(String filename, Map<String, Box> specialBoxes, Set<Box> created) {
 		File f = filenameFor(filename);
 
-		Log.log("io.general", " reading document :" + f);
+		Log.log("io.general", ()->" reading document :" + f);
 
 		lastWasNew = false;
 
@@ -245,7 +245,7 @@ public class IO {
 			// new file
 			lastWasNew = true;
 
-			Log.log("io.general", " document doesn't exist ");
+			Log.log("io.general", ()->" document doesn't exist ");
 
 			Document d = new Document();
 			d.externalList = new ArrayList<>();
@@ -260,7 +260,7 @@ public class IO {
 		Document d = (Document) new EDN().read(m);
 		Map<String, Box> loaded = new HashMap<String, Box>();
 
-		Log.log("io.general", " document contains " + d.externalList.size() + " boxes ");
+		Log.log("io.general", ()->" document contains " + d.externalList.size() + " boxes ");
 
 
 		for (External e : d.externalList) {
@@ -276,13 +276,13 @@ public class IO {
 				Box mc = specialBoxes.getOrDefault(id, loaded.get(id));
 
 				if (mc != null) e.box.connect(mc);
-				else Log.log("io.error", " lost child ? " + id + " of " + e.box + " " + specialBoxes);
+				else Log.log("io.error",()-> " lost child ? " + id + " of " + e.box + " " + specialBoxes);
 			}
 			for (String id : e.parents) {
 				Box mc = specialBoxes.getOrDefault(id, loaded.get(id));
 
 				if (mc != null) mc.connect(e.box);
-				else Log.log("io.error", " lost child ? " + id + " of " + e.box + " " + specialBoxes);
+				else Log.log("io.error", ()->" lost child ? " + id + " of " + e.box + " " + specialBoxes);
 			}
 		}
 		created.addAll(loaded.values());
@@ -295,9 +295,9 @@ public class IO {
 			      try {
 				      ((Loaded) b).loaded();
 			      } catch (Throwable t) {
-				      Log.log("io.error", " exception thrown while finishing loading for box " + b);
-				      Log.log("io.error", t);
-				      Log.log("io.error", " continuing on (box will be deleted from the graph without notification)");
+				      Log.log("io.error", ()->" exception thrown while finishing loading for box " + b);
+				      Log.log("io.error", ()->t);
+				      Log.log("io.error", ()->" continuing on (box will be deleted from the graph without notification)");
 				      failed.add(b);
 			      }
 		      });
@@ -344,9 +344,9 @@ public class IO {
 				ex.box = (Box) cc.newInstance(specialBoxes.get(">>root<<"));
 			}
 		} catch (Throwable e) {
-			Log.log("io.error", " while looking for class <" + ex.boxClass + "> needed for <" + ex.id + " / " + ex.textFiles + "> an exception was thrown");
-			Log.log("io.error", e);
-			Log.log("io.error", " will proceed with just a vanilla Box class, but custom behavior will be lost ");
+			Log.log("io.error", ()->" while looking for class <" + ex.boxClass + "> needed for <" + ex.id + " / " + ex.textFiles + "> an exception was thrown");
+			Log.log("io.error", ()->e);
+			Log.log("io.error", ()->" will proceed with just a vanilla Box class, but custom behavior will be lost ");
 			ex.box = new Box();
 
 			ex.box.properties.put(desiredBoxClass, ex.boxClass);
@@ -367,7 +367,7 @@ public class IO {
 					ex.box.properties.put(new Dict.Prop((String) entry.getKey()), entry.getValue());
 				}
 			} catch (Exception e) {
-				Log.log("io.error", "trouble loading external " + dataFile + ". Corrupt file?");
+				Log.log("io.error", ()->"trouble loading external " + dataFile + ". Corrupt file?");
 				e.printStackTrace();
 			}
 		}
@@ -419,9 +419,9 @@ public class IO {
 				box = (Box) cc.newInstance(root);
 			}
 		} catch (Throwable e) {
-			Log.log("io.error", " while looking for class <" + boxClass + "> an exception was thrown");
-			Log.log("io.error", e);
-			Log.log("io.error", " will proceed with just a vanilla Box class, but custom behavior will be lost ");
+			Log.log("io.error", ()->" while looking for class <" + boxClass + "> an exception was thrown");
+			Log.log("io.error", ()->e);
+			Log.log("io.error", ()->" will proceed with just a vanilla Box class, but custom behavior will be lost ");
 			box = new Box();
 		}
 
@@ -497,7 +497,7 @@ public class IO {
 		knownProperties.add("__datafilename__");
 
 		for (Map.Entry<Dict.Prop, Object> e : new LinkedHashMap<>(box.properties.getMap()).entrySet()) {
-			Log.log("io.general", "checking :" + e.getKey()
+			Log.log("io.general",()-> "checking :" + e.getKey()
 							      .getName() + " against " + knownFiles.keySet());
 			if (knownFiles.containsKey(e.getKey()
 						    .getName())) {
@@ -506,7 +506,9 @@ public class IO {
 
 				String extantFilename = box.properties.get(new Dict.Prop<String>("__filename__" + e.getKey()
 														   .getName()));
-				Log.log("io.general", "extant filename is :" + extantFilename + " for " + e.getKey()
+
+				String fextent = extantFilename;
+				Log.log("io.general", ()->"extant filename is :" + fextent + " for " + e.getKey()
 													   .getName() + " from " + box.properties);
 
 				// this is wrong. Don't set a name if we are just going to use a default; otherwise, when you move the file you have to update it.
@@ -595,10 +597,10 @@ public class IO {
 			writeToFile(dataFile, serializeToString(data));
 		}
 
-		Log.log("io.general", "sweep for persistent, perDocument properties");
+		Log.log("io.general", ()->"sweep for persistent, perDocument properties");
 		for (Map.Entry<Dict.Prop, Object> e : external.box.properties.getMap()
 									     .entrySet()) {
-			Log.log("io.general", "property :" + e.getKey()
+			Log.log("io.general",()-> "property :" + e.getKey()
 							      .toCannon() + " attributes are " + e.getKey()
 												  .toCannon()
 												  .getAttributes());
@@ -623,7 +625,7 @@ public class IO {
 	}
 
 	private void writeToFile(File filename, String text) throws IOException {
-		Log.log("io.general", " will write :" + text + " to " + filename);
+		Log.log("io.general", ()->" will write :" + text + " to " + filename);
 
 		if (!filename.getParentFile().exists()) filename.getParentFile().mkdirs();
 

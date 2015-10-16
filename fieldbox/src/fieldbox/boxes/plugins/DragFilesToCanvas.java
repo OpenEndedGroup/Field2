@@ -47,13 +47,15 @@ public class DragFilesToCanvas extends Box {
 			String ff = new File(f).getAbsolutePath();
 			if (ff.startsWith(FieldBox.fieldBox.io.getDefaultDirectory())) {
 				ff = IO.WORKSPACE + "/" + ff.substring(FieldBox.fieldBox.io.getDefaultDirectory().length());
-				Log.log("drags", "filename is part of workspace "+ff);
+				final String finalFf = ff;
+				Log.log("drags", ()->"filename is part of workspace "+ finalFf);
 				isPartOfWorkspace = true;
 			}
 
 			if (ff.startsWith(FieldBox.fieldBox.io.getTemplateDirectory())) {
 				ff = IO.TEMPLATES + "/" + ff.substring(FieldBox.fieldBox.io.getTemplateDirectory().length());
-				Log.log("drags", "filename is part of workspace "+ff);
+				final String finalFf1 = ff;
+				Log.log("drags", ()->"filename is part of workspace "+ finalFf1);
 				isPartOfWorkspace = true;
 			}
 
@@ -90,17 +92,13 @@ public class DragFilesToCanvas extends Box {
 
 				Dict.Prop<String> code = FieldBox.fieldBox.io.lookupFileSuffix(f, root);
 
-				Log.log("drags", "looked up code suffix for " + f + " got " + code);
-
 				if(code==null) code = Execution.code;
 				else {
-					Log.log("drags", "set default editor property to "+code);
 					b1.properties.put(RemoteEditor.defaultEditorProperty, code.getName());
 				}
 				b1.properties.put(code, IO.readFromFile(new File(f)));
 
 
-				Log.log("drags", "final filename is :"+ff);
 				b1.properties.put(new Dict.Prop<String>("__filename__" + code.getName()), ff);
 				b1.properties.put(Box.name, (isPartOfWorkspace ? ""  : new File(f).getParentFile().getName() + "/") + new File(f).getName());
 

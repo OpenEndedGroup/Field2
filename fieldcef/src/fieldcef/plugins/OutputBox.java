@@ -77,7 +77,7 @@ public class OutputBox extends Box implements IO.Loaded {
 
 
 	protected Browser make(int w, int h, Box b) {
-		Log.log("OutputBox.debug", "initializing browser");
+		Log.log("OutputBox.debug", ()->"initializing browser");
 
 		Browser browser = (Browser)find(Templates.templateChild, both()).findFirst()
 								       .map(x -> x.apply(b, "html output"))
@@ -142,7 +142,7 @@ public class OutputBox extends Box implements IO.Loaded {
 //					    };
 					    return false;
 				    }
-				    Log.log("glassBrowser.boot", "WAITING url:" + browser.browser.getURL());
+				    Log.log("glassBrowser.boot", ()->"WAITING url:" + browser.browser.getURL());
 				    Drawing.dirty(this);
 
 
@@ -156,9 +156,9 @@ public class OutputBox extends Box implements IO.Loaded {
 	int ignoreHide = 0;
 
 	public void inject2(Browser browser) {
-		Log.log("glassbrowser.debug", "inject 2 is happening");
+		Log.log("glassbrowser.debug", ()->"inject 2 is happening");
 		for (String s : playlist) {
-			Log.log("glassbrowser.debug", "executing :" + s);
+			Log.log("glassbrowser.debug", ()->"executing :" + s);
 			browser.executeJavaScript(findAndLoad(s, true));
 		}
 		//		 hide();
@@ -191,7 +191,7 @@ public class OutputBox extends Box implements IO.Loaded {
 		for (String s : roots) {
 			if (new File(s + "/" + f).exists()) return readFile(s + "/" + f, append);
 		}
-		Log.log("glassbrowser.error", "Couldnt' find file in playlist :" + f);
+		Log.log("glassbrowser.error", ()->"Couldnt' find file in playlist :" + f);
 		return null;
 	}
 

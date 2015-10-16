@@ -77,12 +77,12 @@ public class Errors {
 
 	public void pop() {
 		if (this.currentConsumer.size() > 0) this.currentConsumer.remove(this.currentConsumer.size() - 1);
-		else Log.log("errors.warning", "warning, popped error consumer that wasn't there (continuing on)");
+		else Log.log("errors.warning", ()->"warning, popped error consumer that wasn't there (continuing on)");
 	}
 
 	public ErrorConsumer get() {
 		if (this.currentConsumer.size() == 0) {
-			Log.log("errors.warning", "warning, no error consumer available");
+			Log.log("errors.warning", ()->"warning, no error consumer available");
 			return defaultConsumer;
 		}
 

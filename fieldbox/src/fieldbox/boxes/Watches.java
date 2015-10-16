@@ -38,7 +38,7 @@ public class Watches extends Box  {
 
 				RunLoop.main.getLoop().attach(0, (x) -> {
 					try {
-						if (this.queue.size() > 0) Log.log("debug.messages", " message queue :" + this.queue.size());
+						if (this.queue.size() > 0) Log.log("debug.messages", ()->" message queue :" + this.queue.size());
 
 						while (this.queue.peek() != null) {
 							Pair<String, Quad<Dict.Prop, Box, Object, Object>> m = this.queue.poll(1, TimeUnit.SECONDS);

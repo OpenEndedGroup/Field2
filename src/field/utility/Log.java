@@ -25,17 +25,9 @@ public class Log {
 
 	// we default to logging everything
 	static protected
-	BiConsumer<String, Object> _fallthrough = Log::println;
+	BiConsumer<String, Supplier<Object>> _fallthrough = (x, y) -> println(x, y==null ? null : y.get());
 
 	// Use --------------------------------
-
-	static public void log(String channel, Object message) {
-		log(channel, () -> message);
-	}
-
-	static public void log(String channel, Object... message) {
-		log(channel, () -> Arrays.asList(message));
-	}
 
 	static public void log(String channel, Supplier<Object> message) {
 		boolean found = false;
@@ -50,7 +42,7 @@ public class Log {
 			}
 			if (!found) earlyFail.put(channel, channel);
 		}
-		if (!found && _fallthrough != null) _fallthrough.accept(channel, message.get());
+		if (!found && _fallthrough != null) _fallthrough.accept(channel, message);
 	}
 
 	// Configure --------------------------------
@@ -98,7 +90,7 @@ public class Log {
 	/**
 	 * sets the default action for messages that are not matched by anything (by default the default action is "println")
 	 */
-	static public void fallthrough(BiConsumer<String, Object> b) {
+	static public void fallthrough(BiConsumer<String, Supplier<Object>> b) {
 		_fallthrough = b;
 	}
 

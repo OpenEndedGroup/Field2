@@ -205,7 +205,7 @@ public class Trampoline {
 			}
 
 			if (traceLoader) System.out.println("C: " + name + " -> " + url);
-			if (traceLoader) if (url == null) System.out.println(" URL search paths are " + Arrays.asList(getURLs()));
+			if (traceLoader) if (url == null) System.out.println(" URL search paths are " + Arrays.asList(getURLs())+" inside "+getParent());
 
 			return url;
 		}

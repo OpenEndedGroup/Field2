@@ -110,13 +110,7 @@ public class CefApp extends CefAppHandlerAdapter {
 			}
 		};
 
-		// If dispose() is called on the dispatcher thread,
-		// the shutdown sequence MUST be performed within a
-		// dedicated thread. Otherwise we'll run in a deadlock.
-		// In all other cases, it's enough to call the run() method
-		// within the same process as dispose() is called.
-		if (SwingUtilities.isEventDispatchThread()) t.start();
-		else t.run();
+			t.run();
 	}
 
 	/**

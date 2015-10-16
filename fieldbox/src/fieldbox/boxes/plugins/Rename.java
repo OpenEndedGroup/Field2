@@ -52,7 +52,7 @@ public class Rename extends Box {
 
 						@Override
 						public void run() {
-							Log.log("run", " ALT WAS :" + altWas);
+							Log.log("run", ()->" ALT WAS :" + altWas);
 
 							if (altWas != null) selection().forEach(x -> {
 								x.properties.put(Box.name, altWas);

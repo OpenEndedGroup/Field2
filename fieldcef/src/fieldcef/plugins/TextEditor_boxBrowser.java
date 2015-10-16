@@ -77,7 +77,7 @@ public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 
 	@HiddenInAutocomplete
 	public void loaded() {
-		Log.log("texteditor.debug", "initializing browser");
+		Log.log("texteditor.debug", ()->"initializing browser");
 
 		textEditor = this.find(TextEditor.textEditor, this.both())
 				 .findFirst()
@@ -132,7 +132,7 @@ public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 
 			w.getQueue()
 			 .register(x -> x.equals("selection.changed"), c -> {
-				 Log.log("shy", "selection is now" + selection().count());
+				 Log.log("shy", ()->"selection is now" + selection().count());
 
 
 				 if (selection().count() != 1) {

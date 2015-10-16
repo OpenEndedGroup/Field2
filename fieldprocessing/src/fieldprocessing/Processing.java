@@ -55,7 +55,7 @@ public class Processing extends Execution {
 	public Processing(Box root) {
 		super(null);
 
-		Log.log("startup.processing", " processing plugin is starting up ");
+		Log.log("startup.processing", ()->" processing plugin is starting up ");
 
 
 		frame = new JFrame("Field/Processing");
@@ -77,10 +77,10 @@ public class Processing extends Execution {
 
 
 
-		Log.log("startup.processing", " searching for boxes that need processing support ");
+		Log.log("startup.processing",()-> " searching for boxes that need processing support ");
 
 
-		Log.log("startup.processing", " processing plugin has finished starting up ");
+		Log.log("startup.processing", ()->" processing plugin has finished starting up ");
 
 
 	}

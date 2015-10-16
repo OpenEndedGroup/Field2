@@ -104,7 +104,7 @@ public class MarkingMenus extends Box {
 			       });
 
 
-			log("debug.markingmenus", "merged spec and got :" + m.items.keySet());
+			log("debug.markingmenus", ()->"merged spec and got :" + m.items.keySet());
 
 			if (m.items.size() > 0) {
 				event.properties.put(Window.consumed, true);
@@ -120,7 +120,7 @@ public class MarkingMenus extends Box {
 
 				return runMenu(this, new Vec2(event.after.mx, event.after.my), m);
 			} else {
-				log("debug.markingmenus", " no menuSpecs for event ");
+				log("debug.markingmenus", ()->" no menuSpecs for event ");
 				return null;
 			}
 		});
@@ -159,7 +159,7 @@ public class MarkingMenus extends Box {
 					MenuSpecification sub = sp.submenu;
 					if (sub != null) {
 						menus.hide();
-						log("marking", "going submenu");
+						log("marking", ()->"going submenu");
 						replaceWith[0] = runMenu(origin, new Vec2(event.after.mx, event.after.my), sub);
 					}
 				}

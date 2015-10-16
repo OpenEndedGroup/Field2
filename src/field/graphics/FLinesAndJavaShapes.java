@@ -1287,12 +1287,12 @@ public class FLinesAndJavaShapes {
 
 						Cuboid bnn = cache.computeIfAbsent(nib, (x) -> nib.boundingBox());
 
-						Log.log("intersection", "checking " + baa + " / " + bnn + "");
+						Log.log("intersection", ()->"checking " + baa + " / " + bnn + "");
 
 
 						if (baa.intersects(bnn)) {
 
-							Log.log("intersection", " -- intersect");
+							Log.log("intersection", ()->" -- intersect");
 
 							if (Math.max(baa.w, baa.h) < sz && Math.max(bnn.w, bnn.h) < sz) {
 								ib.remove();
@@ -1306,7 +1306,7 @@ public class FLinesAndJavaShapes {
 						}
 					}
 
-					Log.log("intersection", "nothing intersects with " + baa);
+					Log.log("intersection", ()->"nothing intersects with " + baa);
 				}
 
 				a.clear();
@@ -1337,7 +1337,7 @@ public class FLinesAndJavaShapes {
 				gen++;
 			}
 
-			if (gen == 20) Log.log("intersection", "warning: bailed");
+			if (gen == 20) Log.log("intersection", ()->"warning: bailed");
 
 			return out;
 
@@ -1909,12 +1909,12 @@ public class FLinesAndJavaShapes {
 
 						Rect bnn = cache.computeIfAbsent(nib, (x) -> nib.boundingBox());
 
-						Log.log("intersection", "checking " + baa + " / " + bnn + "");
+						Log.log("intersection", ()->"checking " + baa + " / " + bnn + "");
 
 
 						if (baa.intersects(bnn)) {
 
-							Log.log("intersection", " -- intersect");
+							Log.log("intersection", ()->" -- intersect");
 
 							if (Math.max(baa.w, baa.h) < sz && Math.max(bnn.w, bnn.h) < sz) {
 								ib.remove();
@@ -1928,7 +1928,7 @@ public class FLinesAndJavaShapes {
 						}
 					}
 
-					Log.log("intersection", "nothing intersects with " + baa);
+					Log.log("intersection",()-> "nothing intersects with " + baa);
 				}
 
 				a.clear();
@@ -1959,7 +1959,7 @@ public class FLinesAndJavaShapes {
 				gen++;
 			}
 
-			if (gen == 20) Log.log("intersection", "warning: bailed");
+			if (gen == 20) Log.log("intersection", ()->"warning: bailed");
 
 			return out;
 

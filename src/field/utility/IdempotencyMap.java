@@ -45,9 +45,11 @@ public class IdempotencyMap<T> extends LinkedHashMapAndArrayList<T> implements M
 				return (T) adapterClassFor.getRepresentedClass()
 							  .newInstance();
 			} catch (InstantiationException e) {
-				Log.log("processing.error", " problem instantiating adaptor class to take us from " + value + " ->" + t, e);
+				Object fv = value;
+				Log.log("processing.error", ()->" problem instantiating adaptor class to take us from " + fv + " ->" + t+ e);
 			} catch (IllegalAccessException e) {
-				Log.log("processing.error", " problem instantiating adaptor class to take us from " + value + " ->" + t, e);
+				Object fv = value;
+				Log.log("processing.error", ()->" problem instantiating adaptor class to take us from " + fv + " ->" + t+e);
 			}
 		}
 
