@@ -1,6 +1,8 @@
 package fieldbox.boxes.plugins;
 
+import field.app.RunLoop;
 import field.app.ThreadSync;
+import field.utility.Conversions;
 import field.utility.Dict;
 import field.utility.IdempotencyMap;
 import fieldbox.boxes.Box;
@@ -12,6 +14,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -23,13 +27,25 @@ public class Pseudo extends Box {
 		    "`_.where.x` returns the box that contains the property `_.x`. This means that `_.where.x=someOtherBox` can be used to move properties around.")
 														      .toCannon()
 														      .type();
-	static public Dict.Prop<FunctionOfBoxValued<All>> all = new Dict.Prop<FunctionOfBoxValued<All>>("all").doc(" `_.all.x` returns all values of `x` above this box")
+
+	static public Dict.Prop<FunctionOfBoxValued<All>> all = new Dict.Prop<FunctionOfBoxValued<All>>("all").doc(" `_.all.x` returns all values of `x` above this box and at this box")
 													      .toCannon()
 													      .type();
+
+	static public Dict.Prop<FunctionOfBoxValued<Up>> up = new Dict.Prop<FunctionOfBoxValued<Up>>("up").doc(" `_.up.x` returns _a_ first value of `x` above this box, or `null` if there isn't one")
+													  .toCannon()
+													  .type();
+
+
 	static public Dict.Prop<FunctionOfBoxValued<Has>> has = new Dict.Prop<FunctionOfBoxValued<All>>("has").doc(" `_.has.x` returns true if this box, or any box above it, has a property `x` ")
 													      .toCannon()
 													      .type();
-	static public Dict.Prop<FunctionOfBoxValued<Signal>> signal = new Dict.Prop<FunctionOfBoxValued<All>>("signal").doc(" `_.signal.x` returns `_.has.x`, and deletes this value at the same time. ")
+
+	static public Dict.Prop<FunctionOfBoxValued<Herer>> here = new Dict.Prop<FunctionOfBoxValued<Herer>>("here").doc(" `_.here.x` returns true if this box has a property `x` ")
+														    .toCannon()
+														    .type();
+	static public Dict.Prop<FunctionOfBoxValued<Signal>> signal = new Dict.Prop<FunctionOfBoxValued<All>>("signal").doc(
+		    " `_.signal.x` returns `_.has.x`, and deletes this value at the same time. ")
 														       .toCannon()
 														       .type();
 
@@ -60,18 +76,45 @@ public class Pseudo extends Box {
 														.toCannon()
 														.type()
 														.autoConstructs(() -> new IdempotencyMap<>(Runnable.class));
+	static public Dict.Prop<IdempotencyMap<Runnable>> next10 = new Dict.Prop<IdempotencyMap<Runnable>>("next10").doc(
+		    "`_.next.A = function(){}` executes this function in the next update cycle. Note, `A` will overwrite anything else that's been set in this box with this name for this cycle")
+														  .toCannon()
+														  .type()
+														  .autoConstructs(() -> new IdempotencyMap<Runnable>(Runnable.class) {
+															  @Override
+															  protected Runnable massage(Object value) {
+																  Runnable r = super.massage(value);
+																  return new Runnable() {
+																	  public void run() {
+																		  RunLoop.main.delayTicks(r, 10);
+																	  }
+																  };
+															  }
+														  });
 
-	static public Dict.Prop<FunctionOfBoxValued<Replacer>> replace = new Dict.Prop<FunctionOfBoxValued<Replacer>>("replace").doc("`_.replace.x = 10` replaces the value of `x` where it is found (e.g. here or some parent).")
+
+	static public Dict.Prop<FunctionOfBoxValued<Replacer>> replace = new Dict.Prop<FunctionOfBoxValued<Replacer>>("replace").doc(
+		    "`_.replace.x = 10` replaces the value of `x` where it is found (e.g. here or some parent).")
 																.toCannon();
 
-	static public Dict.Prop<FunctionOfBoxValued<Refer>> ref = new Dict.Prop<FunctionOfBoxValued<Refer>>("ref").toCannon().type().doc("`_.ref.x` is equivalent to `function(){ return _.x }`");
+	static public Dict.Prop<FunctionOfBoxValued<Refer>> ref = new Dict.Prop<FunctionOfBoxValued<Refer>>("ref").toCannon()
+														  .type()
+														  .doc("`_.ref.x` is equivalent to `function(){ return _.x }`");
 
-	static public Dict.Prop<FunctionOfBoxValued<XPath>> query = new Dict.Prop<>("query").toCannon().type();
-	static public Dict.Prop<FunctionOfBoxValued<Namer>> named = new Dict.Prop<>("named").toCannon().type();
+	//	static public Dict.Prop<FunctionOfBoxValued<XPath>> query = new Dict.Prop<>("query").toCannon().type();
+	static public Dict.Prop<FunctionOfBoxValued<Namer>> named = new Dict.Prop<>("named").toCannon()
+											    .type()
+											    .doc("`_.named.x` returns an array of all the boxes named `x` that are _below_ this box. If you want to search everywhere, try `_.root.named.x`. To match regex or use whitespace in names, try `_.named['.*x']`");
+
+
+	static public Dict.Prop<FunctionOfBoxValued<Oncer>> once = new Dict.Prop<FunctionOfBoxValued<Oncer>>("once").toCannon()
+														    .type()
+														    .doc("`_.once.x = function(){ ... do something ... }` will call that function if `x` isn't set here and set `x` to the result if that function returns something. It's a fine way to initialize something once.");
 
 	public Pseudo(Box r) {
 		this.properties.put(where, First::new);
 		this.properties.put(all, All::new);
+		this.properties.put(up, Up::new);
 		this.properties.put(down, Down::new);
 		this.properties.put(allDown, AllDown::new);
 		this.properties.put(has, Has::new);
@@ -80,9 +123,11 @@ public class Pseudo extends Box {
 		this.properties.put(peek, Peek::new);
 		this.properties.put(yieldUntil, Until::new);
 		this.properties.put(replace, Replacer::new);
-		this.properties.put(query, XPath::new);
+//		this.properties.put(query, XPath::new);
 		this.properties.put(ref, Refer::new);
 		this.properties.put(named, Namer::new);
+		this.properties.put(once, Oncer::new);
+		this.properties.put(here, Herer::new);
 
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__next__", () -> {
 			r.breadthFirst(r.downwards())
@@ -95,17 +140,27 @@ public class Pseudo extends Box {
 			 });
 			return true;
 		});
+		this.properties.putToMap(Boxes.insideRunLoop, "main.__next10__", () -> {
+			r.breadthFirst(r.downwards())
+			 .map(x -> x.properties.get(next10))
+			 .filter(x -> x != null)
+			 .forEach(x -> {
+				 ArrayList<Runnable> q = new ArrayList<>(x.values());
+				 x.clear();
+				 q.forEach(z -> z.run());
+			 });
+			return true;
+		});
 	}
 
-	static public class Namer implements AsMap
-	{
+	static public class Namer implements AsMap {
 
 		private final Box on;
 
-		public Namer(Box on)
-		{
+		public Namer(Box on) {
 			this.on = on;
 		}
+
 		@Override
 		public boolean asMap_isProperty(String s) {
 			return true;
@@ -118,7 +173,7 @@ public class Pseudo extends Box {
 
 		@Override
 		public Object asMap_getElement(Object element) {
-			return asMap_get(element+"");
+			return asMap_get(element + "");
 		}
 
 		@Override
@@ -128,7 +183,11 @@ public class Pseudo extends Box {
 
 		@Override
 		public Object asMap_get(String p) {
-			return on.breadthFirst(on.downwards()).filter(x -> x.properties.has(Box.name)).filter(x -> x.properties.get(Box.name).matches(p)).collect(Collectors.toList());
+			return on.breadthFirst(on.downwards())
+				 .filter(x -> x.properties.has(Box.name))
+				 .filter(x -> x.properties.get(Box.name)
+							  .matches(p))
+				 .collect(Collectors.toList());
 		}
 
 		@Override
@@ -149,7 +208,7 @@ public class Pseudo extends Box {
 
 		@Override
 		public Object asMap_getElement(int element) {
-			return asMap_get(""+element);
+			return asMap_get("" + element);
 		}
 
 		@Override
@@ -158,17 +217,14 @@ public class Pseudo extends Box {
 		}
 	}
 
-	static public class XPath implements AsMap
-	{
+	static public class Oncer implements AsMap {
 
 		private final Box on;
-		private final XPathSupport support;
 
-		public XPath(Box on)
-		{
+		public Oncer(Box on) {
 			this.on = on;
-			this.support = new XPathSupport(on);
 		}
+
 		@Override
 		public boolean asMap_isProperty(String s) {
 			return true;
@@ -181,7 +237,76 @@ public class Pseudo extends Box {
 
 		@Override
 		public Object asMap_getElement(Object element) {
-			return asMap_get(element+"");
+			return asMap_get(element + "");
+		}
+
+		@Override
+		public Object asMap_setElement(int element, Object o) {
+			return null;
+		}
+
+		@Override
+		public Object asMap_get(String p) {
+			return null;
+		}
+
+		@Override
+		public Object asMap_set(String p, Object val) {
+
+			Dict.Prop cc = new Dict.Prop(p);
+
+			Dict.Prop cannon = cc.findCannon();
+			if (cannon != null) cc = cannon;
+			Supplier s = (Supplier) Conversions.convert(val, Supplier.class);
+
+			return on.properties.computeIfAbsent(cc, x -> s.get());
+		}
+
+
+		@Override
+		public Object asMap_new(Object a) {
+			return null;
+		}
+
+		@Override
+		public Object asMap_new(Object a, Object b) {
+			return null;
+		}
+
+		@Override
+		public Object asMap_getElement(int element) {
+			return asMap_get("" + element);
+		}
+
+		@Override
+		public boolean asMap_delete(Object o) {
+			return false;
+		}
+	}
+
+	static public class XPath implements AsMap {
+
+		private final Box on;
+		private final XPathSupport support;
+
+		public XPath(Box on) {
+			this.on = on;
+			this.support = new XPathSupport(on);
+		}
+
+		@Override
+		public boolean asMap_isProperty(String s) {
+			return true;
+		}
+
+		@Override
+		public Object asMap_call(Object o, Object o1) {
+			return asMap_getElement(o1);
+		}
+
+		@Override
+		public Object asMap_getElement(Object element) {
+			return asMap_get(element + "");
 		}
 
 		@Override
@@ -213,7 +338,7 @@ public class Pseudo extends Box {
 
 		@Override
 		public Object asMap_getElement(int element) {
-			return asMap_get(""+element);
+			return asMap_get("" + element);
 		}
 
 		@Override
@@ -297,6 +422,62 @@ public class Pseudo extends Box {
 		}
 	}
 
+	static public class Herer implements AsMap {
+
+		protected final Box on;
+
+		public Herer(Box on) {
+			this.on = on;
+		}
+
+		@Override
+		public boolean asMap_isProperty(String s) {
+			return true;
+		}
+
+		@Override
+		public Object asMap_call(Object o, Object o1) {
+			return null;
+		}
+
+		@Override
+		public boolean asMap_delete(Object o) {
+			throw new IllegalArgumentException(" can't delete here");
+		}
+
+		@Override
+		public Object asMap_get(String s) {
+			Dict.Prop p = new Dict.Prop(s);
+			return (on.properties.has(p));
+
+		}
+
+		@Override
+		public Object asMap_set(String s, Object o) {
+			throw new IllegalArgumentException(" can't set here");
+		}
+
+		@Override
+		public Object asMap_new(Object o) {
+			return null;
+		}
+
+		@Override
+		public Object asMap_new(Object o, Object o1) {
+			return null;
+		}
+
+		@Override
+		public Object asMap_getElement(int i) {
+			return null;
+		}
+
+		@Override
+		public Object asMap_setElement(int i, Object o) {
+			return null;
+		}
+	}
+
 	static public class All extends First implements AsMap {
 
 		public All(Box on) {
@@ -311,6 +492,31 @@ public class Pseudo extends Box {
 				 .filter(x -> x.properties.has(p))
 				 .map(x -> x.properties.get(p))
 				 .collect(Collectors.toList());
+		}
+
+	}
+
+	static public class Up extends First implements AsMap {
+
+		public Up(Box on) {
+			super(on);
+		}
+
+
+		@Override
+		public Object asMap_get(String s) {
+			Dict.Prop p = new Dict.Prop(s);
+
+			for (Box b : on.parents()) {
+				Optional<Object> q = b.breadthFirst(b.upwards())
+						      .filter(x -> x.properties.has(p))
+						      .map(x -> x.properties.get(p))
+						      .findFirst();
+
+				if (q.isPresent()) return q.get();
+			}
+
+			return null;
 		}
 
 	}
