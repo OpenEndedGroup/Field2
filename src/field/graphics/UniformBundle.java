@@ -1,10 +1,10 @@
 package field.graphics;
 
 import field.utility.Dict;
+import fieldbox.execution.Completion;
 import fieldbox.execution.Errors;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Supplier;
 
 /**
@@ -76,4 +76,26 @@ public class UniformBundle implements Scene.Perform {
 		})).get(new Dict.Prop(name));
 	}
 
+	@Override
+	public String toString() {
+
+		String q = uniforms.keySet()
+						  .stream()
+						  .map(x -> x.getName())
+						  .reduce((x, y) -> x + ", " + y).orElseGet(()->"");
+		return "uniforms{"+q+"}";
+	}
+
+	public Collection<? extends Completion> getCompletionsFor(String prefix) {
+		List<Completion> cc = new ArrayList<>();
+		for (Map.Entry<Dict.Prop<?>, Uniform> entry : uniforms.entrySet()) {
+			if (prefix==null || prefix.equals("") || entry.getKey().getName().startsWith(prefix))
+			{
+				Completion c = new Completion(-1,-1, entry.getKey().getName(),"="+entry.getValue().get());
+				cc.add(c);
+			}
+		}
+
+		return cc;
+	}
 }
