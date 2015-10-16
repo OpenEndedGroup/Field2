@@ -9,7 +9,9 @@ import field.app.RunLoop;
 import field.graphics.util.KeyEventMapping;
 import field.linalg.Vec2;
 import field.utility.*;
+import fieldbox.ui.FieldBoxWindow;
 import fieldlinker.Linker;
+import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GLContext;
 
@@ -43,8 +45,8 @@ public class Window implements ProvidesGraphicsContext {
 	protected GraphicsContext graphicsContext;
 	protected long window;
 
-	protected int w;
-	protected int h;
+	protected int w,x;
+	protected int h,y;
 
 	protected MouseState mouseState = new MouseState();
 	protected KeyboardState keyboardState = new KeyboardState();
@@ -69,14 +71,18 @@ public class Window implements ProvidesGraphicsContext {
 		glfwWindowHint(GLFW_SAMPLES, 8);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, 1);
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+//		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+//		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-		glfwWindowHint(GLFW_DOUBLEBUFFER, 0);
+		glfwWindowHint(GLFW_DOUBLEBUFFER, 0); // TODO: make an option
 
 		glfwWindowHint(GLFW_DECORATED, title == null ? 0 : 1);
 
 		this.w = w;
 		this.h = h;
+		this.x = x;
+		this.y = y;
 
 		window = glfwCreateWindow(w, h, title, 0, 0);
 		Windows.windows.register(window, makeCallback());
@@ -122,19 +128,6 @@ public class Window implements ProvidesGraphicsContext {
 						lastWas = frame;
 						lastAt = System.currentTimeMillis();
 					}
-
-					boolean a = glfwGetKey(window, GLFW_KEY_A);
-					if (a)
-						System.out.print("a");
-					else
-						System.out.print("n");
-
-					if (keyboardState.charsDown.size()>0)
-					{
-						System.out.println("A<"+keyboardState+">");
-					}
-					else
-						System.out.println("N");
 
 					try {
 						Thread.sleep(5000);
@@ -183,11 +176,15 @@ public class Window implements ProvidesGraphicsContext {
 	}
 
 	public void loop() {
+		if (frame==10)
+			glfwSetWindowPos(window, x, y);
 
 		if (!needsRepainting()) {
 			glfwPollEvents();
 			return;
 		}
+
+		if (this.getClass()== FieldBoxWindow.class) System.out.println(" refreshing ");
 
 		needsRepainting = false;
 
@@ -195,7 +192,9 @@ public class Window implements ProvidesGraphicsContext {
 		glfwMakeContextCurrent(window);
 		glfwSwapInterval(1);
 
+		// makes linux all go to hell
 //		glcontext.makeCurrent(0);
+
 		GraphicsContext.checkError(() -> "initially");
 
 		int w = glfwGetWindowWidth(window);
@@ -290,6 +289,9 @@ public class Window implements ProvidesGraphicsContext {
 
 
 	public Rect getBounds() {
+
+		currentBounds.x = glfwGetWindowX(window);
+		currentBounds.y = glfwGetWindowY(window);
 		return currentBounds;
 	}
 
@@ -555,7 +557,9 @@ public class Window implements ProvidesGraphicsContext {
 	}
 
 	public int getRetinaScaleFactor() {
-		return glfwGetFramebufferWidth(window)/glfwGetWindowWidth(window);
+
+//		return glfwGetFramebufferWidth(window)/glfwGetWindowWidth(window);
+		return 1;
 //		return retinaScaleFactor;
 	}
 
@@ -837,7 +841,7 @@ public class Window implements ProvidesGraphicsContext {
 
 				boolean notReally = glfwGetKey(window, m);
 				if (!notReally) {
-					Log.log("keyboard.debug", "Got an imposter :" + m + " " + KeyEventMapping.lookup(m));
+					Log.log("keyboard.debug", ()->"Got an imposter :" + m + " " + KeyEventMapping.lookup(m));
 					ii.remove();
 					charsDown.remove(m);
 				} else {
