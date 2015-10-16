@@ -46,11 +46,6 @@ public class Taps extends Box implements IO.Loaded {
 	public void loaded() {
 		properties.put(tap, (x, string) -> {
 
-//			Box c = x.first(DefaultMenus.ensureChildOfClass)
-//				 .get()
-//				 .apply(x, string, Box.class);// todo, templates?
-
-
 			Box c = x.first(Templates.ensureChildTemplated)
 				 .get()
 				 .apply(x, "tap-" + string.substring(0, string.lastIndexOf(":")), string);
@@ -107,7 +102,7 @@ public class Taps extends Box implements IO.Loaded {
 
 		if (!editorLoaded && first(Watches.watches, both()).isPresent()) {
 			Optional<RemoteEditor> first = this.first(RemoteEditor.editor, both());
-			Log.log("tap", "is the editor loaded yet ? " + first);
+			Log.log("tap", ()->"is the editor loaded yet ? " + first);
 
 			if (first.isPresent()) {
 				editorLoaded = true;
@@ -116,12 +111,12 @@ public class Taps extends Box implements IO.Loaded {
 				editor.getServer()
 				      .addHandlerLast(Predicate.isEqual("taps.activeset"), (s, socket, address, payload) -> {
 
-					      Log.log("tap", "tap.activeset recieved ");
+					      Log.log("tap", ()->"tap.activeset recieved ");
 
 					      // the list of the active taps inside:
 					      Box e = editor.getCurrentlyEditing();
 					      if (e == null) {
-						      Log.log("tap", "nothing being edited");
+						      Log.log("tap", ()->"nothing being edited");
 						      return payload;
 					      }
 
@@ -148,12 +143,12 @@ public class Taps extends Box implements IO.Loaded {
 										  .filter(x -> !names.containsKey(x.properties.get(tapBinding).canvasId))
 										  .collect(Collectors.toList());
 
-						      Log.log("tap", "collected :" + collect + " / " + toDelete);
+						      Log.log("tap", ()->"collected :" + collect + " / " + toDelete);
 
-//					      for (Box b : toDelete) {
-//						      Callbacks.delete(b);
-//						      b.disconnectFromAll();
-//					      }
+					      for (Box b : toDelete) {
+						      Callbacks.delete(b);
+						      b.disconnectFromAll();
+					      }
 
 						      collect.removeAll(toDelete);
 
