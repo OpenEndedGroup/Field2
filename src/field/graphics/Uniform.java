@@ -71,6 +71,10 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 	static public float[] rewriteToFloatArray(Object t) {
 
 		if (t instanceof float[]) return (float[]) t;
+		if (t instanceof int[]) {
+			return null;
+		}
+
 		if (t instanceof Float) return new float[]{((Number) t).floatValue()};
 		if (t instanceof Double) return new float[]{((Number) t).floatValue()};
 		if (t instanceof Boolean) return new float[]{((Boolean) t).booleanValue() ? 1f : 0f};
@@ -180,6 +184,7 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 			boolean changed = GraphicsContext.getContext().uniformCache.push(this.name, t, () -> setUniformNow(false));
 			pushed = true;
 		}
+
 		//TODO: could use changed to eliminate calls to setuniform
 
 		try {
