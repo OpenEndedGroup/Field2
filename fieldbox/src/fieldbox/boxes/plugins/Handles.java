@@ -154,13 +154,13 @@ public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove
 	 *
 	 * @return
 	 */
-	public List<FLine> appearence() {
-		List<FLine> a = all().stream()
+	public List<Supplier<FLine>> appearence() {
+		List<Supplier<FLine>> a = all().stream()
 				     .flatMap(x -> x.appearance.get()
 							       .stream())
 				     .collect(Collectors.toList());
 		if (a.size()>0)
-			Log.log("handles", "appearence is :" + a);
+			Log.log("handles", ()->"appearence is :" + a);
 		return a;
 	}
 
@@ -174,7 +174,7 @@ public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove
 		Vec2 pos = new Vec2(e.after.mx, e.after.my);
 
 
-		Log.log("handles", "onMouseDown :" + pos);
+		Log.log("handles", ()->"onMouseDown :" + pos);
 
 		Draggable selected = d.stream()
 				      .filter(x -> x.getPosition()
@@ -185,7 +185,7 @@ public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove
 				      .findFirst()
 				      .orElse(null);
 
-		Log.log("handles", "selected :" + selected);
+		Log.log("handles", ()->"selected :" + selected);
 
 		if (selected == null) {
 			d.stream()
@@ -214,7 +214,7 @@ public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove
 				      .filter(x -> x.selected)
 				      .collect(Collectors.toSet());
 
-		Log.log("handles", "selected set :" + selected);
+		Log.log("handles", ()->"selected set :" + selected);
 
 		Drawing.dirty(this);
 		e.properties.put(Window.consumed, true);
