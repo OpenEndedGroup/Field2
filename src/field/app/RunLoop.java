@@ -139,7 +139,38 @@ public class RunLoop {
 				return ec;
 			}
 		});
+	}
 
+	public void delayTicks(Runnable p0, int ticks) {
+
+		mainLoop.attach(new Scene.Perform() {
+			int t = 0;
+
+			@Override
+			public boolean perform(int pass) {
+				if (t++ > ticks) {
+					p0.run();
+					return false;
+				}
+				return true;
+			}
+
+			Errors.ErrorConsumer ec = Errors.errors.get();
+
+			@Override
+			public void setErrorConsumer(Errors.ErrorConsumer c) {
+				this.ec = ec;
+			}
+
+			@Override
+			public Errors.ErrorConsumer getErrorConsumer() {
+				if (p0 instanceof Errors.ErrorConsumer)
+					return ((Errors.ErrorConsumer)p0);
+				if (p0 instanceof Errors.SavesErrorConsumer)
+					return ((Errors.SavesErrorConsumer)p0).getErrorConsumer();
+				return ec;
+			}
+		});
 	}
 
 	public void exit() {
@@ -168,5 +199,6 @@ public class RunLoop {
 		// we add this to the start of the list, it will be run before anything that's already there.
 		onExit.add(0, r);
 	}
+
 
 }
