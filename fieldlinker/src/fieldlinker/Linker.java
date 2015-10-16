@@ -40,6 +40,8 @@ public class Linker implements GuardingDynamicLinker, GuardingTypeConverterFacto
 
 		public Object asMap_setElement(int element, Object o);
 
+		public default  Object asMap_setElement(Object element, Object o) {return asMap_set(""+element, o);}
+
 		public default Object asMap_call(Object o) {
 			return asMap_call(o, Collections.EMPTY_MAP);
 		}
@@ -178,13 +180,46 @@ public class Linker implements GuardingDynamicLinker, GuardingTypeConverterFacto
 
 		} else if (linkRequest.getCallSiteDescriptor()
 				      .getNameToken(CallSiteDescriptor.OPERATOR)
+				      .equals("setElem|setProp")) {
+			Object rec = linkRequest.getReceiver();
+
+			if (linkRequest.getArguments().length==3) {
+
+				if (rec instanceof AsMap) {
+
+					System.err.println(" linking AsMap/setElement " + rec);
+					MethodHandle get = MethodHandles.lookup()
+									.findVirtual(implementingClassFor(rec.getClass()), "asMap_setElement", MethodType.methodType(Object.class, Object.class, Object.class));
+
+					return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
+				}
+			}
+			else
+			{
+				String propertyName = linkRequest.getCallSiteDescriptor()
+								 .getNameToken(CallSiteDescriptor.NAME_OPERAND);
+
+				if (rec instanceof AsMap) {
+
+					System.err.println(" linking AsMap/setElement " + rec);
+					MethodHandle get = MethodHandles.lookup()
+									.findVirtual(implementingClassFor(rec.getClass()), "asMap_setElement", MethodType.methodType(Object.class, Object.class, Object.class));
+
+					get = MethodHandles.insertArguments(get, 1, propertyName);
+
+					return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
+				}
+			}
+
+
+		}else if (linkRequest.getCallSiteDescriptor()
+				      .getNameToken(CallSiteDescriptor.OPERATOR)
 				      .equals("getElem|getProp|getMethod")) {
 			Object rec = linkRequest.getReceiver();
 
 			if (linkRequest.getArguments().length==2) {
 
 				if (linkRequest.getArguments()[1].getClass().isPrimitive())
-
 				{
 
 					if (rec instanceof AsMap) {
