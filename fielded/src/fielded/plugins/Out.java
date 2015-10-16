@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.regex.MatchResult;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -76,25 +78,35 @@ public class Out extends Box {
 		});
 	}
 
-	Pattern stuff = Pattern.compile("([+-]?(\\d+\\.)?\\d+)|([\\%\\$\\#\\@\\!\\^\\&\\(\\)\\[\\]\\{\\}\\'\\,\\.\\;\\:\\+\\-\\*])");
+	Pattern stuff = Pattern.compile("([+-]?(\\d+\\.)?\\d+)|([\\%\\$\\#\\@\\!\\(\\)\\[\\]\\{\\}\\'\\,\\.\\;\\:\\+\\-\\*])");
 	private String cheapSynax(String s) {
-
-		s = stuff.matcher(s).replaceAll((x) -> {
-			String found = x.group(1);
-			if (found!=null && found.length()>0)
-				return "<span class='number'>"+found+"</span>";
-			else
-			{
-				found = x.group(3);
-				if (found!=null && found.length()>0)
-					return "<span class='operator'>"+found+"</span>";
-			}
-			return x.group(0);
-		});
-
 
 		return s;
 
+//		try {
+//			Matcher m = stuff.matcher(s);
+//
+//			// JDK 9 only!
+//
+//			s = stuff.matcher(s)
+//				 .replaceAll((x) -> {
+//					 String found = x.group(1);
+//					 if (found != null && found.length() > 0) return "<span class='number'>" + found + "</span>";
+//					 else {
+//						 found = x.group(3);
+//						 if (found != null && found.length() > 0) return "<span class='operator'>" + found + "</span>";
+//					 }
+//					 return x.group(0);
+//				 });
+//
+//
+//			return s;
+//		}
+//		catch(Throwable t)
+//		{
+//			t.printStackTrace();
+//			return s;
+//		}
 	}
 
 	private String shorten(Class c) {
