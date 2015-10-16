@@ -6,6 +6,7 @@ import field.utility.IdempotencyMap;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Intersects;
 import fieldbox.boxes.Keyboard;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -49,6 +50,15 @@ public class KeyboardShortcuts extends Box {
 
 			Set<Integer> c = new LinkedHashSet<>(k.after.keysDown);
 			c.removeAll(k.before.keysDown);
+
+			c.remove(GLFW.GLFW_KEY_LEFT_CONTROL);
+			c.remove(GLFW.GLFW_KEY_RIGHT_CONTROL);
+			c.remove(GLFW.GLFW_KEY_LEFT_SHIFT);
+			c.remove(GLFW.GLFW_KEY_RIGHT_SHIFT);
+			c.remove(GLFW.GLFW_KEY_LEFT_ALT);
+			c.remove(GLFW.GLFW_KEY_RIGHT_ALT);
+			c.remove(GLFW.GLFW_KEY_LEFT_SUPER);
+			c.remove(GLFW.GLFW_KEY_RIGHT_SUPER);
 
 			if (c.size() != 1) return null;
 
