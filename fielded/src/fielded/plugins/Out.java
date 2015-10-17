@@ -2,7 +2,9 @@ package fielded.plugins;
 
 import field.utility.Dict;
 import field.utility.IdempotencyMap;
+import field.utility.Pair;
 import fieldbox.boxes.Box;
+import fieldbox.io.IO;
 import fielded.boxbrowser.ObjectToHTML;
 
 import java.io.IOException;
@@ -22,7 +24,7 @@ import java.util.regex.Pattern;
  */
 public class Out extends Box {
 	ObjectToHTML output = new ObjectToHTML();
-	static public final Dict.Prop<Consumer<Object>> out = new Dict.Prop<Consumer<Object>>("out").toCannon()
+	static public final Dict.Prop<Function<Object, Object>> out = new Dict.Prop<Function<Object, Object>>("out").toCannon()
 												    .type()
 												    .doc(" ... ");
 	static public final Dict.Prop<IdempotencyMap<Function<Object, Object>>> outMap = new Dict.Prop<>("outMap").toCannon()
@@ -32,16 +34,41 @@ public class Out extends Box {
 									   .type();
 
 	Writer theWriter = new PrintWriter(System.out);
+	Consumer<Pair<Box, Integer>> theLineOut;
 
 	public Out(Box root_unused) {
 		this.properties.put(__out, this);
 
 		this.properties.put(out, x -> {
+			StackTraceElement[] st = new Exception().getStackTrace();
+			String uid = null;
+			int uidLine = 0;
+			for (StackTraceElement ee : st) {
+				if (ee.getFileName()
+				      .startsWith("bx[")) {
+					Pattern c = Pattern.compile("bx\\[(.*?)\\]/(.*)");
+					Matcher m = c.matcher(ee.getFileName());
+					if (m.find()) {
+						uid = m.group(2);
+						uidLine = ee.getLineNumber();
+						break;
+					}
+				}
+			}
+
+			if (uid != null) {
+				theLineOut.accept(new Pair<>(find(uid), uidLine));
+			}
+			else
+				theLineOut.accept(null);
+
+
 			try {
 				theWriter.append(convert(x));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+			return x;
 		});
 
 		this.properties.put(outMap, output.map);
@@ -50,10 +77,12 @@ public class Out extends Box {
 
 		output.map._put("Object", x -> {
 
-			String groupName = "o"+output.joinContext();
+			String groupName = "o" + output.joinContext();
 
-			return "{HTML}<div class='maptable-entry'><b>[[__"+groupName+"__:"+safe(x.toString())+" "+cheapSynax(x.toString()) + " ]]</b>[[__"+groupName+"smaller__:"+shorten(x.getClass())+" <span class='smaller'>" + shorten(x.getClass()) + "</span> ]]</div>";
-		}); output.map._put("java_util_List", x -> {
+			return "{HTML}<div class='maptable-entry'><b>[[__" + groupName + "__:" + safe(x.toString()) + " " + cheapSynax(
+				    x.toString()) + " ]]</b>[[__" + groupName + "smaller__:" + shorten(x.getClass()) + " <span class='smaller'>" + shorten(x.getClass()) + "</span> ]]</div>";
+		});
+		output.map._put("java_util_List", x -> {
 			String s = "{HTML}";
 			if (((List) x).size() == 0) {
 				s += "<table class='maptable' cellspacing=0>";
@@ -66,7 +95,6 @@ public class Out extends Box {
 			s += "<div class='maptable' cellspacing=0><div class='smaller-inframe'>" + shorten(x.getClass()) + ", length " + k.size() + "</div>";
 			int num = 0;
 			for (Object oo : k) {
-//				s += "<div class='maptable-entry'> <div class='maptable-key'>" + num + "</div><div class='maptable-value'>" + output.convert(oo) + "</div></div>";
 				s += "<div class='maptable-entry'> <div class='maptable-value'>" + output.convert(oo, "value") + "</div></div>";
 				num++;
 				if (num > 10 && k.size() > 15) {
@@ -113,6 +141,15 @@ public class Out extends Box {
 		});
 	}
 
+	private Box find(String uid) {
+		return this.breadthFirst(this.both())
+			   .filter(x -> x.properties.has(IO.id))
+			   .filter(x -> x.properties.get(IO.id)
+						    .equals(uid))
+			   .findFirst()
+			   .orElse(null);
+	}
+
 	private String safe(String s) {
 		return s.replaceAll(" ", "_");
 	}
@@ -144,8 +181,9 @@ public class Out extends Box {
 		return shor;
 	}
 
-	public Out setWriter(Writer theWriter) {
+	public Out setWriter(Writer theWriter, Consumer<Pair<Box, Integer>> lineNumber) {
 		this.theWriter = theWriter;
+		this.theLineOut = lineNumber;
 		return this;
 	}
 
@@ -173,11 +211,11 @@ public class Out extends Box {
 				if (!prev.containsKey(groupName) || !prev.get(groupName)
 									 .equals(groupValue)) {
 					prev.put(groupName, groupValue);
-					s = s.substring(0, m.start() ) + groupPayload + s.substring(m.end() );
+					s = s.substring(0, m.start()) + groupPayload + s.substring(m.end());
 					continue;
 				} else {
 					prev.put(groupName, groupValue);
-					s = s.substring(0, m.start() ) + "<span class='smaller'>.</span>"+s.substring(m.end() );
+					s = s.substring(0, m.start()) + "<span class='smaller'>.</span>" + s.substring(m.end());
 					continue;
 				}
 			}

@@ -6,6 +6,7 @@ import field.nashorn.api.scripting.ScriptObjectMirror;
 import field.utility.Dict;
 import field.utility.Log;
 import field.utility.Pair;
+import field.utility.Triple;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Boxes;
 import fieldbox.boxes.Drawing;
@@ -54,6 +55,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	int uniq = 0;
 	private TernSupport ternSupport;
 	private int lineOffset;
+	private Pair<Box, Integer> currentLineNumber = null;
 
 
 	public NashornExecution(Box box, Dict.Prop<String> property, ScriptContext b, ScriptEngine engine) {
@@ -111,6 +113,8 @@ public class NashornExecution implements Execution.ExecutionSupport {
 			boolean[] written = {false};
 			if (success != null) {
 
+				currentLineNumber = null;
+
 
 				writer = new Writer() {
 					StringBuilder b = new StringBuilder();
@@ -123,7 +127,14 @@ public class NashornExecution implements Execution.ExecutionSupport {
 							if (s.trim()
 							     .length() == 0) return;
 							written[0] = true;
-							success.accept(s);
+
+							if (currentLineNumber==null || currentLineNumber.first==null || currentLineNumber.second==-1)
+								success.accept(s);
+							else {
+								final String finalS = s;
+								box.find(Execution.directedOutput, box.upwards()).findFirst().ifPresentOrElse(x -> x.accept(new Triple<>(currentLineNumber.first, currentLineNumber.second,
+																			     finalS)), () -> success.accept(finalS));
+							}
 						}
 					}
 
@@ -172,7 +183,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 			RemoteEditor.removeBoxFeedback(Optional.of(box), "__redmark__");
 
-			output.setWriter(writer);
+			output.setWriter(writer, this::setCurrentLineNumberForPrinting);
 
 			Object ret = engineeval(textFragment, context, e -> handleScriptException(e, lineErrors, lineTransform));
 
@@ -205,6 +216,12 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 			Errors.errors.pop();
 		}
+	}
+
+	private void setCurrentLineNumberForPrinting(Pair<Box, Integer> boxLine) {
+
+		currentLineNumber = boxLine;
+
 	}
 
 	private void handleScriptException(Throwable e, Consumer<Pair<Integer, String>> lineErrors, Function<Integer, Integer> lineTransform) {
