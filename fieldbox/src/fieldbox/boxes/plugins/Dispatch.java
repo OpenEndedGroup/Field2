@@ -76,10 +76,11 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 					    .filter(x -> !x.properties.isTrue(Box.hidden, false))
 					    .filter(x -> x.properties.isTrue(Mouse.isSelected, false))
 					    .forEach(x -> {
+						if (x.disconnected) return;
 
 						    int n = 0;
 						    for (Box x2 : x.children()) {
-							    if (x2.properties.has(Box.frame)) {
+							    if (x2.properties.has(Box.frame) && !x2.disconnected) {
 								    FLine m = arc(x.properties.get(Box.frame), x2.properties.get(Box.frame), true).first;
 								    if (f.nodes.size() == 0) f.attributes.putAll(m.attributes);
 								    f.nodes.addAll(m.nodes);
@@ -88,7 +89,7 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 						    }
 
 						    for (Box x2 : x.parents()) {
-							    if (x2.properties.has(Box.frame)) {
+							    if (x2.properties.has(Box.frame)&& !x2.disconnected) {
 								    FLine m = arc(x2.properties.get(Box.frame), x.properties.get(Box.frame), true).first;
 								    if (f.nodes.size() == 0) f.attributes.putAll(m.attributes);
 								    f.nodes.addAll(m.nodes);
@@ -202,8 +203,10 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 
 		if (!root.breadthFirst(root.downwards()).filter(x -> x instanceof DispatchBox).filter(x -> ((DispatchBox)x).head()==start && ((DispatchBox)x).tail()==box).findAny().isPresent())
 		{
-			DispatchBox db = new DispatchBox(start, box);
-			root.connect(db);
+			if (!start.disconnected && !box.disconnected) {
+				DispatchBox db = new DispatchBox(start, box);
+				root.connect(db);
+			}
 		}
 	}
 

@@ -37,13 +37,16 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 									    .toCannon()
 									    .doc("the tail of this topology arrow box");
 
-	static public final Dict.Prop<FunctionOfBoxValued<Collection<Missing.Log>>> logThrough = new Dict.Prop<>("logThrough").type().toCannon().doc("property transcript filtered to include only property access that's _through_ this connection");
+	static public final Dict.Prop<FunctionOfBoxValued<Collection<Missing.Log>>> logThrough = new Dict.Prop<>("logThrough").type()
+															      .toCannon()
+															      .doc("property transcript filtered to include only property access that's _through_ this connection");
 
 	static {
 		// these properties need to be saved in our document
 		IO.persist(head);
 		IO.persist(tail);
 	}
+
 	static private final boolean notForInsert = true; // tell FileBrowser not to bother offering us for insertion
 	Rect cache_h = null;
 	Rect cache_t = null;
@@ -111,7 +114,10 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 		});
 		this.properties.put(logThrough, x -> {
 			Predicate<Missing.Log> p = Missing.across(this.head(), this.tail());
-			return Missing.getLog().stream().filter(p).collect(Collectors.toList());
+			return Missing.getLog()
+				      .stream()
+				      .filter(p)
+				      .collect(Collectors.toList());
 		});
 
 		this.properties.put(Chorder.nox, true);
@@ -130,7 +136,7 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 			Rect r1 = ((DispatchBox) box).head().properties.get(frame);
 			Rect r2 = ((DispatchBox) box).tail().properties.get(frame);
 
-			if (r1==null || r2==null) return null;
+			if (r1 == null || r2 == null) return null;
 
 			Pair<FLine, Vec2> fa = arc(r1, r2, selected);
 
@@ -164,32 +170,44 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 	}
 
 	protected boolean checkForDeletion() {
-
-
 		Box h = head();
 		Box t = tail();
 		if (h == null || t == null) {
 			Drawing.dirty(this);
 			Callbacks.delete(this);
 			this.disconnectFromAll();
+			return true;
+		}
+
+		if (h.disconnected || t.disconnected) {
+			Drawing.dirty(this);
+			Callbacks.delete(this);
+			this.disconnectFromAll();
+			System.out.println(" is disconnected ");
+			return true;
+		}
+
+		Set<Box> hc = h.children();
+		if (!hc.contains(t)) {
+			Drawing.dirty(this);
+			Callbacks.delete(this);
+			this.disconnectFromAll();
+			return true;
 		}
 
 		Set<Box> hp = h.parents();
 		Set<Box> tp = t.parents();
-		if (hp
-			  .size() == 0 || tp
-						.size() == 0) {
-			Drawing.dirty(this);
-			Callbacks.delete(this);
-			this.disconnectFromAll();
-		}
-		Set<Box> hc = h.children();
+		if (hp.size() == 0 || tp.size() == 0) {
 
-		if (!hc
-			   .contains(t)) {
-			Drawing.dirty(this);
-			Callbacks.delete(this);
-			this.disconnectFromAll();
+			// now we need to prove the connectedness of either hp or tp, this is slightly expensive
+			if (!h.breadthFirstAll(h.both()).filter(x -> x.properties.has(Boxes.root)).findAny().isPresent())
+			{
+				Drawing.dirty(this);
+				Callbacks.delete(this);
+				this.disconnectFromAll();
+			}
+
+			return true;
 		}
 
 		return true;
