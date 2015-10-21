@@ -24,7 +24,10 @@ public class BoxRef {
 	}
 
 	public Box get(Box from) {
-		if (ref != null) return ref;
+		if (ref != null) {
+			if (ref.disconnected) return ref=null;
+			return ref;
+		}
 		Optional<Box> b = from.breadthFirst(from.both()).filter(x -> Util.safeEq(x.properties.get(IO.id), uuid)).findFirst();
 		if (b.isPresent()) ref = b.get();
 		return ref;
