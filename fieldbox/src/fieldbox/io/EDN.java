@@ -1,6 +1,8 @@
 package fieldbox.io;
 
+import field.utility.MapSerializable;
 import field.utility.Rect;
+import field.utility.Serializable_safe;
 import fieldbox.boxes.plugins.BoxRef;
 import sun.misc.Unsafe;
 import us.bpsm.edn.Keyword;
@@ -10,6 +12,7 @@ import us.bpsm.edn.printer.Printer;
 import us.bpsm.edn.printer.Printers;
 import us.bpsm.edn.protocols.Protocol;
 
+import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -48,17 +51,22 @@ public class EDN {
 	static public final Tag EXTERNAL = Tag.newTag("field", "external");
 	static public final Tag FILESPEC = Tag.newTag("field", "filespec");
 	static public final Tag BOXREF = Tag.newTag("field", "boxref");
+	static public final Tag SERIALIZABLE = Tag.newTag("field", "serializable");
+	static public final Tag MAPSERIALIZABLE = Tag.newTag("field", "mapserializable");
 
 	private final Protocol.Builder<Printer.Fn<?>> printer;
 	private final Parser theParser;
 
 	public EDN() {
-		builder = Parsers.newParserConfigBuilder()
-				 .putTagHandler(RECT, simpleDeserializeFromMap(Rect.class));
+		builder = Parsers.newParserConfigBuilder();
+
+		builder.putTagHandler(RECT, simpleDeserializeFromMap(Rect.class));
 		builder.putTagHandler(DOCUMENT, simpleDeserializeFromMap(IO.Document.class));
 		builder.putTagHandler(EXTERNAL, simpleDeserializeFromMap(IO.External.class));
 		builder.putTagHandler(FILESPEC, simpleDeserializeFromMap(IO.Filespec.class));
 		builder.putTagHandler(BOXREF, simpleDeserializeFromMap(BoxRef.class));
+		builder.putTagHandler(SERIALIZABLE, deserializeFromSerializable(Serializable_safe.class));
+		builder.putTagHandler(MAPSERIALIZABLE, simpleDeserializeFromMapSafe());
 
 		builder.setSetFactory(new CollectionBuilder.Factory() {
 
@@ -70,8 +78,11 @@ public class EDN {
 						this.set.add(o);
 					}
 
+//					public Object build() {
+//						return Collections.unmodifiableSet(this.set);
+//					}
 					public Object build() {
-						return Collections.unmodifiableSet(this.set);
+						return new LinkedHashSet(this.set);
 					}
 				};
 			}
@@ -79,12 +90,14 @@ public class EDN {
 		theParser = Parsers.newParser(builder.build());
 
 
-		printer = Printers.prettyProtocolBuilder()
-				  .put(Rect.class, simpleSerializeToMap(RECT, Rect.class));
+		printer = Printers.prettyProtocolBuilder();
+		printer.put(Rect.class, simpleSerializeToMap(RECT, Rect.class));
 		printer.put(IO.Document.class, simpleSerializeToMap(DOCUMENT, IO.Document.class));
 		printer.put(IO.External.class, simpleSerializeToMap(EXTERNAL, IO.External.class));
 		printer.put(IO.Filespec.class, simpleSerializeToMap(FILESPEC, IO.Filespec.class));
 		printer.put(BoxRef.class, simpleSerializeToMap(BOXREF, BoxRef.class));
+		printer.put(Serializable_safe.class, serializeFromSerializable(SERIALIZABLE));
+		printer.put(MapSerializable.class, simpleSerializeToMapWithClass(MAPSERIALIZABLE));
 
 
 		thePrinter = printer.build();
@@ -104,6 +117,35 @@ public class EDN {
 		return p.nextValue(parseable);
 	}
 
+
+	public TagHandler deserializeFromSerializable(Class c) {
+		return (tag, o) -> {
+
+			try {
+				Map<?, ?> m = (Map) o;
+
+				Map.Entry<?, ?> e = m.entrySet()
+						     .iterator()
+						     .next();
+
+				String v = (String) e.getValue();
+
+				byte[] d = Base64.getDecoder()
+						 .decode(v.getBytes());
+
+				ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(d));
+				Object vv = ois.readObject();
+				ois.close();
+
+				return vv;
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			}
+			return null;
+		};
+	}
 
 	public TagHandler simpleDeserializeFromMap(Class c) {
 		return (tag, o) -> {
@@ -146,12 +188,65 @@ public class EDN {
 		};
 	}
 
+	public TagHandler simpleDeserializeFromMapSafe() {
+		return (tag, o) -> {
+
+			try {
+				Map<?, ?> m = (Map) o;
+				String clazz= (String) m.get(Keyword.newKeyword("$class"));
+
+				Class<?> c = Thread.currentThread()
+							.getContextClassLoader()
+							.loadClass(clazz);
+				Object instance = getUnsafe().allocateInstance(c);
+
+				m.entrySet()
+				 .forEach(e -> {
+					 String s = "";
+					 Object k = e.getKey();
+					 if (k instanceof Keyword) s = ((Keyword) k).getName();
+					 else s = k.toString();
+
+					 if (s.startsWith("$")) return;
+
+					 try {
+						 Field f = c.getField(s);
+						 f.setAccessible(true);
+						 if (Modifier.isFinal(f.getModifiers())) {
+							 long of = getUnsafe().objectFieldOffset(f);
+							 if (f.getType() == Float.TYPE) getUnsafe().putFloat(instance, of, ((Number) e.getValue()).floatValue());
+							 else throw new IllegalArgumentException("can't handle " + f.getType() + " / " + f + " / " + s + " " + instance);
+						 } else {
+							 if (f.getType() == Float.TYPE) f.set(instance, ((Number) e.getValue()).floatValue());
+							 else f.set(instance, e.getValue());
+
+						 }
+					 } catch (NoSuchFieldException e1) {
+						 e1.printStackTrace();
+					 } catch (IllegalAccessException e1) {
+						 e1.printStackTrace();
+					 }
+
+				 });
+				return instance;
+			} catch (InstantiationException e) {
+				e.printStackTrace();
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			}
+			return null;
+		};
+	}
+
+
+
 	public us.bpsm.edn.printer.Printer.Fn<?> simpleSerializeToMap(Tag tag, Class c) {
 		return (o, writer) -> {
 			try {
 				Map<Object, Object> mm = new LinkedHashMap<>();
 
 				Field[] f = c.getFields();
+
 				for (Field ff : f) {
 					if (Modifier.isTransient(ff.getModifiers())) continue;
 					ff.setAccessible(true);
@@ -162,6 +257,55 @@ public class EDN {
 				      .printValue(mm);
 
 			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			}
+		};
+	}
+
+	public us.bpsm.edn.printer.Printer.Fn<?> simpleSerializeToMapWithClass(Tag tag) {
+		return (o, writer) -> {
+			try {
+				Map<Object, Object> mm = new LinkedHashMap<>();
+
+				Field[] f = o.getClass().getFields();
+				mm.put(Keyword.newKeyword("$class"),o.getClass().getName());
+
+				for (Field ff : f) {
+					if (Modifier.isTransient(ff.getModifiers())) continue;
+					ff.setAccessible(true);
+					mm.put(Keyword.newKeyword(ff.getName()), ff.get(o));
+				}
+
+				writer.printValue(tag)
+				      .printValue(mm);
+
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			}
+		};
+	}
+	public us.bpsm.edn.printer.Printer.Fn<?> serializeFromSerializable(Tag tag) {
+		return (o, writer) -> {
+			try {
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				ObjectOutputStream oos = new ObjectOutputStream(baos);
+				oos.writeObject(o);
+				oos.close();
+				byte[] bytes = baos.toByteArray();
+
+				byte[] b2 = Base64.getEncoder()
+				      .encode(bytes);
+
+				String v = new String(b2);
+
+				Map<Object, Object> mm = new LinkedHashMap<>();
+
+				mm.put(Keyword.newKeyword("base64"), v);
+
+				writer.printValue(tag)
+				      .printValue(mm);
+
+			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		};
