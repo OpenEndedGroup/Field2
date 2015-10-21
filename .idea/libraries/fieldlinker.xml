@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="fieldlinker">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/out/artifacts/fieldlinker/fieldlinker.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>
