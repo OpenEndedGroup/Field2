@@ -100,9 +100,9 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 					String boxName = matcher.group(2);
 
-					lineErrors.accept(new Pair<>(ln, "Error in deferred execution on line " + ln + " in box " + boxName+"\n"+"Full message is " + m + " / " + t.getMessage()));
+					lineErrors.accept(new Pair<>(ln, "Error in deferred execution on line " + ln + " in box " + boxName+"\n"+"Full message is " + m + " / " + t.getMessage()+"<br>"));
 				} else {
-					lineErrors.accept(new Pair<>(ln, "Error in deferred execution '" + m + "'\n"+t.getMessage()));
+					lineErrors.accept(new Pair<>(ln, "Error in deferred execution '" + m + "'\n"+t.getMessage()+"<br>"));
 				}
 
 				RemoteEditor.boxFeedback(Optional.of(box), new Vec4(1,0,0,1), "__redmark__", 1, 1000);
@@ -123,7 +123,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 					public void write(char[] cbuf, int off, int len) throws IOException {
 						if (len > 0) {
 							String s = new String(cbuf, off, len);
-							if (s.endsWith("\n")) s = s.substring(0, s.length() - 1);
+							if (s.endsWith("\n")) s = s.substring(0, s.length() - 1)+"<br>";
 							if (s.trim()
 							     .length() == 0) return;
 							written[0] = true;
@@ -174,7 +174,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 					textFragment = transformation.first;
 					lineTransform = transformation.second;
 				} catch (SourceTransformer.TranslationFailedException t) {
-					lineErrors.accept(new Pair<>(-1, t.getMessage()));
+					lineErrors.accept(new Pair<>(-1, t.getMessage()+"<br>"));
 					return;
 				}
 			} else {
@@ -189,15 +189,12 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 			Log.log("nashorn.general", () -> "\n<<javascript out" + ret + " " + (ret != null ? ret.getClass() + "" : ""));
 			if (writer != null) writer.flush();
-			if (success != null && printResult) {
+			if (success != null && printResult && !written[0]) {
 				if (ret != null) {
 					if (ret instanceof ScriptObjectMirror && ((ScriptObjectMirror) ret).isFunction()) {
 						success.accept("[function defined]");
 					} else {
-
 						success.accept(output.convert(ret));
-
-						//success.accept("" + ret);
 					}
 				} else if (!written[0]) success.accept(" &#10003; ");
 			}
@@ -243,7 +240,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 					}
 				}
 				if (!found) {
-					lineErrors.accept(new Pair<>(-1, e.getMessage()));
+					lineErrors.accept(new Pair<>(-1, e.getMessage()+"<br>"));
 				}
 				e.printStackTrace();
 			}
@@ -251,7 +248,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 			System.err.println(" exception thrown while handling an exception (!) (malfunctioning lineTransform?) ");
 			t.printStackTrace();
 			System.err.println(" original error is :" + e.getMessage());
-			lineErrors.accept(new Pair<>(-1, e.getMessage()));
+			lineErrors.accept(new Pair<>(-1, e.getMessage()+"<br>"));
 		}
 	}
 
