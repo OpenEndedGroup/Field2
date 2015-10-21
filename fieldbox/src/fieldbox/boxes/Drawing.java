@@ -95,7 +95,6 @@ public class Drawing extends Box {
 	 * call this to request a redraw at the next available animation cycle
 	 */
 	static public void dirty(Box b) {
-
 		// which layer needs updating?
 		String layerName = b.properties.getOr(FLineDrawing.layer, () -> "__main__");
 
