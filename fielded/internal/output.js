@@ -113,7 +113,7 @@ function appendRemoteOutputToLine(line, text, checkClass, lineClass, append) {
 		//})
 		expandBox.click(function () {
 			if (thisDiv.maxSize().height > 2000) {
-				thisDiv.css("max-height", "50")
+				thisDiv.css("max-height", "80")
 				expandBox.html("&#x21A7;")
 				updateAllBrackets()
 				bm.changed()
