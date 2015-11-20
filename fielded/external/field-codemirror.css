@@ -341,7 +341,7 @@ a {
     margin-left: 25px;
     display: block;
     overflow: scroll;
-    max-height: 60px;
+    max-height: 80px;
     min-height: 27px;
     pointer-events: all;
     border: 1px solid rgba(0, 0, 0, 0.1);
