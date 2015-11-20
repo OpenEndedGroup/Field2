@@ -169,8 +169,8 @@ public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove
 	 *
 	 * @return
 	 */
-	public List<FLine> appearence() {
-		List<FLine> a = all().stream()
+	public List<Supplier<FLine>> appearence() {
+		List<Supplier<FLine>> a = all().stream()
 				     .flatMap(x -> (x.appearance == null ? new ArrayList<FLine>() : x.appearance.get()).stream())
 				     .collect(Collectors.toList());
 		if (a.size()>0)
