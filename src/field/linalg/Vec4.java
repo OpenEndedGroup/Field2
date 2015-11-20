@@ -22,6 +22,7 @@
  */
 package field.linalg;
 
+import field.utility.Mutable;
 import fieldnashorn.annotations.SafeToToString;
 
 import java.io.Externalizable;
@@ -42,7 +43,7 @@ import java.util.function.Supplier;
  * @author Richard Greenlees
  * @author Kai Burjack
  */
-public class Vec4 implements Externalizable, Supplier<Vec4> {
+public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -1375,6 +1376,15 @@ public class Vec4 implements Externalizable, Supplier<Vec4> {
 	public Vec4 z(double v) {
 		this.z = v;
 		return this;
+	}
+
+	/** adds a uniformly distributed random number from -amount to amount to each dimension */
+	public void noise(float amount)
+	{
+		x+= 2*amount*(Math.random()-0.5f);
+		y+= 2*amount*(Math.random()-0.5f);
+		z+= 2*amount*(Math.random()-0.5f);
+		w+= 2*amount*(Math.random()-0.5f);
 	}
 
 }
