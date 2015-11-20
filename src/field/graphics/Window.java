@@ -9,6 +9,7 @@ import field.app.RunLoop;
 import field.graphics.util.KeyEventMapping;
 import field.linalg.Vec2;
 import field.utility.*;
+import fieldagent.Main;
 import fieldbox.ui.FieldBoxWindow;
 import fieldbox.boxes.Mouse;
 import fieldlinker.Linker;
@@ -64,7 +65,7 @@ public class Window implements ProvidesGraphicsContext {
 
 	private Rect currentBounds;
 
-	static public boolean doubleBuffered = Options.dict().isTrue(new Dict.Prop("doubleBuffered"), false);
+	static public boolean doubleBuffered = Options.dict().isTrue(new Dict.Prop("doubleBuffered"), true);
 
 	public Window(int x, int y, int w, int h, String title) {
 		this(x, y, w, h, title, true);
@@ -81,10 +82,15 @@ public class Window implements ProvidesGraphicsContext {
 		glfwWindowHint(GLFW_SAMPLES, 8);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, 1);
-//		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-//		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+		if (Main.os.equals(Main.OS.mac)) {
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+		}
+		else {
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+		}
+
 		glfwWindowHint(GLFW_DOUBLEBUFFER, doubleBuffered ? 1 : 0);
 
 		glfwWindowHint(GLFW_DECORATED, title == null ? 0 : 1);
@@ -214,7 +220,7 @@ public class Window implements ProvidesGraphicsContext {
 		glfwSwapInterval(1);
 
 		// makes linux all go to hell
-//		glcontext.makeCurrent(0);
+		glcontext.makeCurrent(0);
 
 		GraphicsContext.checkError(() -> "initially");
 
@@ -229,8 +235,6 @@ public class Window implements ProvidesGraphicsContext {
 		GraphicsContext.stateTracker.blendState.set(new int[]{GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA});
 
 
-		//System.out.println("!! width :"+w+" "+h+" "+getRetinaScaleFactor());
-
 		if (w != this.w || h != this.h) {
 			GraphicsContext.isResizing = true;
 			this.w = w;
@@ -243,7 +247,10 @@ public class Window implements ProvidesGraphicsContext {
 		updateScene();
 
 		frame++;
-		if (!dontSwap) glfwSwapBuffers(window);
+		if (!dontSwap)
+		{
+			glfwSwapBuffers(window);
+		}
 
 		glfwPollEvents();
 		currentWindow = null;
