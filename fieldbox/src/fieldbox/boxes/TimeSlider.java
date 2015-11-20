@@ -41,7 +41,6 @@ public class TimeSlider extends Box {
 
 		properties.put(frame, new Rect(0, 0, width, 5000));
 
-
 		this.properties.put(FrameManipulation.lockWidth, true);
 		this.properties.put(FrameManipulation.lockHeight, true);
 		this.properties.put(Boxes.dontSave, true);
