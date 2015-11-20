@@ -72,6 +72,8 @@ public class Watches extends Box  {
 				if (!Util.safeEq(was, now))
 				{
 					fire(p, x, was, now, allWatches .get(p));
+					// fetch it again, fire can change the value of the property
+					now = x.properties.get(p);
 					previous.put(p, now instanceof Mutable ? ((Mutable)now).duplicate() : now);
 				}
 			}

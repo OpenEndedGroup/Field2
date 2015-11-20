@@ -56,8 +56,8 @@ public class HandlesForFLines extends Box {
 			}
 
 			this.get = () -> on.to.toVec2();
-			this.setAndConstrain = (initial, previous, next) -> {
 
+			this.setAndConstrain = (next, previous, initial) -> {
 				on.to.x = next.x;
 				on.to.y = next.y;
 				source.modify();
@@ -96,8 +96,7 @@ public class HandlesForFLines extends Box {
 				return ret;
 
 			};
-			this.finisher = (v) -> {
-			};
+			this.finisher = (v) -> v;
 
 			source.attributes.put(Handles.hasDraggables, true);
 
@@ -112,7 +111,7 @@ public class HandlesForFLines extends Box {
 
 
 			this.get = () -> vis.to.toVec2();
-			this.setAndConstrain = (initial, previous, next) -> {
+			this.setAndConstrain = (next, previous, inital) -> {
 
 				vis.to.x = next.x;
 				vis.to.y = next.y;
@@ -144,8 +143,7 @@ public class HandlesForFLines extends Box {
 				return Collections.singletonList(f);
 
 			};
-			this.finisher = (v) -> {
-			};
+			this.finisher = (v) -> v;
 
 			source.attributes.put(Handles.hasDraggables, true);
 

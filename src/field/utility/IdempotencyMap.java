@@ -3,7 +3,7 @@ package field.utility;
 import field.dynalink.beans.StaticClass;
 import field.nashorn.api.scripting.ScriptObjectMirror;
 import field.nashorn.api.scripting.ScriptUtils;
-import field.nashorn.internal.objects.ScriptFunctionImpl;
+import field.nashorn.internal.runtime.ScriptFunction;
 import field.nashorn.internal.runtime.ScriptObject;
 import field.nashorn.internal.runtime.linker.JavaAdapterFactory;
 import fieldlinker.Linker;
@@ -11,8 +11,10 @@ import fieldlinker.Linker;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.lang.invoke.MethodHandles;
+import java.util.Collection;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class IdempotencyMap<T> extends LinkedHashMapAndArrayList<T> implements Mutable<IdempotencyMap<T>>, Linker.AsMap{
 
@@ -30,6 +32,21 @@ public class IdempotencyMap<T> extends LinkedHashMapAndArrayList<T> implements M
 	}
 
 
+	public IdempotencyMap<T> setAutoconstruct(Class clazz)
+	{
+		this.autoConstructor = (k) -> {
+			try {
+				return (T)clazz.newInstance();
+			} catch (InstantiationException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			}
+			return null;
+		};
+		return this;
+	}
+
 	@Override
 	protected T massage(Object value) {
 		if (t==null) return (T)value;
@@ -39,7 +56,7 @@ public class IdempotencyMap<T> extends LinkedHashMapAndArrayList<T> implements M
 		if (value instanceof ScriptObjectMirror)
 			value = ScriptUtils.unwrap(value);
 
-		if (value instanceof ScriptFunctionImpl) {
+		if (value instanceof ScriptFunction) {
 			StaticClass adapterClassFor = JavaAdapterFactory.getAdapterClassFor(new Class[]{t}, (ScriptObject) value, MethodHandles.lookup());
 			try {
 				return (T) adapterClassFor.getRepresentedClass()
@@ -97,6 +114,11 @@ public class IdempotencyMap<T> extends LinkedHashMapAndArrayList<T> implements M
 
 	@Override
 	public Object asMap_get(String s) {
+		if (s.equals("allOf"))
+		{
+			return new AllOf();
+		}
+		else
 		return get(s);
 	}
 
@@ -131,4 +153,71 @@ public class IdempotencyMap<T> extends LinkedHashMapAndArrayList<T> implements M
 		return remove(p)!=null;
 	}
 
+	private class AllOf implements Linker.AsMap{
+
+
+		@Override
+		public boolean asMap_isProperty(String p) {
+			return IdempotencyMap.this.asMap_isProperty(p);
+		}
+
+		@Override
+		public Object asMap_call(Object a, Object b) {
+			return IdempotencyMap.this.asMap_call(a, b);
+		}
+
+		@Override
+		public Object asMap_get(String p) {
+			return IdempotencyMap.this.entrySet().stream().filter(x -> x.getKey().startsWith("__prefix__."+p+"__")).map(x -> x.getValue()).collect(Collectors.toList());
+		}
+
+		@Override
+		public Object asMap_set(String p, Object o) {
+			if (o instanceof Map)
+			{
+				for(Map.Entry<Object, Object> oo : ((Map<Object, Object>)o).entrySet())
+				{
+					IdempotencyMap.this.put("__prefix__."+p+"__"+oo.getKey().toString(), oo.getValue());
+				}
+
+			}else
+			if (o instanceof Collection)
+			{
+				for(Object oo : ((Collection)o))
+				{
+					IdempotencyMap.this.put("__prefix__."+p+"__", oo);
+				}
+			}
+			else
+			{
+				throw new IllegalArgumentException(".allOf expects a Map or a Collection");
+			}
+			return o;
+		}
+
+		@Override
+		public Object asMap_new(Object a) {
+			return null;
+		}
+
+		@Override
+		public Object asMap_new(Object a, Object b) {
+			return null;
+		}
+
+		@Override
+		public Object asMap_getElement(int element) {
+			return null;
+		}
+
+		@Override
+		public Object asMap_setElement(int element, Object o) {
+			return null;
+		}
+
+		@Override
+		public boolean asMap_delete(Object o) {
+			return false;
+		}
+	}
 }

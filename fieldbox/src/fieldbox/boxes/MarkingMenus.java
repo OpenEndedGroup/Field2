@@ -52,7 +52,7 @@ public class MarkingMenus extends Box {
 
 			Box startAt = Intersects.startAt(event.after, root);
 
-			MenuSpecification m = startAt.find(menuSpecs, upwards())
+			MenuSpecification m = startAt.find(menuSpecs, upwardsOrDownwards())
 						     .filter(x -> x != null)
 				    		     .map(x -> x.apply(event))
 						     .filter(x -> x != null)
@@ -72,7 +72,7 @@ public class MarkingMenus extends Box {
 							     return a;
 						     });
 
-			startAt.find(menu, upwards())
+			startAt.find(menu, upwardsOrDownwards())
 			       .flatMap(x -> x.entrySet()
 					      .stream())
 			       .forEach(x -> {

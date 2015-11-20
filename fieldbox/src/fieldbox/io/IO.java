@@ -8,6 +8,7 @@ import fieldbox.boxes.Boxes;
 import fieldbox.boxes.Callbacks;
 import fieldbox.boxes.FrameManipulation;
 import fieldbox.boxes.plugins.PluginList;
+import fieldbox.boxes.plugins.Variant;
 import fieldbox.execution.Execution;
 
 import java.io.BufferedWriter;
@@ -33,7 +34,7 @@ public class IO {
 	static public final String WORKSPACE = "{{workspace}}";
 	static public final String EXECUTION = "{{execution}}";
 	static public final String TEMPLATES = "{{templates}}";
-	public static final Dict.Prop<String> id = new Dict.Prop<>("__id__");
+	public static final Dict.Prop<String> id = new Dict.Prop<>("__id__").autoConstructs(() -> Box.newID());
 	public static final Dict.Prop<String> desiredBoxClass = new Dict.Prop<>("__desiredBoxClass__");
 	public static final Dict.Prop<String> comment = new Dict.Prop<>("comment").toCannon()
 										  .type()
@@ -55,6 +56,7 @@ public class IO {
 	public static final Dict.Prop<List<String>> classpath = new Dict.Prop<>("classpath").toCannon()
 											    .type()
 											    .doc("This box asks the classloader to extend the classpath by this list of paths");
+
 	static Set<String> knownProperties = new LinkedHashSet<String>();
 	static Map<String, Filespec> knownFiles = new HashMap<String, Filespec>();
 
@@ -135,7 +137,7 @@ public class IO {
 
 		String id = x.properties.computeIfAbsent(IO.id, k -> Box.newID());
 
-		Set<String> ids = root.breadthFirst(root.both())
+		Set<String> ids = root.breadthFirstAll(root.both())
 				      .filter(bx -> bx != x)
 				      .map(bx -> bx.properties.computeIfAbsent(IO.id, k -> Box.newID()))
 				      .collect(Collectors.toSet());
@@ -211,13 +213,17 @@ public class IO {
 
 	public Document compileDocument(String defaultSubDirectory, Box documentRoot, Predicate<Box> include, Map<Box, String> specialBoxes) {
 		Document d = new Document();
-		d.externalList = documentRoot.breadthFirst(documentRoot.downwards())
-					     .filter(include)
-					     .map(box -> toExternal(defaultSubDirectory, box, specialBoxes))
-					     .filter(x -> x != null)
-					     .collect(Collectors.toList());
-		d.knownFiles = new LinkedHashMap<>(knownFiles);
-		d.knownProperties = new LinkedHashSet<>(knownProperties);
+
+		try(Variant.Memo memo = Variant.connectAll(documentRoot)) {
+
+			d.externalList = documentRoot.breadthFirstAll(documentRoot.allDownwardsFrom())
+						     .filter(include)
+						     .map(box -> toExternal(defaultSubDirectory, box, specialBoxes))
+						     .filter(x -> x != null)
+						     .collect(Collectors.toList());
+			d.knownFiles = new LinkedHashMap<>(knownFiles);
+			d.knownProperties = new LinkedHashSet<>(knownProperties);
+		}
 		return d;
 	}
 
@@ -614,6 +620,7 @@ public class IO {
 	}
 
 	private String serializeToString(Object data) {
+		System.out.println(" data :"+data);
 		String written = edn.write(data);
 		Log.log("io.general", () -> "edn is " + written);
 		return written;

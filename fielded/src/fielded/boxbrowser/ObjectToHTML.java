@@ -7,12 +7,20 @@ import org.parboiled.common.StringUtils;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.Stack;
 import java.util.function.Function;
 
 /**
  * Created by marc on 9/12/15.
  */
 public class ObjectToHTML {
+
+	static public ThreadLocal<Stack<String>> contextStack = new ThreadLocal<Stack<String>>(){
+		@Override
+		protected Stack<String> initialValue() {
+			return new Stack<>();
+		}
+	};
 
 	public IdempotencyMap<Function<Object, Object>> map = new IdempotencyMap<Function<Object, Object>>(Function.class){
 		@Override
@@ -62,6 +70,23 @@ public class ObjectToHTML {
 		return this;
 	}
 
+
+	public String convert(Object o, String context) {
+		contextStack.get().push(context);
+		try{
+			return convert(o);
+		}
+		finally
+		{
+			contextStack.get().pop();
+		}
+	}
+
+	public String joinContext()
+	{
+		if (contextStack.get().empty()) return "";
+		return contextStack.get().stream().reduce((a,b) -> a+"_"+b).get();
+	}
 
 	public String convert(Object o) {
 		if (o == null && nullHandler != null) return "" + nullHandler.apply(o);

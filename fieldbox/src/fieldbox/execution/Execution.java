@@ -3,6 +3,7 @@ package fieldbox.execution;
 import field.utility.Dict;
 import field.utility.LinkedHashMapAndArrayList;
 import field.utility.Pair;
+import field.utility.Triple;
 import fieldbox.boxes.Box;
 import fielded.RemoteEditor;
 
@@ -21,13 +22,14 @@ public class Execution extends Box {
 	public interface CompletionSupport
 	{
 		public void completion(Box inside, String allText, int line, int ch, Consumer<List<Completion>> results);
-
 	}
 
 	static public Dict.Prop<Execution> execution = new Dict.Prop<Execution>("execution");
 	static public Dict.Prop<LinkedHashMapAndArrayList<CompletionSupport>> completions = new Dict.Prop<>("completions").toCannon().type().doc("Functions that can return completions for code in the editor");
 	static public Dict.Prop<LinkedHashMapAndArrayList<CompletionSupport>> imports= new Dict.Prop<>("imports").toCannon().type().doc("Functions that can return import help for code in the editor");
 	static public Dict.Prop<FunctionOfBox<Boolean>> executionFilter = new Dict.Prop<>("executionFilter").toCannon().type().doc("defines a function that, when called with a box, returns a boolean describing whether this box should be handled by this Execution implementation");
+
+	static public Dict.Prop<Consumer<Triple<Box, Integer, String>>> directedOutput = new Dict.Prop<>("_directedOutput").toCannon();
 
 	private final BiFunction<Box, Dict.Prop<String>, ? extends ExecutionSupport> support;
 

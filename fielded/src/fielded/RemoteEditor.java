@@ -1,5 +1,7 @@
 package fielded;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.LinkedHashMultimap;
 import field.app.RunLoop;
 import field.graphics.FLine;
 import field.graphics.StandardFLineDrawing;
@@ -79,7 +81,8 @@ public class RemoteEditor extends Box {
 
 			boolean unequal = false;
 			for (Pair<String, String> v : value)
-				if (!v.second.equals(lastSend)) {
+
+				if (!Util.safeEq(v.second, lastSend)) {
 					unequal = true;
 					break;
 				}
@@ -128,6 +131,9 @@ public class RemoteEditor extends Box {
 			}
 		}
 	};
+
+	ArrayListMultimap<String, Runnable> whenSelected = ArrayListMultimap.create();
+
 	Dict.Prop<String> currentlyEditing;
 	Box currentSelection;
 	boolean selectionHasChanged = false;
@@ -193,6 +199,36 @@ public class RemoteEditor extends Box {
 																				  .value(lineerror.second)
 																				  .endObject()
 																				  .toString()));
+
+		this.properties.put(Execution.directedOutput, z -> {
+			// TODO: multiple properties?
+			if (z.first == currentSelection) {
+				rater.add(new Pair<String, String>("box.output.directed", new JSONStringer().object()
+													    .key("box")
+													    .value(z.first.properties.getOrConstruct(IO.id))
+													    .key("line")
+													    .value(z.second)
+													    .key("message")
+													    .value(z.third)
+													    .endObject()
+													    .toString()));
+			} else {
+				List<Runnable> r = whenSelected.get(z.first.properties.getOrConstruct(IO.id));
+				if (r != null && r.size() > 20) whenSelected.replaceValues(z.first.properties.getOrConstruct(IO.id), r.subList(20, r.size()));
+
+				whenSelected.put(z.first.properties.getOrConstruct(IO.id), () -> {
+					rater.add(new Pair<String, String>("box.output.directed", new JSONStringer().object()
+														    .key("box")
+														    .value(z.first.properties.getOrConstruct(IO.id))
+														    .key("line")
+														    .value(z.second)
+														    .key("message")
+														    .value(z.third)
+														    .endObject()
+														    .toString()));
+				});
+			}
+		});
 
 
 		server.addHandlerLast(Predicate.isEqual("text.updated"), () -> socketName, (s, socket, address, payload) -> {
@@ -959,7 +995,7 @@ public class RemoteEditor extends Box {
 					String cmln = support.getCodeMirrorLanguageName();
 					Log.log("remote.general", ()->"langage :" + cmln);
 					buildMessage.put("languageName", cmln);
-					support.setFilenameForStacktraces("" + currentSelection);
+					support.setFilenameForStacktraces("" + currentSelection + "/" + currentSelection.properties.getOrConstruct(IO.id));
 				} else {
 				}
 			} else {
@@ -974,6 +1010,12 @@ public class RemoteEditor extends Box {
 			Log.log("remote.trace", () -> "\n " + currentSelection.properties.get(new Dict.Prop<JSONObject>("_" + editingProperty.getName() + "_cookie")) + "\n");
 
 			server.send(socketName, "_messageBus.publish('selection.changed', " + buildMessage.toString() + ")");
+
+			List<Runnable> q = whenSelected.removeAll(currentSelection.properties.getOrConstruct(IO.id));
+			if (q!=null)
+			{
+				q.forEach(x -> x.run());
+			}
 
 			//todo: check for other editors?
 			//watches.addWatch(editingProperty, "edited.property.changed");

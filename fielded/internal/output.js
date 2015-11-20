@@ -6,6 +6,11 @@ function escapeHtml(str) {
 
 function appendRemoteOutputToLine(line, text, checkClass, lineClass, append) {
 	lh = cm.getLineHandle(line)
+	if (!lh) {
+		console.log(" -- appendRemoteOutputToLine failed, no line :"+line);
+		return;
+	}
+
 	w = cm.lineInfo(lh).widgets
 	found = null;
 
@@ -80,6 +85,7 @@ function appendRemoteOutputToLine(line, text, checkClass, lineClass, append) {
 	var thisDiv = $(d)
 	var closeBox = $($(d).children()[0])
 	var expandBox = $($(d).children()[1])
+	//var hideBox = $($(d).children()[2])
 
 	updateAllBrackets()
 
@@ -98,17 +104,42 @@ function appendRemoteOutputToLine(line, text, checkClass, lineClass, append) {
 		}, function () {
 			$(this).css("color", "#fff")
 		})
+		//hideBox.hover(function () {
+		//	$(this).css("color", "#ff5")
+		//}, function () {
+		//	$(this).css("color", "#fff")
+		//})
 		expandBox.click(function () {
 			if (thisDiv.maxSize().height > 2000) {
 				thisDiv.css("max-height", "50")
 				expandBox.html("&#x21A7;")
 				updateAllBrackets()
+				bm.changed()
+				updateAllBrackets();
 			} else {
 				thisDiv.css("max-height", "2500")
 				expandBox.html("&#x21A5;")
 				updateAllBrackets()
+				bm.changed()
+				updateAllBrackets();
 			}
 		})
+		//hideBox.click(function () {
+		//	console.log("hello?");
+		//	if (thisDiv.maxSize().height > 0) {
+		//		thisDiv.css("max-height", "0")
+		//		thisDiv.css("display", "none");
+		//		bm.changed()
+		//		hideBox.html("v")
+		//		updateAllBrackets()
+		//	} else {
+		//		thisDiv.css("max-height", "50")
+		//		thisDiv.css("display", "block");
+		//		hideBox.html("h")
+		//		updateAllBrackets()
+		//		bm.changed()
+		//	}
+		//})
 	}
 
 }
@@ -188,6 +219,14 @@ _messageBus.subscribe("box.output", function (d, e) {
 		boxOutputs[box] = d.message
 	else
 		boxOutputs[box] += "\n" + d.message
+})
+
+_messageBus.subscribe("box.output.directed", function (d, e) {
+	box = d.box
+	if (cm.currentbox === box) {
+		appendRemoteOutputToLine(d.line-1, d.message, "Field-remoteOutput-error", "Field-remoteOutput", true)
+	} else {
+	}
 })
 
 _messageBus.subscribe("box.error", function (d, e) {

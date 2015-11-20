@@ -62,6 +62,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	private long tick = 0;
 
 	static public final PegDownProcessor peg = new PegDownProcessor();
+	public boolean disconnected = false;
 
 
 	public Box() {
@@ -137,6 +138,9 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	 * Disconnect this box from everything.
 	 */
 	public Box disconnectFromAll() {
+
+		System.out.println(" DISCONNECT FROM ALL :" + this);
+
 		for (Box b : new ArrayList<Box>(children))
 			disconnect(b);
 
@@ -237,6 +241,28 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	}
 
 	/**
+	 * returns direction that goes upwards if it can, otherwise downwards.
+	 */
+	public Function<Box, Collection<Box>> upwardsOrDownwards() {
+		return x-> {
+			if (x.parents().size()>0) return x.parents();
+			return x.children();
+		};
+	}
+
+	/**
+	 * returns direction that goes downwards from here, but both downwards and upwards from everywhere else. This is good for getting everything _below_ a point in the graph
+	 */
+	public Function<Box, Collection<Box>> allDownwardsFrom() {
+		Function<Box, Collection<Box>> b = both();
+		return x-> {
+			if (x==this)
+				return x.children();
+			else return b.apply(x);
+		};
+	}
+
+	/**
 	 * returns direction for downwards (children) (e.g breadthFirst(Box::children))
 	 */
 	@HiddenInAutocomplete
@@ -279,7 +305,46 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 
 				Set<Box> nextLevel = new LinkedHashSet<>();
 				for (Box b : thisLevel)
-					nextLevel.addAll(map.apply(b));
+					if (!b.disconnected)
+						nextLevel.addAll(map.apply(b));
+				nextLevel.removeAll(ret);
+				ret.addAll(nextLevel);
+				thisLevel = nextLevel;
+
+				return thisLevel.iterator();
+
+			}
+		}.reset()
+		 .stream().filter(x -> !x.disconnected);
+	}
+
+	/**
+	 * returns breadth first Stream given a direction function. This function ignores "disconnected" states. It's typically used only for IO
+	 */
+	@HiddenInAutocomplete
+	public Stream<Box> breadthFirstAll(Function<Box, Collection<Box>> map) {
+
+		if (this.all.size() == 0) Log.log("box.warning", () ->" breadthFirst called on a box not connected to the box graph");
+
+		return new Lazy<Box>() {
+			LinkedHashSet<Box> ret = null;
+			Set<Box> thisLevel = null;
+
+			protected Iterator<Box> initialize() {
+
+				ret = new LinkedHashSet<>();
+				ret.add(Box.this);
+				thisLevel = ret;
+				return ret.iterator();
+			}
+
+			@Override
+			protected Iterator<Box> pull() {
+				if (thisLevel.size() == 0) return null;
+
+				Set<Box> nextLevel = new LinkedHashSet<>();
+				for (Box b : thisLevel)
+						nextLevel.addAll(map.apply(b));
 				nextLevel.removeAll(ret);
 				ret.addAll(nextLevel);
 				thisLevel = nextLevel;
@@ -572,18 +637,26 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 		R apply(Box b, T1 t, T2 u);
 	}
 
+	/**
+	 * todo: if 'prop' is persistent, so should prefix+'prop'
+	 */
 	static public class Subscope implements Linker.AsMap {
-		protected Box prefix;
+		protected String prefix;
 		protected Linker.AsMap delegateTo;
 
 		public Subscope(Linker.AsMap from) {
 
 			this.prefix = Execution.context.get()
-							      .peek();
+							      .peek().properties.getOrConstruct(IO.id);
 			this.delegateTo = from;
 		}
 
 		public Subscope(Box prefixFrom, Box from) {
+			this.prefix = prefixFrom.properties.getOrConstruct(IO.id);
+			this.delegateTo = from;
+		}
+
+		public Subscope(String prefixFrom, Box from) {
 			this.prefix = prefixFrom;
 			this.delegateTo = from;
 		}
@@ -591,7 +664,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 
 		@Override
 		public boolean asMap_isProperty(String p) {
-			return delegateTo.asMap_isProperty(prefix.properties.get(IO.id) + p);
+			return delegateTo.asMap_isProperty(prefix + p);
 		}
 
 		@Override
@@ -601,21 +674,18 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 
 		@Override
 		public Object asMap_get(String p) {
-			return delegateTo.asMap_get(prefix.properties.get(IO.id) + p);
+			return delegateTo.asMap_get(prefix + p);
 		}
 
 
 		@Override
 		public boolean asMap_delete(Object o) {
-			return delegateTo.asMap_delete(prefix.properties.get(IO.id) + o);
+			return delegateTo.asMap_delete(prefix + o);
 		}
 
 		@Override
 		public Object asMap_set(String p, Object o) {
-
-			Log.log("doublescore",()-> "asMap_set to be :" + prefix.properties.get(IO.id) + p + "=>" + o + " delegating to " + delegateTo);
-
-			return delegateTo.asMap_set(prefix.properties.get(IO.id) + p, o);
+			return delegateTo.asMap_set(prefix + p, o);
 		}
 
 		@Override

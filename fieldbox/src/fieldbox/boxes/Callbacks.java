@@ -201,7 +201,7 @@ public class Callbacks {
 //					String code = box.properties.get(Execution.code);
 					String code = DisabledRangeHelper.getStringWithDisabledRanges(box, Execution.code, "/* -- start -- ", "-- end -- */");
 					if (code != null) box.first(Execution.execution)
-							     .ifPresent(x -> x.support(box, Execution.code)
+							     .map(x -> x.support(box, Execution.code)).filter(x -> x!=null).ifPresent(x -> x
 									      .executeAll(code, box));
 
 				}

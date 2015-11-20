@@ -36,7 +36,7 @@ public class QuoteCompletionHelpers {
 	/*
 	 * you might ask: surely this isn't needed in Java 8 when we can just write x -> f.apply(x, y.get()) ?
 	 *
-	 * Sure, but that will curry a BiFunction into a Function, but the resulting Function doesn't implement any of the other interfaces the original BiFunction impemented
+	 * Sure, but that will curry a BiFunction into a Function, but the resulting Function doesn't implement any of the other interfaces the original BiFunction implemented
 	 *
 	 * FP, meet OOP.
 	 */
@@ -85,7 +85,7 @@ public class QuoteCompletionHelpers {
 		return other.size()>0;
 	}
 
-	public static <T, R> Function<T, R> curry(Function<T, R> f, Supplier<T> u) {
+	public static <T, R> Supplier<R> curry(Function<T, R> f, Supplier<T> u) {
 		Set<Class> all = new LinkedHashSet<>();
 		Class fc = f.getClass();
 		while (fc != null) {
@@ -100,7 +100,7 @@ public class QuoteCompletionHelpers {
 		Class[] a2 = new Class[all.size()];
 		a2 = all.toArray(a2);
 
-		return (Function<T, R>) Proxy.newProxyInstance(Thread.currentThread()
+		return (Supplier<R>) Proxy.newProxyInstance(Thread.currentThread()
 								     .getContextClassLoader(), a2, new InvocationHandler() {
 			@Override
 			public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -124,7 +124,7 @@ public class QuoteCompletionHelpers {
 			fc = fc.getSuperclass();
 		}
 
-		all.add(Function.class);
+		all.add(BiFunction.class);
 
 		Class[] a2 = new Class[all.size()];
 		a2 = all.toArray(a2);

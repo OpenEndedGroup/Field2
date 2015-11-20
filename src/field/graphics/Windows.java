@@ -144,9 +144,10 @@ public class Windows {
 					GlfwCallback a = adaptors.get(window);
 
 					// added, because mouse down doesn't report the mouse location correctly on first click in os X
-					if (Main.os == Main.OS.mac) {
-						a.cursorPos(window, Glfw.glfwGetCursorPosX(window), Glfw.glfwGetCursorPosY(window));
-					}
+//					if (Main.os == Main.OS.mac) {
+//						if (a != null)
+//							a.cursorPos(window, Glfw.glfwGetCursorPosX(window), Glfw.glfwGetCursorPosY(window));
+//					}
 
 
 					if (a != null) a.mouseButton(window, fbutton, pressed, fmods);

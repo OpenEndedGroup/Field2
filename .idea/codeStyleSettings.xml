@@ -41,6 +41,12 @@
           <option name="KEEP_BLANK_LINES_IN_CODE" value="1" />
           <option name="WRAP_COMMENTS" value="true" />
           <option name="PARENT_SETTINGS_INSTALLED" value="true" />
+          <indentOptions>
+            <option name="INDENT_SIZE" value="16" />
+            <option name="CONTINUATION_INDENT_SIZE" value="16" />
+            <option name="TAB_SIZE" value="16" />
+            <option name="USE_TAB_CHARACTER" value="true" />
+          </indentOptions>
         </codeStyleSettings>
         <codeStyleSettings language="TypeScript">
           <option name="WRAP_COMMENTS" value="true" />

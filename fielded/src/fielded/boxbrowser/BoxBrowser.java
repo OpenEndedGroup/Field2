@@ -165,9 +165,6 @@ public class BoxBrowser extends Box implements IO.Loaded {
 			return "<p>" + h + "</p>";
 		} else {
 			cn++;
-
-			System.out.println(" Text in section is ||"+x.a.trim()+"||");
-
 			return "<textarea readonly class='ta_"+(cn)+"'>"+x.a.trim()+"</textarea>"
 				    +
 				    "<script language='javascript'>CodeMirror.fromTextArea($('.ta_"+cn+"')[0], {viewportMargin:Infinity, mode:'javascript', readOnly:true})</script>";

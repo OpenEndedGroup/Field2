@@ -56,6 +56,8 @@ public class Window implements ProvidesGraphicsContext {
 	Queue<Function<Event<Drop>, Boolean>> dropHandlers = new LinkedBlockingQueue<>();
 	private Rect currentBounds;
 
+	static public boolean doubleBuffered = Options.dict().isTrue(new Dict.Prop("doubleBuffered"), false);
+
 	public Window(int x, int y, int w, int h, String title) {
 		this(x,y, w,h,title, true);
 	}
@@ -75,7 +77,7 @@ public class Window implements ProvidesGraphicsContext {
 //		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-		glfwWindowHint(GLFW_DOUBLEBUFFER, 0); // TODO: make an option
+		glfwWindowHint(GLFW_DOUBLEBUFFER, doubleBuffered ? 1 : 0);
 
 		glfwWindowHint(GLFW_DECORATED, title == null ? 0 : 1);
 
@@ -184,8 +186,6 @@ public class Window implements ProvidesGraphicsContext {
 			return;
 		}
 
-		if (this.getClass()== FieldBoxWindow.class) System.out.println(" refreshing ");
-
 		needsRepainting = false;
 
 		currentWindow = this;
@@ -207,6 +207,8 @@ public class Window implements ProvidesGraphicsContext {
 		GraphicsContext.stateTracker.shader.set(0);
 		GraphicsContext.stateTracker.blendState.set(new int[]{GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA});
 
+
+		//System.out.println("!! width :"+w+" "+h+" "+getRetinaScaleFactor());
 
 		if (w != this.w || h != this.h) {
 			GraphicsContext.isResizing = true;

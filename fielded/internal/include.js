@@ -44,9 +44,12 @@ LazyLoad.js("/field/filesystem/codemirror-4.4/addon/dialog/dialog.js")
 LazyLoad.js("/field/filesystem/codemirror-4.4/addon/tern/tern.js")
 LazyLoad.js("/field/filesystem/codemirror-4.4/addon/hint/show-hint.js")
 
+LazyLoad.js("/field/filesystem/d3.min.js");
+
 LazyLoad.js("/field/filesystem/jquery.autosize.input.js", function () {
     _field.send("initialize.finished", _field.id)
 })
+
 
 //LazyLoad.js("/field/filesystem/tern/acorn.js")
 //LazyLoad.js("/field/filesystem/tern/acorn_loose.js")

@@ -5,14 +5,12 @@ import field.graphics.StandardFLineDrawing;
 import field.linalg.Vec4;
 import field.utility.Dict;
 import field.utility.Rect;
-import fieldbox.boxes.Box;
-import fieldbox.boxes.Callbacks;
-import fieldbox.boxes.Drawing;
-import fieldbox.boxes.FLineDrawing;
+import fieldbox.boxes.*;
 import fieldcef.browser.Browser;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -44,13 +42,30 @@ public class KeyboardFocus extends Box {
 			return fr;
 		});
 
-		this.properties.putToMap(Callbacks.onDelete,"__keyboardFocusRing__", x -> {focused.remove(x); return null;});
+		this.properties.putToMap(Callbacks.onDelete, "__keyboardFocusRing__", x -> {
+			focused.remove(x);
+			return null;
+		});
+
+		this.properties.putToMap(Boxes.insideRunLoop, "main.__checkfocusfordisconnect__", () -> {
+			Iterator<Box> i = focused.iterator();
+			boolean changed = false;
+			while (i.hasNext()) {
+				if (i.next().disconnected) {
+					i.remove();
+					changed = true;
+				}
+			}
+			if (changed) {
+				Drawing.dirty(KeyboardFocus.this);
+			}
+			return true;
+		});
 	}
 
-	public boolean isFocused(Box b)
-	{
-		if (focused.size()==0) return false;
-		return focused.get(focused.size()-1)==b;
+	public boolean isFocused(Box b) {
+		if (focused.size() == 0) return false;
+		return focused.get(focused.size() - 1) == b;
 	}
 
 	public void claimFocus(Box b) {

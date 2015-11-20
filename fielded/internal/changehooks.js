@@ -78,7 +78,13 @@ _messageBus.subscribe("selection.changed", function (d, e) {
 			cm.getDoc().clearHistory();
 
 		if (d.cookie.output) {
-			eval(d.cookie.output)
+			try {
+				eval(d.cookie.output)
+			}
+			catch(e)
+			{
+				console.log(e);
+			}
 			setTimeout(updateAllBrackets, 50)
 		}
 		if (d.cookie.brackets) {
@@ -86,7 +92,14 @@ _messageBus.subscribe("selection.changed", function (d, e) {
 
 			d.cookie.brackets.replace(/cm.getLineHandle/g, "cmGetLineHandle");
 
-			eval(d.cookie.brackets)
+			try{
+				eval(d.cookie.brackets)
+			}
+			catch(e)
+			{
+				console.log(e);
+			}
+
 			setTimeout(updateAllBrackets, 50)
 		}
 
@@ -126,15 +139,17 @@ _messageBus.subscribe("selection.changed", function (d, e) {
 
 			for (var i = 0; i < d.cookie.widgets.length; i++) {
 				console.log(" evaluating widget " + i + " " + d.cookie.widgets[i]);
+				try{
 				eval(d.cookie.widgets[i]);
+				}
+				catch(e)
+				{
+					console.log(e);
+				}
 			}
 		}
 
 	}
-
-//	if (boxOutputs[d.box]) {
-//		appendRemoteOutputToLine(cm.lineCount() - 1, boxOutputs[d.box], "Field-remoteOutput-error", "Field-remoteOutput", false)
-//	}
 
 	console.log("<<Selection.changed");
 	ignoreChange = false;

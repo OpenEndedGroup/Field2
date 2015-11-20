@@ -218,6 +218,9 @@ extraKeys = {
     "Alt-Left": function (cm) {
         Current_Bracket();
     },
+    "Shift-Alt-Left": function (cm) {
+        executeCurrentBracketToHere();
+    },
     "Alt-Enter": function (cm) {
         Run_Selection();
     },

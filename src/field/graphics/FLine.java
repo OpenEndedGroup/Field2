@@ -3,8 +3,8 @@ package field.graphics;
 import field.dynalink.beans.StaticClass;
 import field.linalg.*;
 import field.nashorn.api.scripting.ScriptUtils;
-import field.nashorn.internal.objects.ScriptFunctionImpl;
 import field.nashorn.internal.runtime.ConsString;
+import field.nashorn.internal.runtime.ScriptFunction;
 import field.nashorn.internal.runtime.ScriptObject;
 import field.nashorn.internal.runtime.linker.JavaAdapterFactory;
 import field.utility.*;
@@ -59,6 +59,13 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 	private Map<Integer, String> auxProperties;
 
 	public FLine() {
+	}
+
+	public FLine(Map<Object, Object> attributes) {
+		for (Map.Entry e : attributes.entrySet()) {
+			String name = (String) Conversions.convert(e.getKey(), String.class);
+			asMap_set(name, e.getValue());
+		}
 	}
 
 	@HiddenInAutocomplete
@@ -209,7 +216,8 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 	 * A Cubic segment that's offset from the cubic segment that would give a straight line between the current position and 'destination'
 	 *
 	 * @param r1            -- 'radius' multiplier of first control point. 1 = 1/3 of the distance from the current position to the destination
-	 * @param theta1        -- 'angle' of the first control point. 0 = lies on the line between current position and the destination. Positive values are anti-clockwise around the current position.
+	 * @param theta1        -- 'angle' of the first control point. 0 = lies on the line between current position and the destination. Positive values are anti-clockwise around the current
+	 *                      position.
 	 * @param r2            -- 'radius' multiplier of second control point. 1 = 1/3 of the distance from the current position to the destination
 	 * @param theta2        -- 'angle' of the second control point. 0 = lies on the line between current position and the destination. Positive values are anti-clockwise around the 'destination'.
 	 * @param destinationx, destinationy
@@ -247,6 +255,20 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 	}
 
 	/**
+	 * calls function 'fun' with a parameter that goes from 0 -> 1 (inclusive) in 'samples' steps. Then hands the results to `data('t*', ...)`
+	 */
+	public FLine sampleOver(Function<Double, Object> fun, int samples) {
+		List<Object> rr = new ArrayList<Object>();
+		for (int i = 0; i < samples; i++) {
+			double alpha = i / (samples - 1f);
+			Object o = fun.apply(alpha);
+			rr.add(o);
+		}
+		return data("t*", rr);
+	}
+
+
+	/**
 	 * This takes a list of "things" and successively transforms them into a list of (list of...) Vec3 or Vec2. Each of the transformation rules are tried in turn (and in order) and anything that
 	 * returns non-null terminates the transformation for that "turn". Collections are understood. All exceptions are suppressed inside the .apply method of these transformations.
 	 * <p>
@@ -262,7 +284,6 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 	private void doDataLines(Collection<Object> m) {
 		boolean first = true;
 		for (Object o : m) {
-			System.out.println(" TRANSFORM returned :" + o);
 			if (o instanceof Vec2) {
 				if (first) moveTo((Vec2) o);
 				else lineTo((Vec2) o);
@@ -354,7 +375,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 				i = 0;
 				looping = true;
 			}
-			if (c == 't') c = f.get(q) instanceof TaggedVec3 ? ((TaggedVec3) f.get(q)).tag : 'l';
+			if (c == 't') c = f.get(q) instanceof TaggedVec3 ? ((TaggedVec3) f.get(q)).tag : (i == 0 ? 'm' : 'l');
 
 			try {
 				switch (c) {
@@ -495,11 +516,12 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 	public FLine smoothTo(Vec2 v) {
 		return smoothTo(v.toVec3());
 	}
-		/**
-		 * "smoothly" builds a cubic segment to this point. This will rewrite the previous node to have the correct tangent.
-		 *
-		 * @param v
-		 */
+
+	/**
+	 * "smoothly" builds a cubic segment to this point. This will rewrite the previous node to have the correct tangent.
+	 *
+	 * @param v
+	 */
 	public FLine smoothTo(Vec3 v) {
 		if (this.nodes.size() == 0) return moveTo(v);
 		if (this.nodes.size() == 1) return lineTo(v);
@@ -1113,7 +1135,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 
 		}
 
-		if (value instanceof ScriptFunctionImpl) {
+		if (value instanceof ScriptFunction) {
 			StaticClass adapterClassFor = JavaAdapterFactory.getAdapterClassFor(new Class[]{fit.get(0)}, (ScriptObject) value, MethodHandles.lookup());
 			try {
 				return adapterClassFor.getRepresentedClass()
@@ -1303,7 +1325,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 
 			}
 
-			if (value instanceof ScriptFunctionImpl) {
+			if (value instanceof ScriptFunction) {
 				StaticClass adapterClassFor = JavaAdapterFactory.getAdapterClassFor(new Class[]{fit.get(0)}, (ScriptObject) value, MethodHandles.lookup());
 				try {
 					return adapterClassFor.getRepresentedClass()
@@ -1437,7 +1459,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 
 		@Override
 		public String toString() {
-			return "m["+to.x+","+to.y+","+to.z+"]";
+			return "m[" + to.x + "," + to.y + "," + to.z + "]";
 		}
 	}
 
@@ -1460,9 +1482,10 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 			l.attributes.putAll(attributes);
 			return l;
 		}
+
 		@Override
 		public String toString() {
-			return "l["+to.x+","+to.y+","+to.z+"]";
+			return "l[" + to.x + "," + to.y + "," + to.z + "]";
 		}
 	}
 
@@ -1501,9 +1524,10 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 			l.attributes.putAll(attributes);
 			return l;
 		}
+
 		@Override
 		public String toString() {
-			return "c["+c1.x+","+c1.y+","+c1.z+";"+c2.x+","+c2.y+","+c2.z+";"+to.x+","+to.y+","+to.z+"]";
+			return "c[" + c1.x + "," + c1.y + "," + c1.z + ";" + c2.x + "," + c2.y + "," + c2.z + ";" + to.x + "," + to.y + "," + to.z + "]";
 		}
 
 	}

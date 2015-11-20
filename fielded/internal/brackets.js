@@ -58,9 +58,52 @@ function executeBracket(bra, disablePrint) {
 			appendRemoteOutputToLine(anchorLine, d.message, "Field-remoteOutput-error", "Field-remoteOutput", 1)
 	});
 }
+function executeBracketLimited(bra, lineLimit) {
+	bra.attr({
+		fill: "#afc"
+	}).animate({
+		fill: "#fff"
+	}, 500)
+
+	anchorLine = Math.max(cmGetLineNumber(bra.h1), cmGetLineNumber(bra.h2))
+
+	c = cm.getCursor()
+
+	fragment = cm.getDoc().getRange({
+		line: cmGetLineNumber(bra.h1),
+		ch: 0
+	}, {
+		line: lineLimit+ 1,
+		ch: 0
+	})
+
+	addr = "execution.fragment"
+	//if (disablePrint)
+	//	addr = "execution.fragment.noprint"
+
+	_field.sendWithReturn(addr, {
+		box: cm.currentbox,
+		property: cm.currentproperty,
+		text: fragment,
+		lineoffset: cmGetLineNumber(bra.h1)
+	}, function (d, e) {
+		if (d.type == 'error')
+			appendRemoteOutputToLine(anchorLine, d.line + " : " + d.message, "Field-remoteOutput", "Field-remoteOutput-error", 1)
+		else
+			appendRemoteOutputToLine(anchorLine, d.message, "Field-remoteOutput-error", "Field-remoteOutput", 1)
+	});
+}
+
+
 function executeCurrentBracket() {
 	if (currentBracket != null) {
 		executeBracket(currentBracket)
+	}
+}
+function executeCurrentBracketToHere(){
+	if (currentBracket!=null)
+	{
+		executeBracketLimited(currentBracket, cm.getCursor(false).line);
 	}
 }
 
@@ -425,6 +468,17 @@ globalCommands.push({
 	"guard": function () {
 		updateAllBrackets();
 		return currentBracket != null && currentBracket.disabled;
+	}
+});
+globalCommands.push({
+	"name": "Execute bracket to here",
+	"info": "Executes the contents of this bracket up to, and including, the line that the cursor is on",
+	"callback": function () {
+		executeCurrentBracketToHere();
+	},
+	"guard": function () {
+		updateAllBrackets();
+		return currentBracket != null;
 	}
 });
 

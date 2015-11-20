@@ -4,7 +4,8 @@ import com.badlogic.jglfw.Glfw;
 import field.graphics.Window;
 import fieldbox.boxes.*;
 
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -61,6 +62,7 @@ public class Delete extends Box {
 				}).setSubmenu(really));
 
 
+				// disconnected for now
 				{
 					List cc = selected().flatMap(x -> x.breadthFirst(x.downwards())
 									   .filter(y -> x != y))
@@ -103,22 +105,36 @@ public class Delete extends Box {
 	}
 
 	private void recursivelyHideFrom(Stream<Box> selected) {
-
-		selected.flatMap(x -> x.breadthFirst(x.downwards()).filter(y -> y!=x)).forEach(x -> x.properties.put(hidden, true));
+		selected.flatMap(x -> x.breadthFirst(x.downwards())
+				       .filter(y -> y != x))
+			.forEach(x -> x.properties.put(hidden, true));
 		Drawing.dirty(this);
-
 	}
 
 	private void recursivelyShowFrom(Stream<Box> selected) {
-
-		selected.flatMap(x -> x.breadthFirst(x.downwards()).filter(y -> y!=x)).forEach(x -> x.properties.put(hidden, true));
+		selected.flatMap(x -> x.breadthFirst(x.downwards())
+				       .filter(y -> y != x))
+			.forEach(x -> x.properties.put(hidden, true));
 		Drawing.dirty(this);
-
 	}
 
 	private Stream<Box> selected() {
-		return root.breadthFirst(root.downwards())
-			   .filter(x -> x.properties.isTrue(Mouse.isSelected, false)).filter(x -> !x.properties.isTrue(Box.undeletable, false));
+		return root.breadthFirst(root.allDownwardsFrom())
+			   .filter(x -> x.properties.isTrue(Mouse.isSelected, false))
+			   .filter(x -> !x.properties.isTrue(Box.undeletable, false));
 	}
 
+//	private long selectedAndExclusiveChildren() {
+//		Set<Box> s = selected().collect(Collectors.toSet());
+//
+//		Function<Box, Collection<Box>> d1 = root.allDownwardsFrom();
+//		long l1 = root.breadthFirst(x -> d1.apply(x)).count();
+//		long l2 = root.breadthFirst(x -> {
+//			if (s.contains(x)) return Collections.emptySet();
+//			return d1.apply(x);
+//		})
+//			      .count();
+//
+//		return l1 - l2;
+//	}
 }

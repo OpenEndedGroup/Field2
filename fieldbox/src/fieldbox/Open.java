@@ -246,6 +246,9 @@ public class Open {
 
 		new Out(boxes.root()).connect(boxes.root());
 
+		new Group(boxes.root()).connect(boxes.root());
+
+
 		if (ThreadSync.enabled)
 			new ThreadSyncFeedback(boxes.root()).connect(boxes.root());
 

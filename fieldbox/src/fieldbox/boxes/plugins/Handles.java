@@ -11,9 +11,7 @@ import fieldbox.boxes.Drawing;
 import fieldbox.boxes.FLineDrawing;
 import fieldbox.boxes.Mouse;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -43,7 +41,7 @@ public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove
 
 
 	public interface SetAndConstrain {
-		public Vec2 apply(Vec2 initial, Vec2 previous, Vec2 next);
+		public Vec2 apply(Vec2 next, Vec2 previous, Vec2 initial);
 	}
 
 	static public class Draggable {
@@ -55,16 +53,32 @@ public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove
 		public Supplier<Vec2> get;
 		public SetAndConstrain setAndConstrain;
 		public Function<Boolean, Boolean> select;
-		public Supplier<List<FLine>> appearance;
-		public Consumer<Vec2> finisher;
+		public Supplier<Collection<FLine>> appearance;
+		public Function<Vec2, Vec2> finisher;
 
-		public Draggable(Supplier<Vec2> get, SetAndConstrain setAndConstrain, Function<Boolean, Boolean> select, Supplier<List<FLine>> appearance, Consumer<Vec2> finisher) {
+		public Draggable(Supplier<Vec2> get, SetAndConstrain setAndConstrain, Function<Boolean, Boolean> select, Supplier<Collection<FLine>> appearance, Function<Vec2, Vec2>  finisher) {
 			this.get = get;
 			this.setAndConstrain = setAndConstrain;
 			this.select = select;
 			this.appearance = appearance;
 			this.finisher = finisher;
 			init();
+		}
+
+		public Draggable(FLine.Node on, SetAndConstrain setAndConstrain, Function<Boolean, Boolean> select, Supplier<Collection<FLine>> appearance, Function<Vec2, Vec2> finisher)
+		{
+			this.get = () -> on.to.toVec2();
+			this.setAndConstrain = new SetAndConstrain() {
+				@Override
+				public Vec2 apply(Vec2 next, Vec2 previous, Vec2 initial) {
+					Vec2 v = setAndConstrain.apply(next, previous, initial);
+					on.to.set(v, 0);
+					return v;
+				}
+			};
+			this.select = select;
+			this.appearance = appearance;
+			this.finisher = finisher;
 		}
 
 		protected void init() {
@@ -75,7 +89,7 @@ public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove
 		}
 
 		public Vec2 getPosition() {
-			if (cachePosition == null) return cachePosition = setAndConstrain.apply(initialPosition, get.get(), get.get());
+			if (cachePosition == null) return cachePosition = setAndConstrain.apply(get.get(), get.get(), initialPosition);
 			return cachePosition;
 		}
 
@@ -84,15 +98,16 @@ public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove
 		}
 
 		public void set(Vec2 v) {
-			cachePosition = setAndConstrain.apply(initialPosition, getPosition(), v);
+			cachePosition = setAndConstrain.apply(v, getPosition(), initialPosition);
 		}
 
 		public void select(boolean to) {
-			selected = select.apply(to);
+			selected = select==null ? true : select.apply(to);
 		}
 
 		public void finish() {
-			finisher.accept(getPosition());
+			if (finisher!=null)
+				initialPosition = setAndConstrain.apply(finisher.apply(getPosition()), getPosition(), initialPosition);
 			initialPosition = getPosition();
 		}
 
@@ -133,7 +148,7 @@ public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove
 
 			sz = l1.size();
 			 l2 = l2.stream()
-					       .flatMap(x -> x.appearance.get()
+					       .flatMap(x -> (x.appearance==null ? new ArrayList<FLine>() : x.appearance.get())
 									 .stream())
 					       .filter(x -> x.attributes.isTrue(hasDraggables, false))
 					       .flatMap(x -> x.nodes.stream())
@@ -156,8 +171,7 @@ public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove
 	 */
 	public List<Supplier<FLine>> appearence() {
 		List<Supplier<FLine>> a = all().stream()
-				     .flatMap(x -> x.appearance.get()
-							       .stream())
+				     .flatMap(x -> (x.appearance == null ? new ArrayList<FLine>() : x.appearance.get()).stream())
 				     .collect(Collectors.toList());
 		if (a.size()>0)
 			Log.log("handles", ()->"appearence is :" + a);
@@ -174,8 +188,7 @@ public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove
 		Vec2 pos = new Vec2(e.after.mx, e.after.my);
 
 
-		Log.log("handles", ()->"onMouseDown :" + pos);
-
+		Log.log("handles", ()->"onMuseDown :" + pos);
 		Draggable selected = d.stream()
 				      .filter(x -> x.getPosition()
 						    .distance(pos) < r)
