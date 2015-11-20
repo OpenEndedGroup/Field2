@@ -508,7 +508,7 @@
       else if (target.word)
         cm.setSelection(target.from, target.to);
     }
-  };
+  }
   cmds[map[ctrl + "F3"] = "findUnder"] = function(cm) { findAndGoTo(cm, true); };
   cmds[map["Shift-" + ctrl + "F3"] = "findUnderPrevious"] = function(cm) { findAndGoTo(cm,false); };
   cmds[map["Alt-F3"] = "findAllUnder"] = function(cm) {

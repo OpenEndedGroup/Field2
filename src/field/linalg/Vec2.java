@@ -1141,8 +1141,7 @@ public class Vec2 implements Externalizable, Supplier<Vec2>, Mutable {
 		if (getClass() != obj.getClass()) return false;
 		Vec2 other = (Vec2) obj;
 		if (Double.doubleToLongBits(x) != Double.doubleToLongBits(other.x)) return false;
-		if (Double.doubleToLongBits(y) != Double.doubleToLongBits(other.y)) return false;
-		return true;
+		return Double.doubleToLongBits(y) == Double.doubleToLongBits(other.y);
 	}
 
 

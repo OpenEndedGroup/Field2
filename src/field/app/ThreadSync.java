@@ -115,9 +115,8 @@ public class ThreadSync {
 		if (o instanceof Boolean) return !((Boolean) o).booleanValue();
 
 		// !
-		if (o instanceof Undefined) return true;
+		return o instanceof Undefined;
 
-		return false;
 	}
 
 	public <K, V> Fiber<K, V> run(Supplier<K> in, Consumer<V> out, Callable<V> r, Consumer<Throwable> h) throws InterruptedException {
@@ -247,7 +246,6 @@ public class ThreadSync {
 						continue;
 					}
 				}
-				;
 
 				f.wasPaused = false;
 

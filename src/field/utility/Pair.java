@@ -26,9 +26,8 @@ public class Pair<A, B> implements Mutable<Pair<A,B>> {
 		Pair pair = (Pair) o;
 
 		if (first != null ? !first.equals(pair.first) : pair.first != null) return false;
-		if (second != null ? !second.equals(pair.second) : pair.second != null) return false;
+		return !(second != null ? !second.equals(pair.second) : pair.second != null);
 
-		return true;
 	}
 
 	@Override

@@ -67,8 +67,8 @@ class MeshBuilder_tesselationSupport implements MeshAcceptor{
 	}
 
 	public void begin() {
-		auxValues.clear();;
-		prevAuxValues.clear();;
+		auxValues.clear();
+		prevAuxValues.clear();
 		tess.gluTessBeginPolygon(null);
 	}
 

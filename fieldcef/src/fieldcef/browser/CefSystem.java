@@ -170,13 +170,13 @@ public class CefSystem {
 
 	public interface PaintCallback
 	{
-		public void onPaint(boolean popup, Rectangle[] dirtyRects, ByteBuffer buffer, int width, int height);
+		void onPaint(boolean popup, Rectangle[] dirtyRects, ByteBuffer buffer, int width, int height);
 
 	}
 
 	public interface MessageCallback
 	{
-		public void message(long id, String message, Consumer<String> answer);
+		void message(long id, String message, Consumer<String> answer);
 	}
 
 	Map<CefBrowser, MessageCallback> callbacks = new MapMaker().weakKeys().makeMap();

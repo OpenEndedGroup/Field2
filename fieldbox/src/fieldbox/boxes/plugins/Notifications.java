@@ -109,7 +109,7 @@ public class Notifications extends Box {
 			if (box.properties.isTrue(FileBrowser.isLinked, false)) name = "{ " + name + " }";
 			Vec2 d = fs.font.dimensions(name, 0.15f);
 
-			f.rect((int) (rect.x + rect.w - d.x / 2 - 10), (int) (rect.y + rect.h + 12 + (i) * 31 - 36 / 2), (int) d.x + 20, (int) 30);
+			f.rect((int) (rect.x + rect.w - d.x / 2 - 10), (int) (rect.y + rect.h + 12 + (i) * 31 - 36 / 2), (int) d.x + 20, 30);
 
 			f.attributes.put(filled, true);
 			f.attributes.put(stroked, false);

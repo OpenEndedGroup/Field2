@@ -8,4 +8,4 @@ $(document).ready(function () {
         $("div#"+$(this).attr('id')).toggle(0, function () {
         })
     })
-})
+});

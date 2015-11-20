@@ -85,9 +85,8 @@ public class Cuboid implements Mutable<Cuboid> {
 		if (Float.compare(rect.y, y) != 0) return false;
 
 		if (Float.compare(rect.z, d) != 0) return false;
-		if (Float.compare(rect.d, z) != 0) return false;
+		return Float.compare(rect.d, z) == 0;
 
-		return true;
 	}
 
 	@Override

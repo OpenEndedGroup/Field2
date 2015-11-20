@@ -122,7 +122,7 @@ public class OutputBox extends Box implements IO.Loaded {
 		String res = UUID.randomUUID()
 				 .toString();
 		s.setFixedResource("/" + res, bootstrap);
-		browser.properties.put(browser.url, "http://localhost:"+s.port+"/" + res);
+		browser.properties.put(Browser.url, "http://localhost:"+s.port+"/" + res);
 
 
 		tick = 0;

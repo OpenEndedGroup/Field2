@@ -60,7 +60,6 @@ public class MessageRouterHandlerEx extends CefMessageRouterHandlerAdapter {
 			return false;
 		}
 
-		;
 	}
 
 }

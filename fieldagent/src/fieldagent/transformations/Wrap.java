@@ -17,11 +17,11 @@ import java.util.*;
 public class Wrap implements TransformsMethod {
 
 	public interface Wrapper<T, R> {
-		public void begin(T source, Object[] args);
+		void begin(T source, Object[] args);
 
-		public R end(T source, R returning);
+		R end(T source, R returning);
 
-		public Throwable abnormal(T source, Throwable returning);
+		Throwable abnormal(T source, Throwable returning);
 	}
 
 	static public class Cancel extends RuntimeException {
@@ -38,15 +38,15 @@ public class Wrap implements TransformsMethod {
 	static Map<String, AbnormalHandler> abnormalHandlers = new WeakHashMap<>();
 
 	public interface EntryHandler {
-		public Cancel handle(String fromName, Object fromThis, String methodName, Map<String, Object> parameters, Object[] argArray);
+		Cancel handle(String fromName, Object fromThis, String methodName, Map<String, Object> parameters, Object[] argArray);
 	}
 
 	public interface ExitHandler {
-		public Object handle(Object returningThis, String fromName, Object fromThis, String methodName, Map<String, Object> parameters, String methodReturnName);
+		Object handle(Object returningThis, String fromName, Object fromThis, String methodName, Map<String, Object> parameters, String methodReturnName);
 	}
 
 	public interface AbnormalHandler {
-		public Object handle(Throwable throwingThis, String fromName, Object fromThis, String methodName, Map<String, Object> parameters, String methodReturnName);
+		Object handle(Throwable throwingThis, String fromName, Object fromThis, String methodName, Map<String, Object> parameters, String methodReturnName);
 	}
 
 	public interface Handler extends EntryHandler, ExitHandler, AbnormalHandler
@@ -166,7 +166,7 @@ public class Wrap implements TransformsMethod {
 					} catch (InvocationTargetException e) {
 						if (e.getCause() instanceof Cancel) {
 							if (Transform.debug) System.out.println(" -- returning cancel -- with :" + ((Cancel) e.getCause()).ret);
-							return (Cancel) e.getCause();
+							return e.getCause();
 						}
 						e.printStackTrace();
 						RuntimeException r = new RuntimeException(" Exception inside wrapper begin method " + wrapper + " " + fromThis + " " + methodName);
@@ -198,7 +198,7 @@ public class Wrap implements TransformsMethod {
 					} catch (InvocationTargetException e) {
 						if (e.getCause() instanceof Cancel) {
 							System.out.println(" -- returning cancel -- with :" + ((Cancel) e.getCause()).ret);
-							return (Cancel) e.getCause();
+							return e.getCause();
 						}
 						e.printStackTrace();
 						RuntimeException r = new RuntimeException(" Exception inside wrapper begin method " + wrapper + " " + fromThis + " " + methodName);
@@ -307,7 +307,6 @@ public class Wrap implements TransformsMethod {
 
 		} catch (Throwable t) {
 			t.printStackTrace();
-			;
 			return classfileBuffer;
 		}
 	}

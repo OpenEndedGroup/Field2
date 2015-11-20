@@ -16,5 +16,5 @@ public interface CefBrowserWindow {
 	 * @param canvas an canvas object
 	 * @return a window pointer if any
 	 */
-	public long getWindowHandleOfCanvas(Canvas canvas);
+	long getWindowHandleOfCanvas(Canvas canvas);
 }

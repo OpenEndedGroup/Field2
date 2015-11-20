@@ -35,5 +35,5 @@ public interface CefDialogHandler {
 	 * @param callback        is a callback handler for handling own file dialogs.
 	 * @return To display a custom dialog return true and execute callback. To display the default dialog return false.
 	 */
-	public boolean onFileDialog(CefBrowser browser, FileDialogMode mode, String title, String defaultFileName, Vector<String> acceptTypes, CefFileDialogCallback callback);
+	boolean onFileDialog(CefBrowser browser, FileDialogMode mode, String title, String defaultFileName, Vector<String> acceptTypes, CefFileDialogCallback callback);
 }

@@ -85,16 +85,16 @@ public class SimpleVoronoi {
 			y += (A[i].coordinates[1] + A[(i+1)%A.length].coordinates[1]) * a;
 		}
 		aa /= 2;
-		return new Vec2(x, y).mul((float) (1 / (6 * aa)));
+		return new Vec2(x, y).mul(1 / (6 * aa));
 	}
 
 	public GeneralPath makeArea(Pnt[] p) {
 		GeneralPath path = new GeneralPath();
 		for (int i = 0; i < p.length; i++) {
 			if (i == 0)
-				path.moveTo((float) p[0].coord(0), (float) p[0].coord(1));
+				path.moveTo(p[0].coord(0), p[0].coord(1));
 			else
-				path.lineTo((float) p[i].coord(0), (float) p[i].coord(1));
+				path.lineTo(p[i].coord(0), p[i].coord(1));
 		}
 		path.closePath();
 		return path;
@@ -106,9 +106,9 @@ public class SimpleVoronoi {
 
 		for (int i = 0; i < p.length; i++) {
 			if (i == 0)
-				f.moveTo((float) p[0].coord(0), (float) p[0].coord(1));
+				f.moveTo(p[0].coord(0), p[0].coord(1));
 			else
-				f.lineTo((float) p[i].coord(0), (float) p[i].coord(1));
+				f.lineTo(p[i].coord(0), p[i].coord(1));
 		}
 		f.lineTo(p[0].coord(0), p[0].coord(1));
 
@@ -911,7 +911,7 @@ public class SimpleVoronoi {
 
 		@Override
 		public int hashCode() {
-			return (int) (idNumber ^ (idNumber >>> 32));
+			return idNumber ^ (idNumber >>> 32);
 		}
 
 		@Override
@@ -1028,7 +1028,7 @@ public class SimpleVoronoi {
 				list.add(triangle);
 				Triangle previous = triangle;
 
-				;//System.out.println(" site :" + site + " " + guide + " " + triangle);
+				//System.out.println(" site :" + site + " " + guide + " " + triangle);
 
 				if (triangle==null) break;
 
@@ -1062,7 +1062,7 @@ public class SimpleVoronoi {
 				if (visited.contains(triangle)) { // This should
 					// never
 					// happen
-					;//System.out.println("Warning: Caught in a locate loop");
+					//System.out.println("Warning: Caught in a locate loop");
 					break;
 				}
 				visited.add(triangle);
@@ -1073,13 +1073,13 @@ public class SimpleVoronoi {
 				triangle = this.neighborOpposite(corner, triangle);
 			}
 			// No luck; try brute force
-			;//System.out.println("Warning: Checking all triangles for " + point);
+			//System.out.println("Warning: Checking all triangles for " + point);
 			for (Triangle tri : this) {
 				if (point.isOutside(tri.toArray(new Pnt[0])) == null)
 					return tri;
 			}
 			// No such triangle
-			;//System.out.println("Warning: No triangle holds " + point);
+			//System.out.println("Warning: No triangle holds " + point);
 			return null;
 		}
 

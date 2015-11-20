@@ -41,5 +41,5 @@ public interface CefSchemeRegistrar {
 	 * This function may be called on any thread. It should only be called once per unique |schemeName| value. If |schemeName| is already
 	 * registered or if an error occurs this method will return false.
 	 */
-	public boolean addCustomScheme(String schemeName, boolean isStandard, boolean isLocal, boolean isDisplayIsolated);
+	boolean addCustomScheme(String schemeName, boolean isStandard, boolean isLocal, boolean isDisplayIsolated);
 }

@@ -12,5 +12,5 @@ public interface CefCompletionCallback {
 	/**
 	 * Method that will be called once the task is complete.
 	 */
-	public abstract void onComplete();
+	void onComplete();
 }

@@ -131,7 +131,7 @@ public class MainFrameNearlyHeadless /*extends JFrame*/ {
 		}
 		catch(Throwable t)
 		{
-			t.printStackTrace();;
+			t.printStackTrace();
 		}
 
 		browser_.executeJavaScript("var request_id = window.cefQuery({\n" +
@@ -173,7 +173,7 @@ public class MainFrameNearlyHeadless /*extends JFrame*/ {
 		}
 		catch(Throwable t)
 		{
-			t.printStackTrace();;
+			t.printStackTrace();
 		}
 
 
@@ -211,7 +211,7 @@ public class MainFrameNearlyHeadless /*extends JFrame*/ {
 			}
 			catch(Throwable t)
 			{
-				t.printStackTrace();;
+				t.printStackTrace();
 			}
 		}
 

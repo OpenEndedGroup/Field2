@@ -127,8 +127,7 @@ public class Variant extends Box implements IO.Loaded {
 
 		@Override
 		public boolean asMap_delete(Object o) {
-			if (asMap_isProperty(prefix("" + o))) return true;
-			return false;
+			return asMap_isProperty(prefix("" + o));
 		}
 	}
 

@@ -22,59 +22,59 @@ public interface ArrayBuffer {
 	/**
 	 * the number of elements of dimension in this buffer
 	 */
-	public int getSize();
+	int getSize();
 
 	/**
 	 * the OpenGL binding associated with this buffer
 	 */
-	public int getBinding();
+	int getBinding();
 
 	/**
 	 * the Shader attribute associated with this buffer
 	 */
-	public int getAttribute();
+	int getAttribute();
 
 	/**e
 	 * the dimensionality of each element (between 1 and 4 inclusive).
 	 */
-	public int getDimension();
+	int getDimension();
 
 	/**
 	 * returns a read/write view onto this buffer as a FloatBuffer (equivalent to floats(false))
 	 */
-	default public FloatBuffer floats() {
-		return (FloatBuffer) floats(false);
+	default FloatBuffer floats() {
+		return floats(false);
 	}
 
 	/**
 	 * returns a read/write view onto this buffer as an IntBuffer (equivalent to ints(false))
 	 */
-	default public IntBuffer ints() {
-		return (IntBuffer) ints(false);
+	default IntBuffer ints() {
+		return ints(false);
 	}
 
 	/**
 	 * returns a read/write view onto this buffer as a FloatBuffer. If this is marked as readOnly then OpenGL won't necessarily get any changes we
 	 * make to this buffer.
 	 */
-	public FloatBuffer floats(boolean readOnly);
+	FloatBuffer floats(boolean readOnly);
 
 	/**
 	 * returns a read/write view onto this buffer as an IntBuffer. If this is marked as readOnly then OpenGL won't necessarily get any changes we
 	 * make to this buffer.
 	 */
-	public IntBuffer ints(boolean readOnly);
+	IntBuffer ints(boolean readOnly);
 
 	/**
 	 * Replaces this buffer with a buffer of an identical class, but of a different size. Size here is in elements (that is, floats / ints *
 	 * dimension).
 	 */
-	public ArrayBuffer replaceWithSize(int size);
+	ArrayBuffer replaceWithSize(int size);
 
 	/**
 	 * Causes the graphics system to ultimately relinquish OpenGL resources associated with this buffer
 	 */
-	public void destroy();
+	void destroy();
 
 	/**
 	 * Mark the area up to this point as clean --- internal use only (hence the access restriction)

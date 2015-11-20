@@ -16,7 +16,7 @@ public interface CefContextMenuHandler {
 	/**
 	 * Supported event bit flags.
 	 */
-	public static final class EventFlags {
+	final class EventFlags {
 		public final static int EVENTFLAG_NONE = 0;
 		public final static int EVENTFLAG_CAPS_LOCK_ON = 1 << 0;
 		public final static int EVENTFLAG_SHIFT_DOWN = 1 << 1;
@@ -40,7 +40,7 @@ public interface CefContextMenuHandler {
 	 * @param params  provides information about the context menuSpecs state.
 	 * @param model   can be cleared to show no context menuSpecs or modified to show a custom menuSpecs.
 	 */
-	public void onBeforeContextMenu(CefBrowser browser, CefContextMenuParams params, CefMenuModel model);
+	void onBeforeContextMenu(CefBrowser browser, CefContextMenuParams params, CefMenuModel model);
 
 	/**
 	 * Called to execute a command selected from the context menuSpecs. Return true if the command was handled or false for the default implementation.
@@ -53,12 +53,12 @@ public interface CefContextMenuHandler {
 	 * @param eventFlags A combination of event flags defined in EventFlags
 	 * @return true if the command was handled or false for the default implementation.
 	 */
-	public boolean onContextMenuCommand(CefBrowser browser, CefContextMenuParams params, int commandId, int eventFlags);
+	boolean onContextMenuCommand(CefBrowser browser, CefContextMenuParams params, int commandId, int eventFlags);
 
 	/**
 	 * Called when the context menuSpecs is dismissed irregardless of whether the menuSpecs was empty or a command was selected.
 	 *
 	 * @param browser The corresponding browser.
 	 */
-	public void onContextMenuDismissed(CefBrowser browser);
+	void onContextMenuDismissed(CefBrowser browser);
 }

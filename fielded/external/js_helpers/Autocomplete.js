@@ -1,4 +1,4 @@
-__extraCompletions = []
+__extraCompletions = [];
 
 _field.sendWithReturn("request.completions", {
 				box: cm.currentbox,
@@ -9,9 +9,9 @@ _field.sendWithReturn("request.completions", {
 		},
 		function (d, e) {
 
-				var completions = d
+				var completions = d;
 				completionFunction = function (e) {
-						var m = []
+						var m = [];
 						for (var i = 0; i < completions.length; i++) {
 								if (completions[i].replaceWith.contains(e)) {
 										pattern = new RegExp("(" + e + ")");
@@ -44,10 +44,10 @@ _field.sendWithReturn("request.completions", {
 
 
 						return m
-				}
+				};
 
 				if (completions.length > 0)
-						runModalAtCursor("completion", completionFunction, cm.getValue().substring(completions[0].start, completions[0].end))
+						runModalAtCursor("completion", completionFunction, cm.getValue().substring(completions[0].start, completions[0].end));
 				else if (__extraCompletions.length>0)
 						runModalAtCursor("completion", completionFunction, cm.getValue().substring(__extraCompletions[0][0], __extraCompletions[0][1]))
 

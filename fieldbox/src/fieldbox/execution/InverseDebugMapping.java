@@ -3,6 +3,8 @@ package fieldbox.execution;
 import com.google.common.collect.MapMaker;
 import field.app.RunLoop;
 import field.graphics.Scene;
+import field.nashorn.api.scripting.ScriptObjectMirror;
+import field.nashorn.api.scripting.ScriptUtils;
 import field.utility.Dict;
 import field.utility.Pair;
 import fieldbox.boxes.Box;
@@ -34,7 +36,7 @@ public class InverseDebugMapping {
 
 	static public String describe(Object of)
 	{
-			Pair<Box, String> p = huntForReference(defaultRoot,of);
+		Pair<Box, String> p = huntForReference(defaultRoot,of);
 		String m = extraDescriptions.get(of);
 		return (p==null ? "" : (":"+p.toString()))+(m==null ? "" : (":"+m));
 	}
@@ -59,15 +61,18 @@ public class InverseDebugMapping {
 
 	static public Pair<Box, String> huntForReference(Box startFrom, Object of)
 	{
+		if (of instanceof ScriptObjectMirror) of = ScriptUtils.unwrap(of);
+
 		Pair<Box, String> c = singleCache.get(of);
 		if (c!=null && singleCache.containsKey(of)) return c;
 
+		final Object finalOf = of;
 		c = startFrom.breadthFirst(startFrom.both()).map(x -> {
 
 			Map<Dict.Prop, Object> m = x.properties.getMap();
 			for(Map.Entry<Dict.Prop, Object> e : m.entrySet())
 			{
-				if (e.getValue()==of)
+				if (e.getValue()== finalOf)
 				{
 					return new Pair<Box, String>(x, e.getKey().getName())
 					{

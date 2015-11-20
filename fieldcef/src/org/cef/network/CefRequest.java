@@ -79,7 +79,7 @@ public abstract class CefRequest {
 
 		private int value;
 
-		private TransitionType(int source) {
+		TransitionType(int source) {
 			value = source;
 		}
 
@@ -234,7 +234,7 @@ public abstract class CefRequest {
 
 		private final int flag;
 
-		private TransitionFlags(int flag) {
+		TransitionFlags(int flag) {
 			this.flag = flag;
 		}
 

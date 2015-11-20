@@ -21,7 +21,7 @@ public class Execution extends Box {
 
 	public interface CompletionSupport
 	{
-		public void completion(Box inside, String allText, int line, int ch, Consumer<List<Completion>> results);
+		void completion(Box inside, String allText, int line, int ch, Consumer<List<Completion>> results);
 	}
 
 	static public Dict.Prop<Execution> execution = new Dict.Prop<Execution>("execution");
@@ -54,34 +54,34 @@ public class Execution extends Box {
 	/**
 	 * absolutely everything you need to support a language in Field
 	 */
-	static public interface ExecutionSupport {
+	public interface ExecutionSupport {
 
-		public void executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors);
+		void executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors);
 
-		public void executeAll(String allText, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success);
+		void executeAll(String allText, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success);
 
-		public String begin(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success, Map<String, Object> initiator);
+		String begin(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success, Map<String, Object> initiator);
 
-		public void end(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success);
+		void end(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success);
 
-		public void setConsoleOutput(Consumer<String> stdout, Consumer<String> stderr);
+		void setConsoleOutput(Consumer<String> stdout, Consumer<String> stderr);
 
-		public void completion(String allText, int line, int ch, Consumer<List<Completion>> results);
+		void completion(String allText, int line, int ch, Consumer<List<Completion>> results);
 
-		public void imports(String allText, int line, int ch, Consumer<List<Completion>> results);
+		void imports(String allText, int line, int ch, Consumer<List<Completion>> results);
 
-		public String getCodeMirrorLanguageName();
+		String getCodeMirrorLanguageName();
 
-		public String getDefaultFileExtension();
+		String getDefaultFileExtension();
 
-		public Object getBinding(String name);
+		Object getBinding(String name);
 
-		default public void setFilenameForStacktraces(String name)
+		default void setFilenameForStacktraces(String name)
 		{
 
 		}
 
-		default public void begin(Box box, Map<String, Object> initiator) {
+		default void begin(Box box, Map<String, Object> initiator) {
 
 			Function<Box, Consumer<Pair<Integer, String>>> ef = box.first(RemoteEditor.outputErrorFactory)
 				    .orElse((x) -> (is -> System.err.println("error (without remote editor attached) :" + is)));
@@ -91,28 +91,28 @@ public class Execution extends Box {
 			begin(ef.apply(box), of.apply(box), initiator);
 		}
 
-		default public void executeTextFragment(String allText, Box box) {
+		default void executeTextFragment(String allText, Box box) {
 			executeTextFragment(allText, "", box
 			.first(RemoteEditor.outputFactory)
 			.orElse(x -> (is -> System.out.println("output (without remote editor attached) :" + is))).apply(box), box.first(RemoteEditor.outputErrorFactory)
 				    .orElse((x) -> (is -> System.err.println("error (without remote editor attached) :" + is))).apply(box));
 		}
 
-		default public void executeAll(String allText, Box box) {
+		default void executeAll(String allText, Box box) {
 			executeAll(allText, box.first(RemoteEditor.outputErrorFactory)
 				    .orElse((x) -> (is -> System.err.println("error (without remote editor attached) :" + is))).apply(box), box
 				    .first(RemoteEditor.outputFactory)
 				    .orElse(x -> (is -> System.out.println("output (without remote editor attached) :" + is))).apply(box));
 		}
 
-		default public void end(Box box) {
+		default void end(Box box) {
 			end(box.first(RemoteEditor.outputErrorFactory)
 				    .orElse((x) -> (is -> System.err.println("error (without remote editor attached) :" + is))).apply(box), box
 				    .first(RemoteEditor.outputFactory)
 				    .orElse(x -> (is -> System.out.println("output (without remote editor attached) :" + is))).apply(box));
 		}
 
-		default public void setLineOffsetForFragment(int lineOffset)
+		default void setLineOffsetForFragment(int lineOffset)
 		{}
 	}
 

@@ -71,7 +71,7 @@ public class AxisAngle implements Externalizable {
 		x = a.x;
 		y = a.y;
 		z = a.z;
-		angle = (double) ((angle < 0.0 ? 2.0 * Math.PI + angle % (2.0 * Math.PI) : angle) % (2.0 * Math.PI));
+		angle = (angle < 0.0 ? 2.0 * Math.PI + angle % (2.0 * Math.PI) : angle) % (2.0 * Math.PI);
 	}
 
 	/**
@@ -82,12 +82,12 @@ public class AxisAngle implements Externalizable {
 	 * @param q the quaternion from which to create the new AngleAxis4f
 	 */
 	public AxisAngle(Quat q) {
-		double acos = (double) Math.acos(q.w);
-		double sqrt = (double) Math.sqrt(1.0 - q.w * q.w);
+		double acos = Math.acos(q.w);
+		double sqrt = Math.sqrt(1.0 - q.w * q.w);
 		this.x = q.x / sqrt;
 		this.y = q.y / sqrt;
 		this.z = q.z / sqrt;
-		this.angle = (double) 2.0 * acos;
+		this.angle = 2.0 * acos;
 	}
 
 	/**
@@ -102,7 +102,7 @@ public class AxisAngle implements Externalizable {
 		this.x = x;
 		this.y = y;
 		this.z = z;
-		this.angle = (double) ((angle < 0.0 ? 2.0 * Math.PI + angle % (2.0 * Math.PI) : angle) % (2.0 * Math.PI));
+		this.angle = (angle < 0.0 ? 2.0 * Math.PI + angle % (2.0 * Math.PI) : angle) % (2.0 * Math.PI);
 	}
 
 	/**
@@ -125,7 +125,7 @@ public class AxisAngle implements Externalizable {
 		x = a.x;
 		y = a.y;
 		z = a.z;
-		angle = (double) ((angle < 0.0 ? 2.0 * Math.PI + angle % (2.0 * Math.PI) : angle) % (2.0 * Math.PI));
+		angle = (angle < 0.0 ? 2.0 * Math.PI + angle % (2.0 * Math.PI) : angle) % (2.0 * Math.PI);
 		return this;
 	}
 
@@ -142,7 +142,7 @@ public class AxisAngle implements Externalizable {
 		this.x = x;
 		this.y = y;
 		this.z = z;
-		this.angle = (double) ((angle < 0.0 ? 2.0 * Math.PI + angle % (2.0 * Math.PI) : angle) % (2.0 * Math.PI));
+		this.angle = (angle < 0.0 ? 2.0 * Math.PI + angle % (2.0 * Math.PI) : angle) % (2.0 * Math.PI);
 		return this;
 	}
 
@@ -166,10 +166,10 @@ public class AxisAngle implements Externalizable {
 	public AxisAngle set(Quat q) {
 		double acos = Math.acos(q.w);
 		double sqrt = Math.sqrt(1.0 - q.w * q.w);
-		this.x = (double) (q.x / sqrt);
-		this.y = (double) (q.y / sqrt);
-		this.z = (double) (q.z / sqrt);
-		this.angle = (double) (2.0f * acos);
+		this.x = q.x / sqrt;
+		this.y = q.y / sqrt;
+		this.z = q.z / sqrt;
+		this.angle = 2.0f * acos;
 		return this;
 	}
 
@@ -182,11 +182,11 @@ public class AxisAngle implements Externalizable {
 	 */
 	public AxisAngle set(Mat3 m) {
 		double cos = (m.m00 + m.m11 + m.m22 - 1.0) * 0.5;
-		x = (double) (m.m12 - m.m21);
-		y = (double) (m.m20 - m.m02);
-		z = (double) (m.m01 - m.m10);
+		x = m.m12 - m.m21;
+		y = m.m20 - m.m02;
+		z = m.m01 - m.m10;
 		double sin = 0.5 * Math.sqrt(x * x + y * y + z * z);
-		angle = (double) Math.atan2(sin, cos);
+		angle = Math.atan2(sin, cos);
 		return this;
 	}
 
@@ -198,11 +198,11 @@ public class AxisAngle implements Externalizable {
 	 */
 	public AxisAngle set(Mat4 m) {
 		double cos = (m.m00 + m.m11 + m.m22 - 1.0) * 0.5;
-		x = (double) (m.m12 - m.m21);
-		y = (double) (m.m20 - m.m02);
-		z = (double) (m.m01 - m.m10);
+		x = m.m12 - m.m21;
+		y = m.m20 - m.m02;
+		z = m.m01 - m.m10;
 		double sin = 0.5 * Math.sqrt(x * x + y * y + z * z);
-		angle = (double) Math.atan2(sin, cos);
+		angle = Math.atan2(sin, cos);
 		return this;
 	}
 
@@ -262,7 +262,7 @@ public class AxisAngle implements Externalizable {
 	 * @return this
 	 */
 	public AxisAngle normalize() {
-		double length = (double) Math.sqrt(x * x + y * y + z * z);
+		double length = Math.sqrt(x * x + y * y + z * z);
 		x /= length;
 		y /= length;
 		z /= length;
@@ -279,7 +279,7 @@ public class AxisAngle implements Externalizable {
 	 */
 	public AxisAngle rotate(double ang) {
 		angle += ang;
-		angle = (double) ((angle < 0.0 ? 2.0 * Math.PI + angle % (2.0 * Math.PI) : angle) % (2.0 * Math.PI));
+		angle = (angle < 0.0 ? 2.0 * Math.PI + angle % (2.0 * Math.PI) : angle) % (2.0 * Math.PI);
 		return this;
 	}
 
@@ -304,8 +304,8 @@ public class AxisAngle implements Externalizable {
 		double cos = Math.cos(angle);
 		double sin = Math.sin(angle);
 		double dot = x * v.x + y * v.y + z * v.z;
-		dest.set((double) (v.x * cos + sin * (y * v.z - z * v.y) + (1.0 - cos) * dot * x), (double) (v.y * cos + sin * (z * v.x - x * v.z) + (1.0 - cos) * dot * y),
-			 (double) (v.z * cos + sin * (x * v.y - y * v.x) + (1.0 - cos) * dot * z));
+		dest.set(v.x * cos + sin * (y * v.z - z * v.y) + (1.0 - cos) * dot * x, v.y * cos + sin * (z * v.x - x * v.z) + (1.0 - cos) * dot * y,
+			 v.z * cos + sin * (x * v.y - y * v.x) + (1.0 - cos) * dot * z);
 		return this;
 	}
 
@@ -330,8 +330,8 @@ public class AxisAngle implements Externalizable {
 		double cos = Math.cos(angle);
 		double sin = Math.sin(angle);
 		double dot = x * v.x + y * v.y + z * v.z;
-		dest.set((double) (v.x * cos + sin * (y * v.z - z * v.y) + (1.0 - cos) * dot * x), (double) (v.y * cos + sin * (z * v.x - x * v.z) + (1.0 - cos) * dot * y),
-			 (double) (v.z * cos + sin * (x * v.y - y * v.x) + (1.0 - cos) * dot * z), dest.w);
+		dest.set(v.x * cos + sin * (y * v.z - z * v.y) + (1.0 - cos) * dot * x, v.y * cos + sin * (z * v.x - x * v.z) + (1.0 - cos) * dot * y,
+			 v.z * cos + sin * (x * v.y - y * v.x) + (1.0 - cos) * dot * z, dest.w);
 		return this;
 	}
 
@@ -360,7 +360,7 @@ public class AxisAngle implements Externalizable {
 	public int hashCode() {
 		final int prime = 31;
 		long result = 1;
-		double nangle = (double) ((angle < 0.0 ? 2.0 * Math.PI + angle % (2.0 * Math.PI) : angle) % (2.0 * Math.PI));
+		double nangle = (angle < 0.0 ? 2.0 * Math.PI + angle % (2.0 * Math.PI) : angle) % (2.0 * Math.PI);
 		result = prime * result + Double.doubleToLongBits(nangle);
 		result = prime * result + Double.doubleToLongBits(x);
 		result = prime * result + Double.doubleToLongBits(y);
@@ -373,13 +373,12 @@ public class AxisAngle implements Externalizable {
 		if (obj == null) return false;
 		if (getClass() != obj.getClass()) return false;
 		AxisAngle other = (AxisAngle) obj;
-		double nangle = (double) ((angle < 0.0 ? 2.0 * Math.PI + angle % (2.0 * Math.PI) : angle) % (2.0 * Math.PI));
-		double nangleOther = (double) ((other.angle < 0.0 ? 2.0 * Math.PI + other.angle % (2.0 * Math.PI) : other.angle) % (2.0 * Math.PI));
+		double nangle = (angle < 0.0 ? 2.0 * Math.PI + angle % (2.0 * Math.PI) : angle) % (2.0 * Math.PI);
+		double nangleOther = (other.angle < 0.0 ? 2.0 * Math.PI + other.angle % (2.0 * Math.PI) : other.angle) % (2.0 * Math.PI);
 		if (Double.doubleToLongBits(nangle) != Double.doubleToLongBits(nangleOther)) return false;
 		if (Double.doubleToLongBits(x) != Double.doubleToLongBits(other.x)) return false;
 		if (Double.doubleToLongBits(y) != Double.doubleToLongBits(other.y)) return false;
-		if (Double.doubleToLongBits(z) != Double.doubleToLongBits(other.z)) return false;
-		return true;
+		return Double.doubleToLongBits(z) == Double.doubleToLongBits(other.z);
 	}
 
 	/**

@@ -71,7 +71,7 @@ public interface CefLoadHandler {
 	 * @param canGoBack    true if you can navigate back.
 	 * @param canGoForward true if you can navigate forward.
 	 */
-	public void onLoadingStateChange(CefBrowser browser, boolean isLoading, boolean canGoBack, boolean canGoForward);
+	void onLoadingStateChange(CefBrowser browser, boolean isLoading, boolean canGoBack, boolean canGoForward);
 
 	/**
 	 * Called when the browser begins loading a frame. The frameIdentifer value will never be empty. Multiple frames may be loading at the same
@@ -81,7 +81,7 @@ public interface CefLoadHandler {
 	 * @param browser        The affected browser.
 	 * @param frameIdentifer The identifier of the loading frame.
 	 */
-	public void onLoadStart(CefBrowser browser, int frameIdentifer);
+	void onLoadStart(CefBrowser browser, int frameIdentifer);
 
 	/**
 	 * Called when the browser is done loading a frame. The frameIdentifer value will never be empty. Multiple frames may be loading at the same
@@ -92,7 +92,7 @@ public interface CefLoadHandler {
 	 * @param frameIdentifer The identifier of the loading frame.
 	 * @oaram httpStatusCode The status code of the load.
 	 */
-	public void onLoadEnd(CefBrowser browser, int frameIdentifier, int httpStatusCode);
+	void onLoadEnd(CefBrowser browser, int frameIdentifier, int httpStatusCode);
 
 	/**
 	 * Called when the resource load for a navigation fails or is canceled.
@@ -103,5 +103,5 @@ public interface CefLoadHandler {
 	 * @param errorText      The error text.
 	 * @param failedUrl      The URL that failed to load.
 	 */
-	public void onLoadError(CefBrowser browser, int frameIdentifer, ErrorCode errorCode, String errorText, String failedUrl);
+	void onLoadError(CefBrowser browser, int frameIdentifer, ErrorCode errorCode, String errorText, String failedUrl);
 }

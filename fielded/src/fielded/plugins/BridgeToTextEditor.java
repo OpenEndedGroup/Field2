@@ -155,7 +155,7 @@ public class BridgeToTextEditor extends Box {
 				@Override
 				public void executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors) {
 
-					if (previousPush!=null) previousPush.close();;
+					if (previousPush!=null) previousPush.close();
 					previousPush = delegateTo
 						    .pushToLogStack(s -> success.accept(s), e -> lineErrors.accept(new Pair<>(0, e)));
 					delegateTo.sendJavaScript(textFragment);

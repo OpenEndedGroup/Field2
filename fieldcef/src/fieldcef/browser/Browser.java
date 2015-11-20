@@ -75,7 +75,7 @@ public class Browser extends Box implements IO.Loaded {
 		return null;
 	}, (box) -> box.properties.get(html));
 	int again = 0;
-	int check = 100;
+	int check = 10;
 	boolean hasRepainted = false;
 	boolean first = true;
 	boolean paused = false;
@@ -158,6 +158,8 @@ public class Browser extends Box implements IO.Loaded {
 			      .orElseThrow(() -> new IllegalArgumentException(" can't install text-drawing into something without drawing support"));
 
 
+		System.out.println("MAKING CefSystem :"+w+" "+h+" "+ window.getRetinaScaleFactor());
+
 		browser = CefSystem.cefSystem.makeBrowser(w * window.getRetinaScaleFactor(), h * window.getRetinaScaleFactor(), this::paint, this::message, () -> {
 			try {
 				if (callbackOnNextReload != null) {
@@ -174,10 +176,12 @@ public class Browser extends Box implements IO.Loaded {
 
 
 		keyboardHacks = new BrowserKeyboardHacks(browser);
+		System.out.println("MAKING sourceTextureBuffer :"+w+" "+h+" "+ window.getRetinaScaleFactor());
 		source = ByteBuffer.allocateDirect(w * h * 4 * window.getRetinaScaleFactor() * window.getRetinaScaleFactor());
 		source.position(0)
 		      .limit(source.capacity());
 		sourceView = source.slice();
+		System.out.println("MAKING sourceTexture :"+w+" "+h+" "+ window.getRetinaScaleFactor());
 		texture = new Texture(Texture.TextureSpecification.byte4(0, w * window.getRetinaScaleFactor(), h * window.getRetinaScaleFactor(), source, false)).setIsDoubleBuffered(false);
 
 		q = BaseMesh.triangleList(0, 0);
@@ -513,12 +517,12 @@ public class Browser extends Box implements IO.Loaded {
 		});
 
 		this.properties.putToMap(Callbacks.onSelect, "__pullFocus__", (k) -> {
-			if (!(k instanceof Browser)) getKeyboardFocus().claimFocus((Box) k);
+			if (!(k instanceof Browser)) getKeyboardFocus().claimFocus((Box)k);
 			return null;
 		});
 
 		this.properties.putToMap(Callbacks.onDeselect, "__pullFocus__", (k) -> {
-			if (!(k instanceof Browser)) getKeyboardFocus().disclaimFocus((Box) k);
+			if (!(k instanceof Browser)) getKeyboardFocus().disclaimFocus((Box)k);
 			return null;
 		});
 	}
@@ -569,10 +573,10 @@ public class Browser extends Box implements IO.Loaded {
 				sourceView.position(r.x * 4 + y * 4 * w);
 				sourceView.put(buffer);
 			}
-			x0 = (int) Math.min(x0, r.x);
-			x1 = (int) Math.max(x1, r.width + r.x);
-			y0 = (int) Math.min(y0, r.y);
-			y1 = (int) Math.max(y1, r.height + r.y);
+			x0 = Math.min(x0, r.x);
+			x1 = Math.max(x1, r.width + r.x);
+			y0 = Math.min(y0, r.y);
+			y1 = Math.max(y1, r.height + r.y);
 		}
 
 
@@ -646,11 +650,10 @@ public class Browser extends Box implements IO.Loaded {
 
 	protected void update(float x, float y, float scale) {
 
-		if (check-- > 0)
-			browser.setZoomLevel(2 * window.getRetinaScaleFactor());
-
-
 		if (this.dirty.getAndSet(false) && damage != null) {
+			if (check-- > 0) {
+				browser.setZoomLevel(2 * window.getRetinaScaleFactor());
+			}
 			Log.log("cef.debug", ()->" texture was dirty, uploading ");
 //			texture.upload(source, true);
 			texture.upload(source, true, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (1+damage.h + damage.y));
@@ -791,7 +794,7 @@ public class Browser extends Box implements IO.Loaded {
 	}
 
 	public interface Handler {
-		public void handle(String address, JSONObject payload, Consumer<String> reply);
+		void handle(String address, JSONObject payload, Consumer<String> reply);
 	}
 
 

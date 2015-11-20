@@ -176,7 +176,7 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 	private boolean setUniformNow(boolean push) {
 		pushed = false;
 
-		Integer name = GraphicsContext.stateTracker.shader.get();
+		Integer name = StateTracker.shader.get();
 		GraphicsContext.checkError(() -> "while setting :" + name + " / " + this.name);
 		T t = value.get();
 

@@ -1,5 +1,5 @@
 function Autocomplete() {
-	__extraCompletions = []
+	__extraCompletions = [];
 
 	_field.sendWithReturn("request.completions", {
 			box: cm.currentbox,
@@ -9,9 +9,9 @@ function Autocomplete() {
 			ch: cm.listSelections()[0].anchor.ch
 		},
 		function (d, e) {
-			var completions = d
+			var completions = d;
 			completionFunction = function (e) {
-				var m = []
+				var m = [];
 				for (var i = 0; i < completions.length; i++) {
 					if (completions[i].replaceWith.indexOf(e) > -1) {
 						pattern = new RegExp("(" + e + ")");
@@ -50,17 +50,17 @@ function Autocomplete() {
 				});
 
 				return m
-			}
+			};
 
 			prefix = "";
 
 			if (completions.length > 0)
-				prefix = cm.getValue().substring(completions[0].start, completions[0].end)
+				prefix = cm.getValue().substring(completions[0].start, completions[0].end);
 			else if (__extraCompletions.length > 0)
-				prefix = cm.getValue().substring(__extraCompletions[0][0], __extraCompletions[0][1])
+				prefix = cm.getValue().substring(__extraCompletions[0][0], __extraCompletions[0][1]);
 
 			if (completionFunction(prefix).length == 0)
-				prefix = ""
+				prefix = "";
 
 			runModalAtCursor("completion", completionFunction, prefix)
 		}
@@ -72,7 +72,7 @@ function Commands() {
 }
 
 function Current_Bracket() {
-	executeCurrentBracket()
+	executeCurrentBracket();
 	cm.setCursor(c);
 }
 
@@ -89,9 +89,9 @@ function Import() {
 			ch: cm.listSelections()[0].anchor.ch
 		},
 		function (d, e) {
-			var completions = d
+			var completions = d;
 			completionFunction = function (e) {
-				var m = []
+				var m = [];
 				for (var i = 0; i < completions.length; i++) {
 
 					if (completions[i].replaceWith.indexOf(e) > -1) {
@@ -100,11 +100,11 @@ function Import() {
 						m.push({
 							text: matched + " " + completions[i].info,
 							callback: function () {
-								cm.replaceRange(completions[this.i].replaceWith, cm.posFromIndex(completions[this.i].start), cm.posFromIndex(completions[this.i].end))
+								cm.replaceRange(completions[this.i].replaceWith, cm.posFromIndex(completions[this.i].start), cm.posFromIndex(completions[this.i].end));
 								cm.replaceRange(completions[this.i].header + "\n", {
 									line: 0,
 									ch: 0
-								})
+								});
 
 								_field.sendWithReturn("execution.fragment", {
 									box: cm.currentbox,
@@ -112,7 +112,7 @@ function Import() {
 									text: completions[this.i].header
 								}, function (d, e) {
 									if (d.type == 'error')
-										appendRemoteOutputToLine(anchorLine, d.line + " : " + d.message, "Field-remoteOutput", "Field-remoteOutput-error", 1)
+										appendRemoteOutputToLine(anchorLine, d.line + " : " + d.message, "Field-remoteOutput", "Field-remoteOutput-error", 1);
 									else
 										appendRemoteOutputToLine(anchorLine, d.message, "Field-remoteOutput-error", "Field-remoteOutput", 1)
 								});
@@ -136,7 +136,7 @@ function Import() {
 // sorting "+JSON.stringify(m));
 
 				return m
-			}
+			};
 			if (completions.length > 0)
 				runModalAtCursor("import java", completionFunction, cm.getValue().substring(completions[0].start, completions[0].end))
 		}
@@ -144,8 +144,8 @@ function Import() {
 }
 
 function Run_All() {
-	fragment = cm.getValue()
-	anchorLine = cm.lineCount() - 1
+	fragment = cm.getValue();
+	anchorLine = cm.lineCount() - 1;
 
 	_field.sendWithReturn("execution.all", {
 		box: cm.currentbox,
@@ -163,8 +163,8 @@ function Run_All() {
 }
 
 function Run_Begin() {
-	fragment = cm.getValue()
-	anchorLine = cm.lineCount() - 1
+	fragment = cm.getValue();
+	anchorLine = cm.lineCount() - 1;
 
 	_field.sendWithReturn("execution.begin", {
 		box: cm.currentbox,
@@ -182,8 +182,8 @@ function Run_Begin() {
 }
 
 function Run_End() {
-	fragment = cm.getValue()
-	anchorLine = cm.lineCount() - 1
+	fragment = cm.getValue();
+	anchorLine = cm.lineCount() - 1;
 
 	_field.sendWithReturn("execution.end", {
 		box: cm.currentbox,
@@ -204,17 +204,17 @@ function Run_Selection() {
 }
 
 function Run_Selection_variant(variant) {
-	anchorLine = Math.max(cm.listSelections()[0].anchor.line, cm.listSelections()[0].head.line)
+	anchorLine = Math.max(cm.listSelections()[0].anchor.line, cm.listSelections()[0].head.line);
 
 	if (cm.listSelections()[0].anchor.line == cm.listSelections()[0].head.line && cm.listSelections()[0].anchor.ch == cm.listSelections()[0].head.ch) {
-		fragment = cm.getLine(cm.listSelections()[0].anchor.line)
+		fragment = cm.getLine(cm.listSelections()[0].anchor.line);
 
-		lh1 = cm.listSelections()[0].head
+		lh1 = cm.listSelections()[0].head;
 		lh2 = cm.listSelections()[0].anchor;
 		var off = 0;
 		if (lh1.line > lh2.line) {
-			var t = lh2
-			lh2 = lh1
+			var t = lh2;
+			lh2 = lh1;
 			lh1 = t
 		}
 
@@ -223,7 +223,7 @@ function Run_Selection_variant(variant) {
 			//anchorLine -= 1;
 		}
 
-		var path = findPathForLines(lh1.line, lh2.line + off)
+		var path = findPathForLines(lh1.line, lh2.line + off);
 		if (!path) {
 			makePathForHandles(cmGetLineHandle(lh1.line), cmGetLineHandle(lh2.line))
 		} else {
@@ -231,18 +231,18 @@ function Run_Selection_variant(variant) {
 		}
 
 	} else if (cm.listSelections()[0].anchor.line == cm.listSelections()[0].head.line) {
-		lh1 = cm.listSelections()[0].head
+		lh1 = cm.listSelections()[0].head;
 		fragment = cm.getSelections()[0]
 	}
 	else {
-		fragment = cm.getSelections()[0]
+		fragment = cm.getSelections()[0];
 
-		lh1 = cm.listSelections()[0].head
-		lh2 = cm.listSelections()[0].anchor
+		lh1 = cm.listSelections()[0].head;
+		lh2 = cm.listSelections()[0].anchor;
 		var off = 0;
 		if (lh1.line > lh2.line) {
-			var t = lh2
-			lh2 = lh1
+			var t = lh2;
+			lh2 = lh1;
 			lh1 = t
 		}
 
@@ -250,7 +250,7 @@ function Run_Selection_variant(variant) {
 			off = -1;
 		}
 
-		var path = findPathForLines(lh1.line, lh2.line + off)
+		var path = findPathForLines(lh1.line, lh2.line + off);
 		if (!path) {
 			makePathForHandles(cmGetLineHandle(lh1.line),(cmGetLineHandle(lh2.line+off)));
 		} else {
@@ -285,7 +285,7 @@ var Reindent = function () {
 			cm.indentLine(v);
 		}
 	}
-}
+};
 
 globalCommands.push({
 		"name": "Autocomplete",

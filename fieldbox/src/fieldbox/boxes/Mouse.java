@@ -189,31 +189,31 @@ public class Mouse {
 	}
 
 	public interface Dragger {
-		public boolean update(Window.Event<Window.MouseState> e, boolean termination);
+		boolean update(Window.Event<Window.MouseState> e, boolean termination);
 	}
 
 
 	public interface OnMouseDown {
-		public Dragger onMouseDown(Window.Event<Window.MouseState> e, int button);
+		Dragger onMouseDown(Window.Event<Window.MouseState> e, int button);
 	}
 
 	public interface OnDoubleClick {
-		public void onDoubleClick(Window.Event<Window.MouseState> e);
+		void onDoubleClick(Window.Event<Window.MouseState> e);
 	}
 
 	public interface OnMouseScroll {
-		public void onMouseScroll(Window.Event<Window.MouseState> e);
+		void onMouseScroll(Window.Event<Window.MouseState> e);
 	}
 	public interface OnMouseMove {
-		public Dragger onMouseMove(Window.Event<Window.MouseState> e);
+		Dragger onMouseMove(Window.Event<Window.MouseState> e);
 	}
 
 	public interface OnMouseEnter {
-		public Dragger onMouseEnter(Window.Event<Window.MouseState> e);
+		Dragger onMouseEnter(Window.Event<Window.MouseState> e);
 	}
 
 	public interface OnMouseExit {
-		public void onMouseExit(Window.Event<Window.MouseState> e);
+		void onMouseExit(Window.Event<Window.MouseState> e);
 	}
 
 

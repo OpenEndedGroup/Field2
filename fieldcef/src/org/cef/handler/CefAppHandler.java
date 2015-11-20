@@ -19,18 +19,18 @@ public interface CefAppHandler {
 	 * @param process_type type of process (empty for browser process).
 	 * @param command_line values of the command line.
 	 */
-	public void onBeforeCommandLineProcessing(String process_type, CefCommandLine command_line);
+	void onBeforeCommandLineProcessing(String process_type, CefCommandLine command_line);
 
 	/**
 	 * Provides an opportunity to register custom schemes. Do not keep a reference to the |registrar| object. This method is called on the main
 	 * thread for each process and the registered schemes should be the same across all processes.
 	 */
-	public void onRegisterCustomSchemes(CefSchemeRegistrar registrar);
+	void onRegisterCustomSchemes(CefSchemeRegistrar registrar);
 
 	// Inherited of CefBrowserProcessHandler
 
 	/**
 	 * Called on the browser process UI thread immediately after the CEF context has been initialized.
 	 */
-	public void onContextInitialized();
+	void onContextInitialized();
 }

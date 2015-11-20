@@ -666,9 +666,8 @@ public class FileBrowser extends Box implements IO.Loaded {
 
 			FieldFile fieldFile = (FieldFile) o;
 
-			if (!id.equals(fieldFile.id)) return false;
+			return id.equals(fieldFile.id);
 
-			return true;
 		}
 
 		@Override
@@ -697,9 +696,8 @@ public class FileBrowser extends Box implements IO.Loaded {
 
 			FieldBox fieldBox = (FieldBox) o;
 
-			if (id != null ? !id.equals(fieldBox.id) : fieldBox.id != null) return false;
+			return !(id != null ? !id.equals(fieldBox.id) : fieldBox.id != null);
 
-			return true;
 		}
 
 		public FieldBox setCustomClass(String customClass) {

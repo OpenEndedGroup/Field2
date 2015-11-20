@@ -246,13 +246,13 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 
 			State s = GraphicsContext.get(this, this::setup);
 
-			GraphicsContext.stateTracker.fbo.set(specification.multisample ? s.multisample : s.name);
+			StateTracker.fbo.set(specification.multisample ? s.multisample : s.name);
 
 			int[] v = {0, 0, specification.width, specification.height};
 
-			GraphicsContext.stateTracker.scissor.set(v);
+			StateTracker.scissor.set(v);
 
-			GraphicsContext.stateTracker.viewport.set(v);
+			StateTracker.viewport.set(v);
 
 
 			display.updateAll();

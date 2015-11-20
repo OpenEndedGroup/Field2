@@ -36,17 +36,17 @@ public class Server {
 
 	public interface Handler {
 		// handle gets called in the main thread
-		public Object handle(Server server, WebSocket from, String address, Object payload);
+		Object handle(Server server, WebSocket from, String address, Object payload);
 	}
 
 	public interface HandlerInMainThread extends Handler {
-		public default boolean will(Server server, WebSocket from, String address, Object payload) {
+		default boolean will(Server server, WebSocket from, String address, Object payload) {
 			return true;
 		}
 	}
 
 	public interface URIHandler {
-		public NanoHTTPD.Response serve(String uri, NanoHTTPD.Method method, Map<String, String> headers, Map<String, String> parms, Map<String, String> files);
+		NanoHTTPD.Response serve(String uri, NanoHTTPD.Method method, Map<String, String> headers, Map<String, String> parms, Map<String, String> files);
 	}
 
 	long uniq = 0;

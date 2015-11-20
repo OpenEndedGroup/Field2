@@ -1254,8 +1254,7 @@ public class Vec3 implements Externalizable, Supplier<Vec3>, Mutable {
 		Vec3 other = (Vec3) obj;
 		if (Double.doubleToLongBits(x) != Double.doubleToLongBits(other.x)) return false;
 		if (Double.doubleToLongBits(y) != Double.doubleToLongBits(other.y)) return false;
-		if (Double.doubleToLongBits(z) != Double.doubleToLongBits(other.z)) return false;
-		return true;
+		return Double.doubleToLongBits(z) == Double.doubleToLongBits(other.z);
 	}
 
 	/**

@@ -48,7 +48,7 @@ public class PluginList {
 
 				while (true) {
 					Object o = parser.nextValue(parseme);
-					if (o.equals(parser.END_OF_INPUT)) break;
+					if (o.equals(Parser.END_OF_INPUT)) break;
 
 					massageAndCollapse(o, r);
 				}
@@ -173,7 +173,7 @@ public class PluginList {
 					e.printStackTrace();
 				}
 
-				File[] subFiles = new File(m).listFiles((FilenameFilter) (d, n) -> n.endsWith(".jar"));
+				File[] subFiles = new File(m).listFiles((d, n) -> n.endsWith(".jar"));
 
 				if (subFiles != null) {
 					for (File f : subFiles) {

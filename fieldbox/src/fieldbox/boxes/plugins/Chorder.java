@@ -81,7 +81,6 @@ public class Chorder extends Box {
 			return chordAt(frames, point, e);
 		});
 
-
 		this.properties.put(begin, box -> {
 			box.first(Execution.execution)
 			   .ifPresent(x -> x.support(box, Execution.code)

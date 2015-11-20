@@ -43,7 +43,7 @@ public class IPythonInterface {
 
 					process(data);
 				}
-			};
+			}
 		}.start();
 	}
 

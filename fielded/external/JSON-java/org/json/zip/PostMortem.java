@@ -43,5 +43,5 @@ public interface PostMortem {
      *            Another object of the same type.
      * @return true if they match.
      */
-    public boolean postMortem(PostMortem pm);
+    boolean postMortem(PostMortem pm);
 }

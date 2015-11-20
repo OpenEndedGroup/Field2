@@ -12,13 +12,13 @@ public class Curry {
 	@FunctionalInterface
 	public interface Function3<A, B, C, D>
 	{
-		public D apply(A a, B b, C c);
+		D apply(A a, B b, C c);
 	}
 
 	@FunctionalInterface
 	public interface Function4<A, B, C, D, E>
 	{
-		public E apply(A a, B b, C c, D d);
+		E apply(A a, B b, C c, D d);
 	}
 
 	static public <A, B> Supplier<B> partial(Function<A, B> f, A a)

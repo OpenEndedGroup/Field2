@@ -36,7 +36,7 @@ public class ScratchClass {
 		public String pear() {
 			return "pear";
 		}
-	};
+	}
 
 	public ClassOne c1 = new ClassOne();
 	public ClassTwo c22 = new ClassTwo();

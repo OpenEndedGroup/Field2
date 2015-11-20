@@ -271,7 +271,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 
 		if (name.valid) {
 			Log.log("graphics.trace", () -> " using program " + name.name);
-			GraphicsContext.stateTracker.shader.set(name.name);
+			StateTracker.shader.set(name.name);
 			GraphicsContext.getContext().uniformCache.changeShader(name.name);
 		} else {
 			Log.log("graphics.trace", ()->"WARNING: program not valid, not being used");
@@ -282,7 +282,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 
 	@Override
 	protected boolean perform1() {
-		GraphicsContext.stateTracker.shader.set(0);
+		StateTracker.shader.set(0);
 		return true;
 	}
 
@@ -302,9 +302,8 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 	@HiddenInAutocomplete
 	public boolean asMap_isProperty(String p) {
 		if (knownNonProperties == null) knownNonProperties = computeKnownNonProperties();
-		if (knownNonProperties.contains(p)) return false;
+		return !knownNonProperties.contains(p);
 
-		return true;
 	}
 
 	protected Set<String> knownNonProperties;
@@ -355,7 +354,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 		Object fo = Conversions.convert(o, Supplier.class);
 		if (fo instanceof Supplier) return getDefaultBundle().set(p, (Supplier) fo);
 		if (fo instanceof InvocationHandler) {
-			return getDefaultBundle().set(p, (Supplier) () -> {
+			return getDefaultBundle().set(p, () -> {
 				try {
 					return ((InvocationHandler) fo).invoke(fo, supplier_get, nothing);
 				} catch (Throwable throwable) {

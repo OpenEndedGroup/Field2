@@ -168,13 +168,13 @@ public class Compositor {
 
 		public void addDependancy(Layer l) {
 			// javaC / IDEA need these casts
-			dependsOn.put(l, new Cache(l, (Function<Layer, Long>) x -> x.mod, (Consumer<Layer>) x -> {
+			dependsOn.put(l, new Cache<Layer>(l, x -> x.mod, x -> {
 				x.drawDependancies();
 				Log.log("drawing",()-> "layer:" + x);
 				x.fbo.draw();
 				x.mod++;
 			}));
-			l.dependsOn.put(this, new Cache(this, (Function<Layer, Long>) x -> x.mod, (Consumer<Layer>) x -> {
+			l.dependsOn.put(this, new Cache<Layer>(this, x -> x.mod, x -> {
 				x.drawDependancies();
 				Log.log("drawing",()-> "layer2:" + x);
 				x.fbo.draw();

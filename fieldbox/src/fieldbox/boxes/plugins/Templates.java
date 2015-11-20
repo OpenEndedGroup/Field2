@@ -182,7 +182,7 @@ public class Templates extends Box implements IO.Loaded {
 
 		boolean error = false;
 		try {
-			FieldBox.fieldBox.io.writeOutDocument(FieldBox.fieldBox.io.TEMPLATES + "/" + filename + "/"+filename+(filename.endsWith(".field2") ? "" : ".field2"), doc);
+			FieldBox.fieldBox.io.writeOutDocument(IO.TEMPLATES + "/" + filename + "/"+filename+(filename.endsWith(".field2") ? "" : ".field2"), doc);
 		} catch (IOException e) {
 			e.printStackTrace();
 			Drawing.notify("Error saving " + e.getMessage(), b.iterator()

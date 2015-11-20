@@ -15,11 +15,11 @@ public interface CefKeyboardHandler {
 	/**
 	 * Structure representing keyboard event information.
 	 */
-	public static final class CefKeyEvent {
+	final class CefKeyEvent {
 		/**
 		 * Key event types.
 		 */
-		public static enum EventType {
+		public enum EventType {
 			KEYEVENT_RAWKEYDOWN,
 			KEYEVENT_KEYDOWN,
 			KEYEVENT_KEYUP,
@@ -97,7 +97,7 @@ public interface CefKeyboardHandler {
 	 * @param is_keyboard_shortcut set to true and return false, if the event will be handled in OnKeyEvent() as a keyboard shortcut.
 	 * @return true if the event was handled or false otherwise.
 	 */
-	public boolean onPreKeyEvent(CefBrowser browser, CefKeyEvent event, BoolRef is_keyboard_shortcut);
+	boolean onPreKeyEvent(CefBrowser browser, CefKeyEvent event, BoolRef is_keyboard_shortcut);
 
 	/**
 	 * Called after the renderer and JavaScript in the page has had a chance to handle the event.
@@ -106,5 +106,5 @@ public interface CefKeyboardHandler {
 	 * @param event   contains information about the keyboard event.
 	 * @return true if the keyboard event was handled or false otherwise.
 	 */
-	public boolean onKeyEvent(CefBrowser browser, CefKeyEvent event);
+	boolean onKeyEvent(CefBrowser browser, CefKeyEvent event);
 }

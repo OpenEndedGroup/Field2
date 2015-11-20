@@ -41,7 +41,7 @@ public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove
 
 
 	public interface SetAndConstrain {
-		public Vec2 apply(Vec2 next, Vec2 previous, Vec2 initial);
+		Vec2 apply(Vec2 next, Vec2 previous, Vec2 initial);
 	}
 
 	static public class Draggable {

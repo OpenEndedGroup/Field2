@@ -5,5 +5,5 @@ package field.graphics;
  */
 public interface ProvidesGraphicsContext {
 
-	public GraphicsContext getGraphicsContext();
+	GraphicsContext getGraphicsContext();
 }

@@ -14,5 +14,5 @@ public interface CefRequestContextHandler {
 	/**
 	 * Called on the IO thread to retrieve the cookie manager. The global cookie manager will be used if this method returns NULL.
 	 */
-	public CefCookieManager getCookieManager();
+	CefCookieManager getCookieManager();
 }

@@ -249,7 +249,7 @@ public class Dict implements Serializable, Linker.AsMap {
 			Prop on = this;
 			if (!isCannon())
 			{
-				Prop<T> already = (Prop<T>) findCannon();
+				Prop<T> already = findCannon();
 				if (already==null)
 				{
 					toCannon();
@@ -355,7 +355,7 @@ public class Dict implements Serializable, Linker.AsMap {
 	}
 
 	public <T> T getOr(Prop<T> key, Supplier<T> def) {
-		T t = (T) get(key);
+		T t = get(key);
 		if (t == null) return def.get();
 		return t;
 	}

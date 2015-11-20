@@ -5,5 +5,5 @@ package field.graphics;
  */
 public interface OffersUniform<T> {
 
-	public T getUniform();
+	T getUniform();
 }

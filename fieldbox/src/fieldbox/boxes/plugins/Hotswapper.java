@@ -121,7 +121,6 @@ public class Hotswapper {
 										return false;
 									} catch (AbsentInformationException e) {
 									}
-									;
 									return false;
 								})
 								.collect(Collectors.toList());
@@ -328,11 +327,11 @@ public class Hotswapper {
 
 		for (int i = 0; i < classes.size(); i++) {
 
-			ReferenceType refType = (ReferenceType) classes.get(i);
+			ReferenceType refType = classes.get(i);
 			Map<ReferenceType, byte[]> map = new HashMap<ReferenceType, byte[]>();
 			map.put(refType, classBytes);
 			try {
-				vm.redefineClasses((Map<? extends ReferenceType, byte[]>) map);
+				vm.redefineClasses(map);
 			} catch (Throwable t) {
 				final int finalI = i;
 				Log.log("reload.error", () -> "trouble reloading class " + classes.get(finalI) + t);

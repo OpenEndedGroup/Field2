@@ -103,7 +103,7 @@ class MapKeep extends Keep {
         for (int i = 0; i < this.length; i += 1) {
             boolean b;
             if (this.list[i] instanceof Kim) {
-                b = ((Kim) this.list[i]).equals(that.list[i]);
+                b = this.list[i].equals(that.list[i]);
             } else {
                 Object o = this.list[i];
                 Object q = that.list[i];

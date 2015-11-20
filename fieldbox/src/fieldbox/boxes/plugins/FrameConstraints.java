@@ -32,7 +32,7 @@ public class FrameConstraints extends Box {
 	}
 
 	public interface OnFrameChange {
-		public FrameChanging frameChange(Box target, Rect was, Rect now);
+		FrameChanging frameChange(Box target, Rect was, Rect now);
 	}
 
 	public interface FrameChanging {
@@ -48,17 +48,17 @@ public class FrameConstraints extends Box {
 			return r;
 		}),
 		right(r -> r.x + r.w, (r, f) -> {
-			r.w = (float) (f.floatValue() - r.x);
+			r.w = f.floatValue() - r.x;
 			return r;
 		}),
 		top(r -> r.y, (r, f) -> {
 			double d = f.floatValue() - r.y;
-			r.y = (float) f.floatValue();
+			r.y = f.floatValue();
 			r.h -= d;
 			return r;
 		}),
 		bottom(r -> r.y+ r.h, (r, f) -> {
-			r.h = (float) (f.floatValue() - r.y);
+			r.h = f.floatValue() - r.y;
 			return r;
 		}),
 		width(r -> r.w, (r, f) -> {
@@ -77,7 +77,7 @@ public class FrameConstraints extends Box {
 		public final Function<Rect, Number> from;
 		public final BiFunction<Rect, Number, Rect> to;
 
-		private TargetType(Function<Rect, Number> from, BiFunction<Rect, Number, Rect> to) {
+		TargetType(Function<Rect, Number> from, BiFunction<Rect, Number, Rect> to) {
 			this.from = from;
 			this.to = to;
 		}
@@ -237,7 +237,7 @@ public class FrameConstraints extends Box {
 
 		for (Target t : vars.values()) {
 			Log.log("constraints", ()->"resolved :"+t+" to be :"+t.var.value());
-			t.type.to.apply(t.box.get(this).properties.get(Box.frame), (double) t.var.value());
+			t.type.to.apply(t.box.get(this).properties.get(Box.frame), t.var.value());
 			if (changed.contains(t)) {
 
 			} else {

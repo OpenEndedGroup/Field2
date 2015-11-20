@@ -728,7 +728,7 @@ public class CSG {
 		this.optType = optType;
 	}
 
-	public static enum OptType {
+	public enum OptType {
 
 		CSG_BOUND,
 		POLYGON_BOUND,

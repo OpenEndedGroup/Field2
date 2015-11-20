@@ -1,3 +1,3 @@
 console.log(" ctrl left ! ", currentBracket);
-executeCurrentBracket()
+executeCurrentBracket();
 cm.setCursor(c);

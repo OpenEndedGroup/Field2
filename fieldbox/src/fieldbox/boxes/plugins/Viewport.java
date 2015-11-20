@@ -264,8 +264,8 @@ public class Viewport extends Box implements IO.Loaded, ProvidesGraphicsContext 
 			int[] v = new int[]{(int) tl.x * 2, (int) (h - bl.y) * 2, (int) (bl.x - tl.x + 2) * 2, (int) (bl.y - tl.y + 2) * 2};
 
 
-			GraphicsContext.stateTracker.scissor.set(v);
-			GraphicsContext.stateTracker.viewport.set(v);
+			StateTracker.scissor.set(v);
+			StateTracker.viewport.set(v);
 
 			try (Util.ExceptionlessAutoCloasable s2 = GraphicsContext.stateTracker.save()) {
 

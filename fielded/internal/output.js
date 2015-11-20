@@ -2,21 +2,20 @@ function escapeHtml(str) {
 	var div = document.createElement('div');
 	div.appendChild(document.createTextNode(str));
 	return div.innerHTML;
-};
-
+}
 function appendRemoteOutputToLine(line, text, checkClass, lineClass, append) {
-	lh = cm.getLineHandle(line)
+	lh = cm.getLineHandle(line);
 	if (!lh) {
 		console.log(" -- appendRemoteOutputToLine failed, no line :"+line);
 		return;
 	}
 
-	w = cm.lineInfo(lh).widgets
+	w = cm.lineInfo(lh).widgets;
 	found = null;
 
 	if (w)
 		for (var i = 0; i < w.length; i++) {
-			var ele = $(w[i].node)
+			var ele = $(w[i].node);
 			if (ele.hasClass(checkClass) || ele.hasClass(lineClass)) {
 				if (!append) {
 					w[i].clear();
@@ -31,38 +30,38 @@ function appendRemoteOutputToLine(line, text, checkClass, lineClass, append) {
 	var bm;
 
 	if (found != null) {
-		d = found.node
+		d = found.node;
 		d.lastOutputAt = new Date().valueOf();
 
-		$(d).removeClass(checkClass)
-		$(d).removeClass(lineClass)
-		$(d).addClass(lineClass)
+		$(d).removeClass(checkClass);
+		$(d).removeClass(lineClass);
+		$(d).addClass(lineClass);
 
-		$(d).append("\n" + text.trim())
+		$(d).append("\n" + text.trim());
 
 		$(d).animate({
 			scrollTop: $(d)[0].scrollHeight
-		}, 0)
+		}, 0);
 
 		$(d).css({
 			opacity: 1
-		})
+		});
 		$(d).stop().animate({
 			opacity: 0.75
-		}, 500)
-		found.changed()
+		}, 500);
+		found.changed();
 
 		$(d).scrollTop($(d)[0].scrollHeight)
 
 	} else {
-		d = $("<div class='" + lineClass + "'><div class='Field-closebox'>&#x2715;</div><div class='Field-expandBox'>&#x21A7;</div></div>")[0]
+		d = $("<div class='" + lineClass + "'><div class='Field-closebox'>&#x2715;</div><div class='Field-expandBox'>&#x21A7;</div></div>")[0];
 		d.lastOutputAt = new Date().valueOf();
 
 		bm = cm.addLineWidget(lh, d, {
 			showIfHidden: true,
 			handleMouseEvents: false
-		})
-		d.bm = bm
+		});
+		d.bm = bm;
 
 		$(d).append("\n"+text.trim());
 
@@ -84,28 +83,28 @@ function appendRemoteOutputToLine(line, text, checkClass, lineClass, append) {
 
 	}
 
-	var thisDiv = $(d)
-	var closeBox = $($(d).children()[0])
-	var expandBox = $($(d).children()[1])
+	var thisDiv = $(d);
+	var closeBox = $($(d).children()[0]);
+	var expandBox = $($(d).children()[1]);
 	//var hideBox = $($(d).children()[2])
 
-	updateAllBrackets()
+	updateAllBrackets();
 
 	if (bm) {
 		closeBox.click(function () {
-			bm.clear()
+			bm.clear();
 			updateAllBrackets()
-		})
+		});
 		closeBox.hover(function () {
 			closeBox.css("color", "#f55")
 		}, function () {
 			closeBox.css("color", "#fff")
-		})
+		});
 		expandBox.hover(function () {
 			$(this).css("color", "#ff5")
 		}, function () {
 			$(this).css("color", "#fff")
-		})
+		});
 		//hideBox.hover(function () {
 		//	$(this).css("color", "#ff5")
 		//}, function () {
@@ -113,19 +112,19 @@ function appendRemoteOutputToLine(line, text, checkClass, lineClass, append) {
 		//})
 		expandBox.click(function () {
 			if (thisDiv.maxSize().height > 2000) {
-				thisDiv.css("max-height", "80")
-				expandBox.html("&#x21A7;")
-				updateAllBrackets()
-				bm.changed()
+				thisDiv.css("max-height", "80");
+				expandBox.html("&#x21A7;");
+				updateAllBrackets();
+				bm.changed();
 				updateAllBrackets();
 			} else {
-				thisDiv.css("max-height", "2500")
-				expandBox.html("&#x21A5;")
-				updateAllBrackets()
-				bm.changed()
+				thisDiv.css("max-height", "2500");
+				expandBox.html("&#x21A5;");
+				updateAllBrackets();
+				bm.changed();
 				updateAllBrackets();
 			}
-		})
+		});
 		//hideBox.click(function () {
 		//	console.log("hello?");
 		//	if (thisDiv.maxSize().height > 0) {
@@ -147,16 +146,16 @@ function appendRemoteOutputToLine(line, text, checkClass, lineClass, append) {
 }
 
 function serializeAllOutput() {
-	ret = ""
+	ret = "";
 
 	for (var line = 0; line < cm.lineCount(); line++) {
-		w = cm.lineInfo(line).widgets
+		w = cm.lineInfo(line).widgets;
 
 		if (w)
 			for (var i = 0; i < w.length; i++) {
-				var ele = $(w[i].node)
+				var ele = $(w[i].node);
 				if (ele.hasClass("Field-remoteOutput")) {
-					text = ele.clone().find(".Field-closebox").remove().end().find(".Field-expandBox").remove().end()
+					text = ele.clone().find(".Field-closebox").remove().end().find(".Field-expandBox").remove().end();
 					if ("html" in text) {
 						text = $(text).html();
 					}
@@ -169,7 +168,7 @@ function serializeAllOutput() {
 					ret += "appendRemoteOutputToLine(" + line + ", " + JSON.stringify(text) + ", 'Field-remoteOutput-error', 'Field-remoteOutput', false)\n";
 				}
 				if (ele.hasClass("Field-remoteOutput-error")) {
-					text = ele.clone().find(".Field-closebox").remove().end().find(".Field-expandBox").remove().end()
+					text = ele.clone().find(".Field-closebox").remove().end().find(".Field-expandBox").remove().end();
 					if ("html" in text) {
 						text = $(text).html();
 					}
@@ -188,11 +187,11 @@ function serializeAllOutput() {
 
 function clearOutputs(startLine, endLine) {
 	for (var line = startLine; line < endLine; line++) {
-		w = cm.lineInfo(line).widgets
+		w = cm.lineInfo(line).widgets;
 
 		if (w)
 			for (var i = 0; i < w.length; i++) {
-				var ele = $(w[i].node)
+				var ele = $(w[i].node);
 				if (ele.hasClass("Field-remoteOutput") || ele.hasClass("Field-remoteOutput-error")) {
 					w[i].clear();
 				}
@@ -209,36 +208,36 @@ globalCommands.push({
 	}
 });
 
-boxOutputs = {}
+boxOutputs = {};
 
 _messageBus.subscribe("box.output", function (d, e) {
-	box = d.box
+	box = d.box;
 	if (cm.currentbox === box) {
 		appendRemoteOutputToLine(cm.lineCount() - 1, d.message, "Field-remoteOutput-error", "Field-remoteOutput", true)
 	} else {
 	}
 	if (boxOutputs[box] === undefined)
-		boxOutputs[box] = d.message
+		boxOutputs[box] = d.message;
 	else
 		boxOutputs[box] += "\n" + d.message
-})
+});
 
 _messageBus.subscribe("box.output.directed", function (d, e) {
-	box = d.box
+	box = d.box;
 	if (cm.currentbox === box) {
 		appendRemoteOutputToLine(d.line-1, d.message, "Field-remoteOutput-error", "Field-remoteOutput", true)
 	} else {
 	}
-})
+});
 
 _messageBus.subscribe("box.error", function (d, e) {
-	box = d.box
+	box = d.box;
 	if (cm.currentbox === box) {
 		appendRemoteOutputToLine(cm.lineCount() - 1, d.message, "Field-remoteOutput", "Field-remoteOutput-error", true)
 	} else {
 	}
 	if (boxOutputs[box] === undefined)
-		boxOutputs[box] = d.message
+		boxOutputs[box] = d.message;
 	else
 		boxOutputs[box] += "\n" + d.message
-})
+});

@@ -1111,8 +1111,7 @@ public class Quat implements Externalizable, Supplier<Quat> {
 		if (Double.doubleToLongBits(w) != Double.doubleToLongBits(other.w)) return false;
 		if (Double.doubleToLongBits(x) != Double.doubleToLongBits(other.x)) return false;
 		if (Double.doubleToLongBits(y) != Double.doubleToLongBits(other.y)) return false;
-		if (Double.doubleToLongBits(z) != Double.doubleToLongBits(other.z)) return false;
-		return true;
+		return Double.doubleToLongBits(z) == Double.doubleToLongBits(other.z);
 	}
 
 	/**

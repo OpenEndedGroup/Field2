@@ -247,8 +247,8 @@ public class Camera {
 
 		float[] m = new float[16];
 
-		m[0] = (float) (2 * state.near) / (right - left);
-		m[5] = (float) (2 * state.near) / (top - bottom);
+		m[0] = 2 * state.near / (right - left);
+		m[5] = 2 * state.near / (top - bottom);
 		m[10] = C;
 		m[14] = -1;
 		m[2] = A;
@@ -273,8 +273,8 @@ public class Camera {
 
 		float iez = (float) Math.tan((state.fov * Math.PI / 90) / Math.min(hw, hh));
 
-		m[0] = (float)(1/hw);
-		m[5] = (float)(1/hh);
+		m[0] = 1/hw;
+		m[5] = 1/hh;
 		m[8] = -state.sx/hw;
 		m[9] = -state.sy/hh;
 		m[10] = -(2-(state.near+state.far)*iez)/(state.near-state.far);

@@ -11,13 +11,13 @@ cm.on("change", function (cm, change) {
 			property: cm.currentproperty,
 			text: cm.getValue(),
 			disabledRanges: "[" + allDisabledBracketRanges() + "]"
-		})
+		});
 
-		cookie = {}
-		cookie.brackets = serializeAllBrackets()
-		cookie.output = serializeAllOutput()
-		cookie.currentpos = cm.getCursor()
-		cookie.widgets = serializeAllWidgets()
+		cookie = {};
+		cookie.brackets = serializeAllBrackets();
+		cookie.output = serializeAllOutput();
+		cookie.currentpos = cm.getCursor();
+		cookie.widgets = serializeAllWidgets();
 
 		//cookie.history = cm.getDoc().getHistory()
 
@@ -29,14 +29,14 @@ cm.on("change", function (cm, change) {
 	}
 	console.log("<<change (" + cookie.widgets + "\n||"+cm.getValue()+"||");
 
-})
+});
 
 _messageBus.subscribe("focus", function (d, e) {
 	cm.focus()
-})
+});
 _messageBus.subscribe("defocus", function (d, e) {
 	cm.blur()
-})
+});
 
 serializeAllWidgets = function () {
 	return jQuery.makeArray($('*').filter(function () {
@@ -44,7 +44,7 @@ serializeAllWidgets = function () {
 	}).map(function () {
 		return $(this).data("serialization")()
 	}))
-}
+};
 
 _messageBus.subscribe("selection.changed", function (d, e) {
 
@@ -52,18 +52,18 @@ _messageBus.subscribe("selection.changed", function (d, e) {
 
 	console.log(">>Selection.changed");
 	if (cm.currentbox) {
-		cookie = {}
-		cookie.brackets = serializeAllBrackets()
-		cookie.output = serializeAllOutput()
-		cookie.currentpos = cm.getCursor()
-		cookie.widgets = serializeAllWidgets()
-		cookie.history = cm.getDoc().getHistory()
+		cookie = {};
+		cookie.brackets = serializeAllBrackets();
+		cookie.output = serializeAllOutput();
+		cookie.currentpos = cm.getCursor();
+		cookie.widgets = serializeAllWidgets();
+		cookie.history = cm.getDoc().getHistory();
 		_messageBus.publish("toField.store.cookie", {
 			box: cm.currentbox,
 			property: cm.currentproperty,
 			"cookie": cookie
-		})
-		clearOutputs(0, cm.lineCount())
+		});
+		clearOutputs(0, cm.lineCount());
 		raph.clear();
 	}
 
@@ -111,15 +111,15 @@ _messageBus.subscribe("selection.changed", function (d, e) {
 
 	if (!d.box) {
 		cm.setOption("readOnly", "nocursor");
-		$(".CodeMirror").hide()
-		_messageBus.publish("status", "(no selection)")
+		$(".CodeMirror").hide();
+		_messageBus.publish("status", "(no selection)");
 
 		document.title = "Field Editor (No Selection)";
 	} else {
 		cm.setOption("readOnly", false);
-		$(".CodeMirror").show()
+		$(".CodeMirror").show();
 		cm.refresh();
-		_messageBus.publish("status", "Selected '" + d.name + "'")
+		_messageBus.publish("status", "Selected '" + d.name + "'");
 
 		document.title = d.name + "/" + d.property + " - Field Editor";
 
@@ -154,4 +154,4 @@ _messageBus.subscribe("selection.changed", function (d, e) {
 	console.log("<<Selection.changed");
 	ignoreChange = false;
 
-})
+});

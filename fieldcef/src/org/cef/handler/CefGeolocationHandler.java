@@ -20,7 +20,7 @@ public interface CefGeolocationHandler {
 	 * @param request_id     is the unique ID for the permission request.
 	 * @param callback       Call CefGeolocationCallback.Continue to allow or deny the permission request.
 	 */
-	public void onRequestGeolocationPermission(CefBrowser browser, String requesting_url, int request_id, CefGeolocationCallback callback);
+	void onRequestGeolocationPermission(CefBrowser browser, String requesting_url, int request_id, CefGeolocationCallback callback);
 
 	/**
 	 * Called when a geolocation access request is canceled.
@@ -29,5 +29,5 @@ public interface CefGeolocationHandler {
 	 * @param requesting_url is the URL that originally requested permission.
 	 * @param request_id     is the unique ID for the permission request.
 	 */
-	public void onCancelGeolocationPermission(CefBrowser browser, String requesting_url, int request_id);
+	void onCancelGeolocationPermission(CefBrowser browser, String requesting_url, int request_id);
 }

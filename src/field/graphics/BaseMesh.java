@@ -80,7 +80,7 @@ public class BaseMesh extends Scene implements Scene.Perform {
 
 
 	public interface ArrayBufferFactory {
-		public ArrayBuffer newArrayBuffer(int maxVertex, int binding, int attribute, int dimension, int divisor);
+		ArrayBuffer newArrayBuffer(int maxVertex, int binding, int attribute, int dimension, int divisor);
 	}
 
 
@@ -269,7 +269,7 @@ public class BaseMesh extends Scene implements Scene.Perform {
 		BaseMesh m = new BaseMesh() {
 			protected boolean performNow() {
 
-				if (GraphicsContext.stateTracker.shader.get()==0)
+				if (StateTracker.shader.get()==0)
 				{
 					System.err.println("trying to draw geometry ("+this+") without a shader attached will draw nothing");
 					return true;
@@ -279,7 +279,7 @@ public class BaseMesh extends Scene implements Scene.Perform {
 				if (primitiveSize == 0) {
 					glDrawArrays(primitiveType, 0, limitVertex);
 				} else {
-					Log.log("graphics.trace", () -> "drawing "+primitiveType+" "+limitElement+" "+primitiveSize+" "+GraphicsContext.stateTracker.fbo.get());
+					Log.log("graphics.trace", () -> "drawing "+primitiveType+" "+limitElement+" "+primitiveSize+" "+ StateTracker.fbo.get());
 					Log.log("graphics.trace", () -> "target FBO is complete ? "+ GL30.glCheckFramebufferStatus(GL30.GL_DRAW_FRAMEBUFFER));
 					GraphicsContext.checkError(() -> "before draw "+this);
 					glDrawElements(primitiveType, limitElement * primitiveSize, GL_UNSIGNED_INT, 0);
@@ -403,7 +403,7 @@ public class BaseMesh extends Scene implements Scene.Perform {
 			for(int q=0;q<el*st;q++)
 			{
 				final int finalQ = q;
-				Log.log(channel, () -> (finalQ /st)+" | "+a.get(finalQ)+" -> "+(a.get(finalQ)<vl ? new Vec3((FloatBuffer)(f.position(3*a.get(finalQ)))) : "ILLEGAL"));
+				Log.log(channel, () -> (finalQ /st)+" | "+a.get(finalQ)+" -> "+(a.get(finalQ)<vl ? new Vec3(f.position(3*a.get(finalQ))) : "ILLEGAL"));
 				if ((q+1)%st==0)
 					Log.log(channel, ()->".");
 			}

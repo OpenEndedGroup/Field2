@@ -17,5 +17,5 @@ public interface CefCookieVisitor {
 	 * cookies. Set |deleteCookie| to true to delete the cookie currently being visited. Return false to stop visiting cookies. This method may
 	 * never be called if no cookies are found.
 	 */
-	public abstract boolean visit(CefCookie cookie, int count, int total, BoolRef delete);
+	boolean visit(CefCookie cookie, int count, int total, BoolRef delete);
 }

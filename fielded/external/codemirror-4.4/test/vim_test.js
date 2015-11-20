@@ -194,7 +194,7 @@ function testVim(name, run, opts, expectedFail) {
       getRegisterController: function() {
         return CodeMirror.Vim.getRegisterController();
       }
-    }
+    };
     CodeMirror.Vim.resetVimGlobalState_();
     var successful = false;
     var savedOpenNotification = cm.openNotification;
@@ -210,7 +210,7 @@ function testVim(name, run, opts, expectedFail) {
       }
     }
   }, expectedFail);
-};
+}
 testVim('qq@q', function(cm, vim, helpers) {
   cm.setCursor(0, 0);
   helpers.doKeys('q', 'q', 'l', 'l', 'q');
@@ -247,7 +247,7 @@ function testJumplist(name, keys, endPos, startPos, dialog) {
     helpers.doKeys.apply(null, keys);
     helpers.assertCursorAt(endPos);
   }, {value: jumplistScene});
-};
+}
 testJumplist('jumplist_H', ['H', '<C-o>'], [5,2], [5,2]);
 testJumplist('jumplist_M', ['M', '<C-o>'], [2,2], [2,2]);
 testJumplist('jumplist_L', ['L', '<C-o>'], [2,2], [2,2]);
@@ -291,16 +291,13 @@ function testMotion(name, keys, endPos, startPos) {
     helpers.doKeys(keys);
     helpers.assertCursorAt(endPos);
   });
-};
-
+}
 function makeCursor(line, ch) {
   return { line: line, ch: ch };
-};
-
+}
 function offsetCursor(cur, offsetLine, offsetCh) {
   return { line: cur.line + offsetLine, ch: cur.ch + offsetCh };
-};
-
+}
 // Motion tests
 testMotion('|', '|', makeCursor(0, 0), makeCursor(0,4));
 testMotion('|_repeat', ['3', '|'], makeCursor(0, 2), makeCursor(0,4));
@@ -386,7 +383,7 @@ testVim('%_skip_string', function(cm, vim, helpers) {
   helpers.doKeys(['%']);
   helpers.assertCursorAt(0,0);
 }, {value:'(")")'});
-(')')
+(')');
 testVim('%_skip_comment', function(cm, vim, helpers) {
   cm.setCursor(0,0);
   helpers.doKeys(['%']);
@@ -665,7 +662,7 @@ testVim('dw_word_whitespace_word', function(cm, vim, helpers) {
   cm.setCursor(0, 0);
   helpers.doKeys('d', 'w');
   eq('\n   \nword2', cm.getValue());
-}, { value: 'word1\n   \nword2'})
+}, { value: 'word1\n   \nword2'});
 testVim('dw_end_of_document', function(cm, vim, helpers) {
   cm.setCursor(1, 2);
   helpers.doKeys('d', 'w');
@@ -1008,7 +1005,7 @@ testVim('<<', function(cm, vim, helpers) {
 // Edit tests
 function testEdit(name, before, pos, edit, after) {
   return testVim(name, function(cm, vim, helpers) {
-             var ch = before.search(pos)
+             var ch = before.search(pos);
              var line = before.substring(0, ch).split('\n').length - 1;
              if (line) {
                ch = before.substring(0, ch).split('\n').pop().length;
@@ -1452,7 +1449,7 @@ testVim('jumpToMark_next_line_action', function(cm, vim, helpers) {
   helpers.doKeys('d', ']', '\'');
   helpers.assertCursorAt(0, 1);
   var actual = cm.getLine(0);
-  var expected = ' (a) [b] {c} '
+  var expected = ' (a) [b] {c} ';
   eq(actual, expected, "Deleting while jumping to the next mark line failed.");
 });
 testVim('jumpToMark_prev', function(cm, vim, helpers) {
@@ -1726,7 +1723,7 @@ testVim('reselect_visual_block', function(cm, vim, helpers) {
   helpers.assertCursorAt(0, 1);
   // Ensure selection is done with visual block mode rather than one
   // continuous range.
-  eq(cm.getSelections().join(''), '23oo')
+  eq(cm.getSelections().join(''), '23oo');
   helpers.doKeys('g', 'v');
   helpers.assertCursorAt(2, 3);
   // Ensure selection of deleted range
@@ -1754,7 +1751,7 @@ testVim('o_visual', function(cm, vim, helpers) {
   helpers.doKeys('v','v','j','j','j','o');
   helpers.assertCursorAt(0,0);
   helpers.doKeys('O');
-  helpers.doKeys('l','l')
+  helpers.doKeys('l','l');
   helpers.assertCursorAt(3, 3);
   helpers.doKeys('d');
   eq('p',cm.getValue());
@@ -2300,7 +2297,7 @@ testVim('search_history', function(cm, vim, helpers) {
   };
   var close = function(newVal) {
     if (typeof newVal == 'string') query = newVal;
-  }
+  };
   helpers.doKeys('/');
   onKeyDown({keyCode: keyCodes.Up}, query, close);
   onKeyUp({keyCode: keyCodes.Up}, query, close);
@@ -2341,7 +2338,7 @@ testVim('exCommand_history', function(cm, vim, helpers) {
   };
   var close = function(newVal) {
     if (typeof newVal == 'string') input = newVal;
-  }
+  };
   helpers.doKeys(':');
   onKeyDown({keyCode: keyCodes.Up}, input, close);
   eq(input, 'invalid');
@@ -2462,7 +2459,7 @@ testVim('._delete_repeat', function(cm, vim, helpers) {
 testVim('._visual_>', function(cm, vim, helpers) {
   cm.setCursor(0, 0);
   helpers.doKeys('V', 'j', '>');
-  cm.setCursor(2, 0)
+  cm.setCursor(2, 0);
   helpers.doKeys('.');
   eq('  1\n  2\n  3\n  4', cm.getValue());
   helpers.assertCursorAt(2, 2);
@@ -2708,8 +2705,8 @@ testVim('zt==z<CR>', function(cm, vim, helpers){
 });
 
 var moveTillCharacterSandbox =
-  'The quick brown fox \n'
-  'jumped over the lazy dog.'
+  'The quick brown fox \n';
+  'jumped over the lazy dog.';
 testVim('moveTillCharacter', function(cm, vim, helpers){
   cm.setCursor(0, 0);
   // Search for the 'q'.
@@ -2756,9 +2753,9 @@ testVim('searchForPipe', function(cm, vim, helpers){
 
 
 var scrollMotionSandbox =
-  '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n'
-  '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n'
-  '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n'
+  '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n';
+  '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n';
+  '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n';
   '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n';
 testVim('scrollMotion', function(cm, vim, helpers){
   var prevCursor, prevScrollInfo;
@@ -3048,7 +3045,7 @@ testVim('ex_substitute_javascript', function(cm, vim, helpers) {
   cm.setCursor(1, 0);
   // Throw all the things that javascript likes to treat as special values
   // into the replace part. All should be literal (this is VIM).
-  helpers.doEx('s/\\(\\d+\\)/$$ $\' $` $& \\1/g')
+  helpers.doEx('s/\\(\\d+\\)/$$ $\' $` $& \\1/g');
   eq('a $$ $\' $` $& 0 b', cm.getValue());
 }, { value: 'a 0 b' });
 testVim('ex_substitute_empty_arguments', function(cm,vim,helpers) {
@@ -3188,7 +3185,7 @@ function testSubstituteConfirm(name, command, initialValue, expectedValue, keys,
     // First openDialog should save callback.
     cm.openDialog = function(template, callback, options) {
       recordedCallback = callback;
-    }
+    };
     // Do first openDialog.
     helpers.doKeys(':');
     // Second openDialog should save keyDown handler.
@@ -3200,7 +3197,7 @@ function testSubstituteConfirm(name, command, initialValue, expectedValue, keys,
     recordedCallback(command);
     // The event should really use keyCode, but here just mock it out and use
     // key and replace keyName to just return key.
-    CodeMirror.keyName = function (e) { return e.key; }
+    CodeMirror.keyName = function (e) { return e.key; };
     keys = keys.toUpperCase();
     for (var i = 0; i < keys.length; i++) {
       is(!closed);
@@ -3218,7 +3215,7 @@ function testSubstituteConfirm(name, command, initialValue, expectedValue, keys,
       cm.openDialog = savedOpenDialog;
     }
   }, { value: initialValue });
-};
+}
 testSubstituteConfirm('ex_substitute_confirm_emptydoc',
     '%s/x/b/c', '', '', '', makeCursor(0, 0));
 testSubstituteConfirm('ex_substitute_confirm_nomatch',
@@ -3264,7 +3261,8 @@ testVim('set_boolean', function(cm, vim, helpers) {
     // Test fail to set to non-boolean
     CodeMirror.Vim.setOption('testoption', '5');
     fail();
-  } catch (expected) {};
+  } catch (expected) {
+  }
   // Test setOption
   CodeMirror.Vim.setOption('testoption', false);
   is(!CodeMirror.Vim.getOption('testoption'));
@@ -3277,7 +3275,8 @@ testVim('ex_set_boolean', function(cm, vim, helpers) {
     // Test fail to set to non-boolean
     helpers.doEx('set testoption=22');
     fail();
-  } catch (expected) {};
+  } catch (expected) {
+  }
   // Test setOption
   helpers.doEx('set notestoption');
   is(!CodeMirror.Vim.getOption('testoption'));
@@ -3290,12 +3289,14 @@ testVim('set_string', function(cm, vim, helpers) {
     // Test fail to set non-string.
     CodeMirror.Vim.setOption('testoption', true);
     fail();
-  } catch (expected) {};
+  } catch (expected) {
+  }
   try {
     // Test fail to set 'notestoption'
     CodeMirror.Vim.setOption('notestoption', 'b');
     fail();
-  } catch (expected) {};
+  } catch (expected) {
+  }
   // Test setOption
   CodeMirror.Vim.setOption('testoption', 'c');
   eq('c', CodeMirror.Vim.getOption('testoption'));
@@ -3308,9 +3309,10 @@ testVim('ex_set_string', function(cm, vim, helpers) {
     // Test fail to set 'notestoption'
     helpers.doEx('set notestoption=b');
     fail();
-  } catch (expected) {};
+  } catch (expected) {
+  }
   // Test setOption
-  helpers.doEx('set testoption=c')
+  helpers.doEx('set testoption=c');
   eq('c', CodeMirror.Vim.getOption('testoption'));
 });
 // TODO: Reset key maps after each test.
@@ -3338,7 +3340,7 @@ testVim('ex_map_key2key_to_colon', function(cm, vim, helpers) {
   var dialogOpened = false;
   cm.openDialog = function() {
     dialogOpened = true;
-  }
+  };
   helpers.doKeys(';');
   eq(dialogOpened, true);
 });

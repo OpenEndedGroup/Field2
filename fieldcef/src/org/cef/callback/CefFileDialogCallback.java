@@ -17,10 +17,10 @@ public interface CefFileDialogCallback {
 	 *
 	 * @param filePaths list of selected file paths or an empty list.
 	 */
-	public void Continue(Vector<String> filePaths);
+	void Continue(Vector<String> filePaths);
 
 	/**
 	 * Cancel the file selection.
 	 */
-	public void cancel();
+	void cancel();
 }

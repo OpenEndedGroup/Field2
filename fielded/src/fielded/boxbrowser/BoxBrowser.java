@@ -115,9 +115,9 @@ public class BoxBrowser extends Box implements IO.Loaded {
 
 		if (p.equals(Execution.code)) return true;
 
-		if (!p.getAttributes().has(toMarkdown)) return false;
+		return p.getAttributes()
+			.has(toMarkdown);
 
-		return true;
 	}
 
 	private NanoHTTPD.Response handleBox(Box box, Dict.Prop<Object> property) {

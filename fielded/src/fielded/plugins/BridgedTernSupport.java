@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 public class BridgedTernSupport {
 
 	public void inject(Consumer<String> engine, boolean doAllPlaylist) {
-		List<String> s = Arrays.asList(new String[]{"acorn.js", "acorn_loose.js", "walk.js", "defs.js", "signal.js", "infer.js", "tern.js", "comment.js", "condense.js"});
+		List<String> s = Arrays.asList("acorn.js", "acorn_loose.js", "walk.js", "defs.js", "signal.js", "infer.js", "tern.js", "comment.js", "condense.js");
 
 		Collection<File> f = s.stream()
 				      .map(x -> new File(fieldagent.Main.app + "/fielded/external/tern/" + x))

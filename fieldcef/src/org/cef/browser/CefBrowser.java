@@ -23,14 +23,14 @@ public interface CefBrowser {
 	 *
 	 * @return The underlying UI component or null.
 	 */
-	public Component getUIComponent();
+	Component getUIComponent();
 
 	/**
 	 * Get an implementation of CefRenderHandler if any.
 	 *
 	 * @return An instance of CefRenderHandler or null.
 	 */
-	public CefRenderHandler getRenderHandler();
+	CefRenderHandler getRenderHandler();
 
 	//
 	// The following methods are forwarded to CefBrowser.
@@ -41,67 +41,67 @@ public interface CefBrowser {
 	 *
 	 * @return true if the browser can navigate backwards.
 	 */
-	public boolean canGoBack();
+	boolean canGoBack();
 
 	/**
 	 * Go back.
 	 */
-	public void goBack();
+	void goBack();
 
 	/**
 	 * Tests if the browser can navigate forwards.
 	 *
 	 * @return true if the browser can navigate forwards.
 	 */
-	public boolean canGoForward();
+	boolean canGoForward();
 
 	/**
 	 * Go forward.
 	 */
-	public void goForward();
+	void goForward();
 
 	/**
 	 * Tests if the browser is currently loading.
 	 *
 	 * @return true if the browser is currently loading.
 	 */
-	public boolean isLoading();
+	boolean isLoading();
 
 	/**
 	 * Reload the current page.
 	 */
-	public void reload();
+	void reload();
 
 	/**
 	 * Reload the current page ignoring any cached data.
 	 */
-	public void reloadIgnoreCache();
+	void reloadIgnoreCache();
 
 	/**
 	 * Stop loading the page.
 	 */
-	public void stopLoad();
+	void stopLoad();
 
 	/**
 	 * Returns the unique browser identifier.
 	 *
 	 * @return The browser identifier
 	 */
-	public int getIdentifier();
+	int getIdentifier();
 
 	/**
 	 * Tests if the window is a popup window.
 	 *
 	 * @return true if the window is a popup window.
 	 */
-	public boolean isPopup();
+	boolean isPopup();
 
 	/**
 	 * Tests if a document has been loaded in the browser.
 	 *
 	 * @return true if a document has been loaded in the browser.
 	 */
-	public boolean hasDocument();
+	boolean hasDocument();
 
 	//
 	// The following methods are forwarded to the mainFrame.
@@ -111,35 +111,35 @@ public interface CefBrowser {
 	 * Save this frame's HTML source to a temporary file and open it in the default text viewing application. This method can only be called from
 	 * the browser process.
 	 */
-	public void viewSource();
+	void viewSource();
 
 	/**
 	 * Retrieve this frame's HTML source as a string sent to the specified visitor.
 	 *cefsdfdsfsdfsdf
 	 * @param visitor
 	 */
-	public void getSource(CefStringVisitor visitor);
+	void getSource(CefStringVisitor visitor);
 
 	/**
 	 * Retrieve this frame's display text as a string sent to the specified visitor.
 	 *
 	 * @param visitor
 	 */
-	public void getText(CefStringVisitor visitor);
+	void getText(CefStringVisitor visitor);
 
 	/**
 	 * Load the request represented by the request object.
 	 *
 	 * @param request The request object.
 	 */
-	public void loadRequest(CefRequest request);
+	void loadRequest(CefRequest request);
 
 	/**
 	 * Load the specified URL in the main frame.
 	 *
 	 * @param url The URL to load.
 	 */
-	public void loadURL(String url);
+	void loadURL(String url);
 
 	/**
 	 * Load the contents of val with the specified dummy url. url should have a standard scheme (for example, http scheme) or behaviors like link
@@ -148,7 +148,7 @@ public interface CefBrowser {
 	 * @param val Content to be displayed.
 	 * @param url dummy url to be used for.
 	 */
-	public void loadString(String val, String url);
+	void loadString(String val, String url);
 
 	/**
 	 * Execute a string of JavaScript code in this frame. The url parameter is the URL where the script in question can be found, if any. The
@@ -159,42 +159,42 @@ public interface CefBrowser {
 	 * @param url  The URL where the script in question can be found.
 	 * @param line The base line number to use for error reporting.
 	 */
-	public void executeJavaScript(String code, String url, int line);
+	void executeJavaScript(String code, String url, int line);
 
 	/**
 	 * Emits the URL currently loaded in this frame.
 	 *
 	 * @return the URL currently loaded in this frame.
 	 */
-	public String getURL();
+	String getURL();
 
 	// The following methods are forwarded to CefBrowserHost.
 
 	/**
 	 * Close the browser.
 	 */
-	public void close();
+	void close();
 
 	/**
 	 * Set or remove keyboard focus to/from the browser window.
 	 *
 	 * @param enable set to true to give the focus to the browser
 	 */
-	public void setFocus(boolean enable);
+	void setFocus(boolean enable);
 
 	/**
 	 * Get the current zoom level. The default zoom level is 0.0.
 	 *
 	 * @return The current zoom level.
 	 */
-	public double getZoomLevel();
+	double getZoomLevel();
 
 	/**
 	 * Change the zoom level to the specified value. Specify 0.0 to reset the zoom level.
 	 *
 	 * @param zoomLevel The zoom level to be set.
 	 */
-	public void setZoomLevel(double zoomLevel);
+	void setZoomLevel(double zoomLevel);
 
 	/**
 	 * Call to run a file chooser dialog. Only a single file chooser dialog may be pending at any given time.The dialog will be initiated
@@ -207,19 +207,19 @@ public interface CefBrowser {
 	 *                        selectable files to such types.
 	 * @param callback        will be executed after the dialog is dismissed or immediately if another dialog is already pending.
 	 */
-	public void runFileDialog(FileDialogMode mode, String title, String defaultFileName, Vector<String> acceptTypes, CefRunFileDialogCallback callback);
+	void runFileDialog(FileDialogMode mode, String title, String defaultFileName, Vector<String> acceptTypes, CefRunFileDialogCallback callback);
 
 	/**
 	 * Download the file at url using CefDownloadHandler.
 	 *
 	 * @param url URL to download that file.
 	 */
-	public void startDownload(String url);
+	void startDownload(String url);
 
 	/**
 	 * Print the current browser contents.
 	 */
-	public void print();
+	void print();
 
 	/**
 	 * Search for some kind of text on the page.
@@ -230,18 +230,18 @@ public interface CefBrowser {
 	 * @param matchCase  indicates whether the search should be case-sensitive.
 	 * @param findNext   indicates whether this is the first request or a follow-up.
 	 */
-	public void find(int identifier, String searchText, boolean forward, boolean matchCase, boolean findNext);
+	void find(int identifier, String searchText, boolean forward, boolean matchCase, boolean findNext);
 
 	/**
 	 * Cancel all searches that are currently going on.
 	 *
 	 * @param clearSelection Set to true to reset selection.
 	 */
-	public void stopFinding(boolean clearSelection);
+	void stopFinding(boolean clearSelection);
 
 	/**
 	 * Get an instance of the dev tools to be displayed in its own window or to be embedded within your UI. Only one instance per browser is
 	 * available.
 	 */
-	public CefBrowser getDevTools();
+	CefBrowser getDevTools();
 }

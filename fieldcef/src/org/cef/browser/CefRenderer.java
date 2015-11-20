@@ -5,8 +5,8 @@ import java.nio.ByteBuffer;
 
 public interface CefRenderer {
 
-	public void render();
+	void render();
 
-	public void onPaint(boolean popup, Rectangle[] dirtyRects, ByteBuffer buffer, int width, int height);
+	void onPaint(boolean popup, Rectangle[] dirtyRects, ByteBuffer buffer, int width, int height);
 }
 

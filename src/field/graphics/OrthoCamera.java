@@ -35,13 +35,13 @@ public class OrthoCamera implements Supplier<Mat4> {
 		public Mat4 toProjection() {
 			if (m == null) {
 				m = new Mat4();
-				float tx = (float) (-(right + left) / (right - left));
-				float ty = (float) (-(top + bottom) / (top - bottom));
-				float tz = (float) (-(zfar + znear) / (zfar - znear));
+				float tx = -(right + left) / (right - left);
+				float ty = -(top + bottom) / (top - bottom);
+				float tz = -(zfar + znear) / (zfar - znear);
 
-				m.m00 = (float) (2 / (right - left));
-				m.m11 = (float) (2 / (top - bottom));
-				m.m22 = (float) (-2 / (zfar - znear));
+				m.m00 = 2 / (right - left);
+				m.m11 = 2 / (top - bottom);
+				m.m22 = -2 / (zfar - znear);
 				m.m33 = 1;
 				m.m03 = tx;
 				m.m13 = ty;

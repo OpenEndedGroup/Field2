@@ -239,11 +239,11 @@ public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 
 
 	public void setURL(String url) {
-		browser.properties.put(browser.url, url);
+		browser.properties.put(Browser.url, url);
 	}
 
 	public void setURL(String url, Runnable callback) {
-		String was = browser.properties.get(browser.url);
+		String was = browser.properties.get(Browser.url);
 		// if (was==url) then there will be no reload
 
 		if (was!=null && was.equals(url))
@@ -251,7 +251,7 @@ public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 			callback.run();
 		}
 		else {
-			browser.properties.put(browser.url, url);
+			browser.properties.put(Browser.url, url);
 			browser.callbackOnNextReload = callback;
 		}
 	}

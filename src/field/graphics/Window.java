@@ -48,8 +48,8 @@ public class Window implements ProvidesGraphicsContext {
 	protected GraphicsContext graphicsContext;
 	protected long window;
 
-	protected int w,x;
-	protected int h,y;
+	protected int w, x;
+	protected int h, y;
 
 	protected MouseState mouseState = new MouseState();
 	protected KeyboardState keyboardState = new KeyboardState();
@@ -65,7 +65,8 @@ public class Window implements ProvidesGraphicsContext {
 
 	private Rect currentBounds;
 
-	static public boolean doubleBuffered = Options.dict().isTrue(new Dict.Prop("doubleBuffered"), true);
+	static public boolean doubleBuffered = Options.dict()
+						      .isTrue(new Dict.Prop("doubleBuffered"), true);
 
 	public Window(int x, int y, int w, int h, String title) {
 		this(x, y, w, h, title, true);
@@ -85,8 +86,7 @@ public class Window implements ProvidesGraphicsContext {
 		if (Main.os.equals(Main.OS.mac)) {
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-		}
-		else {
+		} else {
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 		}
@@ -196,8 +196,7 @@ public class Window implements ProvidesGraphicsContext {
 	private int frameHack = 0;
 
 	public void loop() {
-		if (frame==10)
-			glfwSetWindowPos(window, x, y);
+		if (frame == 10) glfwSetWindowPos(window, x, y);
 
 		if (frameHack++ == 0) {
 			Rect r = getBounds();
@@ -228,11 +227,11 @@ public class Window implements ProvidesGraphicsContext {
 		int h = glfwGetWindowHeight(window);
 
 
-		GraphicsContext.stateTracker.viewport.set(new int[]{0, 0, w * getRetinaScaleFactor(), h * getRetinaScaleFactor()});
-		GraphicsContext.stateTracker.scissor.set(new int[]{0, 0, w * getRetinaScaleFactor(), h * getRetinaScaleFactor()});
-		GraphicsContext.stateTracker.fbo.set(0);
-		GraphicsContext.stateTracker.shader.set(0);
-		GraphicsContext.stateTracker.blendState.set(new int[]{GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA});
+		StateTracker.viewport.set(new int[]{0, 0, w * getRetinaScaleFactor(), h * getRetinaScaleFactor()});
+		StateTracker.scissor.set(new int[]{0, 0, w * getRetinaScaleFactor(), h * getRetinaScaleFactor()});
+		StateTracker.fbo.set(0);
+		StateTracker.shader.set(0);
+		StateTracker.blendState.set(new int[]{GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA});
 
 
 		if (w != this.w || h != this.h) {
@@ -247,8 +246,7 @@ public class Window implements ProvidesGraphicsContext {
 		updateScene();
 
 		frame++;
-		if (!dontSwap)
-		{
+		if (!dontSwap) {
 			glfwSwapBuffers(window);
 		}
 
@@ -432,8 +430,7 @@ public class Window implements ProvidesGraphicsContext {
 		doHighLevelMouseEvents(event);
 	}
 
-	private void doHighLevelMouseEvents(Event<MouseState>event)
-	{
+	private void doHighLevelMouseEvents(Event<MouseState> event) {
 
 		Set<Integer> pressed = Window.MouseState.buttonsPressed(event.before, event.after);
 		Set<Integer> released = Window.MouseState.buttonsReleased(event.before, event.after);
@@ -646,11 +643,13 @@ public class Window implements ProvidesGraphicsContext {
 	}
 
 	public int getRetinaScaleFactor() {
-		return glfwGetFramebufferWidth(window) / glfwGetWindowWidth(window);
+		int sc = glfwGetFramebufferWidth(window) / glfwGetWindowWidth(window);
+//		System.err.println("SC:"+sc);
+		return sc;
 	}
 
-	static public interface HasPosition {
-		public Optional<Vec2> position();
+	public interface HasPosition {
+		Optional<Vec2> position();
 	}
 
 	static public class MouseState implements HasPosition {
@@ -750,9 +749,8 @@ public class Window implements ProvidesGraphicsContext {
 			if (dwheel != that.dwheel) return false;
 			if (x != that.x) return false;
 			if (y != that.y) return false;
-			if (!buttonsDown.equals(that.buttonsDown)) return false;
+			return buttonsDown.equals(that.buttonsDown);
 
-			return true;
 		}
 
 		@Override
@@ -888,9 +886,8 @@ public class Window implements ProvidesGraphicsContext {
 			KeyboardState that = (KeyboardState) o;
 
 			if (!charsDown.equals(that.charsDown)) return false;
-			if (!keysDown.equals(that.keysDown)) return false;
+			return keysDown.equals(that.keysDown);
 
-			return true;
 		}
 
 		@Override
@@ -926,7 +923,7 @@ public class Window implements ProvidesGraphicsContext {
 
 				boolean notReally = glfwGetKey(window, m);
 				if (!notReally) {
-					Log.log("keyboard.debug", ()->"Got an imposter :" + m + " " + KeyEventMapping.lookup(m));
+					Log.log("keyboard.debug", () -> "Got an imposter :" + m + " " + KeyEventMapping.lookup(m));
 					ii.remove();
 					charsDown.remove(m);
 				} else {

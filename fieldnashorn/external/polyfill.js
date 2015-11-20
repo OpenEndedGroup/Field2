@@ -128,10 +128,10 @@ function ctx(fn, that, length){
   switch(length){
     case 1: return function(a){
       return fn.call(that, a);
-    }
+    };
     case 2: return function(a, b){
       return fn.call(that, a, b);
-    }
+    };
     case 3: return function(a, b, c){
       return fn.call(that, a, b, c);
     }
@@ -204,7 +204,7 @@ var assign = Object.assign || function(target, source){
     while(length > j)T[key = keys[j++]] = S[key];
   }
   return T;
-}
+};
 function keyOf(object, el){
   var O      = toObject(object)
     , keys   = getKeys(O)
@@ -294,7 +294,7 @@ var MAX_SAFE_INTEGER = 0x1fffffffffffff // pow(2, 53) - 1 == 9007199254740991
   , random = Math.random
   , trunc  = Math.trunc || function(it){
       return (it > 0 ? floor : ceil)(it);
-    }
+    };
 // 20.1.2.4 Number.isNaN(number)
 function sameNaN(number){
   return number != number;
@@ -446,7 +446,7 @@ function $define(type, name, source){
     else if(type & WRAP && !framework && target[key] == out){
       exp = function(param){
         return this instanceof out ? new out(param) : out(param);
-      }
+      };
       exp[PROTOTYPE] = out[PROTOTYPE];
     } else exp = type & PROTO && isFunction(out) ? ctx(call, out) : out;
     // extend global
@@ -468,7 +468,7 @@ if(exportGlobal || framework){
   core.noConflict = function(){
     global.core = old;
     return core;
-  }
+  };
   global.core = core;
 }
 
@@ -606,7 +606,7 @@ function forOf(iterable, entries, fn, that){
         }
       });
       return sym;
-    }
+    };
     hidden(Symbol[PROTOTYPE], TO_STRING, function(){
       return this[TAG];
     });
@@ -798,7 +798,7 @@ Number('0o1') && Number('0b1') || function(_Number, NumberProto){
   }
   Number = function Number(it){
     return this instanceof Number ? new _Number(toNumber(it)) : toNumber(it);
-  }
+  };
   forEach.call(DESC ? getNames(_Number)
   : array('MAX_VALUE,MIN_VALUE,NaN,NEGATIVE_INFINITY,POSITIVE_INFINITY'), function(key){
     key in Number || defineProperty(Number, key, getOwnDescriptor(_Number, key));
@@ -966,7 +966,7 @@ Number('0o1') && Number('0b1') || function(_Number, NumberProto){
       var res = []
         , len = arguments.length
         , i   = 0
-        , code
+        , code;
       while(len > i){
         code = +arguments[i++];
         if(toIndex(code, 0x10ffff) !== code)throw RangeError(code + ' is not a valid code point');
@@ -1183,7 +1183,7 @@ DESC && !function(RegExpProto, _RegExp){
     RegExp = function RegExp(pattern, flags){
       return new _RegExp(cof(pattern) == REGEXP && flags !== undefined
         ? pattern.source : pattern, flags);
-    }
+    };
     forEach.call(getNames(_RegExp), function(key){
       key in RegExp || defineProperty(RegExp, key, {
         configurable: true,
@@ -1223,13 +1223,13 @@ isFunction(setImmediate) && isFunction(clearImmediate) || function(ONREADYSTATEC
     while(arguments.length > i)args.push(arguments[i++]);
     queue[++counter] = function(){
       invoke(isFunction(fn) ? fn : Function(fn), args);
-    }
+    };
     defer(counter);
     return counter;
-  }
+  };
   clearImmediate = function(id){
     delete queue[id];
-  }
+  };
   function run(id){
     if(has(queue, id)){
       var fn = queue[id];
@@ -1244,13 +1244,13 @@ isFunction(setImmediate) && isFunction(clearImmediate) || function(ONREADYSTATEC
   if(NODE){
     defer = function(id){
       nextTick(part.call(run, id));
-    }
+    };
   // Modern browsers, skip implementation for WebWorkers
   // IE8 has postMessage, but it's sync & typeof its postMessage is object
   } else if(addEventListener && isFunction(postMessage) && !global.importScripts){
     defer = function(id){
       postMessage(id, '*');
-    }
+    };
     addEventListener('message', listner, false);
   // WebWorkers
   } else if(isFunction(MessageChannel)){
@@ -1265,7 +1265,7 @@ isFunction(setImmediate) && isFunction(clearImmediate) || function(ONREADYSTATEC
         html.removeChild(this);
         run(id);
       }
-    }
+    };
   // Rest old browsers
   } else {
     defer = function(id){
@@ -1393,7 +1393,7 @@ $define(GLOBAL + BIND, {
       } catch(err){
         reject.call(record, err);
       }
-    }
+    };
     assignHidden(Promise[PROTOTYPE], {
       // 25.4.5.3 Promise.prototype.then(onFulfilled, onRejected)
       then: function(onFulfilled, onRejected){
@@ -1523,7 +1523,7 @@ $define(GLOBAL + BIND, {
         C = function(iterable){
           assertInstance(this, C, NAME);
           return initFromIterable(new Native, iterable);
-        }
+        };
         C[PROTOTYPE] = proto;
         if(framework)proto[CONSTRUCTOR] = C;
       }
@@ -1660,7 +1660,7 @@ $define(GLOBAL + BIND, {
     has: function(key){
       return !!getEntry(this, key);
     }
-  }
+  };
   
   // 23.1 Map Objects
   Map = getCollection(Map, MAP, {
@@ -1860,7 +1860,7 @@ $define(GLOBAL + BIND, {
     preventExtensions: wrap(Object.preventExtensions || returnIt),
     // 26.1.13 Reflect.set(target, propertyKey, V [, receiver])
     set: reflectSet
-  }
+  };
   // 26.1.14 Reflect.setPrototypeOf(target, proto)
   if(setPrototypeOf)reflect.setPrototypeOf = function(target, proto){
     return setPrototypeOf(assertObject(target), proto), true;

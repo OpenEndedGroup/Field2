@@ -442,7 +442,7 @@ public class FieldClojure extends Execution {
 						Object testEval = eval(s, null);
 						log("clojure.debug", ()->" s -> " + testEval);
 
-						c.add(new Completion(before.length() + subStart, before.length() + subEnd, s, "<span class=doc>" + (String) documentation.invoke(s) + "</span>"));
+						c.add(new Completion(before.length() + subStart, before.length() + subEnd, s, "<span class=doc>" + documentation.invoke(s) + "</span>"));
 					}
 
 

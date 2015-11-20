@@ -342,12 +342,12 @@ public class IO {
 			try {
 				Constructor<Box> cc = c.getDeclaredConstructor();
 				cc.setAccessible(true);
-				ex.box = (Box) cc.newInstance();
+				ex.box = cc.newInstance();
 				ex.box.properties.put(desiredBoxClass, ex.boxClass);
 			} catch (NoSuchMethodException e) {
 				Constructor<Box> cc = c.getDeclaredConstructor(Box.class);
 				cc.setAccessible(true);
-				ex.box = (Box) cc.newInstance(specialBoxes.get(">>root<<"));
+				ex.box = cc.newInstance(specialBoxes.get(">>root<<"));
 			}
 		} catch (Throwable e) {
 			Log.log("io.error", ()->" while looking for class <" + ex.boxClass + "> needed for <" + ex.id + " / " + ex.textFiles + "> an exception was thrown");
@@ -418,11 +418,11 @@ public class IO {
 			try {
 				Constructor<Box> cc = c.getDeclaredConstructor();
 				cc.setAccessible(true);
-				box = (Box) cc.newInstance();
+				box = cc.newInstance();
 			} catch (NoSuchMethodException e) {
 				Constructor<Box> cc = c.getDeclaredConstructor(Box.class);
 				cc.setAccessible(true);
-				box = (Box) cc.newInstance(root);
+				box = cc.newInstance(root);
 			}
 		} catch (Throwable e) {
 			Log.log("io.error", ()->" while looking for class <" + boxClass + "> an exception was thrown");

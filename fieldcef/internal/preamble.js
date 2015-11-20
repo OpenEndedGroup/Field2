@@ -1,14 +1,14 @@
 // adapts the CEF environment to something that looks a lot like our websocket environment
  // given this, we ought to be able to run our in-browser environment completely without websockets
- _field = {}
+ _field = {};
 
  _field.log = function(s) {
 		 _field.send("log", s);
- }
+ };
 
  _field.error = function(s) {
 		 _field.send("error", s);
- }
+ };
 
  _field.send = function(address, obj) {
 		 window.cefQuery({
@@ -23,7 +23,7 @@
 						 console.log("ERROR?", e, em);
 				 }
 		 });
- }
+ };
 
  _field.sendWithReturn = function(address, obj, callback) {
 		 window.cefQuery({
@@ -41,7 +41,7 @@
 						 console.log("ERROR?", e, em);
 				 }
 		 });
- }
+ };
 
  // there is no onmessage, because we can eval directly into the browser
  //_field.socket.onmessage
@@ -51,21 +51,21 @@
 		 focus: function() {
 				 _field.send("focus", {});
 		 }
- }
+ };
 
  function fuzzy(pat) {
-		 m = pat.split(" ")
-		 var s = ""
+		 m = pat.split(" ");
+		 var s = "";
 		 for (var i = 0; i < m.length; i++) {
 				 s += "(" + m[i] + ")(.*)"
 		 }
-		 pattern = new RegExp(s, "i")
+		 pattern = new RegExp(s, "i");
 		 return pattern
  }
 
  function replacer() {
-		 console.log(arguments)
-		 prefix = arguments[arguments.length - 1].substring(0, arguments[arguments.length - 1])
+		 console.log(arguments);
+		 prefix = arguments[arguments.length - 1].substring(0, arguments[arguments.length - 1]);
 		 for (var i = 1; i < arguments.length - 2; i += 2) {
 				 prefix += "<span class='matched'>" + arguments[i] + "</span>" + arguments[i + 1];
 		 }
@@ -77,7 +77,7 @@
 
  		 _field.sendWithReturn("request.commands", {},
 				 function(d, e) {
-						 var completions = []
+						 var completions = [];
 						 for (var i = 0; i < d.length; i++) {
 								 d[i].callback = function() {
 										 _field.send("call.command", {
@@ -85,16 +85,16 @@
 										 });
 								 }.bind({
 										 "call": d[i].call
-								 })
-								 d[i].callback.remote = 1
+								 });
+								 d[i].callback.remote = 1;
 								 completions.push(d[i])
 						 }
 						 completions.sort(function(a, b) {
 								 return a.name < b.name ? -1 : 1;
-						 })
+						 });
 
 						 completionFunction = function(e) {
-								 var m = []
+								 var m = [];
 
 								 var fuzzyPattern = fuzzy(e);
 
@@ -124,16 +124,16 @@
 										 }
 								 }
 								 return m
-						 }
+						 };
 						 if (completions.length > 0)
 								 runModal("Commands...", completionFunction, "Field-Modal")
 				 }
 		 );
- }
+ };
 
  continueCommands  = function (d) {
 
-		 var completions = []
+		 var completions = [];
 		 for (var i = 0; i < d.commands.length; i++) {
 				 d.commands[i].callback = function () {
 						 _field.send("call.command", {
@@ -141,16 +141,16 @@
 						 });
 				 }.bind({
 						 "call": d.commands[i].call
-				 })
-				 d.commands[i].callback.remote = 1
+				 });
+				 d.commands[i].callback.remote = 1;
 				 completions.push(d.commands[i])
 		 }
 		 completions.sort(function (a, b) {
 				 return a.name < b.name ? -1 : 1;
-		 })
+		 });
 
 		 completionFunction = function (e) {
-				 var m = []
+				 var m = [];
 
 				 var fuzzyPattern = fuzzy(e);
 
@@ -168,7 +168,7 @@
 						 }
 				 }
 				 return m
-		 }
+		 };
 
 //		 console.log("alternative is " + d.alternative)
 
@@ -185,4 +185,4 @@
 		 } else if (completions.length > 0)
 				 runModal(d.prompt, completionFunction, "Field-Modal", "")
 
- }
+ };

@@ -7,5 +7,5 @@ import fieldagent.asm.tree.MethodNode;
 import java.util.Map;
 
 public interface TransformsMethod {
-	public byte[] transform(ClassNode node, MethodNode method, AnnotationNode annotation, Map<String, Object> parameters, byte[] classfileBuffer);
+	byte[] transform(ClassNode node, MethodNode method, AnnotationNode annotation, Map<String, Object> parameters, byte[] classfileBuffer);
 }

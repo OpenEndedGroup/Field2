@@ -421,13 +421,13 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 
 		if (ret instanceof Box.BiFunctionOfBoxAnd) {
 			final Object fret = ret;
-			return (Function<Object, Object>)QuoteCompletionHelpers.curry( (BiFunction<Box, Object, Object>)ret, () -> this);
+			return QuoteCompletionHelpers.curry( (BiFunction<Box, Object, Object>)ret, () -> this);
 //			return ((Function) ((c) -> ((Box.BiFunctionOfBoxAnd) fret).apply(this, c)));
 		}
 
 		if (ret instanceof Box.TriFunctionOfBoxAnd) {
 			final Object fret = ret;
-			return (BiFunction<Object, Object, Object>)QuoteCompletionHelpers.curry( (TriFunctionOfBoxAnd<Object, Object, Object>)ret, () -> this);
+			return QuoteCompletionHelpers.curry( (TriFunctionOfBoxAnd<Object, Object, Object>)ret, () -> this);
 //			return ((BiFunction) ((a, b) -> ((Box.TriFunctionOfBoxAnd) fret).apply(this, a, b)));
 		}
 

@@ -15,7 +15,7 @@ public interface CefJSDialogHandler {
 	/**
 	 * Supported JavaScript dialog types.
 	 */
-	public static enum JSDialogType {
+	enum JSDialogType {
 		JSDIALOGTYPE_ALERT,
 		JSDIALOGTYPE_CONFIRM,
 		JSDIALOGTYPE_PROMPT,
@@ -39,7 +39,7 @@ public interface CefJSDialogHandler {
 	 * @param suppress_message    set to true to suppress displaying the message.
 	 * @return false to use the default dialog implementation. Return true if the application will use a custom dialog.
 	 */
-	public boolean onJSDialog(CefBrowser browser, String origin_url, String accept_lang, JSDialogType dialog_type, String message_text, String default_prompt_text, CefJSDialogCallback callback, BoolRef suppress_message);
+	boolean onJSDialog(CefBrowser browser, String origin_url, String accept_lang, JSDialogType dialog_type, String message_text, String default_prompt_text, CefJSDialogCallback callback, BoolRef suppress_message);
 
 	/**
 	 * Called to run a dialog asking the user if they want to leave a page. Return false to use the default dialog implementation. Return true if
@@ -52,16 +52,16 @@ public interface CefJSDialogHandler {
 	 * @param callback     execute callback once the custom dialog is dismissed.
 	 * @return false to use the default dialog implementation. Return true if the application will use a custom dialog.
 	 */
-	public boolean onBeforeUnloadDialog(CefBrowser browser, String message_text, boolean is_reload, CefJSDialogCallback callback);
+	boolean onBeforeUnloadDialog(CefBrowser browser, String message_text, boolean is_reload, CefJSDialogCallback callback);
 
 	/**
 	 * Called to cancel any pending dialogs and reset any saved dialog state. Will be called due to events like page navigation irregardless of
 	 * whether any dialogs are currently pending.
 	 */
-	public void onResetDialogState(CefBrowser browser);
+	void onResetDialogState(CefBrowser browser);
 
 	/**
 	 * Called when the default implementation dialog is closed.
 	 */
-	public void onDialogClosed(CefBrowser browser);
+	void onDialogClosed(CefBrowser browser);
 }

@@ -131,11 +131,7 @@ public class Bounds {
 		if (b.getMin().y > this.getMax().y || b.getMax().y < this.getMin().y) {
 			return false;
 		}
-		if (b.getMin().z > this.getMax().z || b.getMax().z < this.getMin().z) {
-			return false;
-		}
-
-		return true;
+		return !(b.getMin().z > this.getMax().z || b.getMax().z < this.getMin().z);
 
 	}
 

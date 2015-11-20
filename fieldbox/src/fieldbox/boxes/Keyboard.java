@@ -17,15 +17,15 @@ import java.util.stream.Collectors;
 public class Keyboard {
 
 	public interface OnKeyDown {
-		public Hold onKeyDown(Window.Event<Window.KeyboardState> e, int key);
+		Hold onKeyDown(Window.Event<Window.KeyboardState> e, int key);
 	}
 
 	public interface OnCharTyped {
-		public void onCharTyped(Window.Event<Window.KeyboardState> e, char key);
+		void onCharTyped(Window.Event<Window.KeyboardState> e, char key);
 	}
 
 	public interface Hold {
-		public boolean update(Window.Event<Window.KeyboardState> e, boolean termination);
+		boolean update(Window.Event<Window.KeyboardState> e, boolean termination);
 	}
 
 	Map<Integer, Collection<Hold>> ongoingDrags = new HashMap<Integer, Collection<Hold>>();

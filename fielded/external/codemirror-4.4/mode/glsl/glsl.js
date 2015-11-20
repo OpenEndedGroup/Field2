@@ -190,7 +190,7 @@
     return "meta";
   }
 
-  ;(function() {
+  (function () {
     // C#-style strings where "" escapes a quote.
     function tokenAtString(stream, state) {
       var next;
@@ -212,4 +212,4 @@
       hooks: {"#": cppHook}
     });
   }());
-})
+});

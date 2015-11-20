@@ -199,7 +199,6 @@ public class JavaSupport {
 			Log.log("jar.indexer", ()->"will index a source file from a jar:"+u);
 			builder.addSource(new URL(u));
 		}
-		;
 	}
 
 	private Map<String, String> indexJigsaw() {

@@ -27,7 +27,7 @@ public interface CefFocusHandler {
 	 * @param next    will be true if the browser is giving focus to the next component and false if the browser is giving focus to the previous
 	 *                component.
 	 */
-	public void onTakeFocus(CefBrowser browser, boolean next);
+	void onTakeFocus(CefBrowser browser, boolean next);
 
 	/**
 	 * Called when the browser component is requesting focus.
@@ -36,12 +36,12 @@ public interface CefFocusHandler {
 	 * @param source  indicates/ where the focus request is originating from.
 	 * @return false to allow the focus to be set or true to cancel setting the focus.
 	 */
-	public boolean onSetFocus(CefBrowser browser, FocusSource source);
+	boolean onSetFocus(CefBrowser browser, FocusSource source);
 
 	/**
 	 * Called when the browser component has received focus.
 	 *
 	 * @param browser The browser generating the event.
 	 */
-	public void onGotFocus(CefBrowser browser);
+	void onGotFocus(CefBrowser browser);
 }

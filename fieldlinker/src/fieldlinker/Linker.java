@@ -22,27 +22,27 @@ public class Linker implements GuardingDynamicLinker, GuardingTypeConverterFacto
 	boolean debug = System.getProperty("debugLinker") != null;
 
 	public interface AsMap extends CustomDelete {
-		public boolean asMap_isProperty(String p);
+		boolean asMap_isProperty(String p);
 
-		public Object asMap_call(Object a, Object b);
+		Object asMap_call(Object a, Object b);
 
-		public Object asMap_get(String p);
+		Object asMap_get(String p);
 
-		public Object asMap_set(String p, Object o);
+		Object asMap_set(String p, Object o);
 
-		public Object asMap_new(Object a);
+		Object asMap_new(Object a);
 
-		public Object asMap_new(Object a, Object b);
+		Object asMap_new(Object a, Object b);
 
-		public Object asMap_getElement(int element);
+		Object asMap_getElement(int element);
 
-		public default Object asMap_getElement(Object element) { throw new NotImplementedException(); };
+		default Object asMap_getElement(Object element) { throw new NotImplementedException(); }
 
-		public Object asMap_setElement(int element, Object o);
+		Object asMap_setElement(int element, Object o);
 
-		public default  Object asMap_setElement(Object element, Object o) {return asMap_set(""+element, o);}
+		default  Object asMap_setElement(Object element, Object o) {return asMap_set(""+element, o);}
 
-		public default Object asMap_call(Object o) {
+		default Object asMap_call(Object o) {
 			return asMap_call(o, Collections.EMPTY_MAP);
 		}
 	}

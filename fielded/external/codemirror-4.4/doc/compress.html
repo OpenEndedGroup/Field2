@@ -243,7 +243,7 @@
         for (var optgr = select.firstChild; optgr; optgr = optgr.nextSibling)
           for (var opt = optgr.firstChild; opt; opt = opt.nextSibling) {
             if (opt.nodeName != "OPTION")
-              continue;
+
             else if (m = opt.value.match(/^http:\/\/codemirror.net\/(.*)$/))
               opt.value = urlprefix + m[1];
             else if (m = opt.value.match(/http:\/\/marijnhaverbeke.nl\/git\/codemirror\?a=blob_plain;hb=[^;]+;f=(.*)$/))
@@ -253,7 +253,7 @@
        
        function generateHeader() {
          var versionNode = document.getElementById("version");
-         var version = versionNode.options[versionNode.selectedIndex].label
+         var version = versionNode.options[versionNode.selectedIndex].label;
          var filesNode = document.getElementById("files");
          var optGroupHeaderIncluded;
 
@@ -266,7 +266,7 @@
            optGroupHeaderIncluded = false;
            for (var option = group.firstChild; option; option = option.nextSibling) {
              if (option.nodeName !== "OPTION") {
-               continue;
+
              } else if (option.selected) {
                if (!optGroupHeaderIncluded) {
                  str += "   " + group.label + ":\n";

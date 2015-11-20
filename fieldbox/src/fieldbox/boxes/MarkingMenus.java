@@ -338,7 +338,7 @@ public class MarkingMenus extends Box {
 	}
 
 
-	static public enum Position {
+	public enum Position {
 		N(0, -1, 1), N2(0, -1, 2), NE2(1, -1, 2), NE(1, -1, 1), NEH(1, -1, 0.5f), EH(1, 0, 0.5f), E(1, 0, 1), E2(1, 0, 2), SE2(1, 1, 2), SE(1, 1, 1), SEH(1, 1, 0.5f),
 		SH(0, 1, 0.5f), S(0, 1, 1), S2(0, 1, 2), SW2(-1, 1, 2), SW(-1, 1, 1), SWH(-1, 1, 0.5f), WH(-1, 0, 0.5f), W(-1, 0, 1), W2(-1, 0, 2), NW2(-1, -1, 2), NW(-1, -1, 1),
 		NWH(-1, -1, 0.5f), NH(0, -1, 0.5f);

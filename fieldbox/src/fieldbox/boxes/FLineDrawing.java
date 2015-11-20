@@ -397,7 +397,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 
 			if (rect.w > d.x + 5) return new FLine();
 
-			f.rect((int) (rect.x + rect.w / 2 - d.x / 2 - 10), (int) (rect.y + rect.h / 2 - 36 / 5.0 - 5), (int) d.x + 20, (int) 30);
+			f.rect((int) (rect.x + rect.w / 2 - d.x / 2 - 10), (int) (rect.y + rect.h / 2 - 36 / 5.0 - 5), (int) d.x + 20, 30);
 
 			f.attributes.put(filled, true);
 			f.attributes.put(stroked, false);

@@ -125,7 +125,7 @@ public class Trampoline {
 							Record rec = new Record(f.getAbsolutePath(), f.lastModified());
 							if (rec.modification != 0) {
 								loadMap.put(c, rec);
-							};
+							}
 						}
 					}
 					catch(Throwable t)

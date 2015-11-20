@@ -145,7 +145,7 @@ public class RemoteEditor extends Box {
 		this.watches = watches;
 		this.properties.put(editor, this);
 
-		this.properties.putToMap(Boxes.insideRunLoop, "main.__watch_service__", (Supplier<Boolean>) this::update);
+		this.properties.putToMap(Boxes.insideRunLoop, "main.__watch_service__", this::update);
 		this.properties.put(editorUtils, new EditorUtils(this));
 
 		watches.addWatch(Mouse.isSelected, "selection.changed");
@@ -762,7 +762,7 @@ public class RemoteEditor extends Box {
 
 			if (r != null) {
 				if (r instanceof ExtendedCommand)
-					((ExtendedCommand) r).begin(commandHelper.supportsPrompt(x -> server.send(socketName, "_messageBus.publish('begin.commands', " + x + ")")), text);
+					r.begin(commandHelper.supportsPrompt(x -> server.send(socketName, "_messageBus.publish('begin.commands', " + x + ")")), text);
 				r.run();
 			}
 
@@ -1115,12 +1115,12 @@ public class RemoteEditor extends Box {
 		this.errorStack.remove(this.errorStack.size() - 1);
 	}
 
-	static public interface ExtendedCommand extends Runnable {
-		public void begin(SupportsPrompt prompt, String alternativeChosen);
+	public interface ExtendedCommand extends Runnable {
+		void begin(SupportsPrompt prompt, String alternativeChosen);
 	}
 
-	static public interface SupportsPrompt {
-		public void prompt(String prompt, Map<Pair<String, String>, Runnable> options, ExtendedCommand alternative);
+	public interface SupportsPrompt {
+		void prompt(String prompt, Map<Pair<String, String>, Runnable> options, ExtendedCommand alternative);
 	}
 
 	static {

@@ -13,7 +13,7 @@ import org.cef.misc.IntRef;
  */
 public interface CefMenuModel {
 
-	public static final class MenuId {
+	final class MenuId {
 		public static final int MENU_ID_BACK = 100;
 		public static final int MENU_ID_FORWARD = 101;
 		public static final int MENU_ID_RELOAD = 102;
@@ -44,7 +44,7 @@ public interface CefMenuModel {
 	/**
 	 * Supported menuSpecs item types.
 	 */
-	public enum MenuItemType {
+	enum MenuItemType {
 		MENUITEMTYPE_NONE,
 		MENUITEMTYPE_COMMAND,
 		MENUITEMTYPE_CHECK,

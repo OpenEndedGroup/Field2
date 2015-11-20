@@ -22,7 +22,7 @@ public class UniformCache {
 
 		public boolean push(Object value, Runnable trampoline) {
 			this.value.add(value);
-			this.on.add(GraphicsContext.stateTracker.shader.get());
+			this.on.add(StateTracker.shader.get());
 			this.trampoline.add(trampoline);
 
 			return this.value.size()==1 || !Util.safeEq(this.value.get(this.value.size()-2), this.value.get(this.value.size()-1)) || !Util.safeEq(this.on.get(this.on.size()-2), this.on.get(this.on.size()-1));

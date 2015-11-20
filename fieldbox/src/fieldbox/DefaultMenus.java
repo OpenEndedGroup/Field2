@@ -99,7 +99,7 @@ public class DefaultMenus extends Box {
 				Box bx = newBox(box.find(Box.frame, box.both())
 						 .findFirst()
 						 .map(x -> new Vec2(x.x + x.w + 5, x.y + x.h + 5))
-						 .orElseGet(() -> new Vec2(0, 0)), new Box[]{box});
+						 .orElseGet(() -> new Vec2(0, 0)), box);
 				bx.properties.put(Box.name, name);
 				return bx;
 			});
@@ -126,7 +126,7 @@ public class DefaultMenus extends Box {
 						   Box bx = newBoxOfClass(cz, box.find(Box.frame, box.both())
 										 .findFirst()
 										 .map(x -> new Vec2(x.x + x.w + 5, x.y + x.h + 5))
-										 .orElseGet(() -> new Vec2(0, 0)), new Box[]{box});
+										 .orElseGet(() -> new Vec2(0, 0)), box);
 						   bx.properties.put(Box.name, name);
 						   return bx;
 					   });
@@ -204,7 +204,7 @@ public class DefaultMenus extends Box {
 
 		boolean error = false;
 		try {
-			FieldBox.fieldBox.io.writeOutDocument(FieldBox.fieldBox.io.WORKSPACE + "/" + path+"/"+fn, doc);
+			FieldBox.fieldBox.io.writeOutDocument(IO.WORKSPACE + "/" + path+"/"+fn, doc);
 		} catch (IOException e) {
 			e.printStackTrace();
 			Drawing.notify("Error saving " + e.getMessage(), this, 200);

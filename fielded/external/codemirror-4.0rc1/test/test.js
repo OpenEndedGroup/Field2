@@ -141,7 +141,7 @@ testCM("lines", function(cm) {
   eq(cm.getLine(0), "111111");
   eq(cm.getLine(1), "222222");
   eq(cm.getLine(-1), null);
-  cm.replaceRange("", Pos(1, 0), Pos(2, 0))
+  cm.replaceRange("", Pos(1, 0), Pos(2, 0));
   cm.replaceRange("abc", Pos(1, 0), Pos(1));
   eq(cm.getValue(), "111111\nabc");
 }, {value: "111111\n222222\n333333"});
@@ -1603,7 +1603,7 @@ testCM("addKeyMap", function(cm) {
   sendKey(39);
   eqPos(cm.getCursor(), Pos(0, 1));
   var test = 0;
-  var map1 = {Right: function() { ++test; }}, map2 = {Right: function() { test += 10; }}
+  var map1 = {Right: function() { ++test; }}, map2 = {Right: function() { test += 10; }};
   cm.addKeyMap(map1);
   sendKey(39);
   eqPos(cm.getCursor(), Pos(0, 1));

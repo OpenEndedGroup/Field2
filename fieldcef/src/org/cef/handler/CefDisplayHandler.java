@@ -17,7 +17,7 @@ public interface CefDisplayHandler {
 	 * @param browser The browser generating the event.
 	 * @param url     The new address.
 	 */
-	public void onAddressChange(CefBrowser browser, String url);
+	void onAddressChange(CefBrowser browser, String url);
 
 	/**
 	 * Handle title changes.
@@ -25,7 +25,7 @@ public interface CefDisplayHandler {
 	 * @param browser The browser generating the event.
 	 * @param title   The new title.
 	 */
-	public void onTitleChange(CefBrowser browser, String title);
+	void onTitleChange(CefBrowser browser, String title);
 
 	/**
 	 * Called when the browser is about to display a tooltip.
@@ -34,7 +34,7 @@ public interface CefDisplayHandler {
 	 * @param text    Contains the text that will be displayed in the tooltip.
 	 * @return To handle the display of the tooltip yourself return true.
 	 */
-	public boolean onTooltip(CefBrowser browser, String text);
+	boolean onTooltip(CefBrowser browser, String text);
 
 	/**
 	 * Called when the browser receives a status message.
@@ -42,7 +42,7 @@ public interface CefDisplayHandler {
 	 * @param browser The browser generating the event.
 	 * @param value   Contains the text that will be displayed in the status message.
 	 */
-	public void onStatusMessage(CefBrowser browser, String value);
+	void onStatusMessage(CefBrowser browser, String value);
 
 	/**
 	 * Called to display a console message.
@@ -53,5 +53,5 @@ public interface CefDisplayHandler {
 	 * @param line
 	 * @return true to stop the message from being output to the console.
 	 */
-	public boolean onConsoleMessage(CefBrowser browser, String message, String source, int line);
+	boolean onConsoleMessage(CefBrowser browser, String message, String source, int line);
 }

@@ -15,8 +15,8 @@ public class UnsafeBuffers {
 		ByteBuffer ret = ByteBuffer.allocateDirect(0);
 
 		setLong(ret, Buffer.class, "address", pointer);
-		setInt(ret, Buffer.class, "limit", (int) size);
-		setInt(ret, Buffer.class, "capacity", (int) size);
+		setInt(ret, Buffer.class, "limit", size);
+		setInt(ret, Buffer.class, "capacity", size);
 
 		return ret;
 	}

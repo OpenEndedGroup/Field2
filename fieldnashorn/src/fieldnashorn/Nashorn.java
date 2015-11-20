@@ -34,7 +34,7 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 	public Nashorn() {
 
 
-		engine = factory.getScriptEngine(new String[]{"-scripting", "--optimistic-types=true"});
+		engine = factory.getScriptEngine("-scripting", "--optimistic-types=true");
 
 		global = new SimpleBindings();
 		try {
@@ -201,7 +201,7 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 
 	Cached<Pair<Box, Dict.Prop<String>>, Pair<Box, Dict.Prop<String>>, NashornExecution> cached = new Cached<>((next, was) -> {
 
-		ScriptEngine en = bindingsPerBox.computeIfAbsent(next.first, k -> factory.getScriptEngine(new String[]{"-scripting"}));
+		ScriptEngine en = bindingsPerBox.computeIfAbsent(next.first, k -> factory.getScriptEngine("-scripting"));
 
 		ScriptContext b = en.getContext();
 		en.setBindings(global, ScriptContext.GLOBAL_SCOPE);

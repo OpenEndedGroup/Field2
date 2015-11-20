@@ -171,9 +171,9 @@ public class PathFlattener {
 
 	private double flatnessFor(Vec3 a, Vec3 c1, Vec3 c2, Vec3 b) {
 		//	return (double) CubicCurve2D.getFlatness(a.x, a.y, c1.x, c1.y, c2.x, c2.y, b.x, b.y);
-		double f1 = (double) FLinesAndJavaShapes.ptSegDistSq3(a.x, a.y, a.z, b.x, b.y, b.z, c1.x, c1.y, c1.z);
-		double f2 = (double) FLinesAndJavaShapes.ptSegDistSq3(a.x, a.y, a.z, b.x, b.y, b.z, c2.x, c2.y, c2.z);
-		return (double) Math.sqrt(Math.max(f1, f2));
+		double f1 = FLinesAndJavaShapes.ptSegDistSq3(a.x, a.y, a.z, b.x, b.y, b.z, c1.x, c1.y, c1.z);
+		double f2 = FLinesAndJavaShapes.ptSegDistSq3(a.x, a.y, a.z, b.x, b.y, b.z, c2.x, c2.y, c2.z);
+		return Math.sqrt(Math.max(f1, f2));
 	}
 
 }

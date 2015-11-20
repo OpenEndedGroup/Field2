@@ -79,7 +79,7 @@ public class GraphicsSupport extends Box {
 			return m;
 		});
 
-		properties.put(newShader, (FunctionOfBox<Shader>) this::newShaderFromBox);
+		properties.put(newShader, (FunctionOfBox<Shader>)this::newShaderFromBox);
 
 	}
 
@@ -137,8 +137,8 @@ public class GraphicsSupport extends Box {
 
 		s.addSource(Shader.Type.vertex, vs).setOnError(errorHandler(b, "vertex shader"));
 
-		if (gs.trim().length() > 0) s.addSource(Shader.Type.geometry, gs).setOnError(errorHandler(b, "geometry shader"));;
-		s.addSource(Shader.Type.fragment, fs).setOnError(errorHandler(b, "fragment shader"));;
+		if (gs.trim().length() > 0) s.addSource(Shader.Type.geometry, gs).setOnError(errorHandler(b, "geometry shader"));
+		s.addSource(Shader.Type.fragment, fs).setOnError(errorHandler(b, "fragment shader"));
 
 		b.properties.putToList(_shaders, s);
 

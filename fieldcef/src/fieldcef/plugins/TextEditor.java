@@ -47,7 +47,7 @@ public class TextEditor extends Box implements IO.Loaded {
 	Commands commandHelper = new Commands();
 	long lastTriggerAt = -1;
 	int ignoreHide = 0;
-	private int maxhOnCreation = 0 ;
+	private int maxhOnCreation = 0;
 
 	public TextEditor(Box root) {
 		this.properties.put(textEditor, this);
@@ -73,121 +73,120 @@ public class TextEditor extends Box implements IO.Loaded {
 
 	@HiddenInAutocomplete
 	public void loaded() {
-		Log.log("texteditor.debug", ()->"initializing browser");
+		Log.log("texteditor.debug", () -> "initializing browser");
 
 		RunLoop.main.delay(() -> {
 
-		FieldBoxWindow window = this.find(Boxes.window, this.both())
-					    .findFirst()
-					    .get();
+			FieldBoxWindow window = this.find(Boxes.window, this.both())
+						    .findFirst()
+						    .get();
 
-		Drawing drawing = root.first(Drawing.drawing)
-				      .orElseThrow(() -> new IllegalArgumentException(" can't install text-drawing into something without drawing support"));
-
-
-		maxh = window.getHeight() - 25 - 10 - 10 - 2;
+			Drawing drawing = root.first(Drawing.drawing)
+					      .orElseThrow(() -> new IllegalArgumentException(" can't install text-drawing into something without drawing support"));
 
 
-		browser = new Browser();
+			maxh = window.getHeight() - 25 - 10 - 10 - 2;
 
 
-		System.err.println(" at the point where we set the maximum width of the browser the window is "+window.getWidth()+" "+maxw+" "+maxh);
+			browser = new Browser();
 
 
-		Vec2 v = drawing.windowSystemToDrawingSystem(new Vec2(window.getWidth() - maxw - 10, 10));
-		Vec2 vd = drawing.windowSystemToDrawingSystemDelta(new Vec2(maxw, 1080*2));
-
-		browser.properties.put(Box.frame, new Rect(v.x, v.y, vd.x, vd.y));
-
-		System.err.println(" final frame is :"+v+" / "+vd);
+			System.err.println(" at the point where we set the maximum width of the browser the window is " + window.getWidth() + " " + maxw + " " + maxh);
 
 
-		maxhOnCreation = 1080*2;
+			Vec2 v = drawing.windowSystemToDrawingSystem(new Vec2(window.getWidth() - maxw - 10, 10));
+			Vec2 vd = drawing.windowSystemToDrawingSystemDelta(new Vec2(maxw, 1080 * 2));
 
-		browser.pauseForBoot();
+			browser.properties.put(Box.frame, new Rect(v.x, v.y, vd.x, vd.y));
 
-		this.properties.put(FLineDrawing.layer, "glass");
-
-		browser.properties.put(FLineDrawing.layer, "glass");
-		browser.properties.put(Drawing.windowSpace, new Vec2(1, 0));
-		browser.properties.put(Boxes.dontSave, true);
-		browser.properties.put(Box.hidden, true);
-		browser.properties.put(Mouse.isSticky, true);
-
-		browser.properties.put(FrameManipulation.lockHeight, true);
-		browser.properties.put(FrameManipulation.lockWidth, true);
-		browser.properties.put(FrameManipulation.lockX, true);
-		browser.properties.put(FrameManipulation.lockY, true);
-
-		browser.properties.put(Box.undeletable, true);
-
-		browser.properties.put(Box.name, "texteditor");
-
-		browser.connect(root);
-		browser.loaded();
+			System.err.println(" final frame is :" + v + " / " + vd);
 
 
-		executeJavaScript("$(\".CodeMirror\").css(\"height\", "+(maxh-10)+")");
-		executeJavaScript("$(\".CodeMirror\").css(\"width\", "+maxw+")");
+			maxhOnCreation = 1080 * 2;
+
+			browser.pauseForBoot();
+
+			this.properties.put(FLineDrawing.layer, "glass");
+
+			browser.properties.put(FLineDrawing.layer, "glass");
+			browser.properties.put(Drawing.windowSpace, new Vec2(1, 0));
+			browser.properties.put(Boxes.dontSave, true);
+			browser.properties.put(Box.hidden, true);
+			browser.properties.put(Mouse.isSticky, true);
+
+			browser.properties.put(FrameManipulation.lockHeight, true);
+			browser.properties.put(FrameManipulation.lockWidth, true);
+			browser.properties.put(FrameManipulation.lockX, true);
+			browser.properties.put(FrameManipulation.lockY, true);
+
+			browser.properties.put(Box.undeletable, true);
+
+			browser.properties.put(Box.name, "texteditor");
+
+			browser.connect(root);
+			browser.loaded();
 
 
-		this.properties.put(Boxes.dontSave, true);
-		styles = findAndLoad(styleSheet, false);
-
-		long[] t = {0};
-		RunLoop.main.getLoop()
-			    .attach(x -> {
-				    if (t[0] == 0) t[0] = System.currentTimeMillis();
-				    if (System.currentTimeMillis() - t[0] > 1000) {
-					    boot();
-
-					    return false;
-				    }
-
-				    return true;
-			    });
+			executeJavaScript("$(\".CodeMirror\").css(\"height\", " + (maxh - 10) + ")");
+			executeJavaScript("$(\".CodeMirror\").css(\"width\", " + maxw + ")");
 
 
-		find(Watches.watches, both()).forEach(w -> {
+			this.properties.put(Boxes.dontSave, true);
+			styles = findAndLoad(styleSheet, false);
 
-			w.getQueue()
-			 .register(x -> x.equals("selection.changed"), c -> {
-				 Log.log("shy", ()->"selection is now" + selection().count());
+			long[] t = {0};
+			RunLoop.main.getLoop()
+				    .attach(x -> {
+					    if (t[0] == 0) t[0] = System.currentTimeMillis();
+					    if (System.currentTimeMillis() - t[0] > 1000) {
+						    boot();
 
-				 if (selection().count() != 1) {
-					 browser.properties.put(Box.hidden, true);
-					 Drawing.dirty(this);
-				 } else {
-					 browser.properties.put(Box.hidden, false);
-					 Drawing.dirty(this);
-				 }
+						    return false;
+					    }
 
-			 });
+					    return true;
+				    });
 
-		});
 
-		first(Boxes.window, both()).ifPresent(x -> x.addKeyboardHandler(event -> {
-			Set<Integer> kpressed = Window.KeyboardState.keysPressed(event.before, event.after);
-			if (kpressed.contains(Glfw.GLFW_KEY_LEFT_SHIFT) || kpressed.contains(Glfw.GLFW_KEY_RIGHT_SHIFT)) {
-				if (event.after.keysDown.size() == 1) trigger();
-			}
+			find(Watches.watches, both()).forEach(w -> {
 
-			return true;
-		}));
+				w.getQueue()
+				 .register(x -> x.equals("selection.changed"), c -> {
+					 Log.log("shy", () -> "selection is now" + selection().count());
 
-		RunLoop.main.getLoop()
-			    .attach(x -> {
+					 if (selection().count() != 1) {
+						 browser.properties.put(Box.hidden, true);
+						 Drawing.dirty(this);
+					 } else {
+						 browser.properties.put(Box.hidden, false);
+						 Drawing.dirty(this);
+					 }
 
-				    int maxh = window.getHeight() - 25 - 10 - 10 - 2;
-				    Rect f = browser.properties.get(Box.frame);
-				    if (f.h!=Math.min(maxhOnCreation-40, maxh))
-				    {
-					    f = f.duplicate();
-					    executeJavaScript("$(\".CodeMirror\").css(\"height\", "+Math.min(maxh, maxhOnCreation-40)+")");
-				    }
+				 });
 
-				    return true;
-			    });
+			});
+
+			first(Boxes.window, both()).ifPresent(x -> x.addKeyboardHandler(event -> {
+				Set<Integer> kpressed = Window.KeyboardState.keysPressed(event.before, event.after);
+				if (kpressed.contains(Glfw.GLFW_KEY_LEFT_SHIFT) || kpressed.contains(Glfw.GLFW_KEY_RIGHT_SHIFT)) {
+					if (event.after.keysDown.size() == 1) trigger();
+				}
+
+				return true;
+			}));
+
+			RunLoop.main.getLoop()
+				    .attach(x -> {
+
+					    int maxh = window.getHeight() - 25 - 10 - 10 - 2;
+					    Rect f = browser.properties.get(Box.frame);
+					    if (f.h != Math.min(maxhOnCreation - 40, maxh)) {
+						    f = f.duplicate();
+						    executeJavaScript("$(\".CodeMirror\").css(\"height\", " + Math.min(maxh, maxhOnCreation - 40) + ")");
+					    }
+
+					    return true;
+				    });
 		}, 100);
 	}
 
@@ -204,7 +203,7 @@ public class TextEditor extends Box implements IO.Loaded {
 
 	@HiddenInAutocomplete
 	public void boot() {
-		browser.properties.put(browser.url, "http://localhost:"+ ServerSupport.webserverPort+"/init");
+		browser.properties.put(Browser.url, "http://localhost:" + ServerSupport.webserverPort + "/init");
 		Drawing.dirty(this);
 		browser.finishBooting();
 	}
@@ -256,7 +255,7 @@ public class TextEditor extends Box implements IO.Loaded {
 		for (String s : roots) {
 			if (new File(s + "/" + f).exists()) return readFile(s + "/" + f, append);
 		}
-		Log.log("glassbrowser.error", ()->"Couldnt' find file in playlist :" + f);
+		Log.log("glassbrowser.error", () -> "Couldnt' find file in playlist :" + f);
 		return null;
 	}
 
@@ -283,15 +282,13 @@ public class TextEditor extends Box implements IO.Loaded {
 	/**
 	 * reloads this text editor. Useful if you are hacking on the CSS or JavaScript that backs the editor
 	 */
-	public void reload()
-	{
+	public void reload() {
 		browser.reload();
 	}
 
 
-	public void setURL(String url)
-	{
-		browser.properties.put(browser.url, url);
+	public void setURL(String url) {
+		browser.properties.put(Browser.url, url);
 	}
 }
 

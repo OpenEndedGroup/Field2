@@ -15,5 +15,5 @@ public interface CefWebPluginInfoVisitor {
 	 * Method that will be called once for each plugin. |count| is the 0-based index for the current plugin. |total| is the total number of
 	 * plugins. Return false to stop visiting plugins. This method may never be called if no plugins are found.
 	 */
-	public boolean visit(CefWebPluginInfo info, int count, int total);
+	boolean visit(CefWebPluginInfo info, int count, int total);
 }

@@ -95,8 +95,7 @@ public class KeyBinding {
 			if (!(shift==state.isShiftDown())) return false;
 			if (!(alt==state.isAltDown())) return false;
 			if (!(control==state.isControlDown())) return false;
-			if (!(supper==state.isSuperDown())) return false;
-			return true;
+			return supper == state.isSuperDown();
 		}
 
 		public boolean transitionInto(Window.Event<Window.KeyboardState> event)

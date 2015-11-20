@@ -22,7 +22,7 @@ public interface CefDownloadHandler {
 	 * @param suggestedName is the suggested name for the download file.
 	 * @param callback      start the download by calling the Continue method
 	 */
-	public void onBeforeDownload(CefBrowser browser, CefDownloadItem downloadItem, String suggestedName, CefBeforeDownloadCallback callback);
+	void onBeforeDownload(CefBrowser browser, CefDownloadItem downloadItem, String suggestedName, CefBeforeDownloadCallback callback);
 
 	/**
 	 * Called when a download's status or progress information has been updated.
@@ -31,5 +31,5 @@ public interface CefDownloadHandler {
 	 * @param downloadItem The downloading item.
 	 * @param callback     Execute callback to cancel the download
 	 */
-	public void onDownloadUpdated(CefBrowser browser, CefDownloadItem downloadItem, CefDownloadItemCallback callback);
+	void onDownloadUpdated(CefBrowser browser, CefDownloadItem downloadItem, CefDownloadItemCallback callback);
 }

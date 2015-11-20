@@ -20,6 +20,6 @@ public class WrapClassI {
 	}
 
 	public Integer end(Object source, Integer returning) {
-		return ((Integer)returning)+10;
+		return returning +10;
 	}
 }

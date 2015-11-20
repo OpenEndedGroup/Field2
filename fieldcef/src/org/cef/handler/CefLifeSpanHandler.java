@@ -47,7 +47,7 @@ public interface CefLifeSpanHandler {
 	 *
 	 * @param browser The browser generating the event.
 	 */
-	public void onAfterCreated(CefBrowser browser);
+	void onAfterCreated(CefBrowser browser);
 
 	/**
 	 * Called when a modal window is about to display and the modal loop should begin running. Return false to use the default modal loop
@@ -56,7 +56,7 @@ public interface CefLifeSpanHandler {
 	 * @param browser The browser generating the event.
 	 * @return false to use the default modal loop implementation.
 	 */
-	public boolean runModal(CefBrowser browser);
+	boolean runModal(CefBrowser browser);
 
 	/**
 	 * Called when a browser has received a request to close.
@@ -69,7 +69,7 @@ public interface CefLifeSpanHandler {
 	 * @param browser The browser generating the event.
 	 * @return false will send an OS close notification to the browser window's top-level owner.
 	 */
-	public boolean doClose(CefBrowser browser);
+	boolean doClose(CefBrowser browser);
 
 	/**
 	 * Called just before a browser is destroyed.

@@ -72,10 +72,10 @@ public class Drawing extends Box {
 	}
 
 	static public boolean intersects(Window.Event<?> event, Box box) {
-		Rect frame = (Rect) box.properties.get(Box.frame);
+		Rect frame = box.properties.get(Box.frame);
 		if (frame == null) return false;
 
-		Optional<Drawing> drawing = (Optional<Drawing>) box.find(Drawing.drawing, box.both())
+		Optional<Drawing> drawing = box.find(Drawing.drawing, box.both())
 								   .findFirst();
 		if (!drawing.isPresent()) return false;
 
@@ -144,7 +144,7 @@ public class Drawing extends Box {
 			f.attributes.put(layer, "glass2");
 
 			return f;
-		}, (int) (dur), 0.05f));
+		}, dur, 0.05f));
 		from.properties.putToMap(frameDrawing, "__notificationMask__", expires(box -> {
 
 			Drawing d = from.first(drawing, from.both())
@@ -541,7 +541,7 @@ public class Drawing extends Box {
 	}
 
 	public interface Drawer {
-		public void draw(Drawing context);
+		void draw(Drawing context);
 	}
 
 	public class PerLayer {

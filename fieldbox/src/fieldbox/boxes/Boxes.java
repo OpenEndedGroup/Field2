@@ -84,7 +84,7 @@ public class Boxes {
 							      r.remove();
 						      }
 						      catch(Throwable tt)
-						      {};
+						      {}
 					      }
 				      }
 			      });

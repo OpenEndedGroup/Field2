@@ -132,7 +132,7 @@ public class FrustumCuller {
 		nxY = m.m13 + m.m10;
 		nxZ = m.m23 + m.m20;
 		nxW = m.m33 + m.m30;
-		l = (double) Math.sqrt(nxX * nxX + nxY * nxY + nxZ * nxZ);
+		l = Math.sqrt(nxX * nxX + nxY * nxY + nxZ * nxZ);
 		nxX /= l;
 		nxY /= l;
 		nxZ /= l;
@@ -141,7 +141,7 @@ public class FrustumCuller {
 		pxY = m.m13 - m.m10;
 		pxZ = m.m23 - m.m20;
 		pxW = m.m33 - m.m30;
-		l = (double) Math.sqrt(pxX * pxX + pxY * pxY + pxZ * pxZ);
+		l = Math.sqrt(pxX * pxX + pxY * pxY + pxZ * pxZ);
 		pxX /= l;
 		pxY /= l;
 		pxZ /= l;
@@ -150,7 +150,7 @@ public class FrustumCuller {
 		nyY = m.m13 + m.m11;
 		nyZ = m.m23 + m.m21;
 		nyW = m.m33 + m.m31;
-		l = (double) Math.sqrt(nyX * nyX + nyY * nyY + nyZ * nyZ);
+		l = Math.sqrt(nyX * nyX + nyY * nyY + nyZ * nyZ);
 		nyX /= l;
 		nyY /= l;
 		nyZ /= l;
@@ -159,7 +159,7 @@ public class FrustumCuller {
 		pyY = m.m13 - m.m11;
 		pyZ = m.m23 - m.m21;
 		pyW = m.m33 - m.m31;
-		l = (double) Math.sqrt(pyX * pyX + pyY * pyY + pyZ * pyZ);
+		l = Math.sqrt(pyX * pyX + pyY * pyY + pyZ * pyZ);
 		pyX /= l;
 		pyY /= l;
 		pyZ /= l;
@@ -168,7 +168,7 @@ public class FrustumCuller {
 		nzY = m.m13 + m.m12;
 		nzZ = m.m23 + m.m22;
 		nzW = m.m33 + m.m32;
-		l = (double) Math.sqrt(nzX * nzX + nzY * nzY + nzZ * nzZ);
+		l = Math.sqrt(nzX * nzX + nzY * nzY + nzZ * nzZ);
 		nzX /= l;
 		nzY /= l;
 		nzZ /= l;
@@ -177,7 +177,7 @@ public class FrustumCuller {
 		pzY = m.m13 - m.m12;
 		pzZ = m.m23 - m.m22;
 		pzW = m.m33 - m.m32;
-		l = (double) Math.sqrt(pzX * pzX + pzY * pzY + pzZ * pzZ);
+		l = Math.sqrt(pzX * pzX + pzY * pzY + pzZ * pzZ);
 		pzX /= l;
 		pzY /= l;
 		pzZ /= l;

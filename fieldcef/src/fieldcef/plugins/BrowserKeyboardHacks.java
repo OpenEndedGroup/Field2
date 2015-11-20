@@ -42,7 +42,7 @@ public class BrowserKeyboardHacks {
 		m.removeAll(keysDown);
 
 //		Log.log("keyboard2", "onKeyDown new keys:" + m + " new chars:" + c);
-		if (m.size() == 0 && e.after.charsDown.size()==0 && e.before.charsDown.size()==0 && RunLoop.main.tick-lastEventAt>0) {
+		if (m.size() == 0 && e.after.charsDown.size()==0 && e.before.charsDown.size()==0 && RunLoop.tick -lastEventAt>0) {
 			// why send the event? its a keyboard repeat for a non-char character, that's why
 			m.addAll(e.after.keysDown);
 		} else {
@@ -53,7 +53,7 @@ public class BrowserKeyboardHacks {
 		if (m.size() == 0) {
 			return null;
 		}
-		lastEventAt = RunLoop.main.tick;
+		lastEventAt = RunLoop.tick;
 		// now we have m new keypresses to deal with and c new characters
 
 		int mod = (e.after.isAltDown() ? KeyEvent.ALT_DOWN_MASK : 0);
@@ -67,7 +67,7 @@ public class BrowserKeyboardHacks {
 
 			if (mapper.isForcedTyped(mm)!=null && mod!=0)
 			{
-				KeyEvent ke = new KeyEvent(component, KeyEvent.KEY_TYPED, 0, mod, KeyEvent.VK_UNDEFINED, (char) mapper.isForcedTyped(mm));
+				KeyEvent ke = new KeyEvent(component, KeyEvent.KEY_TYPED, 0, mod, KeyEvent.VK_UNDEFINED, mapper.isForcedTyped(mm));
 				System.out.println(" forced typed :"+(char) mapper.isForcedTyped(mm));
 					e.properties.put(Window.consumed, true);
 				target.sendKeyEvent(ke);

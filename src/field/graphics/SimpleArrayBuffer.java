@@ -114,14 +114,14 @@ public class SimpleArrayBuffer implements ArrayBuffer {
 	@Override
 	public FloatBuffer floats(boolean readOnly) {
 		if (!readOnly) mod++;
-		return (FloatBuffer) dataAsFloat.rewind()
+		return dataAsFloat.rewind()
 						.limit(dimension * size);
 	}
 
 	@Override
 	public IntBuffer ints(boolean readOnly) {
 		if (!readOnly) mod++;
-		return (IntBuffer) dataAsInt.rewind()
+		return dataAsInt.rewind()
 					    .limit(dimension * size);
 	}
 

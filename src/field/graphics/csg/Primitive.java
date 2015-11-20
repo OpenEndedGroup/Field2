@@ -17,14 +17,14 @@ public interface Primitive {
 	 *
 	 * @return al list of polygons that define this primitive
 	 */
-	public List<Polygon> toPolygons();
+	List<Polygon> toPolygons();
 
 	/**
 	 * Returns this primitive as {@link CSG}.
 	 *
 	 * @return this primitive as {@link CSG}
 	 */
-	public default CSG toCSG() {
+	default CSG toCSG() {
 		return CSG.fromPolygons(toPolygons());
 	}
 

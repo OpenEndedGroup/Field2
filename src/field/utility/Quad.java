@@ -19,9 +19,8 @@ public class Quad<A, B, C, D> extends Triple<A, B, C> {
 
 		Quad quad = (Quad) o;
 
-		if (fourth != null ? !fourth.equals(quad.fourth) : quad.fourth != null) return false;
+		return !(fourth != null ? !fourth.equals(quad.fourth) : quad.fourth != null);
 
-		return true;
 	}
 
 	@Override

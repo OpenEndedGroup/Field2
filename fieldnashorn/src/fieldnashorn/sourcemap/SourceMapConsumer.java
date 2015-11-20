@@ -28,5 +28,5 @@ public interface SourceMapConsumer extends SourceMapping {
      * Parses the given contents containing a source map to provide initialize
      * a class providing SourceMapping.
      */
-    public void parse(String contents) throws SourceMapParseException;
+    void parse(String contents) throws SourceMapParseException;
 }

@@ -1005,7 +1005,6 @@ public class FLinesAndJavaShapes {
 					right = s.second;
 					cursor = new Cursor(right, 0.1f);
 				}
-				;
 				f.add(right);
 				return f;
 			} finally {
@@ -1606,7 +1605,6 @@ public class FLinesAndJavaShapes {
 		}
 
 		public Vec3 osculating(double alpha) {
-			;
 
 			return Vec3.cross(D(alpha), DD(alpha), new Vec3());
 		}

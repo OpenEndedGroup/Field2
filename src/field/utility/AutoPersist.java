@@ -55,7 +55,7 @@ public class AutoPersist {
 			return hook(name, ro, () -> ro);
 		} catch (Throwable e) {
 			e.printStackTrace();
-			T x = (T) def.get();
+			T x = def.get();
 			try (ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(new File(dir + name))))) {
 				oos.writeObject(x);
 			} catch (Throwable e2) {
@@ -79,7 +79,7 @@ public class AutoPersist {
 			return hook(name, ro, () -> atEnd.apply(ro));
 		} catch (Throwable e) {
 			e.printStackTrace();
-			T x = (T) def.get();
+			T x = def.get();
 			try (ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(new File(dir + name))))) {
 				oos.writeObject(x);
 			} catch (Throwable e2) {
@@ -113,7 +113,7 @@ public class AutoPersist {
 		} catch (Throwable e) {
 			Log.log("startup.autopersist", ()->" couldn't load saved preference for "+name+" using compiled default ");
 //			e.printStackTrace();
-			T x = (T) def.get();
+			T x = def.get();
 			T x2 = validate.apply(x);
 			try (ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(new File(dir + name))))) {
 				Log.log("startup.autopersist", ()->" wrting "+x2);

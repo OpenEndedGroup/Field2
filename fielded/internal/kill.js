@@ -56,11 +56,11 @@ function getNewClipboard(contin) {
 }
 
 function paste() {
-    _field.log("about to paste")
+    _field.log("about to paste");
     var newText = getNewClipboard(function (newText) {
-        _field.log("in continuation")
+        _field.log("in continuation");
         if (newText != null)
-            addToRing(newText)
+            addToRing(newText);
 
         var start = cm.getCursor();
         cm.replaceRange(getFromRing(0), cm.getCursor("start"), cm.getCursor("end"), "paste");

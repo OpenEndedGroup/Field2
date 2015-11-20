@@ -72,7 +72,7 @@ public class Saver {
 
 			storage = newStorage();
 		} else {
-			;//System.out.println("state opf workers: ");
+			//System.out.println("state opf workers: ");
 			for (FutureTask t : workers)
 				;//System.out.println(t.isDone());
 

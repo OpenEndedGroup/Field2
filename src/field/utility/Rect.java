@@ -95,9 +95,8 @@ public class Rect implements Mutable<Rect>, Serializable {
 		if (Float.compare(rect.h, h) != 0) return false;
 		if (Float.compare(rect.w, w) != 0) return false;
 		if (Float.compare(rect.x, x) != 0) return false;
-		if (Float.compare(rect.y, y) != 0) return false;
+		return Float.compare(rect.y, y) == 0;
 
-		return true;
 	}
 
 	@Override

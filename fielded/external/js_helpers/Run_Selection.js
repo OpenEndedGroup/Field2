@@ -1,15 +1,15 @@
-anchorLine = Math.max(cm.listSelections()[0].anchor.line, cm.listSelections()[0].head.line)
+anchorLine = Math.max(cm.listSelections()[0].anchor.line, cm.listSelections()[0].head.line);
 
 if (cm.listSelections()[0].anchor.line == cm.listSelections()[0].head.line && cm.listSelections()[0].anchor.pos == cm.listSelections()[0].head.pos) {
 
-	fragment = cm.getLine(cm.listSelections()[0].anchor.line)
+	fragment = cm.getLine(cm.listSelections()[0].anchor.line);
 
-	lh1 = cm.listSelections()[0].head
-	lh2 = cm.listSelections()[0].anchor
+	lh1 = cm.listSelections()[0].head;
+	lh2 = cm.listSelections()[0].anchor;
 	var off = 0;
 	if (lh1.line > lh2.line) {
-		var t = lh2
-		lh2 = lh1
+		var t = lh2;
+		lh2 = lh1;
 		lh1 = t
 	}
 
@@ -17,7 +17,7 @@ if (cm.listSelections()[0].anchor.line == cm.listSelections()[0].head.line && cm
 		off = -1;
 	}
 
-	var path = findPathForLines(lh1.line, lh2.line + off)
+	var path = findPathForLines(lh1.line, lh2.line + off);
 	if (!path) {
 		makePathForHandles(cm.getLineHandle(lh1.line), cm.getLineHandle(lh2.line))
 	} else {
@@ -26,18 +26,18 @@ if (cm.listSelections()[0].anchor.line == cm.listSelections()[0].head.line && cm
 
 }
 else if (cm.listSelections()[0].anchor.line == cm.listSelections()[0].head.line) {
-	fragment = cm.getSelections()[0]
+	fragment = cm.getSelections()[0];
 	lh1 = cm.listSelections()[0].head
 }
 else {
-	fragment = cm.getSelections()[0]
+	fragment = cm.getSelections()[0];
 
-	lh1 = cm.listSelections()[0].head
-	lh2 = cm.listSelections()[0].anchor
+	lh1 = cm.listSelections()[0].head;
+	lh2 = cm.listSelections()[0].anchor;
 	var off = 0;
 	if (lh1.line > lh2.line) {
-		var t = lh2
-		lh2 = lh1
+		var t = lh2;
+		lh2 = lh1;
 		lh1 = t
 	}
 
@@ -45,7 +45,7 @@ else {
 		off = -1;
 	}
 
-	var path = findPathForLines(lh1.line, lh2.line + off)
+	var path = findPathForLines(lh1.line, lh2.line + off);
 	if (!path) {
 		makePathForHandles(cm.getLineHandle(lh1.line), cm.getLineHandle(lh2.line + off))
 	} else {
@@ -60,7 +60,7 @@ _field.sendWithReturn("execution.fragment", {
 	text: fragment
 }, function (d, e) {
 	if (d.type == 'error')
-		appendRemoteOutputToLine(anchorLine, d.line + " : " + d.message, "Field-remoteOutput", "Field-remoteOutput-error", 1)
+		appendRemoteOutputToLine(anchorLine, d.line + " : " + d.message, "Field-remoteOutput", "Field-remoteOutput-error", 1);
 	else
 		appendRemoteOutputToLine(anchorLine, d.message, "Field-remoteOutput-error", "Field-remoteOutput", 1)
 });

@@ -238,8 +238,7 @@ CodeMirror.defineMode("sql", function(config, parserConfig) {
       return "variable-2";
     }
     return null;
-  };
-
+  }
   // short client keyword token
   function hookClient(stream) {
     // \N means NULL

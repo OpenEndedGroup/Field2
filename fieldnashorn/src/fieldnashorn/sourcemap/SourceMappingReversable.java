@@ -28,7 +28,7 @@ public interface SourceMappingReversable extends SourceMapping {
     /**
      * @return the collection of original sources in this source mapping
      */
-    public Collection<String> getOriginalSources();
+    Collection<String> getOriginalSources();
 
     /**
      * Given a source file, line, and column, return the reverse mapping (source --> target).
@@ -41,6 +41,6 @@ public interface SourceMappingReversable extends SourceMapping {
      * @param column       the source column
      * @return the reverse mapping (source --> target)
      */
-    public Collection<Mapping.OriginalMapping> getReverseMapping(String originalFile, int line, int column);
+    Collection<Mapping.OriginalMapping> getReverseMapping(String originalFile, int line, int column);
 
 }

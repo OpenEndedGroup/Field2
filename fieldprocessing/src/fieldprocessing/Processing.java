@@ -43,12 +43,12 @@ public class Processing extends Execution {
 	int sizeY = AutoPersist.persist("processing_sizeY", () -> 400, x -> Math.min(2560, Math.max(100, x)), (x) -> frame.getSize().height);
 
 	public interface MouseHandler {
-		public void handle(FieldProcessingApplet applet, Object/*MouseEvent or MouseMoveEvent*/ event);
+		void handle(FieldProcessingApplet applet, Object/*MouseEvent or MouseMoveEvent*/ event);
 	}
 
 	public interface KeyHandler
 	{
-		public void handle(FieldProcessingApplet applet, processing.event.KeyEvent event);
+		void handle(FieldProcessingApplet applet, processing.event.KeyEvent event);
 	}
 
 

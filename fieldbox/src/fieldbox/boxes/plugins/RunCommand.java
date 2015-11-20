@@ -48,7 +48,7 @@ public class RunCommand extends Box {
 					a.run();
 					found[0] = true;
 				}, null);
-				((RemoteEditor.ExtendedCommand) r.third).run();
+				r.third.run();
 			} else {
 				r.third.run();
 				found[0] = true;

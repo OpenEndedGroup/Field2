@@ -102,7 +102,7 @@
   }
 
   function highlight(string, mode) {
-    var state = mode.startState()
+    var state = mode.startState();
 
     var lines = string.replace(/\r\n/g,'\n').split('\n');
     var st = [], pos = 0;

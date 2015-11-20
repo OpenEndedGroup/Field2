@@ -280,9 +280,8 @@ public class SimplePDFOutput {
 			ExtGSState that = (ExtGSState) o;
 
 			if (Double.compare((int) (that.alpha * 100) / 100f, (int) (alpha * 100) / 100f) != 0) return false;
-			if (stroke != that.stroke) return false;
+			return stroke == that.stroke;
 
-			return true;
 		}
 
 		@Override

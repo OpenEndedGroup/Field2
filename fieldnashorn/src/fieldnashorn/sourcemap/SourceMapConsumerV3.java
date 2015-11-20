@@ -430,7 +430,7 @@ public class SourceMapConsumerV3 implements SourceMapConsumer, SourceMappingReve
         int getNameId();
     }
 
-    public static interface EntryVisitor {
+    public interface EntryVisitor {
         void visit(String sourceName, String sourceContent, String symbolName, FilePosition sourceStartPosition, FilePosition startPosition, FilePosition endPosition);
     }
 

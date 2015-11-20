@@ -227,7 +227,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 	}
 
 	public FLine rect(Rect r) {
-		return rect((float) r.x, (float) r.y, (float) r.w, (float) r.h);
+		return rect(r.x, r.y, r.w, r.h);
 	}
 
 	public FLine rect(double x, double y, double w, double h) {
@@ -1054,9 +1054,8 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 
 		if (knownNonProperties == null) knownNonProperties = computeKnownNonProperties();
 
-		if (knownNonProperties.contains(p)) return false;
+		return !knownNonProperties.contains(p);
 
-		return true;
 	}
 
 	@HiddenInAutocomplete
@@ -1096,7 +1095,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 	public Object asMap_set(String name, Object value) {
 
 		// workaround bug in Nashorn
-		if (value instanceof ConsString) value = ((ConsString) value).toString();
+		if (value instanceof ConsString) value = value.toString();
 
 
 		Dict.Prop cannon = new Dict.Prop(name).toCannon();
@@ -1271,7 +1270,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 		public Object asMap_set(String name, Object value) {
 
 			// workaround bug in Nashorn
-			if (value instanceof ConsString) value = ((ConsString) value).toString();
+			if (value instanceof ConsString) value = value.toString();
 
 
 //			Log.log("underscore.debug", " underscore box set :" + name + " to " + value.getClass() + " <" + Function.class.getName() + ">");
@@ -1409,9 +1408,8 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 
 			if (knownNonProperties == null) knownNonProperties = computeKnownNonProperties();
 
-			if (knownNonProperties.contains(p)) return false;
+			return !knownNonProperties.contains(p);
 
-			return true;
 		}
 
 		protected Set<String> computeKnownNonProperties() {

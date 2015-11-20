@@ -19,9 +19,8 @@ public class Triple<A, B, C> extends Pair<A,B> {
 
 		Triple triple = (Triple) o;
 
-		if (third != null ? !third.equals(triple.third) : triple.third != null) return false;
+		return !(third != null ? !third.equals(triple.third) : triple.third != null);
 
-		return true;
 	}
 
 	@Override

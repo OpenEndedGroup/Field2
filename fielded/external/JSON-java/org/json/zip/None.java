@@ -10,6 +10,6 @@ public interface None {
     /**
      * Negative One.
      */
-    public static final int none = -1;
+    int none = -1;
 
 }

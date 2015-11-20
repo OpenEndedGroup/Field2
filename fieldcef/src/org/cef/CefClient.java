@@ -114,8 +114,6 @@ public class CefClient extends CefClientHandler implements CefContextMenuHandler
 		return this;
 	}
 
-	;
-
 	@Override
 	protected CefDisplayHandler getDisplayHandler() {
 		return this;

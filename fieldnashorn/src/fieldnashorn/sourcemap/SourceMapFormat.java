@@ -29,5 +29,5 @@ public enum SourceMapFormat {
     /**
      * V3: An even more compact format
      */
-    V3;
+    V3
 }

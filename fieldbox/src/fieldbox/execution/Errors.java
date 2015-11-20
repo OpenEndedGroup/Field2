@@ -51,7 +51,7 @@ public class Errors {
 	}
 
 	public interface ErrorConsumer  {
-		public void consume(Throwable t, String message);
+		void consume(Throwable t, String message);
 	}
 
 	public interface SavesErrorConsumer

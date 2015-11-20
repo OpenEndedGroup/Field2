@@ -46,7 +46,7 @@ public class Drops {
 	}
 
 	public interface OnDrop {
-		public void onDrop(Window.Event<Window.Drop> drop);
+		void onDrop(Window.Event<Window.Drop> drop);
 	}
 
 

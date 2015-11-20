@@ -89,7 +89,7 @@ CodeMirror.defineMode("pegjs", function (config) {
             } else if (text[i] === '}') {
               state.braced--;
             }
-          };
+          }
         }
         return token;
       } else if (identifier(stream)) {

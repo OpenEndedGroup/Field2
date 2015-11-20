@@ -11,5 +11,5 @@ public interface CefGeolocationCallback {
 	/**
 	 * Call to allow or deny geolocation access.
 	 */
-	public void Continue(boolean allow);
+	void Continue(boolean allow);
 }

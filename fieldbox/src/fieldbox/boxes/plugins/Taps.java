@@ -69,7 +69,7 @@ public class Taps extends Box implements IO.Loaded {
 		});
 
 
-		this.properties.putToMap(Boxes.insideRunLoop, "main.__activate/deactivate__", (Supplier<Boolean>) this::update);
+		this.properties.putToMap(Boxes.insideRunLoop, "main.__activate/deactivate__", this::update);
 	}
 
 	protected boolean update() {

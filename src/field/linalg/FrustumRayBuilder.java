@@ -130,7 +130,7 @@ public class FrustumRayBuilder {
 		double dy = y1y * oneMinusX + y2y * x;
 		double dz = y1z * oneMinusX + y2z * x;
 		// normalize the vector
-		double len = (double) Math.sqrt(dx * dx + dy * dy + dz * dz);
+		double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
 		dx /= len;
 		dy /= len;
 		dz /= len;

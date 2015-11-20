@@ -8,6 +8,7 @@ import fieldbox.FieldBox;
 import fieldbox.Open;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Mouse;
+import fieldbox.io.IO;
 import fielded.Commands;
 
 import java.io.File;
@@ -57,7 +58,7 @@ public class RevealInFinder extends Box {
 					.filter(x -> x.properties.has(Box.name) && x.properties.has(Box.frame))
 					.collect(Collectors.toList());
 
-		revealInFinder(l, Collections.singletonList(FieldBox.fieldBox.io.filenameFor(FieldBox.fieldBox.io.WORKSPACE + "/" + find(Open.fieldFilename, both()).findFirst().get()).getAbsolutePath()));
+		revealInFinder(l, Collections.singletonList(FieldBox.fieldBox.io.filenameFor(IO.WORKSPACE + "/" + find(Open.fieldFilename, both()).findFirst().get()).getAbsolutePath()));
 
 
 	}

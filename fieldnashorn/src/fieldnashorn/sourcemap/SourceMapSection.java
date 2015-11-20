@@ -99,7 +99,7 @@ public class SourceMapSection {
         return column;
     }
 
-    public static enum SectionType {
+    public enum SectionType {
         URL,
         MAP
     }

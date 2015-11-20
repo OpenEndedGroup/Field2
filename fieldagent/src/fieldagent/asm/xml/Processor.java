@@ -480,7 +480,7 @@ public class Processor {
      * {@link org.xml.sax.ContentHandler ContentHandler} instances for concrete
      * context.
      */
-    private static interface ContentHandlerFactory {
+    private interface ContentHandlerFactory {
 
         /**
          * Creates an instance of the content handler.
@@ -996,7 +996,7 @@ public class Processor {
 
     }
 
-    private static interface EntryElement {
+    private interface EntryElement {
 
         OutputStream openEntry(String name) throws IOException;
 

@@ -173,7 +173,7 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 			Vec2 originalT = d.getTranslation();
 			Vec2 originalScale = d.getScale();
 
-			return (Mouse.Dragger) (drag, termination) -> {
+			return (drag, termination) -> {
 				Vec2 deltaNow = drawing.map(x -> x.windowSystemToDrawingSystemDelta(new Vec2(drag.after.x - e.after.x, drag.after.y - e.after.y)))
 						       .orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
 
@@ -397,7 +397,7 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 
 				  Vec2 downAt = new Vec2(point);
 
-				  return (Mouse.Dragger) (drag, termination) -> {
+				  return (drag, termination) -> {
 					  Vec2 delta = new Vec2(drag.after.dx, drag.after.dy);
 
 					  Vec2 drawingDelta = drawing.map(x -> x.windowSystemToDrawingSystemDelta(delta))
@@ -549,7 +549,7 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 	}
 
 	public enum DragTarget {
-		translate, left, top, right, bottom;
+		translate, left, top, right, bottom
 	}
 
 }

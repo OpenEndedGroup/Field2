@@ -106,7 +106,7 @@
       Pos(0, 4), "Alt-Space", txt("hi b ye  "),
       "Ctrl-A", "Alt-Space", "Ctrl-E", "Alt-Space", txt(" hi b ye "));
 
-  sim("openLine", "foo bar", "Alt-F", "Ctrl-O", txt("foo\n bar"))
+  sim("openLine", "foo bar", "Alt-F", "Ctrl-O", txt("foo\n bar"));
 
   sim("transposeChar", "abcd\n\ne",
       "Ctrl-F", "Ctrl-T", "Ctrl-T", txt("bcad\n\ne"), at(0, 3),

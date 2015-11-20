@@ -8,5 +8,5 @@ package field.graphics;
  * close() is defined in AutoCloseable (which is part of Java8 and allows Bracketable's to be used inside try-with-resources blocks.
  */
 public interface Bracketable extends AutoCloseable {
-	public Bracketable open();
+	Bracketable open();
 }

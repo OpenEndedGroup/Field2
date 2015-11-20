@@ -375,7 +375,7 @@ public class Open {
 		special.put(">>root<<", root);
 
 		Set<Box> created = new LinkedHashSet<Box>();
-		IO.Document doc = FieldBox.fieldBox.io.readDocument(filename.startsWith("/") ? filename : (FieldBox.fieldBox.io.WORKSPACE + "/" + filename), special, created);
+		IO.Document doc = FieldBox.fieldBox.io.readDocument(filename.startsWith("/") ? filename : (IO.WORKSPACE + "/" + filename), special, created);
 		Log.println("io.debug", "created :" + created);
 
 		Drawing.dirty(root);

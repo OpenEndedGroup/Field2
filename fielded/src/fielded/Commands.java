@@ -164,7 +164,7 @@ public class Commands extends Box {
 	}
 
 	public static List<Triple<String, String, Runnable>> getCommandsAndDocs(Box box) {
-		List<Triple<String, String, Runnable>> commands = (List<Triple<String, String, Runnable>>) box.find(Commands.commands, box.both())
+		List<Triple<String, String, Runnable>> commands = box.find(Commands.commands, box.both())
 													      .flatMap(m -> m.get()
 															     .entrySet()
 															     .stream())

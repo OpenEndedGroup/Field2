@@ -137,10 +137,7 @@ public class Vertex {
 			return false;
 		}
 		final Vertex other = (Vertex) obj;
-		if (!Objects.equals(this.pos, other.pos)) {
-			return false;
-		}
-		return true;
+		return Objects.equals(this.pos, other.pos);
 	}
 
 	@Override

@@ -12,7 +12,7 @@ public interface CefContextMenuParams {
 	/**
 	 * Supported context menuSpecs type flags.
 	 */
-	public static final class TypeFlags {
+	final class TypeFlags {
 		public final static int CM_TYPEFLAG_NONE = 0;      //!< No node is selected.
 		public final static int CM_TYPEFLAG_PAGE = 1 << 0; //!< The top page is selected.
 		public final static int CM_TYPEFLAG_FRAME = 1 << 1; //!< A subframe page is selected.
@@ -25,7 +25,7 @@ public interface CefContextMenuParams {
 	/**
 	 * Supported context menuSpecs media types.
 	 */
-	public enum MediaType {
+	enum MediaType {
 		CM_MEDIATYPE_NONE,    //!< No special node is in context.
 		CM_MEDIATYPE_IMAGE,   //!< An image node is selected.
 		CM_MEDIATYPE_VIDEO,   //!< A video node is selected.
@@ -37,7 +37,7 @@ public interface CefContextMenuParams {
 	/**
 	 * Supported context menuSpecs media state bit flags.
 	 */
-	public static final class MediaStateFlags {
+	final class MediaStateFlags {
 		public final static int CM_MEDIAFLAG_NONE = 0;
 		public final static int CM_MEDIAFLAG_ERROR = 1 << 0;
 		public final static int CM_MEDIAFLAG_PAUSED = 1 << 1;
@@ -54,7 +54,7 @@ public interface CefContextMenuParams {
 	/**
 	 * Supported context menuSpecs edit state bit flags.
 	 */
-	public static final class EditStateFlags {
+	final class EditStateFlags {
 		public final static int CM_EDITFLAG_NONE = 0;
 		public final static int CM_EDITFLAG_CAN_UNDO = 1 << 0;
 		public final static int CM_EDITFLAG_CAN_REDO = 1 << 1;

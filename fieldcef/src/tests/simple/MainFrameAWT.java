@@ -153,7 +153,7 @@ public class MainFrameAWT extends JFrame {
 		}
 		catch(Throwable t)
 		{
-			t.printStackTrace();;
+			t.printStackTrace();
 		}
 
 		System.out.println(" -- mousing around --- ");
@@ -181,7 +181,7 @@ public class MainFrameAWT extends JFrame {
 			}
 			catch(Throwable t)
 			{
-				t.printStackTrace();;
+				t.printStackTrace();
 			}
 		}
 	}
