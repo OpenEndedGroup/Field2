@@ -216,9 +216,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	}
 
 	private void setCurrentLineNumberForPrinting(Pair<Box, Integer> boxLine) {
-
 		currentLineNumber = boxLine;
-
 	}
 
 	private void handleScriptException(Throwable e, Consumer<Pair<Integer, String>> lineErrors, Function<Integer, Integer> lineTransform) {
