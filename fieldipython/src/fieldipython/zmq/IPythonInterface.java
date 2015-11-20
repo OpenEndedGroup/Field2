@@ -107,7 +107,7 @@ public class IPythonInterface {
 		a.add(new JSONObject(c).toString());
 
 
-		System.out.println(" sending :"+a);
+		System.out.println(" sending :" + a);
 
 		for (int i = 0; i < a.size() - 1; i++)
 			speak.sendMore(a.get(i));
@@ -275,6 +275,11 @@ public class IPythonInterface {
 				{
 					String q = d.getString("image/png");
 					text += "<img src='data:image/png;base64,"+q.replace("\n", "").replace("\\n", "")+"'>";
+				}
+				else if (d.has("text/html"))
+				{
+					String q = d.getString("text/html");
+					text += q;
 				}
 			}
 
