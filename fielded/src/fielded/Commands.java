@@ -2,8 +2,14 @@ package fielded;
 
 import field.utility.*;
 import fieldbox.boxes.Box;
+import fieldbox.boxes.Boxes;
+import fieldbox.boxes.Callbacks;
+import fieldbox.boxes.Mouse;
+import fieldbox.boxes.annotations.PublishAsCommand;
 import org.json.JSONStringer;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -21,9 +27,9 @@ public class Commands extends Box {
 															   .toCannon();
 
 	static public final Dict.Prop<IdempotencyMap<Function<Box, Void>>> command = new Dict.Prop<>("command").type()
-													 .toCannon()
-													 .doc("commands for this box (and all boxes below). For example `_.command.foo = function(_) bar(_)`")
-													 .autoConstructs(() -> new IdempotencyMap<>(Function.class));
+													       .toCannon()
+													       .doc("commands for this box (and all boxes below). For example `_.command.foo = function(_) bar(_)`")
+													       .autoConstructs(() -> new IdempotencyMap<>(Function.class));
 	static public final Dict.Prop<IdempotencyMap<Function<Box, Boolean>>> commandGuard = new Dict.Prop<>("commandGuard").type()
 															    .toCannon()
 															    .doc("a predicate that allows you to turn on and off a command. `_.commandGuard.foo = function(_) false` will turn off command `foo` for this box and all progengy")
@@ -33,6 +39,69 @@ public class Commands extends Box {
 													.toCannon()
 													.doc("documentation for commands for this box (and all boxes below). For example `_.commandDoc.foo = \"foos the bar\"`")
 													.autoConstructs(() -> new IdempotencyMap<>(String.class));
+
+	static public void registerCommands(Box on) {
+		Class<?> c = on.getClass();
+
+		Method[] m = c.getDeclaredMethods();
+		for (Method mm : m) {
+			PublishAsCommand p = mm.getDeclaredAnnotation(PublishAsCommand.class);
+			if (p != null) {
+				if (p.isGuard()) {
+					on.properties.putToMap(commandGuard, p.name(), (x) -> {
+						if (mm.getParameterCount() == 1) {
+							try {
+								return ((Boolean)mm.invoke(on, x)).booleanValue();
+							} catch (IllegalAccessException e) {
+								e.printStackTrace();
+							} catch (InvocationTargetException e) {
+								e.printStackTrace();
+							}
+						} else {
+							try {
+								return ((Boolean)mm.invoke(on)).booleanValue();
+							} catch (IllegalAccessException e) {
+								e.printStackTrace();
+							} catch (InvocationTargetException e) {
+								e.printStackTrace();
+							}
+						}
+						return false;
+					});
+				} else {
+					on.properties.putToMap(command, p.name(), (x) -> {
+
+						if (mm.getParameterCount() == 1) {
+							try {
+								mm.invoke(on, x);
+							} catch (IllegalAccessException e) {
+								e.printStackTrace();
+							} catch (InvocationTargetException e) {
+								e.printStackTrace();
+							}
+						} else {
+							Box root = on.first(Boxes.root)
+								     .get();
+							root.breadthFirst(root.allDownwardsFrom())
+							    .filter(y -> x.properties.isTrue(Mouse.isSelected, false))
+							    .forEach(y -> Callbacks.transition(y, Mouse.isSelected, false, false, Callbacks.onSelect, Callbacks.onDeselect));
+							Callbacks.transition(x, Mouse.isSelected, true, false, Callbacks.onSelect, Callbacks.onDeselect);
+							try {
+								mm.invoke(on);
+							} catch (IllegalAccessException e) {
+								e.printStackTrace();
+							} catch (InvocationTargetException e) {
+								e.printStackTrace();
+							}
+						}
+
+						return null;
+					});
+					on.properties.putToMap(commandDoc, p.name(), p.documentation());
+				}
+			}
+		}
+	}
 
 	public LinkedHashMap<String, Runnable> callTable = new LinkedHashMap<>();
 	public RemoteEditor.ExtendedCommand callTable_alternative = null;
@@ -104,13 +173,12 @@ public class Commands extends Box {
 
 
 		IdempotencyMap<Function<Box, Void>> map = box.find(command, box.upwards())
-						       .reduce(new IdempotencyMap<Function<Box, Void>>(Function.class), (a1, a2) -> {
-							       IdempotencyMap<Function<Box, Void>
-									   > q = new IdempotencyMap<>(Function.class);
-							       q.putAll(a1);
-							       q.putAll(a2);
-							       return q;
-						       });
+							     .reduce(new IdempotencyMap<Function<Box, Void>>(Function.class), (a1, a2) -> {
+								     IdempotencyMap<Function<Box, Void>> q = new IdempotencyMap<>(Function.class);
+								     q.putAll(a1);
+								     q.putAll(a2);
+								     return q;
+							     });
 		IdempotencyMap<String> mapDoc = box.find(commandDoc, box.upwards())
 						   .reduce(new IdempotencyMap<String>(String.class), (a1, a2) -> {
 							   IdempotencyMap<String> q = new IdempotencyMap<>(String.class);
@@ -134,10 +202,12 @@ public class Commands extends Box {
 				   String name = rewriteCamelCase(x.getKey());
 				   String doc = mapDoc.getOrDefault(x.getKey(), "");
 				   commands.add(new Triple<String, String, Runnable>(name, doc, () -> {
-					   x.getValue().apply(box);
+					   x.getValue()
+					    .apply(box);
 				   }));
 			   }
-		   }); return commands;
+		   });
+		return commands;
 	}
 
 	static private String rewriteCamelCase(String key) {
