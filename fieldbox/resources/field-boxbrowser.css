@@ -106,4 +106,25 @@ p {
     height: auto;
 }
 
+h1 {
+    padding-left:4px;
+    padding-right:4px;
+    padding-bottom: 5px;
+    margin-top:-5px;
+    margin-left:-5px;
+    margin-right:-5px;
+    margin-bottom: 4px;
+    background: rgba(0,0,0,0.1);
+    font-size: 20px;
+    text-align: center;
+}
+
+.grouped
+{
+    background:rgba(0,0,0,0.1);
+    border-radius: 5px;
+    padding:5px;
+    margin:-5px;
+}
+
 
