@@ -4,6 +4,7 @@ import field.utility.Dict;
 import field.utility.IdempotencyMap;
 import field.utility.Pair;
 import fieldbox.boxes.Box;
+import fieldbox.execution.InverseDebugMapping;
 import fieldbox.io.IO;
 import fielded.boxbrowser.ObjectToHTML;
 
@@ -86,9 +87,9 @@ public class Out extends Box {
 			field.nashorn.api.scripting.ScriptObjectMirror xx = (field.nashorn.api.scripting.ScriptObjectMirror)x;
 			if (xx.isFunction())
 			{
-				//TODO invert this ?
+				String found = InverseDebugMapping.describe(xx);
 
-				return "{HTML}<div class='maptable-entry'><b>function</b></div>";
+				return "{HTML}<div class='maptable-entry'><b>function"+found+"</b></div>";
 			}
 			return x;
 		});
