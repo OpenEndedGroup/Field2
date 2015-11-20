@@ -10,6 +10,7 @@ import field.graphics.Texture;
 import field.utility.AutoPersist;
 import field.utility.Dict;
 import field.utility.Log;
+import fieldagent.Main;
 import fieldbox.boxes.*;
 import fieldbox.boxes.plugins.*;
 import fieldbox.execution.Execution;
@@ -394,7 +395,10 @@ public class Open {
 		glEnable(GL11.GL_BLEND);
 		glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		glDisable(GL11.GL_DEPTH_TEST);
-		glEnable(GL13.GL_MULTISAMPLE);
+
+
+		if (Main.os == Main.OS.linux)
+			glEnable(GL13.GL_MULTISAMPLE);
 
 		return true;
 	}
@@ -407,7 +411,8 @@ public class Open {
 		glEnable(GL11.GL_BLEND);
 		glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		glDisable(GL11.GL_DEPTH_TEST);
-		glEnable(GL13.GL_MULTISAMPLE);
+		if (Main.os == Main.OS.linux)
+			glEnable(GL13.GL_MULTISAMPLE);
 
 		return true;
 	}
@@ -421,7 +426,8 @@ public class Open {
 		glEnable(GL11.GL_BLEND);
 		glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		glDisable(GL11.GL_DEPTH_TEST);
-		glEnable(GL13.GL_MULTISAMPLE);
+		if (Main.os == Main.OS.linux)
+			glEnable(GL13.GL_MULTISAMPLE);
 
 		return true;
 	}

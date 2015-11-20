@@ -5,6 +5,7 @@ import field.linalg.Vec2;
 import field.utility.Dict;
 import field.utility.Log;
 import field.utility.Options;
+import fieldagent.Main;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -71,7 +72,7 @@ public class Compositor {
 	}
 
 	private FBO newFBO(int unit) {
-		if (Options.dict().isTrue(new Dict.Prop<Boolean>("multisample"), true)) return new FBO(FBO.FBOSpecification.rgbaMultisample(unit, window.getFrameBufferWidth(), window.getFrameBufferHeight()));
+		if (Options.dict().isTrue(new Dict.Prop<Boolean>("multisample"), Main.os!= Main.OS.mac)) return new FBO(FBO.FBOSpecification.rgbaMultisample(unit, window.getFrameBufferWidth(), window.getFrameBufferHeight()));
 		return new FBO(FBO.FBOSpecification.rgba(unit, window.getFrameBufferWidth(), window.getFrameBufferHeight()));
 	}
 
