@@ -87,6 +87,9 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 				if (middle == null) middle = noop();
 				if (end == null) end = noop();
 
+				if (start == middle) start = noop();
+				if (end== middle) end = noop();
+
 				Animatable.AnimationElement fstart = start;
 				Animatable.AnimationElement fmiddle = middle;
 				Animatable.AnimationElement fend = end;
@@ -161,15 +164,15 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 
 					@Override
 					public Object beginning(boolean isEnding) {
-						return middle(isEnding);
+						return null;/*return middle(isEnding);*/
 					}
 
 					@Override
 					public Object end(boolean isEnding) {
-						return middle(isEnding);
+						return null;/*return middle(isEnding);*/
 					}
 
-				};
+ 				};
 			}
 			return was;
 		});
