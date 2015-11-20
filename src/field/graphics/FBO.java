@@ -288,7 +288,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 	}
 
 	@HiddenInAutocomplete
-	public int getOpenGLFrameBufferName()
+	public int getOpenGLFrameBufferNameInCurrentContext()
 	{
 		State s = GraphicsContext.get(this, this::setup);
 		if (s==null)
@@ -296,6 +296,17 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 			throw new NullPointerException("FBO not initialized in this context");
 		}
 		return s.name;
+	}
+
+	@HiddenInAutocomplete
+	public int getOpenGLTextureNameInCurrentContext()
+	{
+		State s = GraphicsContext.get(this, this::setup);
+		if (s==null)
+		{
+			throw new NullPointerException("FBO not initialized in this context");
+		}
+		return s.text[0];
 	}
 
 	@Override

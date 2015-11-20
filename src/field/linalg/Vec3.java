@@ -22,6 +22,8 @@
  */
 package field.linalg;
 
+import field.utility.Mutable;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -40,7 +42,7 @@ import java.util.function.Supplier;
  * @author Richard Greenlees
  * @author Kai Burjack
  */
-public class Vec3 implements Externalizable, Supplier<Vec3> {
+public class Vec3 implements Externalizable, Supplier<Vec3>, Mutable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -1662,6 +1664,14 @@ public class Vec3 implements Externalizable, Supplier<Vec3> {
 	public Vec3 z(double v) {
 		this.z = v;
 		return this;
+	}
+
+	/** adds a uniformly distributed random number from -amount to amount to each dimension */
+	public void noise(float amount)
+	{
+		x+= 2*amount*(Math.random()-0.5f);
+		y+= 2*amount*(Math.random()-0.5f);
+		z+= 2*amount*(Math.random()-0.5f);
 	}
 
 

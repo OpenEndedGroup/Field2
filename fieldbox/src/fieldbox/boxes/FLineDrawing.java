@@ -103,7 +103,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 	static public Function<Box, FLine> boxScale(Function<Box, FLine> wrap) {
 		return new Cached<Box, Object, FLine>((box, previously) -> {
 			Rect frame = box.properties.get(Box.frame);
-			if (frame==null) return null;
+			if (frame == null) return null;
 
 			return wrap.apply(box)
 				   .byTransforming((pos) -> new Vec3(frame.x + pos.x * frame.w, frame.y + pos.y * frame.h, pos.z));
@@ -113,11 +113,17 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 	static public Function<Box, FLine> windowOrigin(Function<Box, FLine> wrap) {
 		return new Cached<Box, Object, FLine>((box, previously) -> {
 
-			Rect v = box.find(Drawing.drawing, box.upwards()).findFirst().get().getCurrentViewBounds(box);
+			Rect v = box.find(Drawing.drawing, box.upwards())
+				    .findFirst()
+				    .get()
+				    .getCurrentViewBounds(box);
 
 			return wrap.apply(box)
-				   .byTransforming((pos) -> new Vec3(v.x+v.w/2+pos.x, v.y+v.h/2+pos.y, pos.z));
-		}, (box) -> box.find(Drawing.drawing, box.upwards()).findFirst().get().getCurrentViewBounds(box));
+				   .byTransforming((pos) -> new Vec3(v.x + v.w / 2 + pos.x, v.y + v.h / 2 + pos.y, pos.z));
+		}, (box) -> box.find(Drawing.drawing, box.upwards())
+			       .findFirst()
+			       .get()
+			       .getCurrentViewBounds(box));
 	}
 
 
@@ -162,9 +168,8 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 			String l = f.attributes.getOr(layer, () -> "__main__");
 			f.attributes.multiply(opacity, 1, counter[0] / (float) updates);
 			f.modify();
-			if (counter[0]>=0)
-				Drawing.dirty(box, l);
-			if (--counter[0]==0) done.run();
+			if (counter[0] >= 0) Drawing.dirty(box, l);
+			if (--counter[0] == 0) done.run();
 			return counter[0] == 0 ? null : f;
 		};
 	}
@@ -177,8 +182,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 			String l = f.attributes.getOr(layer, () -> "__main__");
 			f.attributes.multiply(opacity, 1, (float) Math.pow(counter[0] / (float) updates, power));
 			f.modify();
-			if (counter[0]>=0)
-				Drawing.dirty(box, l);
+			if (counter[0] >= 0) Drawing.dirty(box, l);
 			return --counter[0] == 0 ? null : f;
 		};
 	}
@@ -196,6 +200,8 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 			    Log.log("drawing.trace", ()->"lines for " + x);
 
 			    if (x.properties.isTrue(Box.hidden, false)) return;
+
+			    String defaultLayer = x.properties.getOr(layer, () -> "__main__");
 
 			    Map<String, Function<Box, FLine>> drawing = x.properties.computeIfAbsent(frameDrawing, this::defaultdrawsLines);
 			    List<FLine> all = new ArrayList<>();
@@ -215,7 +221,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 				   .map(c -> c.apply(x))
 				   .filter(fline -> fline != null)
 				   .collect(Collectors.toList())
-				   .forEach(fline -> dispatchLine(fline, context, text));
+				   .forEach(fline -> dispatchLine(fline, context, text, defaultLayer));
 			    Map<String, Supplier<FLine>> ll = x.properties.computeIfAbsent(lines, (k) -> new IdempotencyMap<>(Supplier.class));
 
 			    all = new ArrayList<>();
@@ -230,12 +236,11 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 
 			    Log.log("drawing.trace",()-> " --> " + ll);
 
-
 			    ll.values()
 			      .stream()
 			      .map(c -> c.get())
 			      .filter(fline -> fline != null)
-			      .forEach(fline -> dispatchLine(fline, context, text));
+			      .forEach(fline -> dispatchLine(fline, context, text, defaultLayer));
 
 
 			    Map<String, Supplier<Collection<Supplier<FLine>>>> bl = x.properties.get(bulkLines);
@@ -248,13 +253,19 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 					    Supplier<Collection<Supplier<FLine>>> f = it3.next();
 					    Collection<Supplier<FLine>> fl = f.get();
 					    if (fl == null) it3.remove();
-					    else all.addAll(fl.stream().map(q -> q.get()).collect(Collectors.toList()));
+					    else {
+						    final List<FLine> finalAll = all;
+						    fl.stream()
+						      .map(z -> z.get())
+						      .filter(z -> z != null)
+						      .forEach(z -> finalAll.add(z));
+					    }
 				    }
 
 				    final List<FLine> finalAll = all;
 				    Log.log("drawing.trace", ()->" --> " + finalAll);
 
-				    all.forEach(fline -> dispatchLine(fline, context, text));
+				    all.forEach(fline -> dispatchLine(fline, context, text, defaultLayer));
 			    }
 			    Log.log("drawing.trace", ()->"lines for " + x + " finished");
 
@@ -271,16 +282,17 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 	}
 
 	protected void dispatchLine(FLine fline, Drawing context, Optional<TextDrawing> text) {
+		dispatchLine(fline, context, text, "__main__");
+	}
 
-		String layerName = fline.attributes.getOr(layer, () -> "__main__");
+	protected void dispatchLine(FLine fline, Drawing context, Optional<TextDrawing> text, String defaultLayer) {
+		String layerName = fline.attributes.getOr(layer, () -> defaultLayer);
 
 		MeshBuilder line = context.getLine(layerName);
 		MeshBuilder mesh = context.getMesh(layerName);
 		MeshBuilder points = context.getPoints(layerName);
 
-
 		StandardFLineDrawing.dispatchLine(fline, mesh, line, points, text, layerName);
-
 	}
 
 	protected Map<String, Function<Box, FLine>> defaultdrawsLines(Dict.Prop<Map<String, Function<Box, FLine>>> k) {
@@ -329,6 +341,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 			if (box.getClass() != Box.class) {
 				f.rect(rect);
 			} else FLinesAndJavaShapes.drawRoundedRectInto(f, rect.x, rect.y, rect.w, rect.h, 19);
+
 			for (int i = 0; i < f.nodes.size(); i++) {
 				float alpha = ((i + 2) % f.nodes.size()) / (f.nodes.size() - 1f);
 				alpha = alpha * (1 - alpha) * 4;
@@ -341,7 +354,6 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 			Map<Integer, String> customFill = new LinkedHashMap<Integer, String>();
 			customFill.put(1, "fillColor");
 			f.setAuxProperties(customFill);
-
 
 			return f;
 		}, (box) -> new Pair(box.properties.get(frame), box.properties.get(Mouse.isSelected))));

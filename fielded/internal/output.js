@@ -55,7 +55,7 @@ function appendRemoteOutputToLine(line, text, checkClass, lineClass, append) {
 		$(d).scrollTop($(d)[0].scrollHeight)
 
 	} else {
-		d = $("<div class='" + lineClass + "'><div class='Field-closebox'>&#x2715;</div><div class='Field-expandBox'>&#x21A7;</div>" + text.trim() + "</div>")[0]
+		d = $("<div class='" + lineClass + "'><div class='Field-closebox'>&#x2715;</div><div class='Field-expandBox'>&#x21A7;</div></div>")[0]
 		d.lastOutputAt = new Date().valueOf();
 
 		bm = cm.addLineWidget(lh, d, {
@@ -63,6 +63,8 @@ function appendRemoteOutputToLine(line, text, checkClass, lineClass, append) {
 			handleMouseEvents: false
 		})
 		d.bm = bm
+
+		$(d).append("\n"+text.trim());
 
 		if (text.trim().length < 1 || text.trim() == "&#10003;") {
 			$(d).animate({opacity: 0.0, "max-height": "0%"}, {

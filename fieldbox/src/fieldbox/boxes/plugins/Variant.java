@@ -1,19 +1,21 @@
 package fieldbox.boxes.plugins;
 
+import field.graphics.FLine;
+import field.graphics.StandardFLineDrawing;
 import field.linalg.Vec2;
 import field.utility.Dict;
 import field.utility.LinkedHashMapAndArrayList;
 import field.utility.Pair;
 import field.utility.Util;
 import fieldbox.Open;
-import fieldbox.boxes.Box;
-import fieldbox.boxes.Boxes;
-import fieldbox.boxes.Drawing;
-import fieldbox.boxes.Mouse;
+import fieldbox.boxes.*;
 import fieldbox.io.IO;
 import fieldbox.ui.FieldBoxWindow;
 import fielded.Commands;
 import fielded.RemoteEditor;
+import fielded.boxbrowser.BoxBrowser;
+import fielded.boxbrowser.ObjectToHTML;
+import fielded.plugins.Out;
 import fieldlinker.Linker;
 import jdk.internal.jline.console.history.History;
 
@@ -23,8 +25,8 @@ import java.util.stream.Stream;
 
 /**
  * A box is either included in a Variant, excluded in a Variant or it doesn't matter (it can stay if it's here, or stay away if it isn't). Here we keep enough information to disconnect boxes
- * (completely) from the hierarchy and reconnect them again when we want to This will require the cooperation of IO however. When we save the graph we need to save the full graph with everything in
- * it, not the "current" subset
+ * (completely) from the hierarchy and reconnect them again when we want to This will require the cooperation of IO . When we save the graph we need to save the full graph with everything in it, not
+ * the "current" subset
  * <p>
  * We have to add copy history and merge to this (from Diff, in the personal tree).
  */
@@ -49,6 +51,21 @@ public class Variant extends Box implements IO.Loaded {
 		IO.persist(theVariant);
 		IO.persist(includes);
 		IO.persist(excludes);
+
+
+		variant.set(BoxBrowser.toMarkdown, (box, val) -> {
+
+			String s = "";
+
+			s += "*Current Variant* : "+val+"\n";
+
+			Set<String> o = box.properties.get(includes);
+			s += "*Included in* : "+o+"\n";
+			o = box.properties.get(excludes);
+			s += "*Excluded in* : "+o+"\n";
+
+			return s;
+		});
 	}
 
 	static public class CurrentVariant implements Linker.AsMap {
@@ -84,6 +101,7 @@ public class Variant extends Box implements IO.Loaded {
 
 		@Override
 		public Object asMap_set(String p, Object o) {
+			from.asMap_set(p, o);
 			return from.asMap_set(prefix(p), o);
 		}
 
@@ -164,8 +182,7 @@ public class Variant extends Box implements IO.Loaded {
 
 			if (selectionOrAll() == null) return m;
 
-			m.put(new Pair<>("Switch to variant",
-					 "Switches to an existing variant"),   new RemoteEditor.ExtendedCommand() {
+			m.put(new Pair<>("Switch to variant", "Switches to an existing variant"), new RemoteEditor.ExtendedCommand() {
 
 				public RemoteEditor.SupportsPrompt p;
 
@@ -241,6 +258,47 @@ public class Variant extends Box implements IO.Loaded {
 				      }
 			      });
 
+			m.put(new Pair<>("Fork to variant",
+					 "Selects or creates a new variant" + (s > 1 ? ", forks " + (all ? "all" : "the selected") + " boxes to this variant, and switches to that variant" : (s > 0 ? ", forks the selected box to this variant, and switches to that variant" : ""))),
+			      new RemoteEditor.ExtendedCommand() {
+
+				      public RemoteEditor.SupportsPrompt p;
+
+				      @Override
+				      public void begin(RemoteEditor.SupportsPrompt prompt, String alternativeChosen/*, Consumer<String> feedback*/) {
+					      this.p = prompt;
+				      }
+
+				      @Override
+				      public void run() {
+					      Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
+
+					      fillInExistingVariants(m, x -> {
+						      forkSelectionToVariant(x);
+						      // should we always do all here?
+						      switchAllToVariant(x);
+					      });
+
+					      p.prompt("New variant name", m, new RemoteEditor.ExtendedCommand() {
+
+						      String alt = "";
+
+						      @Override
+						      public void run() {
+
+							      System.err.println(" MAKE NEW VARIANT CALLED :" + this.alt);
+							      forkSelectionToVariant(this.alt);
+							      // should we always do all here?
+							      switchAllToVariant(this.alt);
+						      }
+
+						      @Override
+						      public void begin(RemoteEditor.SupportsPrompt prompt, String alternativeChosen) {
+							      this.alt = alternativeChosen;
+						      }
+					      });
+				      }
+			      });
 			m.put(new Pair<>("Remove from variant",
 					 "Selects or creates a new variant" + (s > 1 ? ", disables " + (all ? "all" : "the selected") + " boxes to this variant, and switches to that variant" : (s > 0 ? ", disables the selected box to this variant, and switches to that variant" : ""))),
 			      new RemoteEditor.ExtendedCommand() {
@@ -300,7 +358,6 @@ public class Variant extends Box implements IO.Loaded {
 		updateToVariant();
 	}
 
-
 	private void updateToVariant() {
 		Stream<Box> s = all();
 		s.forEach(x -> {
@@ -312,11 +369,37 @@ public class Variant extends Box implements IO.Loaded {
 				x.disconnected = false;
 				x.properties.getOrConstruct(excludes)
 					    .remove(t);
+
+				for (Map.Entry<Dict.Prop, Object> p : x.properties.getMap()
+										  .entrySet())
+					if (p.getKey()
+					     .getName()
+					     .startsWith("__variant:" + t + ":")) x.asMap_set(p.getKey()
+											       .getName()
+											       .substring(("__variant:" + t + ":").length()), p.getValue());
+
 			}
 
 			if (isExcluded(x, t)) x.disconnected = true;
 
+			installDrawer(x, t);
 		});
+	}
+
+	private void installDrawer(Box x, String tag) {
+		x.properties.putToMap(FLineDrawing.lines, "__tag__", FLineDrawing.boxOrigin(() -> {
+
+
+			FLine f = new FLine();
+			f.attributes.put(StandardFLineDrawing.hasText, true);
+			f.moveTo(5, -5);
+			f.last().attributes.put(StandardFLineDrawing.text, tag);
+			f.last().attributes.put(StandardFLineDrawing.textAlign, 0);
+
+			f.attributes.put(StandardFLineDrawing.opacity, 0.5f);
+			return f;
+
+		}, new Vec2(0,1), x));
 	}
 
 	private boolean isExcluded(Box x, String t) {
@@ -351,6 +434,48 @@ public class Variant extends Box implements IO.Loaded {
 
 	}
 
+	private void forkSelectionToVariant(String variant) {
+		{
+			Stream<Box> s = all();
+			s.forEach(x -> {
+				if (!isIncluded(x, variant)) x.properties.getOrConstruct(excludes)
+									 .add(variant);
+			});
+		}
+		{
+			Stream<Box> s = selectionOrAll();
+			s.forEach(x -> {
+				x.properties.getOrConstruct(includes)
+					    .add(variant);
+				x.properties.getOrConstruct(excludes)
+					    .remove(variant);
+
+				String currently = x.properties.get(theVariant);
+				if (currently == null) {
+					// fork on demand?
+				} else {
+					Map<Dict.Prop, Object> m = x.properties.getMap();
+					for (Dict.Prop p : new LinkedHashSet<>(m.keySet())) {
+						if (p.getName()
+						     .startsWith("__variant:" + currently + ":")) {
+							forkProperty(x, p, new Dict.Prop(p.getName()
+											  .replace("__variant:" + currently + ":", "__variant:" + variant + ":")));
+						}
+					}
+				}
+			});
+		}
+
+	}
+
+	private void forkProperty(Box x, Dict.Prop from, Dict.Prop to) {
+		// here's where we do version tracking
+
+		Object m = x.properties.get(from);
+		x.properties.put(to, m);
+	}
+
+
 	private void removeSelectionFromVariant(String variant) {
 		Stream<Box> s = selectionOrAll();
 		s.forEach(x -> {
@@ -378,7 +503,7 @@ public class Variant extends Box implements IO.Loaded {
 
 		seen.entrySet()
 		    .forEach(x -> {
-			    target.put(new Pair<>(x.getKey(), "Used by " + x.getValue() + " box" + (x.getValue() > 1 ? "s" : "")), () -> {
+			    target.put(new Pair<>(x.getKey(), "Used by " + x.getValue() + " box" + (x.getValue() > 1 ? "es" : "")), () -> {
 				    task.accept(x.getKey());
 			    });
 		    });

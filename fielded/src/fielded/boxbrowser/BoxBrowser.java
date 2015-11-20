@@ -1,6 +1,7 @@
 package fielded.boxbrowser;
 
 import field.utility.Dict;
+import field.utility.Pair;
 import fieldbox.boxes.Box;
 import fieldbox.execution.Execution;
 import fieldbox.io.IO;
@@ -16,12 +17,18 @@ import org.pegdown.ast.WikiLinkNode;
 import org.pegdown.plugins.PegDownPlugins;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 /**
  * In progress
+ * <p>
+ * We should trawl properties for an "info" attribute, and then use that to render html into collapsable sections. Those sections should remember that they've collapsed.
  */
 public class BoxBrowser extends Box implements IO.Loaded {
 
@@ -31,6 +38,8 @@ public class BoxBrowser extends Box implements IO.Loaded {
 	private Server s;
 
 	PegDownProcessor proc = new PegDownProcessor(1000, Extensions.WIKILINKS);
+
+	static public final Dict.Prop<BiFunction<Box, Object, String>> toMarkdown= new Dict.Prop<>("toMarkdown").set(Dict.domain, "*/attributes").doc("function that takes a (box, value) and returns a markdown string that describes that box");
 
 	public BoxBrowser(Box root) {
 		this.root = root;
@@ -48,25 +57,25 @@ public class BoxBrowser extends Box implements IO.Loaded {
 				uri = uri.substring(NAMED.length());
 				String[] pieces = uri.split("/");
 				return handleBy(x -> x.properties.has(Box.name) && x.properties.get(Box.name)
-											       .equals(pieces[0]), pieces.length>1 ? pieces[1] : null);
+											       .equals(pieces[0]), pieces.length > 1 ? pieces[1] : null);
 			} else if (uri.startsWith(ID)) {
 				uri = uri.substring(ID.length());
 				String[] pieces = uri.split("/");
 				return handleBy(x -> x.properties.has(IO.id) && x.properties.get(IO.id)
-											       .equals(pieces[0]), pieces.length>1 ? pieces[1] : null);
+											    .equals(pieces[0]), pieces.length > 1 ? pieces[1] : null);
 			} else return null;
 		});
 	}
 
-	static public final String preamble
-		    = "<html xmlns='http://www.w3.org/1999/xhtml'> <meta charset='UTF-8'><head>" +
-		    "<script src='/field/filesystem/codemirror-4.4/lib/codemirror.js'></script>"+
+	static public final String preamble = "<html xmlns='http://www.w3.org/1999/xhtml'> <meta charset='UTF-8'><head>" +
+		    "<script src='/field/filesystem/codemirror-4.4/lib/codemirror.js'></script>" +
 		    "<link rel='stylesheet' href='/field/filesystem/codemirror-4.4/lib/codemirror.css'>" +
-		    "<link rel='stylesheet' href='/field/filesystem/codemirror-4.4/theme/default.css'>"+
+		    "<link rel='stylesheet' href='/field/filesystem/codemirror-4.4/theme/default.css'>" +
 		    //"<link rel='stylesheet' href='/field/filesystem/field-codemirror.css'>" +
 		    "<link rel='stylesheet' href='/field/filesystem/field-boxbrowser.css' type='text/css'>" +
-		    "<script src='/field/filesystem/codemirror-4.4/mode/javascript/javascript.js'></script>"+
-		    "<script src='/field/filesystem/jquery-2.1.0.min.js'></script>"+
+		    "<script src='/field/filesystem/codemirror-4.4/mode/javascript/javascript.js'></script>" +
+		    "<script src='/field/filesystem/jquery-2.1.0.min.js'></script>" +
+		    "<script src='/field/filesystem/field-boxbrowser.js'></script>" +
 		    "</head><body>";
 	static public final String postamble = "</body>";
 
@@ -78,18 +87,46 @@ public class BoxBrowser extends Box implements IO.Loaded {
 
 		if (!first.isPresent()) return new NanoHTTPD.Response(NanoHTTPD.Response.Status.NOT_FOUND, null, "can't find box matching request");
 
-		propName =propName==null ?  Execution.code.getName() : propName;
+		if (propName!=null)
+		return handleBox(first.get(), new Dict.Prop<>(propName));
+		else
+			return handleBoxAllProperties(first.get());
+	}
 
-		return handleBox(first.get(), new Dict.Prop<Object>(propName));
+	private NanoHTTPD.Response handleBoxAllProperties(Box box) {
 
+		LinkedHashSet<Dict.Prop> props = new LinkedHashSet<Dict.Prop>();
+		List<Pair<String,String>> sections = new ArrayList<>();
+
+		box.breadthFirst(upwards()).forEach(x -> {
+			for (Dict.Prop p : x.properties.getMap().keySet()) {
+				if (!props.contains(p) && hasInfo(x, p)) {
+					sections.add(new Pair<>(p.getName(), render(x, x.properties.get(p), p)));
+					props.add(p);
+				}
+			}
+		});
+
+		return new NanoHTTPD.Response(NanoHTTPD.Response.Status.OK, null,
+				       preamble+sections.stream().map(x -> "<div class='grouped'><h1 id='section_"+x.first+"'>"+"_."+x.first+"</h1><div id='section_"+x.first+"''>"+x.second+"</div></div>").reduce((a, b) -> a + "<BR>" + b).orElseGet(() -> "")+postamble);
+	}
+
+	private boolean hasInfo(Box x, Dict.Prop p) {
+
+		if (p.equals(Execution.code)) return true;
+
+		if (!p.getAttributes().has(toMarkdown)) return false;
+
+		return true;
 	}
 
 	private NanoHTTPD.Response handleBox(Box box, Dict.Prop<Object> property) {
-		if (!box.properties.has(property)) return new NanoHTTPD.Response(NanoHTTPD.Response.Status.OK, null, preamble + "<p>no property called "+proc.markdownToHtml("`"+property.getName()+"`") + "</p>"+postamble);
+		if (!box.properties.has(property)) return new NanoHTTPD.Response(NanoHTTPD.Response.Status.OK, null,
+										 preamble + "<p>no property called " + proc.markdownToHtml("`" + property.getName() + "`") + "</p>" + postamble);
 
 		String source = box.properties.get(property) + "";
 
-		return render(box, source, property);
+		return new NanoHTTPD.Response(NanoHTTPD.Response.Status.OK, null, preamble + render(box, source, property) + postamble);
 	}
 
 	class Section {
@@ -97,14 +134,14 @@ public class BoxBrowser extends Box implements IO.Loaded {
 		int comment = 0;
 	}
 
-	private NanoHTTPD.Response render(Box box, String source, Dict.Prop<Object> property) {
+	private String render(Box box, Object source, Dict.Prop property) {
 		// extract comment blocks and render as markdown
 
-		// todo:
+		// todo, these are language specific
 		String commentStart = "/*";
 		String commentEnd = "*/";
 
-		String[] ss = source.split("\n");
+		String[] ss = (""+source).split("\n");
 
 		List<Section> sections = new ArrayList<>();
 		Section s = new Section();
@@ -132,23 +169,21 @@ public class BoxBrowser extends Box implements IO.Loaded {
 		}
 
 		if (sections.size() == 0) {
-//			return new NanoHTTPD.Response(NanoHTTPD.Response.Status.NO_CONTENT, null, "can't find a property called " + property.getName() + " in box " + box);
-			return new NanoHTTPD.Response(NanoHTTPD.Response.Status.OK, null, preamble + "<p>nothing in property called "+proc.markdownToHtml("`"+property.getName()+"`") + "</p>"+postamble);
+			return "<p>nothing in property called " + proc.markdownToHtml("`" + property.getName() + "`") + "</p>";
 		}
 
-
-		String o = sections.stream()
+		String o = ""+sections.stream()
 				   .filter(x -> x.a.trim()
 						   .length() > 0)
 				   .map(x -> render(box, property, x))
-				   .reduce((a, b) -> a + b)
+				   .reduce((a, b) -> (""+a) + (""+b))
 				   .get();
 
-		return new NanoHTTPD.Response(NanoHTTPD.Response.Status.OK, null, preamble + o + postamble);
-
+		return o;
 	}
 
 	int cn = 0;
+
 	private String render(Box box, Dict.Prop<Object> property, Section x) {
 		if (x.comment > 0) {
 
@@ -165,9 +200,8 @@ public class BoxBrowser extends Box implements IO.Loaded {
 			return "<p>" + h + "</p>";
 		} else {
 			cn++;
-			return "<textarea readonly class='ta_"+(cn)+"'>"+x.a.trim()+"</textarea>"
-				    +
-				    "<script language='javascript'>CodeMirror.fromTextArea($('.ta_"+cn+"')[0], {viewportMargin:Infinity, mode:'javascript', readOnly:true})</script>";
+			return "<textarea readonly class='ta_" + (cn) + "'>" + x.a.trim() + "</textarea>" +
+				    "<script language='javascript'>CodeMirror.fromTextArea($('.ta_" + cn + "')[0], {viewportMargin:Infinity, mode:'javascript', readOnly:true})</script>";
 		}
 	}
 }

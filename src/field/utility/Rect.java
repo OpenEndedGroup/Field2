@@ -31,6 +31,14 @@ public class Rect implements Mutable<Rect>, Serializable {
 		return r.union(rect);
 	}
 
+	public static Rect union(Rect r, Vec2 rect) {
+		if (r == null)
+			return r;
+		if (rect == null)
+			return r;
+		return r.union(rect);
+	}
+
 	public Rect union(Rect r) {
 		if (r==null) return this;
 		float minx = Math.min(r.x, x);
@@ -38,6 +46,17 @@ public class Rect implements Mutable<Rect>, Serializable {
 
 		float maxx = Math.max(r.x + r.w, x + w);
 		float maxy = Math.max(r.y + r.h, y + h);
+
+		return new Rect(minx, miny, maxx - minx, maxy - miny);
+	}
+
+	public Rect union(Vec2 r) {
+		if (r==null) return this;
+		float minx = (float) Math.min(r.x, x);
+		float miny = (float) Math.min(r.y, y);
+
+		float maxx = (float) Math.max(r.x, x + w);
+		float maxy = (float) Math.max(r.y, y + h);
 
 		return new Rect(minx, miny, maxx - minx, maxy - miny);
 	}

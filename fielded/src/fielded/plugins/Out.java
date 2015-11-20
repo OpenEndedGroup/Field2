@@ -58,9 +58,7 @@ public class Out extends Box {
 
 			if (uid != null) {
 				theLineOut.accept(new Pair<>(find(uid), uidLine));
-			}
-			else
-				theLineOut.accept(null);
+			} else theLineOut.accept(null);
 
 
 			try {
@@ -82,6 +80,19 @@ public class Out extends Box {
 			return "{HTML}<div class='maptable-entry'><b>[[__" + groupName + "__:" + safe(x.toString()) + " " + cheapSynax(
 				    x.toString()) + " ]]</b>[[__" + groupName + "smaller__:" + shorten(x.getClass()) + " <span class='smaller'>" + shorten(x.getClass()) + "</span> ]]</div>";
 		});
+
+		output.map._put("field_nashorn_api_scripting_ScriptObjectMirror", x -> {
+
+			field.nashorn.api.scripting.ScriptObjectMirror xx = (field.nashorn.api.scripting.ScriptObjectMirror)x;
+			if (xx.isFunction())
+			{
+				//TODO invert this ?
+
+				return "{HTML}<div class='maptable-entry'><b>function</b></div>";
+			}
+			return x;
+		});
+
 		output.map._put("java_util_List", x -> {
 			String s = "{HTML}";
 			if (((List) x).size() == 0) {
@@ -152,7 +163,7 @@ public class Out extends Box {
 	}
 
 	private String safe(String s) {
-		return s.replaceAll(" ", "_");
+		return s.trim().replaceAll(" ", "_").replaceAll("\n", "_");
 	}
 
 	Pattern stuff = Pattern.compile("([+-]?(\\d+\\.)?\\d+)|([\\%\\$\\#\\@\\!\\^\\&\\(\\)\\[\\]\\{\\}\\'\\,\\.\\;\\:\\+\\-\\*])");
@@ -187,7 +198,7 @@ public class Out extends Box {
 		Map<String, String> prev = new LinkedHashMap<>();
 
 		do {
-			Pattern p = Pattern.compile("\\[\\[__(.+?)__:(.+?) (.+?)\\]\\]");
+			Pattern p = Pattern.compile("\\[\\[__(.+?)__:(.+?) (.+?)\\]\\]", Pattern.DOTALL);
 			Matcher m = p.matcher(s);
 			if (m.find()) {
 				String groupName = m.group(1);

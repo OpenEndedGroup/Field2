@@ -45,8 +45,6 @@ import static field.graphics.FLinesAndJavaShapes.javaShapeToFLine;
  * <p>
  * For the code where properties inside attributes are given semantics look at FieldBox / FrameDrawer
  * <p>
- * TODO: port FrameDrawer's guts back out into something freestanding for the broader graphics system. It was a nice place to grow it, but it's more general than that, and we need to be able to attach
- * FLines to MeshBuilders in general
  */
 public class FLine implements Supplier<FLine>, Linker.AsMap {
 
@@ -691,8 +689,9 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 		for (Node n : this.nodes) {
 			fLine.nodes.add(n.duplicate());
 		}
-		fLine.attributes.putAll(attributes);
+		fLine.attributes.putAll(attributes.duplicate());
 		fLine.modify();
+		if (auxProperties != null) fLine.setAuxProperties(new LinkedHashMap<>(auxProperties));
 		return fLine;
 	}
 
@@ -858,9 +857,20 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 		int[] flatAux = new int[auxProperties.size()];
 		Dict.Prop[] flatAuxNames = new Dict.Prop[auxProperties.size()];
 		int n = 0;
-		for (Map.Entry<Integer, String> ii : auxProperties.entrySet()) {
-			flatAux[n] = ii.getKey();
-			flatAuxNames[n++] = new Dict.Prop(ii.getValue());
+
+		for (Map.Entry ii : auxProperties.entrySet()) {
+
+			// Nashorn's map literals have string keys not integer keys
+
+			Object k = ii.getKey();
+			Integer kv = null;
+			if (k instanceof Number)
+				kv = ((Number)k).intValue();
+			else
+				kv= Integer.parseInt(""+k);
+
+			flatAux[n] = kv;
+			flatAuxNames[n++] = new Dict.Prop(""+ii.getValue());
 		}
 
 		for (Node node : nodes) {
@@ -975,12 +985,15 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 
 		FLine f = new FLine();
 		f.attributes = attributes.duplicate();
+
 		for (Node n : nodes) {
 			if (n instanceof MoveTo) f.add(new MoveTo(spaceTransform.apply(n.to)));
 			else if (n instanceof LineTo) f.add(new LineTo(spaceTransform.apply(n.to)));
 			else if (n instanceof CubicTo) f.add(new CubicTo(spaceTransform.apply(((CubicTo) n).c1), spaceTransform.apply(((CubicTo) n).c2), spaceTransform.apply(n.to)));
-			f.nodes.get(f.nodes.size() - 1).attributes.putAll(n.attributes.duplicate());
+			f.nodes.get(f.nodes.size() - 1).attributes = n.attributes.duplicate();
 		}
+
+		if (auxProperties != null) f.setAuxProperties(new LinkedHashMap<>(auxProperties));
 		return f;
 	}
 
@@ -1210,7 +1223,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 
 	public class Node implements Linker.AsMap {
 		public final Vec3 to;
-		public final Dict attributes = new Dict();
+		public Dict attributes = new Dict();
 		transient protected Set<String> knownNonProperties;
 		transient float[][] flatAuxData;
 		transient int[] flatAux;
@@ -1453,7 +1466,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 		@Override
 		public Node duplicate() {
 			MoveTo l = new MoveTo(to);
-			l.attributes.putAll(attributes);
+			l.attributes.putAll(attributes.duplicate());
 			return l;
 		}
 
@@ -1479,7 +1492,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 		@Override
 		public Node duplicate() {
 			LineTo l = new LineTo(to);
-			l.attributes.putAll(attributes);
+			l.attributes.putAll(attributes.duplicate());
 			return l;
 		}
 
@@ -1521,7 +1534,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 		@Override
 		public Node duplicate() {
 			CubicTo l = new CubicTo(c1, c2, to);
-			l.attributes.putAll(attributes);
+			l.attributes.putAll(attributes.duplicate());
 			return l;
 		}
 

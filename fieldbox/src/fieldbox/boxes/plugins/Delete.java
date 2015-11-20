@@ -34,7 +34,6 @@ public class Delete extends Box {
 			return null;
 		});
 
-
 		properties.put(MarkingMenus.menuSpecs, (event) -> {
 			if (selected().findAny()
 				      .isPresent()) {
@@ -61,7 +60,6 @@ public class Delete extends Box {
 				spec.items.put(MarkingMenus.Position.S2, new MarkingMenus.MenuItem("Delete " + count + " box" + (count == 1 ? "" : "es"), () -> {
 				}).setSubmenu(really));
 
-
 				// disconnected for now
 				{
 					List cc = selected().flatMap(x -> x.breadthFirst(x.downwards())
@@ -81,9 +79,9 @@ public class Delete extends Box {
 					}
 				}
 				{
-					List cc = selected().flatMap(x -> x.breadthFirst(x.downwards())
+					List cc = selected().flatMap(x -> x.breadthFirstAll(x.allDownwardsFrom())
 									   .filter(y -> x != y))
-							    .filter(x -> x.properties.isTrue(Box.hidden, false))
+							    .filter(x -> x.disconnected)
 							    .filter(x -> !x.properties.isTrue(Box.decorative, false))
 							    .collect(Collectors.toList());
 
@@ -107,14 +105,14 @@ public class Delete extends Box {
 	private void recursivelyHideFrom(Stream<Box> selected) {
 		selected.flatMap(x -> x.breadthFirst(x.downwards())
 				       .filter(y -> y != x))
-			.forEach(x -> x.properties.put(hidden, true));
+			.forEach(x -> x.disconnected=true);
 		Drawing.dirty(this);
 	}
 
 	private void recursivelyShowFrom(Stream<Box> selected) {
-		selected.flatMap(x -> x.breadthFirst(x.downwards())
+		selected.flatMap(x -> x.breadthFirstAll(x.allDownwardsFrom())
 				       .filter(y -> y != x))
-			.forEach(x -> x.properties.put(hidden, true));
+			.forEach(x -> x.disconnected=false);
 		Drawing.dirty(this);
 	}
 
@@ -124,17 +122,4 @@ public class Delete extends Box {
 			   .filter(x -> !x.properties.isTrue(Box.undeletable, false));
 	}
 
-//	private long selectedAndExclusiveChildren() {
-//		Set<Box> s = selected().collect(Collectors.toSet());
-//
-//		Function<Box, Collection<Box>> d1 = root.allDownwardsFrom();
-//		long l1 = root.breadthFirst(x -> d1.apply(x)).count();
-//		long l2 = root.breadthFirst(x -> {
-//			if (s.contains(x)) return Collections.emptySet();
-//			return d1.apply(x);
-//		})
-//			      .count();
-//
-//		return l1 - l2;
-//	}
 }

@@ -1078,7 +1078,7 @@ public class FLinesAndJavaShapes {
 		 *
 		 * @return
 		 */
-		public float lengthT() {
+		public int lengthT() {
 			return on.nodes.size() - 1;
 		}
 

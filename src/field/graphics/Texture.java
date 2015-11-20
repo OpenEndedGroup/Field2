@@ -31,7 +31,6 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 	// global statistics on how much we're sending to OpennGL
 	static public int bytesUploaded = 0;
 	public final TextureSpecification specification;
-	int mod = 0;
 	boolean isDoubleBuffered = true;
 	AtomicInteger pendingUploads = new AtomicInteger(0);
 	private Errors.ErrorConsumer ec;
@@ -187,6 +186,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 		return s.name;
 	}
 
+
 	public int getOpenGLNameInContext(GraphicsContext context) {
 		State s = context.lookup(this);
 		if (s == null) throw new IllegalArgumentException("No state in this context");
@@ -217,11 +217,9 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 			glTexParameteri(specification.target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(specification.target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		} else {
-			glTexParameteri(specification.target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(specification.target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(specification.target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(specification.target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 		}
 
@@ -277,7 +275,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 			s.textureHandle = NVBindlessTexture.glGetTextureHandleNV(s.name);
 			System.out.println(" bind handle " + s.textureHandle);
 			NVBindlessTexture.glMakeTextureHandleResidentNV(s.textureHandle);
-			glBindTexture(GL_TEXTURE_2D, 0);
+			glBindTexture(specification.target, 0);
 		}
 
 		return s;
@@ -285,8 +283,9 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
 	protected int upload(State s) {
 
-		Log.log("graphics.trace", ()->"finishing upload part 2");
-		Log.log("texture.trace", ()->"finishing upload part 2" + " " + specification);
+		System.out.println(" upload part 2 ");
+
+		GraphicsContext.checkError(() -> " upload part 2 entry");
 
 
 		glActiveTexture(GL_TEXTURE0 + specification.unit);
@@ -295,12 +294,17 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, specification.width);
 
+		GraphicsContext.checkError(() -> " after some setup ");
 
 		int top = specification.elementSize * s.y0 * specification.width;
 		glTexSubImage2D(specification.target, 0, 0, s.y0, specification.width, s.y1 - s.y0 - 1, specification.format, specification.type, top);
 
+		GraphicsContext.checkError(() -> " after that glTexSubImage2D");
 
 		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
+		GraphicsContext.checkError(() -> " and we're done ");
+
 		if (specification.highQuality) {
 			glGenerateMipmap(specification.target);
 		}
@@ -337,7 +341,16 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 	{
 		State s = context.get(this);
 		if (isDoubleBuffered) throw new IllegalArgumentException("can't reliably get the pbo source of a double buffered texture");
-		mod++;
+		//mod++;
+
+		System.out.println(" marking texture PBO as needing uploading ");
+		s.mod++;
+
+		s.x0 = 0;
+		s.x1 = specification.width;
+		s.y0 = 0;
+		s.y1 = specification.height;
+
 		return s.pboA;
 	}
 
@@ -474,9 +487,15 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 			return new TextureSpecification(unit, GL_TEXTURE_2D, GL30.GL_RGBA32F, width, height, GL_RGBA, GL_FLOAT, 16, source, mips);
 		}
 
-		static public TextureSpecification bptc(int unit, int width, int height, ByteBuffer source)
-		{
-			return new TextureSpecification(unit, GL_TEXTURE_2D, ARBTextureCompressionBPTC.GL_COMPRESSED_RGBA_BPTC_UNORM_ARB, width, height, GL_NONE, GL_NONE, 0, source, false, false, true );
+		static public TextureSpecification bptc(int unit, int width, int height, ByteBuffer source) {
+			return new TextureSpecification(unit, GL_TEXTURE_2D, ARBTextureCompressionBPTC.GL_COMPRESSED_RGBA_BPTC_UNORM_ARB, width, height, GL_NONE, GL_NONE, 0, source, false, false, true);
+		}
+		static public TextureSpecification float1(int unit, int width, int height, ByteBuffer source) {
+			return new TextureSpecification(unit, GL_TEXTURE_2D, GL30.GL_R32F, width, height, GL_RED, GL_FLOAT, 4, source, false);
+		}
+
+		static public TextureSpecification float4_1d(int unit, int width, ByteBuffer source, boolean mips) {
+			return new TextureSpecification(unit, GL_TEXTURE_1D, GL30.GL_RGBA32F, width, 1, GL_RGBA, GL_FLOAT, 16, source, mips);
 		}
 
 		@Override

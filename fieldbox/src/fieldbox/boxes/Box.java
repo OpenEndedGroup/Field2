@@ -139,8 +139,6 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	 */
 	public Box disconnectFromAll() {
 
-		System.out.println(" DISCONNECT FROM ALL :" + this);
-
 		for (Box b : new ArrayList<Box>(children))
 			disconnect(b);
 

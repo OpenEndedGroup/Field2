@@ -10,6 +10,7 @@ import field.graphics.util.KeyEventMapping;
 import field.linalg.Vec2;
 import field.utility.*;
 import fieldbox.ui.FieldBoxWindow;
+import fieldbox.boxes.Mouse;
 import fieldlinker.Linker;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
@@ -19,6 +20,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.badlogic.jglfw.Glfw.*;
 
@@ -54,12 +56,18 @@ public class Window implements ProvidesGraphicsContext {
 	Queue<Function<Event<KeyboardState>, Boolean>> keyboardHandlers = new LinkedBlockingQueue<>();
 	Queue<Function<Event<MouseState>, Boolean>> mouseHandlers = new LinkedBlockingQueue<>();
 	Queue<Function<Event<Drop>, Boolean>> dropHandlers = new LinkedBlockingQueue<>();
+
+	public IdempotencyMap<Mouse.OnMouseDown> onMouseDown = new IdempotencyMap<>(Mouse.OnMouseDown.class);
+	public IdempotencyMap<Mouse.OnMouseScroll> onMouseScroll = new IdempotencyMap<>(Mouse.OnMouseScroll.class);
+	Map<Integer, Collection<Mouse.Dragger>> ongoingDrags = new HashMap<Integer, Collection<Mouse.Dragger>>();
+
+
 	private Rect currentBounds;
 
 	static public boolean doubleBuffered = Options.dict().isTrue(new Dict.Prop("doubleBuffered"), false);
 
 	public Window(int x, int y, int w, int h, String title) {
-		this(x,y, w,h,title, true);
+		this(x, y, w, h, title, true);
 	}
 
 	public Window(int x, int y, int w, int h, String title, boolean permitRetina) {
@@ -90,6 +98,8 @@ public class Window implements ProvidesGraphicsContext {
 		Windows.windows.register(window, makeCallback());
 
 		glfwSetWindowPos(window, x, y);
+		Windows.windows.register(window, makeCallback());
+
 		glfwShowWindow(window);
 
 		glfwMakeContextCurrent(window);
@@ -109,28 +119,27 @@ public class Window implements ProvidesGraphicsContext {
 
 		Glfw.glfwSetInputMode(window, Glfw.GLFW_STICKY_MOUSE_BUTTONS, GL.GL_TRUE);
 
-		retinaScaleFactor = permitRetina ? (int) (Options.dict().getFloat(new Dict.Prop<Number>("retina"), 0f)+1) : 1;
+		retinaScaleFactor = permitRetina ? (int) (Options.dict()
+								 .getFloat(new Dict.Prop<Number>("retina"), 0f) + 1) : 1;
 
 		windowOpenedAt = RunLoop.tick;
 
 
 		modifiers = new CannonicalModifierKeys(window);
 
-		new Thread()
-		{
+		new Thread() {
 			long lastAt = System.currentTimeMillis();
 			long lastWas = 0;
 
 			public void run() {
 
-				while(true) {
+				while (true) {
 					if (System.currentTimeMillis() - lastAt > 5000) {
-						double f = 1000*(frame - lastWas) / (float) (System.currentTimeMillis() - lastAt);
-						if (lastWas>0 && (frame!=lastWas)) System.err.println(" frame rate is :" + f + " for " + Window.this);
+						double f = 1000 * (frame - lastWas) / (float) (System.currentTimeMillis() - lastAt);
+						if (lastWas > 0 && (frame != lastWas)) System.err.println(" frame rate is :" + f + " for " + Window.this);
 						lastWas = frame;
 						lastAt = System.currentTimeMillis();
 					}
-
 					try {
 						Thread.sleep(5000);
 					} catch (InterruptedException e) {
@@ -177,9 +186,21 @@ public class Window implements ProvidesGraphicsContext {
 		return currentWindow.h;
 	}
 
+
+	private int frameHack = 0;
+
 	public void loop() {
 		if (frame==10)
 			glfwSetWindowPos(window, x, y);
+
+		if (frameHack++ == 0) {
+			Rect r = getBounds();
+			setBounds((int) r.x, (int) r.y, (int) r.w, (int) r.h + 1);
+		}
+		if (frameHack == 1) {
+			Rect r = getBounds();
+			setBounds((int) r.x, (int) r.y, (int) r.w, (int) r.h - 1);
+		}
 
 		if (!needsRepainting()) {
 			glfwPollEvents();
@@ -222,8 +243,7 @@ public class Window implements ProvidesGraphicsContext {
 		updateScene();
 
 		frame++;
-		if (!dontSwap)
-		glfwSwapBuffers(window);
+		if (!dontSwap) glfwSwapBuffers(window);
 
 		glfwPollEvents();
 		currentWindow = null;
@@ -240,32 +260,29 @@ public class Window implements ProvidesGraphicsContext {
 	/**
 	 * stops this canvas from repainting, under any conditions
 	 */
-	public void disable()
-	{
+	public void disable() {
 		disabled = true;
 	}
 
 	/**
 	 * allows this canvas to repaint
 	 */
-	public void enable()
-	{
+	public void enable() {
 		disabled = false;
 	}
 
 	/**
 	 * sets whether this canvas updates and repaints constantly (every animation cycle) or only once when repaint has been called
 	 */
-	public void setLazyRepainting(boolean b)
-	{
+	public void setLazyRepainting(boolean b) {
 		lazyRepainting = b;
 	}
 
 	/**
-	 * requests that this canvas repaints itself this animation cycle. Note, that you should almost certainly setLazyRepainting(true) before you call this, otherwise the canvas will update every cycle whether you call this or not.
+	 * requests that this canvas repaints itself this animation cycle. Note, that you should almost certainly setLazyRepainting(true) before you call this, otherwise the canvas will update every
+	 * cycle whether you call this or not.
 	 */
-	public void requestRepaint()
-	{
+	public void requestRepaint() {
 		needsRepainting = true;
 	}
 
@@ -393,6 +410,8 @@ public class Window implements ProvidesGraphicsContext {
 		Event<MouseState> event = new Event<>(before, after);
 		while (i.hasNext()) if (!i.next()
 					  .apply(event)) i.remove();
+
+		doHighLevelMouseEvents(event);
 	}
 
 	private void fireMouseTransitionNoMods(MouseState before, MouseState after) {
@@ -402,6 +421,67 @@ public class Window implements ProvidesGraphicsContext {
 		Event<MouseState> event = new Event<>(before, after);
 		while (i.hasNext()) if (!i.next()
 					  .apply(event)) i.remove();
+
+		doHighLevelMouseEvents(event);
+	}
+
+	private void doHighLevelMouseEvents(Event<MouseState>event)
+	{
+
+		Set<Integer> pressed = Window.MouseState.buttonsPressed(event.before, event.after);
+		Set<Integer> released = Window.MouseState.buttonsReleased(event.before, event.after);
+		Set<Integer> down = event.after.buttonsDown;
+
+		released.stream()
+			.map(r -> ongoingDrags.remove(r))
+			.filter(x -> x != null)
+			.forEach(drags -> {
+				drags.stream()
+				     .filter(d -> d != null)
+				     .forEach(dragger -> dragger.update(event, true));
+				drags.clear();
+			});
+
+		for (Collection<Mouse.Dragger> d : ongoingDrags.values()) {
+			Iterator<Mouse.Dragger> dd = d.iterator();
+			while (dd.hasNext()) {
+				Mouse.Dragger dragger = dd.next();
+				boolean cont = false;
+				try {
+					cont = dragger.update(event, false);
+				} catch (Throwable t) {
+					System.err.println(" Exception thrown in dragger update :" + t);
+					System.err.println(" dragger will not be called again");
+					cont = false;
+				}
+				if (!cont) dd.remove();
+			}
+		}
+
+		Util.Errors errors = new Util.Errors();
+
+
+		if (event.after.dwheely != 0.0 || event.after.dwheel != 0.0) onMouseScroll.values()
+											  .forEach(Util.wrap(x -> x.onMouseScroll(event), errors));
+
+
+		pressed.stream()
+		       .forEach(p -> {
+			       Collection<Mouse.Dragger> dragger = ongoingDrags.computeIfAbsent(p, (x) -> new ArrayList<>());
+
+			       onMouseDown.values()
+					  .stream()
+					  .map(Util.wrap(x -> x.onMouseDown(event, p), errors, null, Mouse.Dragger.class))
+					  .filter(x -> x != null)
+					  .collect(Collectors.toCollection(() -> dragger));
+		       });
+
+		if (errors.hasErrors()) {
+			errors.getErrors()
+			      .forEach(x -> {
+				      x.first.printStackTrace();
+			      });
+		}
 	}
 
 	private void fireKeyboardTransition(KeyboardState before, KeyboardState after) {
@@ -559,10 +639,7 @@ public class Window implements ProvidesGraphicsContext {
 	}
 
 	public int getRetinaScaleFactor() {
-
-//		return glfwGetFramebufferWidth(window)/glfwGetWindowWidth(window);
-		return 1;
-//		return retinaScaleFactor;
+		return glfwGetFramebufferWidth(window) / glfwGetWindowWidth(window);
 	}
 
 	static public interface HasPosition {
@@ -643,9 +720,8 @@ public class Window implements ProvidesGraphicsContext {
 			return m;
 		}
 
-		public MouseState withMods(int mods)
-		{
-			return new MouseState(buttonsDown, x, y, dwheel, dwheely, x-this.x, y-this.y, time, mods);
+		public MouseState withMods(int mods) {
+			return new MouseState(buttonsDown, x, y, dwheel, dwheely, x - this.x, y - this.y, time, mods);
 		}
 
 		// currently we ignore sy

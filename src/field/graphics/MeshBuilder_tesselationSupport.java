@@ -130,6 +130,25 @@ class MeshBuilder_tesselationSupport implements MeshAcceptor{
 		contourFirst = false;
 	}
 
+	public void line(int a, int b, Map<Integer, float[]> pa, Map<Integer, float[]> pb) {
+
+		if (contourFirst) {
+			VInfo info = new VInfo(null, retrieveVertex(a), pa);
+			nextVertex(info, a);
+			tess.gluTessVertex(new double[] { info.position.x, info.position.y, info.position.z }, 0, info);
+		}
+
+		VInfo info = new VInfo(null, retrieveVertex(b), pb);
+		nextVertex(info, b);
+		tess.gluTessVertex(new double[] { info.position.x, info.position.y, info.position.z }, 0, info);
+
+		contourFirst = false;
+	}
+
+	private Vec3 retrieveVertex(int abs) {
+		return new Vec3(3*abs, target.getTarget().vertex(true));
+	}
+
 	protected Map<Integer, float[]> interpolateProperites(Object/*VInfo*/[] data, float[] weight) {
 		Map<Integer, float[]> res= new HashMap<Integer, float[]>();
 
@@ -144,15 +163,6 @@ class MeshBuilder_tesselationSupport implements MeshAcceptor{
 					o[j] += entry.getValue()[j]*weight[i];
 			}
 		}
-
-//		System.out.println(" interpolated property and got ");
-//		for (Integer k : res.keySet()) {
-//			System.out.print("   k"+k+" ");
-//			float[] f = res.get(k);
-//			for(float ff : f)
-//				System.out.print(" "+ff);
-//			System.out.println();
-//		};
 
 		return res;
 	}
@@ -179,6 +189,13 @@ class MeshBuilder_tesselationSupport implements MeshAcceptor{
 	protected void nextVertex(VInfo info) {
 		if (info.vertex == null) {
 			info.vertex = nextVertex(info.position);
+			decorateVertex(info.vertex, info.properties);
+		}
+	}
+
+	protected void nextVertex(VInfo info, int absolute) {
+		if (info.vertex == null) {
+			info.vertex = target.bookmark(absolute);
 			decorateVertex(info.vertex, info.properties);
 		}
 	}

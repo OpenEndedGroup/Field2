@@ -15,6 +15,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLStreamHandlerFactory;
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * Created by marc on 7/1/14.
@@ -42,6 +43,15 @@ public class Trampoline {
 		public Record update() {
 			modification = new File(filename).lastModified();
 			return this;
+		}
+	}
+
+	static public List<Consumer<Class>> onLoad = new ArrayList<>();
+
+	static public void registerLoadNotification(Consumer<Class> c)
+	{
+		synchronized (onLoad) {
+			onLoad.add(c);
 		}
 	}
 

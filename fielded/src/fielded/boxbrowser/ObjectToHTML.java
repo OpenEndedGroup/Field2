@@ -103,6 +103,7 @@ public class ObjectToHTML {
 			if (o2 == null) return clean("" + o);
 			if (o2.equals(o)) {
 				found.add(f);
+				f = lookup(o.getClass(), found);
 				chances++;
 			} else {
 				o = o2;
