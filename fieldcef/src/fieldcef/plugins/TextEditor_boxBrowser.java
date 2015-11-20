@@ -141,14 +141,16 @@ public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 						 prevSelection = null;
 
 				 } else {
+					 Log.log("shy", "selection has changed ? "+prevSelection+" "+selection().findFirst().get()+" "+enabled);
 					 if (prevSelection != selection().findFirst()
 									 .get()) {
+
 						 prevSelection = selection().findFirst()
 									    .get();
 
-						 if (enabled) {
+						 if (enabled)
+						 {
 							 String u = "http://localhost:" + ServerSupport.webserverPort + "/id/" + prevSelection.properties.get(IO.id);
-							 System.out.println(" setting url to be :" + u);
 							 setURL(u, () -> {
 								 browser.properties.put(Box.hidden, false);
 								 Drawing.dirty(this);
@@ -182,12 +184,14 @@ public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 			});
 		}
 		textEditor.hide();
-//		show();
+		textEditor.disconnected = true;
+		show();
 	}
 
 	public void disable() {
 		hide();
 		enabled = false;
+		textEditor.disconnected = false;
 	}
 
 
@@ -198,8 +202,6 @@ public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 			browser.properties.put(Box.hidden, false);
 			browser.setFocus(true);
 			Drawing.dirty(browser);
-
-			textEditor.hide();
 		}
 
 	}
@@ -242,8 +244,17 @@ public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 	}
 
 	public void setURL(String url, Runnable callback) {
-		browser.properties.put(browser.url, url);
-		browser.callbackOnNextReload= callback;
+		String was = browser.properties.get(browser.url);
+		// if (was==url) then there will be no reload
+
+		if (was!=null && was.equals(url))
+		{
+			callback.run();
+		}
+		else {
+			browser.properties.put(browser.url, url);
+			browser.callbackOnNextReload = callback;
+		}
 	}
 }
 
