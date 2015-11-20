@@ -20,6 +20,9 @@ public class Mouse {
 	static public final Dict.Prop<Map<String, OnMouseDown>> onMouseDown = new Dict.Prop<>("onMouseDown").type()
 													    .toCannon()
 													    .autoConstructs(() -> new IdempotencyMap<>(OnMouseDown.class));
+	static public final Dict.Prop<Map<String, OnDoubleClick>> onDoubleClick = new Dict.Prop<>("onDoubleClick").type()
+													    .toCannon()
+													    .autoConstructs(() -> new IdempotencyMap<>(OnDoubleClick.class));
 	static public final Dict.Prop<Map<String, OnMouseMove>> onMouseMove = new Dict.Prop<>("onMouseMove").type()
 													    .toCannon()
 													    .autoConstructs(() -> new IdempotencyMap<>(OnMouseMove.class));
@@ -38,7 +41,17 @@ public class Mouse {
 											       .toCannon();
 	static public final Dict.Prop<Boolean> isSticky = new Dict.Prop<>("isSticky").type()
 										     .toCannon();
+
+	static public final Dict.Prop<Integer> clickNumber= new Dict.Prop<>("clickNumber").type()
+											  .toCannon();
+	static public final Dict.Prop<Box> originatesAt= new Dict.Prop<>("originatesAt").type()
+											  .toCannon();
+
 	Map<Integer, Collection<Dragger>> ongoingDrags = new HashMap<Integer, Collection<Dragger>>();
+
+	Box lastStartAt = null;
+	long lastStartAtTime = 0;
+	int click = 0;
 
 	public void dispatch(Box root, Window.Event<Window.MouseState> event) {
 
@@ -50,14 +63,27 @@ public class Mouse {
 			fixDrawingSpace(drawing, event.before);
 		}
 
-
-
-
 		Box startAt = Intersects.startAt(event.after, root);
+
+		event.properties.put(originatesAt, startAt);
 
 		Set<Integer> pressed = Window.MouseState.buttonsPressed(event.before, event.after);
 		Set<Integer> released = Window.MouseState.buttonsReleased(event.before, event.after);
 		Set<Integer> down = event.after.buttonsDown;
+
+		if (pressed.size()==1) {
+			if (startAt == lastStartAt && System.currentTimeMillis() - lastStartAtTime < 300) {
+				event.properties.put(clickNumber, ++click);
+
+				System.out.println(" ?? double click :"+click);
+
+			} else {
+				event.properties.put(clickNumber, click=1);
+				lastStartAt = startAt;
+			}
+
+			lastStartAtTime = System.currentTimeMillis();
+		}
 
 		released.stream()
 			.map(r -> ongoingDrags.remove(r))
@@ -113,14 +139,22 @@ public class Mouse {
 										    .forEach(Util.wrap(x -> x.onMouseScroll(event), errors));
 
 
+		if (event.properties.getFloat(clickNumber, 0f)>1) {
+			pressed.stream()
+			       .forEach(p -> {
+				       startAt.find(onDoubleClick, startAt.both())
+					      .flatMap(x -> x.values()
+							     .stream())
+					      .forEach(x -> x.onDoubleClick(event));
+			       });
+		}
+
 		pressed.stream()
 		       .forEach(p -> {
 			       Collection<Dragger> dragger = ongoingDrags.computeIfAbsent(p, (x) -> new ArrayList<>());
 
-			       System.out.println(" -- starting from "+startAt+" ::::::::::::::::::::::::::::::::::::::::::::");
 			       startAt.find(onMouseDown, startAt.both())
 					   .map(x -> {
-						   System.out.println(" -- looking at :"+x);
 						   return x;
 					   })
 				      .flatMap(x -> x.values()
@@ -162,6 +196,11 @@ public class Mouse {
 	public interface OnMouseDown {
 		public Dragger onMouseDown(Window.Event<Window.MouseState> e, int button);
 	}
+
+	public interface OnDoubleClick {
+		public void onDoubleClick(Window.Event<Window.MouseState> e);
+	}
+
 	public interface OnMouseScroll {
 		public void onMouseScroll(Window.Event<Window.MouseState> e);
 	}
