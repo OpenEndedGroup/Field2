@@ -82,7 +82,7 @@ public class Errors {
 
 	public ErrorConsumer get() {
 		if (this.currentConsumer.size() == 0) {
-			Log.log("errors.warning", "warning, no error consumer available");
+//			Log.log("errors.warning", "warning, no error consumer available");
 			return defaultConsumer;
 		}
 
