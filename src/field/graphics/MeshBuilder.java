@@ -222,6 +222,16 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	}
 
 	/**
+	 * Creates a new cache bookmark at this point in the construction of the geometry. You can use a pair of bookmarks at some future recreation of this mesh to ask if a group of calls to
+	 * nextVertex, nextElement, and aux can be skipped completely.
+	 *
+	 * @param absolute, point to a particular vertex
+	 */
+	public Bookmark bookmark(int absolute) {
+		return new Bookmark(absolute);
+	}
+
+	/**
 	 * Can all the calls to nextVertex, nextElement and aux, between these two bookmarks be skipped? Returns true if we have skipped forward, false otherwise.
 	 */
 	public boolean skipTo(Bookmark from, Bookmark to) {
@@ -435,7 +445,48 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 		return this;
 	}
 
-	// todo, some way of doing properties and aux here
+	/**
+	 * Adds a contour, via the tesselator, to a triangle mesh. Like the rest of the public api, toTesselate refers to vertex indices by starting at '0' (the most recently added via nextVertex(...)) and the '1' (the one added before that) etc..
+	 */
+	public MeshBuilder nextElement(List<Integer> toTesselate)
+	{
+
+		ArrayList<Integer> abs = new ArrayList<Integer>(toTesselate.size());
+		for(int i=0;i<toTesselate.size();i++)
+			abs.add(toTesselate.get(i)+vertexCursor);
+
+		MeshBuilder_tesselationSupport tess = getTessSupport();
+		tess.begin();
+		tess.beginContour();
+		for (int i = 1; i < toTesselate.size(); i++) {
+			tess.line(abs.get(i - 1), abs.get(i), i == 1 ? auxMapFor(abs.get(i - 1)) : null, auxMapFor(abs.get(i)));
+		}
+
+		tess.endContour();
+		tess.end();
+
+		return this;
+	}
+
+	private Map<Integer, float[]> auxMapFor(int vertex) {
+
+		Map<Integer, float[]> q = new LinkedHashMap<>();
+
+		for(Integer i : aux.keySet())
+		{
+			FloatBuffer m = target.aux(i, 0);
+			if (m!=null)
+			{
+				int dim = m.capacity() / target.maxVertex;
+				float[] r = new float[dim];
+				m.position(dim*vertex).get(r);
+				q.put(i, r);
+			}
+		}
+
+		return q;
+	}
+
 
 	/**
 	 * Adds a set of contours described by a list of lists of Vec3. These lists are tesselated into triangles by the GLU_TESS_WINDING_NONZERO tesselation rule
@@ -631,6 +682,15 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 		protected int elementCursor = MeshBuilder.this.elementCursor;
 		protected long buildNumber = MeshBuilder.this.buildNumber;
 		protected Object hash = computeHash();
+
+		public Bookmark()
+		{
+		}
+
+		public Bookmark(int absolute)
+		{
+			vertexCursor=absolute;
+		}
 
 		public int at() {
 			return MeshBuilder.this.vertexCursor - vertexCursor;
