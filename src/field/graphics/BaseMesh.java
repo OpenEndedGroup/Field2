@@ -1,5 +1,6 @@
 package field.graphics;
 
+import field.linalg.Vec3;
 import field.utility.Log;
 
 import java.nio.FloatBuffer;
@@ -190,9 +191,12 @@ public class BaseMesh extends Scene implements Scene.Perform {
 			buffers[attribute] = arrayBufferFactory.newArrayBuffer(maxVertex, GL_ARRAY_BUFFER, attribute, dimension, 0);
 			return buffers[attribute];
 		}
+
+		if (dimension==0)
+			return buffers[attribute];
+
 		if (buffers[attribute].getDimension() != dimension)
-			throw new IllegalArgumentException(" dimension mismatch. Attribute " + attribute + " was previously declared to be of dimension " + dimension + " not " + buffers[attribute]
-				    .getDimension());
+			throw new IllegalArgumentException(" dimension mismatch. Attribute " + attribute + " was previously declared to be of dimension " +  buffers[attribute] .getDimension()+ " not " +dimension);
 
 		return buffers[attribute];
 	}
@@ -393,7 +397,7 @@ public class BaseMesh extends Scene implements Scene.Perform {
 
 			for(int q=0;q<el*st;q++)
 			{
-				//Log.log(channel, (q/st)+" | "+a.get(q)+" -> "+(a.get(q)<vl ? new Vec3(f.position(3*a.get(q))) : "ILLEGAL"));
+				Log.log(channel, (q/st)+" | "+a.get(q)+" -> "+(a.get(q)<vl ? new Vec3(f.position(3*a.get(q))) : "ILLEGAL"));
 				if ((q+1)%st==0)
 					Log.log(channel, ".");
 			}
