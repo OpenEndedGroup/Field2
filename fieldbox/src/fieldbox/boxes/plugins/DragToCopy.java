@@ -36,7 +36,7 @@ public class DragToCopy extends Box {
 			{
 				e.properties.put(Window.consumed, true);
 
-				Log.log("duplicate", "we are go "+e);
+				Log.log("duplicate", ()->"we are go "+e);
 
 				return duplicateAndDrag(e);
 
@@ -58,7 +58,7 @@ public class DragToCopy extends Box {
 
 		List<Box> s2 = duplicateGroup(s);
 
-		Log.log("duplicate", "duplicated, got :"+s2);
+		Log.log("duplicate", ()->"duplicated, got :"+s2);
 
 		Optional<Drawing> drawing = this.find(Drawing.drawing, both())
 						.findFirst();
@@ -72,7 +72,7 @@ public class DragToCopy extends Box {
 			Vec2 delta = new Vec2(next).sub(downAt);
 
 			downAt.set(next);
-			Log.log("duplicate", "delta :"+delta);
+			Log.log("duplicate", ()->"delta :"+delta);
 
 			for(Box b : s2)
 			{
@@ -106,14 +106,16 @@ public class DragToCopy extends Box {
 				p = mapping.getOrDefault(p, p);
 				p.connect(o);
 
-				Log.log("duplicate", "connect parent :"+p+" -> "+o);
+				final Box finalP = p;
+				Log.log("duplicate", ()->"connect parent :"+ finalP +" -> "+o);
 			}
 			for(Box p : b.children())
 			{
 				p = mapping.getOrDefault(p, p);
 				o.connect(p);
 
-				Log.log("duplicate", "connect child :"+o+" -> "+p);
+				final Box finalP = p;
+				Log.log("duplicate", ()->"connect child :"+o+" -> "+ finalP);
 			}
 		}
 
@@ -159,7 +161,7 @@ public class DragToCopy extends Box {
 
 			return c;
 		} catch (InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-			Log.log("duplicate.error", "problem while invoking class noarg constructor");
+			Log.log("duplicate.error", ()->"problem while invoking class noarg constructor");
 			e.printStackTrace();
 			return null;
 		}

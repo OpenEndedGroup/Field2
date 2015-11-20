@@ -3,6 +3,7 @@ package fieldbox.boxes;
 import field.app.RunLoop;
 import field.graphics.Scene;
 import field.utility.Dict;
+import fieldbox.execution.InverseDebugMapping;
 import fieldbox.io.IO;
 import fieldbox.ui.FieldBoxWindow;
 import fielded.Commands;
@@ -42,6 +43,7 @@ public class Boxes {
 		origin = new Box();
 		origin.properties.put(root, origin);
 		origin.properties.put(Box.name, "<<root>>");
+		InverseDebugMapping.defaultRoot = origin;
 
 		// set these up so that they will appear in autocomplete
 
@@ -55,6 +57,7 @@ public class Boxes {
 
 	protected Set<Box> population = Collections.emptySet();
 
+
 	protected Scene.Perform updater = new Scene.Perform() {
 		@Override
 		public boolean perform(int pass) {
@@ -65,12 +68,23 @@ public class Boxes {
 											  .iterator();
 				      while (r.hasNext()) {
 					      Map.Entry<String, Supplier<Boolean>> n = r.next();
-					      if (n.getKey()
-						   .startsWith("main.")) try {
-						      if (!n.getValue()
-							    .get()) r.remove();
-					      } catch (Throwable t) {
+					      try {
+						      if (n.getKey()
+							   .startsWith("main.")) try {
+							      if (!n.getValue()
+								    .get()) r.remove();
+						      } catch (Throwable t) {
+							      t.printStackTrace();
+						      }
+					      }
+					      catch(Throwable t)
+					      {
 						      t.printStackTrace();
+						      try {
+							      r.remove();
+						      }
+						      catch(Throwable tt)
+						      {};
 					      }
 				      }
 			      });

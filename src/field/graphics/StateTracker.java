@@ -3,11 +3,13 @@ package field.graphics;
 import field.utility.Log;
 import field.utility.Util;
 import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.GL30;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -23,14 +25,14 @@ public class StateTracker {
 	static public State<int[]> viewport = new State<int[]>() {
 		@Override
 		protected void apply(int[] value) {
-			Log.log("graphics.trace", "setting viewport to " + value[0] + " " + value[1] + " " + value[2] + " " + value[3]);
+			Log.log("graphics.trace", ()->"setting viewport to " + value[0] + " " + value[1] + " " + value[2] + " " + value[3]);
 			glViewport(value[0], value[1], value[2], value[3]);
 		}
 	};
 	static public State<int[]> scissor = new State<int[]>() {
 		@Override
 		protected void apply(int[] value) {
-			Log.log("graphics.trace", "setting scissor to " + value[0] + " " + value[1] + " " + value[2] + " " + value[3]);
+			Log.log("graphics.trace",()-> "setting scissor to " + value[0] + " " + value[1] + " " + value[2] + " " + value[3]);
 			glScissor(value[0], value[1], value[2], value[3]);
 			glEnable(GL_SCISSOR_TEST);
 		}
@@ -38,14 +40,16 @@ public class StateTracker {
 	static public State<Integer> shader = new State<Integer>() {
 		@Override
 		protected void apply(Integer value) {
-			Log.log("graphics.trace", "setting program to " + value);
+			Log.log("graphics.trace", ()->"setting program to " + value);
 			GL20.glUseProgram(value);
 		}
 	};
 	static public State<Integer> fbo = new State<Integer>() {
 		@Override
 		protected void apply(Integer value) {
+			Log.log("graphics.trace",()-> "setting framebuffer to " + value+" <- "+fbo.value+" "+ GL30.glCheckFramebufferStatus(GL30.GL_DRAW_FRAMEBUFFER));
 			glBindFramebuffer(GL_FRAMEBUFFER, value == null ? 0 : value);
+			Log.log("graphics.trace", ()->"set framebuffer to " + value+" <- "+fbo.value+" "+ GL30.glCheckFramebufferStatus(GL30.GL_DRAW_FRAMEBUFFER));
 		}
 	};
 	static public State<int[]> blendState = new State<int[]>()
@@ -99,6 +103,19 @@ public class StateTracker {
 		} finally {
 //				GraphicsContext.checkError();
 		}
+	}
+
+	/**
+	 * dumps the current state to a string
+	 * @return
+	 */
+	public String dumpOutput() {
+		String s = "";
+		for(Map.Entry<String, State> e : allStates.entrySet())
+		{
+			s+= e.getKey()+" = "+e.getValue().value+"\n";
+		}
+		return s;
 	}
 
 	static public abstract class State<T> {

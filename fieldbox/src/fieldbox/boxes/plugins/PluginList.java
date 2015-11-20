@@ -57,7 +57,7 @@ public class PluginList {
 		}
 		catch(EdnSyntaxException syntax)
 		{
-			Log.log("startup.error", "Syntax error in plugins.edn file", syntax);
+			Log.log("startup.error", ()->"Syntax error in plugins.edn file"+syntax);
 			return null;
 		}
 	}
@@ -107,7 +107,7 @@ public class PluginList {
 
 		Map<Object, Loaded> loaded = new LinkedHashMap<>();
 		for (Object o : value) {
-			Log.log("startup", ">>>>>>>>>>>>> activating plugin '" + o + "'");
+			Log.log("startup", ()->">>>>>>>>>>>>> activating plugin '" + o + "'");
 
 			try {
 				Box plugin = (Box) this.getClass().getClassLoader().loadClass(o.toString()).getConstructor(Box.class)
@@ -120,11 +120,11 @@ public class PluginList {
 				System.out.println(" -- problem activating plugin \"" + o + "\", will continue on regardless -- ");
 				e.printStackTrace();
 			}
-			Log.log("startup", "<<<<<<<<<<<<< finished plugin '" + o + "'");
+			Log.log("startup", ()->"<<<<<<<<<<<<< finished plugin '" + o + "'");
 		}
 
 		for (Map.Entry<Object, Loaded> o : loaded.entrySet()) {
-			Log.log("startup", ">>>>>>>>>>>>> late initialization for plugin '" + o.getValue() + "'");
+			Log.log("startup",()-> ">>>>>>>>>>>>> late initialization for plugin '" + o.getValue() + "'");
 
 			try {
 				o.getValue().loaded();
@@ -133,7 +133,7 @@ public class PluginList {
 				System.out.println(" -- problem activating plugin \"" + o + "\", will continue on regardless -- ");
 				e.printStackTrace();
 			}
-			Log.log("startup", "<<<<<<<<<<<<< late initialization for plugin '" + o + "' finished");
+			Log.log("startup", ()->"<<<<<<<<<<<<< late initialization for plugin '" + o + "' finished");
 		}
 
 
@@ -158,12 +158,15 @@ public class PluginList {
 			if (m.startsWith("{app}"))
 				m = m.replace("{app}", Main.app+"/");
 
-			Log.log("startup", " extending classpath <" + m + ">");
+			final String finalM = m;
+			Log.log("startup", ()->" extending classpath <" + finalM + ">");
 
 			if (m.endsWith("*")) {
 				m = m.substring(0, m.length() - 1);
-				if (!new File(m).exists())
-					Log.log("startup.error", " adding a path that doesn't exist to the classpath <" + m + ">, almost certainly a typo in your plugins file");
+				if (!new File(m).exists()) {
+					final String finalM1 = m;
+					Log.log("startup.error", ()-> " adding a path that doesn't exist to the classpath <" + finalM1 + ">, almost certainly a typo in your plugins file");
+				}
 				try {
 					Trampoline.addURL(new URL("file:" + m));
 				} catch (MalformedURLException e) {
@@ -174,19 +177,24 @@ public class PluginList {
 
 				if (subFiles != null) {
 					for (File f : subFiles) {
-						Log.log("startup", " extending classpath <" + f.getAbsolutePath() + ">");
+						Log.log("startup", ()->" extending classpath <" + f.getAbsolutePath() + ">");
 						try {
 							Trampoline.addURL(new URL("file:" + f.getAbsolutePath()));
 						} catch (MalformedURLException e) {
 							e.printStackTrace();
 						}
 					}
-				} else Log.log("startup.error", " added a wildcard path <" + m + "> with no .jar files in it");
+				} else {
+					final String finalM2 = m;
+					Log.log("startup.error", ()->" added a wildcard path <" + finalM2 + "> with no .jar files in it");
+				}
 				m = m.substring(0, m.length()-1);
 			}
 
-			if (!new File(m).exists())
-				Log.log("startup.error", " adding a path that doesn't exist to the classpath <" + m + ">, almost certainly a typo in your plugins file");
+			if (!new File(m).exists()) {
+				final String finalM3 = m;
+				Log.log("startup.error", ()->" adding a path that doesn't exist to the classpath <" + finalM3 + ">, almost certainly a typo in your plugins file");
+			}
 
 			try {
 				Trampoline.addURL(new URL("file:" + m));
@@ -218,7 +226,7 @@ public class PluginList {
 			((Map<Object, Object>) o).entrySet().forEach(x -> {
 				r.computeIfAbsent(asKey(x.getKey()), k -> new ArrayList<Object>()).addAll(asList(x.getValue()));
 			});
-		} else Log.log("startup.error", " can't parse object <" + o + "> in plugins file (expected a map)");
+		} else Log.log("startup.error", ()->" can't parse object <" + o + "> in plugins file (expected a map)");
 
 	}
 

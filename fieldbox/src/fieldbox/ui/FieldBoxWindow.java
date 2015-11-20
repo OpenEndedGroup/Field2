@@ -18,23 +18,11 @@ import static com.badlogic.jglfw.Glfw.glfwShowWindow;
 public class FieldBoxWindow extends Window {
 
 	private Compositor compositor;
-	private final long cursor;
 
 	public FieldBoxWindow(int x, int y, int w, int h, String filename) {
 		super(x, y, w, h, "Field - " + filename);
 
 		compositor = new Compositor(this);
-
-		// Playing with cursors, ignore for now
-		ByteBuffer noise = ByteBuffer.allocateDirect(64 * 64 * 4);
-		for (int i = 0; i < 64 * 64; i++) {
-			noise.put((byte) (Math.random() * 255));
-			noise.put((byte) (Math.random() * 255));
-			noise.put((byte) (Math.random() * 255));
-			noise.put((byte) (Math.random() * 255));
-		}
-		noise.rewind();
-		cursor = glfwCreateCursor(noise, 64, 64, 4, 4);
 	}
 
 	int dirty = 1;
@@ -65,7 +53,7 @@ public class FieldBoxWindow extends Window {
 
 	@Override
 	protected boolean needsRepainting() {
-		return wasDirty;
+		return wasDirty && !disabled;
 	}
 
 	public Scene mainLayer() {

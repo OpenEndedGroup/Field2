@@ -117,7 +117,7 @@ public class TimeSlider extends Box {
 
 	protected void off(Stream<Box> off) {
 		off.forEach(b -> {
-			Log.log("debug.execution", " -- END :" + b);
+			Log.log("debug.execution",()-> " -- END :" + b);
 			if (b!=null)
 			b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).end(b));
 		});
@@ -125,7 +125,7 @@ public class TimeSlider extends Box {
 
 	protected void on(Stream<Box> on) {
 		on.forEach(b -> {
-			Log.log("debug.execution", " -- BEGIN :"+b);
+			Log.log("debug.execution", ()->" -- BEGIN :"+b);
 			if (b!=null)
 			b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).begin(b, initiator(b)));
 		});
@@ -157,7 +157,7 @@ public class TimeSlider extends Box {
 	 */
 	protected void skipForward(Stream<Box> skipForward) {
 		skipForward.forEach(b -> {
-			Log.log("debug.execution", " -- FORWARD :"+b);
+			Log.log("debug.execution", ()->" -- FORWARD :"+b);
 			b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).begin(b, initiator(b)));
 			b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).end(b));
 		});
@@ -168,7 +168,7 @@ public class TimeSlider extends Box {
 	 */
 	protected void skipBackward(Stream<Box> skipBackward) {
 		skipBackward.forEach(b -> {
-			Log.log("debug.execution", " -- backward :"+b);
+			Log.log("debug.execution", ()->" -- backward :"+b);
 //			b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).begin(b, initiator(b)));
 //			b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).end(b));
 		});

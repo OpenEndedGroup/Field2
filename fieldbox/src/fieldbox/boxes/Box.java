@@ -61,15 +61,15 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	private String __cachedSimpleName = null;
 	private long tick = 0;
 
+	static public final PegDownProcessor peg = new PegDownProcessor();
 	public boolean disconnected = false;
-
-	PegDownProcessor peg = new PegDownProcessor();
 
 
 	public Box() {
 		properties.put(IO.id, newID());
 	}
 
+	@HiddenInAutocomplete
 	static public String newID() {
 		// ensure CallLogic is loaded
 		Dict.Prop<IdempotencyMap<Supplier<Object>>> ignored = Callbacks.main;
@@ -79,6 +79,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	}
 
 
+	@HiddenInAutocomplete
 	static public String compress(String signature) {
 		signature = " " + signature;
 
@@ -169,20 +170,24 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 		return all;
 	}
 
+	@HiddenInAutocomplete
 	public <T> Stream<T> has(Dict.Prop<T> find, Function<Box, Collection<Box>> direction) {
 		return breadthFirst(direction).map(x -> x.properties.get(find))
 					      .filter(x -> x != null);
 	}
 
+	@HiddenInAutocomplete
 	public <T> Stream<Box> whereHas(Dict.Prop<T> find, Function<Box, Collection<Box>> direction) {
 		return breadthFirst(direction).filter(x -> x.properties.has(find));
 	}
 
+	@HiddenInAutocomplete
 	public <T> Stream<T> find(Dict.Prop<T> find, Function<Box, Collection<Box>> direction) {
 		return breadthFirst(direction).map(x -> x.properties.get(find))
 					      .filter(x -> x != null);
 	}
 
+	@HiddenInAutocomplete
 	public <T> Optional<T> first(Dict.Prop<T> find, Function<Box, Collection<Box>> direction) {
 		if (properties.has(find)) return Optional.of(properties.get(find));
 		return breadthFirst(direction).map(x -> x.properties.get(find))
@@ -190,6 +195,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 					      .findFirst();
 	}
 
+	@HiddenInAutocomplete
 	public <T> Optional<T> next(Dict.Prop<T> find, Function<Box, Collection<Box>> direction) {
 		if (properties.has(find)) return Optional.of(properties.get(find));
 		return breadthFirst(direction).map(x -> x.properties.get(find))
@@ -198,23 +204,28 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 					      .findFirst();
 	}
 
+	@HiddenInAutocomplete
 	public <T> Optional<T> first(Dict.Prop<T> find) {
 		return first(find, Box::_parents);
 	}
 
+	@HiddenInAutocomplete
 	public <T> Optional<T> next(Dict.Prop<T> find) {
 		return next(find, Box::_parents);
 	}
 
+	@HiddenInAutocomplete
 	public <T> Optional<Box> where(Dict.Prop<T> find) {
 		return whereHas(find, upwards()).findFirst();
 	}
 
+	@HiddenInAutocomplete
 	public <G, T> Stream<T> call(Function<G, T> f, Class<G> guard, Function<Box, Collection<Box>> direction) {
 		return breadthFirst(direction).filter(x -> guard.isInstance(x))
 					      .map(x -> f.apply((G) x));
 	}
 
+	@HiddenInAutocomplete
 	public <G, T> Stream<T> call(Function<G, T> f, Class<G> guard) {
 		return call(f, guard, upwards());
 	}
@@ -222,6 +233,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	/**
 	 * returns direction for upwards (parents) (e.g breadthFirst(Box::parents))
 	 */
+	@HiddenInAutocomplete
 	public Function<Box, Collection<Box>> upwards() {
 		return Box::_parents;
 	}
@@ -251,6 +263,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	/**
 	 * returns direction for downwards (children) (e.g breadthFirst(Box::children))
 	 */
+	@HiddenInAutocomplete
 	public Function<Box, Collection<Box>> downwards() {
 		return Box::_children;
 	}
@@ -258,6 +271,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	/**
 	 * returns direction for downwards and upwards (children and then parents) (e.g breadthFirst(Box::children))
 	 */
+	@HiddenInAutocomplete
 	public Function<Box, Collection<Box>> both() {
 		return Box::_all;
 	}
@@ -266,9 +280,10 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	 * returns breadth first Stream given a direction function. It is an error to call this when this box is not connected to anything (which is a common error --- calling this method at
 	 * construction time).
 	 */
+	@HiddenInAutocomplete
 	public Stream<Box> breadthFirst(Function<Box, Collection<Box>> map) {
 
-		if (this.all.size() == 0) Log.log("box.warning", " breadthFirst called on a box not connected to the box graph");
+		if (this.all.size() == 0) Log.log("box.warning", ()->" breadthFirst called on a box not connected to the box graph");
 
 		return new Lazy<Box>() {
 			LinkedHashSet<Box> ret = null;
@@ -307,7 +322,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	@HiddenInAutocomplete
 	public Stream<Box> breadthFirstAll(Function<Box, Collection<Box>> map) {
 
-		if (this.all.size() == 0) Log.log("box.warning", " breadthFirst called on a box not connected to the box graph");
+		if (this.all.size() == 0) Log.log("box.warning", () ->" breadthFirst called on a box not connected to the box graph");
 
 		return new Lazy<Box>() {
 			LinkedHashSet<Box> ret = null;
@@ -424,6 +439,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	}
 
 	@Override
+	@HiddenInAutocomplete
 	public boolean asMap_delete(Object o) {
 		return Missing.delete(this, new Dict.Prop("" + o)) != null;
 	}
@@ -447,7 +463,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 		Missing.setTo(this, cannon, converted);
 
 		if (tick != RunLoop.tick) {
-			Drawing.dirty(this);
+//			Drawing.dirty(this);
 			tick = RunLoop.tick;
 		}
 
@@ -455,12 +471,14 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	}
 
 	@Override
+	@HiddenInAutocomplete
 	public Object asMap_call(Object a, Object b) {
 
 		return Callbacks.call(this, a, b);
 	}
 
 	@Override
+	@HiddenInAutocomplete
 	public Object asMap_new(Object a) {
 
 
@@ -473,6 +491,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	}
 
 	@Override
+	@HiddenInAutocomplete
 	public Object asMap_new(Object tag, Object a) {
 
 		Optional<Box> m = children().stream()
@@ -492,11 +511,13 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	}
 
 	@Override
+	@HiddenInAutocomplete
 	public Object asMap_getElement(int element) {
 		throw new NotImplementedException();
 	}
 
 	@Override
+	@HiddenInAutocomplete
 	public Object asMap_getElement(Object element) {
 //
 //		return new XPathSupport(this).get(""+element);
@@ -504,14 +525,20 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	}
 
 	@Override
+	@HiddenInAutocomplete
 	public Object asMap_setElement(int element, Object v) {
 		throw new NotImplementedException();
 	}
 
+
+
+
+
 	@Override
+	@HiddenInAutocomplete
 	public List<Completion> getCompletionsFor(String prefix) {
 
-		Log.log("completion.debug", "inside getCompletionsFor (box) " + prefix);
+		Log.log("completion.debug", ()->"inside getCompletionsFor (box) " + prefix);
 
 		Set<String> s1 = new LinkedHashSet<>();
 
@@ -552,13 +579,14 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 			    .collect(Collectors.toList()));
 
 
-		Log.log("completion.debug", "returning " + l1 + " as completions");
+		Log.log("completion.debug", ()->"returning " + l1 + " as completions");
 
 		return l1;
 	}
 
 	private String format(String documentation) {
 		String doc = peg.markdownToHtml(documentation == null ? "" : documentation);
+//		String doc = documentation;
 		doc = doc.trim();
 		System.out.println(" doc is ||"+doc+"||");
 		if (doc.startsWith("<p>") && doc.endsWith("</p>"))

@@ -113,18 +113,18 @@ public class LinuxWindowTricks extends Box {
 			String[] now = listWindows();
 
 			if (now == null) {
-				Log.log("windows.general", " WARNING: couldn't track editor window opening, won't be able to switch between windows and do other tricks");
+				Log.log("windows.general", ()->" WARNING: couldn't track editor window opening, won't be able to switch between windows and do other tricks");
 			} else {
 				for (String s : now) {
 					String[] parts = s.split(" ", 2);
 					if (parts[1].contains(field_editor_title) && !previously.contains(parts[0])) {
-						Log.log("windows.general", "  tracking editor " + parts[0] + " / " + parts[1]);
+						Log.log("windows.general", ()->"  tracking editor " + parts[0] + " / " + parts[1]);
 						editors.add(parts[0]);
 					}
 				}
 			}
 
-			Log.log("windows.general", " registered :" + editors + " editors out of " + previously);
+			Log.log("windows.general", ()->" registered :" + editors + " editors out of " + previously);
 
 			//TODO: should be preference.
 			pinEditorOnTop();

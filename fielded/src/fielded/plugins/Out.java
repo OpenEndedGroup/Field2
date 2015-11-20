@@ -152,6 +152,7 @@ public class Out extends Box {
 		});
 	}
 
+
 	private Box find(String uid) {
 		return this.breadthFirst(this.both())
 			   .filter(x -> x.properties.has(IO.id))
@@ -168,21 +169,7 @@ public class Out extends Box {
 	Pattern stuff = Pattern.compile("([+-]?(\\d+\\.)?\\d+)|([\\%\\$\\#\\@\\!\\^\\&\\(\\)\\[\\]\\{\\}\\'\\,\\.\\;\\:\\+\\-\\*])");
 
 	private String cheapSynax(String s) {
-
-//		s = stuff.matcher(s)
-//			 .replaceAll((x) -> {
-//				 String found = x.group(1);
-//				 if (found != null && found.length() > 0) return "<span class='number'>" + found + "</span>";
-//				 else {
-//					 found = x.group(3);
-//					 if (found != null && found.length() > 0) return "<span class='operator'>" + found + "</span>";
-//				 }
-//				 return x.group(0);
-//			 });
-
-
 		return s;
-
 	}
 
 	private String shorten(Class c) {
@@ -217,7 +204,6 @@ public class Out extends Box {
 				String groupName = m.group(1);
 				String groupValue = m.group(2);
 				String groupPayload = m.group(3);
-
 
 				if (!prev.containsKey(groupName) || !prev.get(groupName)
 									 .equals(groupValue)) {

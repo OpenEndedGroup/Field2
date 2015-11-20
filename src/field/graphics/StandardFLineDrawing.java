@@ -80,7 +80,7 @@ public class StandardFLineDrawing {
 	static public void dispatchLine(FLine fline, MeshBuilder mesh, MeshBuilder line, MeshBuilder points, Optional<TextDrawing> ot, String layerName) {
 
 
-		Log.log("drawing.trace", "dispatching line :" + fline);
+		Log.log("drawing.trace", ()->"dispatching line :" + fline);
 
 		Vec4 sc = new Vec4(fline.attributes.getOr(strokeColor, () -> fline.attributes.getOr(color, () -> new Vec4(0, 0, 0, 1))).get());
 		Vec4 fc = new Vec4(fline.attributes.getOr(fillColor, () -> fline.attributes.getOr(color, () -> new Vec4(0, 0, 0, 1))).get());

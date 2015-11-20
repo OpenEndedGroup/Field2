@@ -228,20 +228,20 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 							.findFirst();
 
 
-		Log.log("selection", "hit box is " + hit.orElse(null));
+		Log.log("selection", ()->"hit box is " + hit.orElse(null));
 
 
 		return hit.map(hitBox -> {
 
 			if (hitBox.properties.isTrue(Mouse.isSticky, false))
 			{
-				Log.log("selection", "hitbox is sticky, selecting and finishing");
+				Log.log("selection", ()->"hitbox is sticky, selecting and finishing");
 				Callbacks.transition(hitBox, Mouse.isSelected, true, false, Callbacks.onSelect, Callbacks.onDeselect);
 				Drawing.dirty(hitBox);
 				return null;
 			}
 
-			Log.log("selection", "hit box is really hidden ? " + hitBox.properties.get(Box.hidden));
+			Log.log("selection", ()->"hit box is really hidden ? " + hitBox.properties.get(Box.hidden));
 
 			Drawing.dirty(hitBox);
 
@@ -249,11 +249,11 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 
 			boolean command = e.after.keyboardState.isSuperDown();
 
-			Log.log("selection", "shift / command "+shift+" / "+command);
+			Log.log("selection", ()->"shift / command "+shift+" / "+command);
 
 			boolean selected = hitBox.properties.isTrue(Mouse.isSelected, false);
 
-			Log.log("selection", "hit box is currently selected :"+selected);
+			Log.log("selection", ()->"hit box is currently selected :"+selected);
 
 			Rect originalFrame = frame(hitBox);
 
@@ -275,7 +275,7 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 					workingSet.add(hitBox);
 				}
 
-				Log.log("selection", "working set is :"+workingSet);
+				Log.log("selection", ()->"working set is :"+workingSet);
 
 
 				breadthFirst(both())
@@ -333,7 +333,7 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 
 					if (drag.properties.isTrue(Window.consumed, false)) return true;
 
-					Log.log("selection", "hit box is really hidden ? " + hitBox.properties.get(Box.hidden));
+					Log.log("selection", ()->"hit box is really hidden ? " + hitBox.properties.get(Box.hidden));
 
 					Vec2 delta = new Vec2(drag.after.dx, drag.after.dy);
 					Vec2 drawingDelta = drawing.map(x -> x.windowSystemToDrawingSystemDelta(delta))

@@ -1,5 +1,7 @@
 package fielded;
 
+import fieldbox.execution.Errors;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -15,46 +17,69 @@ import java.util.function.Supplier;
 public class Animatable {
 
 
-	static public interface AnimationElement {
+	public interface AnimationElement {
 
-		default public Object beginning(boolean isEnding) {
+		default Object beginning(boolean isEnding) {
 			return this;
 		}
 
-		public Object middle(boolean isEnding);
+		Object middle(boolean isEnding);
 
-		default public Object end(boolean isEnding) {
+		default Object end(boolean isEnding) {
 			return this;
 		}
 	}
 
-	static public class Shim implements Supplier<Boolean>, Consumer<Boolean> {
-		private final AnimationElement e;
-		boolean stopping = false;
-		boolean first = true;
+	static public class Shim implements Supplier<Boolean>, Consumer<Boolean>, Errors.SavesErrorConsumer {
+		protected final AnimationElement e;
+		protected boolean stopping = false;
+		protected boolean first = true;
+		protected Errors.ErrorConsumer errorConsumer;
 
 		public Shim(AnimationElement e) {
 			this.e = e;
+			this.errorConsumer = Errors.errors.get();
 		}
 
 		@Override
 		public Boolean get() {
-			if (first) {
-				first = false;
-				e.beginning(stopping);
-				return true;
-			} else if (stopping) {
-				e.end(stopping);
+			try {
+				if (first) {
+					first = false;
+					e.beginning(stopping);
+					return true;
+				} else if (stopping) {
+					e.end(stopping);
+					return false;
+				} else {
+					e.middle(stopping);
+					return true;
+				}
+			}
+			catch(Throwable t)
+			{
+				t.printStackTrace();
+				if (errorConsumer!=null)
+				{
+					errorConsumer.consume(t, "(Error thrown in box animation, we'll stop this box now)");
+				}
 				return false;
-			} else {
-				e.middle(stopping);
-				return true;
 			}
 		}
 
 		@Override
 		public void accept(Boolean willContinue) {
 			stopping = !willContinue;
+		}
+
+		@Override
+		public void setErrorConsumer(Errors.ErrorConsumer c) {
+			this.errorConsumer = c;
+		}
+
+		@Override
+		public Errors.ErrorConsumer getErrorConsumer() {
+			return this.errorConsumer;
 		}
 	}
 

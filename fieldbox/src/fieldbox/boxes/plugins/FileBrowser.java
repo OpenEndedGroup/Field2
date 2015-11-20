@@ -254,7 +254,7 @@ public class FileBrowser extends Box implements IO.Loaded {
 
 				    FieldBox q = boxes.get(x.properties.get(IO.id));
 
-				    Log.log("updatebox", "looked for " + x.properties.get(IO.id) + " in " + boxes.keySet() + " got " + q);
+				    Log.log("updatebox", ()->"looked for " + x.properties.get(IO.id) + " in " + boxes.keySet() + " got " + q);
 
 				    if (q == null) return;
 				    Set<FieldFile> uses = q.usedIn(files);
@@ -300,7 +300,7 @@ public class FileBrowser extends Box implements IO.Loaded {
 			badges.attributes.put(StandardFLineDrawing.fillColor, new Vec4(0, 0, 0.2, 1.0f));
 			badges.attributes.put(StandardFLineDrawing.filled, true);
 
-			Log.log("updatebox", "badge geometry is " + badges.nodes);
+			Log.log("updatebox", ()->"badge geometry is " + badges.nodes);
 
 			return badges;
 
@@ -496,7 +496,8 @@ public class FileBrowser extends Box implements IO.Loaded {
 				String z = s.replace(":id", "")
 					    .trim();
 				z = z.substring(1, z.length() - 1);
-				Log.log("inserbox.readFieldFile", "got id " + z);
+				final String finalZ = z;
+				Log.log("inserbox.readFieldFile", ()->"got id " + finalZ);
 				f.boxes.add(z);
 			}
 		}
@@ -514,7 +515,7 @@ public class FileBrowser extends Box implements IO.Loaded {
 
 	@Override
 	public void loaded() {
-		Log.log("INSERT", "has loaded");
+		Log.log("INSERT", ()->"has loaded");
 		parse();
 	}
 
@@ -539,7 +540,7 @@ public class FileBrowser extends Box implements IO.Loaded {
 
 	public void parse() {
 
-		Log.log("INSERT", "has loaded");
+		Log.log("INSERT", ()->"has loaded");
 		String dir = fieldbox.FieldBox.fieldBox.io.getDefaultDirectory();
 		parse(dir, false);
 		dir = fieldbox.FieldBox.fieldBox.io.getTemplateDirectory();
@@ -547,7 +548,7 @@ public class FileBrowser extends Box implements IO.Loaded {
 	}
 
 	public void parse(String dir, boolean copyOnly) {
-		Log.log("INSERT", "parsing directory :" + dir);
+		Log.log("INSERT", ()->"parsing directory :" + dir);
 
 		List<String> added = new ArrayList<>();
 
@@ -561,7 +562,7 @@ public class FileBrowser extends Box implements IO.Loaded {
 					WatchKey k = w.take();
 
 					RunLoop.main.once(() -> {
-						Log.log("INSERT", "reparsing directory <"+dir+">");
+						Log.log("INSERT", ()->"reparsing directory <"+dir+">");
 						files.keySet()
 						     .removeAll(added);
 						FileBrowser.this.boxes.keySet()
@@ -589,12 +590,12 @@ public class FileBrowser extends Box implements IO.Loaded {
 
 			if (boxes != null) {
 
-				Log.log("INSERT", "boxes are :" + Arrays.asList(boxes));
+				Log.log("INSERT", ()->"boxes are :" + Arrays.asList(boxes));
 
 				for (Path from : boxes)
 					RunLoop.workerPool.submit(() -> {
 
-						Log.log("INSERT", from);
+						Log.log("INSERT", ()->from);
 						FieldBox ff = newFieldBox(from.toFile());
 						ff.copyOnly = copyOnly;
 						synchronized (files) {
@@ -619,11 +620,11 @@ public class FileBrowser extends Box implements IO.Loaded {
 			if (sheets != null) {
 
 
-				Log.log("INSERT", "sheets are :" + Arrays.asList(sheets));
+				Log.log("INSERT", ()->"sheets are :" + Arrays.asList(sheets));
 				for (Path from : sheets) {
 					sheetsInFlight.incrementAndGet();
 					RunLoop.workerPool.submit(() -> {
-						Log.log("INSERT", from);
+						Log.log("INSERT", ()->from);
 
 						try {
 							FieldFile ff = newFieldFile(from.toFile());

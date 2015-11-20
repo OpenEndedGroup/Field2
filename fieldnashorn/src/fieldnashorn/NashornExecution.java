@@ -3,9 +3,11 @@ package fieldnashorn;
 import field.app.ThreadSync;
 import field.linalg.Vec4;
 import field.nashorn.api.scripting.ScriptObjectMirror;
+import field.nashorn.internal.runtime.ECMAException;
 import field.utility.Dict;
 import field.utility.Log;
 import field.utility.Pair;
+import field.utility.Util;
 import field.utility.Triple;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Boxes;
@@ -64,7 +66,9 @@ public class NashornExecution implements Execution.ExecutionSupport {
 		this.context = b;
 		this.engine = engine;
 
-		output = box.find(Out.__out, box.both()).findFirst().orElseThrow(() -> new IllegalStateException("Can't find html output support"));
+		output = box.find(Out.__out, box.both())
+			    .findFirst()
+			    .orElseThrow(() -> new IllegalStateException("Can't find html output support"));
 	}
 
 	@Override
@@ -77,7 +81,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	Function<Integer, Integer> lineTransform;
 
 	protected void executeAndReturn(String textFragment, Consumer<Pair<Integer, String>> lineErrors, final Consumer<String> success, boolean printResult) {
-		try {
+		try (AutoCloseable __ = pushErrorContext(lineErrors)) {
 			Execution.context.get()
 					 .push(box);
 
@@ -100,12 +104,13 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 					String boxName = matcher.group(2);
 
-					lineErrors.accept(new Pair<>(ln, "Error in deferred execution on line " + ln + " in box " + boxName+"\n"+"Full message is " + m + " / " + t.getMessage()+"<br>"));
+					lineErrors.accept(new Pair<>(ln,
+								     "Error in deferred execution on line " + ln + " in box " + boxName + "\n" + "Full message is " + m + " / " + t.getMessage() + "<br>"));
 				} else {
-					lineErrors.accept(new Pair<>(ln, "Error in deferred execution '" + m + "'\n"+t.getMessage()+"<br>"));
+					lineErrors.accept(new Pair<>(ln, "Error in deferred execution '" + m + "'\n" + t.getMessage() + "<br>"));
 				}
 
-				RemoteEditor.boxFeedback(Optional.of(box), new Vec4(1,0,0,1), "__redmark__", 1, 1000);
+				RemoteEditor.boxFeedback(Optional.of(box), new Vec4(1, 0, 0, 1), "__redmark__", 1, 1000);
 
 			});
 
@@ -123,17 +128,22 @@ public class NashornExecution implements Execution.ExecutionSupport {
 					public void write(char[] cbuf, int off, int len) throws IOException {
 						if (len > 0) {
 							String s = new String(cbuf, off, len);
-							if (s.endsWith("\n")) s = s.substring(0, s.length() - 1)+"<br>";
+							if (s.endsWith("\n")) s = s.substring(0, s.length() - 1) + "<br>";
 							if (s.trim()
 							     .length() == 0) return;
 							written[0] = true;
 
-							if (currentLineNumber==null || currentLineNumber.first==null || currentLineNumber.second==-1)
-								success.accept(s);
+							if (currentLineNumber == null || currentLineNumber.first == null || currentLineNumber.second == -1) success.accept(s);
 							else {
 								final String finalS = s;
-								box.find(Execution.directedOutput, box.upwards()).findFirst().ifPresentOrElse(x -> x.accept(new Triple<>(currentLineNumber.first, currentLineNumber.second,
-																			     finalS)), () -> success.accept(finalS));
+								Optional<Consumer<Triple<Box, Integer, String>>> o = box.find(Execution.directedOutput, box.upwards())
+															.findFirst();
+
+								if (o.isPresent()) {
+									o.ifPresent(x -> x.accept(new Triple<>(currentLineNumber.first, currentLineNumber.second, finalS)));
+								} else {
+									success.accept(finalS);
+								}
 							}
 						}
 					}
@@ -146,14 +156,14 @@ public class NashornExecution implements Execution.ExecutionSupport {
 					public void close() throws IOException {
 
 					}
-				};
-				engine.getContext()
-				      .setWriter(writer);
+				}; engine.getContext()
+					 .setWriter(writer);
 			}
 
-			Log.log("nashorn.general", "\n>>javascript in");
-			Log.log("nashorn.general", textFragment);
-			Log.log("nashorn.general", "applying lineOffset of :" + lineOffset);
+			Log.log("nashorn.general", () -> "\n>>javascript in");
+			final String finalTextFragment = textFragment;
+			Log.log("nashorn.general", () -> finalTextFragment);
+			Log.log("nashorn.general", () -> "applying lineOffset of :" + lineOffset);
 
 			// we prefix the code with a sufficient number of \n's so that the line number of any error message actually refers to the correct line
 			// dreadful hack, but there's no other option right now in Nashorn (sourceMaps aren't supported for example)
@@ -174,7 +184,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 					textFragment = transformation.first;
 					lineTransform = transformation.second;
 				} catch (SourceTransformer.TranslationFailedException t) {
-					lineErrors.accept(new Pair<>(-1, t.getMessage()+"<br>"));
+					lineErrors.accept(new Pair<>(-1, t.getMessage() + "<br>"));
 					return;
 				}
 			} else {
@@ -192,9 +202,9 @@ public class NashornExecution implements Execution.ExecutionSupport {
 			if (success != null && printResult && !written[0]) {
 				if (ret != null) {
 					if (ret instanceof ScriptObjectMirror && ((ScriptObjectMirror) ret).isFunction()) {
-						success.accept("[function defined]");
+						success.accept("[function defined]<br>");
 					} else {
-						success.accept(output.convert(ret));
+						success.accept(output.convert(ret) + "<br>");
 					}
 				} else if (!written[0]) success.accept(" &#10003; ");
 			}
@@ -208,22 +218,75 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 		} finally {
 			lineOffset = 0;
+
+		}
+	}
+
+	private void setCurrentLineNumberForPrinting(Pair<Box, Integer> boxLine)
+	{
+		currentLineNumber= boxLine;
+	}
+
+	private Util.ExceptionlessAutoCloasable pushErrorContext(Consumer<Pair<Integer, String>> lineErrors) {
+		Execution.context.get()
+				 .push(box);
+
+		Errors.errors.push((t, m) -> {
+			System.out.println(" exception thrown inside box " + box);
+			System.out.println(" message is :" + t.getMessage() + " " + m);
+			t.printStackTrace();
+
+
+			if (t instanceof ECMAException) {
+				handleScriptException(t, lineErrors, lineTransform, m);
+				return;
+			}
+
+			int ln = -1;
+			Matcher matcher = Pattern.compile("LN<(.*)@(.*)>")
+						 .matcher(t.getMessage() + " " + m);
+
+			if (matcher.find()) {
+				try {
+					ln = Integer.parseInt(matcher.group(1));
+				} catch (NumberFormatException e) {
+					System.err.println(" malformed number ? " + matcher.group(1));
+					ln = -1;
+				}
+
+				String boxName = matcher.group(2);
+
+				lineErrors.accept(new Pair<>(ln, "Error in deferred execution on line " + ln + " in box " + boxName + "\n" + "Full message is " + m + " / " + t.getMessage()));
+			} else {
+				lineErrors.accept(new Pair<>(ln, "Error in deferred execution '" + m + "'\n" + t.getMessage()));
+			}
+
+			RemoteEditor.boxFeedback(Optional.of(box), new Vec4(1, 0, 0, 1), "__redmark__", 1, 1000);
+		});
+
+		return () -> {
 			Execution.context.get()
 					 .pop();
 
 			Errors.errors.pop();
-		}
+		};
 	}
 
-	private void setCurrentLineNumberForPrinting(Pair<Box, Integer> boxLine) {
-		currentLineNumber = boxLine;
+	private void handleScriptException(Throwable t, Consumer<Pair<Integer, String>> lineErrors, Function<Integer, Integer> lineTransform) {
+		handleScriptException(t, lineErrors, lineTransform, "");
 	}
 
-	private void handleScriptException(Throwable e, Consumer<Pair<Integer, String>> lineErrors, Function<Integer, Integer> lineTransform) {
+	private void handleScriptException(Throwable e, Consumer<Pair<Integer, String>> lineErrors, Function<Integer, Integer> lineTransform, String extraMessage) {
+
 		System.out.println(" handling exception to :" + lineErrors);
 		try {
 			if (e instanceof ScriptException) {
-				lineErrors.accept(new Pair<>(lineTransform.apply(((ScriptException) e).getLineNumber()), e.getMessage()));
+				lineErrors.accept(new Pair<>(lineTransform.apply(((ScriptException) e).getLineNumber()), extraMessage + " " + e.getMessage()));
+				e.printStackTrace();
+			}
+			if (e instanceof ECMAException) {
+				Integer lt = lineTransform.apply(((ECMAException) e).getLineNumber());
+				lineErrors.accept(new Pair<>(lt, extraMessage + " " + e.getMessage()));
 				e.printStackTrace();
 			} else {                        // let's see if we can't scrape a line number out of the exception stacktrace
 				StackTraceElement[] s = e.getStackTrace();
@@ -232,21 +295,21 @@ public class NashornExecution implements Execution.ExecutionSupport {
 					for (int i = 0; i < s.length; i++) {
 						if (s[i].getFileName() != null && s[i].getFileName()
 										      .startsWith("bx[")) {
-							lineErrors.accept(new Pair<>(lineTransform.apply(s[i].getLineNumber()), e.getMessage()));
+							lineErrors.accept(new Pair<>(lineTransform.apply(s[i].getLineNumber()), extraMessage + " " + e.getMessage()));
 							found = true;
 						}
 					}
 				}
 				if (!found) {
-					lineErrors.accept(new Pair<>(-1, e.getMessage()+"<br>"));
+					lineErrors.accept(new Pair<>(-1, extraMessage + " " + e.getMessage() + "<br>"));
 				}
 				e.printStackTrace();
 			}
 		} catch (Throwable t) {
 			System.err.println(" exception thrown while handling an exception (!) (malfunctioning lineTransform?) ");
 			t.printStackTrace();
-			System.err.println(" original error is :" + e.getMessage());
-			lineErrors.accept(new Pair<>(-1, e.getMessage()+"<br>"));
+			System.err.println(" original error is :" + extraMessage + " " + e.getMessage());
+			lineErrors.accept(new Pair<>(-1, extraMessage + " " + e.getMessage() + "<br>"));
 		}
 	}
 
@@ -282,38 +345,41 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 	@Override
 	public String begin(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success, Map<String, Object> initiator) {
-		context.setAttribute("_r", null, ScriptContext.ENGINE_SCOPE);
 
-		initiator.entrySet()
-			 .forEach(x -> context.setAttribute(x.getKey(), x.getValue(), ScriptContext.ENGINE_SCOPE));
+		try (Util.ExceptionlessAutoCloasable __ = pushErrorContext(lineErrors)) {
 
-		String allText = DisabledRangeHelper.getStringWithDisabledRanges(box, property, "/*", "*/");
+			context.setAttribute("_r", null, ScriptContext.ENGINE_SCOPE);
 
-		executeAndReturn(allText, lineErrors, success, true);
-		Object _r = context.getBindings(ScriptContext.ENGINE_SCOPE)
-				   .get("_r");
+			initiator.entrySet()
+				 .forEach(x -> context.setAttribute(x.getKey(), x.getValue(), ScriptContext.ENGINE_SCOPE));
 
-		Supplier<Boolean> r = interpretAnimation(_r);
-		if (r != null) {
-			end(lineErrors, success);
-			String name = "main._animator_" + (uniq);
-			box.properties.putToMap(Boxes.insideRunLoop, name, r);
-			box.first(IsExecuting.isExecuting)
-			   .ifPresent(x -> x.accept(box, name));
+			String allText = DisabledRangeHelper.getStringWithDisabledRanges(box, property, "/*", "*/");
 
-			uniq++;
-			return name;
+			executeAndReturn(allText, lineErrors, success, true);
+			Object _r = context.getBindings(ScriptContext.ENGINE_SCOPE)
+					   .get("_r");
+
+			Supplier<Boolean> r = interpretAnimation(_r);
+			if (r != null) {
+				end(lineErrors, success);
+				String name = "main._animator_" + (uniq);
+				box.properties.putToMap(Boxes.insideRunLoop, name, r);
+				box.first(IsExecuting.isExecuting)
+				   .ifPresent(x -> x.accept(box, name));
+
+				uniq++;
+				return name;
+			}
+
+			return null;
 		}
-
-		return null;
 	}
 
 	private Supplier<Boolean> interpretAnimation(Object r) {
 		Animatable.AnimationElement res = Animatable.interpret(r, null);
-
 		if (res == null) return null;
-
-		return new Animatable.Shim(res);
+		Animatable.Shim s = new Animatable.Shim(res);
+		return s;
 	}
 
 	@Override

@@ -42,23 +42,23 @@ public class Run {
 			if (o instanceof Runnable) ((Runnable) o).run();
 
 		} catch (ClassNotFoundException e) {
-			Log.log("startup.error", "couldn't find class to run <" + mainClass + ">");
+			Log.log("startup.error", ()->"couldn't find class to run <" + mainClass + ">");
 			e.printStackTrace();
 			System.exit(1);
 		} catch (InvocationTargetException e) {
-			Log.log("startup.error", "couldn't construct to run <" + mainClass + ">");
+			Log.log("startup.error", ()->"couldn't construct to run <" + mainClass + ">");
 			e.printStackTrace();
 			System.exit(1);
 		} catch (NoSuchMethodException e) {
-			Log.log("startup.error", "couldn't construct to run <" + mainClass + ">");
+			Log.log("startup.error", ()->"couldn't construct to run <" + mainClass + ">");
 			e.printStackTrace();
 			System.exit(1);
 		} catch (InstantiationException e) {
-			Log.log("startup.error", "couldn't construct to run <" + mainClass + ">");
+			Log.log("startup.error", ()->"couldn't construct to run <" + mainClass + ">");
 			e.printStackTrace();
 			System.exit(1);
 		} catch (IllegalAccessException e) {
-			Log.log("startup.error", "couldn't construct to run <" + mainClass + ">");
+			Log.log("startup.error", ()->"couldn't construct to run <" + mainClass + ">");
 			e.printStackTrace();
 			System.exit(1);
 		}

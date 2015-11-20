@@ -47,10 +47,10 @@ public class LinkedHashMapAndArrayList<V> extends LinkedHashMap<String, V> {
 
 	public V remove(Object v)
 	{
-		Log.log("lhmaal_remove", "removing "+v+" "+this);
+		Log.log("lhmaal_remove", ()->"removing "+v+" "+this);
 		V q = super.remove(v);
 		V q2 = super.remove(keys.remove(massageKey(""+v)));
-		Log.log("lhmaal_remove", "now "+this);
+		Log.log("lhmaal_remove",()-> "now "+this);
 
 		_removed(v);
 

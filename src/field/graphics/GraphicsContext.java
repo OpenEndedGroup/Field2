@@ -58,7 +58,7 @@ public class GraphicsContext {
 	}
 
 	static public void enterContext(GraphicsContext c) {
-		Log.log("graphics.trace", ">> graphics context begin ");
+		Log.log("graphics.trace", ()->">> graphics context begin ");
 		currentGraphicsContext = c;
 		for (Runnable r : currentGraphicsContext.preQueue) {
 			r.run();
@@ -70,7 +70,7 @@ public class GraphicsContext {
 			r.run();
 		currentGraphicsContext.postQueue.clear();
 		currentGraphicsContext = null;
-		Log.log("graphics.trace", "<< graphics context end");
+		Log.log("graphics.trace", ()->"<< graphics context end");
 	}
 
 	static public <T> T get(Object o) {
@@ -125,14 +125,17 @@ public class GraphicsContext {
 
 	public static void checkError() {
 		if (noChecks) return;
+		if (currentGraphicsContext==null) return;
 		checkError(() -> "");
 	}
 
 	public static void checkError(Supplier<String> message) {
 		if (noChecks) return;
+		if (currentGraphicsContext==null) return;
 		int e = GL11.glGetError();
-		if (e!=0)
-			throw new IllegalStateException("GLERROR:"+ GLContext.translateGLErrorString(e)+" -- "+message.get());
+		if (e!=0) {
+			throw new IllegalStateException("GLERROR:" + GLContext.translateGLErrorString(e) + " -- " + message.get()+"\nState tracker is:"+stateTracker.dumpOutput());
+		}
 	}
 
 	static public class Sticky implements Runnable {

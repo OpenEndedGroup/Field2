@@ -72,6 +72,49 @@ function newMarkingCanvas(start, stop, w, h) {
 	return {"div": div, "canvas": canvas, "mark": widget};
 }
 
+checkBox = function (into, w, h, get, setAndGet)
+{
+	shapes = into.circle(w/2, w/2, w  / 2-4)
+	var click = function()
+	{
+		var v = setAndGet(!get());
+		shapes.animate({
+  			"fill-opacity": (v? 0.5 : 0)
+  		}, 50);
+
+	if (v)
+			shapes.attr({"stroke-dasharray": ""})
+	else
+		shapes.attr({"stroke-dasharray": "-"})
+
+	}
+
+	initial = get()
+
+	shapes.attr({
+		fill: "eee",
+  			"fill-opacity": (initial? 0.5 : 0),
+		"stroke-width": 2,
+		cursor: "move",
+		stroke: "#000"
+	});
+		if (initial)
+  			shapes.attr({"stroke-dasharray": ""})
+  	else
+  		shapes.attr({"stroke-dasharray": "-"})
+
+	shapes.hover(
+		function () {
+			this.attr({"stroke": "#300"})
+		},
+		function () {
+			this.attr({"stroke": "#000"})
+		})
+	shapes.click(click);
+
+	return shapes;
+}
+
 dragThang = function (into, get, setAndGet, diameter) {
 
 	var internalSet = function (target, x, y) {
@@ -776,5 +819,178 @@ globalCommands.push({
 	"info": "Inserts a four breakpoint graph that goes from (0.0, 0.0) to (1.0, 1.0) at the cursor, or (if possible) over the text selected",
 	"callback": function () {
 		insert14GraphSliderAtSelection()
+	}
+});
+
+
+
+
+make14Graph = function (rrRaph, w, h, get, setAndConstrain) {
+	var vz = get()
+
+	console.log(" initial value for 4 graph is " + stringify(vz));
+
+	var curve = rrRaph.path().attr({"stroke-width": 4, "stroke": "#000"})
+	var curve2 = rrRaph.path().attr({"stroke-width": 1, "stroke": "#555"})
+
+	var updatePath = function () {
+		var z = "M" + (0 * (w - insetW * 2) + insetW) + "," + (vz[0] * (h - insetW * 2) + insetW);
+		z += "C " + (0.3333 * (w - insetW * 2) + insetW) + "," + (vz[1] * (h - insetW * 2) + insetW);
+		z +=" "+ (0.6666 * (w - insetW * 2) + insetW) + "," + (vz[2] * (h - insetW * 2) + insetW);
+		z +=  " "+(1 * (w - insetW * 2) + insetW) + "," + (vz[3] * (h - insetW * 2) + insetW);
+		curve.attr({path: z})
+
+		z = "M"+(0 * (w - insetW * 2) + insetW) + "," + (vz[0] * (h - insetW * 2) + insetW);
+		z += "L " + (0.3333 * (w - insetW * 2) + insetW) + "," + (vz[1] * (h - insetW * 2) + insetW);
+		z +="M"+ (0.6666 * (w - insetW * 2) + insetW) + "," + (vz[2] * (h - insetW * 2) + insetW);
+		z +=  "L"+(1 * (w - insetW * 2) + insetW) + "," + (vz[3] * (h - insetW * 2) + insetW);
+		curve2.attr({path: z})
+	}
+	var s0 = makeXYSlider(rrRaph, w, h, function () {
+		vz = get()
+		return [0, vz[0]]
+	}, function (o, p, n) {
+		n[0] = 0
+		vz[0] = n[1];
+		updatePath();
+		q = setAndConstrain(vz, vz, vz);
+		return [0, q[0]];
+	}, true, false)
+	var s1 = makeXYSlider(rrRaph, w, h, function () {
+		vz = get()
+		return [0.3333, vz[1]]
+	}, function (o, p, n) {
+		n[0] = 0.3333
+		vz[1] = n[1];
+		updatePath();
+		q = setAndConstrain(vz, vz, vz);
+		return [0.3333, q[1]];
+	}, false, false)
+	var s2 = makeXYSlider(rrRaph, w, h, function () {
+		vz = get()
+		return [0.6666, vz[2]]
+	}, function (o, p, n) {
+		n[0] = 0.6666
+		vz[2] = n[1];
+		updatePath();
+		q = setAndConstrain(vz, vz, vz);
+		return [0.6666, q[2]];
+	}, false, false)
+	var s3 = makeXYSlider(rrRaph, w, h, function () {
+		vz = get()
+		return [1, vz[3]]
+	}, function (o, p, n) {
+		n[0] = 1
+		vz[3] = n[1];
+		updatePath();
+		q = setAndConstrain(vz, vz, vz);
+		return [1, q[3]];
+	}, false, false)
+
+	return function () {
+		return vz;
+	}
+}
+
+//g = make4Graph(rrRaph, w, h, function(){return [[0.0,0.5],[0.25,0.5],[0.75,0.5],[1.0,0.5]]}, function(o,p,n){return n}, true)
+
+insertBool = function (selection_start, selection_end) {
+	var w = 30;
+	var h = 30;
+
+	canvas = newMarkingCanvas(selection_start, selection_end, w, h);
+	var marks = canvas.mark;
+
+	//try {
+	get = function () {
+		rr = cm.getDoc().getRange(marks.find().from, marks.find().to);
+		f = JSON.parse(rr);
+				console.log(" rr <current ||" + rr+ "|| = "+f+" "+(f!=0));
+
+		return f != 0;
+	}
+	set = function (o, p, x) {
+
+		ff = {line: marks.find().from.line, ch: marks.find().from.ch}
+		ff.ch += 1;
+		ft = {line: marks.find().to.line, ch: marks.find().to.ch}
+		ft.ch -= 1;
+
+		rr = cm.getDoc().getRange(marks.find().from, marks.find().to);
+		norm = " " + (o !=0 ? 1 : 0) + " ";
+		console.log(" rr <to ||" + norm + "||");
+		if (cm.getDoc().getRange(ff, ft) != norm) {
+			console.log(" rr <was ||" + cm.getDoc().getRange(ff, ft) + "||");
+			cm.getDoc().replaceRange(norm, ff, ft)
+			//cm.refresh();
+
+			f = findEnclosingPathForLine(selection_start.line)
+
+			if (f != null) {
+				executeBracket(f, true)
+			}
+
+		}
+
+		rr = cm.getDoc().getRange(marks.find().from, marks.find().to);
+		console.log(" rr <endSet ||" + rr + "||");
+
+		return o;
+	}
+
+	checkBox(canvas.canvas, w, h, get, set)
+
+	// serialize this
+
+	$(canvas.div).data("serialization", function () {
+		fc = marks.find().from.ch
+		tc = marks.find().to.ch
+		fl = marks.find().from.line
+		tl = marks.find().to.line
+		console.log(" inside serialization range is " + fc + " " + tc + "  -> " + fl + " " + tl);
+
+		// todo, add guard to make sure that this text hasn't changed....
+		return "insertBool({'line':" + fl + ",'ch':" + fc + "},{'line':" + tl + ",'ch':" + tc + "})";
+	})
+	updateAllBrackets();
+
+	return canvas;
+}
+
+insertBoolHere = function () {
+	var selection_start = cm.getCursor("from");
+	cm.replaceRange(" 1 ", selection_start) // we pad with spaces, otherwise when we replace
+						    // this text we blow away our widget
+	// as well
+	var selection_end = cm.getCursor("to");
+	return insertBool(selection_start, selection_end);
+}
+
+insertBoolAtSelection = function () {
+	var selection_start = cm.getCursor("from");
+	var selection_end = cm.getCursor("to");
+
+	var r = cm.getDoc().getRange(selection_start, selection_end);
+	if (r == "") {
+		return insertBoolHere();
+	}
+	else //if (!isNaN(parseFloat(r)))
+	{
+		var start = cm.setBookmark(selection_start);
+		var end = cm.setBookmark(selection_end);
+		r = r.trim();
+		if (r[0] != " ") r = " " + r
+		if (r[r.length - 1] != " ") r = r + " "
+		cm.getDoc().replaceRange(r, selection_start, selection_end);
+
+		insertBool(start.find(), end.find());
+	}
+}
+
+globalCommands.push({
+	"name": "Insert checkbox",
+	"info": "Inserts a checkbox '1' or '0'  at the cursor, or (if possible) over the text selected",
+	"callback": function () {
+		insertBoolAtSelection()
 	}
 });

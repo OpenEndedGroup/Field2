@@ -35,7 +35,7 @@ public class EditorUtils {
 
 			      System.out.println(" message table is :" + messageTable);
 			      Consumer<JSONObject> c = messageTable.remove(a);
-			      if (c == null) Log.log("editorUtils.error", "no handler for message :" + a);
+			      if (c == null) Log.log("editorUtils.error", ()->"no handler for message :" + a);
 			      else {
 				      c.accept((JSONObject) p);
 			      }

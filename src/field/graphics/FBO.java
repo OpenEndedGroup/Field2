@@ -1,5 +1,6 @@
 package field.graphics;
 
+import field.utility.Log;
 import field.utility.Util;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 
@@ -19,10 +20,16 @@ import static org.lwjgl.opengl.GL32.glFramebufferTexture;
  * static methods to help you avoid the mess of historic OpenGL enums, we'll grow these as necessary). They can have multiple layers, optional depth
  * buffers, optional stencils, multisampling, a variety of components and bit-depths and dimensions.
  * <p>
- * TODO: right now we're confined to the GL_TEXTURE2D case, although we know from experience that they layered case is very useful for stereo
  */
-public class FBO extends BaseScene<FBO.State> implements Scene.Perform {
+public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUniform<Integer> {
 
+
+	@Override
+	public Integer getUniform() {
+		try(Util.ExceptionlessAutoCloasable st = GraphicsContext.stateTracker.save()) {
+			return specification.unit;
+		}
+	}
 
 	static public class State extends BaseScene.Modifiable {
 		int name = -1;
@@ -78,6 +85,23 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform {
 		static public FBOSpecification rgbaMultisample(int unit, int width, int height) {
 			return new FBOSpecification(unit, GL_RGBA, width, height, GL_RGBA, GL_BYTE, 8, false, 1, true, 1);
 		}
+
+		@Override
+		public String toString() {
+			return "FBOSpecification{" +
+					"unit=" + unit +
+					", internalFormat=" + internalFormat +
+					", width=" + width +
+					", height=" + height +
+					", format=" + format +
+					", type=" + type +
+					", elementSize=" + elementSize +
+					", depth=" + depth +
+					", num=" + num +
+					", layers=" + layers +
+					", multisample=" + multisample +
+					'}';
+		}
 	}
 
 	public final FBOSpecification specification;
@@ -90,6 +114,9 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform {
 
 
 	protected State setup() {
+		Log.log("graphics.trace", () -> "setting up FBO "+specification);
+
+		GraphicsContext.checkError();
 
 		State s = new State();
 		s.name = glGenFramebuffers();
@@ -133,6 +160,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform {
 			if (status != GL_FRAMEBUFFER_COMPLETE) throw new IllegalArgumentException(" bad status, " + status);
 		}
 
+		GraphicsContext.checkError();
 
 		s.text = new int[specification.num];
 		for (int i = 0; i < s.text.length; i++)
@@ -141,6 +169,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform {
 
 
 		glBindFramebuffer(GL_FRAMEBUFFER, s.name);
+		GraphicsContext.checkError();
 
 
 		if (specification.layers==1) {
@@ -204,12 +233,15 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform {
 		if (status != GL_FRAMEBUFFER_COMPLETE) throw new IllegalArgumentException(" bad status, " + status);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		GraphicsContext.checkError();
+
+		Log.log("graphics.trace", () -> "finished setting up FBO "+specification+" status is "+status);
 
 		return s;
 	}
 
 	public boolean draw() {
-		GraphicsContext.checkError(() -> "on FBO entry");
+		GraphicsContext.checkError(() -> "on FBO draw entry, specification "+specification);
 		try(Util.ExceptionlessAutoCloasable st = GraphicsContext.stateTracker.save()) {
 
 			State s = GraphicsContext.get(this, this::setup);
@@ -237,10 +269,13 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform {
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 			}
 
-
-
+			GraphicsContext.checkError(() -> "on FBO draw exit1");
 
 			return true;
+		}
+		finally
+		{
+			GraphicsContext.checkError(() -> "on FBO draw exit2");
 		}
 	}
 
@@ -276,6 +311,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform {
 
 	@Override
 	protected boolean perform0() {
+		Log.log("graphics.trace", () -> "binding FBO to texture unit "+specification.unit);
 		State s = GraphicsContext.get(this);
 		for (int i = 0; i < s.text.length; i++) {
 			if (specification.layers==1) {

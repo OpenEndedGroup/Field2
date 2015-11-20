@@ -36,7 +36,7 @@ public class FieldClojure extends Execution {
 	public FieldClojure(Box root) {
 		super(null);
 
-		Log.log("startup.clojure", "Clojure plugin is starting up ");
+		Log.log("startup.clojure", ()->"Clojure plugin is starting up ");
 
 		ns = Clojure.var(nsClojure, "*ns*");
 		out = Clojure.var(nsClojure, "*out*");
@@ -50,14 +50,14 @@ public class FieldClojure extends Execution {
 		completions = Clojure.var("compliment.core", "completions");
 		documentation = Clojure.var("compliment.core", "documentation");
 
-		log("clojure.debug", completions.invoke("al-", null));
+		log("clojure.debug", ()->completions.invoke("al-", null));
 
 		Var.pushThreadBindings(PersistentHashMap.create(ns, Namespace.findOrCreate(
 			    Symbol.create("user"))));
 
 		Animatable.registerHandler((was, o) -> {
 			if (o instanceof IFn && !(o instanceof Collection) && !(o instanceof Map)) {
-				log("clojure.debug", "IFn found");
+				log("clojure.debug",()-> "IFn found");
 				return new Animatable.AnimationElement() {
 					@Override
 					public Object middle(boolean isEnding) {
@@ -69,7 +69,7 @@ public class FieldClojure extends Execution {
 		});
 		Animatable.registerHandler((was, o) -> {
 			if (o instanceof IFn && (o instanceof Collection) && !(o instanceof Map)) {
-				log("clojure.debug", "IFn found -- collection");
+				log("clojure.debug", ()->"IFn found -- collection");
 
 				Animatable.AnimationElement start = null;
 				Animatable.AnimationElement middle = null;
@@ -126,7 +126,7 @@ public class FieldClojure extends Execution {
 		});
 		Animatable.registerHandler((was, o) -> {
 			if (o instanceof IFn && !(o instanceof Collection) && (o instanceof Map)) {
-				log("clojure.debug", "IFn found -- map");
+				log("clojure.debug", ()->"IFn found -- map");
 				Animatable.AnimationElement start = null;
 				Animatable.AnimationElement middle = null;
 				Animatable.AnimationElement end = null;
@@ -183,7 +183,7 @@ public class FieldClojure extends Execution {
 			return null;
 		});
 
-		Log.log("startup.clojure", "Clojure plugin has finished starting up ");
+		Log.log("startup.clojure", ()->"Clojure plugin has finished starting up ");
 	}
 
 
@@ -230,14 +230,14 @@ public class FieldClojure extends Execution {
 
 				try{
 					Execution.context.get().push(box);
-					log("clojure.debug", "ns at entry :" + ((Var) ns).get());
+					log("clojure.debug", ()->"ns at entry :" + ((Var) ns).get());
 
 					String sticky = box.properties.get(_clojureNS);
 					if (sticky != null) {
 						eval("(ns " + sticky + ")", null);
 					}
 
-					log("clojure.debug", "ns at entry after sticky :" + ((Var) ns).get());
+					log("clojure.debug", ()->"ns at entry after sticky :" + ((Var) ns).get());
 
 					Object nsOnEntry = ((Var) ns).get();
 
@@ -251,20 +251,21 @@ public class FieldClojure extends Execution {
 						for(int i=0;i<lineOffset;i++)
 							textFragment = "\n"+textFragment;
 					}
-					log("clojure.debug", " execute text fragment on :" + textFragment + "(line offset)"+lineOffset);
+					final String finalTextFragment = textFragment;
+					log("clojure.debug", ()->" execute text fragment on :" + finalTextFragment + "(line offset)"+lineOffset);
 
 					Object result = eval(textFragment, lineErrors);
 
 						w.append("\n" + (result != null ? ("" + result) : ""));
 					success.accept(w.toString());
 
-					log("clojure.debug", " result string is " + out);
+					log("clojure.debug", ()->" result string is " + out);
 
-					log("clojure.debug", "ns at exit :" + ((Var) ns).get());
+					log("clojure.debug", ()->"ns at exit :" + ((Var) ns).get());
 
 					Object nsAtExit = ((Var) ns).get();
 					if (!nsAtExit.equals(nsOnEntry)) {
-						log("clojure.debug", "ns has changed, setting sticky");
+						log("clojure.debug", ()->"ns has changed, setting sticky");
 						box.properties.put(_clojureNS, ((Namespace) nsAtExit).getName()
 												     .getName());
 					}
@@ -303,7 +304,7 @@ public class FieldClojure extends Execution {
 			@Override
 			public String begin(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success, Map<String, Object> initiator) {
 
-				log("clojure.debug", "ns at entry :" + ((Var) ns).get());
+				log("clojure.debug", ()->"ns at entry :" + ((Var) ns).get());
 
 				String sticky = box.properties.get(_clojureNS);
 				if (sticky != null) {
@@ -317,9 +318,8 @@ public class FieldClojure extends Execution {
 				((Var)Clojure.var(sticky, "_")).bindRoot(box);
 
 				Var v = (Var) Clojure.var(sticky, "_r");
-				log("clojure.debug", "_r at entry :" + v.get());
+				final Var finalV = v;
 				v.bindRoot(null);
-				log("clojure.debug", "_r at entry :" + v.get());
 
 				String allText = box.first(prop)
 						    .orElse("");
@@ -342,10 +342,9 @@ public class FieldClojure extends Execution {
 				v = (Var) Clojure.var(sticky, "_r");
 				Object ret = v.get();
 
-				log("clojure.debug", "_r at eXit :" + ret);
+				log("clojure.debug", ()->"_r at eXit :" + ret);
 
-				log("clojure.debug", "invoking");
-				log("clojure.debug", ret instanceof Runnable, ret instanceof Collection, ret instanceof Map);
+				log("clojure.debug", ()->"invoking");
 
 
 				Animatable.AnimationElement ae = Animatable.interpret(ret, null);
@@ -418,11 +417,14 @@ public class FieldClojure extends Execution {
 				}
 
 
-				log("clojure.debug", "parsed line <" + lines[line] + "> __prefix__ is " + subStart + " -> " + subEnd);
+				final int finalSubStart = subStart;
+				final int finalSubEnd = subEnd;
+				log("clojure.debug", ()->"parsed line <" + lines[line] + "> __prefix__ is " + finalSubStart + " -> " + finalSubEnd);
 
 				String mid = lines[line].substring(0, subStart) + " __prefix__ " + lines[line].substring(subEnd, lines[line].length());
 
-				log("clojure.debug", "parsed line thus " + mid + " / " + sub);
+				final String finalSub = sub;
+				log("clojure.debug", ()->"parsed line thus " + mid + " / " + finalSub);
 
 
 				Execution.context.get().push(box);
@@ -431,20 +433,20 @@ public class FieldClojure extends Execution {
 
 					Object ret = completions.invoke(sub, before + mid + "\n" + after);
 
-					log("clojure.debug", "result :" + ret);
+					log("clojure.debug", ()->"result :" + ret);
 
 
 					List<Completion> c = new ArrayList<Completion>();
 
 					for (String s : ((Collection<String>) ret)) {
 						Object testEval = eval(s, null);
-						log("clojure.debug", " s -> " + testEval);
+						log("clojure.debug", ()->" s -> " + testEval);
 
 						c.add(new Completion(before.length() + subStart, before.length() + subEnd, s, "<span class=doc>" + (String) documentation.invoke(s) + "</span>"));
 					}
 
 
-					log("clojure.debug", "completions are :" + c);
+					log("clojure.debug", ()->"completions are :" + c);
 					results.accept(c);
 				}
 				finally
@@ -495,7 +497,7 @@ public class FieldClojure extends Execution {
 				}
 				List<Pair<String, String>> possibleJavaClassesFor = JavaSupport.javaSupport.getPossibleJavaClassesFor(sub);
 
-				Log.log("completion.debug", " possible javaclasses :" + possibleJavaClassesFor);
+				Log.log("completion.debug", ()->" possible javaclasses :" + possibleJavaClassesFor);
 
 				subStart += before.length();
 				subEnd += before.length();
@@ -539,15 +541,16 @@ public class FieldClojure extends Execution {
 			try {
 				defLn = rdr.getLineNumber();
 
-				log("clojure.debug", "line number on entry is :"+defLn);
+				final int finalDefLn = defLn;
+				log("clojure.debug", ()->"line number on entry is :"+ finalDefLn);
 				Object r = LispReader.read(rdr, false, EOF, false);
 				if (r == EOF) {
 					break;
 				}
-				log("clojure.debug", " form is :" + r + " " + Thread.currentThread()
+				log("clojure.debug", ()->" form is :" + r + " " + Thread.currentThread()
 										    .getContextClassLoader());
 				Object ret = Compiler.eval(r);
-				log("clojure.debug", " ret is " + ret);
+				log("clojure.debug", ()->" ret is " + ret);
 				result = ret;
 			} catch (Throwable e) {
 				if (lineErrors == null) return null;

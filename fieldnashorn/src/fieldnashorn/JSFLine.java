@@ -19,7 +19,7 @@ public class JSFLine extends FLine implements JSObject {
 	@HiddenInAutocomplete
 	public Object call(Object o, Object... objects) {
 
-		Log.log("jsinnards", "CALL called <" + o + "> <" + objects + ">");
+		Log.log("jsinnards", ()->"CALL called <" + o + "> <" + objects + ">");
 
 		if (objects.length == 1) {
 			if (objects[0] instanceof Map) {

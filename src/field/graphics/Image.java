@@ -1,5 +1,8 @@
 package field.graphics;
 
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL42;
+
 import static org.lwjgl.opengl.GL15.GL_READ_WRITE;
 import static org.lwjgl.opengl.GL42.glBindImageTexture;
 
@@ -8,7 +11,7 @@ import static org.lwjgl.opengl.GL42.glBindImageTexture;
  * <p>
  * An OpenGL Image is a very recent addition to OpenGL. Unlike Textures, Images can be writeable in random access ways from shaders.
  */
-public class Image implements Scene.Perform {
+public class Image implements Scene.Perform, OffersUniform<Integer> {
 
 	private final Texture texture;
 
@@ -24,9 +27,21 @@ public class Image implements Scene.Perform {
 
 	private boolean perform() {
 		texture.perform(-1);
+
+		GraphicsContext.checkError(() -> " bound texture now binding image "+texture.specification.unit+" "+((Texture.State) GraphicsContext
+				.get(texture)).name);
+
+
 		glBindImageTexture(texture.specification.unit, ((Texture.State) GraphicsContext
-			    .get(texture)).name, 0, false, 0, GL_READ_WRITE, texture.specification.format);
+			    .get(texture)).name, 0, false, 0, GL_READ_WRITE, texture.specification.internalFormat);
+		GraphicsContext.checkError(() -> " after binding image ");
+
 		return true;
+	}
+
+	@Override
+	public Integer getUniform() {
+		return texture.getUniform();
 	}
 
 	@Override

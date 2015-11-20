@@ -58,16 +58,16 @@ public class JavaSupport {
 		// we defer this to the main loop (and _then_ punt it off to a separate thread) in order for the majority of Field internal classes to be loaded (for example, the graphics system)
 		RunLoop.main.once(() -> {
 			RunLoop.workerPool.submit(() -> {
-				Log.log("jar.indexer", "has started up");
+				Log.log("jar.indexer", ()->"has started up");
 				try {
 					List<URL> paths = ((Trampoline.ExtensibleClassloader) classLoader).collectURLS();
-					Log.log("jar.indexer", "will index paths:" + paths + " from classloader " + classLoader);
+					Log.log("jar.indexer", ()->"will index paths:" + paths + " from classloader " + classLoader);
 					for (URL path : paths) {
-						Log.log("jar.indexer", "will index path " + path);
+						Log.log("jar.indexer",()-> "will index path " + path);
 						RunLoop.workerPool.submit(() -> {
 							Map<String, String> a = indexClasses(path);
 
-							Log.log("jar.indexer", "indexed path " + path + " and got " + a.size() + " classes");
+							Log.log("jar.indexer",()-> "indexed path " + path + " and got " + a.size() + " classes");
 
 							synchronized (allClassNames) {
 								allClassNames.putAll(a);
@@ -77,7 +77,8 @@ public class JavaSupport {
 							while (f != null) {
 								if (f.isDirectory()) {
 									if (new File(f, "src.zip").exists()) {
-										Log.log("jar.indexer", "found a src.zip in classpath <" + f + ">");
+										final File finalF = f;
+										Log.log("jar.indexer", ()-> "found a src.zip in classpath <" + finalF + ">");
 
 										String p = new File(f, "src.zip").getAbsolutePath();
 										synchronized (srcZipsDeltWith) {
@@ -96,7 +97,7 @@ public class JavaSupport {
 									String p = new File(f, "src").getAbsolutePath();
 									if (srcZipsDeltWith.contains(p)) break;
 									srcZipsDeltWith.add(p);
-									Log.log("jar.indexer", " added " + p+ " to source path given classpath");
+									Log.log("jar.indexer",()-> " added " + p+ " to source path given classpath");
 									builder.addSourceTree(new File(p));
 								}
 								f = f.getParentFile();
@@ -106,7 +107,7 @@ public class JavaSupport {
 
 					allClassNames.putAll(indexJigsaw());
 
-					builder.setErrorHandler(e -> Log.log("completion.general", " problem parsing Java source file for completion, will skip this file and continue on "));
+					builder.setErrorHandler(e -> Log.log("completion.general", ()->" problem parsing Java source file for completion, will skip this file and continue on "));
 					builder.addClassLoader(classLoader);
 
 					String root = fieldagent.Main.app;
@@ -116,11 +117,11 @@ public class JavaSupport {
 						public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
 							if (dir.endsWith("temp")) return FileVisitResult.SKIP_SUBTREE;
 							if (dir.endsWith("src")) {
-								Log.log("jar.indexer", " added " + dir + " to source path");
+								Log.log("jar.indexer", ()->" added " + dir + " to source path");
 								all.add(dir);
 								try {
 									builder.addSourceTree(dir.toFile(),
-											      f -> Log.log("jar.indexer", " error parsing file " + f + ", but we'll continue on anyway..."));
+											      f -> Log.log("jar.indexer", ()->" error parsing file " + f + ", but we'll continue on anyway..."));
 								} catch (ParseException e) {
 									e.printStackTrace();
 								}
@@ -143,7 +144,7 @@ public class JavaSupport {
 							return FileVisitResult.CONTINUE;
 						}
 					});
-					Log.log("completion.debug", " all is :" + all);
+					Log.log("completion.debug", ()->" all is :" + all);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -195,19 +196,19 @@ public class JavaSupport {
 		while (entries.hasMoreElements()) {
 			ZipEntry zipEntry = (ZipEntry) entries.nextElement();
 			String u = "jar:file://" + filename + "!/" + zipEntry.getName();
-			Log.log("jar.indexer", "will index a source file from a jar:"+u);
+			Log.log("jar.indexer", ()->"will index a source file from a jar:"+u);
 			builder.addSource(new URL(u));
 		}
 		;
 	}
 
 	private Map<String, String> indexJigsaw() {
-		Log.log("jar.indexer", "will index jigsaw");
+		Log.log("jar.indexer", ()->"will index jigsaw");
 		try {
 			FileSystem fs = FileSystems.getFileSystem(URI.create("jrt:/"));
 			HashMap<String, String> r = new HashMap<>();
 			for (Path p : fs.getRootDirectories()) {
-				Log.log("jar.indexer", "jigsaw root is :" + p);
+				Log.log("jar.indexer", ()->"jigsaw root is :" + p);
 				Files.walkFileTree(p, new FileVisitor<Path>() {
 					@Override
 					public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
@@ -219,9 +220,10 @@ public class JavaSupport {
 						if (file.toString()
 							.endsWith(".class")) {
 							String q = file.toString();
+
 							String[] split = q.split("/");
 							String name = "";
-							for (int i = 2; i < split.length; i++) {
+							for (int i = 3; i < split.length; i++) {
 								name = name + "." + split[i];
 							}
 							name = name.substring(1);
@@ -229,7 +231,8 @@ public class JavaSupport {
 							name = name.replace("/", ".");
 							name = name.replace(".class", "");
 							name = name.replace("$", ".");
-							r.put(name, split[1]);
+
+							r.put(name, split[2]);
 						}
 						return FileVisitResult.CONTINUE;
 					}
@@ -245,7 +248,7 @@ public class JavaSupport {
 					}
 				});
 			}
-			Log.log("jar.indexer", "indexed " + r.size());
+			Log.log("jar.indexer", ()->"indexed " + r.size());
 
 			return r;
 		} catch (Throwable t) {
@@ -260,7 +263,7 @@ public class JavaSupport {
 		if (f.endsWith(".jar")) return indexClasses_jar(f);
 		else if (new File(f).exists()) {
 			return indexClasses_tree(f);
-		} else Log.log("indexer", "path " + path + " " + f + " does not exist");
+		} else Log.log("indexer", ()->"path " + path + " " + f + " does not exist");
 		return Collections.emptyMap();
 	}
 
@@ -333,10 +336,10 @@ public class JavaSupport {
 	public List<Completion> getCompletionsFor(Object o, String prefix) {
 		if (o instanceof HandlesCompletion) {
 
-			Log.log("completion.debug", " object :" + o + " is a completion handler ");
+			Log.log("completion.debug", ()->" object :" + o + " is a completion handler ");
 
 			return ((HandlesCompletion) o).getCompletionsFor(prefix);
-		} else Log.log("completion.debug", " object :" + o + " is not a completion handler ");
+		} else Log.log("completion.debug",()-> " object :" + o + " is not a completion handler ");
 
 		List<Completion> r = getOptionCompletionsFor(o, prefix, false);
 
@@ -345,10 +348,10 @@ public class JavaSupport {
 	public List<Completion> getCompletionsFor(Object o, String prefix, boolean includeConstructors) {
 		if (o instanceof HandlesCompletion) {
 
-			Log.log("completion.debug", " object :" + o + " is a completion handler ");
+			Log.log("completion.debug", ()->" object :" + o + " is a completion handler ");
 
 			return ((HandlesCompletion) o).getCompletionsFor(prefix);
-		} else Log.log("completion.debug", " object :" + o + " is not a completion handler ");
+		} else Log.log("completion.debug", ()->" object :" + o + " is not a completion handler ");
 
 		List<Completion> r = getOptionCompletionsFor(o, prefix, includeConstructors);
 
@@ -358,7 +361,7 @@ public class JavaSupport {
 	public List<Completion> getOptionCompletionsFor(Object o, String prefix, boolean includeConstructors) {
 
 
-		Log.log("completion.debug", "getOptionCompletionsFor "+o+" / "+prefix);
+		Log.log("completion.debug",()-> "getOptionCompletionsFor "+o+" / "+prefix);
 
 		boolean staticsOnly = o instanceof Class;
 
@@ -369,7 +372,8 @@ public class JavaSupport {
 
 		JavaClass j = builder.getClassByName(c.getName());
 
-		Log.log("completion.debug", " java class (for javadoc supported completion) :" + j + " prefix is <" + prefix + "> "+includeConstructors+" "+staticsOnly);
+		final JavaClass finalJ = j;
+		Log.log("completion.debug", ()->" java class (for javadoc supported completion) :" + finalJ + " prefix is <" + prefix + "> "+includeConstructors+" "+staticsOnly);
 
 		List<Completion> r = new ArrayList<>();
 		try {
@@ -384,7 +388,7 @@ public class JavaSupport {
 					{
 						for(JavaConstructor m : j.getConstructors())
 						{
-							Log.log("completion.debug", "looking at constructor "+m);
+							Log.log("completion.debug", ()->"looking at constructor "+m);
 
 							if (hasAnnotation(m.getAnnotations(), HiddenInAutocomplete.class)) continue;
 							if (docOnly && m.getComment()

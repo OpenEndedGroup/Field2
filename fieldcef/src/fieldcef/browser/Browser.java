@@ -41,7 +41,7 @@ public class Browser extends Box implements IO.Loaded {
 
 	static public final Dict.Prop<String> url = new Dict.Prop<String>("url").type()
 										.toCannon()
-										.doc("URL for the browser. Setting this will cause the browser to nagivate, and repaint automatically");
+										.doc("URL for the browser. Setting this will cause the browser to navigate, and repaint automatically");
 	static public final Dict.Prop<String> html = new Dict.Prop<String>("html").type()
 										  .toCannon()
 										  .doc("HTML for the browser. Setting this will cause the browser to reload it's contents from this string, and repaint automatically");
@@ -58,7 +58,7 @@ public class Browser extends Box implements IO.Loaded {
 		String u = now.properties.get(url);
 
 		if (u != null) {
-			Log.log("HTML", "loading URL <" + u + ">");
+			Log.log("HTML", ()->"loading URL <" + u + ">");
 			browser.loadURL(u);
 		}
 
@@ -68,7 +68,7 @@ public class Browser extends Box implements IO.Loaded {
 		String u = now.properties.get(html);
 
 		if (u != null) {
-			Log.log("HTML", "loading html");
+			Log.log("HTML", ()->"loading html");
 			browser.loadString(u, u);
 		}
 
@@ -222,9 +222,9 @@ public class Browser extends Box implements IO.Loaded {
 		shader.attach(new Uniform<Vec2>("bounds", () -> new Vec2(Window.getCurrentWidth(), Window.getCurrentHeight())));
 
 		shader.attach(-2, "__rectupdate__", x -> {
-					Rect r = properties.get(Box.frame);
-					update(r.x, r.y, 1/*r.w/w*/);
-				});
+			Rect r = properties.get(Box.frame);
+			update(r.x, r.y, 1/*r.w/w*/);
+		});
 
 		shader.attach(q);
 		shader.attach(texture);
@@ -278,7 +278,7 @@ public class Browser extends Box implements IO.Loaded {
 
 		this.properties.putToMap(Mouse.onMouseDown, "__browser__", (e, button) -> {
 
-			Log.log("selection", "is browser hidden ? " + properties.isTrue(Box.hidden, false) + " " + this);
+			Log.log("selection", ()->"is browser hidden ? " + properties.isTrue(Box.hidden, false) + " " + this);
 
 			Rect r = properties.get(Box.frame);
 
@@ -350,8 +350,6 @@ public class Browser extends Box implements IO.Loaded {
 		});
 
 		this.properties.putToMap(Mouse.onMouseScroll, "__browser__", (e) -> {
-
-
 			Rect r = properties.get(Box.frame);
 			if (!intersects(r, e)) return;
 			if (!isSelected() && !getFocus()) return;
@@ -372,8 +370,6 @@ public class Browser extends Box implements IO.Loaded {
 			browser.sendMouseWheelEvent(new MouseWheelEvent(component, MouseWheelEvent.MOUSE_WHEEL, KeyEvent.SHIFT_DOWN_MASK, 0, (int) (point.x - r.x) * window.getRetinaScaleFactor(),
 									(int) (point.y - r.y) * window.getRetinaScaleFactor(), (int) (point.x - r.x) * window.getRetinaScaleFactor(),
 									(int) (point.y - r.y) * window.getRetinaScaleFactor(), 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, 1, (int) dx, dx));
-
-
 		});
 
 		this.properties.putToMap(Keyboard.onKeyDown, "__browser__", (e, k) -> {
@@ -429,7 +425,7 @@ public class Browser extends Box implements IO.Loaded {
 			return (e2, term) -> {
 
 				if (term) {
-					Log.log("keyboard", "actual up " + e + " " + fk);
+					Log.log("keyboard", ()->"actual up " + e + " " + fk);
 					KeyEvent ke2 = new KeyEvent(component, KeyEvent.KEY_RELEASED, 0, fmod, fk, KeyEvent.CHAR_UNDEFINED);
 					browser.sendKeyEvent(ke2);
 					e2.properties.put(Window.consumed, true);
@@ -481,9 +477,9 @@ public class Browser extends Box implements IO.Loaded {
 			if (found == null) {
 //				if (mod==0)
 //				{
-				Log.log("keyboard", "sending char " + k);
+				Log.log("keyboard",()-> "sending char " + k);
 				KeyEvent ke = new KeyEvent(component, KeyEvent.KEY_TYPED, 0, mod, KeyEvent.VK_UNDEFINED, k);
-				Log.log("keyboard", "awt event is " + ke);
+				Log.log("keyboard",()-> "awt event is " + ke);
 				browser.sendKeyEvent(ke);
 //				}
 //				else
@@ -494,7 +490,7 @@ public class Browser extends Box implements IO.Loaded {
 //					browser.sendKeyEvent(ke);
 //				}
 			} else {
-				Log.log("keyboard", "faking keypress instead because we found a translation");
+				Log.log("keyboard", ()->"faking keypress instead because we found a translation");
 				KeyEvent ke = new KeyEvent(component, KeyEvent.KEY_PRESSED, 0, mod, found, KeyEvent.CHAR_UNDEFINED);
 				browser.sendKeyEvent(ke);
 				ke = new KeyEvent(component, KeyEvent.KEY_RELEASED, 0, mod, found, KeyEvent.CHAR_UNDEFINED);
@@ -552,6 +548,9 @@ public class Browser extends Box implements IO.Loaded {
 	 * called from some random thread, buffer only good for duration of call. ?
 	 */
 	protected void paint(boolean popup, Rectangle[] dirty, ByteBuffer buffer, int w, int h) {
+
+		System.err.println("PAINT :"+w+" "+h);
+
 		if (dirty.length == 0) return;
 
 		sourceView.clear();
@@ -647,21 +646,20 @@ public class Browser extends Box implements IO.Loaded {
 
 	protected void update(float x, float y, float scale) {
 
+		if (check-- > 0)
+			browser.setZoomLevel(2 * window.getRetinaScaleFactor());
 
-		if (check-- > 0) browser.setZoomLevel(2 * window.getRetinaScaleFactor());
-
-		if (paused) return;
 
 		if (this.dirty.getAndSet(false) && damage != null) {
-			Log.log("cef.debug", " texture was dirty, uploading ");
+			Log.log("cef.debug", ()->" texture was dirty, uploading ");
 //			texture.upload(source, true);
-			texture.upload(source, true, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (damage.h + damage.y));
+			texture.upload(source, true, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (1+damage.h + damage.y));
 			Drawing.dirty(this);
 			again = 4;
 			hasRepainted = true;
 		} else if (again > 0 && damage != null) {
-			Log.log("cef.debug", " texture was dirty " + again + " call, uploading ");
-			texture.upload(source, true, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (damage.h + damage.y));
+			Log.log("cef.debug", ()->" texture was dirty " + again + " call, uploading ");
+			texture.upload(source, true, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (1+damage.h + damage.y));
 //			texture.upload(source, true);
 			Drawing.dirty(this);
 			again--;
@@ -685,7 +683,7 @@ public class Browser extends Box implements IO.Loaded {
 		}
 
 		for (Pair<String, Consumer<String>> p : m) {
-			Log.log("cef.debug", "dispatching message <" + p.first + ">");
+			Log.log("cef.debug", ()->"dispatching message <" + p.first + ">");
 
 			JSONObject o = new JSONObject(p.first);
 			String address = o.getString("address");
@@ -704,8 +702,15 @@ public class Browser extends Box implements IO.Loaded {
 
 			for (Pair<Predicate<String>, Handler> p2 : handlers) {
 				if (p2.first.test(address)) {
-					Log.log("cef.debug", "found handler");
-					p2.second.handle(address, (JSONObject) payload, p.second);
+					Log.log("cef.debug", ()->"found handler");
+
+					try {
+						p2.second.handle(address, (JSONObject) payload, p.second);
+					}
+					catch(Throwable t)
+					{
+						t.printStackTrace();
+					}
 				}
 			}
 
@@ -725,16 +730,13 @@ public class Browser extends Box implements IO.Loaded {
 		getOutCached();
 		String texts = "";
 
-		if (out_cached!=null)
-		{
+		if (out_cached != null) {
 			texts = out_cached.convert(text);
-		}
-		else
-		{
-			texts = text+"";
+		} else {
+			texts = text + "";
 		}
 
-		executeJavaScript_queued("$(document.body).append('"+TextUtils.quoteNoOuter(texts.replace("'", "\""))+"');" + scrollDown());
+		executeJavaScript_queued("$(document.body).append('" + TextUtils.quoteNoOuter(texts.replace("'", "\"")) + "');" + scrollDown());
 	}
 
 	public void clearAndPrint(Object text)
@@ -780,9 +782,10 @@ public class Browser extends Box implements IO.Loaded {
 	}
 
 	public Out getOutCached() {
-		if (out_cached!=null) return out_cached;
+		if (out_cached != null) return out_cached;
 
-		out_cached = find(Out.__out, both()).findAny().orElseGet(() -> null);
+		out_cached = find(Out.__out, both()).findAny()
+						    .orElseGet(() -> null);
 
 		return out_cached;
 	}

@@ -216,7 +216,7 @@ public class FrameConstraints extends Box {
 		}
 
 		if (changed.size()>0)
-			Log.log("constraints", "changed are :"+changed);
+			Log.log("constraints", ()->"changed are :"+changed);
 
 		if (changed.size() == 0) return false;
 
@@ -226,7 +226,7 @@ public class FrameConstraints extends Box {
 				solver.addEditVar(t.var);
 			}
 			for (Target t : changed) {
-				Log.log("constraints", "suggesting :" + t.lastSuggestedAt + " for " + t);
+				Log.log("constraints", ()->"suggesting :" + t.lastSuggestedAt + " for " + t);
 				solver.suggestValue(t.var, t.lastSuggestedAt);
 			}
 			solver.resolve();
@@ -236,7 +236,7 @@ public class FrameConstraints extends Box {
 		}
 
 		for (Target t : vars.values()) {
-			Log.log("constraints", "resolved :"+t+" to be :"+t.var.value());
+			Log.log("constraints", ()->"resolved :"+t+" to be :"+t.var.value());
 			t.type.to.apply(t.box.get(this).properties.get(Box.frame), (double) t.var.value());
 			if (changed.contains(t)) {
 

@@ -102,7 +102,7 @@ public class RemoteEditor extends Box {
 			lastSend = value.iterator()
 					.next().second.toString();
 
-			Log.log("remote.trace", " >> " + key + " " + value.size());
+			Log.log("remote.trace", ()->" >> " + key + " " + value.size());
 
 			if (value.size() > 1) {
 
@@ -152,12 +152,12 @@ public class RemoteEditor extends Box {
 		watches.addWatch(LinuxWindowTricks.lostFocus, "focus.editor");
 
 		queue.register(Predicate.isEqual("selection.changed"), (c) -> {
-			Log.log("remote.trace", " selection changed message ");
+			Log.log("remote.trace", ()->" selection changed message ");
 			selectionHasChanged = true;
 		});
 
 		queue.register(Predicate.isEqual("focus.editor"), (c) -> {
-			Log.log("remote.trace", " sending focus request ");
+			Log.log("remote.trace", ()->" sending focus request ");
 			server.send(socketName, "_messageBus.publish('focus', {})");
 		});
 
@@ -259,7 +259,7 @@ public class RemoteEditor extends Box {
 		});
 
 		server.addHandlerLast(Predicate.isEqual("clipboard.getNewClipboard"), () -> socketName, (s, socket, address, payload) -> {
-			Log.log("clipboardfix", "sync clipboard");
+			Log.log("clipboardfix", ()->"sync clipboard");
 			JSONObject p = (JSONObject) payload;
 			String returnAddress = p.getString("returnAddress");
 
@@ -267,11 +267,12 @@ public class RemoteEditor extends Box {
 					       .get();
 
 			String current = w.getCurrentClipboard();
-			Log.log("clipboardfix", "clipboard is " + current);
+			final String finalCurrent = current;
+			Log.log("clipboardfix", ()->"clipboard is " + finalCurrent);
 
 			String was = previousClipboards.get(socketName);
 			if (was == null || !was.equals(current) && current != null) {
-				Log.log("clipboardfix", "sending " + current);
+				Log.log("clipboardfix",()-> "sending " + finalCurrent);
 				previousClipboards.put(socketName, current);
 
 				current = JSONObject.quote(current);
@@ -287,7 +288,7 @@ public class RemoteEditor extends Box {
 		});
 
 		server.addHandlerLast(Predicate.isEqual("clipboard.setClipboard"), () -> socketName, (s, socket, address, payload) -> {
-			Log.log("clipboardfix", "set clipboard to " + payload);
+			Log.log("clipboardfix", ()->"set clipboard to " + payload);
 			JSONObject p = (JSONObject) payload;
 
 			FieldBoxWindow w = this.first(Boxes.window, both())
@@ -307,7 +308,7 @@ public class RemoteEditor extends Box {
 			Optional<Box> box = findBoxByID(p.getString("box"));
 
 			if (!box.isPresent()) {
-				Log.log("remote.cookie", " remote editor is talking about a box that isn't anywhere <" + p + ">");
+				Log.log("remote.cookie", ()->" remote editor is talking about a box that isn't anywhere <" + p + ">");
 				return payload;
 			}
 
@@ -320,8 +321,8 @@ public class RemoteEditor extends Box {
 			if (text == null) throw new IllegalArgumentException(" missing text <" + p + ">");
 
 
-			Log.log("remote.cookie", " storing cookie to :" + ("_" + prop + "_cookie"));
-			Log.log("remote.cookie", " cookie is :" + text.toString());
+			Log.log("remote.cookie",()-> " storing cookie to :" + ("_" + prop + "_cookie"));
+			Log.log("remote.cookie", ()->" cookie is :" + text.toString());
 			box.get().properties.put(new Dict.Prop<String>("_" + prop + "_cookie"), text.toString());
 
 			IO.persist(new Dict.Prop<String>("_" + prop + "_cookie"));
@@ -333,7 +334,7 @@ public class RemoteEditor extends Box {
 
 		server.addHandlerLast(x -> x.startsWith("execution.fragment"), () -> socketName, (s, socket, address, payload) -> {
 
-			Log.log("remote.trace", " inside execution fragment ");
+			Log.log("remote.trace", ()->" inside execution fragment ");
 
 			JSONObject p = (JSONObject) payload;
 
@@ -353,7 +354,7 @@ public class RemoteEditor extends Box {
 
 			int lineoffset = p.has("lineoffset") ? p.getInt("lineoffset") : 0;
 
-			Log.log("remote.debug", "lineoffset ;" + lineoffset + " " + p.has("lineoffset"));
+			Log.log("remote.debug", ()->"lineoffset ;" + lineoffset + " " + p.has("lineoffset"));
 
 			String suffix = address.length() < "execution.fragment.".length() ? "" : address.substring("execution.fragment.".length());
 
@@ -385,7 +386,7 @@ public class RemoteEditor extends Box {
 
 		server.addHandlerLast(Predicate.isEqual("execution.all"), () -> socketName, (s, socket, address, payload) -> {
 
-			Log.log("remote.trace", " inside execution all ");
+			Log.log("remote.trace", ()->" inside execution all ");
 
 			JSONObject p = (JSONObject) payload;
 
@@ -435,7 +436,7 @@ public class RemoteEditor extends Box {
 
 		server.addHandlerLast(Predicate.isEqual("execution.begin"), () -> socketName, (s, socket, address, payload) -> {
 
-			Log.log("remote.trace", " inside execution begin ");
+			Log.log("remote.trace", ()->" inside execution begin ");
 
 			JSONObject p = (JSONObject) payload;
 
@@ -480,7 +481,7 @@ public class RemoteEditor extends Box {
 		});
 		server.addHandlerLast(Predicate.isEqual("execution.end"), () -> socketName, (s, socket, address, payload) -> {
 
-			Log.log("remote.trace", " inside execution end ");
+			Log.log("remote.trace", ()->" inside execution end ");
 
 			JSONObject p = (JSONObject) payload;
 
@@ -525,7 +526,7 @@ public class RemoteEditor extends Box {
 
 		server.addHandlerLast(Predicate.isEqual("request.completions"), () -> socketName, (s, socket, address, payload) -> {
 
-			Log.log("remote.trace", " inside request completions ");
+			Log.log("remote.trace", ()->" inside request completions ");
 
 			JSONObject p = (JSONObject) payload;
 
@@ -574,7 +575,7 @@ public class RemoteEditor extends Box {
 		});
 		server.addHandlerLast(Predicate.isEqual("request.imports"), () -> socketName, (s, socket, address, payload) -> {
 
-			Log.log("remote.trace", " inside request completions ");
+			Log.log("remote.trace", ()->" inside request completions ");
 
 			JSONObject p = (JSONObject) payload;
 
@@ -626,7 +627,7 @@ public class RemoteEditor extends Box {
 
 		server.addHandlerLast(Predicate.isEqual("request.commands"), () -> socketName, (s, socket, address, payload) -> {
 
-			Log.log("remote.trace", " inside request commands ");
+			Log.log("remote.trace", ()->" inside request commands ");
 
 			JSONObject p = (JSONObject) payload;
 
@@ -683,7 +684,7 @@ public class RemoteEditor extends Box {
 
 		server.addHandlerLast(Predicate.isEqual("request.hotkeyCommands"), () -> socketName, (s, socket, address, payload) -> {
 
-			Log.log("remote.trace", " inside request commands ");
+			Log.log("remote.trace", ()->" inside request commands ");
 
 			JSONObject p = (JSONObject) payload;
 
@@ -722,7 +723,7 @@ public class RemoteEditor extends Box {
 
 			commands.addAll(mergeMap.entrySet());
 
-			Log.log("remote.trace", " commands are :" + commands);
+			Log.log("remote.trace", ()->" commands are :" + commands);
 
 			JSONStringer stringer = new JSONStringer();
 			stringer.array();
@@ -742,7 +743,7 @@ public class RemoteEditor extends Box {
 			}
 
 
-			Log.log("remote.trace", " call table looks like :" + commandHelper.callTable);
+			Log.log("remote.trace", ()->" call table looks like :" + commandHelper.callTable);
 
 			stringer.endArray();
 
@@ -863,8 +864,8 @@ public class RemoteEditor extends Box {
 						try (BufferedReader in = new BufferedReader(new FileReader(file))) {
 							while (in.ready()) contents += in.readLine() + "\n";
 						} catch (IOException x) {
-							Log.log("hotkeys.error", "Error: Cannot open properties text file in read, file is " + file);
-							Log.log("hotkeys.error", x);
+							Log.log("hotkeys.error", ()->"Error: Cannot open properties text file in read, file is " + file);
+							Log.log("hotkeys.error", ()->x);
 						}
 
 						String[] lines = contents.split("\n");
@@ -873,7 +874,8 @@ public class RemoteEditor extends Box {
 						for (String line : lines) {
 							String[] parts = line.split(":");
 							if (parts.length != 2) {
-								Log.log("hotkeys.error", "couldn't parse <" + line + "> in file, on line " + n);
+								final int finalN = n;
+								Log.log("hotkeys.error", ()->"couldn't parse <" + line + "> in file, on line " + finalN);
 							} else {
 								if (parts[0].trim()
 									    .equals(altWas)) {
@@ -891,8 +893,8 @@ public class RemoteEditor extends Box {
 						try (BufferedWriter out = new BufferedWriter(new FileWriter(file))) {
 							out.write(next);
 						} catch (IOException x) {
-							Log.log("hotkeys.error", "Error: Cannot open properties text file in write, file is " + file);
-							Log.log("hotkeys.error", x);
+							Log.log("hotkeys.error", ()->"Error: Cannot open properties text file in write, file is " + file);
+							Log.log("hotkeys.error", ()->x);
 						}
 
 						//now that the contents have been written to the output file we update the hotkeys
@@ -910,7 +912,7 @@ public class RemoteEditor extends Box {
 						for (String line : propertiesContents.toString()
 										     .split("\n")) {
 							String[] splitLine = line.split(":");
-							Log.log("hotkeys.debug", " line is :" + splitLine.length + " <" + line + ">");
+							Log.log("hotkeys.debug", ()->" line is :" + splitLine.length + " <" + line + ">");
 							if (splitLine.length > 1) {
 								sendJavaScript("extraKeys[\"" + splitLine[0].trim() + "\"] = function (cm) {" + splitLine[1].trim() + ";}");
 							}
@@ -957,7 +959,7 @@ public class RemoteEditor extends Box {
 
 	private void changeSelection(Box currentSelection, Dict.Prop<String> editingProperty) {
 
-		Log.log("remote.trace", " publishing selection changed :" + currentSelection + " " + editingProperty);
+		Log.log("remote.trace", ()->" publishing selection changed :" + currentSelection + " " + editingProperty);
 
 		if (currentSelection == null || editingProperty == null) {
 			server.send(socketName, "_messageBus.publish('selection.changed', {box:null, property:null, text:''})");
@@ -966,7 +968,8 @@ public class RemoteEditor extends Box {
 			String text = currentSelection.properties.get(editingProperty);
 			if (text == null) text = "";
 
-			Log.log("remote.trace", " current text is :" + text);
+			final String finalText = text;
+			Log.log("remote.trace", ()->" current text is :" + finalText);
 
 
 			//todo: pass back two cookies for this box --- one persistant (saved to disk), one just for current things
@@ -981,7 +984,7 @@ public class RemoteEditor extends Box {
 			String cooked = currentSelection.properties.get(new Dict.Prop<String>("_" + editingProperty.getName() + "_cookie"));
 			IO.persist(new Dict.Prop<String>("_" + editingProperty.getName() + "_cookie"));
 
-			Log.log("remote.cookie", "cookie ns now :" + cooked);
+			Log.log("remote.cookie", ()->"cookie ns now :" + cooked);
 			buildMessage.put("cookie", new JSONObject(cooked == null ? "{}" : cooked));
 
 
@@ -990,7 +993,7 @@ public class RemoteEditor extends Box {
 				Execution.ExecutionSupport support = ex.support(currentSelection, editingProperty);
 				if (support != null) {
 					String cmln = support.getCodeMirrorLanguageName();
-					Log.log("remote.general", "langage :" + cmln);
+					Log.log("remote.general", ()->"langage :" + cmln);
 					buildMessage.put("languageName", cmln);
 					support.setFilenameForStacktraces("" + currentSelection + "/" + currentSelection.properties.getOrConstruct(IO.id));
 				} else {
@@ -998,11 +1001,11 @@ public class RemoteEditor extends Box {
 			} else {
 				// this can happen when we're editing something that isn't 'code'
 				String cmln = FieldBox.fieldBox.io.getLanguageForProperty(editingProperty);
-				Log.log("remote.general", "langage :" + cmln);
+				Log.log("remote.general", ()->"langage :" + cmln);
 				buildMessage.put("languageName", cmln);
 
 			}
-			Log.log("remote.trace", " message will be sent " + buildMessage.toString());
+			Log.log("remote.trace", ()->" message will be sent " + buildMessage.toString());
 
 			Log.log("remote.trace", () -> "\n " + currentSelection.properties.get(new Dict.Prop<JSONObject>("_" + editingProperty.getName() + "_cookie")) + "\n");
 
@@ -1043,7 +1046,7 @@ public class RemoteEditor extends Box {
 							  .orElseGet(() -> (Dict.Prop) Execution.code);
 
 
-				Log.log("remoteeditor", " looking for a defaultEditorProperty on <" + target + "> <" + target.properties.get(defaultEditorProperty) + ">, got <" + objectProp + ">");
+				Log.log("remoteeditor", ()->" looking for a defaultEditorProperty on <" + target + "> <" + target.properties.get(defaultEditorProperty) + ">, got <" + objectProp + ">");
 
 				if (!(target == currentSelection && objectProp.equals(currentlyEditing))) changeSelection(target, objectProp);
 			}
@@ -1068,9 +1071,9 @@ public class RemoteEditor extends Box {
 	 * A general purpose Send some JavaScript to a text editor call. This is queued to run inside the animation cycle, and thus is thread-safe.
 	 */
 	public void sendJavaScript(String javascript) {
-		Log.log("javascript.trace", ">>>Sending javascript");
-		Log.log("javascript.trace", javascript);
-		Log.log("javascript.trace", "<<<Sentjavascript");
+		Log.log("javascript.trace", ()->">>>Sending javascript");
+		Log.log("javascript.trace", ()->javascript);
+		Log.log("javascript.trace", ()->"<<<Sentjavascript");
 		server.send(socketName, javascript);
 	}
 
@@ -1078,9 +1081,9 @@ public class RemoteEditor extends Box {
 	 * A general purpose Send some JavaScript to a text editor call, doesn't queue it inside the animation cycle, this must be called from the main thread, or a blocking ThreadSync thread
 	 */
 	public void sendJavaScriptNow(String javascript) {
-		Log.log("javascript.trace", ">>>Sending javascript");
-		Log.log("javascript.trace", javascript);
-		Log.log("javascript.trace", "<<<Sentjavascript");
+		Log.log("javascript.trace", ()->">>>Sending javascript");
+		Log.log("javascript.trace", ()->javascript);
+		Log.log("javascript.trace", ()->"<<<Sentjavascript");
 		server.broadcast(javascript);
 	}
 
@@ -1088,9 +1091,9 @@ public class RemoteEditor extends Box {
 	 * A general purpose Send some JavaScript to a text editor call
 	 */
 	public void sendJavaScript(WebSocket socketName, String javascript) {
-		Log.log("javascript.trace", ">>>Sending javascript");
-		Log.log("javascript.trace", javascript);
-		Log.log("javascript.trace", "<<<Sentjavascript");
+		Log.log("javascript.trace", ()->">>>Sending javascript");
+		Log.log("javascript.trace", ()->javascript);
+		Log.log("javascript.trace", ()->"<<<Sentjavascript");
 		server.send(socketName, javascript);
 	}
 

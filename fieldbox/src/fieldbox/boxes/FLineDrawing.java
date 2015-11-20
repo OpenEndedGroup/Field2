@@ -56,9 +56,9 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 
 
 	static public final Dict.Prop<IdempotencyMap<Supplier<Collection<Supplier<FLine>>>>> bulkLines = new Dict.Prop<>("bulkLines").type()
-																     .toCannon()
-																     .doc("Geometry to be drawn along with this box")
-																     .autoConstructs(() -> new IdempotencyMap<>(Supplier.class));
+															   .toCannon()
+															   .doc("Geometry to be drawn along with this box")
+															   .autoConstructs(() -> new IdempotencyMap<>(Supplier.class));
 
 	static public final Dict.Prop<Boolean> dirty = new Dict.Prop<>("dirty").type()
 									       .toCannon()
@@ -187,6 +187,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 		};
 	}
 
+	// we need to be able to assign blame and propagate exceptions into callbacks
 	@Override
 	public void draw(Drawing context) {
 
@@ -196,7 +197,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 		this.breadthFirst(this.both())
 		    .forEach(Util.wrap(x -> {
 
-			    Log.log("drawing.trace", "lines for " + x);
+			    Log.log("drawing.trace", ()->"lines for " + x);
 
 			    if (x.properties.isTrue(Box.hidden, false)) return;
 
@@ -213,7 +214,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 				    else all.add(fl);
 			    }
 
-			    Log.log("drawing.trace", " --> " + drawing);
+			    Log.log("drawing.trace", ()->" --> " + drawing);
 
 			    drawing.values()
 				   .stream()
@@ -233,7 +234,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 				    else all.add(fl);
 			    }
 
-			    Log.log("drawing.trace", " --> " + ll);
+			    Log.log("drawing.trace",()-> " --> " + ll);
 
 			    ll.values()
 			      .stream()
@@ -247,7 +248,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 			    if (bl != null) {
 				    all = new ArrayList<>();
 				    Iterator<Supplier<Collection<Supplier<FLine>>>> it3 = bl.values()
-											    .iterator();
+										  .iterator();
 				    while (it3.hasNext()) {
 					    Supplier<Collection<Supplier<FLine>>> f = it3.next();
 					    Collection<Supplier<FLine>> fl = f.get();
@@ -261,11 +262,12 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 					    }
 				    }
 
-				    Log.log("drawing.trace", " --> " + all);
+				    final List<FLine> finalAll = all;
+				    Log.log("drawing.trace", ()->" --> " + finalAll);
 
 				    all.forEach(fline -> dispatchLine(fline, context, text, defaultLayer));
 			    }
-			    Log.log("drawing.trace", "lines for " + x + " finished");
+			    Log.log("drawing.trace", ()->"lines for " + x + " finished");
 
 		    }, error));
 

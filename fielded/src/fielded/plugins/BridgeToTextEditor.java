@@ -68,7 +68,7 @@ public class BridgeToTextEditor extends Box {
 		});
 
 
-		Log.log("startup.editor", " searching for boxes that need editor support ");
+		Log.log("startup.editor", ()->" searching for boxes that need editor support ");
 
 		// we delay this for one update cycle to make sure that everybody has loaded everything that they are going to load
 		RunLoop.main.once(() -> {
@@ -79,12 +79,12 @@ public class BridgeToTextEditor extends Box {
 			});
 		});
 
-		Log.log("startup.editor", " editor plugin is going to init Tern ");
+		Log.log("startup.editor", ()->" editor plugin is going to init Tern ");
 
 		tern = new BridgedTernSupport();
 		tern.inject(x -> delegate.sendJavaScript(x), true);
 
-		Log.log("startup.editor", " editor plugin has finished starting up ");
+		Log.log("startup.editor", ()->" editor plugin has finished starting up ");
 
 
 	}

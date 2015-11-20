@@ -41,7 +41,7 @@ public class TextEditor extends Box implements IO.Loaded {
 	List<String> playlist = Arrays.asList("preamble.js", "jquery-2.1.0.min.js", "jquery.autosize.input.js", "modal.js");
 	String styleSheet = "field-codemirror.css";
 	// we'll need to make sure that this is centered on larger screens
-	int maxw = 800;
+	int maxw = 900;
 	int maxh = 900;
 	int tick = 0;
 	Commands commandHelper = new Commands();
@@ -73,7 +73,9 @@ public class TextEditor extends Box implements IO.Loaded {
 
 	@HiddenInAutocomplete
 	public void loaded() {
-		Log.log("texteditor.debug", "initializing browser");
+		Log.log("texteditor.debug", ()->"initializing browser");
+
+		RunLoop.main.delay(() -> {
 
 		FieldBoxWindow window = this.find(Boxes.window, this.both())
 					    .findFirst()
@@ -88,12 +90,19 @@ public class TextEditor extends Box implements IO.Loaded {
 
 		browser = new Browser();
 
+
+		System.err.println(" at the point where we set the maximum width of the browser the window is "+window.getWidth()+" "+maxw+" "+maxh);
+
+
 		Vec2 v = drawing.windowSystemToDrawingSystem(new Vec2(window.getWidth() - maxw - 10, 10));
-		Vec2 vd = drawing.windowSystemToDrawingSystemDelta(new Vec2(maxw, 1500));
+		Vec2 vd = drawing.windowSystemToDrawingSystemDelta(new Vec2(maxw, 1080*2));
 
 		browser.properties.put(Box.frame, new Rect(v.x, v.y, vd.x, vd.y));
 
-		maxhOnCreation = 1500;
+		System.err.println(" final frame is :"+v+" / "+vd);
+
+
+		maxhOnCreation = 1080*2;
 
 		browser.pauseForBoot();
 
@@ -143,7 +152,7 @@ public class TextEditor extends Box implements IO.Loaded {
 
 			w.getQueue()
 			 .register(x -> x.equals("selection.changed"), c -> {
-				 Log.log("shy", "selection is now" + selection().count());
+				 Log.log("shy", ()->"selection is now" + selection().count());
 
 				 if (selection().count() != 1) {
 					 browser.properties.put(Box.hidden, true);
@@ -179,7 +188,7 @@ public class TextEditor extends Box implements IO.Loaded {
 
 				    return true;
 			    });
-
+		}, 100);
 	}
 
 	@HiddenInAutocomplete
@@ -247,7 +256,7 @@ public class TextEditor extends Box implements IO.Loaded {
 		for (String s : roots) {
 			if (new File(s + "/" + f).exists()) return readFile(s + "/" + f, append);
 		}
-		Log.log("glassbrowser.error", "Couldnt' find file in playlist :" + f);
+		Log.log("glassbrowser.error", ()->"Couldnt' find file in playlist :" + f);
 		return null;
 	}
 

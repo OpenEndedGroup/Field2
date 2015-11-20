@@ -33,7 +33,7 @@ public class Cached<t_check, t_witness, t_value> implements Function<t_check, t_
 	}
 
 	public Cached<t_check, t_witness, t_value> invalidate() {
-		if (debug != null) Log.log("cached." + debug, " cache invalidated :");
+		if (debug != null) Log.log("cached." + debug, ()->" cache invalidated :");
 		invalid = true;
 		return this;
 	}
@@ -43,7 +43,7 @@ public class Cached<t_check, t_witness, t_value> implements Function<t_check, t_
 
 		if (invalid || !Util.safeEq(w, valid)) {
 			if (debug != null) {
-				Log.log("cached." + debug, " cache invalid :" + invalid + " " + w + " " + valid + " " + Util.safeEq(w, valid));
+				Log.log("cached." + debug, ()->" cache invalid :" + invalid + " " + w + " " + valid + " " + Util.safeEq(w, valid));
 			}
 			value = compute.apply(check, value);
 			valid = w;
@@ -53,7 +53,7 @@ public class Cached<t_check, t_witness, t_value> implements Function<t_check, t_
 
 			invalid = false;
 		} else if (debug != null)
-			Log.log("cached." + debug, " cache valid :" + invalid + " " + w + " " + valid + " " + Util.safeEq(w, valid));
+			Log.log("cached." + debug,()-> " cache valid :" + invalid + " " + w + " " + valid + " " + Util.safeEq(w, valid));
 		return value;
 	}
 

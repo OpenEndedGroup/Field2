@@ -113,8 +113,11 @@ public class Rect implements Mutable<Rect>, Serializable {
 		return new Rect(x+by, y+by, w-by*2, h-by*2);
 	}
 
-	public boolean intersectsX(float x) {
+	public boolean intersectsX(double x) {
 		return (x>=this.x && x<this.x+this.w);
+	}
+	public boolean intersectsY(double y) {
+		return (y>=this.y && y<this.y+this.h);
 	}
 
 	public boolean inside(float start, float end) {

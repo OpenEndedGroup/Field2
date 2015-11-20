@@ -63,8 +63,8 @@ public class Server {
 			@Override
 			Response serve(String uri, Method method, Map<String, String> headers, Map<String, String> parms, Map<String, String> files) {
 
-				Log.log("server", "Serving "+uri);
-				Log.log("server", "will check:"+uriHandlers);
+				Log.log("server", ()->"Serving "+uri);
+				Log.log("server", ()->"will check:"+uriHandlers);
 
 				Object id = parms.get("id");
 
@@ -113,12 +113,12 @@ public class Server {
 		webSocketServer = new WebSocketServer(new InetSocketAddress(websocketPort)) {
 			@Override
 			public void onOpen(WebSocket webSocket, ClientHandshake clientHandshake) {
-				Log.log("remote.trace", " websocket connected " + clientHandshake);
+				Log.log("remote.trace",()-> " websocket connected " + clientHandshake);
 			}
 
 			@Override
 			public void onClose(WebSocket webSocket, int i, String s, boolean b) {
-				Log.log("remote.trace", " websocket closed " + i + " " + s + " " + b);
+				Log.log("remote.trace", ()->" websocket closed " + i + " " + s + " " + b);
 				synchronized (knownSockets) {
 					System.out.println(" WEBSOCKET CLOSED ");
 					knownSockets.values().remove(webSocket);
@@ -159,7 +159,7 @@ public class Server {
 
 			@Override
 			public void onError(WebSocket webSocket, Exception e) {
-				Log.log("remote.error", " websocket error reported :" + e);
+				Log.log("remote.error", ()->" websocket error reported :" + e);
 				e.printStackTrace();
 			}
 		};

@@ -98,21 +98,28 @@ public class AutoPersist {
 	 * or the object supplied by "def"). The value returned by atEnd.apply(x) will be persisted in the shutdown hook.
 	 */
 	static public <T extends Serializable> T persist(String name, Supplier<T> def, Function<T, T> validate, Function<T, T> atEnd) {
-		if (dir == null) return def.get();
+		Log.log("startup.autopersist", ()->" loading preferences for "+name);
+
+		if (dir == null) {
+			Log.log("startup.autopersist", ()->" no dir for preferences ");
+			return def.get();
+		}
 
 		try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(new File(dir + name))))) {
 			T ro = (T) ois.readObject();
 			T ro2 = validate.apply(ro);
+			Log.log("startup.autopersist", ()->" loaded "+ro+" / "+ro2);
 			return hook(name, ro2, () -> atEnd.apply(ro2));
 		} catch (Throwable e) {
-			Log.log("startup.autopersist", " couldn't load saved preference for "+name+" using compiled default ");
+			Log.log("startup.autopersist", ()->" couldn't load saved preference for "+name+" using compiled default ");
 //			e.printStackTrace();
 			T x = (T) def.get();
 			T x2 = validate.apply(x);
 			try (ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(new File(dir + name))))) {
+				Log.log("startup.autopersist", ()->" wrting "+x2);
 				oos.writeObject(x2);
 			} catch (Throwable e2) {
-				Log.log("startup.autopersist", e2);
+				Log.log("startup.autopersist", ()->e2);
 			}
 			return hook(name, x2, () -> atEnd.apply(x2));
 		}
@@ -120,8 +127,12 @@ public class AutoPersist {
 
 	private static <T extends Serializable> T hook(String name, T x, Supplier<T> sx) {
 		hooks.put(name, () -> {
+
+			Log.log("shutdown.autopersist", ()->"saving "+name);
+
 			boolean success = true;
 			try (ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(new File(dir + name+"_tmp"))))) {
+				Log.log("shutdown.autopersist", ()->" writing "+sx.get());
 				oos.writeObject(sx.get());
 			} catch (Throwable e2) {
 				e2.printStackTrace();
@@ -130,10 +141,12 @@ public class AutoPersist {
 			if (success)
 			{
 				try {
+					Log.log("shutdown.autopersist", ()->" moving into place ");
 					Files.move(Paths.get(dir+name+"_tmp"), Paths.get(dir+name), StandardCopyOption.ATOMIC_MOVE);
 				} catch (IOException e) {
-					Log.log("shutdown.autopersist", e);
+					Log.log("shutdown.autopersist", ()->e);
 				}
+				Log.log("shutdown.autopersist", ()->" finished ");
 			}
 		});
 		return x;

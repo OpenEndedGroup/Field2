@@ -78,7 +78,7 @@ html {
 body {
     background: rgba(0, 0, 0, 0);
     color: #aaa;
-    font-size: 13px;
+    font-size: 18px;
     font-family: "Source Sans Pro";
     margin: 0px;
 }
@@ -420,6 +420,7 @@ a {
 }
 
 .Field-closeBox {
+    font-size: 13px;
     position: absolute;
     border-radius: 3px;
     border-bottom-right-radius: 0px;
@@ -439,6 +440,7 @@ a {
 }
 
 .Field-expandBox {
+    font-size: 13px;
     position: absolute;
     border-radius: 3px;
     border-top-right-radius: 0px;
@@ -458,6 +460,7 @@ a {
 }
 
 .Field-expandBoxInline {
+    font-size: 13px;
     position: absolute;
     border-radius: 3px;
     border-top-right-radius: 0px;

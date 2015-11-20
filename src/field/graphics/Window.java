@@ -9,8 +9,10 @@ import field.app.RunLoop;
 import field.graphics.util.KeyEventMapping;
 import field.linalg.Vec2;
 import field.utility.*;
+import fieldbox.ui.FieldBoxWindow;
 import fieldbox.boxes.Mouse;
 import fieldlinker.Linker;
+import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GLContext;
 
@@ -45,8 +47,8 @@ public class Window implements ProvidesGraphicsContext {
 	protected GraphicsContext graphicsContext;
 	protected long window;
 
-	protected int w;
-	protected int h;
+	protected int w,x;
+	protected int h,y;
 
 	protected MouseState mouseState = new MouseState();
 	protected KeyboardState keyboardState = new KeyboardState();
@@ -61,6 +63,8 @@ public class Window implements ProvidesGraphicsContext {
 
 
 	private Rect currentBounds;
+
+	static public boolean doubleBuffered = Options.dict().isTrue(new Dict.Prop("doubleBuffered"), false);
 
 	public Window(int x, int y, int w, int h, String title) {
 		this(x, y, w, h, title, true);
@@ -77,20 +81,25 @@ public class Window implements ProvidesGraphicsContext {
 		glfwWindowHint(GLFW_SAMPLES, 8);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, 1);
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+//		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+//		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-		glfwWindowHint(GLFW_SAMPLES, 1);
+		glfwWindowHint(GLFW_DOUBLEBUFFER, doubleBuffered ? 1 : 0);
 
 		glfwWindowHint(GLFW_DECORATED, title == null ? 0 : 1);
 
 		this.w = w;
 		this.h = h;
+		this.x = x;
+		this.y = y;
 
 		window = glfwCreateWindow(w, h, title, 0, 0);
-
-//		glfwSetWindowPos(window, x, y);
-
 		Windows.windows.register(window, makeCallback());
+
+		glfwSetWindowPos(window, x, y);
+		Windows.windows.register(window, makeCallback());
+
 		glfwShowWindow(window);
 
 		glfwMakeContextCurrent(window);
@@ -100,7 +109,6 @@ public class Window implements ProvidesGraphicsContext {
 
 		glcontext = GLContext.createFromCurrent();
 
-
 		GL11.glClearColor(0.25f, 0.25f, 0.25f, 1);
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 		glfwSwapBuffers(window);
@@ -108,14 +116,7 @@ public class Window implements ProvidesGraphicsContext {
 		RunLoop.main.getLoop()
 			    .attach(0, (i) -> loop());
 
-		ByteBuffer dest = ByteBuffer.allocateDirect(32 * 32 * 4);
-		for (int i = 0; i < 32 * 32 * 4; i++)
-			dest.put((byte) (Math.random() * 255));
 
-		dest.rewind();
-		Glfw.glfwSetCursor(window, Glfw.glfwCreateCursor(dest, 32, 32, 32, 32));
-
-//		Glfw.glfwSetInputMode(window, Glfw.GLFW_STICKY_KEYS, GL.GL_TRUE);
 		Glfw.glfwSetInputMode(window, Glfw.GLFW_STICKY_MOUSE_BUTTONS, GL.GL_TRUE);
 
 		retinaScaleFactor = permitRetina ? (int) (Options.dict()
@@ -139,15 +140,6 @@ public class Window implements ProvidesGraphicsContext {
 						lastWas = frame;
 						lastAt = System.currentTimeMillis();
 					}
-
-					boolean a = glfwGetKey(window, GLFW_KEY_A);
-					if (a) System.out.print("a");
-					else System.out.print("n");
-
-					if (keyboardState.charsDown.size() > 0) {
-						System.out.println("A<" + keyboardState + ">");
-					} else System.out.println("N");
-
 					try {
 						Thread.sleep(5000);
 					} catch (InterruptedException e) {
@@ -198,6 +190,8 @@ public class Window implements ProvidesGraphicsContext {
 	private int frameHack = 0;
 
 	public void loop() {
+		if (frame==10)
+			glfwSetWindowPos(window, x, y);
 
 		if (frameHack++ == 0) {
 			Rect r = getBounds();
@@ -219,7 +213,9 @@ public class Window implements ProvidesGraphicsContext {
 		glfwMakeContextCurrent(window);
 		glfwSwapInterval(1);
 
-		glcontext.makeCurrent(0);
+		// makes linux all go to hell
+//		glcontext.makeCurrent(0);
+
 		GraphicsContext.checkError(() -> "initially");
 
 		int w = glfwGetWindowWidth(window);
@@ -232,6 +228,8 @@ public class Window implements ProvidesGraphicsContext {
 		GraphicsContext.stateTracker.shader.set(0);
 		GraphicsContext.stateTracker.blendState.set(new int[]{GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA});
 
+
+		//System.out.println("!! width :"+w+" "+h+" "+getRetinaScaleFactor());
 
 		if (w != this.w || h != this.h) {
 			GraphicsContext.isResizing = true;
@@ -310,6 +308,9 @@ public class Window implements ProvidesGraphicsContext {
 
 
 	public Rect getBounds() {
+
+		currentBounds.x = glfwGetWindowX(window);
+		currentBounds.y = glfwGetWindowY(window);
 		return currentBounds;
 	}
 
@@ -639,7 +640,6 @@ public class Window implements ProvidesGraphicsContext {
 
 	public int getRetinaScaleFactor() {
 		return glfwGetFramebufferWidth(window) / glfwGetWindowWidth(window);
-//		return retinaScaleFactor;
 	}
 
 	static public interface HasPosition {
@@ -919,7 +919,7 @@ public class Window implements ProvidesGraphicsContext {
 
 				boolean notReally = glfwGetKey(window, m);
 				if (!notReally) {
-					Log.log("keyboard.debug", "Got an imposter :" + m + " " + KeyEventMapping.lookup(m));
+					Log.log("keyboard.debug", ()->"Got an imposter :" + m + " " + KeyEventMapping.lookup(m));
 					ii.remove();
 					charsDown.remove(m);
 				} else {

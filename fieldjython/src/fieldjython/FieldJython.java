@@ -50,14 +50,14 @@ public class FieldJython extends Execution {
 	public FieldJython(Box root) {
 		super(null);
 
-		Log.log("startup.jython", "Jython plugin is starting up ");
+		Log.log("startup.jython", ()->"Jython plugin is starting up ");
 
 
 		Shims.init();
 
 		Animatable.registerHandler((was, o) -> {
 			if (o instanceof PyFunction) {
-				log("jython.debug", "jython found");
+				log("jython.debug", ()->"jython found");
 				return new Animatable.AnimationElement() {
 					@Override
 					public Object middle(boolean isEnding) {
@@ -70,7 +70,7 @@ public class FieldJython extends Execution {
 
 
 
-		Log.log("startup.jython", "Jython plugin has finished starting up ");
+		Log.log("startup.jython", ()->"Jython plugin has finished starting up ");
 
 
 		new Thread(() -> {
@@ -106,7 +106,8 @@ public class FieldJython extends Execution {
 				try {
 					Execution.context.get()
 							 .push(box);
-					log("jython.debug", " execute text fragment on :" + textFragment);
+					final String finalTextFragment = textFragment;
+					log("jython.debug", ()->" execute text fragment on :" + finalTextFragment);
 					int[] written = {0};
 					Writer w = new Writer() {
 						@Override
@@ -127,7 +128,7 @@ public class FieldJython extends Execution {
 					Object result = eval(box, w, textFragment, lineErrors);
 					if (written[0] == 0) w.write("" + (result.equals(Py.None) ? " &#10003; " : ("" + result)));
 
-					log("jython.debug", " result string is " + result);
+					log("jython.debug", ()->" result string is " + result);
 				} catch (IOException e) {
 					e.printStackTrace();
 				} finally {
@@ -166,10 +167,9 @@ public class FieldJython extends Execution {
 
 				Object ret = getVar("_r");
 
-				log("jython.debug", "_r at eXit :" + ret);
+				log("jython.debug", ()->"_r at eXit :" + ret);
 
-				log("jython.debug", "invoking");
-				log("jython.debug", ret instanceof Runnable, ret instanceof Collection, ret instanceof Map);
+				log("jython.debug", ()->"invoking");
 
 
 				Animatable.AnimationElement ae = Animatable.interpret(ret, null);
@@ -243,11 +243,14 @@ public class FieldJython extends Execution {
 					} else break;
 				}
 
-				log("python.debug", "parsed line <" + lines[line] + "> __prefix__ is " + subStart + " -> " + subEnd);
+				final int finalSubEnd = subEnd;
+				final int finalSubStart = subStart;
+				log("python.debug", ()->"parsed line <" + lines[line] + "> __prefix__ is " + finalSubStart + " -> " + finalSubEnd);
 
 				String mid = lines[line].substring(0, subStart) + " __prefix__ " + lines[line].substring(subEnd, lines[line].length());
 
-				log("python.debug", "parsed line thus " + mid + " / " + sub);
+				final String finalSub = sub;
+				log("python.debug", ()->"parsed line thus " + mid + " / " + finalSub);
 
 				String prefix = lines[line].substring(0, subStart);
 				if (prefix.endsWith(".")) prefix = prefix.substring(0, prefix.length() - 1);
@@ -308,7 +311,7 @@ public class FieldJython extends Execution {
 				}
 				List<Pair<String, String>> possibleJavaClassesFor = JavaSupport.javaSupport.getPossibleJavaClassesFor(sub);
 
-				Log.log("completion.debug", " possible javaclasses :" + possibleJavaClassesFor);
+				Log.log("completion.debug", ()->" possible javaclasses :" + possibleJavaClassesFor);
 
 				subStart += before.length();
 				subEnd += before.length();

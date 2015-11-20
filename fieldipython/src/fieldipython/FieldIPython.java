@@ -30,7 +30,7 @@ public class FieldIPython extends Execution {
 	public FieldIPython(Box root) {
 		super(null);
 
-		Log.log("startup.ipython", "IPythonplugin is starting up ");
+		Log.log("startup.ipython", ()->"IPythonplugin is starting up ");
 
 		i = new IPythonTransform().get();
 
@@ -56,7 +56,7 @@ public class FieldIPython extends Execution {
 		});
 
 
-		Log.log("startup.ipython", "IPython plugin has finished starting up ");
+		Log.log("startup.ipython", ()->"IPython plugin has finished starting up ");
 	}
 
 

@@ -58,7 +58,7 @@ public class BridgedTernSupport {
 			engine.accept("self.ternServer.addFile('" + name + "', " + j.toString() + ".at)");
 
 		}
-		Log.log("TERN", " done ");
+		Log.log("TERN", ()->" done ");
 
 
 	}

@@ -6,6 +6,7 @@ import field.utility.Pair;
 import fieldbox.FieldBox;
 import fieldbox.boxes.Box;
 import fieldbox.execution.Execution;
+import fieldbox.execution.InverseDebugMapping;
 import fielded.Commands;
 import fielded.RemoteEditor;
 
@@ -142,6 +143,8 @@ public class GraphicsSupport extends Box {
 		b.properties.putToList(_shaders, s);
 
 		s.setOnError(errorHandler(b, "shader"));
+
+		InverseDebugMapping.provideExtraInformation(s, "created from "+b);
 
 		return s;
 	}

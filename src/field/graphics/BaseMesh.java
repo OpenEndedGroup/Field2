@@ -2,6 +2,7 @@ package field.graphics;
 
 import field.linalg.Vec3;
 import field.utility.Log;
+import org.lwjgl.opengl.GL30;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -211,7 +212,7 @@ public class BaseMesh extends Scene implements Scene.Perform {
 	@Override
 	public boolean perform(int pass) {
 
-		Log.log("graphics.trace", " perform pass :" + this + " / " + pass);
+		Log.log("graphics.trace", ()->" perform pass :" + this + " / " + pass);
 
 		if (pass == 0) {
 			Integer va = GraphicsContext.get(this);
@@ -220,7 +221,8 @@ public class BaseMesh extends Scene implements Scene.Perform {
 				GraphicsContext.put(this, va);
 			}
 
-			Log.log("graphics.trace", " va name is " + va);
+			final Integer finalVa = va;
+			Log.log("graphics.trace", ()->" va name is " + finalVa);
 			glBindVertexArray(va);
 
 			boolean work = false;
@@ -277,8 +279,11 @@ public class BaseMesh extends Scene implements Scene.Perform {
 				if (primitiveSize == 0) {
 					glDrawArrays(primitiveType, 0, limitVertex);
 				} else {
-					Log.log("graphics.trace", () -> "drawing "+primitiveType+" "+limitElement+" "+primitiveSize);
+					Log.log("graphics.trace", () -> "drawing "+primitiveType+" "+limitElement+" "+primitiveSize+" "+GraphicsContext.stateTracker.fbo.get());
+					Log.log("graphics.trace", () -> "target FBO is complete ? "+ GL30.glCheckFramebufferStatus(GL30.GL_DRAW_FRAMEBUFFER));
+					GraphicsContext.checkError(() -> "before draw "+this);
 					glDrawElements(primitiveType, limitElement * primitiveSize, GL_UNSIGNED_INT, 0);
+					GraphicsContext.checkError(() -> "after draw "+this);
 				}
 				GraphicsContext.checkError(() -> "on exit "+this);
 				return true;
@@ -376,20 +381,20 @@ public class BaseMesh extends Scene implements Scene.Perform {
 	 */
 	public void debugContents(String channel)
 	{
-		Log.log(channel, "debugContents for mesh "+this);
+		Log.log(channel, ()->"debugContents for mesh "+this);
 		int vl = getVertexLimit();
 		int el = getElementLimit();
-		Log.log(channel, "VL :"+vl+" | "+el+" "+this.buffers[0].floats(true)+" / "+this.elements(true));
+		Log.log(channel,()-> "VL :"+vl+" | "+el+" "+this.buffers[0].floats(true)+" / "+this.elements(true));
 		for(ArrayBuffer a : this.buffers)
 		{
 			if (a==null) continue;
-			Log.log(channel, "buffer "+a.getAttribute()+" "+a.getBinding()+" "+a.getDimension()+" "+a.getSize());
+			Log.log(channel,()-> "buffer "+a.getAttribute()+" "+a.getBinding()+" "+a.getDimension()+" "+a.getSize());
 		}
 
 
 		if (this.buffers[0]!=null)
 		{
-			Log.log(channel, "checking elements "+this);
+			Log.log(channel,()-> "checking elements "+this);
 			IntBuffer a = this.elements(true);
 			FloatBuffer f = this.buffers[0].floats();
 
@@ -397,9 +402,10 @@ public class BaseMesh extends Scene implements Scene.Perform {
 
 			for(int q=0;q<el*st;q++)
 			{
-				Log.log(channel, (q/st)+" | "+a.get(q)+" -> "+(a.get(q)<vl ? new Vec3(f.position(3*a.get(q))) : "ILLEGAL"));
+				final int finalQ = q;
+				Log.log(channel, () -> (finalQ /st)+" | "+a.get(finalQ)+" -> "+(a.get(finalQ)<vl ? new Vec3((FloatBuffer)(f.position(3*a.get(finalQ)))) : "ILLEGAL"));
 				if ((q+1)%st==0)
-					Log.log(channel, ".");
+					Log.log(channel, ()->".");
 			}
 		}
 	}

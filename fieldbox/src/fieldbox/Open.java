@@ -57,22 +57,21 @@ public class Open {
 	private Map<String, List<Object>> plugins;
 	private Nashorn javascript;
 
-	private int sizeX = AutoPersist.persist("window_sizeX", () -> 1000, x -> Math.min(2560, Math.max(100, x)), (x) -> window == null ? x : (int) window.getBounds().w);
-	private int sizeY = AutoPersist.persist("window_sizeY", () -> 800, x -> Math.min(2560, Math.max(100, x)), (x) -> window == null ? x : (int) window.getBounds().h);
+	private int sizeX = AutoPersist.persist("window_sizeX", () -> 1000, x -> Math.min(1920*2, Math.max(100, x)), (x) -> window == null ? x : (int) window.getBounds().w);
+	private int sizeY = AutoPersist.persist("window_sizeY", () -> 800, x -> Math.min(1920*2, Math.max(100, x)), (x) -> window == null ? x : (int) window.getBounds().h);
+	private int atX = AutoPersist.persist("window_atX", () -> 0, x -> x, (x) -> window == null ? x : (int) window.getBounds().x);
+	private int atY = AutoPersist.persist("window_atY", () -> 0, x -> x, (x) -> window == null ? x : (int) window.getBounds().y);
 
 	public Open(String filename) {
+		System.err.println(":HI:");
 
-//		Log.log("startup", "linkers are :", Bootstrap.class.getClassLoader());
-		Log.log("startup", "trouble is :"+GuardingDynamicLinker.class+" "+ Linker.class);
-		Log.log("startup", "trouble is :"+GuardingDynamicLinker.class.getClassLoader()+" "+ Linker.class.getClassLoader());
-//		ServiceLoader.load(GuardingDynamicLinker.class, Thread.currentThread().getContextClassLoader())
-//			     .spliterator()
-//			     .forEachRemaining(x -> System.out.println(x));
+		Log.log("startup", ()->"trouble is :"+GuardingDynamicLinker.class+" "+ Linker.class);
+		Log.log("startup", ()->"trouble is :"+GuardingDynamicLinker.class.getClassLoader()+" "+ Linker.class.getClassLoader());
 
 		DefaultMenus.safeToSave = false;
 
 		this.filename = filename;
-		Log.log("startup", " -- Initializing window -- ");
+		Log.log("startup", ()->" -- Initializing window -- ");
 
 		try {
 			pluginList = new PluginList();
@@ -87,7 +86,12 @@ public class Open {
 			pluginList = null;
 		}
 
-		window = new FieldBoxWindow(50, 50, sizeX, sizeY, filename);
+		System.out.println(" window dimensions are :"+atX+" "+atY+" "+sizeX+" "+sizeY);
+
+		window = new FieldBoxWindow(atX, atY, sizeX, sizeY, filename);
+
+		// save and restore the window position
+
 
 		window.scene
 		      .attach(-5, this::defaultGLPreambleBackground);
@@ -344,17 +348,17 @@ public class Open {
 		doOpen(boxes.root(), filename);
 
 		// call loaded on everything above root
-		Log.log("startup", "calling .loaded on plugins");
+		Log.log("startup", ()->"calling .loaded on plugins");
 		boxes.root().breadthFirst(boxes.root().upwards()).filter(x -> x instanceof IO.Loaded).forEach(
 			    x -> ((IO.Loaded) x).loaded());
 
-		Log.log("startup", " -- FieldBox finished initializing, loading plugins ... -- ");
+		Log.log("startup", ()->" -- FieldBox finished initializing, loading plugins ... -- ");
 
 		// initialize the plugins
 
 		if (pluginList != null) pluginList.interpretPlugins(plugins, boxes.root());
 
-		Log.log("startup", " -- FieldBox plugins finished, entering animation loop -- ");
+		Log.log("startup", ()->" -- FieldBox plugins finished, entering animation loop -- ");
 
 		// start the runloop
 		boxes.start();

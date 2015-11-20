@@ -33,7 +33,7 @@ public class Cursors {
 
 		if (arrowLeft == 0) arrowLeft = loadResource("arrowLeft.jpg");
 
-		Log.log("cursors", "setting to arrow");
+		Log.log("cursors", ()->"setting to arrow");
 		if (currentCursor != arrowLeft) Glfw.glfwSetCursor(window.getGLFWWindowReference(), currentCursor = arrowLeft);
 	}
 
@@ -63,21 +63,21 @@ public class Cursors {
 	static public void arrowRight(Window window) {
 		if (arrowRight == 0) arrowRight = loadResource("arrowRight.jpg");
 
-		Log.log("cursors", "setting to arrow");
+		Log.log("cursors", ()->"setting to arrow");
 		if (currentCursor != arrowRight) Glfw.glfwSetCursor(window.getGLFWWindowReference(), currentCursor = arrowRight);
 	}
 
 	static public void arrowDown(Window window) {
 		if (arrowDown == 0) arrowDown = loadResource("arrowDown.jpg");
 
-		Log.log("cursors", "setting to arrow");
+		Log.log("cursors", ()->"setting to arrow");
 		if (currentCursor != arrowDown) Glfw.glfwSetCursor(window.getGLFWWindowReference(), currentCursor = arrowDown);
 	}
 
 	static public void arrowUp(Window window) {
 		if (arrowUp == 0) arrowUp = loadResource("arrowUp.jpg");
 
-		Log.log("cursors", "setting to arrow");
+		Log.log("cursors", ()->"setting to arrow");
 		if (currentCursor != arrowUp) Glfw.glfwSetCursor(window.getGLFWWindowReference(), currentCursor = arrowUp);
 	}
 

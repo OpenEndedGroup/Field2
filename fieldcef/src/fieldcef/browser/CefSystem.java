@@ -50,7 +50,7 @@ public class CefSystem {
 
 			@Override
 			public void onAfterCreated(CefBrowser browser) {
-				Log.log("cef.debug", "afterCreated "+browser);
+				Log.log("cef.debug", ()->"afterCreated "+browser);
 			}
 
 			@Override
@@ -65,19 +65,19 @@ public class CefSystem {
 
 			@Override
 			public void onBeforeClose(CefBrowser browser) {
-				System.out.println("CEF : beforedoclose"); Log.log("cef.debug", "beforeClose "+browser);
+				System.out.println("CEF : beforedoclose"); Log.log("cef.debug", ()->"beforeClose "+browser);
 			}
 		});
 
 		client.addDisplayHandler(new CefDisplayHandler() {
 			@Override
 			public void onAddressChange(CefBrowser browser, String url) {
-				Log.log("cef.debug", "Address change :" + browser + " -> " + url);
+				Log.log("cef.debug", ()->"Address change :" + browser + " -> " + url);
 			}
 
 			@Override
 			public void onTitleChange(CefBrowser browser, String title) {
-				Log.log("cef.debug", "Title change :" + browser + " -> " + title);
+				Log.log("cef.debug", ()->"Title change :" + browser + " -> " + title);
 			}
 
 			@Override
@@ -101,18 +101,18 @@ public class CefSystem {
 		client.addLoadHandler(new CefLoadHandlerAdapter() {
 			@Override
 			public void onLoadingStateChange(CefBrowser browser, boolean isLoading, boolean canGoBack, boolean canGoForward) {
-				Log.log("cef.debug", "state change :" + browser + " -> " + isLoading+" "+canGoBack+" "+canGoForward);
+				Log.log("cef.debug",()-> "state change :" + browser + " -> " + isLoading+" "+canGoBack+" "+canGoForward);
 			}
 
 			@Override
 			public void onLoadStart(CefBrowser browser, int frameIdentifer) {
-				Log.log("cef.debug", "load start:" + browser + " -> " + frameIdentifer);
+				Log.log("cef.debug", ()->"load start:" + browser + " -> " + frameIdentifer);
 			}
 
 
 			@Override
 			public void onLoadEnd(CefBrowser browser, int frameIdentifier, int httpStatusCode) {
-				Log.log("cef.debug", "load end:" + browser + " -> " + frameIdentifier);
+				Log.log("cef.debug", ()->"load end:" + browser + " -> " + frameIdentifier);
 				Runnable r =completionCallbacks.get(browser);
 				if (r!=null)
 					    r.run();
@@ -120,7 +120,7 @@ public class CefSystem {
 
 			@Override
 			public void onLoadError(CefBrowser browser, int frameIdentifer, ErrorCode errorCode, String errorText, String failedUrl) {
-				Log.log("cef.error", "load error:" + browser + " -> " + frameIdentifer + " " + errorCode + " " + errorText + " " + failedUrl);
+				Log.log("cef.error", ()->"load error:" + browser + " -> " + frameIdentifer + " " + errorCode + " " + errorText + " " + failedUrl);
 			}
 		});
 
@@ -131,7 +131,7 @@ public class CefSystem {
 		router.addHandler(new CefMessageRouterHandler() {
 			@Override
 			public boolean onQuery(CefBrowser browser, long query_id, String request, boolean persistent, CefQueryCallback callback) {
-				Log.log("cef.debug", " -- query :" + request + " " + callback + " " + query_id);
+				Log.log("cef.debug",()-> " -- query :" + request + " " + callback + " " + query_id);
 				MessageCallback m = callbacks.get(browser);
 				if (m!=null)
 				{
@@ -139,7 +139,7 @@ public class CefSystem {
 				}
 				else
 				{
-					Log.log("cef.error", "No message handler");
+					Log.log("cef.error", ()->"No message handler");
 					callback.failure(0, "No message handler");
 				}
 				return true;

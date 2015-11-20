@@ -58,13 +58,10 @@ public class SimpleArrayBuffer implements ArrayBuffer {
 	@Override
 	public boolean clean(int limit) {
 		State state = GraphicsContext.get(this);
-		Log.log("graphics.trace", "       clean " + state);
+		final State finalState = state;
+		Log.log("graphics.trace", ()-> "       clean " + finalState);
 		if (state == null) GraphicsContext.put(this, state = setup());
 		if (state.mod != mod || state.limit < limit) {
-
-
-			Log.log(" causing upload :" + state.mod + " " + mod + " || " + state.limit + " " + limit);
-
 			upload(state, limit);
 			state.mod = mod;
 			return true;
@@ -153,8 +150,6 @@ public class SimpleArrayBuffer implements ArrayBuffer {
 
 	private void upload(State s, int limit) {
 
-		Log.log(" uploading :" + limit + " from " + this + "       " + dimension + " " + binding);
-
 		glBindBuffer(binding, s.name);
 		data.rewind();
 		data.limit(4 * limit * dimension);
@@ -162,7 +157,7 @@ public class SimpleArrayBuffer implements ArrayBuffer {
 		s.limit = limit;
 
 		if (customStorage != null) {
-			if (customStorage.limit() < (limit * dimension)) Log.log("graphics.error", "ERROR: not enough data in bound storage, attribute " + attribute);
+			if (customStorage.limit() < (limit * dimension)) Log.log("graphics.error", ()->"ERROR: not enough data in bound storage, attribute " + attribute);
 			else glBufferSubData(binding, 0, customStorage);
 		} else {
 			glBufferSubData(binding, 0, data);

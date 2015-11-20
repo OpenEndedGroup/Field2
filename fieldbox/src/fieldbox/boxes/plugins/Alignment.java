@@ -5,6 +5,7 @@ import fieldbox.boxes.*;
 import fieldbox.boxes.annotations.PublishAsCommand;
 
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -142,17 +143,28 @@ public class Alignment extends Box {
 					.collect(Collectors.toList());
 		float ax = s.get(0).properties.get(Box.frame).x + s.get(0).properties.get(Box.frame).w;
 		for (int i = 1; i < s.size(); i++) {
-			s.get(i).properties.get(Box.frame).x = ax;
+			final float finalAx = ax;
+			set(s.get(i), z -> {
+				z.x = finalAx;
+			});
 			ax = s.get(i).properties.get(Box.frame).x + s.get(i).properties.get(Box.frame).w;
 		}
 	}
 
-	protected void abutV() {
+	private void set(Box b, Consumer<Rect> r) {
+		Callbacks.frameModified(b, r);
+	}
+
+	private void abutV() {
 		List<Box> s = selected().sorted((a, b) -> Float.compare(a.properties.get(Box.frame).y, b.properties.get(Box.frame).y))
 					.collect(Collectors.toList());
 		float ax = s.get(0).properties.get(Box.frame).y + s.get(0).properties.get(Box.frame).h;
 		for (int i = 1; i < s.size(); i++) {
-			s.get(i).properties.get(Box.frame).y = ax;
+			final float finalAx = ax;
+			set(s.get(i), z -> {
+				z.y = finalAx;
+			});
+
 			ax = s.get(i).properties.get(Box.frame).y + s.get(i).properties.get(Box.frame).h;
 		}
 	}
@@ -162,17 +174,19 @@ public class Alignment extends Box {
 			  .min(Float::compare)
 			  .ifPresent(x -> {
 				  selected().forEach(bx -> {
+					  set(bx, z -> z.x = x.floatValue());
 					  bx.properties.get(Box.frame).x = x.floatValue();
 				  });
 				  Drawing.dirty(this);
 			  });
 	}
 
-	protected void right() {
+	private void right() {
 		selected().map(a -> a.properties.get(Box.frame).x + a.properties.get(Box.frame).w)
 			  .max(Float::compare)
 			  .ifPresent(x -> {
 				  selected().forEach(bx -> {
+					  set(bx, z -> z.x = x.floatValue() - bx.properties.get(Box.frame).w);
 					  bx.properties.get(Box.frame).x = x.floatValue() - bx.properties.get(Box.frame).w;
 				  });
 				  Drawing.dirty(this);
@@ -184,17 +198,19 @@ public class Alignment extends Box {
 			  .min(Float::compare)
 			  .ifPresent(x -> {
 				  selected().forEach(bx -> {
+					  set(bx, z->z.y = x.floatValue());
 					  bx.properties.get(Box.frame).y = x.floatValue();
 				  });
 				  Drawing.dirty(this);
 			  });
 	}
 
-	protected void bottom() {
+	private void bottom() {
 		selected().map(a -> a.properties.get(Box.frame).y + a.properties.get(Box.frame).h)
 			  .max(Float::compare)
 			  .ifPresent(x -> {
 				  selected().forEach(bx -> {
+					  set(bx, z -> z.y = x.floatValue() - bx.properties.get(Box.frame).h);
 					  bx.properties.get(Box.frame).y = x.floatValue() - bx.properties.get(Box.frame).h;
 				  });
 				  Drawing.dirty(this);

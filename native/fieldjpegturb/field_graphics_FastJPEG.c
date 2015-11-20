@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <jpeglib.h>
+#include <jerror.h>
+#include <setjmp.h>
 
 JNIEXPORT jlong JNICALL Java_field_graphics_FastJPEG_dimensionsFor
 (JNIEnv *env, jobject jthis, jstring filename)
@@ -35,19 +37,60 @@ JNIEXPORT jlong JNICALL Java_field_graphics_FastJPEG_dimensionsFor
     return (((long)cinfo.output_width) << 16) | (long)cinfo.output_height;
 
 }
+
+
+struct my_error_mgr {
+  struct jpeg_error_mgr pub;	/* "public" fields */
+
+  jmp_buf setjmp_buffer;	/* for return to caller */
+};
+
+typedef struct my_error_mgr * my_error_ptr;
+
+/*
+ * Here's the routine that will replace the standard error_exit method:
+ */
+
+METHODDEF(void)
+my_error_exit (j_common_ptr cinfo)
+{
+  /* cinfo->err really points to a my_error_mgr struct, so coerce pointer */
+  my_error_ptr myerr = (my_error_ptr) cinfo->err;
+
+  /* Always display the message. */
+  /* We could postpone this until after returning, if we chose. */
+  (*cinfo->err->output_message) (cinfo);
+
+  /* Return control to the setjmp point */
+  longjmp(myerr->setjmp_buffer, 1);
+}
+
+
 JNIEXPORT void JNICALL Java_field_graphics_FastJPEG_decompress
 (JNIEnv *env, jobject jthis, jstring filename, jobject dest, jint width, jint height)
 {
     struct jpeg_decompress_struct cinfo;
-    struct jpeg_error_mgr jerr;
+
     FILE * infile;
     int row_stride;		/* physical row width in image buffer */
-    cinfo.err = jpeg_std_error(&jerr);
+
     /* Now we can initialize the JPEG compression object. */
 	jboolean isCopy;
     const char *fv = (*env)->GetStringUTFChars(env, filename, &isCopy);
-    
-    jpeg_create_decompress(&cinfo);
+
+    fprintf(stderr,"in:%s", fv);    
+struct my_error_mgr jerr;
+
+cinfo.err = jpeg_std_error(&jerr.pub);
+  jerr.pub.error_exit = my_error_exit;
+  /* Establish the setjmp return context for my_error_exit to use. */
+  if (setjmp(jerr.setjmp_buffer)) {
+    /* If we get here, the JPEG code has signaled an error.
+     * We need to clean up the JPEG object, close the input file, and return.
+     */
+    jpeg_destroy_decompress(&cinfo);
+    return;
+  }
     
     if ((infile = fopen(fv, "rb")) == NULL) {
         fprintf(stderr, "can't open %s\n", fv);
@@ -56,7 +99,9 @@ JNIEXPORT void JNICALL Java_field_graphics_FastJPEG_decompress
     }
     setvbuf(infile, NULL, _IOFBF, 1024*1024);
     
-    (*env)->ReleaseStringUTFChars(env, filename, fv);
+
+    jpeg_create_decompress(&cinfo);
+
     jpeg_stdio_src(&cinfo, infile);
     
     (void) jpeg_read_header(&cinfo, TRUE);
@@ -67,7 +112,7 @@ JNIEXPORT void JNICALL Java_field_graphics_FastJPEG_decompress
     
     row_stride = cinfo.output_width * cinfo.output_components;
     
-	unsigned char* destBuf = (unsigned char*)(*env)->GetDirectBufferAddress(env, dest);
+    unsigned char* destBuf = (unsigned char*)(*env)->GetDirectBufferAddress(env, dest);
     
 #define MIN(x,y) ( (x)<(y) ? (x) : (y) )
     
@@ -78,8 +123,12 @@ JNIEXPORT void JNICALL Java_field_graphics_FastJPEG_decompress
     }
     jpeg_finish_decompress(&cinfo);
     jpeg_destroy_decompress(&cinfo);
+    fprintf(stderr,"out:%s", fv);    
+    (*env)->ReleaseStringUTFChars(env, filename, fv);
     fclose(infile);
+
 }
+
 JNIEXPORT void JNICALL Java_field_graphics_FastJPEG_decompressFlipped
 (JNIEnv *env, jobject jthis, jstring filename, jobject dest, jint width, jint height)
 {
@@ -140,6 +189,7 @@ JNIEXPORT void JNICALL Java_field_graphics_FastJPEG_decompressG
 	jboolean isCopy;
     const char *fv = (*env)->GetStringUTFChars(env, filename, &isCopy);
     
+    fprintf(stderr, "in %s\n", fv);
     jpeg_create_decompress(&cinfo);
     
     if ((infile = fopen(fv, "rb")) == NULL) {
@@ -164,6 +214,7 @@ JNIEXPORT void JNICALL Java_field_graphics_FastJPEG_decompressG
     
 	unsigned char* destBuf = (unsigned char*)(*env)->GetDirectBufferAddress(env, dest);
     
+    
 #define MIN(x,y) ( (x)<(y) ? (x) : (y) )
     
     for(int i=0;i<MIN(height, cinfo.output_height);i++)
@@ -175,9 +226,12 @@ JNIEXPORT void JNICALL Java_field_graphics_FastJPEG_decompressG
         }
         destBuf+=row_stride/3;
     }
+
     jpeg_finish_decompress(&cinfo);
     jpeg_destroy_decompress(&cinfo);
     fclose(infile);
+    free(t);
+
 }
 
 
@@ -185,9 +239,9 @@ JNIEXPORT void JNICALL Java_field_graphics_FastJPEG_compress
 (JNIEnv *env, jobject jthis, jstring filename, jobject dest, jint width, jint height)
 {
     struct jpeg_compress_struct cinfo;
-    struct jpeg_error_mgr jerr;
     FILE * outfile;
     int row_stride;		/* physical row width in image buffer */
+    struct jpeg_error_mgr jerr;    
     cinfo.err = jpeg_std_error(&jerr);
     /* Now we can initialize the JPEG compression object. */
 	jboolean isCopy;
