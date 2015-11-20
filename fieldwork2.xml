@@ -15,35 +15,34 @@
   <property name="compiler.args" value=""/>
   <property name="compiler.max.memory" value="700m"/>
   <patternset id="ignored.files">
-    <exclude name="**/CVS/**"/>
-    <exclude name="**/SCCS/**"/>
-    <exclude name="**/RCS/**"/>
-    <exclude name="**/rcs/**"/>
-    <exclude name="**/.DS_Store/**"/>
-    <exclude name="**/.svn/**"/>
-    <exclude name="**/.pyc/**"/>
-    <exclude name="**/.pyo/**"/>
+    <exclude name="**/*.hprof/**"/>
     <exclude name="**/*.pyc/**"/>
     <exclude name="**/*.pyo/**"/>
-    <exclude name="**/.git/**"/>
-    <exclude name="**/*.hprof/**"/>
-    <exclude name="**/_svn/**"/>
-    <exclude name="**/.hg/**"/>
-    <exclude name="**/*.lib/**"/>
-    <exclude name="**/*~/**"/>
-    <exclude name="**/__pycache__/**"/>
-    <exclude name="**/.bundle/**"/>
     <exclude name="**/*.rbc/**"/>
-    <exclude name="**/*.orig/**"/>
+    <exclude name="**/*~/**"/>
+    <exclude name="**/.DS_Store/**"/>
+    <exclude name="**/.bundle/**"/>
+    <exclude name="**/.git/**"/>
+    <exclude name="**/.hg/**"/>
+    <exclude name="**/.svn/**"/>
+    <exclude name="**/.tox/**"/>
+    <exclude name="**/CVS/**"/>
+    <exclude name="**/RCS/**"/>
+    <exclude name="**/SCCS/**"/>
+    <exclude name="**/__pycache__/**"/>
+    <exclude name="**/_svn/**"/>
+    <exclude name="**/rcs/**"/>
+    <exclude name="**/vssver.scc/**"/>
+    <exclude name="**/vssver2.scc/**"/>
   </patternset>
   <patternset id="library.patterns">
-    <include name="*.zip"/>
-    <include name="*.apk"/>
     <include name="*.war"/>
-    <include name="*.egg"/>
     <include name="*.ear"/>
-    <include name="*.ane"/>
+    <include name="*.apk"/>
+    <include name="*.zip"/>
     <include name="*.swc"/>
+    <include name="*.ane"/>
+    <include name="*.egg"/>
     <include name="*.jar"/>
   </patternset>
   <patternset id="compiler.resources">
@@ -59,41 +58,28 @@
   
   <!-- JDK definitions -->
   
-  <property name="jdk.bin.1.9_(2)" value="${jdk.home.1.9_(2)}/bin"/>
-  <path id="jdk.classpath.1.9_(2)">
-    <fileset dir="${jdk.home.1.9_(2)}">
+  <property name="jdk.bin.1.9" value="${jdk.home.1.9}/bin"/>
+  <path id="jdk.classpath.1.9">
+    <fileset dir="${jdk.home.1.9}">
+      <include name="."/>
       <include name="lib/ant-javafx.jar"/>
-      <include name="lib/dt.jar"/>
+      <include name="lib/deploy.jar"/>
       <include name="lib/javafx-mx.jar"/>
-      <include name="lib/jconsole.jar"/>
+      <include name="lib/javaws.jar"/>
+      <include name="lib/jfxrt.jar"/>
+      <include name="lib/jfxswt.jar"/>
       <include name="lib/packager.jar"/>
-      <include name="lib/sa-jdi.jar"/>
-      <include name="lib/tools.jar"/>
-      <include name="jre/lib/charsets.jar"/>
-      <include name="jre/lib/deploy.jar"/>
-      <include name="jre/lib/javaws.jar"/>
-      <include name="jre/lib/jce.jar"/>
-      <include name="jre/lib/jfr.jar"/>
-      <include name="jre/lib/jfxswt.jar"/>
-      <include name="jre/lib/jsse.jar"/>
-      <include name="jre/lib/plugin.jar"/>
-      <include name="jre/lib/resources.jar"/>
-      <include name="jre/lib/rt.jar"/>
-      <include name="jre/lib/ext/cldrdata.jar"/>
-      <include name="jre/lib/ext/dnsns.jar"/>
-      <include name="jre/lib/ext/jfxrt.jar"/>
-      <include name="jre/lib/ext/localedata.jar"/>
-      <include name="jre/lib/ext/nashorn.jar"/>
-      <include name="jre/lib/ext/sunec.jar"/>
-      <include name="jre/lib/ext/sunjce_provider.jar"/>
-      <include name="jre/lib/ext/sunpkcs11.jar"/>
-      <include name="jre/lib/ext/zipfs.jar"/>
+      <include name="lib/plugin.jar"/>
+      <include name="../../../jdk1.9.0_40.jdk/Contents/Home/jre/lib/rt.jar"/>
+      <include name="lib/modules/appmodules.jimage"/>
+      <include name="lib/modules/bootmodules.jimage"/>
+      <include name="lib/modules/extmodules.jimage"/>
     </fileset>
   </path>
   
-  <property name="project.jdk.home" value="${jdk.home.1.9_(2)}"/>
-  <property name="project.jdk.bin" value="${jdk.bin.1.9_(2)}"/>
-  <property name="project.jdk.classpath" value="jdk.classpath.1.9_(2)"/>
+  <property name="project.jdk.home" value="${jdk.home.1.9}"/>
+  <property name="project.jdk.bin" value="${jdk.bin.1.9}"/>
+  <property name="project.jdk.classpath" value="jdk.classpath.1.9"/>
   
   
   <!-- Project Libraries -->
@@ -156,6 +142,13 @@
   <path id="library.opencl.classpath">
     <pathelement location="${basedir}/fieldopencl/lib/javacl-1.0-20141231.011028-81-shaded.jar"/>
     <pathelement location="${basedir}/fieldopencl/lib/javacl-generator-1.0-20140629.155539-82.jar"/>
+  </path>
+  
+  <path id="library.parboiled.classpath">
+    <pathelement location="${basedir}/lib/asm-all-5.0.3.jar"/>
+    <pathelement location="${basedir}/lib/parboiled-core-1.1.7.jar"/>
+    <pathelement location="${basedir}/lib/parboiled-java-1.1.7.jar"/>
+    <pathelement location="${basedir}/lib/pegdown-1.4.2.jar"/>
   </path>
   
   <path id="library.poly2tri-core-0.1.1-snapshot_(2).classpath">
