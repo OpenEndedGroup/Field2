@@ -100,9 +100,12 @@ public class Camera {
 		}
 
 		public Vec3 position() {
-			return position(0);
+			return position;
 		}
 
+		public Vec3 up() {
+			return up;
+		}
 		public Vec3 target() {
 			return target;
 		}
