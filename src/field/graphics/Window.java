@@ -4,22 +4,22 @@ import com.badlogic.jglfw.Glfw;
 import com.badlogic.jglfw.GlfwCallback;
 import com.badlogic.jglfw.GlfwCallbackAdapter;
 import com.badlogic.jglfw.gl.GL;
-import field.CannonicalModifierKeys;
+import field.CanonicalModifierKeys;
 import field.app.RunLoop;
+import field.app.ThreadSync;
 import field.graphics.util.KeyEventMapping;
 import field.linalg.Vec2;
 import field.utility.*;
 import fieldagent.Main;
-import fieldbox.ui.FieldBoxWindow;
 import fieldbox.boxes.Mouse;
 import fieldlinker.Linker;
-import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GLContext;
 
-import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -35,6 +35,7 @@ public class Window implements ProvidesGraphicsContext {
 										     .toCannon();
 	static Window currentWindow = null;
 	private final int retinaScaleFactor;
+
 	/**
 	 * the Scene associated with this window.
 	 * <p>
@@ -43,8 +44,10 @@ public class Window implements ProvidesGraphicsContext {
 
 	public final Scene scene = new Scene();
 	private final long windowOpenedAt;
-	private final CannonicalModifierKeys modifiers;
+	private final CanonicalModifierKeys modifiers;
 	private final GLContext glcontext;
+	private final Consumer<Integer> perform = (i) -> loop();
+	volatile boolean isThreaded = false;
 	protected GraphicsContext graphicsContext;
 	protected long window;
 
@@ -67,6 +70,7 @@ public class Window implements ProvidesGraphicsContext {
 
 	static public boolean doubleBuffered = Options.dict()
 						      .isTrue(new Dict.Prop("doubleBuffered"), true);
+	private Thread onlyThread = null;
 
 	public Window(int x, int y, int w, int h, String title) {
 		this(x, y, w, h, title, true);
@@ -120,7 +124,7 @@ public class Window implements ProvidesGraphicsContext {
 		glfwSwapBuffers(window);
 
 		RunLoop.main.getLoop()
-			    .attach(0, (i) -> loop());
+			    .attach(0, perform);
 
 
 		Glfw.glfwSetInputMode(window, Glfw.GLFW_STICKY_MOUSE_BUTTONS, GL.GL_TRUE);
@@ -131,7 +135,7 @@ public class Window implements ProvidesGraphicsContext {
 		windowOpenedAt = RunLoop.tick;
 
 
-		modifiers = new CannonicalModifierKeys(window);
+		modifiers = new CanonicalModifierKeys(window);
 
 		new Thread() {
 			long lastAt = System.currentTimeMillis();
@@ -152,6 +156,38 @@ public class Window implements ProvidesGraphicsContext {
 
 
 					}
+				}
+			}
+		}.start();
+
+
+
+	}
+
+	public void goThreaded()
+	{
+		RunLoop.main.getLoop().detach(perform);
+		isThreaded = true;
+
+		new Thread() {
+			@Override
+			public void run() {
+				onlyThread = Thread.currentThread();
+
+				while (true) try {
+					if (graphicsContext.lock.tryLock(1, TimeUnit.DAYS))
+					{
+						try {
+							loop();
+						} catch (Throwable t) {
+							t.printStackTrace();
+						}
+					} else {
+					}
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}finally {
+					graphicsContext.lock.unlock();
 				}
 			}
 		}.start();
@@ -195,7 +231,22 @@ public class Window implements ProvidesGraphicsContext {
 
 	private int frameHack = 0;
 
+	public interface SwapControl {
+		public void swap(long window);
+	}
+
+	public SwapControl swapControl = (w) -> glfwSwapBuffers(w);
+
+	public interface RenderControl {
+		public boolean skipRender();
+	}
+
+	public RenderControl renderControl = () -> false;
+
 	public void loop() {
+
+		if (onlyThread!=null && Thread.currentThread()!=onlyThread) throw new Error();
+
 		if (frame == 10) glfwSetWindowPos(window, x, y);
 
 		if (frameHack++ == 0) {
@@ -208,7 +259,13 @@ public class Window implements ProvidesGraphicsContext {
 		}
 
 		if (!needsRepainting()) {
-			glfwPollEvents();
+			if (!isThreaded)glfwPollEvents();
+			return;
+		}
+
+		if (renderControl.skipRender()) {
+			System.out.println(" skipping render ");
+			if (!isThreaded)glfwPollEvents();
 			return;
 		}
 
@@ -221,17 +278,10 @@ public class Window implements ProvidesGraphicsContext {
 		// makes linux all go to hell
 		glcontext.makeCurrent(0);
 
-		GraphicsContext.checkError(() -> "initially");
-
 		int w = glfwGetWindowWidth(window);
 		int h = glfwGetWindowHeight(window);
 
 
-		StateTracker.viewport.set(new int[]{0, 0, w * getRetinaScaleFactor(), h * getRetinaScaleFactor()});
-		StateTracker.scissor.set(new int[]{0, 0, w * getRetinaScaleFactor(), h * getRetinaScaleFactor()});
-		StateTracker.fbo.set(0);
-		StateTracker.shader.set(0);
-		StateTracker.blendState.set(new int[]{GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA});
 
 
 		if (w != this.w || h != this.h) {
@@ -247,10 +297,10 @@ public class Window implements ProvidesGraphicsContext {
 
 		frame++;
 		if (!dontSwap) {
-			glfwSwapBuffers(window);
+			swapControl.swap(window);
 		}
 
-		glfwPollEvents();
+		if (!isThreaded)glfwPollEvents();
 		currentWindow = null;
 
 	}
@@ -325,7 +375,14 @@ public class Window implements ProvidesGraphicsContext {
 
 	protected void updateScene() {
 		GraphicsContext.enterContext(graphicsContext);
+		GraphicsContext.checkError(() -> "initially");
 		try {
+			GraphicsContext.getContext().stateTracker.viewport.set(new int[]{0, 0, w * getRetinaScaleFactor(), h * getRetinaScaleFactor()});
+			GraphicsContext.getContext().stateTracker.scissor.set(new int[]{0, 0, w * getRetinaScaleFactor(), h * getRetinaScaleFactor()});
+			GraphicsContext.getContext().stateTracker.fbo.set(0);
+			GraphicsContext.getContext().stateTracker.shader.set(0);
+			GraphicsContext.getContext().stateTracker.blendState.set(new int[]{GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA});
+
 			Log.log("graphics.trace", () -> "scene is ...\n" + scene.debugPrintScene());
 
 			scene.updateAll();

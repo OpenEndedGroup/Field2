@@ -176,12 +176,29 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 	private boolean setUniformNow(boolean push) {
 		pushed = false;
 
-		Integer name = StateTracker.shader.get();
+		Integer name = GraphicsContext.getContext().stateTracker.shader.get();
 		GraphicsContext.checkError(() -> "while setting :" + name + " / " + this.name);
 		T t = value.get();
 
 		if (push) {
-			boolean changed = GraphicsContext.getContext().uniformCache.push(this.name, t, () -> setUniformNow(false));
+			GraphicsContext was = GraphicsContext.getContext();
+			Thread wasThread = Thread.currentThread();
+			boolean changed = GraphicsContext.getContext().uniformCache.push(this.name, t, () -> {
+				GraphicsContext cc = GraphicsContext.getContext();
+
+				if (cc!=was)
+				{
+					System.out.println(" graphics context doesn't match ");
+					new Exception().printStackTrace();
+				}
+				if (Thread.currentThread()!=wasThread)
+				{
+					System.out.println(" thread doesn't match ");
+					new Exception().printStackTrace();
+				}
+
+				setUniformNow(false);
+			});
 			pushed = true;
 		}
 

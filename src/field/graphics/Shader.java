@@ -271,7 +271,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 
 		if (name.valid) {
 			Log.log("graphics.trace", () -> " using program " + name.name);
-			StateTracker.shader.set(name.name);
+			GraphicsContext.getContext().stateTracker.shader.set(name.name);
 			GraphicsContext.getContext().uniformCache.changeShader(name.name);
 		} else {
 			Log.log("graphics.trace", ()->"WARNING: program not valid, not being used");
@@ -282,7 +282,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 
 	@Override
 	protected boolean perform1() {
-		StateTracker.shader.set(0);
+		GraphicsContext.getContext().stateTracker.shader.set(0);
 		return true;
 	}
 

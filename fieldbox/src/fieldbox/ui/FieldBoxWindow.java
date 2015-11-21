@@ -6,6 +6,7 @@ import field.app.RunLoop;
 import field.graphics.Scene;
 import field.graphics.Window;
 import field.utility.Log;
+import org.lwjgl.opengl.GL11;
 
 import java.nio.ByteBuffer;
 
@@ -42,6 +43,11 @@ public class FieldBoxWindow extends Window {
 		GraphicsContext.enterContext(graphicsContext);
 		try {
 			Log.log("graphics.trace", () -> "scene is ...\n" + scene.debugPrintScene());
+			GraphicsContext.getContext().stateTracker.viewport.set(new int[]{0, 0, w * getRetinaScaleFactor(), h * getRetinaScaleFactor()});
+			GraphicsContext.getContext().stateTracker.scissor.set(new int[]{0, 0, w * getRetinaScaleFactor(), h * getRetinaScaleFactor()});
+			GraphicsContext.getContext().stateTracker.fbo.set(0);
+			GraphicsContext.getContext().stateTracker.shader.set(0);
+			GraphicsContext.getContext().stateTracker.blendState.set(new int[]{GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA});
 
 			compositor.updateScene();
 

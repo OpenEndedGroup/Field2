@@ -269,7 +269,7 @@ public class BaseMesh extends Scene implements Scene.Perform {
 		BaseMesh m = new BaseMesh() {
 			protected boolean performNow() {
 
-				if (StateTracker.shader.get()==0)
+				if (GraphicsContext.getContext().stateTracker.shader.get()==0)
 				{
 					System.err.println("trying to draw geometry ("+this+") without a shader attached will draw nothing");
 					return true;
@@ -279,7 +279,7 @@ public class BaseMesh extends Scene implements Scene.Perform {
 				if (primitiveSize == 0) {
 					glDrawArrays(primitiveType, 0, limitVertex);
 				} else {
-					Log.log("graphics.trace", () -> "drawing "+primitiveType+" "+limitElement+" "+primitiveSize+" "+ StateTracker.fbo.get());
+					Log.log("graphics.trace", () -> "drawing "+primitiveType+" "+limitElement+" "+primitiveSize+" "+ GraphicsContext.getContext().stateTracker.fbo.get());
 					Log.log("graphics.trace", () -> "target FBO is complete ? "+ GL30.glCheckFramebufferStatus(GL30.GL_DRAW_FRAMEBUFFER));
 					GraphicsContext.checkError(() -> "before draw "+this);
 					glDrawElements(primitiveType, limitElement * primitiveSize, GL_UNSIGNED_INT, 0);

@@ -3,16 +3,14 @@ package fieldbox;
 import field.app.RunLoop;
 import field.app.ThreadSync;
 import field.dynalink.linker.GuardingDynamicLinker;
-import field.graphics.MeshBuilder;
-import field.graphics.Scene;
-import field.graphics.SimpleArrayBuffer;
-import field.graphics.Texture;
+import field.graphics.*;
 import field.utility.AutoPersist;
 import field.utility.Dict;
 import field.utility.Log;
 import fieldagent.Main;
 import fieldbox.boxes.*;
 import fieldbox.boxes.plugins.*;
+import fieldbox.boxes.plugins.Image;
 import fieldbox.execution.Execution;
 import fieldbox.io.IO;
 import fieldbox.ui.Compositor;
@@ -90,9 +88,6 @@ public class Open {
 		System.out.println(" window dimensions are :"+atX+" "+atY+" "+sizeX+" "+sizeY);
 
 		window = new FieldBoxWindow(atX, atY, sizeX, sizeY, filename);
-
-		// save and restore the window position
-
 
 		window.scene
 		      .attach(-5, this::defaultGLPreambleBackground);
@@ -388,8 +383,8 @@ public class Open {
 	public boolean defaultGLPreamble(int pass) {
 
 
-		glViewport(0, 0, window.getFrameBufferWidth(), window.getFrameBufferHeight());
-		glScissor(0, 0, window.getFrameBufferWidth(), window.getFrameBufferHeight());
+		GraphicsContext.getContext().stateTracker.viewport.set(new int[]{0, 0, window.getFrameBufferWidth(), window.getFrameBufferHeight()});
+		GraphicsContext.getContext().stateTracker.scissor.set(new int[]{0, 0, window.getFrameBufferWidth(), window.getFrameBufferHeight()});
 		glClearColor((float) Colors.backgroundColor.x, (float) Colors.backgroundColor.y, (float) Colors.backgroundColor.z, 1);
 		glClear(GL11.GL_COLOR_BUFFER_BIT);
 		glEnable(GL11.GL_BLEND);
@@ -406,8 +401,8 @@ public class Open {
 
 	public boolean defaultGLPreambleBackground(int pass) {
 
-		glViewport(0, 0, window.getFrameBufferWidth(), window.getFrameBufferHeight());
-		glScissor(0, 0, window.getFrameBufferWidth(), window.getFrameBufferHeight());
+		GraphicsContext.getContext().stateTracker.viewport.set(new int[]{0, 0, window.getFrameBufferWidth(), window.getFrameBufferHeight()});
+		GraphicsContext.getContext().stateTracker.scissor.set(new int[]{0, 0, window.getFrameBufferWidth(), window.getFrameBufferHeight()});
 		glEnable(GL11.GL_BLEND);
 		glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		glDisable(GL11.GL_DEPTH_TEST);
@@ -419,8 +414,8 @@ public class Open {
 
 	public boolean defaultGLPreambleTransparent(int pass) {
 
-		glViewport(0, 0, window.getFrameBufferWidth(), window.getFrameBufferHeight());
-		glScissor(0, 0, window.getFrameBufferWidth(), window.getFrameBufferHeight());
+		GraphicsContext.getContext().stateTracker.viewport.set(new int[]{0, 0, window.getFrameBufferWidth(), window.getFrameBufferHeight()});
+		GraphicsContext.getContext().stateTracker.scissor.set(new int[]{0, 0, window.getFrameBufferWidth(), window.getFrameBufferHeight()});
 		glClearColor((float) Colors.backgroundColor.x, (float) Colors.backgroundColor.y, (float) Colors.backgroundColor.z, 0);
 		glClear(GL11.GL_COLOR_BUFFER_BIT);
 		glEnable(GL11.GL_BLEND);

@@ -22,7 +22,7 @@ import static com.badlogic.jglfw.Glfw.glfwSetCallback;
  */
 public class Windows {
 
-	static public Windows windows = new Windows();
+	static public final Windows windows = new Windows();
 	private final ClassLoader mainClassLoader;
 
 	private Windows() {

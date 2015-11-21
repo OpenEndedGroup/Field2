@@ -246,7 +246,7 @@ public class Viewport extends Box implements IO.Loaded, ProvidesGraphicsContext 
 			});
 		}
 
-		try (Util.ExceptionlessAutoCloasable s = GraphicsContext.stateTracker.save()) {
+		try (Util.ExceptionlessAutoCloasable s = GraphicsContext.getContext().stateTracker.save()) {
 
 			Rect f = this.properties.get(Box.frame);
 
@@ -264,10 +264,10 @@ public class Viewport extends Box implements IO.Loaded, ProvidesGraphicsContext 
 			int[] v = new int[]{(int) tl.x * 2, (int) (h - bl.y) * 2, (int) (bl.x - tl.x + 2) * 2, (int) (bl.y - tl.y + 2) * 2};
 
 
-			StateTracker.scissor.set(v);
-			StateTracker.viewport.set(v);
+			GraphicsContext.getContext().stateTracker.scissor.set(v);
+			GraphicsContext.getContext().stateTracker.viewport.set(v);
 
-			try (Util.ExceptionlessAutoCloasable s2 = GraphicsContext.stateTracker.save()) {
+			try (Util.ExceptionlessAutoCloasable s2 = GraphicsContext.getContext().stateTracker.save()) {
 
 				Map<String, Supplier<FLine>> q = breadthFirst(downwards()).filter(x -> x.properties.has(lines3))
 											  .flatMap(x -> x.properties.get(lines3)
@@ -307,10 +307,7 @@ public class Viewport extends Box implements IO.Loaded, ProvidesGraphicsContext 
 			}
 			Scene scene = this.properties.get(Viewport.scene);
 
-			System.out.println(" >> scene in ");
 			scene.updateAll();
-			System.out.println(" << scene out ");
-
 
 		}
 

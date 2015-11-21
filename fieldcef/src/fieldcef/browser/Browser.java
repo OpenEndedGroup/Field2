@@ -658,7 +658,7 @@ public class Browser extends Box implements IO.Loaded {
 //			texture.upload(source, true);
 			texture.upload(source, true, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (1+damage.h + damage.y));
 			Drawing.dirty(this);
-			again = 4;
+			again = 1;
 			hasRepainted = true;
 		} else if (again > 0 && damage != null) {
 			Log.log("cef.debug", ()->" texture was dirty " + again + " call, uploading ");

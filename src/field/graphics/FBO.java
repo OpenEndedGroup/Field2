@@ -26,7 +26,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 
 	@Override
 	public Integer getUniform() {
-		try(Util.ExceptionlessAutoCloasable st = GraphicsContext.stateTracker.save()) {
+		try(Util.ExceptionlessAutoCloasable st = GraphicsContext.getContext().stateTracker.save()) {
 			return specification.unit;
 		}
 	}
@@ -242,17 +242,17 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 
 	public boolean draw() {
 		GraphicsContext.checkError(() -> "on FBO draw entry, specification "+specification);
-		try(Util.ExceptionlessAutoCloasable st = GraphicsContext.stateTracker.save()) {
+		try(Util.ExceptionlessAutoCloasable st = GraphicsContext.getContext().stateTracker.save()) {
 
 			State s = GraphicsContext.get(this, this::setup);
 
-			StateTracker.fbo.set(specification.multisample ? s.multisample : s.name);
+			GraphicsContext.getContext().stateTracker.fbo.set(specification.multisample ? s.multisample : s.name);
 
 			int[] v = {0, 0, specification.width, specification.height};
 
-			StateTracker.scissor.set(v);
+			GraphicsContext.getContext().stateTracker.scissor.set(v);
 
-			StateTracker.viewport.set(v);
+			GraphicsContext.getContext().stateTracker.viewport.set(v);
 
 
 			display.updateAll();
