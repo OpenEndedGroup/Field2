@@ -453,7 +453,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 
 		ArrayList<Integer> abs = new ArrayList<Integer>(toTesselate.size());
 		for(int i=0;i<toTesselate.size();i++)
-			abs.add(toTesselate.get(i)+vertexCursor);
+			abs.add(-toTesselate.get(i)+vertexCursor);
 
 		MeshBuilder_tesselationSupport tess = getTessSupport();
 		tess.begin();
@@ -470,19 +470,26 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 
 	private Map<Integer, float[]> auxMapFor(int vertex) {
 
-		Map<Integer, float[]> q = new LinkedHashMap<>();
+		Map<Integer, ArrayBuffer> b = target.buffers();
+		Iterator<Map.Entry<Integer, ArrayBuffer>> m = b.entrySet()
+							       .iterator();
 
-		for(Integer i : aux.keySet())
-		{
-			FloatBuffer m = target.aux(i, 0);
-			if (m!=null)
-			{
-				int dim = m.capacity() / target.maxVertex;
-				float[] r = new float[dim];
-				m.position(dim*vertex);
-				m.get(r);
-				q.put(i, r);
+		Map<Integer, float[]> q = new LinkedHashMap<>();
+		while (m.hasNext()) {
+			Map.Entry<Integer, ArrayBuffer> n = m.next();
+			if (n.getKey() == 0) continue;
+
+			float[] z = aux.get(n.getKey());
+			if (z == null) {
+				z = new float[n.getValue()
+					       .getDimension()];
 			}
+
+			FloatBuffer fs = n.getValue()
+					      .floats(true);
+			fs.position(z.length*vertex);
+			fs.get(z);
+			q.put(n.getKey(), z);
 		}
 
 		return q;
