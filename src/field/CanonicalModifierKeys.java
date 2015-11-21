@@ -12,7 +12,7 @@ import static com.badlogic.jglfw.Glfw.*;
 /**
  * GLFW sometimes has issues with modifier keys sticking down.
  */
-public class CannonicalModifierKeys {
+public class CanonicalModifierKeys {
 
 	private final long window;
 	private boolean shift;
@@ -20,7 +20,7 @@ public class CannonicalModifierKeys {
 	private boolean supr;
 	private boolean option;
 
-	public CannonicalModifierKeys(long window)
+	public CanonicalModifierKeys(long window)
 	{
 		this.window = window;
 	}
