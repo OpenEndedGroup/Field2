@@ -295,7 +295,10 @@ public class NashornExecution implements Execution.ExecutionSupport {
 					for (int i = 0; i < s.length; i++) {
 						if (s[i].getFileName() != null && s[i].getFileName()
 										      .startsWith("bx[")) {
-							lineErrors.accept(new Pair<>(lineTransform.apply(s[i].getLineNumber()), extraMessage + " " + e.getMessage()));
+							String m = e.getMessage();
+							if (m==null)
+								m = ""+e.getClass();
+							lineErrors.accept(new Pair<>(lineTransform.apply(s[i].getLineNumber()), extraMessage + " " + m));
 							found = true;
 						}
 					}
