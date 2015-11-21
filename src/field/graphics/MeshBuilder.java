@@ -487,7 +487,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 
 			FloatBuffer fs = n.getValue()
 					      .floats(true);
-			fs.position(z.length*vertex);
+			fs.position(z.length*(vertex-1));
 			fs.get(z);
 			q.put(n.getKey(), z);
 		}
