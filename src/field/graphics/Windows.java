@@ -143,7 +143,8 @@ public class Windows {
 
 					GlfwCallback a = adaptors.get(window);
 
-					// added, because mouse down doesn't report the mouse location correctly on first click in os X
+//					// added, because mouse down doesn't report the mouse location correctly on first click in os X
+					// removed, because El Capitan reports getCursorPos in screen coords
 //					if (Main.os == Main.OS.mac) {
 //						if (a != null)
 //							a.cursorPos(window, Glfw.glfwGetCursorPosX(window), Glfw.glfwGetCursorPosY(window));
