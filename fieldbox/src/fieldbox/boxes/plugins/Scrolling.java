@@ -23,9 +23,6 @@ public class Scrolling extends Box {
 				this.find(Drawing.drawing, this.both())
 				    .findFirst()
 				    .ifPresent(x -> {
-
-					    System.err.println(" a :"+e.after.keyboardState+" "+e.after.mods);
-
 					    if (e.after.keyboardState.isShiftDown()) {
 						    Vec2 t = new Vec2(x.getScale());
 
