@@ -134,7 +134,17 @@ public class Window implements ProvidesGraphicsContext {
 
 		glfwWindowShouldClose(window);
 
-		glcontext = shareContext==this ? GL.createCapabilities(): shareContext.glcontext; // //GLContext.createFromCurrent();
+		if (shareContext==this)
+		{
+			glcontext = GL.createCapabilities();
+		}
+		else
+		{
+			glcontext = shareContext.glcontext;
+			GL.setCapabilities(glcontext);
+		}
+
+
 
 		GL11.glClearColor(0.25f, 0.25f, 0.25f, 1);
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
