@@ -1673,5 +1673,17 @@ public class Vec3 implements Externalizable, Supplier<Vec3>, Mutable {
 		z+= 2*amount*(Math.random()-0.5f);
 	}
 
+	public Vec3 randomNonParallelVector() {
+		Vec3 abs = new Vec3(Math.abs(x), Math.abs(y), Math.abs(z));
+		if ((abs.x <= abs.y) && (abs.x <= abs.z)) {
+			return new Vec3(1, 0, 0);
+		} else if ((abs.y <= abs.x) && (abs.y <= abs.z)) {
+			return new Vec3(0, 1, 0);
+		} else {
+			return new Vec3(0, 0, 1);
+		}
+	}
+
+
 
 }

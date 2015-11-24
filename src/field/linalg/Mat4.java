@@ -1911,11 +1911,24 @@ public class Mat4 implements Externalizable, Supplier<Mat4> {
 	 * Transform the given vector by this matrix.
 	 *
 	 * @param v the vector to transform
-	 * @return this
+	 * @return a transformed vopy of v
 	 */
-	public Mat4 transform(Vec4 v) {
+	public Vec4 transform(Vec4 v) {
+		v = new Vec4(v);
 		v.mul(this);
-		return this;
+		return v;
+	}
+
+	/**
+	 * Transform the given vector by this matrix.
+	 *
+	 * @param v the vector to transform
+	 * @return a transformed copy of v
+	 */
+	public Vec3 transform(Vec3 v) {
+		v = new Vec3(v);
+		v.mul(this);
+		return v;
 	}
 
 	/**
@@ -5563,5 +5576,15 @@ public class Mat4 implements Externalizable, Supplier<Mat4> {
 	 */
 	public Mat4 get() {
 		return this;
+	}
+
+
+	public boolean isMirroring()
+	{
+		Vec3 u = new Vec3(m00, m10, m20);
+		Vec3 v = new Vec3(m01, m11, m21);
+		Vec3 w = new Vec3(m02, m12, m22);
+
+		return u.cross(v).dot(w) < 0;
 	}
 }
