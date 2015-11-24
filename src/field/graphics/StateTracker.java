@@ -2,6 +2,7 @@ package field.graphics;
 
 import field.utility.Log;
 import field.utility.Util;
+import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
@@ -26,6 +27,7 @@ public class StateTracker {
 		@Override
 		protected void apply(int[] value) {
 			Log.log("graphics.trace", () -> "setting viewport to " + value[0] + " " + value[1] + " " + value[2] + " " + value[3]);
+
 			glViewport(value[0], value[1], value[2], value[3]);
 		}
 	};

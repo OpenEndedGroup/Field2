@@ -25,12 +25,14 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 
 
 	@Override
+	@HiddenInAutocomplete
 	public Integer getUniform() {
 		try(Util.ExceptionlessAutoCloasable st = GraphicsContext.getContext().stateTracker.save()) {
 			return specification.unit;
 		}
 	}
 
+	@HiddenInAutocomplete
 	static public class State extends BaseScene.Modifiable {
 		int name = -1;
 		int[] text = null;
@@ -106,7 +108,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 
 	public final FBOSpecification specification;
 
-	public Scene display = new Scene();
+	public Scene scene = new Scene();
 
 	public FBO(FBOSpecification specification) {
 		this.specification = specification;
@@ -255,7 +257,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 			GraphicsContext.getContext().stateTracker.viewport.set(v);
 
 
-			display.updateAll();
+			scene.updateAll();
 
 			if (specification.multisample) {
 				glBindFramebuffer(GL_READ_FRAMEBUFFER, s.multisample);
@@ -279,12 +281,9 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 		}
 	}
 
-	public Scene scene() {
-		return display;
-	}
 
 	public void setScene(Scene d) {
-		this.display = d;
+		this.scene = d;
 	}
 
 	@HiddenInAutocomplete

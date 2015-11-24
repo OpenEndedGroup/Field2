@@ -39,7 +39,7 @@ public class Compositor {
 			for (Layer l : layers.values()) {
 				if (l.fbo.specification.width * l.res != window.getWidth() || l.fbo.specification.height * l.res != window.getHeight()) {
 					l.fbo.finalize();
-					Scene sceneWas = l.fbo.scene();
+					Scene sceneWas = l.fbo.scene;
 					l.fbo = newFBO(l.fbo.specification.unit, l.res);
 					l.fbo.setScene(sceneWas);
 					resizing= true;
@@ -192,7 +192,7 @@ public class Compositor {
 		}
 
 		public Scene getScene() {
-			return fbo.display;
+			return fbo.scene;
 		}
 
 		public void drawInto(Scene s) {

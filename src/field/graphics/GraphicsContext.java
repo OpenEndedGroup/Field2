@@ -3,8 +3,9 @@ package field.graphics;
 import field.utility.Dict;
 import field.utility.Log;
 import field.utility.Options;
+import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GLContext;
+import org.lwjgl.opengl.GLUtil;
 
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
@@ -140,9 +141,14 @@ public class GraphicsContext {
 		checkError(() -> "");
 	}
 
-	static protected IntBuffer p = ByteBuffer.allocateDirect(4 * 4)
-						 .order(ByteOrder.nativeOrder())
-						 .asIntBuffer();
+	static protected ThreadLocal<IntBuffer> p = new ThreadLocal<IntBuffer>(){
+		@Override
+		protected IntBuffer initialValue() {
+			return ByteBuffer.allocateDirect(4 * 4)
+				  .order(ByteOrder.nativeOrder())
+				  .asIntBuffer();
+		}
+	};
 
 	static public String containsDebug = null;
 
@@ -154,16 +160,17 @@ public class GraphicsContext {
 
 		int e = GL11.glGetError();
 
-//		GL11.glGetIntegerv(GL11.GL_VIEWPORT, p);
-//		String debugString = Thread.currentThread() + " " + currentGraphicsContext.get() + " " + p.get(2);
+//		GL11.glGetIntegerv(GL11.GL_VIEWPORT, p.get());
+//		String debugString = Thread.currentThread() + " " + currentGraphicsContext.get() + " " + p.get().get(2)+" "+ GL.getCapabilities();
 //		if (containsDebug == null) System.out.println(debugString);
 //		if (containsDebug != null && debugString.contains(containsDebug)) {
 //			System.out.println(debugString);
 //			new Exception().printStackTrace();
 //		}
+
 		if (e != 0) {
 			throw new IllegalStateException(
-				    "GLERROR:" + GLContext.translateGLErrorString(e) + " -- " + message.get() + "\nState tracker is:" + GraphicsContext.getContext().stateTracker.dumpOutput());
+				    "GLERROR:" + GLUtil.getErrorString(e) + " -- " + message.get() + "\nState tracker is:" + GraphicsContext.getContext().stateTracker.dumpOutput());
 		}
 	}
 
@@ -190,7 +197,7 @@ public class GraphicsContext {
 		}
 
 		public void begin(Object source, Object[] args) {
-			if (GraphicsContext.currentGraphicsContext == null) throw new IllegalStateException(" Not in graphics context");
+			if (GraphicsContext.currentGraphicsContext.get() == null) throw new IllegalStateException(" Not in graphics context");
 		}
 	}
 }

@@ -54,7 +54,7 @@ public class ImageProcessor {
 
 	protected void init() {
 		if (output != null) {
-			this.output.scene()
+			this.output.scene
 				   .attach(new Guard(shader, new Function<Integer, Boolean>() {
 					   @Override
 					   public Boolean apply(Integer x) {

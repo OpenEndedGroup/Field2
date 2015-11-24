@@ -3,7 +3,6 @@ package field.graphics;
 import com.badlogic.jglfw.Glfw;
 import com.badlogic.jglfw.GlfwCallback;
 import com.badlogic.jglfw.GlfwCallbackAdapter;
-import com.badlogic.jglfw.gl.GL;
 import field.CanonicalModifierKeys;
 import field.app.RunLoop;
 import field.app.ThreadSync;
@@ -13,8 +12,9 @@ import field.utility.*;
 import fieldagent.Main;
 import fieldbox.boxes.Mouse;
 import fieldlinker.Linker;
+import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GLContext;
+import org.lwjgl.opengl.GLCapabilities;
 
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -33,7 +33,13 @@ public class Window implements ProvidesGraphicsContext {
 	static public final Dict.Prop<Boolean> consumed = new Dict.Prop<>("consumed").type()
 										     .doc("marks an event as handled elsewhere")
 										     .toCannon();
-	static Window currentWindow = null;
+	static ThreadLocal<Window> currentWindow = new ThreadLocal<Window>() {
+		@Override
+		protected Window initialValue() {
+			return null;
+		}
+	};
+
 	private final int retinaScaleFactor;
 
 	/**
@@ -45,7 +51,7 @@ public class Window implements ProvidesGraphicsContext {
 	public final Scene scene = new Scene();
 	private final long windowOpenedAt;
 	private final CanonicalModifierKeys modifiers;
-	private final GLContext glcontext;
+	private final GLCapabilities glcontext;
 	private final Consumer<Integer> perform = (i) -> loop();
 	volatile boolean isThreaded = false;
 	protected GraphicsContext graphicsContext;
@@ -70,6 +76,10 @@ public class Window implements ProvidesGraphicsContext {
 
 	static public boolean doubleBuffered = Options.dict()
 						      .isTrue(new Dict.Prop("doubleBuffered"), true);
+
+	static public Window shareContext = null;
+	protected final Window shareContextAtConstruction ;
+
 	private Thread onlyThread = null;
 
 	public Window(int x, int y, int w, int h, String title) {
@@ -78,10 +88,17 @@ public class Window implements ProvidesGraphicsContext {
 
 	public Window(int x, int y, int w, int h, String title, boolean permitRetina) {
 		Windows.windows.init();
-
 		currentBounds = new Rect(x, y, w, h);
 
-		graphicsContext = GraphicsContext.newContext();
+		shareContextAtConstruction = shareContext;
+		if (shareContext==null) {
+			shareContext = this;
+			graphicsContext = GraphicsContext.newContext();
+		}
+		else
+			graphicsContext = shareContext.graphicsContext;
+
+
 
 		glfwWindowHint(GLFW_DEPTH_BITS, 24);
 		glfwWindowHint(GLFW_SAMPLES, 8);
@@ -104,7 +121,7 @@ public class Window implements ProvidesGraphicsContext {
 		this.x = x;
 		this.y = y;
 
-		window = glfwCreateWindow(w, h, title, 0, 0);
+		window = glfwCreateWindow(w, h, title, 0, shareContext==this ? 0 : shareContext.window);
 		Windows.windows.register(window, makeCallback());
 
 		glfwSetWindowPos(window, x, y);
@@ -117,7 +134,7 @@ public class Window implements ProvidesGraphicsContext {
 
 		glfwWindowShouldClose(window);
 
-		glcontext = GLContext.createFromCurrent();
+		glcontext = shareContext==this ? GL.createCapabilities(): shareContext.glcontext; // //GLContext.createFromCurrent();
 
 		GL11.glClearColor(0.25f, 0.25f, 0.25f, 1);
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
@@ -127,7 +144,7 @@ public class Window implements ProvidesGraphicsContext {
 			    .attach(0, perform);
 
 
-		Glfw.glfwSetInputMode(window, Glfw.GLFW_STICKY_MOUSE_BUTTONS, GL.GL_TRUE);
+		Glfw.glfwSetInputMode(window, Glfw.GLFW_STICKY_MOUSE_BUTTONS, GL11.GL_TRUE);
 
 		retinaScaleFactor = permitRetina ? (int) (Options.dict()
 								 .getFloat(new Dict.Prop<Number>("retina"), 0f) + 1) : 1;
@@ -161,13 +178,14 @@ public class Window implements ProvidesGraphicsContext {
 		}.start();
 
 
-
 	}
 
-	public void goThreaded()
-	{
-		RunLoop.main.getLoop().detach(perform);
+	public void goThreaded() {
+		if (shareContextAtConstruction!=null) throw new IllegalArgumentException(" can't multithread a window if it's sharing a context on construciton. Set Window.shareContext to null before creating window");
+		RunLoop.main.getLoop()
+			    .detach(perform);
 		isThreaded = true;
+
 
 		new Thread() {
 			@Override
@@ -175,8 +193,7 @@ public class Window implements ProvidesGraphicsContext {
 				onlyThread = Thread.currentThread();
 
 				while (true) try {
-					if (graphicsContext.lock.tryLock(1, TimeUnit.DAYS))
-					{
+					if (graphicsContext.lock.tryLock(1, TimeUnit.DAYS)) {
 						try {
 							loop();
 						} catch (Throwable t) {
@@ -186,7 +203,7 @@ public class Window implements ProvidesGraphicsContext {
 					}
 				} catch (InterruptedException e) {
 					e.printStackTrace();
-				}finally {
+				} finally {
 					graphicsContext.lock.unlock();
 				}
 			}
@@ -217,15 +234,13 @@ public class Window implements ProvidesGraphicsContext {
 	}
 
 	static public int getCurrentWidth() {
-		if (currentWindow == null) throw new IllegalArgumentException(" no window mouseState ");
-		return currentWindow.w;
+		if (currentWindow.get() == null) throw new IllegalArgumentException(" no window mouseState ");
+		return currentWindow.get().w;
 	}
 
 	static public int getCurrentHeight() {
-
-
-		if (currentWindow == null) throw new IllegalArgumentException(" no window mouseState ");
-		return currentWindow.h;
+		if (currentWindow.get() == null) throw new IllegalArgumentException(" no window mouseState ");
+		return currentWindow.get().h;
 	}
 
 
@@ -245,63 +260,74 @@ public class Window implements ProvidesGraphicsContext {
 
 	public void loop() {
 
-		if (onlyThread!=null && Thread.currentThread()!=onlyThread) throw new Error();
+		currentWindow.set(this);
+		try {
+			if (onlyThread != null && Thread.currentThread() != onlyThread) throw new Error();
 
-		if (frame == 10) glfwSetWindowPos(window, x, y);
+			if (frame == 10) glfwSetWindowPos(window, x, y);
 
-		if (frameHack++ == 0) {
-			Rect r = getBounds();
-			setBounds((int) r.x, (int) r.y, (int) r.w, (int) r.h + 1);
+			if (Main.os== Main.OS.mac) {
+				// shenanegians required to order front a window on El Capitan
+				if (frameHack++ == 0) {
+					Rect r = getBounds();
+					setBounds((int) r.x, (int) r.y, (int) r.w, (int) r.h + 1);
+				}
+				if (frameHack == 1) {
+					Rect r = getBounds();
+					setBounds((int) r.x, (int) r.y, (int) r.w, (int) r.h - 1);
+				}
+				if (frameHack == 2) {
+					Rect r = getBounds();
+					setBounds((int) r.x, (int) r.y, (int) r.w, (int) r.h + 1);
+				}
+				if (frameHack == 3) {
+					Rect r = getBounds();
+					setBounds((int) r.x, (int) r.y, (int) r.w, (int) r.h - 1);
+				}
+			}
+			if (!needsRepainting()) {
+				if (!isThreaded) glfwPollEvents();
+				return;
+			}
+
+			if (renderControl.skipRender()) {
+				System.out.println(" skipping render ");
+				if (!isThreaded) glfwPollEvents();
+				return;
+			}
+
+			needsRepainting = false;
+
+			glfwMakeContextCurrent(window);
+			glfwSwapInterval(1);
+
+			// makes linux all go to hell
+			//glcontext.makeCurrent(0);
+			GL.setCapabilities(glcontext);
+
+			int w = glfwGetWindowWidth(window);
+			int h = glfwGetWindowHeight(window);
+
+			if (w != this.w || h != this.h) {
+				GraphicsContext.isResizing = true;
+				this.w = w;
+				this.h = h;
+			} else {
+				GraphicsContext.isResizing = false;
+			}
+
+
+			updateScene();
+
+			frame++;
+			if (!dontSwap) {
+				swapControl.swap(window);
+			}
+
+			if (!isThreaded) glfwPollEvents();
+		} finally {
+			currentWindow.set(null);
 		}
-		if (frameHack == 1) {
-			Rect r = getBounds();
-			setBounds((int) r.x, (int) r.y, (int) r.w, (int) r.h - 1);
-		}
-
-		if (!needsRepainting()) {
-			if (!isThreaded)glfwPollEvents();
-			return;
-		}
-
-		if (renderControl.skipRender()) {
-			System.out.println(" skipping render ");
-			if (!isThreaded)glfwPollEvents();
-			return;
-		}
-
-		needsRepainting = false;
-
-		currentWindow = this;
-		glfwMakeContextCurrent(window);
-		glfwSwapInterval(1);
-
-		// makes linux all go to hell
-		glcontext.makeCurrent(0);
-
-		int w = glfwGetWindowWidth(window);
-		int h = glfwGetWindowHeight(window);
-
-
-
-
-		if (w != this.w || h != this.h) {
-			GraphicsContext.isResizing = true;
-			this.w = w;
-			this.h = h;
-		} else {
-			GraphicsContext.isResizing = false;
-		}
-
-
-		updateScene();
-
-		frame++;
-		if (!dontSwap) {
-			swapControl.swap(window);
-		}
-
-		if (!isThreaded)glfwPollEvents();
-		currentWindow = null;
 
 	}
 
@@ -363,9 +389,12 @@ public class Window implements ProvidesGraphicsContext {
 
 
 	public Rect getBounds() {
-
+		if (currentBounds==null)
+			currentBounds = new Rect(0,0,500,500);
 		currentBounds.x = glfwGetWindowX(window);
 		currentBounds.y = glfwGetWindowY(window);
+		currentBounds.w = glfwGetWindowWidth(window);
+		currentBounds.h = glfwGetWindowHeight(window);
 		return currentBounds;
 	}
 
@@ -392,6 +421,8 @@ public class Window implements ProvidesGraphicsContext {
 	}
 
 	public GraphicsContext getGraphicsContext() {
+		if (graphicsContext==null)
+			System.err.println("WARNING: no graphics context for window");
 		return graphicsContext;
 	}
 
