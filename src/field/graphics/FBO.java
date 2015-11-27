@@ -3,8 +3,16 @@ package field.graphics;
 import field.utility.Log;
 import field.utility.Util;
 import fieldnashorn.annotations.HiddenInAutocomplete;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL20;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.*;
@@ -16,9 +24,8 @@ import static org.lwjgl.opengl.GL32.glFramebufferTexture;
 /**
  * FBO - OpenGL Frame Buffer Objects.
  * <p>
- * A Frame Buffer Object is a very general off-screen rendering spot for OpenGL. You can create an FBO from an FBOSpecification (there are helper
- * static methods to help you avoid the mess of historic OpenGL enums, we'll grow these as necessary). They can have multiple layers, optional depth
- * buffers, optional stencils, multisampling, a variety of components and bit-depths and dimensions.
+ * A Frame Buffer Object is a very general off-screen rendering spot for OpenGL. You can create an FBO from an FBOSpecification (there are helper static methods to help you avoid the mess of historic
+ * OpenGL enums, we'll grow these as necessary). They can have multiple layers, optional depth buffers, optional stencils, multisampling, a variety of components and bit-depths and dimensions.
  * <p>
  */
 public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUniform<Integer> {
@@ -27,7 +34,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 	@Override
 	@HiddenInAutocomplete
 	public Integer getUniform() {
-		try(Util.ExceptionlessAutoCloasable st = GraphicsContext.getContext().stateTracker.save()) {
+		try (Util.ExceptionlessAutoCloasable st = GraphicsContext.getContext().stateTracker.save()) {
 			return specification.unit;
 		}
 	}
@@ -81,7 +88,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 		}
 
 		static public FBOSpecification rgba(int unit, int width, int height) {
-			return new FBOSpecification(unit, GL_RGBA, width, height, GL_RGBA, GL_BYTE, 8, false, 1, false,1 );
+			return new FBOSpecification(unit, GL_RGBA, width, height, GL_RGBA, GL_BYTE, 8, false, 1, false, 1);
 		}
 
 		static public FBOSpecification rgbaMultisample(int unit, int width, int height) {
@@ -91,18 +98,18 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 		@Override
 		public String toString() {
 			return "FBOSpecification{" +
-					"unit=" + unit +
-					", internalFormat=" + internalFormat +
-					", width=" + width +
-					", height=" + height +
-					", format=" + format +
-					", type=" + type +
-					", elementSize=" + elementSize +
-					", depth=" + depth +
-					", num=" + num +
-					", layers=" + layers +
-					", multisample=" + multisample +
-					'}';
+				    "unit=" + unit +
+				    ", internalFormat=" + internalFormat +
+				    ", width=" + width +
+				    ", height=" + height +
+				    ", format=" + format +
+				    ", type=" + type +
+				    ", elementSize=" + elementSize +
+				    ", depth=" + depth +
+				    ", num=" + num +
+				    ", layers=" + layers +
+				    ", multisample=" + multisample +
+				    '}';
 		}
 	}
 
@@ -116,7 +123,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 
 
 	protected State setup() {
-		Log.log("graphics.trace", () -> "setting up FBO "+specification);
+		Log.log("graphics.trace", () -> "setting up FBO " + specification);
 
 		GraphicsContext.checkError();
 
@@ -174,7 +181,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 		GraphicsContext.checkError();
 
 
-		if (specification.layers==1) {
+		if (specification.layers == 1) {
 			for (int i = 0; i < s.text.length; i++) {
 
 				glBindTexture(GL_TEXTURE_2D, s.text[i]);
@@ -192,9 +199,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 			}
-		}
-		else
-		{
+		} else {
 			for (int i = 0; i < s.text.length; i++) {
 
 				glBindTexture(GL_TEXTURE_2D_ARRAY, s.text[i]);
@@ -237,14 +242,16 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		GraphicsContext.checkError();
 
-		Log.log("graphics.trace", () -> "finished setting up FBO "+specification+" status is "+status);
+		Log.log("graphics.trace", () -> "finished setting up FBO " + specification + " status is " + status);
 
 		return s;
 	}
 
+	AtomicReference<Runnable> postDrawQueue = new AtomicReference<>();
+
 	public boolean draw() {
-		GraphicsContext.checkError(() -> "on FBO draw entry, specification "+specification);
-		try(Util.ExceptionlessAutoCloasable st = GraphicsContext.getContext().stateTracker.save()) {
+		GraphicsContext.checkError(() -> "on FBO draw entry, specification " + specification);
+		try (Util.ExceptionlessAutoCloasable st = GraphicsContext.getContext().stateTracker.save()) {
 
 			State s = GraphicsContext.get(this, this::setup);
 
@@ -271,12 +278,16 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 			}
 
+
+			Runnable m = postDrawQueue.getAndSet(null);
+
+			if (m!= null)
+					m.run();
+
 			GraphicsContext.checkError(() -> "on FBO draw exit1");
 
 			return true;
-		}
-		finally
-		{
+		} finally {
 			GraphicsContext.checkError(() -> "on FBO draw exit2");
 		}
 	}
@@ -287,22 +298,18 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 	}
 
 	@HiddenInAutocomplete
-	public int getOpenGLFrameBufferNameInCurrentContext()
-	{
+	public int getOpenGLFrameBufferNameInCurrentContext() {
 		State s = GraphicsContext.get(this, this::setup);
-		if (s==null)
-		{
+		if (s == null) {
 			throw new NullPointerException("FBO not initialized in this context");
 		}
 		return s.name;
 	}
 
 	@HiddenInAutocomplete
-	public int getOpenGLTextureNameInCurrentContext()
-	{
+	public int getOpenGLTextureNameInCurrentContext() {
 		State s = GraphicsContext.get(this, this::setup);
-		if (s==null)
-		{
+		if (s == null) {
 			throw new NullPointerException("FBO not initialized in this context");
 		}
 		return s.text[0];
@@ -310,15 +317,13 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 
 	@Override
 	protected boolean perform0() {
-		Log.log("graphics.trace", () -> "binding FBO to texture unit "+specification.unit);
+		Log.log("graphics.trace", () -> "binding FBO to texture unit " + specification.unit);
 		State s = GraphicsContext.get(this);
 		for (int i = 0; i < s.text.length; i++) {
-			if (specification.layers==1) {
+			if (specification.layers == 1) {
 				glActiveTexture(GL_TEXTURE0 + specification.unit + i);
 				glBindTexture(GL_TEXTURE_2D, s.text[i]);
-			}
-			else
-			{
+			} else {
 				glActiveTexture(GL_TEXTURE0 + specification.unit + i);
 				glBindTexture(GL_TEXTURE_2D_ARRAY, s.text[i]);
 			}
@@ -342,4 +347,89 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 		if (s.msRenderBuffers != null) for (int i = 0; i < s.msRenderBuffers.length; i++)
 			glDeleteRenderbuffers(s.msRenderBuffers[i]);
 	}
+
+	/**
+	 * this operates asynchronously if we are not currently inside the draw loop (that is, if there is no valid context for our thread). only one debug download can be pending at a time. You can
+	 * pass in null to this routine and you'll get a correctly sized ByteByffer back that you can reuse for subsequent calls. Regardless of the original format of the FBO this always returns
+	 * something that's RGBA / byte,.
+	 */
+	public Future<ByteBuffer> asyncDebugDownloadRGBA8(ByteBuffer to) {
+		ByteBuffer ato;
+
+		int sz = specification.width * specification.height * 4;
+		if (to == null || !to.isDirect() || to.limit() < sz) {
+			ato = ByteBuffer.allocateDirect(sz);
+		} else ato = to;
+
+		CompletableFuture<ByteBuffer> c = new CompletableFuture<ByteBuffer>()
+		{
+			@Override
+			public ByteBuffer get() throws InterruptedException, ExecutionException {
+				if (!isDone())
+					return ato;
+				return super.get();
+			}
+		};
+		Runnable r = () -> {
+			int[] a = {0};
+			a[0] = glGetInteger(GL_FRAMEBUFFER_BINDING);
+			glBindFramebuffer(GL_FRAMEBUFFER, getOpenGLFrameBufferNameInCurrentContext());
+			glReadPixels(0, 0, specification.width, specification.height, GL11.GL_RGBA, GL_UNSIGNED_BYTE, ato);
+			glBindFramebuffer(GL_FRAMEBUFFER, a[0]);
+			c.complete(ato);
+		};
+
+		if (GraphicsContext.getContext() == null) {
+			postDrawQueue.set(r);
+		} else {
+			r.run();
+		}
+
+		return c;
+	}
+
+	/**
+	 * this operates asynchronously if we are not currently inside the draw loop (that is, if there is no valid context for our thread). only one debug download can be pending at a time. You can
+	 * pass in null to this routine and you'll get a correctly sized ByteByffer back that you can reuse for subsequent calls. Regardless of the original format of the FBO this always returns
+	 * something that's RGBA / float,.
+	 */
+	public Future<FloatBuffer> asyncDebugDownloadRGBAFloat(FloatBuffer to) {
+		FloatBuffer ato;
+
+		int sz = specification.width * specification.height * 4 * 4;
+		if (to == null || !to.isDirect() || to.limit() < sz) {
+			ato = ByteBuffer.allocateDirect(sz)
+					.order(ByteOrder.nativeOrder())
+					.asFloatBuffer();
+		} else ato = to;
+
+		// we hack this so that people don't hang the main thread (requiring a restart of Field) by blindly calling 'get' when isDone is false
+		CompletableFuture<FloatBuffer> c = new CompletableFuture<FloatBuffer>()
+		{
+			@Override
+			public FloatBuffer get() throws InterruptedException, ExecutionException {
+				if (!isDone())
+					return ato;
+				return super.get();
+			}
+		};
+
+		Runnable r = () -> {
+			int[] a = {0};
+			a[0] = glGetInteger(GL_FRAMEBUFFER_BINDING);
+			glBindFramebuffer(GL_FRAMEBUFFER, getOpenGLFrameBufferNameInCurrentContext());
+			glReadPixels(0, 0, specification.width, specification.height, GL11.GL_RGBA, GL_FLOAT, ato);
+			glBindFramebuffer(GL_FRAMEBUFFER, a[0]);
+			c.complete(ato);
+		};
+
+		if (GraphicsContext.getContext() == null) {
+			postDrawQueue.set(r);
+		} else {
+			r.run();
+		}
+
+		return c;
+	}
+
 }
