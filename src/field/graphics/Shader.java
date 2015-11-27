@@ -14,10 +14,8 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.time.Instant;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -281,7 +279,17 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 
 			if (name.valid)
 			{
-				introspection = new ShaderIntrospection(this);
+				if (introspection==null) {
+					introspection = new ShaderIntrospection(this);
+					introspection.reloadedAt = Instant.now();
+				}
+				else
+				{
+					introspection.reloadedAt = Instant.now();
+					introspection.reloadedTimes++;
+					introspection.invocationCountSinceReload=0;
+				}
+
 				introspection.introspectNow();
 			}
 		}
@@ -302,6 +310,12 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 	@Override
 	protected boolean perform1() {
 		GraphicsContext.getContext().stateTracker.shader.set(0);
+		if (introspection!=null)
+		{
+			introspection.invocationCountSinceReload++;
+			introspection.invocationCountTotal++;
+			introspection.invocationAt = Instant.now();
+		}
 		return true;
 	}
 

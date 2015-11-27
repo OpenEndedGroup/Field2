@@ -10,6 +10,8 @@ import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -21,6 +23,12 @@ import java.util.stream.Collectors;
 public class ShaderIntrospection {
 
 	private final Shader s;
+
+	public int invocationCountTotal;
+	public int invocationCountSinceReload;
+	public int reloadedTimes;
+	public Instant reloadedAt;
+	public Instant invocationAt;
 
 	public ShaderIntrospection(Shader s) {
 		this.s = s;
@@ -107,7 +115,7 @@ public class ShaderIntrospection {
 
 			for (int i = 0; i < names.length; i += 2) {
 				Field q = m.get(names[i]);
-				if (q == null);
+				if (q == null) ;
 				else try {
 					uniformTypeConstants_readable.put(((Number) q.get(null)).intValue(), new Pair<>(names[i], names[i + 1]));
 				} catch (IllegalAccessException e) {
@@ -132,6 +140,7 @@ public class ShaderIntrospection {
 
 	public void introspectNow() {
 		uniforms.clear();
+		attrs.clear();
 
 		GraphicsContext co = GraphicsContext.getContext();
 		if (co == null) throw new IllegalArgumentException(" can't call introspectNow() unless you are inside an OpenGL context");
@@ -195,6 +204,27 @@ public class ShaderIntrospection {
 
 		lint(convert);
 
+		String e0 = null;
+
+		Instant now = Instant.now();
+		if (invocationAt == null) {
+			e0 = "Shader has never been executed. Are you sure it is attached?<br>";
+		} else {
+			Duration d0 = Duration.between(invocationAt, now);
+			Duration dr = Duration.between(reloadedAt, now);
+
+			if (invocationCountTotal == invocationCountSinceReload) {
+				e0 = "Executed <b>" + invocationCountTotal + "</b> time" + (invocationCountTotal == 1 ? "" : "s") + ". Last executed <b>" + timeString(
+					    d0) + "</b> ago; compiled, <b>once</b>, <b>" + timeString(dr) + "</b>ago.<br>";
+			} else {
+				e0
+					    = "Executed <b>" + invocationCountTotal + "</b> time" + (invocationCountTotal == 1 ? "" : "s") + " in total (<b>" + invocationCountSinceReload + "</b> time" + (invocationCountSinceReload == 1 ? "" : "s") + " since reloading). Last executed <b>" + timeString(
+					    d0) + "</b> ago; compiled, <b>" + reloadedTimes + "</b> time" + (reloadedTimes == 1 ? "" : "s") + " in total; most recently <b>" + timeString(
+					    dr) + "</b>ago.<br>";
+			}
+		}
+
+
 		String e1 = null;
 
 		if (okMeshes.size() == 0 && problemMeshes.size() == 0) {
@@ -205,8 +235,8 @@ public class ShaderIntrospection {
 		} else {
 			String a = "Problems found in " + problemMeshes.size() + " mesh" + (problemMeshes.size() == 1 ? "" : "es") + " &mdash;\n";
 			for (Map.Entry<BaseMesh, String> entry : problemMeshes.entrySet()) {
-				a += "<div class='mesh-problem'>" + convert.apply(entry.getKey())+"<br>";
-				a += entry.getValue() +"\n</div>";
+				a += "<div class='mesh-problem'>" + convert.apply(entry.getKey()) + "<br>";
+				a += entry.getValue() + "\n</div>";
 			}
 			if (okMeshes.size() > 0) {
 				a += "No problems found in " + okMeshes.size() + " other mesh" + (okMeshes.size() == 1 ? "" : "es") + ". Meshes are :" + convert.apply(okMeshes);
@@ -220,7 +250,14 @@ public class ShaderIntrospection {
 			e1 += "<div class='mesh-problem'>" + directAttachmentErrors + "</dv>";
 		}
 
-		return e1.replace("\n", "<br>") ;
+		return e0+"<br>"+e1.replace("\n", "<br>");
+	}
+
+	private String timeString(Duration d0) {
+		String q = d0.toString()
+			     .toLowerCase();
+		if (q.startsWith("pt")) q = q.substring(2);
+		return q+" ";
 	}
 
 	private String checkMesh(BaseMesh m, Function<Object, String> convert) {
@@ -238,7 +275,7 @@ public class ShaderIntrospection {
 
 			if (a == null) {
 				errors += "&mdash; this mesh declares <i>unused aux channel</i>l <b>" + e.getKey() + "</b> of <b>" + simpleFloatTypeName(e.getValue()
-																			 .getDimension()) + "</b>\n";
+																			  .getDimension()) + "</b>\n";
 			} else {
 				switch (a.type) {
 					case GL11.GL_FLOAT:
@@ -319,20 +356,24 @@ public class ShaderIntrospection {
 				Class ty = uniform.getLastType();
 				if (ty == null) errors += "&mdash; this " + kind + " declares a <i>uniform that has no type</i> (an error?)\n";
 				if (ty == Float.class && un.type != GL11.GL_FLOAT)
-					errors += "&mdash; this " + kind + " <i>declares a uniform with the wrong type</i>. Shader expects a <b>" + uniformTypeConstants_readable.getOrDefault(
-						    un.type,  new Pair<>(""+un.type, "")).second + "</b> for a uniform called <b>" + un.name + "</b>, " + kind + " provided a float (currently, <b>" + convert.apply(
+					errors += "&mdash; this " + kind + " <i>declares a uniform with the wrong type</i>. Shader expects a <b>" + uniformTypeConstants_readable.getOrDefault(un.type,
+																							       new Pair<>("" + un.type,
+																									  "")).second + "</b> for a uniform called <b>" + un.name + "</b>, " + kind + " provided a float (currently, <b>" + convert.apply(
 						    uniform.get()) + "</b>)\n";
 				else if (ty == Vec2.class && un.type != GL20.GL_FLOAT_VEC2)
-					errors += "&mdash; this mesh <i>declares a uniform with the wrong type</i>. Shader expects a <b>" + uniformTypeConstants_readable.getOrDefault(
-						    un.type,  new Pair<>(""+un.type, "")).second + "</b> for a uniform called <b>" + un.name + "</b> , " + kind + " provided a <b>Vec2</b> (currently, <b>" + convert.apply(
+					errors += "&mdash; this mesh <i>declares a uniform with the wrong type</i>. Shader expects a <b>" + uniformTypeConstants_readable.getOrDefault(un.type,
+																						       new Pair<>("" + un.type,
+																								  "")).second + "</b> for a uniform called <b>" + un.name + "</b> , " + kind + " provided a <b>Vec2</b> (currently, <b>" + convert.apply(
 						    uniform.get()) + "</b>)\n";
 				else if (ty == Vec3.class && un.type != GL20.GL_FLOAT_VEC3)
-					errors += "&mdash; this mesh <i>declares a uniform with the wrong type</i>. Shader expects a <b>" + uniformTypeConstants_readable.getOrDefault(
-						    un.type,  new Pair<>(""+un.type, "")).second + "</b> for a uniform called <b>" + un.name + "</b> , " + kind + " provided a <b>Vec3</b> (currently, <b>" + convert.apply(
+					errors += "&mdash; this mesh <i>declares a uniform with the wrong type</i>. Shader expects a <b>" + uniformTypeConstants_readable.getOrDefault(un.type,
+																						       new Pair<>("" + un.type,
+																								  "")).second + "</b> for a uniform called <b>" + un.name + "</b> , " + kind + " provided a <b>Vec3</b> (currently, <b>" + convert.apply(
 						    uniform.get()) + "</b>)\n";
 				else if (ty == Vec4.class && un.type != GL20.GL_FLOAT_VEC4)
-					errors += "&mdash; this mesh <i>declares a uniform with the wrong type</i>. Shader expects a <b>" + uniformTypeConstants_readable.getOrDefault(
-						    un.type,  new Pair<>(""+un.type, "")).second + "</b> for a uniform called <b>" + un.name + "</b> , " + kind + " provided a <b>Vec4</b> (currently, <b>" + convert.apply(
+					errors += "&mdash; this mesh <i>declares a uniform with the wrong type</i>. Shader expects a <b>" + uniformTypeConstants_readable.getOrDefault(un.type,
+																						       new Pair<>("" + un.type,
+																								  "")).second + "</b> for a uniform called <b>" + un.name + "</b> , " + kind + " provided a <b>Vec4</b> (currently, <b>" + convert.apply(
 						    uniform.get()) + "</b>)\n";
 				else if (ty == Integer.class) {
 					// could also be a texture
@@ -365,19 +406,22 @@ public class ShaderIntrospection {
 					} else {
 						errors
 							    += "&mdash; this " + kind + (kind.length() > 0 ? "'s" : "") + " shader has a uniform called <b>" + un.name + "</b> is currently of a type that Field doesn't send (specifically <b>" + uniformTypeConstants_readable.getOrDefault(
-							    un.type, new Pair<>("" + un.type, "")).second+ "</b>)\n";
+							    un.type, new Pair<>("" + un.type, "")).second + "</b>)\n";
 					}
 				} else if (ty == int[].class && un.type != GL20.GL_INT_VEC2 && un.type != GL11.GL_INT && un.type != GL20.GL_INT_VEC3 && un.type != GL20.GL_INT_VEC4)
-					errors += "&mdash; this " + kind + " declares a <i>uniform with the wrong type</i>. Shader expects a <b>" + uniformTypeConstants_readable.getOrDefault(
-						    un.type,  new Pair<>(""+un.type, "")).second+ "</b> for a uniform called <b>" + un.name + "</b> , " + kind + " provided an int array of some dimension (currently, <b>" + convert.apply(
+					errors += "&mdash; this " + kind + " declares a <i>uniform with the wrong type</i>. Shader expects a <b>" + uniformTypeConstants_readable.getOrDefault(un.type,
+																							       new Pair<>("" + un.type,
+																									  "")).second + "</b> for a uniform called <b>" + un.name + "</b> , " + kind + " provided an int array of some dimension (currently, <b>" + convert.apply(
 						    uniform.get()) + "</b>)\n";
 				else if (ty == Mat2.class && un.type != GL20.GL_FLOAT_MAT2)
-					errors += "&mdash; this " + kind + " declares a <i>uniform with the wrong type</i>. Shader expects a <b>" + uniformTypeConstants_readable.getOrDefault(
-						    un.type,  new Pair<>(""+un.type, "")).second + "</b> for a uniform called <b>" + un.name + "</b> , " + kind + " provided <b>Mat2</b> (currently, <b>" + convert.apply(
+					errors += "&mdash; this " + kind + " declares a <i>uniform with the wrong type</i>. Shader expects a <b>" + uniformTypeConstants_readable.getOrDefault(un.type,
+																							       new Pair<>("" + un.type,
+																									  "")).second + "</b> for a uniform called <b>" + un.name + "</b> , " + kind + " provided <b>Mat2</b> (currently, <b>" + convert.apply(
 						    uniform.get()) + "</b>)\n";
 				else if (ty == Mat3.class && un.type != GL20.GL_FLOAT_MAT3)
-					errors += "&mdash; this " + kind + " declares a <i>uniform with the wrong type</i>. Shader expects a <b>" + uniformTypeConstants_readable.getOrDefault(
-						    un.type,  new Pair<>(""+un.type, "")).second + "</b> for a uniform called <b>" + un.name + "</b> , " + kind + " provided <b>Mat3</b> (currently, <b>" + convert.apply(
+					errors += "&mdash; this " + kind + " declares a <i>uniform with the wrong type</i>. Shader expects a <b>" + uniformTypeConstants_readable.getOrDefault(un.type,
+																							       new Pair<>("" + un.type,
+																									  "")).second + "</b> for a uniform called <b>" + un.name + "</b> , " + kind + " provided <b>Mat3</b> (currently, <b>" + convert.apply(
 						    uniform.get()) + "</b>)\n";
 				else if (ty == Mat4.class && un.type != GL20.GL_FLOAT_MAT4)
 					errors += "&mdash; this " + kind + " declares a <i>uniform with the wrong type</i>. Shader expects a <b>" + uniformTypeConstants_readable.getOrDefault(un.type,
@@ -396,7 +440,7 @@ public class ShaderIntrospection {
 		if (v.size() > 0) {
 			for (Map.Entry<String, Uniform> x : v.entrySet()) {
 				errors += "&mdash; this " + kind + " is <i>missing a uniform</i> called <b>" + x.getKey() + "</b> of type <b>" + uniformTypeConstants_readable.getOrDefault(
-					    x.getValue().type,  new Pair<>(""+x.getValue().type, "")).second + "</b>. It is set neither on the mesh nor on the shader itself.\n";
+					    x.getValue().type, new Pair<>("" + x.getValue().type, "")).second + "</b>. It is set neither on the mesh nor on the shader itself.\n";
 			}
 		}
 
