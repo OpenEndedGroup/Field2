@@ -116,7 +116,7 @@ public class ObjectToHTML {
 
 	private String clean(String s) {
 		if (s.startsWith("{HTML}")) return s.replace("{HTML}", "");
-		return TextUtils.html(s);
+		return TextUtils.html(s).replace("\n", "<br>");
 	}
 
 }

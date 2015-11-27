@@ -26,8 +26,8 @@ import java.util.regex.Pattern;
 public class Out extends Box {
 	ObjectToHTML output = new ObjectToHTML();
 	static public final Dict.Prop<Function<Object, Object>> out = new Dict.Prop<Function<Object, Object>>("out").toCannon()
-												    .type()
-												    .doc(" ... ");
+														    .type()
+														    .doc(" ... ");
 	static public final Dict.Prop<IdempotencyMap<Function<Object, Object>>> outMap = new Dict.Prop<>("outMap").toCannon()
 														  .type()
 														  .doc(" ... ");
@@ -78,18 +78,22 @@ public class Out extends Box {
 
 			String groupName = "o" + output.joinContext();
 
-			return "{HTML}<div class='maptable-entry'><b>[[__" + groupName + "__:" + safe(x.toString()) + " " + cheapSynax(
-				    x.toString()) + " ]]</b>[[__" + groupName + "smaller__:" + shorten(x.getClass()) + " <span class='smaller'>" + shorten(x.getClass()) + "</span> ]]</div>";
+			String found = InverseDebugMapping.describe(x);
+			if (found.startsWith(":")) found = found.substring(1);
+			if (found.length() > 0) found = "'" + found + "'";
+
+			return "{HTML}<div class='maptable-entry'><b>[[__" + groupName + "__:" + safe(
+				    x.toString()) + " " + found + " " + (x.toString()) + " ]]</b>[[__" + groupName + "smaller__:" + shorten(x.getClass()) + " <span class='smaller'>" + shorten(
+				    nonAnonymous(x.getClass())) + "</span> ]]</div>";
 		});
 
 		output.map._put("field_nashorn_api_scripting_ScriptObjectMirror", x -> {
 
-			field.nashorn.api.scripting.ScriptObjectMirror xx = (field.nashorn.api.scripting.ScriptObjectMirror)x;
-			if (xx.isFunction())
-			{
+			field.nashorn.api.scripting.ScriptObjectMirror xx = (field.nashorn.api.scripting.ScriptObjectMirror) x;
+			if (xx.isFunction()) {
 				String found = InverseDebugMapping.describe(xx);
 
-				return "{HTML}<div class='maptable-entry'><b>function"+found+"</b></div>";
+				return "{HTML}<div class='maptable-entry'><b>function" + found + "</b></div>";
 			}
 			return x;
 		});
@@ -153,6 +157,12 @@ public class Out extends Box {
 		});
 	}
 
+	private Class nonAnonymous(Class a) {
+		while (a != null && a.getName()
+				     .contains("$")) a = a.getSuperclass();
+		return a;
+	}
+
 
 	private Box find(String uid) {
 		return this.breadthFirst(this.both())
@@ -164,7 +174,9 @@ public class Out extends Box {
 	}
 
 	private String safe(String s) {
-		return s.trim().replaceAll(" ", "_").replaceAll("\n", "_");
+		return s.trim()
+			.replaceAll(" ", "_")
+			.replaceAll("\n", "_");
 	}
 
 	Pattern stuff = Pattern.compile("([+-]?(\\d+\\.)?\\d+)|([\\%\\$\\#\\@\\!\\^\\&\\(\\)\\[\\]\\{\\}\\'\\,\\.\\;\\:\\+\\-\\*])");
