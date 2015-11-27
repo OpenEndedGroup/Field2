@@ -3,6 +3,7 @@ package field.graphics;
 import field.utility.Dict;
 import fieldbox.execution.Completion;
 import fieldbox.execution.Errors;
+import fieldnashorn.annotations.HiddenInAutocomplete;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -97,5 +98,10 @@ public class UniformBundle implements Scene.Perform {
 		}
 
 		return cc;
+	}
+
+	@HiddenInAutocomplete
+	public Map<Dict.Prop<?>, Uniform> getUniforms() {
+		return uniforms;
 	}
 }

@@ -39,6 +39,11 @@ public class BoxBrowser extends Box implements IO.Loaded {
 
 	PegDownProcessor proc = new PegDownProcessor(1000, Extensions.WIKILINKS);
 
+	public interface HasMarkdownInformation
+	{
+		String generateMarkdown(Box inside, Dict.Prop property);
+	}
+
 	static public final Dict.Prop<BiFunction<Box, Object, String>> toMarkdown= new Dict.Prop<>("toMarkdown").set(Dict.domain, "*/attributes").doc("function that takes a (box, value) and returns a markdown string that describes that box");
 
 	public BoxBrowser(Box root) {
@@ -100,7 +105,15 @@ public class BoxBrowser extends Box implements IO.Loaded {
 
 		box.breadthFirst(upwards()).forEach(x -> {
 			for (Dict.Prop p : x.properties.getMap().keySet()) {
-				if (!props.contains(p) && hasInfo(x, p)) {
+				if (!props.contains(p) && hasInfo(x, p, x.properties.get(p))) {
+					sections.add(new Pair<>(p.getName(), render(x, x.properties.get(p), p)));
+					props.add(p);
+				}
+
+				System.out.println(" checking :"+box+" / "+x+" "+x.properties.get(p)+" / "+(x.properties.get(p) instanceof HasMarkdownInformation));
+
+				if (x==box && x.properties.get(p) instanceof HasMarkdownInformation)
+				{
 					sections.add(new Pair<>(p.getName(), render(x, x.properties.get(p), p)));
 					props.add(p);
 				}
@@ -111,7 +124,7 @@ public class BoxBrowser extends Box implements IO.Loaded {
 				       preamble+sections.stream().map(x -> "<div class='grouped'><h1 id='section_"+x.first+"'>"+"_."+x.first+"</h1><div id='section_"+x.first+"''>"+x.second+"</div></div>").reduce((a, b) -> a + "<BR>" + b).orElseGet(() -> "")+postamble);
 	}
 
-	private boolean hasInfo(Box x, Dict.Prop p) {
+	private boolean hasInfo(Box x, Dict.Prop p, Object value) {
 
 		if (p.equals(Execution.code)) return true;
 
@@ -136,6 +149,23 @@ public class BoxBrowser extends Box implements IO.Loaded {
 
 	private String render(Box box, Object source, Dict.Prop property) {
 		// extract comment blocks and render as markdown
+
+		if (property.getAttributes()
+		 .has(toMarkdown))
+		{
+			String md = property.getAttributes()
+					       .get(toMarkdown)
+					       .apply(box, source);
+
+			String html = "<p>"+toMarkdownToHTML(md)+"</p>";
+			return html;
+		}
+
+		if (source instanceof  HasMarkdownInformation)
+		{
+			String html = "<p>"+((HasMarkdownInformation)source).generateMarkdown(box, property)+"</p>";
+			return html;
+		}
 
 		// todo, these are language specific
 		String commentStart = "/*";
@@ -187,15 +217,7 @@ public class BoxBrowser extends Box implements IO.Loaded {
 	private String render(Box box, Dict.Prop<Object> property, Section x) {
 		if (x.comment > 0) {
 
-			String h = proc.markdownToHtml(x.a, new LinkRenderer() {
-				@Override
-				public Rendering render(WikiLinkNode node) {
-
-					// interpose awesome here (evening sketch)
-
-					return super.render(node);
-				}
-			});
+			String h = toMarkdownToHTML(x.a);
 
 			return "<p>" + h + "</p>";
 		} else {
@@ -203,5 +225,17 @@ public class BoxBrowser extends Box implements IO.Loaded {
 			return "<textarea readonly class='ta_" + (cn) + "'>" + x.a.trim() + "</textarea>" +
 				    "<script language='javascript'>CodeMirror.fromTextArea($('.ta_" + cn + "')[0], {viewportMargin:Infinity, mode:'javascript', readOnly:true})</script>";
 		}
+	}
+
+	private String toMarkdownToHTML(String a) {
+		return proc.markdownToHtml(a, new LinkRenderer() {
+			@Override
+			public Rendering render(WikiLinkNode node) {
+
+				// interpose awesome here (evening sketch)
+
+				return super.render(node);
+			}
+		});
 	}
 }

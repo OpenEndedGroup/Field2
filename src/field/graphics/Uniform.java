@@ -5,6 +5,7 @@ import fieldbox.execution.Errors;
 import org.apache.commons.math3.geometry.euclidean.oned.Vector1D;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
+import org.lwjgl.opengl.GL20;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -37,6 +38,7 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 	boolean pushed = false;
 	private Supplier<T> value;
 	private T mostRecentValue;
+	private Class lastType;
 
 	public Uniform(String name, Supplier<T> value) {
 		this.name = name;
@@ -211,8 +213,9 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 			int location = glGetUniformLocation(name, this.name);
 			GraphicsContext.checkError(() -> "while setting :" + name + " / " + this.name);
 
-			if (location != -1) {
+			lastType = null;
 
+			if (location != -1) {
 
 				if (t == null) {
 					System.out.println(" warning :" + name + " uniform is null");
@@ -224,20 +227,45 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 				GraphicsContext.checkError();
 				if (tf != null && !intOnly) {
 					GraphicsContext.checkError(() -> "while setting :" + name + " / " + this.name);
-					if (tf.length == 1) glUniform1f(location, tf[0]);
-					else if (tf.length == 2) glUniform2f(location, tf[0], tf[1]);
-					else if (tf.length == 3) glUniform3f(location, tf[0], tf[1], tf[2]);
-					else if (tf.length == 4) glUniform4f(location, tf[0], tf[1], tf[2], tf[3]);
+					if (tf.length == 1) {
+						glUniform1f(location, tf[0]);
+						lastType = Float.class;
+					}
+					else if (tf.length == 2) {
+						glUniform2f(location, tf[0], tf[1]);
+						lastType = Vec2.class;
+					}
+					else if (tf.length == 3) {
+						glUniform3f(location, tf[0], tf[1], tf[2]);
+						lastType = Vec3.class;
+					}
+					else if (tf.length == 4) {
+						glUniform4f(location, tf[0], tf[1], tf[2], tf[3]);
+						lastType = Vec4.class;
+					}
 					else throw new IllegalArgumentException(" bad dimension after conversion to float array " + t + " -> " + tf.length);
 					GraphicsContext.checkError(() -> "while setting :" + name + " / " + this.name);
 				} else {
 					int[] ti = rewriteToIntArray(t);
 					if (ti != null) {
 						GraphicsContext.checkError(() -> "while setting :" + name + " / " + this.name);
-						if (ti.length == 1) glUniform1i(location, ti[0]);
-						else if (ti.length == 2) glUniform2i(location, ti[0], ti[1]);
-						else if (ti.length == 3) glUniform3i(location, ti[0], ti[1], ti[2]);
-						else if (ti.length == 4) glUniform4i(location, ti[0], ti[1], ti[2], ti[3]);
+						if (ti.length == 1) {
+							glUniform1i(location, ti[0]);
+							lastType = Integer.class;
+						}
+						else if (ti.length == 2)
+						{
+							glUniform2i(location, ti[0], ti[1]);
+							lastType = int[].class;
+						}
+						else if (ti.length == 3) {
+							glUniform3i(location, ti[0], ti[1], ti[2]);
+							lastType = int[].class;
+						}
+						else if (ti.length == 4) {
+							glUniform4i(location, ti[0], ti[1], ti[2], ti[3]);
+							lastType = int[].class;
+						}
 						else throw new IllegalArgumentException(" bad dimension after conversion to int array " + t + " -> " + ti.length);
 						GraphicsContext.checkError(() -> "while setting :" + name + " / " + this.name);
 					} else {
@@ -253,6 +281,7 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 								matrix3.put(tm[2]);
 								matrix3.rewind();
 								glUniformMatrix3fv(location, transpose, matrix3);
+								lastType = Mat3.class;
 							} else if (tm.length == 4) {
 								matrix4.rewind();
 								matrix4.put(tm[0]);
@@ -260,12 +289,14 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 								matrix4.put(tm[2]);
 								matrix4.put(tm[3]);
 								matrix4.rewind();
+								lastType = Mat4.class;
 								glUniformMatrix4fv(location, transpose, matrix4);
 							} else if (tm.length == 2) {
 								matrix4.rewind();
 								matrix4.put(tm[0]);
 								matrix4.put(tm[1]);
 								matrix4.rewind();
+								lastType = Mat2.class;
 								glUniformMatrix2fv(location, transpose, matrix4);
 							} else throw new IllegalArgumentException(" bad dimension after conversion to float matrix " + t + " -> " + tm.length);
 						} else throw new IllegalArgumentException(" cannot convert " + t + " to something that OpenGL can use as a uniform");
@@ -285,4 +316,15 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 		return new int[]{-1, 1};
 	}
 
+	/**
+	 * returns the name that this Uniform is bound to in any shaders above this Perform
+	 */
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * returns the type that this Uniform ended up setting (note: this will be null, if the uniform has never been actually sent to OpenGL, or if an error occured doing so). It will be one of Float.class, Vec2.class, Vec3.class etc.
+	 */
+	public Class getLastType() {return lastType;}
 }

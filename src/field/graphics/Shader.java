@@ -3,7 +3,9 @@ package field.graphics;
 import field.utility.Conversions;
 import field.utility.Dict;
 import field.utility.Log;
+import fieldbox.boxes.Box;
 import fieldbox.execution.HandlesCompletion;
+import fielded.boxbrowser.BoxBrowser;
 import fieldlinker.Linker;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 import org.lwjgl.opengl.*;
@@ -31,8 +33,17 @@ import static org.lwjgl.opengl.GL20.*;
  * Assuming that all goes well shaders take three principle kinds of inputs: vertex attributes (make and set these with aux and nextVertex calls in MeshBuilders), uniforms (make and set these with
  * calls to Uniform and UniformBundle classes here) and input from earlier shaders.
  */
-public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Linker.AsMap, HandlesCompletion {
+public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Linker.AsMap, HandlesCompletion, BoxBrowser.HasMarkdownInformation {
 
+	private ShaderIntrospection introspection;
+
+	@Override
+	public String generateMarkdown(Box inside, Dict.Prop property) {
+		if (introspection==null)
+			return "Shader has not been executed by the graphics system, is it correctly attached to something?";
+
+		return introspection.getMarkdown(inside);
+	}
 
 	static public class State extends BaseScene.Modifiable {
 		int name;
@@ -267,6 +278,12 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 				// it didn't validate right now, but that doesn't mean that it wont in the future
 //				name.valid = false;
 			}
+
+			if (name.valid)
+			{
+				introspection = new ShaderIntrospection(this);
+				introspection.introspectNow();
+			}
 		}
 
 		if (name.valid) {
@@ -275,6 +292,8 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 			GraphicsContext.getContext().uniformCache.changeShader(name.name);
 		} else {
 			Log.log("graphics.trace", ()->"WARNING: program not valid, not being used");
+			if (introspection!=null)
+				introspection.errorIsInvalid = "Shader failed GL validation, it is not being used\n";
 		}
 
 		return true;
