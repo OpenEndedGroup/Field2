@@ -114,9 +114,9 @@ public class GraphicsSupport extends Box {
 		String vs = b.properties
 			    .computeIfAbsent(vertex, k -> "#version 410\n" +
 					"layout(location=0) in vec3 position;\n" +
+					"layout(location=1) in vec4 s_Color;\n" +
 					"\n" +
 					"out vec4 vertexColor;\n" +
-					"in vec4 s_Color;\n" +
 					"\n" +
 					"void main()\n" +
 					"{\n" +
@@ -144,7 +144,7 @@ public class GraphicsSupport extends Box {
 
 		s.setOnError(errorHandler(b, "shader"));
 
-		InverseDebugMapping.provideExtraInformation(s, "created from "+b);
+		InverseDebugMapping.provideExtraInformation(s, "constructed in box '"+b.properties.get(Box.name)+"'");
 
 		return s;
 	}
