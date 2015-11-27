@@ -78,7 +78,6 @@ public class BaseMesh extends Scene implements Scene.Perform {
 		return buffer(attribute, dimension).floats(false);
 	}
 
-
 	public interface ArrayBufferFactory {
 		ArrayBuffer newArrayBuffer(int maxVertex, int binding, int attribute, int dimension, int divisor);
 	}
@@ -412,6 +411,18 @@ public class BaseMesh extends Scene implements Scene.Perform {
 
 	@Override
 	public String toString() {
-		return "BaseMesh:"+(this.elements==null ? null : this.elements.getDimension())+"/"+(this.elements==null ? null : (this.elements.ints(true).limit()/this.elements.getDimension()))+" "+(this.vertex(true).limit()/3);
+
+		if (this.elements==null)
+			return "Mesh("+this.vertex(true).limit()/3+" points)";
+
+		int d = this.elements.getDimension();
+		int num = this.elements.ints(true)
+				     .limit() / d;
+		if (d==2)
+			return "Mesh("+num+" lines / "+this.vertex(true).limit()/3+" vertices)";
+
+		return "Mesh("+num+" triangles / "+this.vertex(true).limit()/3+" vertices)";
+
+//		return "Mesh:"+(this.elements==null ? null : d)+"/"+(this.elements==null ? null : (this.elements.ints(true).limit()/ d))+" "+(this.vertex(true).limit()/3);
 	}
 }
