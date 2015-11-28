@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -71,6 +72,8 @@ public class TextEditor extends Box implements IO.Loaded {
 		return "";
 	}
 
+	int frameLast = 0;
+
 	@HiddenInAutocomplete
 	public void loaded() {
 		Log.log("texteditor.debug", () -> "initializing browser");
@@ -95,8 +98,9 @@ public class TextEditor extends Box implements IO.Loaded {
 
 
 			Vec2 v = drawing.windowSystemToDrawingSystem(new Vec2(window.getWidth() - maxw - 10, 10));
-			Vec2 vd = drawing.windowSystemToDrawingSystemDelta(new Vec2(maxw, 1080 * 2));
+			Vec2 vd = drawing.windowSystemToDrawingSystemDelta(new Vec2(maxw, 1080 * 1));
 
+			frameLast = (int) vd.x;
 			browser.properties.put(Box.frame, new Rect(v.x, v.y, vd.x, vd.y));
 
 			System.err.println(" final frame is :" + v + " / " + vd);
@@ -107,25 +111,25 @@ public class TextEditor extends Box implements IO.Loaded {
 			browser.pauseForBoot();
 
 			this.properties.put(FLineDrawing.layer, "glass");
-
 			browser.properties.put(FLineDrawing.layer, "glass");
+
 			browser.properties.put(Drawing.windowSpace, new Vec2(1, 0));
 			browser.properties.put(Boxes.dontSave, true);
 			browser.properties.put(Box.hidden, true);
 			browser.properties.put(Mouse.isSticky, true);
 
 			browser.properties.put(FrameManipulation.lockHeight, true);
-			browser.properties.put(FrameManipulation.lockWidth, true);
-			browser.properties.put(FrameManipulation.lockX, true);
+//			browser.properties.put(FrameManipulation.lockWidth, false);
+//			browser.properties.put(FrameManipulation.lockX, false);
 			browser.properties.put(FrameManipulation.lockY, true);
 
 			browser.properties.put(Box.undeletable, true);
 
-			browser.properties.put(Box.name, "texteditor");
 
 			browser.connect(root);
 			browser.loaded();
 
+			browser.properties.put(Box.name, "texteditor");
 
 			executeJavaScript("$(\".CodeMirror\").css(\"height\", " + (maxh - 10) + ")");
 			executeJavaScript("$(\".CodeMirror\").css(\"width\", " + maxw + ")");
@@ -154,11 +158,15 @@ public class TextEditor extends Box implements IO.Loaded {
 				 .register(x -> x.equals("selection.changed"), c -> {
 					 Log.log("shy", () -> "selection is now" + selection().count());
 
+					 System.out.println(" SELECTION is currently " + selection().collect(Collectors.toList()));
 					 if (selection().count() != 1) {
+						 System.out.println(" SELECTION COUNT IS NOT 1 " + selection().collect(Collectors.toList()));
 						 browser.properties.put(Box.hidden, true);
 						 Drawing.dirty(this);
 					 } else {
+						 System.out.println(" SELECTION COUNT IS 1 " + selection().collect(Collectors.toList()) + " showing");
 						 browser.properties.put(Box.hidden, false);
+//						 browser.setFocus(true);
 						 Drawing.dirty(this);
 					 }
 
@@ -177,12 +185,17 @@ public class TextEditor extends Box implements IO.Loaded {
 
 			RunLoop.main.getLoop()
 				    .attach(x -> {
-
 					    int maxh = window.getHeight() - 25 - 10 - 10 - 2;
 					    Rect f = browser.properties.get(Box.frame);
 					    if (f.h != Math.min(maxhOnCreation - 40, maxh)) {
 						    f = f.duplicate();
-						    executeJavaScript("$(\".CodeMirror\").css(\"height\", " + Math.min(maxh, maxhOnCreation - 40) + ")");
+						    executeJavaScript("$(\"body\").height("+Math.min(maxh, maxhOnCreation - 40) + ")");
+					    }
+					    if ((int)f.w != frameLast)
+					    {
+						    frameLast = (int)f.w;
+						    f = f.duplicate();
+						    executeJavaScript("$(\"body\").width("+ (int)f.w + ")");
 					    }
 
 					    return true;
@@ -210,6 +223,7 @@ public class TextEditor extends Box implements IO.Loaded {
 
 	@HiddenInAutocomplete
 	public void show() {
+//		System.out.println(" showing because show() called ");
 		browser.properties.put(Box.hidden, false);
 		browser.setFocus(true);
 		Drawing.dirty(browser);
@@ -221,6 +235,7 @@ public class TextEditor extends Box implements IO.Loaded {
 		RunLoop.main.getLoop()
 			    .attach(x -> {
 				    if (tick == 5) {
+//					    System.out.println(" hiding because hide() called ");
 					    browser.properties.put(Box.hidden, true);
 					    Drawing.dirty(this);
 				    }
@@ -261,7 +276,7 @@ public class TextEditor extends Box implements IO.Loaded {
 
 	@HiddenInAutocomplete
 	private Stream<Box> selection() {
-		return breadthFirst(both()).filter(x -> x.properties.isTrue(Mouse.isSelected, false));
+		return breadthFirst(both()).filter(x -> x.properties.isTrue(Mouse.isSelected, false)).filter(x -> x!=browser).filter(x ->x!=this);
 	}
 
 

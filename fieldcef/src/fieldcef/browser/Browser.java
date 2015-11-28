@@ -91,6 +91,7 @@ public class Browser extends Box implements IO.Loaded {
 		Rect r = now.properties.get(Box.frame);
 		float op = now.properties.getFloat(StandardFLineDrawing.opacity, 1);
 
+		System.out.println(" making geometry : "+now.properties.isTrue(FLineDrawing.hidden, false));
 		if (now.properties.isTrue(FLineDrawing.hidden, false)) {
 			builder.open();
 			builder.close();
@@ -108,7 +109,6 @@ public class Browser extends Box implements IO.Loaded {
 		builder.nextVertex(r.x, r.y + r.h * 1, 0);
 		builder.nextElement_quad(3, 2, 1, 0);
 		builder.close();
-
 
 		return null;
 	}, (box) -> new Triple<>(box.properties.getFloat(StandardFLineDrawing.opacity, 1), box.properties.get(Box.frame), box.properties.isTrue(FLineDrawing.hidden, false)));
@@ -218,17 +218,16 @@ public class Browser extends Box implements IO.Loaded {
 			    "\tvec4 current = texelFetch(te, ivec2(vtc.xy*textureSize(te,0)), 0);\n" +
 			    "\t_output  = vec4(current.zyx,current.w*vtc.z);\n" +
 			    "\t if (vtc.x==0 || vtc.x==1 || vtc.y==0 || vtc.y==1) _output.w=0;\n" +
-			    "\n" +
 			    "}");
 
 		shader.attach(new Uniform<Vec2>("translation", () -> drawing.getTranslationRounded()));
 		shader.attach(new Uniform<Vec2>("scale", () -> drawing.getScale()));
 		shader.attach(new Uniform<Vec2>("bounds", () -> new Vec2(Window.getCurrentWidth(), Window.getCurrentHeight())));
 
-		shader.attach(-2, "__rectupdate__", x -> {
-			Rect r = properties.get(Box.frame);
-			update(r.x, r.y, 1/*r.w/w*/);
-		});
+//		shader.attach(-2, "__rectupdate__", x -> {
+//			Rect r = properties.get(Box.frame);
+//			update(r.x, r.y, 1/*r.w/w*/);
+//		});
 
 		shader.attach(q);
 		shader.attach(texture);
@@ -286,13 +285,13 @@ public class Browser extends Box implements IO.Loaded {
 
 			Rect r = properties.get(Box.frame);
 
-			if (!intersects(r, e)) return null;
+//			if (!intersects(r, e)) return null;
+
+			if (!intersects(r.inset(10), e)) return null;
 
 			if (properties.isTrue(Box.hidden, false)) return null;
-//			if (e.after.keyboardState.isAltDown())
-//			{
+
 			e.properties.put(Window.consumed, true);
-//			}
 
 			Optional<Drawing> drawing = this.find(Drawing.drawing, both())
 							.findFirst();
@@ -650,20 +649,24 @@ public class Browser extends Box implements IO.Loaded {
 
 	protected void update(float x, float y, float scale) {
 
+//		System.out.println(" inside update for browser ");
+
 		if (this.dirty.getAndSet(false) && damage != null) {
 			if (check-- > 0) {
 				browser.setZoomLevel(2 * window.getRetinaScaleFactor());
 			}
 			Log.log("cef.debug", ()->" texture was dirty, uploading ");
+			System.out.println(" dirty, uploading damage :" + damage);
 //			texture.upload(source, true);
 			texture.upload(source, true, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (1+damage.h + damage.y));
 			Drawing.dirty(this);
 			again = 1;
 			hasRepainted = true;
 		} else if (again > 0 && damage != null) {
-			Log.log("cef.debug", ()->" texture was dirty " + again + " call, uploading ");
-			texture.upload(source, true, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (1+damage.h + damage.y));
+			Log.log("cef.debug", () -> " texture was dirty " + again + " call, uploading ");
+			System.out.println(" dirty, uploading damage :" + damage);
 //			texture.upload(source, true);
+			texture.upload(source, true, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (1+damage.h + damage.y));
 			Drawing.dirty(this);
 			again--;
 			if (again == 0) {
@@ -678,6 +681,7 @@ public class Browser extends Box implements IO.Loaded {
 			geometry.apply(this);
 			direct.apply(this);
 		}
+
 
 		ArrayList<Pair<String, Consumer<String>>> m;
 		synchronized (messages) {

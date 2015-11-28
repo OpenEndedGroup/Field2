@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
  * <p>
  * Also addes the ability to translate the canvas around with the middle mouse button (button 2).
  */
-public class FrameManipulation extends Box implements Mouse.OnMouseDown {
+public class FrameManipulation extends Box  {
 
 	static public final Dict.Prop<Boolean> lockWidth = new Dict.Prop<>("lockWidth").type()
 										       .toCannon()
@@ -46,7 +46,7 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 		this.root = root;
 		this.properties.put(selection, x -> breadthFirst(both()).filter(q -> (q.properties.isTrue(Mouse.isSelected, false) && !q.properties.isTrue(Mouse.isSticky, false)))
 									.collect(Collectors.toList()));
-		this.properties.putToMap(Mouse.onMouseDown, "__frameManipulation__", this);
+		this.properties.putToMap(Mouse.onMouseDown, "__frameManipulation__", this::onMouseDown);
 		this.properties.putToMap(Mouse.onMouseMove, "__frameManipulation__", e -> {
 
 			Optional<Drawing> drawing = this.find(Drawing.drawing, both())
@@ -73,8 +73,6 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 								  else if (targets.contains(DragTarget.right)) Cursors.arrowRight(x);
 								  else if (targets.contains(DragTarget.top)) Cursors.arrowUp(x);
 								  else Cursors.clear(x);
-
-
 							  });
 			} else {
 				find(Boxes.window, both()).findFirst()
@@ -140,7 +138,6 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 
 	}
 
-	@Override
 	public Mouse.Dragger onMouseDown(Window.Event<Window.MouseState> e, int button) {
 
 		// if this event has already been consumed by somebody else, then let's do nothing
@@ -233,13 +230,13 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 
 		return hit.map(hitBox -> {
 
-			if (hitBox.properties.isTrue(Mouse.isSticky, false))
-			{
-				Log.log("selection", ()->"hitbox is sticky, selecting and finishing");
-				Callbacks.transition(hitBox, Mouse.isSelected, true, false, Callbacks.onSelect, Callbacks.onDeselect);
-				Drawing.dirty(hitBox);
-				return null;
-			}
+//			if (hitBox.properties.isTrue(Mouse.isSticky, false))
+//			{
+//				Log.log("selection", ()->"hitbox is sticky, selecting and finishing");
+//				Callbacks.transition(hitBox, Mouse.isSelected, true, false, Callbacks.onSelect, Callbacks.onDeselect);
+//				Drawing.dirty(hitBox);
+//				return null;
+//			}
 
 			Log.log("selection", ()->"hit box is really hidden ? " + hitBox.properties.get(Box.hidden));
 
@@ -249,7 +246,10 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 
 			boolean command = e.after.keyboardState.isSuperDown();
 
-			Log.log("selection", ()->"shift / command "+shift+" / "+command);
+			command = command | hitBox.properties.isTrue(Mouse.isSticky, false);
+
+			final boolean finalCommand = command;
+			Log.log("selection", ()->"shift / command "+shift+" / "+ finalCommand);
 
 			boolean selected = hitBox.properties.isTrue(Mouse.isSelected, false);
 
@@ -264,7 +264,7 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 				if (shift)
 				{
 					workingSet.addAll(breadthFirst(both()).filter(x -> x.properties.isTrue(Mouse.isSelected, false))
-									      .filter(b -> !b.properties.isTrue(Mouse.isSticky, false))
+//									      .filter(b -> !b.properties.isTrue(Mouse.isSticky, false))
 									      .filter(x -> x.properties.has(Box.frame))
 									      .filter(x -> x.properties.has(Box.name))
 									      .collect(Collectors.toSet()));
@@ -280,15 +280,17 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 
 				breadthFirst(both())
 
-					    .filter(x -> !x.properties.isTrue(Mouse.isSticky, false) || x == hitBox)
+//					    .filter(x -> !x.properties.isTrue(Mouse.isSticky, false) || x == hitBox)
 						    .filter(x -> x.properties.has(Box.frame))
 						    .filter(x -> x.properties.has(Box.name)).forEach(x -> {
 
 					if (x.properties.isTrue(Mouse.isSelected, false) && !workingSet.contains(x)) {
 						Callbacks.transition(x, Mouse.isSelected, false, false, Callbacks.onSelect, Callbacks.onDeselect);
+						System.out.println(" deselecting " + x + " because were not in the working set");
 						Drawing.dirty(x);
 					} else if (!x.properties.isTrue(Mouse.isSelected, false) && workingSet.contains(x)) {
 						Callbacks.transition(x, Mouse.isSelected, true, false, Callbacks.onSelect, Callbacks.onDeselect);
+						System.out.println(" selecting " + x + " because were are in the working set");
 						Drawing.dirty(x);
 					}
 
@@ -354,20 +356,26 @@ public class FrameManipulation extends Box implements Mouse.OnMouseDown {
 
 					if (!e.after.keyboardState.isSuperDown()) if (termination && frame(hitBox).equals(originalFrame) && selected) {
 						hitBox.properties.put(Mouse.isSelected, false);
+						System.out.println(" deselecting because we haven't moved ");
 						Drawing.dirty(hitBox);
 					}
+
+
+					System.out.println(" termination ? "+termination);
 
 					if (termination) {
 
 						System.out.println(" comparing drags ? " + drag.after.x + " " + drag.after.y + "   " + e.after.x + " " + e.after.y + " " + hitBox);
 						if (!e.after.keyboardState.isSuperDown()) if (drag.after.x == e.after.x && drag.after.y == e.after.y) {
-							if (!shift && !hitBox.properties.isTrue(Mouse.isSticky, false)) breadthFirst(both()).filter(x -> !x.properties.isTrue(Mouse.isSticky, false))
+							if (!shift /*&& !hitBox.properties.isTrue(Mouse.isSticky, false)*/) breadthFirst(both())/*.filter(x -> !x.properties.isTrue(Mouse.isSticky, false))*/
 																	    .forEach(x -> Callbacks.transition(x, Mouse.isSelected,
 																					       false, false,
 																					       Callbacks.onSelect,
 																					       Callbacks.onDeselect));
 
 							Callbacks.transition(hitBox, Mouse.isSelected, true, false, Callbacks.onSelect, Callbacks.onDeselect);
+							System.out.println(" deselecting because this is the end of the drag, and we haven't moved");
+
 						}
 
 
