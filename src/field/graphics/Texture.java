@@ -1,13 +1,25 @@
 package field.graphics;
 
+import field.app.RunLoop;
+import field.utility.Dict;
 import field.utility.Log;
+import fieldbox.boxes.Box;
+import fieldbox.boxes.Drawing;
 import fieldbox.execution.Errors;
+import fielded.boxbrowser.BoxBrowser;
 import org.lwjgl.opengl.*;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.nio.file.Files;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
@@ -26,7 +38,7 @@ import static org.lwjgl.opengl.GL30.*;
  * <p>
  * Follows the same pattern as FBO --- create a texture by picking one of the growing number of static helpers in TextureSpecification that mask the complexity of OpenGL enums
  */
-public class Texture extends BaseScene<Texture.State> implements Scene.Perform, OffersUniform<Integer> {
+public class Texture extends BaseScene<Texture.State> implements Scene.Perform, OffersUniform<Integer>, BoxBrowser.HasMarkdownInformation {
 
 	// global statistics on how much we're sending to OpennGL
 	static public int bytesUploaded = 0;
@@ -42,6 +54,73 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 		this.specification = specification;
 		if (this.specification.forceSingleBuffered) setIsDoubleBuffered(false);
 		setErrorConsumer(Errors.errors.get());
+	}
+
+
+	int boundCount = 0;
+	int uploadCount = 0;
+
+	@Override
+	public String generateMarkdown(Box inside, Dict.Prop property) {
+		Future<ByteBuffer> m = asyncDebugDownloadRGB8(null);
+
+		// repaint main window, just in case we're there
+		RunLoop.main.once(() -> {
+			Drawing.dirty(inside);
+		});
+
+		String pre
+			    = "Framebuffer object has dimensions <b>" + specification.width + "</b>x<b>" + specification.height + "</b> and is bound to texture unit <b>" + specification.unit + "</b><br>";
+		if (specification.forceSingleBuffered) pre += "Single-buffered updates are on; ";
+		if (specification.compressed) pre += "Target is compressed; ";
+		if (specification.highQuality) pre += "Mip-maps are automatically regenerated on update; ";
+		if (specification.type == GL_FLOAT) pre += "This is a floating-point resolution texture; ";
+		pre = p(pre);
+		pre
+			    += p("This has been bound <b>" + warnIfZero(boundCount) + "</b> time" + (boundCount == 1 ? "" : "s") + " and modified <b>"+uploadCount+"</b> time"+(uploadCount==1 ? "" : "s")+"<br>");
+
+		int tries = 0;
+		while (!m.isDone()) {
+			try {
+				Thread.sleep(100 * tries);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			if (++tries > 5) return pre + p("<b>Image data for FBO is not available (FBO must be actively repainting)<b>");
+		}
+
+		try {
+
+			File tmp = File.createTempFile("field", ".jpg");
+			new FastJPEG().compress(tmp.getAbsolutePath(), m.get(), specification.width, specification.height);
+			byte[] bytes = Files.readAllBytes(tmp.toPath());
+			java.util.Base64.Encoder e = java.util.Base64.getEncoder();
+			String v = e.encodeToString(bytes);
+
+			String uri = "data:image/jpg;base64," + v;
+			String d = "<p><b>Snapshot of contents &mdash;<br></p><img style='max-width:300px' src='" + uri + "'/></b>";
+
+			return pre + p(d);
+
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return p("<b>Image data for FBO is not available (there was an error fetching it)<b>");
+
+	}
+
+	private String p(String p)
+	{
+		return "<p>"+p+"</p>";
+	}
+	private String warnIfZero(int x) {
+		if (x==0) return "<span class='warning'>"+x+"</span>";
+		return ""+x;
 	}
 
 	/** must be called before first render */
@@ -167,6 +246,8 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 		return pendingUploads.get();
 	}
 
+	AtomicReference<Runnable> postDrawQueue = new AtomicReference<>();
+
 	protected boolean perform0() {
 
 		State s = GraphicsContext.get(this);
@@ -175,6 +256,11 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
 		glActiveTexture(GL_TEXTURE0 + specification.unit);
 		glBindTexture(specification.target, s.name);
+
+		Runnable m = postDrawQueue.getAndSet(null);
+		if (m != null) m.run();
+
+		boundCount ++;
 
 		return true;
 	}
@@ -315,6 +401,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 			s.pboA = s.pboB;
 			s.pboB = q;
 		}
+		uploadCount++;
 
 		return mod;
 	}
@@ -329,6 +416,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 		glBindTexture(specification.target, 0);
 		glFinish();
 
+		uploadCount++;
 		return mod;
 	}
 
@@ -526,4 +614,81 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
 		long textureHandle;
 	}
+
+	/**
+	 * this operates asynchronously if we are not currently inside the draw loop (that is, if there is no valid context for our thread). only one debug download can be pending at a time. You can
+	 * pass in null to this routine and you'll get a correctly sized ByteByffer back that you can reuse for subsequent calls. Regardless of the original format of the FBO this always returns
+	 * something that's RGBA / byte,.
+	 */
+	public Future<ByteBuffer> asyncDebugDownloadRGBA8(ByteBuffer to) {
+		ByteBuffer ato;
+
+		int sz = specification.width * specification.height * 4;
+		if (to == null || !to.isDirect() || to.limit() < sz) {
+			ato = ByteBuffer.allocateDirect(sz);
+		} else ato = to;
+
+		CompletableFuture<ByteBuffer> c = new CompletableFuture<ByteBuffer>() {
+			@Override
+			public ByteBuffer get() throws InterruptedException, ExecutionException {
+				if (!isDone()) return ato;
+				return super.get();
+			}
+		};
+		Runnable r = () -> {
+			int[] a = {0};
+			a[0] = glGetInteger(GL_TEXTURE_BINDING_2D);
+			glBindTexture(specification.target, getOpenGLNameInCurrentContext());
+			glGetTexImage(specification.target, 0, GL11.GL_RGBA, GL_UNSIGNED_BYTE, ato);
+			glBindTexture(specification.target, a[0]);
+			c.complete(ato);
+		};
+
+		if (GraphicsContext.getContext() == null) {
+			postDrawQueue.set(r);
+		} else {
+			r.run();
+		}
+
+		return c;
+	}
+	/**
+	 * this operates asynchronously if we are not currently inside the draw loop (that is, if there is no valid context for our thread). only one debug download can be pending at a time. You can
+	 * pass in null to this routine and you'll get a correctly sized ByteByffer back that you can reuse for subsequent calls. Regardless of the original format of the FBO this always returns
+	 * something that's RGBA / byte,.
+	 */
+	public Future<ByteBuffer> asyncDebugDownloadRGB8(ByteBuffer to) {
+		ByteBuffer ato;
+
+		int sz = specification.width * specification.height * 3;
+		if (to == null || !to.isDirect() || to.limit() < sz) {
+			ato = ByteBuffer.allocateDirect(sz);
+		} else ato = to;
+
+		CompletableFuture<ByteBuffer> c = new CompletableFuture<ByteBuffer>() {
+			@Override
+			public ByteBuffer get() throws InterruptedException, ExecutionException {
+				if (!isDone()) return ato;
+				return super.get();
+			}
+		};
+		Runnable r = () -> {
+			int[] a = {0};
+			a[0] = glGetInteger(GL_TEXTURE_BINDING_2D);
+			glBindTexture(specification.target, getOpenGLNameInCurrentContext());
+			glGetTexImage(specification.target, 0, GL11.GL_RGB, GL_UNSIGNED_BYTE, ato);
+			glBindTexture(specification.target, a[0]);
+			c.complete(ato);
+		};
+
+		if (GraphicsContext.getContext() == null) {
+			postDrawQueue.set(r);
+		} else {
+			r.run();
+		}
+
+		return c;
+	}
+
+
 }
