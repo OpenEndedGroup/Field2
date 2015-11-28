@@ -81,8 +81,8 @@ public class BoxBrowser extends Box implements IO.Loaded {
 		    "<script src='/field/filesystem/codemirror-4.4/mode/javascript/javascript.js'></script>" +
 		    "<script src='/field/filesystem/jquery-2.1.0.min.js'></script>" +
 		    "<script src='/field/filesystem/field-boxbrowser.js'></script>" +
-		    "</head><body>";
-	static public final String postamble = "</body>";
+		    "</head><body><div class='all'>";
+	static public final String postamble = "</div></body>";
 
 	private NanoHTTPD.Response handleBy(Predicate<Box> b, String propName) {
 
@@ -137,9 +137,7 @@ public class BoxBrowser extends Box implements IO.Loaded {
 		if (!box.properties.has(property)) return new NanoHTTPD.Response(NanoHTTPD.Response.Status.OK, null,
 										 preamble + "<p>no property called " + proc.markdownToHtml("`" + property.getName() + "`") + "</p>" + postamble);
 
-		String source = box.properties.get(property) + "";
-
-		return new NanoHTTPD.Response(NanoHTTPD.Response.Status.OK, null, preamble + render(box, source, property) + postamble);
+		return new NanoHTTPD.Response(NanoHTTPD.Response.Status.OK, null, preamble + render(box, box.properties.get(property), property) + postamble);
 	}
 
 	class Section {

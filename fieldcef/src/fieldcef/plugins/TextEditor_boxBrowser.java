@@ -132,13 +132,13 @@ public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 
 			w.getQueue()
 			 .register(x -> x.equals("selection.changed"), c -> {
-				 Log.log("shy", ()->"selection is now" + selection().count());
+				 Log.log("shy", () -> "selection is now" + selection().count());
 
 
 				 if (selection().count() != 1) {
-						 browser.properties.put(Box.hidden, true);
-						 Drawing.dirty(this);
-						 prevSelection = null;
+					 browser.properties.put(Box.hidden, true);
+					 Drawing.dirty(this);
+					 prevSelection = null;
 
 				 } else {
 					 if (prevSelection != selection().findFirst()
@@ -147,16 +147,13 @@ public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 						 prevSelection = selection().findFirst()
 									    .get();
 
-						 if (enabled)
-						 {
+						 if (enabled) {
 							 String u = "http://localhost:" + ServerSupport.webserverPort + "/id/" + prevSelection.properties.get(IO.id);
 							 setURL(u, () -> {
 								 browser.properties.put(Box.hidden, false);
 								 Drawing.dirty(this);
 							 });
-						 }
-						 else
-						 {
+						 } else {
 							 browser.properties.put(Box.hidden, true);
 						 }
 					 }
@@ -164,6 +161,21 @@ public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 
 			 });
 		});
+
+		RunLoop.main.getLoop()
+			    .attach(x -> {
+
+				    int maxh = window.getHeight() - 25 - 10 - 10 - 2;
+				    Rect f = browser.properties.get(Box.frame);
+				    if (f.h != Math.min(maxhOnCreation - 40, maxh)) {
+					    f = f.duplicate();
+					    browser.executeJavaScript("$(\".all\").css(\"height\", " + Math.min(maxh, maxhOnCreation - 40) + ")");
+					    browser.executeJavaScript("$(\".all\").css(\"overflow\", \"scroll\")");
+
+				    }
+
+				    return true;
+			    });
 
 		this.properties.putToMap(PresentationMode.onEnterPresentationMode, "__enableTextEditor_browser", this::enable);
 		this.properties.putToMap(PresentationMode.onExitPresentationMode, "__disableTextEditor_browser", this::disable);

@@ -167,6 +167,10 @@ h1 {
     margin-right: 0.35em;
 }
 
+.warning
+{
+    color:rgba(200,40,40,0.7);
+}
 
 
 .maptable-key {
