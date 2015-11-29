@@ -173,6 +173,24 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 			return counter[0] == 0 ? null : f;
 		};
 	}
+	static public Function<Box, FLine> expires(Function<Box, FLine> wrap, int updates, Function<Integer, Double> opacityCurve, Runnable done) {
+		int[] counter = {updates};
+		float[] lf = {-1};
+		return box -> {
+			if (updates < 0) return wrap.apply(box);
+			FLine f = wrap.apply(box);
+			String l = f.attributes.getOr(layer, () -> "__main__");
+			float ff = opacityCurve.apply(counter[0])
+					      .floatValue();
+
+			f.attributes.multiply(opacity, 1, ff);
+			f.modify();
+			if (counter[0] >= 0 || ff!=lf[0]) Drawing.dirty(box, l);
+			lf[0] = ff;
+			if (--counter[0] == 0) done.run();
+			return counter[0] == 0 ? null : f;
+		};
+	}
 
 	static public Function<Box, FLine> expires(Function<Box, FLine> wrap, int updates, float power) {
 		int[] counter = {updates};

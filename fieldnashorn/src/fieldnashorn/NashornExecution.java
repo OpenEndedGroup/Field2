@@ -230,7 +230,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 				lineErrors.accept(new Pair<>(ln, "Error in deferred execution '" + m + "'\n" + t.getMessage()));
 			}
 
-			RemoteEditor.boxFeedback(Optional.of(box), new Vec4(1, 0, 0, 1), "__redmark__", 1, 1000);
+			RemoteEditor.boxFeedback(Optional.of(box), new Vec4(1, 0, 0, 0.5), "__redmark__", -1, -1);
 		});
 
 		return () -> {
