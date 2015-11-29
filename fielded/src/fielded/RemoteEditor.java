@@ -783,7 +783,7 @@ public class RemoteEditor extends Box {
 			box.get().properties.putToMap(frameDrawing, name, expires(boxOrigin((bx) -> {
 
 				FLine f = new FLine();
-				f.rect(-5 + index * 10, -5, 10, 10);
+				f.rect(-5 + index * 10, -5+Math.min(0, index)*10, 10, 10);
 				f.attributes.put(filled, true);
 				f.attributes.put(stroked, false);
 				f.attributes.put(StandardFLineDrawing.color, color);

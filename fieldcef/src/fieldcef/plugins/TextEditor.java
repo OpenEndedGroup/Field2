@@ -134,7 +134,6 @@ public class TextEditor extends Box implements IO.Loaded {
 			executeJavaScript("$(\"body\").height(" + (maxh - 10) + ")");
 			executeJavaScript("$(\"body\").width(" + maxw + ")");
 
-
 			this.properties.put(Boxes.dontSave, true);
 			styles = findAndLoad(styleSheet, false);
 

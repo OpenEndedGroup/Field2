@@ -156,7 +156,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 			f.attributes.multiply(opacity, 1, counter[0] / (float) updates);
 			f.modify();
 			Drawing.dirty(box, l);
-			return counter[0]-- < 0 ? null : f;
+			return counter[0]-- == 0 ? null : f;
 		};
 	}
 

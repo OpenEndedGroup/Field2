@@ -82,37 +82,6 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 	protected void executeAndReturn(String textFragment, Consumer<Pair<Integer, String>> lineErrors, final Consumer<String> success, boolean printResult) {
 		try (AutoCloseable __ = pushErrorContext(lineErrors)) {
-			Execution.context.get()
-					 .push(box);
-
-			Errors.errors.push((t, m) -> {
-				System.out.println(" exception thrown inside box " + box);
-				System.out.println(" message is :" + m);
-				t.printStackTrace();
-
-				int ln = -1;
-				Matcher matcher = Pattern.compile("LN<(.*)@(.*)>")
-							 .matcher(m);
-
-				if (matcher.find()) {
-					try {
-						ln = Integer.parseInt(matcher.group(1));
-					} catch (NumberFormatException e) {
-						System.err.println(" malformed number ? " + matcher.group(1));
-						ln = -1;
-					}
-
-					String boxName = matcher.group(2);
-
-					lineErrors.accept(new Pair<>(ln,
-								     "Error in deferred execution on line " + ln + " in box " + boxName + "\n" + "Full message is " + m + " / " + t.getMessage() + "<br>"));
-				} else {
-					lineErrors.accept(new Pair<>(ln, "Error in deferred execution '" + m + "'\n" + t.getMessage() + "<br>"));
-				}
-
-				RemoteEditor.boxFeedback(Optional.of(box), new Vec4(1, 0, 0, 1), "__redmark__", 1, 1000);
-
-			});
 
 			Writer writer = null;
 			boolean[] written = {false};
@@ -277,6 +246,8 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	}
 
 	private void handleScriptException(Throwable e, Consumer<Pair<Integer, String>> lineErrors, Function<Integer, Integer> lineTransform, String extraMessage) {
+
+		RemoteEditor.boxFeedback(Optional.of(box), new Vec4(1, 0, 0, 0.5), "__redmark__", -1, -1);
 
 		System.out.println(" handling exception to :" + lineErrors);
 		try {
