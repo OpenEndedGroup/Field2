@@ -75,6 +75,8 @@ public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 		return "";
 	}
 
+	int lastWidth = 0;
+
 	@HiddenInAutocomplete
 	public void loaded() {
 		Log.log("texteditor.debug", ()->"initializing browser");
@@ -102,6 +104,8 @@ public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 
 		browser.properties.put(Box.frame, new Rect(v.x, v.y, vd.x, vd.y));
 
+		lastWidth = (int)vd.x;
+
 		maxhOnCreation = 1500;
 
 
@@ -114,8 +118,8 @@ public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 		browser.properties.put(Mouse.isSticky, true);
 
 		browser.properties.put(FrameManipulation.lockHeight, true);
-		browser.properties.put(FrameManipulation.lockWidth, true);
-		browser.properties.put(FrameManipulation.lockX, true);
+//		browser.properties.put(FrameManipulation.lockWidth, true);
+//		browser.properties.put(FrameManipulation.lockX, true);
 		browser.properties.put(FrameManipulation.lockY, true);
 
 		browser.properties.put(Box.undeletable, true);
@@ -152,6 +156,8 @@ public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 							 setURL(u, () -> {
 								 browser.properties.put(Box.hidden, false);
 								 Drawing.dirty(this);
+								 browser.executeJavaScript("$(\"body\").height( " + Math.min(maxh, maxhOnCreation - 40) + ")");
+								 browser.executeJavaScript("$(\"body\").width(" + lastWidth + ")");
 							 });
 						 } else {
 							 browser.properties.put(Box.hidden, true);
@@ -167,11 +173,17 @@ public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 
 				    int maxh = window.getHeight() - 25 - 10 - 10 - 2;
 				    Rect f = browser.properties.get(Box.frame);
+
+
 				    if (f.h != Math.min(maxhOnCreation - 40, maxh)) {
 					    f = f.duplicate();
-					    browser.executeJavaScript("$(\".all\").css(\"height\", " + Math.min(maxh, maxhOnCreation - 40) + ")");
-					    browser.executeJavaScript("$(\".all\").css(\"overflow\", \"scroll\")");
+					    browser.executeJavaScript("$(\"body\").height( " + Math.min(maxh, maxhOnCreation - 40) + ")");
+				    }
 
+				    if ((int)f.w != lastWidth)
+				    {
+					    browser.executeJavaScript("$(\"body\").width(" + lastWidth + ")");
+					    lastWidth =  (int)f.w;
 				    }
 
 				    return true;
@@ -192,6 +204,8 @@ public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 			setURL(u, () -> {
 				browser.properties.put(Box.hidden, false);
 				Drawing.dirty(this);
+				browser.executeJavaScript("$(\"body\").height( " + Math.min(maxh, maxhOnCreation - 40) + ")");
+				browser.executeJavaScript("$(\"body\").width(" + lastWidth + ")");
 			});
 		}
 		textEditor.hide();

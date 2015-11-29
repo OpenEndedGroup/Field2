@@ -15,6 +15,10 @@ import fieldbox.execution.Execution;
 import fieldbox.io.IO;
 import fieldbox.ui.Compositor;
 import fieldbox.ui.FieldBoxWindow;
+import fieldcef.plugins.GlassBrowser;
+import fieldcef.plugins.OutputBox;
+import fieldcef.plugins.TextEditor;
+import fieldcef.plugins.TextEditor_boxBrowser;
 import fielded.ServerSupport;
 import fielded.boxbrowser.BoxBrowser;
 import fielded.plugins.Out;
@@ -64,13 +68,13 @@ public class Open {
 	public Open(String filename) {
 		System.err.println(":HI:");
 
-		Log.log("startup", ()->"trouble is :"+GuardingDynamicLinker.class+" "+ Linker.class);
-		Log.log("startup", ()->"trouble is :"+GuardingDynamicLinker.class.getClassLoader()+" "+ Linker.class.getClassLoader());
+		Log.log("startup", () -> "trouble is :" + GuardingDynamicLinker.class + " " + Linker.class);
+		Log.log("startup", () -> "trouble is :" + GuardingDynamicLinker.class.getClassLoader() + " " + Linker.class.getClassLoader());
 
 		DefaultMenus.safeToSave = false;
 
 		this.filename = filename;
-		Log.log("startup", ()->" -- Initializing window -- ");
+		Log.log("startup", () -> " -- Initializing window -- ");
 
 		try {
 			pluginList = new PluginList();
@@ -198,7 +202,7 @@ public class Open {
 
 		new HotkeyMenus(boxes.root(), null).connect(boxes.root());
 
-		new Typing(boxes.root()).connect(boxes.root());
+//		new Typing(boxes.root()).connect(boxes.root());
 
 		new RunCommand(boxes.root()).connect(boxes.root());
 
@@ -220,7 +224,12 @@ public class Open {
 
 		new Image(boxes.root()).connect(boxes.root());
 
+		new TextEditor(boxes.root()).connect(boxes.root());
+		new GlassBrowser(boxes.root()).connect(boxes.root());
+		new OutputBox(boxes.root()).connect(boxes.root());
+
 		new BoxBrowser(boxes.root()).connect(boxes.root());
+		new TextEditor_boxBrowser(boxes.root()).connect(boxes.root());
 
 		new Templates(boxes.root()).connect(boxes.root());
 

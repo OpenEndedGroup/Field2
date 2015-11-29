@@ -131,8 +131,8 @@ public class TextEditor extends Box implements IO.Loaded {
 
 			browser.properties.put(Box.name, "texteditor");
 
-			executeJavaScript("$(\".CodeMirror\").css(\"height\", " + (maxh - 10) + ")");
-			executeJavaScript("$(\".CodeMirror\").css(\"width\", " + maxw + ")");
+			executeJavaScript("$(\"body\").height(" + (maxh - 10) + ")");
+			executeJavaScript("$(\"body\").width(" + maxw + ")");
 
 
 			this.properties.put(Boxes.dontSave, true);
