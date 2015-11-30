@@ -40,6 +40,18 @@ public class RunLoop {
 		return Thread.currentThread() == mainThread;
 	}
 
+	long getLock;
+	long hasLock;
+	long service;
+	long mainloop;
+	long locksMissed;
+	long sleepsTaken;
+
+	long interval = 100;
+	long intervalIn = 0;
+
+	static public boolean printTelemetry = false;
+
 	public void enterMainLoop() {
 		mainThread = Thread.currentThread();
 
@@ -47,13 +59,45 @@ public class RunLoop {
 			try {
 				tick++;
 
+				long a = System.nanoTime();
 				if (lock.tryLock(1, TimeUnit.DAYS)) {
+					long b = System.nanoTime();
 					mainLoop.updateAll();
+					long c = System.nanoTime();
 					ThreadSync.get()
 						  .serviceAndCull();
+					long d = System.nanoTime();
+
+					getLock += b-a;
+					hasLock += d-b;
+					service += d-c;
+					mainloop += c-b;
 				} else {
+					locksMissed++;
 				}
-				if (shouldSleep.size() == 0) Thread.sleep(2);
+				if (shouldSleep.size() == 0)
+				{
+					Thread.sleep(2);
+					sleepsTaken++;
+				}
+
+				if (tick%interval==0)
+				{
+
+					if (printTelemetry) {
+						System.out.println(
+							    " a" + (getLock / (double) interval) + " b" + (hasLock / (double) interval) + " c" + (service / (double) interval) + " d" + (mainloop / (double) interval) + " m" + locksMissed + " s" + sleepsTaken);
+						System.out.println(" f" + (System.nanoTime() - intervalIn) / interval);
+					}
+						getLock = 0;
+						hasLock = 0;
+						service = 0;
+						mainloop = 0;
+						locksMissed = 0;
+						sleepsTaken = 0;
+						intervalIn = System.nanoTime();
+				}
+
 			} catch (Throwable t) {
 				System.err.println(" exception thrown in main loop");
 				t.printStackTrace();
