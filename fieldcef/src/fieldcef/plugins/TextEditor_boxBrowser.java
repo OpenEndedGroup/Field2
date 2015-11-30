@@ -184,7 +184,7 @@ public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 
 				    if ((int)f.w != lastWidth)
 				    {
-					    browser.executeJavaScript("$(\"body\").width(" + lastWidth + ")");
+					    browser.executeJavaScript("$(\"body\").width(" + (int)(f.w-20)+ ")");
 					    lastWidth =  (int)f.w;
 				    }
 

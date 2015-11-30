@@ -196,7 +196,7 @@ public class TextEditor extends Box implements IO.Loaded {
 					    {
 						    frameLast = (int)f.w;
 						    f = f.duplicate();
-						    executeJavaScript("$(\"body\").width("+ (int)f.w + ")");
+						    executeJavaScript("$(\"body\").width("+ (int)(f.w-20) + ")");
 					    }
 
 					    return true;
