@@ -91,7 +91,6 @@ public class Browser extends Box implements IO.Loaded {
 		Rect r = now.properties.get(Box.frame);
 		float op = now.properties.getFloat(StandardFLineDrawing.opacity, 1);
 
-		System.out.println(" making geometry : "+now.properties.isTrue(FLineDrawing.hidden, false));
 		if (now.properties.isTrue(FLineDrawing.hidden, false)) {
 			builder.open();
 			builder.close();
@@ -224,10 +223,10 @@ public class Browser extends Box implements IO.Loaded {
 		shader.attach(new Uniform<Vec2>("scale", () -> drawing.getScale()));
 		shader.attach(new Uniform<Vec2>("bounds", () -> new Vec2(Window.getCurrentWidth(), Window.getCurrentHeight())));
 
-//		shader.attach(-2, "__rectupdate__", x -> {
-//			Rect r = properties.get(Box.frame);
-//			update(r.x, r.y, 1/*r.w/w*/);
-//		});
+		shader.attach(-2, "__rectupdate__", x -> {
+			Rect r = properties.get(Box.frame);
+			update(r.x, r.y, 1/*r.w/w*/);
+		});
 
 		shader.attach(q);
 		shader.attach(texture);
@@ -613,6 +612,9 @@ public class Browser extends Box implements IO.Loaded {
 	}
 
 	public void executeJavaScript_queued(String s) {
+
+		System.out.println(" EJS_q :"+s);
+
 		if (ignore) return;
 
 		if (booted) {
@@ -655,7 +657,7 @@ public class Browser extends Box implements IO.Loaded {
 			if (check-- > 0) {
 				browser.setZoomLevel(2 * window.getRetinaScaleFactor());
 			}
-			Log.log("cef.debug", ()->" texture was dirty, uploading ");
+			Log.log("cef.debug", () -> " texture was dirty, uploading ");
 			System.out.println(" dirty, uploading damage :" + damage);
 //			texture.upload(source, true);
 			texture.upload(source, true, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (1+damage.h + damage.y));
@@ -666,7 +668,7 @@ public class Browser extends Box implements IO.Loaded {
 			Log.log("cef.debug", () -> " texture was dirty " + again + " call, uploading ");
 			System.out.println(" dirty, uploading damage :" + damage);
 //			texture.upload(source, true);
-			texture.upload(source, true, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (1+damage.h + damage.y));
+			texture.upload(source, true, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (1 + damage.h + damage.y));
 			Drawing.dirty(this);
 			again--;
 			if (again == 0) {

@@ -44,6 +44,7 @@ public class TextEditor extends Box implements IO.Loaded {
 	// we'll need to make sure that this is centered on larger screens
 	int maxw = 900;
 	int maxh = 900;
+	int heightLast = -1;
 	int tick = 0;
 	Commands commandHelper = new Commands();
 	long lastTriggerAt = -1;
@@ -186,7 +187,8 @@ public class TextEditor extends Box implements IO.Loaded {
 				    .attach(x -> {
 					    int maxh = window.getHeight() - 25 - 10 - 10 - 2;
 					    Rect f = browser.properties.get(Box.frame);
-					    if (f.h != Math.min(maxhOnCreation - 40, maxh)) {
+					    if ((int)f.h !=  heightLast) {
+						    heightLast = (int) f.h;
 						    f = f.duplicate();
 						    executeJavaScript("$(\"body\").height("+Math.min(maxh, maxhOnCreation - 40) + ")");
 					    }
