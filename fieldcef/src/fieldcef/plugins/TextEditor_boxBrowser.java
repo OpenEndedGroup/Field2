@@ -158,7 +158,7 @@ public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 								 browser.properties.put(Box.hidden, false);
 								 Drawing.dirty(this);
 								 browser.executeJavaScript("$(\"body\").height( " + Math.min(maxh, maxhOnCreation - 40) + ")");
-								 browser.executeJavaScript("$(\"body\").width(" + lastWidth + ")");
+								 browser.executeJavaScript("$(\"body\").width(" + Math.min(maxw-28, (int)(lastWidth-28)) + ")");
 							 });
 						 } else {
 							 browser.properties.put(Box.hidden, true);
@@ -184,7 +184,7 @@ public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 
 				    if ((int)f.w != lastWidth)
 				    {
-					    browser.executeJavaScript("$(\"body\").width(" + (int)(f.w-20)+ ")");
+					    browser.executeJavaScript("$(\"body\").width(" + Math.min(maxw-28, (int)(f.w-28))+ ")");
 					    lastWidth =  (int)f.w;
 				    }
 

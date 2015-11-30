@@ -133,7 +133,7 @@ public class TextEditor extends Box implements IO.Loaded {
 			browser.properties.put(Box.name, "texteditor");
 
 			executeJavaScript("$(\"body\").height(" + (maxh - 10) + ")");
-			executeJavaScript("$(\"body\").width(" + maxw + ")");
+			executeJavaScript("$(\"body\").width(" + (maxw-28*2) + ")");
 
 			this.properties.put(Boxes.dontSave, true);
 			styles = findAndLoad(styleSheet, false);
@@ -196,7 +196,7 @@ public class TextEditor extends Box implements IO.Loaded {
 					    {
 						    frameLast = (int)f.w;
 						    f = f.duplicate();
-						    executeJavaScript("$(\"body\").width("+ (int)(f.w-20) + ")");
+						    executeJavaScript("$(\"body\").width("+ Math.min(maxw-28*2, (int)(f.w-28)) + ")");
 					    }
 
 					    return true;
