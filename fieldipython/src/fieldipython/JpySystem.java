@@ -46,14 +46,15 @@ public class JpySystem implements Linker.AsMap {
 		thread = new Thread(() -> {
 			PyLib.startPython();
 			PyLib.execScript("import IPython");
+			PyLib.execScript("from traitlets.config.application import get_config");
+			PyLib.execScript("c=get_config()");
+			PyLib.execScript("c.Session.key=b''");
+			PyLib.execScript("c.debug=True");
 
 			PyModule mainModule = PyModule.importModule("__main__");
 			mainModule.setAttribute("__field__", JpySystem.this);
 
-
 			System.out.println(" -- init jpy/ipython -- ");
-			PyLib.execScript("c = IPython.Config()");
-			PyLib.execScript("c.Session.key=b''");
 			f.complete(true);
 			PyLib.execScript("IPython.start_kernel(user_ns=globals(), config=c)");
 			System.out.println(" -- launched jpy/ipython  -- ");
