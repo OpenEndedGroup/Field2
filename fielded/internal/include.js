@@ -4,6 +4,8 @@ LazyLoad.css("/field/filesystem/codemirror-4.4/theme/default.css");
 LazyLoad.js("/field/filesystem/codemirror-4.4/mode/javascript/javascript.js");
 LazyLoad.js("/field/filesystem/codemirror-4.4/mode/python/python.js");
 LazyLoad.js("/field/filesystem/codemirror-4.4/mode/xml/xml.js");
+LazyLoad.js("/field/filesystem/codemirror-4.4/mode/css/css.js");
+LazyLoad.js("/field/filesystem/codemirror-4.4/mode/htmlmixed/htmlmixed.js");
 LazyLoad.js("/field/filesystem/codemirror-4.4/mode/glsl/glsl.js");
 LazyLoad.js("/field/filesystem/codemirror-4.4/mode/clojure/clojure.js");
 LazyLoad.js("/field/filesystem/codemirror-4.4/addon/fold/foldcode.js");
