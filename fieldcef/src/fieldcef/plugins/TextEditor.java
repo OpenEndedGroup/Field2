@@ -39,8 +39,8 @@ public class TextEditor extends Box implements IO.Loaded {
 	public Browser browser;
 	@HiddenInAutocomplete
 	public String styles;
-	List<String> playlist = Arrays.asList("preamble.js", "jquery-2.1.0.min.js", "jquery.autosize.input.js", "modal.js");
 	String styleSheet = "field-codemirror.css";
+
 	// we'll need to make sure that this is centered on larger screens
 	int maxw = 900;
 	int maxh = 900;
