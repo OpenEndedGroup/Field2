@@ -1,5 +1,7 @@
 package fielded.webserver;
 
+import field.utility.StreamSearcher;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.Closeable;
@@ -1031,7 +1033,8 @@ public abstract class NanoHTTPD {
 		private void decodeMultipartData(String boundary, ByteBuffer fbuf, BufferedReader in, Map<String, String> parms,
 						 Map<String, String> files) throws ResponseException {
 			try {
-				int[] bpositions = getBoundaryPositions(fbuf, boundary.getBytes());
+//				int[] bpositions = getBoundaryPositions(fbuf, boundary.getBytes());
+				int[] bpositions = getBoundaryPositionsFast(fbuf, boundary.getBytes());
 				int boundarycount = 1;
 				String mpline = in.readLine();
 				while (mpline != null) {
@@ -1139,6 +1142,22 @@ public abstract class NanoHTTPD {
 			int[] ret = new int[matchbytes.size()];
 			for (int i = 0; i < ret.length; i++) {
 				ret[i] = matchbytes.get(i);
+			}
+			return ret;
+		}
+
+		private int[] getBoundaryPositionsFast(ByteBuffer b, byte[] boundary) {
+
+			List<Long> locations = new ArrayList<>();
+
+			StreamSearcher searcher = new StreamSearcher(boundary);
+			long found ;
+			while( (found=searcher.search(b))>-1)
+				locations.add(found);
+
+			int[] ret = new int[locations.size()];
+			for (int i = 0; i < ret.length; i++) {
+				ret[i] = (int) (locations.get(i)+(i>0 ? ret[i-1] : -boundary.length));
 			}
 			return ret;
 		}
