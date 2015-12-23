@@ -45,8 +45,7 @@ public class Out extends Box {
 			String uid = null;
 			int uidLine = 0;
 			for (StackTraceElement ee : st) {
-				if (ee.getFileName()
-				      .startsWith("bx[")) {
+				if (ee.getFileName()!=null && ee.getFileName().startsWith("bx[")) {
 					Pattern c = Pattern.compile("bx\\[(.*?)\\]/(.*)");
 					Matcher m = c.matcher(ee.getFileName());
 					if (m.find()) {
@@ -158,8 +157,10 @@ public class Out extends Box {
 	}
 
 	private Class nonAnonymous(Class a) {
+		if (!a.isAnonymousClass()) return a;
 		while (a != null && a.getName()
 				     .contains("$")) a = a.getSuperclass();
+
 		return a;
 	}
 
