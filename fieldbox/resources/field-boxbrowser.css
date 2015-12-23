@@ -222,3 +222,22 @@ h1 {
 
 
 
+input {
+    background-color: #555;
+    border-image-source: none;
+    -webkit-appearance: none;
+    border: #555 1px;
+    margin: 3px;
+    color: white;
+}
+
+textarea{
+    background-color: #555;
+    border-image-source: none;
+    -webkit-appearance: none;
+    border: #555 1px;
+    margin: 3px;
+    color: white;
+}
+
+
