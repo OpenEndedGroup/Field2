@@ -8,12 +8,9 @@ import fieldbox.boxes.Box;
 import fieldbox.boxes.Drawing;
 import fielded.boxbrowser.BoxBrowser;
 import fieldnashorn.annotations.HiddenInAutocomplete;
-import fieldnashorn.sourcemap.Base64;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL20;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -38,7 +35,7 @@ import static org.lwjgl.opengl.GL32.glFramebufferTexture;
  * OpenGL enums, we'll grow these as necessary). They can have multiple layers, optional depth buffers, optional stencils, multisampling, a variety of components and bit-depths and dimensions.
  * <p>
  */
-public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUniform<Integer>, BoxBrowser.HasMarkdownInformation {
+public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUniform<Integer>, BoxBrowser.HasHTMLInformation {
 
 
 	@Override
