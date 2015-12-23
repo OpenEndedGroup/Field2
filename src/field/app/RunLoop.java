@@ -2,6 +2,7 @@ package field.app;
 
 import field.graphics.Scene;
 import fieldbox.execution.Errors;
+import org.omg.SendingContext.RunTime;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -46,11 +47,12 @@ public class RunLoop {
 	long mainloop;
 	long locksMissed;
 	long sleepsTaken;
+	long freeMemIn;
 
 	long interval = 100;
 	long intervalIn = 0;
 
-	static public boolean printTelemetry = false;
+	static public boolean printTelemetry = true;
 
 	public void enterMainLoop() {
 		mainThread = Thread.currentThread();
@@ -88,6 +90,10 @@ public class RunLoop {
 						System.out.println(
 							    " a" + (getLock / (double) interval) + " b" + (hasLock / (double) interval) + " c" + (service / (double) interval) + " d" + (mainloop / (double) interval) + " m" + locksMissed + " s" + sleepsTaken);
 						System.out.println(" f" + (System.nanoTime() - intervalIn) / interval);
+						System.out.println(" m" + (Runtime.getRuntime().freeMemory() - freeMemIn) / interval);
+
+
+
 					}
 						getLock = 0;
 						hasLock = 0;
@@ -96,6 +102,7 @@ public class RunLoop {
 						locksMissed = 0;
 						sleepsTaken = 0;
 						intervalIn = System.nanoTime();
+					freeMemIn = Runtime.getRuntime().freeMemory();
 				}
 
 			} catch (Throwable t) {
