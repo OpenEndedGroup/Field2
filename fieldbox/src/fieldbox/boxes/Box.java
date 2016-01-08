@@ -496,7 +496,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	@HiddenInAutocomplete
 	public Object asMap_call(Object a, Object b) {
 
-		return Callbacks.call(this, a, b);
+		return Callbacks.call(this, b);
 	}
 
 	@Override
