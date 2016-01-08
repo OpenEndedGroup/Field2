@@ -822,52 +822,50 @@ JNIEXPORT void JNICALL Java_com_badlogic_jglfw_Glfw_glfwSetCursorPos(JNIEnv* env
 
 }
 
-JNIEXPORT jint JNICALL Java_com_badlogic_jglfw_Glfw_glfwGetJoystickParam(JNIEnv* env, jclass clazz, jint joy, jint param) {
-
-
-//@line:869
-
-		return -1;
-	
-
+JNIEXPORT jint JNICALL Java_com_badlogic_jglfw_Glfw_glfwGetJoystickParam(JNIEnv* env, jclass clazz, jint joy, jint param)
+{
+  return -1;
 }
 
-static inline jint wrapped_Java_com_badlogic_jglfw_Glfw_glfwGetJoystickAxes
-(JNIEnv* env, jclass clazz, jint joy, jfloatArray obj_axes, float* axes) {
 
-//@line:873
+JNIEXPORT jint JNICALL Java_com_badlogic_jglfw_Glfw_glfwGetJoystickAxes(JNIEnv* env, jclass clazz, jint joy, jfloatArray arr) {
 
-		return -1;
-	
+								       int count;
+								       const float *ax = glfwGetJoystickAxes(joy, &count);
+								       jsize len = env->GetArrayLength(arr);
+								       jfloat *body = env->GetFloatArrayElements(arr,0);
+								       
+
+								       if (len<count) count = len;
+								       for(int i=0;i<count;i++)
+								       {
+								       body[i] = ax[i];
+								       }
+
+								       env->ReleaseFloatArrayElements(arr, body,0);
+
+								       return count;	
 }
 
-JNIEXPORT jint JNICALL Java_com_badlogic_jglfw_Glfw_glfwGetJoystickAxes(JNIEnv* env, jclass clazz, jint joy, jfloatArray obj_axes) {
-	float* axes = (float*)env->GetPrimitiveArrayCritical(obj_axes, 0);
 
-	jint JNI_returnValue = wrapped_Java_com_badlogic_jglfw_Glfw_glfwGetJoystickAxes(env, clazz, joy, obj_axes, axes);
+JNIEXPORT jint JNICALL Java_com_badlogic_jglfw_Glfw_glfwGetJoystickButtons(JNIEnv* env, jclass clazz, jint joy, jbyteArray arr) {
 
-	env->ReleasePrimitiveArrayCritical(obj_axes, axes, 0);
+                int count;                                                                                 
+                const unsigned char *ax = glfwGetJoystickButtons(joy, &count);
+                jsize len = env->GetArrayLength(arr);
+                jbyte *body = env->GetByteArrayElements(arr, 0);                                 
+                                                                                                           
+                                                                                                           
+                if (len<count) count = len;                                                                
+                for(int i=0;i<count;i++)                                                                   
+                {                                                                                          
+                    body[i] = ax[i];                                                                           
+                }                                                                                          
+                                                                                                           
+                env->ReleaseByteArrayElements(arr, body, 0);                                        
+                                                                                                         
+                return count;                                                                              
 
-	return JNI_returnValue;
-}
-
-static inline jint wrapped_Java_com_badlogic_jglfw_Glfw_glfwGetJoystickButtons
-(JNIEnv* env, jclass clazz, jint joy, jbyteArray obj_buttons, char* buttons) {
-
-//@line:877
-
-		return -1;
-	
-}
-
-JNIEXPORT jint JNICALL Java_com_badlogic_jglfw_Glfw_glfwGetJoystickButtons(JNIEnv* env, jclass clazz, jint joy, jbyteArray obj_buttons) {
-	char* buttons = (char*)env->GetPrimitiveArrayCritical(obj_buttons, 0);
-
-	jint JNI_returnValue = wrapped_Java_com_badlogic_jglfw_Glfw_glfwGetJoystickButtons(env, clazz, joy, obj_buttons, buttons);
-
-	env->ReleasePrimitiveArrayCritical(obj_buttons, buttons, 0);
-
-	return JNI_returnValue;
 }
 
 JNIEXPORT jstring JNICALL Java_com_badlogic_jglfw_Glfw_glfwGetJoystickName(JNIEnv* env, jclass clazz, jint joy) {
