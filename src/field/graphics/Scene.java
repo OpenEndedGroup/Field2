@@ -112,7 +112,7 @@ public class Scene extends Box implements Linker.AsMap {
 					     .filter(x -> x)
 					     .collect(Collectors.toList());
 		if (removed.size()==0)
-			System.err.println(" removed a Perform that wasn't their");
+			System.err.println(" removed a Perform that wasn't there :"+p+" "+scene);
 
 	}
 
