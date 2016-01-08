@@ -877,11 +877,39 @@ public static final int GLFW_DISCONNECTED           =0x00040002;
 	*/
 	
 	public static native int glfwGetJoystickAxes(int joy, float[] axes); /*
-		return -1;
+		int count;
+		const float *ax = glfwGetJoystickAxes(joy, &count);
+		jsize len = (*env)->GetArrayLength(env, axes);
+		jfloat *body = (*env)->GetFloatArrayElements(env, arr, 0);
+		
+
+		if (len<count) count = len;
+		for(int i=0;i<count;i++)
+		{
+		body[i] = ax[i];
+		}
+
+		(*env)->ReleaseFloatArrayElements(env, arr, body, 0);
+
+		return count;
 	*/
 	
 	public static native int glfwGetJoystickButtons(int joy, byte[] buttons); /*
-		return -1;
+                int count;                                                                                 
+                const unsigned char *ax = glfwGetJoystickButtons(joy, &count);
+                jsize len = (*env)->GetArrayLength(env, axes);
+                jbyte *body = (*env)->GetByteArrayElements(env, arr, 0);                                 
+                                                                                                           
+                                                                                                           
+                if (len<count) count = len;                                                                
+                for(int i=0;i<count;i++)                                                                   
+                {                                                                                          
+                    body[i] = ax[i];                                                                           
+                }                                                                                          
+                                                                                                           
+                (*env)->ReleaseByteArrayElements(env, arr, body, 0);                                        
+                                                                                                         
+                return count;                                                                              
 	*/
 	
 	public static native String glfwGetJoystickName(int joy); /*
