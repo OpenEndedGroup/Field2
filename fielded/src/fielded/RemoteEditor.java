@@ -213,20 +213,22 @@ public class RemoteEditor extends Box {
 													    .endObject()
 													    .toString()));
 			} else {
-				List<Runnable> r = whenSelected.get(z.first.properties.getOrConstruct(IO.id));
-				if (r != null && r.size() > 20) whenSelected.replaceValues(z.first.properties.getOrConstruct(IO.id), r.subList(20, r.size()));
+				synchronized (whenSelected) {
+					List<Runnable> r = whenSelected.get(z.first.properties.getOrConstruct(IO.id));
+					if (r != null && r.size() > 20) whenSelected.replaceValues(z.first.properties.getOrConstruct(IO.id), r.subList(20, r.size()));
 
-				whenSelected.put(z.first.properties.getOrConstruct(IO.id), () -> {
-					rater.add(new Pair<String, String>("box.output.directed", new JSONStringer().object()
-														    .key("box")
-														    .value(z.first.properties.getOrConstruct(IO.id))
-														    .key("line")
-														    .value(z.second)
-														    .key("message")
-														    .value(z.third)
-														    .endObject()
-														    .toString()));
-				});
+					whenSelected.put(z.first.properties.getOrConstruct(IO.id), () -> {
+						rater.add(new Pair<String, String>("box.output.directed", new JSONStringer().object()
+															    .key("box")
+															    .value(z.first.properties.getOrConstruct(IO.id))
+															    .key("line")
+															    .value(z.second)
+															    .key("message")
+															    .value(z.third)
+															    .endObject()
+															    .toString()));
+					});
+				}
 			}
 		});
 
@@ -1010,9 +1012,11 @@ public class RemoteEditor extends Box {
 
 			server.send(socketName, "_messageBus.publish('selection.changed', " + buildMessage.toString() + ")");
 
-			List<Runnable> q = whenSelected.removeAll(currentSelection.properties.getOrConstruct(IO.id));
-			if (q != null) {
-				q.forEach(x -> x.run());
+			synchronized (whenSelected) {
+				List<Runnable> q = whenSelected.removeAll(currentSelection.properties.getOrConstruct(IO.id));
+				if (q != null) {
+					q.forEach(x -> x.run());
+				}
 			}
 
 			//todo: check for other editors?
