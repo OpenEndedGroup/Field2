@@ -11,6 +11,7 @@ import field.utility.Util;
 import field.utility.Triple;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Boxes;
+import fieldbox.boxes.Callbacks;
 import fieldbox.boxes.Drawing;
 import fieldbox.boxes.plugins.IsExecuting;
 import fieldbox.execution.Completion;
@@ -29,10 +30,7 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -322,6 +320,40 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 		try (Util.ExceptionlessAutoCloasable __ = pushErrorContext(lineErrors)) {
 
+			// is "run" defined here or anywhere above?
+
+			if (box.find(Callbacks.run, box.upwards()).findAny().isPresent())
+			{
+				end(lineErrors, success);
+
+
+				String name = "main._animator_" + (uniq);
+				boolean[] first = {true};
+
+				Errors.ErrorConsumer e = Errors.errors.get();
+
+				box.properties.putToMap(Boxes.insideRunLoop, name, () -> {
+					try {
+						Callbacks.call(box, Callbacks.run, initiator, first[0]);
+					}
+					catch(Throwable t)
+					{
+						Errors.tryToReportTo(t, "Exception in `_.run()`, called from box `"+box+"`", e);
+						first[0] = false;
+						return false;
+					}
+					first[0] = false;
+					return true;
+
+				});
+				box.first(IsExecuting.isExecuting)
+				   .ifPresent(x -> x.accept(box, name));
+
+				uniq++;
+				return name;
+			}
+
+			// otherwise, use the old system
 			context.setAttribute("_r", null, ScriptContext.ENGINE_SCOPE);
 
 			initiator.entrySet()

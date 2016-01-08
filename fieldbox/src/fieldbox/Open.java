@@ -34,15 +34,15 @@ import java.util.*;
 import static org.lwjgl.opengl.GL11.*;
 
 /**
- * This Opens a document, loading a Window and a standard assortment of plugins into the top of a Box graph and the document into the "bottom" of the
- * Box graph.
+ * This Opens a document, loading a Window and a standard assortment of plugins into the top of a Box graph and the document into the "bottom" of the Box graph.
  * <p>
- * A Plugin is simply something that's initialized: Constructor(boxes.root()).connect(boxes.root()) we can take these from a classname and can
- * optionally initialize them connected to something else
+ * A Plugin is simply something that's initialized: Constructor(boxes.root()).connect(boxes.root()) we can take these from a classname and can optionally initialize them connected to something else
  */
 public class Open {
 
-	static public final Dict.Prop<String> fieldFilename = new Dict.Prop<>("fieldFilename").toCannon().type().doc("the name of the field sheet that we are currently in");
+	static public final Dict.Prop<String> fieldFilename = new Dict.Prop<>("fieldFilename").toCannon()
+											      .type()
+											      .doc("the name of the field sheet that we are currently in");
 
 	private FieldBoxWindow window;
 	private final Boxes boxes;
@@ -61,8 +61,8 @@ public class Open {
 	private Map<String, List<Object>> plugins;
 	private Nashorn javascript;
 
-	private int sizeX = AutoPersist.persist("window_sizeX", () -> 1000, x -> Math.min(1920*2, Math.max(100, x)), (x) -> window == null ? x : (int) window.getBounds().w);
-	private int sizeY = AutoPersist.persist("window_sizeY", () -> 800, x -> Math.min(1920*2, Math.max(100, x)), (x) -> window == null ? x : (int) window.getBounds().h);
+	private int sizeX = AutoPersist.persist("window_sizeX", () -> 1000, x -> Math.min(1920 * 2, Math.max(100, x)), (x) -> window == null ? x : (int) window.getBounds().w);
+	private int sizeY = AutoPersist.persist("window_sizeY", () -> 800, x -> Math.min(1920 * 2, Math.max(100, x)), (x) -> window == null ? x : (int) window.getBounds().h);
 	private int atX = AutoPersist.persist("window_atX", () -> 0, x -> x, (x) -> window == null ? x : (int) window.getBounds().x);
 	private int atY = AutoPersist.persist("window_atY", () -> 0, x -> x, (x) -> window == null ? x : (int) window.getBounds().y);
 
@@ -90,12 +90,11 @@ public class Open {
 			pluginList = null;
 		}
 
-		System.out.println(" window dimensions are :"+atX+" "+atY+" "+sizeX+" "+sizeY);
+		System.out.println(" window dimensions are :" + atX + " " + atY + " " + sizeX + " " + sizeY);
 
 		window = new FieldBoxWindow(atX, atY, sizeX, sizeY, filename);
 
-		window.scene
-		      .attach(-5, this::defaultGLPreambleBackground);
+		window.scene.attach(-5, this::defaultGLPreambleBackground);
 		window.mainLayer()
 		      .attach(-5, this::defaultGLPreamble);
 
@@ -225,12 +224,6 @@ public class Open {
 
 		new Image(boxes.root()).connect(boxes.root());
 
-		new TextEditor(boxes.root()).connect(boxes.root());
-		new GlassBrowser(boxes.root()).connect(boxes.root());
-		new OutputBox(boxes.root()).connect(boxes.root());
-
-		new BoxBrowser(boxes.root()).connect(boxes.root());
-		new TextEditor_boxBrowser(boxes.root()).connect(boxes.root());
 
 		new Templates(boxes.root()).connect(boxes.root());
 
@@ -256,8 +249,7 @@ public class Open {
 
 		new WebApps(boxes.root()).connect(boxes.root());
 
-		if (ThreadSync.enabled)
-			new ThreadSyncFeedback(boxes.root()).connect(boxes.root());
+		if (ThreadSync.enabled) new ThreadSyncFeedback(boxes.root()).connect(boxes.root());
 
 		FileBrowser fb = new FileBrowser(boxes.root());
 		fb.connect(boxes.root());
@@ -278,7 +270,8 @@ public class Open {
 		      .blurYInto(5, lx.getScene());
 		lx.blurXInto(5, ly.getScene());
 
-		lx.addDependancy(window.getCompositor().getMainLayer());
+		lx.addDependancy(window.getCompositor()
+				       .getMainLayer());
 		ly.addDependancy(lx);
 
 		window.getCompositor()
@@ -289,7 +282,8 @@ public class Open {
 		      .getLayer("glass")
 		      .compositeWith(ly, composited.getScene());
 
-		composited.addDependancy(window.getCompositor().getLayer("glass"));
+		composited.addDependancy(window.getCompositor()
+					       .getLayer("glass"));
 		composited.addDependancy(ly);
 
 		window.getCompositor()
@@ -317,7 +311,8 @@ public class Open {
 		RunLoop.main.getLoop()
 			    .attach(10, Scene.strobe((i) -> {
 				    if (MeshBuilder.cacheHits + MeshBuilder.cacheMisses_internalHash + MeshBuilder.cacheMisses_cursor + MeshBuilder.cacheMisses_externalHash > 0) {
-					    Log.println("graphics.stats", " meshbuilder cache h" + MeshBuilder.cacheHits + " | mc" + MeshBuilder.cacheMisses_cursor + " / meh" + MeshBuilder.cacheMisses_externalHash + " / mih" + MeshBuilder.cacheMisses_internalHash+" / mto" + MeshBuilder.cacheMisses_tooOld+" | tex"+Texture.bytesUploaded);
+					    Log.println("graphics.stats",
+							" meshbuilder cache h" + MeshBuilder.cacheHits + " | mc" + MeshBuilder.cacheMisses_cursor + " / meh" + MeshBuilder.cacheMisses_externalHash + " / mih" + MeshBuilder.cacheMisses_internalHash + " / mto" + MeshBuilder.cacheMisses_tooOld + " | tex" + Texture.bytesUploaded);
 					    MeshBuilder.cacheHits = 0;
 					    MeshBuilder.cacheMisses_cursor = 0;
 					    MeshBuilder.cacheMisses_externalHash = 0;
@@ -354,22 +349,36 @@ public class Open {
 		// actually open the document that's stored on disk
 		doOpen(boxes.root(), filename);
 
-		// call loaded on everything above root
-		Log.log("startup", ()->"calling .loaded on plugins");
-		boxes.root().breadthFirst(boxes.root().upwards()).filter(x -> x instanceof IO.Loaded).forEach(
-			    x -> ((IO.Loaded) x).loaded());
 
-		Log.log("startup", ()->" -- FieldBox finished initializing, loading plugins ... -- ");
+		Log.log("startup", () -> " -- FieldBox finished initializing, loading plugins ... -- ");
 
 		// initialize the plugins
 
 		if (pluginList != null) pluginList.interpretPlugins(plugins, boxes.root());
 
-		Log.log("startup", ()->" -- FieldBox plugins finished, entering animation loop -- ");
+		Log.log("startup", () -> " -- FieldBox plugins finished, entering animation loop -- ");
+
+
+		RunLoop.main.once(() -> {
+			new TextEditor(boxes.root()).connect(boxes.root());
+			new GlassBrowser(boxes.root()).connect(boxes.root());
+			new OutputBox(boxes.root()).connect(boxes.root());
+
+			new BoxBrowser(boxes.root()).connect(boxes.root());
+			new TextEditor_boxBrowser(boxes.root()).connect(boxes.root());
+
+			// call loaded on everything above root
+			Log.log("startup", () -> "calling .loaded on plugins");
+			boxes.root()
+			     .breadthFirst(boxes.root()
+						.upwards())
+			     .filter(x -> x instanceof IO.Loaded)
+			     .forEach(x -> ((IO.Loaded) x).loaded());
+
+		});
 
 		// start the runloop
 		boxes.start();
-
 
 
 		DefaultMenus.safeToSave = true;
@@ -403,8 +412,7 @@ public class Open {
 		glDisable(GL11.GL_DEPTH_TEST);
 
 
-		if (Main.os == Main.OS.linux)
-			glEnable(GL13.GL_MULTISAMPLE);
+		if (Main.os == Main.OS.linux) glEnable(GL13.GL_MULTISAMPLE);
 
 		return true;
 	}
@@ -417,8 +425,7 @@ public class Open {
 		glEnable(GL11.GL_BLEND);
 		glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		glDisable(GL11.GL_DEPTH_TEST);
-		if (Main.os == Main.OS.linux)
-			glEnable(GL13.GL_MULTISAMPLE);
+		if (Main.os == Main.OS.linux) glEnable(GL13.GL_MULTISAMPLE);
 
 		return true;
 	}
@@ -432,8 +439,7 @@ public class Open {
 		glEnable(GL11.GL_BLEND);
 		glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		glDisable(GL11.GL_DEPTH_TEST);
-		if (Main.os == Main.OS.linux)
-			glEnable(GL13.GL_MULTISAMPLE);
+		if (Main.os == Main.OS.linux) glEnable(GL13.GL_MULTISAMPLE);
 
 		return true;
 	}

@@ -19,15 +19,16 @@ import fielded.plugins.Out;
 import fielded.webserver.NanoHTTPD;
 import fielded.webserver.Server;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.Charset;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 /**
@@ -36,10 +37,16 @@ import java.util.function.Consumer;
 public class WebApps extends Box implements IO.Loaded {
 	static public final String EXECUTE = "/execute/";
 	static public final String CONTINUE = "/continue/";
+	static public final String FILESYSTEM = "/filesystem/";
 
 	static public Dict.Prop<BiFunctionOfBoxAnd<String, String>> newStaticHTML = new Dict.Prop<>("newStaticHTML").type()
-												       .toCannon()
-												       .doc("`_.newStaticHTML(\"mypage\")` adds an `_.html` property to this box that is served up by the WebApps plugin at http://localhost:8082/mypage");
+														    .toCannon()
+														    .doc("`_.newStaticHTML(\"mypage\")` adds an `_.html` property to this box that is served up by the WebApps plugin at http://localhost:8082/mypage");
+
+	static public Dict.Prop<BiConsumer<String, String>> newStaticFile = new Dict.Prop<>("newStaticFile").type()
+													    .toCannon()
+													    .doc("`_.newStaticFile(\"myjpeg.jpg\", \"/path/to/a/jpeg\")` adds a file to the webserver resolvable at  http://localhost:8082/myjpeg.jpg");
+
 	static public Dict.Prop<String> html = new Dict.Prop<>("html").type()
 								      .toCannon()
 								      .doc(" a static html resource served by the WebApps plugin, creatable using `_.newStaticHTML(...)`");
@@ -76,6 +83,7 @@ public class WebApps extends Box implements IO.Loaded {
 	private Server s;
 
 	HashBiMap<String, Box> lookup = HashBiMap.create();
+	HashBiMap<String, String> resources = HashBiMap.create();
 
 	public WebApps(Box root) {
 		this.root = root;
@@ -103,12 +111,18 @@ public class WebApps extends Box implements IO.Loaded {
 			return m;
 		});
 
-		this.properties.put(newStaticHTML, (x,name) -> {
+		this.properties.put(newStaticHTML, (x, name) -> {
 
 			lookup.put(name, x);
 
 			return x.properties.computeIfAbsent(html, m -> "");
 		});
+
+		this.properties.put(newStaticFile, (name, path) -> {
+
+			resources.put(name, path);
+		});
+
 	}
 
 	static AtomicInteger uid = new AtomicInteger(0);
@@ -193,22 +207,20 @@ public class WebApps extends Box implements IO.Loaded {
 
 						LinkedHashMap<String, Object> p2 = new LinkedHashMap<String, Object>();
 						p2.putAll(params);
+						p2.put("files", files);
 						p2.put("execute", executeJS);
 						p2.put("append", append);
 
 						Object res = Callbacks.call(bx, Callbacks.main, p2);
 
-						if (res!=null)
-						{
+						if (res != null) {
 							Optional<Out> o = root.find(Out.__out, root.both())
-										.findAny();
-							if (o.isPresent())
-							{
-								append.accept(o.get().convert(res));
-							}
-							else
-							{
-								append.accept(""+res);
+									      .findAny();
+							if (o.isPresent()) {
+								append.accept(o.get()
+									       .convert(res));
+							} else {
+								append.accept("" + res);
 							}
 						}
 
@@ -234,6 +246,32 @@ public class WebApps extends Box implements IO.Loaded {
 				if (m != null) return new NanoHTTPD.Response(NanoHTTPD.Response.Status.OK, null, m);
 			} else lookup.remove(uri);
 
+			return null;
+		});
+
+		s.addURIHandler((uri, method, headers, params, files) -> {
+
+			if (uri.startsWith("/")) uri = uri.substring(1);
+
+			String path = resources.get(uri);
+			if (path != null) try {
+				return new NanoHTTPD.Response(NanoHTTPD.Response.Status.OK, "application/unknown", new BufferedInputStream(new FileInputStream(new File(path))));
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+			return null;
+		});
+
+		s.addURIHandler((uri, method, headers, params, files) -> {
+			if (uri.startsWith(FILESYSTEM)) {
+				uri = uri.substring(FILESYSTEM.length());
+
+				if (new File(uri).exists()) try {
+					return new NanoHTTPD.Response(NanoHTTPD.Response.Status.OK, "application/unknown", new BufferedInputStream(new FileInputStream(new File(uri))));
+				} catch (FileNotFoundException e) {
+					e.printStackTrace();
+				}
+			}
 			return null;
 		});
 

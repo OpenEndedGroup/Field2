@@ -73,10 +73,6 @@ public abstract class NanoHTTPD {
 	 * Pluggable strategy for asynchronously executing requests.
 	 */
 	private AsyncRunner asyncRunner;
-	/**
-	 * Pluggable strategy for creating and cleaning up temporary files.
-	 */
-	private TempFileManagerFactory tempFileManagerFactory;
 
 	/**
 	 * Constructs an HTTP server on given port.
@@ -91,7 +87,6 @@ public abstract class NanoHTTPD {
 	public NanoHTTPD(String hostname, int port) {
 		this.hostname = hostname;
 		this.myPort = port;
-		setTempFileManagerFactory(new DefaultTempFileManagerFactory());
 		setAsyncRunner(new DefaultAsyncRunner());
 	}
 
@@ -146,8 +141,7 @@ public abstract class NanoHTTPD {
 								OutputStream outputStream = null;
 								try {
 									outputStream = finalAccept.getOutputStream();
-									TempFileManager tempFileManager = tempFileManagerFactory.create();
-									HTTPSession session = new HTTPSession(tempFileManager, inputStream, outputStream, finalAccept.getInetAddress());
+									HTTPSession session = new HTTPSession(inputStream, outputStream, finalAccept.getInetAddress());
 									while (!finalAccept.isClosed()) {
 										session.execute();
 									}
@@ -340,20 +334,6 @@ public abstract class NanoHTTPD {
 		this.asyncRunner = asyncRunner;
 	}
 
-	// ------------------------------------------------------------------------------- //
-	//
-	// Temp file handling strategy.
-	//
-	// ------------------------------------------------------------------------------- //
-
-	/**
-	 * Pluggable strategy for creating and cleaning up temporary files.
-	 *
-	 * @param tempFileManagerFactory new strategy for handling temp files.
-	 */
-	public void setTempFileManagerFactory(TempFileManagerFactory tempFileManagerFactory) {
-		this.tempFileManagerFactory = tempFileManagerFactory;
-	}
 
 	/**
 	 * HTTP Request methods, with the ability to decode a <code>String</code> back to its enum value.
@@ -378,43 +358,9 @@ public abstract class NanoHTTPD {
 		void exec(Runnable code);
 	}
 
-	/**
-	 * Factory to create temp file managers.
-	 */
-	public interface TempFileManagerFactory {
-		TempFileManager create();
-	}
-
 	// ------------------------------------------------------------------------------- //
 
-	/**
-	 * Temp file manager.
-	 * <p/>
-	 * <p>Temp file managers are created 1-to-1 with incoming requests, to create and cleanup
-	 * temporary files created as a result of handling the request.</p>
-	 */
-	public interface TempFileManager {
-		TempFile createTempFile() throws Exception;
-
-		void clear();
-	}
-
-	/**
-	 * A temp file.
-	 * <p/>
-	 * <p>Temp files are responsible for managing the actual temporary storage and cleaning
-	 * themselves up when no longer needed.</p>
-	 */
-	public interface TempFile {
-		OutputStream open() throws Exception;
-
-		void delete() throws Exception;
-
-		String getName();
-	}
-
-	/**
-	 * Default threading strategy for NanoHttpd.
+	 /* Default threading strategy for NanoHttpd.
 	 * <p/>
 	 * <p>By default, the server spawns a new Thread for every incoming request.  These are set
 	 * to <i>daemon</i> status, and named according to the request number.  The name is
@@ -433,74 +379,7 @@ public abstract class NanoHTTPD {
 		}
 	}
 
-	/**
-	 * Default strategy for creating and cleaning up temporary files.
-	 * <p/>
-	 * <p></p>This class stores its files in the standard location (that is,
-	 * wherever <code>java.io.tmpdir</code> points to).  Files are added
-	 * to an internal list, and deleted when no longer needed (that is,
-	 * when <code>clear()</code> is invoked at the end of processing a
-	 * request).</p>
-	 */
-	public static class DefaultTempFileManager implements TempFileManager {
-		private final String tmpdir;
-		private final List<TempFile> tempFiles;
 
-		public DefaultTempFileManager() {
-			tmpdir = System.getProperty("java.io.tmpdir");
-			tempFiles = new ArrayList<TempFile>();
-		}
-
-		@Override
-		public TempFile createTempFile() throws Exception {
-			DefaultTempFile tempFile = new DefaultTempFile(tmpdir);
-			tempFiles.add(tempFile);
-			return tempFile;
-		}
-
-		@Override
-		public void clear() {
-			for (TempFile file : tempFiles) {
-				try {
-					file.delete();
-				} catch (Exception ignored) {
-				}
-			}
-			tempFiles.clear();
-		}
-	}
-
-	/**
-	 * Default strategy for creating and cleaning up temporary files.
-	 * <p/>
-	 * <p></p></[>By default, files are created by <code>File.createTempFile()</code> in
-	 * the directory specified.</p>
-	 */
-	public static class DefaultTempFile implements TempFile {
-		private File file;
-		private OutputStream fstream;
-
-		public DefaultTempFile(String tempdir) throws IOException {
-			file = File.createTempFile("NanoHTTPD-", "", new File(tempdir));
-			fstream = new FileOutputStream(file);
-		}
-
-		@Override
-		public OutputStream open() throws Exception {
-			return fstream;
-		}
-
-		@Override
-		public void delete() throws Exception {
-			safeClose(fstream);
-			file.delete();
-		}
-
-		@Override
-		public String getName() {
-			return file.getAbsolutePath();
-		}
-	}
 
 	/**
 	 * HTTP response. Return one of these from serve().
@@ -730,15 +609,6 @@ public abstract class NanoHTTPD {
 		}
 	}
 
-	/**
-	 * Default strategy for creating and cleaning up temporary files.
-	 */
-	private class DefaultTempFileManagerFactory implements TempFileManagerFactory {
-		@Override
-		public TempFileManager create() {
-			return new DefaultTempFileManager();
-		}
-	}
 
 	/**
 	 * Handles one session, i.e. parses the HTTP request and returns the response.
@@ -772,7 +642,6 @@ public abstract class NanoHTTPD {
 
 	protected class HTTPSession implements IHTTPSession {
 		public static final int BUFSIZE = 8192;
-		private final TempFileManager tempFileManager;
 		private final OutputStream outputStream;
 		private PushbackInputStream inputStream;
 		private int splitbyte;
@@ -784,14 +653,12 @@ public abstract class NanoHTTPD {
 		private CookieHandler cookies;
 		private String queryParameterString;
 
-		public HTTPSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
-			this.tempFileManager = tempFileManager;
+		public HTTPSession(InputStream inputStream, OutputStream outputStream) {
 			this.inputStream = new PushbackInputStream(inputStream, BUFSIZE);
 			this.outputStream = outputStream;
 		}
 
-		public HTTPSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
-			this.tempFileManager = tempFileManager;
+		public HTTPSession(InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
 			this.inputStream = new PushbackInputStream(inputStream, BUFSIZE);
 			this.outputStream = outputStream;
 			String remoteIp = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "127.0.0.1" : inetAddress.getHostAddress().toString();
@@ -882,8 +749,6 @@ public abstract class NanoHTTPD {
 				Response r = new Response(re.getStatus(), MIME_PLAINTEXT, re.getMessage());
 				r.send(outputStream);
 				safeClose(outputStream);
-			} finally {
-				tempFileManager.clear();
 			}
 		}
 
@@ -1170,13 +1035,15 @@ public abstract class NanoHTTPD {
 			if (len > 0) {
 				FileOutputStream fileOutputStream = null;
 				try {
-					TempFile tempFile = tempFileManager.createTempFile();
+					File tempFile = File.createTempFile("field", "webserver");
+					tempFile.deleteOnExit();
+
 					ByteBuffer src = b.duplicate();
-					fileOutputStream = new FileOutputStream(tempFile.getName());
+					fileOutputStream = new FileOutputStream(tempFile);
 					FileChannel dest = fileOutputStream.getChannel();
 					src.position(offset).limit(offset + len);
 					dest.write(src.slice());
-					path = tempFile.getName();
+					path = tempFile.getAbsolutePath();
 				} catch (Exception e) { // Catch exception if any
 					System.err.println("Error: " + e.getMessage());
 				} finally {
@@ -1188,7 +1055,8 @@ public abstract class NanoHTTPD {
 
 		private RandomAccessFile getTmpBucket() {
 			try {
-				TempFile tempFile = tempFileManager.createTempFile();
+				File tempFile = File.createTempFile("field", "bucket");
+				tempFile.deleteOnExit();
 				return new RandomAccessFile(tempFile.getName(), "rw");
 			} catch (Exception e) {
 				System.err.println("Error: " + e.getMessage());

@@ -215,8 +215,11 @@ public class RemoteEditor extends Box {
 			} else {
 				synchronized (whenSelected) {
 					List<Runnable> r = whenSelected.get(z.first.properties.getOrConstruct(IO.id));
-					if (r != null && r.size() > 20) whenSelected.replaceValues(z.first.properties.getOrConstruct(IO.id), r.subList(20, r.size()));
-
+					try {
+						if (r != null && r.size() > 20) whenSelected.replaceValues(z.first.properties.getOrConstruct(IO.id), r.subList(20, r.size()));
+					}
+					catch(ConcurrentModificationException e)
+					{}
 					whenSelected.put(z.first.properties.getOrConstruct(IO.id), () -> {
 						rater.add(new Pair<String, String>("box.output.directed", new JSONStringer().object()
 															    .key("box")
@@ -475,7 +478,7 @@ public class RemoteEditor extends Box {
 																								      .value(m)
 																								      .endObject()
 																								      .toString()),
-				      Collections.singletonMap("_t_", null));
+				      Collections.singletonMap("_t", null));
 
 			boxFeedback(box, new Vec4(0, 0.5f, 0.3f, 0.5f));
 
@@ -783,14 +786,14 @@ public class RemoteEditor extends Box {
 		if (box.get().properties.get(frameDrawing) != null) // we only decorate things that are drawn
 			box.get().properties.putToMap(frameDrawing, name, expires(boxOrigin((bx) -> {
 
-											  FLine f = new FLine();
-											  f.rect(-5 + index * 10, -5 + Math.min(0, index) * 10, 10, 10);
-											  f.attributes.put(filled, true);
-											  f.attributes.put(stroked, false);
-											  f.attributes.put(StandardFLineDrawing.color, color);
-											  return f;
+				FLine f = new FLine();
+				f.rect(-5 + index * 10, -5 + Math.min(0, index) * 10, 10, 10);
+				f.attributes.put(filled, true);
+				f.attributes.put(stroked, false);
+				f.attributes.put(StandardFLineDrawing.color, color);
+				return f;
 
-										  }, new Vec2(1, 1)), duration));
+			}, new Vec2(1, 1)), duration));
 		Drawing.dirty(box.get());
 	}
 
@@ -1012,13 +1015,13 @@ public class RemoteEditor extends Box {
 
 			server.send(socketName, "_messageBus.publish('selection.changed', " + buildMessage.toString() + ")");
 
+			List<Runnable> q;
 			synchronized (whenSelected) {
-				List<Runnable> q = whenSelected.removeAll(currentSelection.properties.getOrConstruct(IO.id));
-				if (q != null) {
-					q.forEach(x -> x.run());
-				}
+				q = whenSelected.removeAll(currentSelection.properties.getOrConstruct(IO.id));
 			}
-
+			if (q != null) {
+				q.forEach(x -> x.run());
+			}
 			//todo: check for other editors?
 			//watches.addWatch(editingProperty, "edited.property.changed");
 		}
