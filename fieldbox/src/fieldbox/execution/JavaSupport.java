@@ -434,8 +434,8 @@ public class JavaSupport {
 
 						String val = "";
 						boolean tostring = false;
-						if (!staticsOnly && hasAnnotation(m.getAnnotations(), SafeToToString.class) || m.getType()
-														.isPrimitive()) {
+						if (!staticsOnly && (hasAnnotation(m.getAnnotations(), SafeToToString.class) || m.getType()
+														.isPrimitive())) {
 							try {
 								val = "= <b>" + access(c.getDeclaredField(m.getName())).get(o) + "</b> &nbsp;";
 								tostring = true;
