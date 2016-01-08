@@ -1543,4 +1543,8 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 
 	}
 
+	@Override
+	public String toString() {
+		return "FLine (with "+nodes.size()+" node"+(nodes.size()==1 ? "" : "s")+")";
+	}
 }

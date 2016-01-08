@@ -21,6 +21,7 @@ import fieldcef.plugins.TextEditor;
 import fieldcef.plugins.TextEditor_boxBrowser;
 import fielded.ServerSupport;
 import fielded.boxbrowser.BoxBrowser;
+import fielded.boxbrowser.WebApps;
 import fielded.plugins.Out;
 import fieldlinker.Linker;
 import fieldnashorn.Nashorn;
@@ -253,6 +254,7 @@ public class Open {
 
 		new Group(boxes.root()).connect(boxes.root());
 
+		new WebApps(boxes.root()).connect(boxes.root());
 
 		if (ThreadSync.enabled)
 			new ThreadSyncFeedback(boxes.root()).connect(boxes.root());

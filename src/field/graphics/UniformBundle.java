@@ -42,12 +42,22 @@ public class UniformBundle implements Scene.Perform {
 	}
 
 	public <T> Uniform<T> set(Dict.Prop<T> d, Supplier<T> s) {
-		return uniforms.computeIfAbsent(d, (k) -> new Uniform<T>(d.getName(), s)).setValue(s);
+		checkName(d.getName()); return uniforms.computeIfAbsent(d, (k) -> new Uniform<T>(d.getName(), s)).setValue(s);
 	}
 
 
 	public <T> Uniform<T> set(String d, Supplier s) {
-		return uniforms.computeIfAbsent(new Dict.Prop(d), (k) -> new Uniform<T>(d, s)).setValue(s);
+		checkName(d); return uniforms.computeIfAbsent(new Dict.Prop(d), (k) -> new Uniform<T>(d, s)).setValue(s);
+	}
+
+	private void checkName(String d) {
+		if (uniforms.containsKey(d)) return;
+		try{
+			Integer.parseInt(d);
+			throw new IllegalArgumentException(" can't call a uniform by a number? '"+d+"' are you sure you didn't mean ["+d+"].something = ...?");
+		}
+		catch(NumberFormatException e)
+		{}
 	}
 
 

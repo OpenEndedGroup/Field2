@@ -63,6 +63,19 @@ public class FieldIPythonJPY extends Execution {
 			for (String s : out) {
 				if (s.trim()
 				     .length() == 0) continue;
+
+				// take a horrible guess as to whether this is html or not.
+				if (s.contains("<") && s.contains(">"))
+				{
+
+				}
+				else
+				{
+					s = s.replaceAll("\n\n\n", "<br>");
+					s = s.replaceAll("\n\n", "<br>");
+					s = s.replaceAll("\n", "<br>");
+				}
+
 				output.accept(s);
 			}
 			for (String s : err)

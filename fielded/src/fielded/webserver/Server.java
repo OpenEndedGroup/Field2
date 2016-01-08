@@ -54,7 +54,13 @@ public class Server {
 	static public ThreadLocal<WebSocket> currentWebSocket = new ThreadLocal();
 
 
+	public int getWebsocketPort() {
+		return websocketPort;
+	}
 
+	public int getPort() {
+		return port;
+	}
 
 	public Server(int port, int websocketPort) throws IOException {
 		this.port = port;

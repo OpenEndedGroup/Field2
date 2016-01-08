@@ -41,6 +41,19 @@ public class IPythonInterface {
 
 					System.out.println(" proc :"+data);
 
+					List<String> datad = new ArrayList<>();
+					String aa = speak.recvStr(ZMQ.NOBLOCK);
+					do {
+						datad.add(aa);
+						while (speak.hasReceiveMore()) {
+							String next = speak.recvStr();
+							datad.add(next);
+						}
+						aa = speak.recvStr(ZMQ.NOBLOCK);
+					} while (aa != null);
+
+					System.out.println(" side channel :"+datad);
+
 					process(data);
 				}
 			}
@@ -105,7 +118,6 @@ public class IPythonInterface {
 		a.add("{}");
 		a.add("{}");
 		a.add(new JSONObject(c).toString());
-
 
 		System.out.println(" sending :" + a);
 
@@ -240,6 +252,8 @@ public class IPythonInterface {
 			System.out.println(" unparseable ? " + data.get(3));
 		}
 
+
+
 	}
 
 	private void process(JSONObject o) {
@@ -299,6 +313,7 @@ public class IPythonInterface {
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
+
 
 	}
 

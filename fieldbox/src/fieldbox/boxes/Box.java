@@ -16,6 +16,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -61,7 +62,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	private String __cachedSimpleName = null;
 	private long tick = 0;
 
-	static public final PegDownProcessor peg = new PegDownProcessor();
+//	static public final PegDownProcessor peg = new PegDownProcessor();
 	public boolean disconnected = false;
 
 
@@ -224,6 +225,27 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 		return breadthFirst(direction).filter(x -> guard.isInstance(x))
 					      .map(x -> f.apply((G) x));
 	}
+
+	/**
+	 * vastly less garbage-y
+	 */
+	@HiddenInAutocomplete
+	public void forEach(Consumer<Box> b)
+	{
+		LinkedHashSet<Box> visited = new LinkedHashSet<>();
+		_forEach(this, b, visited);
+	}
+
+	static private void _forEach(Box t, Consumer<Box> b, LinkedHashSet<Box> visited) {
+		if (visited.contains(t)) return;
+		b.accept(t);
+		visited.add(t);
+		for(Box c : t.children)
+			_forEach(c, b, visited);
+		for(Box c : t.parents)
+			_forEach(c, b, visited);
+	}
+
 
 	@HiddenInAutocomplete
 	public <G, T> Stream<T> call(Function<G, T> f, Class<G> guard) {
@@ -585,8 +607,8 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	}
 
 	private String format(String documentation) {
-		String doc = peg.markdownToHtml(documentation == null ? "" : documentation);
-//		String doc = documentation;
+//		String doc = peg.markdownToHtml(documentation == null ? "" : documentation);
+		String doc = documentation;
 		doc = doc.trim();
 		System.out.println(" doc is ||"+doc+"||");
 		if (doc.startsWith("<p>") && doc.endsWith("</p>"))

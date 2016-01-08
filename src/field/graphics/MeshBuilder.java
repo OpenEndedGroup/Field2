@@ -190,9 +190,10 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 
 	/**
 	 * binds a FloatBuffer to this aux attribute. Dimension must be 1,2,3 or 4, storage.limit() must equal the number of vertices in this mesh * that dimension. You can call this over and over again to force a re-upload of this FloatBuffer to the GPU
+	 *
+	 * Will throw an exception unless you give it a clean FloatBuffer (not-sliced, allocateDirect etc.)
 	 */
-	public MeshBuilder bindAux(int attribute, int dimension, FloatBuffer storage)
-	{
+	public MeshBuilder bindAux(int attribute, int dimension, FloatBuffer storage) throws NoSuchFieldException, IllegalAccessException {
 		ArrayBuffer a = ensureExists(attribute, dimension, vertexCursor);
 
 		if (a instanceof SimpleArrayBuffer)

@@ -11,6 +11,9 @@ import java.util.Comparator;
 
 public class IPythonTransform {
 
+//	static public final String PROFILE_DIRECTORY = System.getProperty("user.home") + "/.ipython/profile_default/security/";
+	static public final String PROFILE_DIRECTORY = System.getProperty("user.home") + "/Library/Jupyter/runtime/";
+
 	public IPythonTransform() {
 	}
 
@@ -31,7 +34,7 @@ public class IPythonTransform {
 	}
 
 	public IPythonInterface get() {
-		File[] ff = new File(System.getProperty("user.home") + "/.ipython/profile_default/security/").listFiles(new FilenameFilter() {
+		File[] ff = new File(PROFILE_DIRECTORY).listFiles(new FilenameFilter() {
 
 			@Override
 			public boolean accept(File arg0, String arg1) {

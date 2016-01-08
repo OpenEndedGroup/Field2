@@ -1,11 +1,9 @@
 package field.graphics;
 
+import field.graphics.util.BufferUtils;
 import field.utility.Log;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
+import java.nio.*;
 
 import static org.lwjgl.opengl.ARBInstancedArrays.glVertexAttribDivisorARB;
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
@@ -50,8 +48,9 @@ public class SimpleArrayBuffer implements ArrayBuffer {
 		return customStorage;
 	}
 
-	public void setCustomStorage(FloatBuffer customStorage) {
+	public void setCustomStorage(FloatBuffer customStorage) throws NoSuchFieldException, IllegalAccessException {
 		this.customStorage = customStorage;
+		data = BufferUtils.asByteBuffer(customStorage);
 		mod++;
 	}
 
@@ -171,6 +170,7 @@ public class SimpleArrayBuffer implements ArrayBuffer {
 		SimpleArrayBuffer next = new SimpleArrayBuffer(size, binding, attribute, dimension, divisor);
 
 		int min = Math.min(size, this.size);
+
 		next.data.clear();
 		this.data.clear();
 		this.data.limit(4 * min * dimension);
