@@ -230,7 +230,6 @@ public class RemoteEditor extends Box {
 															    .value(z.third)
 															    .endObject()
 															    .toString()));
-
 					});
 				}
 			}

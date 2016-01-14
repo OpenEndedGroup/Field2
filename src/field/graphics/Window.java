@@ -75,7 +75,7 @@ public class Window implements ProvidesGraphicsContext {
 	private Rect currentBounds;
 
 	static public boolean doubleBuffered = Options.dict()
-						      .isTrue(new Dict.Prop("doubleBuffered"), true);
+						      .isTrue(new Dict.Prop("doubleBuffered"), Main.os== Main.OS.mac);
 
 	static public Window shareContext = null;
 	protected final Window shareContextAtConstruction ;
@@ -143,6 +143,8 @@ public class Window implements ProvidesGraphicsContext {
 			glcontext = shareContext.glcontext;
 			GL.setCapabilities(glcontext);
 		}
+
+
 
 
 
@@ -306,13 +308,21 @@ public class Window implements ProvidesGraphicsContext {
 				return;
 			}
 
+
+			String name = Glfw.glfwGetJoystickName(Glfw.GLFW_JOYSTICK_2);
+			float[] axes = new float[10];
+			int num = Glfw.glfwGetJoystickAxes(Glfw.GLFW_JOYSTICK_2, axes);
+			System.out.println(" axes :"+num+" "+axes[0]+" "+axes[1]+" "+axes[2]+" "+axes[3]);
+			byte[] buttons = new byte[20];
+			 num = Glfw.glfwGetJoystickButtons(Glfw.GLFW_JOYSTICK_2, buttons);
+			System.out.println(" buttons :"+num+" "+buttons[0]+" "+buttons[1]+" "+buttons[2]+" "+buttons[3]);
+
 			needsRepainting = false;
 
 			glfwMakeContextCurrent(window);
 			glfwSwapInterval(1);
 
 			// makes linux all go to hell
-			//glcontext.makeCurrent(0);
 			GL.setCapabilities(glcontext);
 
 			int w = glfwGetWindowWidth(window);
