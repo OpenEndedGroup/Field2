@@ -202,7 +202,7 @@ public class WebApps extends Box implements IO.Loaded {
 						};
 
 						Consumer<String> append = s -> {
-							executeJS.accept("$(document.body).append('" + s.replace("'", "\"") + "');");
+							executeJS.accept("$('.all').append('" + s.replace("'", "\"") + "');");
 						};
 
 						LinkedHashMap<String, Object> p2 = new LinkedHashMap<String, Object>();
