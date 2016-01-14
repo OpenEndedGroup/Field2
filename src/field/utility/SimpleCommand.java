@@ -45,29 +45,24 @@ public class SimpleCommand {
 
 		System.out.println(" starting process :" + p + " " + command + " " + String.join(" ", args));
 
+		p.redirectErrorStream(true);
+
 		Process proc = p.start();
 		InputStream is = proc.getInputStream();
+
 		BufferedReader r = new BufferedReader(new InputStreamReader(is));
-		InputStream ise = proc.getErrorStream();
-		BufferedReader re = new BufferedReader(new InputStreamReader(ise));
 
 		new Thread(() -> {
 			try {
-				while ((r.ready() || re.ready())) {
-					if (r.ready())
-						output.accept(r.readLine());
-					if (re.ready())
-						output.accept(re.readLine());
-					Thread.sleep(10);
-
-
-					if (!r.ready() && !re.ready() && !proc.isAlive())
+				while(true)
+				{
+					String q = r.readLine();
+					if (q==null)
 						break;
-
+					else
+						output.accept(q);
 				}
 			} catch (IOException e) {
-				e.printStackTrace();
-			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}).start();
