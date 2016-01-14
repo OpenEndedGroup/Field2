@@ -403,6 +403,15 @@ public class ShaderIntrospection {
 							errors += "&mdash; this " + kind + (kind.length() > 0 ? "'s" : "") + " has a FBO bound to unit <b>" + convert.apply(
 								    uniform.get()) + "</b> called <b>" + un.name + "</b> is of the wrong type. Shader expects a <b>GL_TEXTURE_2D_ARRAY</b>, you've supplied a single layer FBO\n";
 						}
+					}else if (un.type == GL32.GL_SAMPLER_2D_MULTISAMPLE_ARRAY) {
+						FBO fbo = findFBO((Integer) uniform.get());
+						if (fbo == null) {
+							errors
+								    += "&mdash; from this " + kind + ", Field can't find an FBO bound to the <b>GL_TEXTURE_2D_MULTISAMPLE_ARRAY</b> uniform called <b>" + un.name + "</b>\n";
+						} else if (fbo.specification.layers == 1) {
+							errors += "&mdash; this " + kind + (kind.length() > 0 ? "'s" : "") + " has a FBO bound to unit <b>" + convert.apply(
+								    uniform.get()) + "</b> called <b>" + un.name + "</b> is of the wrong type. Shader expects a <b>GL_TEXTURE_2D_MULTISAMPLE_ARRAYffc ccc</b>, you've supplied a single layer FBO\n";
+						}
 					} else {
 						errors
 							    += "&mdash; this " + kind + (kind.length() > 0 ? "'s" : "") + " shader has a uniform called <b>" + un.name + "</b> is currently of a type that Field doesn't send (specifically <b>" + uniformTypeConstants_readable.getOrDefault(
