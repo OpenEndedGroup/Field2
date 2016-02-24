@@ -2,6 +2,8 @@ package fieldcef.browser;
 
 import com.google.common.collect.MapMaker;
 import field.utility.Log;
+import field.utility.SimpleCommand;
+import fieldagent.Trampoline;
 import org.cef.CefApp;
 import org.cef.CefClient;
 import org.cef.browser.*;
@@ -11,9 +13,19 @@ import org.cef.handler.CefLifeSpanHandler;
 import org.cef.handler.CefLoadHandlerAdapter;
 import org.cef.handler.CefMessageRouterHandler;
 
+import sun.jvmstat.monitor.HostIdentifier;
+import sun.jvmstat.monitor.MonitorException;
+import sun.jvmstat.monitor.MonitoredHost;
+import sun.jvmstat.monitor.MonitoredVm;
+import sun.jvmstat.monitor.MonitoredVmUtil;
+import sun.jvmstat.monitor.VmIdentifier;
+
 import java.awt.*;
+import java.io.File;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -28,14 +40,21 @@ public class CefSystem {
 
 	protected CefSystem()
 	{
-		cefApp = CefApp.getInstance(new String[]{"--overlay-scrollbars", "--off-screen-rendering-mode-enabled", "--enable-experimental-web-platform-features"});
+		cefApp = CefApp.getInstance(new String[]{"--overlay-scrollbars", "--single-process", "--off-screen-rendering-mode-enabled", "--enable-experimental-web-platform-features"});
 
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-			System.err.println(" disposing...");
-			cefApp.dispose();
-			System.err.println(" disposed ");
+			System.out.println(" -- sleeping for 2 seconds, then killing");
 			try {
 				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			Integer pid = new GetOwnPid().getPid();
+			System.err.println(" pid is :"+pid);
+			try {
+				SimpleCommand.go(new File("."), "/bin/kill", "-9", ""+pid.intValue());
+			} catch (IOException e) {
+				e.printStackTrace();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -115,7 +134,7 @@ public class CefSystem {
 				Log.log("cef.debug", ()->"load end:" + browser + " -> " + frameIdentifier);
 				Runnable r =completionCallbacks.get(browser);
 				if (r!=null)
-					    r.run();
+					r.run();
 			}
 
 			@Override
@@ -126,7 +145,6 @@ public class CefSystem {
 
 		router = CefMessageRouter.create();
 		client.addMessageRouter(router);
-
 
 		router.addHandler(new CefMessageRouterHandler() {
 			@Override
@@ -206,6 +224,44 @@ public class CefSystem {
 		return browser;
 	}
 
+	public class GetOwnPid {
+
+
+		public void run() {
+			System.out.println(getPid(this.getClass()));
+		}
+
+		public Integer getPid() {
+			return getPid(Trampoline.class);
+		}
+		public Integer getPid(Class<?> mainClass) {
+			MonitoredHost monitoredHost;
+			Set<Integer> activeVmPids;
+			try {
+				monitoredHost = MonitoredHost.getMonitoredHost(new HostIdentifier((String) null));
+				activeVmPids = monitoredHost.activeVms();
+				MonitoredVm mvm = null;
+				for (Integer vmPid : activeVmPids) {
+					try {
+						mvm = monitoredHost.getMonitoredVm(new VmIdentifier(vmPid.toString()));
+						String mvmMainClass = MonitoredVmUtil.mainClass(mvm, true);
+						if (mainClass.getName().equals(mvmMainClass)) {
+							return vmPid;
+						}
+					} finally {
+						if (mvm != null) {
+							mvm.detach();
+						}
+					}
+				}
+			} catch (java.net.URISyntaxException e) {
+				throw new InternalError(e.getMessage());
+			} catch (MonitorException e) {
+				throw new InternalError(e.getMessage());
+			}
+			return null;
+		}
+	}
 
 
 }
