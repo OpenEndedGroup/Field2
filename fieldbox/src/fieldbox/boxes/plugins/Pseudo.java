@@ -6,6 +6,7 @@ import field.utility.Conversions;
 import field.utility.Dict;
 import field.utility.IdempotencyMap;
 import fieldbox.boxes.Box;
+import fieldbox.io.IO;
 import fieldbox.boxes.Boxes;
 import fieldbox.boxes.XPathSupport;
 import fieldbox.io.IO;
@@ -107,10 +108,11 @@ public class Pseudo extends Box {
 											    .type()
 											    .doc("`_.named.x` returns an array of all the boxes named `x` that are _below_ this box. If you want to search everywhere, try `_.root.named.x`. To match regex or use whitespace in names, try `_.named['.*x']`");
 
+
+
 	static public Dict.Prop<FunctionOfBoxValued<WithID>> withID = new Dict.Prop<>("withID").toCannon()
 											    .type()
-											    .doc("`_.withID['...uid...']` returns the boxes (if it exists) with uid that's _below_ this box. If you want to search everywhere, try `_.root.named.x`. To match regex or use whitespace in names, try `_.named['.*x']`");
-
+											    .doc("`_.withID['abc']` returns any box with ID `abc` _below_ this box. If you want to search everywhere, try `_.root.withID.x`. ID's are uniqe (across the universe).");
 
 	static public Dict.Prop<FunctionOfBoxValued<Oncer>> once = new Dict.Prop<FunctionOfBoxValued<Oncer>>("once").toCannon()
 														    .type()

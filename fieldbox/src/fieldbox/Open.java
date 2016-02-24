@@ -360,6 +360,9 @@ public class Open {
 
 
 		RunLoop.main.once(() -> {
+
+			System.err.println(" booting up text editor ");
+
 			new TextEditor(boxes.root()).connect(boxes.root());
 			new GlassBrowser(boxes.root()).connect(boxes.root());
 			new OutputBox(boxes.root()).connect(boxes.root());

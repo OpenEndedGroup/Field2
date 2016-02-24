@@ -203,9 +203,9 @@ public class WebApps extends Box implements IO.Loaded {
 								socket.send(s);
 							};
 
-							Consumer<String> append = s -> {
-								executeJS.accept("$('.all').append('" + s.replace("'", "\"") + "');");
-							};
+						Consumer<String> append = s -> {
+							executeJS.accept("$('.all').append('" + s.replace("'", "\"") + "');");
+						};
 
 							LinkedHashMap<String, Object> p2 = new LinkedHashMap<String, Object>();
 							p2.putAll(params);

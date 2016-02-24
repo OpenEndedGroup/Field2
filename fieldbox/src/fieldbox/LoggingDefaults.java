@@ -21,6 +21,7 @@ public class LoggingDefaults {
 //		Log.on("tap.*", Log::green);
 		Log.on("completion.debug", Log::green);
 		Log.on("thata", Log::blue);
+		Log.on(".*error", Log::red);
 //		Log.on("remote.cookie", Log::green);
 //		Log.on("server", Log::green);
 //		Log.on("python.debug", Log::green);
@@ -32,8 +33,8 @@ public class LoggingDefaults {
 ////		Log.on(".*trace.*", Log::blue);
 //		Log.off(".*trace.*");
 //		Log.on("graphics.trace", Log::green);
-////		Log.on("texture.trace", Log::green);
-//		Log.on("texture.trace2", Log::green);
+		Log.on("texture.trace", Log::green);
+		Log.on("texture.trace2", Log::green);
 //		Log.disable("keyboard2");
 //		Log.disable("keyboard");
 //		Log.disable("event.debug");
