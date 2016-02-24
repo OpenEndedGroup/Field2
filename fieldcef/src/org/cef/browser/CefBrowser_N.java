@@ -246,11 +246,15 @@ abstract public class CefBrowser_N extends CefNativeAdapter implements CefBrowse
 
 	@Override
 	public void close() {
-		System.out.println(" CEF, getting closed ?");
+		System.out.println(" CEF, getting closed ? <" + Thread.currentThread() + ">");
 		try {
-			N_Close();
+			Thread.sleep(10000);
+//			Runtime.getRuntime().halt(0);
+//			N_Close();
 		} catch (UnsatisfiedLinkError ule) {
 			ule.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 	}
 
