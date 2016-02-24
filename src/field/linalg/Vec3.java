@@ -122,7 +122,8 @@ public class Vec3 implements Externalizable, Supplier<Vec3>, Mutable {
 	 * @see #Vec3(int, ByteBuffer)
 	 */
 	public Vec3(ByteBuffer buffer) {
-		this(buffer.position(), buffer);
+		this(buffer.position(), buffer);		buffer.position(buffer.position()+3*8);
+
 	}
 
 	/**
@@ -150,7 +151,8 @@ public class Vec3 implements Externalizable, Supplier<Vec3>, Mutable {
 	 * @see #Vec3(int, DoubleBuffer)
 	 */
 	public Vec3(DoubleBuffer buffer) {
-		this(buffer.position(), buffer);
+		this(buffer.position(), buffer);		buffer.position(buffer.position()+3);
+
 	}
 
 	/**
@@ -180,6 +182,7 @@ public class Vec3 implements Externalizable, Supplier<Vec3>, Mutable {
 	 */
 	public Vec3(FloatBuffer buffer) {
 		this(buffer.position(), buffer);
+		buffer.position(buffer.position()+3);
 	}
 
 	/**
