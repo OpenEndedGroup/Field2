@@ -118,7 +118,7 @@ public class Options {
 
 
 	public static String getString(String key, Supplier<String> def) {
-		return dict().computeIfAbsent(new Dict.Prop<String>(key), (k) -> def.get());
+		return ""+dict().computeIfAbsent(new Dict.Prop(key), (k) -> def.get());
 	}
 
 	public static String getDirectory(String key, Supplier<String> def) {
