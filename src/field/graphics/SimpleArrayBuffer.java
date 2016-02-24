@@ -124,6 +124,12 @@ public class SimpleArrayBuffer implements ArrayBuffer {
 					    .limit(dimension * size);
 	}
 
+	@Override
+	public ByteBuffer bytes(boolean readOnly) {
+		if (!readOnly) mod++;
+		return data.rewind().limit(dimension*size*4);
+	}
+
 	private State setup() {
 		State s = new State();
 
