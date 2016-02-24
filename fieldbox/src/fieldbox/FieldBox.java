@@ -4,6 +4,7 @@ import field.app.RunLoop;
 import field.utility.Options;
 import fieldagent.Main;
 import fieldbox.io.IO;
+import fieldcef.browser.CefSystem;
 
 import java.awt.*;
 
@@ -23,6 +24,9 @@ public class FieldBox {
 
 
 	static public void main(String[] s) {
+
+		// experimenting with moving this initialization first. Does this remove the occasional crash on startup?
+		new Thread(() -> {CefSystem sys = CefSystem.cefSystem;}).start();
 
 		if (Main.os== Main.OS.mac)
 			Toolkit.getDefaultToolkit();
