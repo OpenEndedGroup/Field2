@@ -167,7 +167,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 			GL15.glBindBuffer(GL21.GL_PIXEL_UNPACK_BUFFER, 0);
 			Log.log("graphics.trace", ()->"uploaded part 1");
 			s.mod++;
-		}, -2).setOnceOnly());
+		}, -2).setOnceOnly().setAllContextsFor(this));
 	}
 
 	/**
@@ -192,7 +192,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 			if (specification.highQuality) {
 				glGenerateMipmap(specification.target);
 			}
-		}, -2).setOnceOnly());
+		}, -2).setOnceOnly().setAllContextsFor(this));
 	}
 
 	/**
@@ -239,7 +239,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 			GL15.glBindBuffer(GL21.GL_PIXEL_UNPACK_BUFFER, 0);
 			Log.log("graphics.trace", ()->"uploaded part 1");
 			s.mod++;
-		}, -2).setOnceOnly());
+		}, -2).setOnceOnly().setAllContextsFor(this));
 	}
 
 	public int getPendingUploads() {
@@ -304,8 +304,8 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 			glTexParameteri(specification.target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		} else {
 
-			glTexParameteri(specification.target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameteri(specification.target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(specification.target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+			glTexParameteri(specification.target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		}
 
@@ -369,7 +369,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
 	protected int upload(State s) {
 
-		System.out.println(" upload part 2 ");
+		System.out.println(" ----------------------- upload part 2 <"+this+">");
 
 		GraphicsContext.checkError(() -> " upload part 2 entry");
 
@@ -404,6 +404,11 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 		uploadCount++;
 
 		return mod;
+	}
+
+	@Override
+	public String toString() {
+		return super.toString()+System.identityHashCode(this);
 	}
 
 	public int forceUploadNow(ByteBuffer from) {
@@ -528,10 +533,13 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 		}
 
 		static public TextureSpecification fromJpeg(int unit, String filename, boolean mips) {
+
+
 			int[] wh = FastJPEG.j.dimensions(filename);
 			ByteBuffer data = ByteBuffer.allocateDirect(3 * wh[0] * wh[1]);
 			FastJPEG.j.decompress(filename, data, wh[0], wh[1]);
 			return new TextureSpecification(unit, GL_TEXTURE_2D, GL_RGB8, wh[0], wh[1], GL_RGB, GL_UNSIGNED_BYTE, 3, data, mips);
+
 		}
 
 		static public TextureSpecification from1DRGBAFloatBuffer(int unit, int length, FloatBuffer source) {
