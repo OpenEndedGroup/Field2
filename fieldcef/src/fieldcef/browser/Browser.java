@@ -1,5 +1,6 @@
 package fieldcef.browser;
 
+import field.app.RunLoop;
 import field.graphics.*;
 import field.graphics.Window;
 import field.graphics.util.KeyEventMapping;
@@ -551,8 +552,6 @@ public class Browser extends Box implements IO.Loaded {
 	 */
 	protected void paint(boolean popup, Rectangle[] dirty, ByteBuffer buffer, int w, int h) {
 
-		System.err.println("PAINT :"+w+" "+h);
-
 		if (dirty.length == 0) return;
 
 		sourceView.clear();
@@ -658,22 +657,22 @@ public class Browser extends Box implements IO.Loaded {
 				browser.setZoomLevel(2 * window.getRetinaScaleFactor());
 			}
 			Log.log("cef.debug", () -> " texture was dirty, uploading ");
-			System.out.println(" dirty, uploading damage :" + damage);
-//			texture.upload(source, true);
 			texture.upload(source, true, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (1+damage.h + damage.y));
 			Drawing.dirty(this);
-			again = 1;
+			again = 3;
 			hasRepainted = true;
+			RunLoop.main.shouldSleep.add(this);
 		} else if (again > 0 && damage != null) {
 			Log.log("cef.debug", () -> " texture was dirty " + again + " call, uploading ");
-			System.out.println(" dirty, uploading damage :" + damage);
-//			texture.upload(source, true);
 			texture.upload(source, true, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (1 + damage.h + damage.y));
 			Drawing.dirty(this);
+			RunLoop.main.shouldSleep.add(this);
 			again--;
-			if (again == 0) {
-				damage = null;
-			}
+		}
+		else
+		if (again == 0) {
+			damage = null;
+			RunLoop.main.shouldSleep.remove(this);
 		}
 
 
