@@ -1,6 +1,7 @@
 package fieldcef.plugins;
 
-import com.badlogic.jglfw.Glfw;
+import static org.lwjgl.glfw.GLFW.*;
+
 import field.app.RunLoop;
 import field.graphics.Window;
 import field.utility.Dict;
@@ -27,8 +28,7 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 /**
- * This is a browser, created by default, that covers the whole window in the glass layer. We can then either center it in the window, or crop into
- * it.
+ * This is a browser, created by default, that covers the whole window in the glass layer. We can then either center it in the window, or crop into it.
  */
 public class GlassBrowser extends Box implements IO.Loaded {
 
@@ -41,8 +41,8 @@ public class GlassBrowser extends Box implements IO.Loaded {
 	String styleSheet = "field-codemirror.css";
 
 	// we'll need to make sure that this is centered on larger screens
-	int maxw = 1920*2;
-	int maxh = 1080*2;
+	int maxw = 1920 * 2;
+	int maxh = 1080 * 2;
 	public Browser browser;
 	public String styles;
 
@@ -50,12 +50,13 @@ public class GlassBrowser extends Box implements IO.Loaded {
 		this.properties.put(glassBrowser, this);
 		this.root = root;
 	}
+
 	int tick = 0;
 
 	Commands commandHelper = new Commands();
 
 	public void loaded() {
-		Log.log("glassbrowser.debug", ()->"initializing browser");
+		Log.log("glassbrowser.debug", () -> "initializing browser");
 		browser = new Browser();
 		browser.properties.put(Box.frame, new Rect(0, 0, maxw, maxh));
 		browser.properties.put(FLineDrawing.layer, "glass2");
@@ -88,7 +89,7 @@ public class GlassBrowser extends Box implements IO.Loaded {
 		// I've been looking forward to this for a while
 		this.properties.putToMap(Keyboard.onKeyDown, "__glassbrowser__", (e, k) -> {
 			if (!e.properties.isTrue(Window.consumed, false)) {
-				if (e.after.keysDown.contains(Glfw.GLFW_KEY_SPACE) && e.after.isControlDown() && !e.before.keysDown.contains(Glfw.GLFW_KEY_SPACE)) {
+				if (e.after.keysDown.contains(GLFW_KEY_SPACE) && e.after.isControlDown() && !e.before.keysDown.contains(GLFW_KEY_SPACE)) {
 					if (!visible) {
 						center();
 						runCommands();
@@ -107,10 +108,10 @@ public class GlassBrowser extends Box implements IO.Loaded {
 
 
 		String bootstrap = "<html style='background:rgba(0,0,0,0.02);'><head><style>" + styles + "</style></head><body class='CodeMirror' style='background:rgba(0,0,0,0.02);'></body></html>";
-		String res =  UUID.randomUUID()
-							    .toString();
+		String res = UUID.randomUUID()
+				 .toString();
 		s.setFixedResource("/" + res, bootstrap);
-		browser.properties.put(Browser.url, "http://localhost:"+s.port+"/"+res);
+		browser.properties.put(Browser.url, "http://localhost:" + s.port + "/" + res);
 
 
 		tick = 0;
@@ -118,11 +119,11 @@ public class GlassBrowser extends Box implements IO.Loaded {
 			    .attach(x -> {
 				    tick++;
 				    if (browser.browser.getURL()
-						       .equals("http://localhost:"+s.port+"/" + res)) {
+						       .equals("http://localhost:" + s.port + "/" + res)) {
 					    inject2();
 					    return false;
 				    }
-				    Log.log("glassBrowser.boot", ()->"WAITING url:" + browser.browser.getURL());
+				    Log.log("glassBrowser.boot", () -> "WAITING url:" + browser.browser.getURL());
 				    Drawing.dirty(this);
 				    return tick < 100;
 			    });
@@ -133,9 +134,9 @@ public class GlassBrowser extends Box implements IO.Loaded {
 	int ignoreHide = 0;
 
 	public void inject2() {
-		Log.log("glassbrowser.debug", ()->"inject 2 is happening");
+		Log.log("glassbrowser.debug", () -> "inject 2 is happening");
 		for (String s : playlist) {
-			Log.log("glassbrowser.debug", ()->"executing :" + s);
+			Log.log("glassbrowser.debug", () -> "executing :" + s);
 			browser.executeJavaScript(findAndLoad(s, true));
 		}
 		hide();
@@ -148,20 +149,20 @@ public class GlassBrowser extends Box implements IO.Loaded {
 		});
 
 		browser.addHandler(x -> x.equals("request.commands"), (address, paylod, ret) -> {
-			commandHelper.requestCommands(Optional.of(selection().findFirst().orElse(this)), null, null, ret, -1, -1);
+			commandHelper.requestCommands(Optional.of(selection().findFirst()
+									     .orElse(this)), null, null, ret, -1, -1);
 		});
 
 		browser.addHandler(x -> x.equals("call.command"), (address, payload, ret) -> {
 			String command = payload.getString("command");
 			Runnable r = commandHelper.callTable.get(command);
 			if (r != null) {
-				if (r instanceof RemoteEditor.ExtendedCommand)
-					((RemoteEditor.ExtendedCommand) r).begin(commandHelper.supportsPrompt(x -> {
-						Log.log("glassbrowser.debug",()-> "continue commands " + x + "");
-						browser.executeJavaScript("continueCommands(JSON.parse('" + x + "'))");
-						ignoreHide = 4;
-						show();
-					}), null);
+				if (r instanceof RemoteEditor.ExtendedCommand) ((RemoteEditor.ExtendedCommand) r).begin(commandHelper.supportsPrompt(x -> {
+					Log.log("glassbrowser.debug", () -> "continue commands " + x + "");
+					browser.executeJavaScript("continueCommands(JSON.parse('" + x + "'))");
+					ignoreHide = 4;
+					show();
+				}), null);
 				r.run();
 			}
 			ret.accept("OK");
@@ -173,13 +174,12 @@ public class GlassBrowser extends Box implements IO.Loaded {
 			String text = payload.getString("text");
 			Runnable r = commandHelper.callTable_alternative;
 			if (r != null) {
-				if (r instanceof RemoteEditor.ExtendedCommand)
-					((RemoteEditor.ExtendedCommand) r).begin(commandHelper.supportsPrompt(x -> {
-						Log.log("glassbrowser.debug", ()->"continue commands " + x + "");
-						browser.executeJavaScript("continueCommands(JSON.parse('" + x + "'))");
-						ignoreHide = 4;
-						show();
-					}), text);
+				if (r instanceof RemoteEditor.ExtendedCommand) ((RemoteEditor.ExtendedCommand) r).begin(commandHelper.supportsPrompt(x -> {
+					Log.log("glassbrowser.debug", () -> "continue commands " + x + "");
+					browser.executeJavaScript("continueCommands(JSON.parse('" + x + "'))");
+					ignoreHide = 4;
+					show();
+				}), text);
 				r.run();
 			}
 			ret.accept("OK");
@@ -210,7 +210,7 @@ public class GlassBrowser extends Box implements IO.Loaded {
 
 
 	public void hide() {
-		Log.log("selection", ()->"hidding now");
+		Log.log("selection", () -> "hidding now");
 		visible = false;
 		tick = 0;
 		RunLoop.main.getLoop()
@@ -219,7 +219,7 @@ public class GlassBrowser extends Box implements IO.Loaded {
 					    browser.setFocus(false);
 					    browser.properties.put(Box.hidden, true);
 					    browser.properties.put(Mouse.isSelected, false);
-					    Log.log("selection", ()->"hidding now, again");
+					    Log.log("selection", () -> "hidding now, again");
 					    Drawing.dirty(this);
 				    }
 				    tick++;
@@ -240,20 +240,21 @@ public class GlassBrowser extends Box implements IO.Loaded {
 		FieldBoxWindow window = this.find(Boxes.window, both())
 					    .findFirst()
 					    .get();
-		Rect f = browser.properties.get(Box.frame).duplicate();
-		f.y = (int)((window.getHeight() - f.h) / 2);
+		Rect f = browser.properties.get(Box.frame)
+					   .duplicate();
+		f.y = (int) ((window.getHeight() - f.h) / 2);
 //		f.x = 0;
 //		f.y = 0;
 //		f.w = window.getWidth();
 //		f.h = window.getHeight();
-		f.x = (int)((window.getWidth() - f.w) / 2);
+		f.x = (int) ((window.getWidth() - f.w) / 2);
 
 		browser.properties.put(Box.frame, f);
 
 		browser.executeJavaScript("$(\".CodeMirror\").css(\"height\", " + (window.getHeight()) + ")");
 		browser.executeJavaScript("$(\".CodeMirror\").css(\"width\", " + window.getWidth() + ")");
 		browser.executeJavaScript("$(\"body\").css(\"height\", " + (window.getHeight()) + ")");
-		browser.executeJavaScript("$(\"body\").css(\"width\", " + window.getWidth()+")");
+		browser.executeJavaScript("$(\"body\").css(\"width\", " + window.getWidth() + ")");
 
 		if (!browser.properties.isTrue(Box.hidden, false)) Drawing.dirty(this);
 	}
@@ -282,7 +283,7 @@ public class GlassBrowser extends Box implements IO.Loaded {
 		for (String s : roots) {
 			if (new File(s + "/" + f).exists()) return readFile(s + "/" + f, append);
 		}
-		Log.log("glassbrowser.error", ()->"Couldnt' find file in playlist :" + f);
+		Log.log("glassbrowser.error", () -> "Couldnt' find file in playlist :" + f);
 		return null;
 	}
 

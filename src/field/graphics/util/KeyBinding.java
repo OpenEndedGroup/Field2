@@ -1,6 +1,7 @@
 package field.graphics.util;
 
-import com.badlogic.jglfw.Glfw;
+import static org.lwjgl.glfw.GLFW.*;
+import org.lwjgl.glfw.GLFW;
 import field.graphics.Window;
 
 import javax.xml.crypto.dsig.keyinfo.KeyName;
@@ -62,7 +63,7 @@ public class KeyBinding {
 			}
 			name = name.replace("-", "");
 			name = name.trim();
-			Field[] ff = Glfw.class.getFields();
+			Field[] ff = GLFW.class.getFields();
 			for(Field f : ff)
 			{
 				if (f.getName().startsWith("GLFW_KEY_"))

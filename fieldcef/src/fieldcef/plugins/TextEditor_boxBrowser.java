@@ -1,6 +1,6 @@
 package fieldcef.plugins;
 
-import com.badlogic.jglfw.Glfw;
+import static org.lwjgl.glfw.GLFW.*;
 import field.app.RunLoop;
 import field.graphics.Window;
 import field.linalg.Vec2;
@@ -155,6 +155,8 @@ public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 						 if (enabled) {
 							 String u = "http://localhost:" + ServerSupport.webserverPort + "/id/" + prevSelection.properties.get(IO.id);
 							 setURL(u, () -> {
+								 System.out.println(" presentation mode second callback happened");
+
 								 browser.properties.put(Box.hidden, false);
 								 Drawing.dirty(this);
 								 browser.executeJavaScript("$(\"body\").height( " + Math.min(maxh, maxhOnCreation - 40) + ")");
@@ -176,9 +178,9 @@ public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 				    Rect f = browser.properties.get(Box.frame);
 
 
-				    if ((int)f.h != heightLast) {
+				    if ((int)maxh != heightLast) {
 					    f = f.duplicate();
-					    heightLast = (int) f.h;
+					    heightLast = (int) maxh;
 					    browser.executeJavaScript("$(\"body\").height( " + Math.min(maxh, maxhOnCreation - 40) + ")");
 				    }
 
@@ -202,23 +204,28 @@ public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 		enabled = true;
 		if (prevSelection != null) {
 			String u = "http://localhost:" + ServerSupport.webserverPort + "/id/" + prevSelection.properties.get(IO.id);
-			System.out.println(" setting url to be :" + u);
+			System.out.println("presentation mode setting url to be :" + u);
 			setURL(u, () -> {
+				System.out.println(" presentation mode callback happened");
 				browser.properties.put(Box.hidden, false);
 				Drawing.dirty(this);
 				browser.executeJavaScript("$(\"body\").height( " + Math.min(maxh, maxhOnCreation - 40) + ")");
-				browser.executeJavaScript("$(\"body\").width(" + lastWidth + ")");
+				browser.executeJavaScript("$(\"body\").width(" + Math.min(maxw-28, (int)(lastWidth-28)) + ")");
 			});
 		}
+		else
+		{
+			System.out.println(" no 'prevSelection' in textEditor_boxBrowser");
+		}
 		textEditor.hide();
-		textEditor.disconnected = true;
+		textEditor.browser.disconnected = true;
 		show();
 	}
 
 	public void disable() {
 		hide();
 		enabled = false;
-		textEditor.disconnected = false;
+		textEditor.browser.disconnected = false;
 	}
 
 

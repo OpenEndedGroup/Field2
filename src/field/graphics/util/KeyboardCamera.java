@@ -1,6 +1,6 @@
 package field.graphics.util;
 
-import com.badlogic.jglfw.Glfw;
+import static org.lwjgl.glfw.GLFW.*;
 import field.graphics.Camera;
 import field.app.RunLoop;
 import field.graphics.Window;
@@ -44,25 +44,25 @@ public class KeyboardCamera implements Function<Window.Event<KeyboardState>, Boo
 			    .lookUp(rotationAmount*amount)));
 		bindings.put(new KeyBinding.KeyName("shift-page_up"), new Applicator(0, (state, amount) -> state
 			    .orbitUp(rotationAmount*amount)));
-		bindings.put(new KeyBinding.KeyName(Glfw.GLFW_KEY_PAGE_DOWN, false, false, false, false), new Applicator(0, (state, amount) -> state
+		bindings.put(new KeyBinding.KeyName(GLFW_KEY_PAGE_DOWN, false, false, false, false), new Applicator(0, (state, amount) -> state
 			    .lookUp(rotationAmount*-amount)));
-		bindings.put(new KeyBinding.KeyName(Glfw.GLFW_KEY_PAGE_DOWN, true, false, false, false), new Applicator(0, (state, amount) -> state
+		bindings.put(new KeyBinding.KeyName(GLFW_KEY_PAGE_DOWN, true, false, false, false), new Applicator(0, (state, amount) -> state
 			    .orbitUp(rotationAmount*-amount)));
-		bindings.put(new KeyBinding.KeyName(Glfw.GLFW_KEY_LEFT, false, false, false, false), new Applicator(0, (state, amount) -> state
+		bindings.put(new KeyBinding.KeyName(GLFW_KEY_LEFT, false, false, false, false), new Applicator(0, (state, amount) -> state
 			    .lookLeft(rotationAmount*amount)));
-		bindings.put(new KeyBinding.KeyName(Glfw.GLFW_KEY_LEFT, true, false, false, false), new Applicator(0, (state, amount) -> state
+		bindings.put(new KeyBinding.KeyName(GLFW_KEY_LEFT, true, false, false, false), new Applicator(0, (state, amount) -> state
 			    .orbitLeft(rotationAmount*amount)));
-		bindings.put(new KeyBinding.KeyName(Glfw.GLFW_KEY_RIGHT, false, false, false, false), new Applicator(0, (state, amount) -> state
+		bindings.put(new KeyBinding.KeyName(GLFW_KEY_RIGHT, false, false, false, false), new Applicator(0, (state, amount) -> state
 			    .lookLeft(-rotationAmount*amount)));
-		bindings.put(new KeyBinding.KeyName(Glfw.GLFW_KEY_RIGHT, true, false, false, false), new Applicator(0, (state, amount) -> state
+		bindings.put(new KeyBinding.KeyName(GLFW_KEY_RIGHT, true, false, false, false), new Applicator(0, (state, amount) -> state
 			    .orbitLeft(-rotationAmount*amount)));
-		bindings.put(new KeyBinding.KeyName(Glfw.GLFW_KEY_UP, false, false, false, false), new Applicator(0, (state, amount) -> state
+		bindings.put(new KeyBinding.KeyName(GLFW_KEY_UP, false, false, false, false), new Applicator(0, (state, amount) -> state
 			    .translateIn(translationAmount*amount)));
-		bindings.put(new KeyBinding.KeyName(Glfw.GLFW_KEY_UP, true, false, false, false), new Applicator(0, (state, amount) -> state
+		bindings.put(new KeyBinding.KeyName(GLFW_KEY_UP, true, false, false, false), new Applicator(0, (state, amount) -> state
 			    .dollyIn(translationAmount*amount)));
-		bindings.put(new KeyBinding.KeyName(Glfw.GLFW_KEY_DOWN, false, false, false, false), new Applicator(0, (state, amount) -> state
+		bindings.put(new KeyBinding.KeyName(GLFW_KEY_DOWN, false, false, false, false), new Applicator(0, (state, amount) -> state
 			    .translateIn(-translationAmount*amount)));
-		bindings.put(new KeyBinding.KeyName(Glfw.GLFW_KEY_DOWN, true, false, false, false), new Applicator(0, (state, amount) -> state
+		bindings.put(new KeyBinding.KeyName(GLFW_KEY_DOWN, true, false, false, false), new Applicator(0, (state, amount) -> state
 			    .dollyIn(-translationAmount*amount)));
 
 

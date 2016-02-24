@@ -1,20 +1,24 @@
 package fieldbox.ui;
 
-import com.badlogic.jglfw.Glfw;
 import field.graphics.FastJPEG;
+import field.graphics.JPEGLoader;
 import field.graphics.Window;
 import field.utility.Log;
+import org.lwjgl.glfw.GLFWImage;
 
 import java.io.File;
 import java.net.URL;
 import java.nio.ByteBuffer;
+
+import static org.lwjgl.glfw.GLFW.glfwCreateCursor;
+import static org.lwjgl.glfw.GLFW.glfwSetCursor;
 
 /**
  * Classes for setting cursors (INCOMPLETE)
  */
 public class Cursors {
 
-	static FastJPEG j = new FastJPEG();
+	static JPEGLoader j = FastJPEG.j;
 	static public final int cursorSize = 32;
 
 	static public long arrowLeft = 0;
@@ -26,15 +30,15 @@ public class Cursors {
 
 
 	static public void clear(Window window) {
-		if (currentCursor != 0) Glfw.glfwSetCursor(window.getGLFWWindowReference(), currentCursor = 0);
+		if (currentCursor != 0) glfwSetCursor(window.getGLFWWindowReference(), currentCursor = 0);
 	}
 
 	static public void arrowLeft(Window window) {
 
 		if (arrowLeft == 0) arrowLeft = loadResource("arrowLeft.jpg");
 
-		Log.log("cursors", ()->"setting to arrow");
-		if (currentCursor != arrowLeft) Glfw.glfwSetCursor(window.getGLFWWindowReference(), currentCursor = arrowLeft);
+		Log.log("cursors", () -> "setting to arrow");
+		if (currentCursor != arrowLeft) glfwSetCursor(window.getGLFWWindowReference(), currentCursor = arrowLeft);
 	}
 
 	protected static long loadResource(String res) {
@@ -56,29 +60,35 @@ public class Cursors {
 		}
 
 
-		dest.rewind();
-		return Glfw.glfwCreateCursor(destRGBA, cursorSize, cursorSize, 16, 16);
+		dest.rewind();destRGBA.rewind();
+
+		GLFWImage g = GLFWImage.calloc();
+		g.height(cursorSize);
+		g.width(cursorSize);
+		g.pixels(destRGBA);
+
+		return glfwCreateCursor(g, 16, 16);
 	}
 
 	static public void arrowRight(Window window) {
 		if (arrowRight == 0) arrowRight = loadResource("arrowRight.jpg");
 
-		Log.log("cursors", ()->"setting to arrow");
-		if (currentCursor != arrowRight) Glfw.glfwSetCursor(window.getGLFWWindowReference(), currentCursor = arrowRight);
+		Log.log("cursors", () -> "setting to arrow");
+		if (currentCursor != arrowRight) glfwSetCursor(window.getGLFWWindowReference(), currentCursor = arrowRight);
 	}
 
 	static public void arrowDown(Window window) {
 		if (arrowDown == 0) arrowDown = loadResource("arrowDown.jpg");
 
-		Log.log("cursors", ()->"setting to arrow");
-		if (currentCursor != arrowDown) Glfw.glfwSetCursor(window.getGLFWWindowReference(), currentCursor = arrowDown);
+		Log.log("cursors", () -> "setting to arrow");
+		if (currentCursor != arrowDown) glfwSetCursor(window.getGLFWWindowReference(), currentCursor = arrowDown);
 	}
 
 	static public void arrowUp(Window window) {
 		if (arrowUp == 0) arrowUp = loadResource("arrowUp.jpg");
 
-		Log.log("cursors", ()->"setting to arrow");
-		if (currentCursor != arrowUp) Glfw.glfwSetCursor(window.getGLFWWindowReference(), currentCursor = arrowUp);
+		Log.log("cursors", () -> "setting to arrow");
+		if (currentCursor != arrowUp) glfwSetCursor(window.getGLFWWindowReference(), currentCursor = arrowUp);
 	}
 
 

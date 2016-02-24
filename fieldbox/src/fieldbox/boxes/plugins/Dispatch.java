@@ -1,6 +1,6 @@
 package fieldbox.boxes.plugins;
 
-import com.badlogic.jglfw.Glfw;
+import static org.lwjgl.glfw.GLFW.*;
 import field.graphics.FLine;
 import field.graphics.FLinesAndJavaShapes;
 import field.graphics.StandardFLineDrawing;
@@ -110,7 +110,7 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 	}
 
 	protected Mouse.Dragger button0(Window.Event<Window.MouseState> e) {
-		if (!e.after.keyboardState.keysDown.contains(Glfw.GLFW_KEY_G)) return null;
+		if (!e.after.keyboardState.keysDown.contains(GLFW_KEY_G)) return null;
 
 		Optional<Drawing> drawing = this.find(Drawing.drawing, both())
 						.findFirst();

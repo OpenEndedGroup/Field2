@@ -21,5 +21,6 @@
     <orderEntry type="library" name="nashorn-local" level="project" />
     <orderEntry type="module" module-name="fieldlinker" />
     <orderEntry type="library" name="parboiled" level="project" />
+    <orderEntry type="library" name="lwjgl" level="project" />
   </component>
 </module>

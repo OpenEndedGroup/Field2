@@ -1,11 +1,11 @@
 package fieldbox.ui;
 
-import com.badlogic.jglfw.GlfwCallback;
+import field.graphics.GlfwCallback;
 
 /**
  * Created by marc on 4/14/14.
  */
-public class GlfwCallbackDelegate implements GlfwCallback {
+public class GlfwCallbackDelegate extends GlfwCallback {
 	private final GlfwCallback delegate;
 
 	public GlfwCallbackDelegate(GlfwCallback glfwCallback) {
@@ -58,12 +58,12 @@ public class GlfwCallbackDelegate implements GlfwCallback {
 	}
 
 	@Override
-	public void character(long l, char c) {
+	public void character(long l, int c) {
 		delegate.character(l, c);
 	}
 
 	@Override
-	public void mouseButton(long l, int i, boolean b, int i2) {
+	public void mouseButton(long l, int i, int b, int i2) {
 		delegate.mouseButton(l, i, b, i2);
 	}
 

@@ -1,6 +1,6 @@
 package fieldbox.boxes.plugins;
 
-import com.badlogic.jglfw.Glfw;
+import static org.lwjgl.glfw.GLFW.*;
 import field.graphics.Window;
 import field.linalg.Vec2;
 import field.utility.Cached;
@@ -214,10 +214,10 @@ public class Directionality extends Box {
 		this.properties.put(moveLeft, this::left);
 		this.properties.put(moveRight, this::right);
 
-		keys.put(Glfw.GLFW_KEY_LEFT, this::left);
-		keys.put(Glfw.GLFW_KEY_RIGHT, this::right);
-		keys.put(Glfw.GLFW_KEY_UP, this::up);
-		keys.put(Glfw.GLFW_KEY_DOWN, this::down);
+		keys.put(GLFW_KEY_LEFT, this::left);
+		keys.put(GLFW_KEY_RIGHT, this::right);
+		keys.put(GLFW_KEY_UP, this::up);
+		keys.put(GLFW_KEY_DOWN, this::down);
 
 		this.properties.putToMap(Keyboard.onKeyDown, "__directionality__", (e, k) -> {
 			if (e.properties.isTrue(Window.consumed, false)) return null;

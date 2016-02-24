@@ -1,6 +1,6 @@
 package fieldbox.boxes.plugins;
 
-import com.badlogic.jglfw.Glfw;
+import static org.lwjgl.glfw.GLFW.*;
 import field.graphics.Window;
 import fieldbox.boxes.*;
 
@@ -20,7 +20,7 @@ public class Delete extends Box {
 		this.root = root;
 		this.properties.putToMap(Keyboard.onKeyDown, "__delete__", (event, key) -> {
 			if (event.properties.isTrue(Window.consumed, false)) return null;
-			if (event.after.isSuperDown() && key == Glfw.GLFW_KEY_DELETE) {
+			if (event.after.isSuperDown() && key == GLFW_KEY_DELETE) {
 				{
 					Stream<Box> all = selected();
 					all.forEach(bb -> Callbacks.delete(bb));

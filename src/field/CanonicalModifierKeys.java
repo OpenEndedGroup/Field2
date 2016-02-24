@@ -1,13 +1,11 @@
 package field;
 
-import com.badlogic.jglfw.Glfw;
 import field.graphics.Window;
 import field.utility.Log;
+import static org.lwjgl.glfw.GLFW.*;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
-
-import static com.badlogic.jglfw.Glfw.*;
 
 /**
  * GLFW sometimes has issues with modifier keys sticking down.
@@ -29,57 +27,57 @@ public class CanonicalModifierKeys {
 	{
 		/*switch (key)
 		{
-			case Glfw.GLFW_KEY_LEFT_SHIFT:
-			case Glfw.GLFW_KEY_RIGHT_SHIFT: shift = action== Glfw.GLFW_PRESS; break;
-			case Glfw.GLFW_KEY_LEFT_CONTROL:
-			case Glfw.GLFW_KEY_RIGHT_CONTROL: control = action== Glfw.GLFW_PRESS; break;
-			case Glfw.GLFW_KEY_LEFT_SUPER:
-			case Glfw.GLFW_KEY_RIGHT_SUPER: supr= action== Glfw.GLFW_PRESS; break;
-			case Glfw.GLFW_KEY_LEFT_ALT:
-			case Glfw.GLFW_KEY_RIGHT_ALT: option= action== Glfw.GLFW_PRESS; break;
+			case GLFW_KEY_LEFT_SHIFT:
+			case GLFW_KEY_RIGHT_SHIFT: shift = action== GLFW_PRESS; break;
+			case GLFW_KEY_LEFT_CONTROL:
+			case GLFW_KEY_RIGHT_CONTROL: control = action== GLFW_PRESS; break;
+			case GLFW_KEY_LEFT_SUPER:
+			case GLFW_KEY_RIGHT_SUPER: supr= action== GLFW_PRESS; break;
+			case GLFW_KEY_LEFT_ALT:
+			case GLFW_KEY_RIGHT_ALT: option= action== GLFW_PRESS; break;
 			default:
 				break;
 		}
 */
 		switch (key)
 		{
-			case Glfw.GLFW_KEY_LEFT_SHIFT:
-			case Glfw.GLFW_KEY_RIGHT_SHIFT: shift = (mods & Glfw.GLFW_MOD_SHIFT)!=0; break;
-			case Glfw.GLFW_KEY_LEFT_CONTROL:
-			case Glfw.GLFW_KEY_RIGHT_CONTROL: control = (mods & Glfw.GLFW_MOD_CONTROL)!=0; break;
-			case Glfw.GLFW_KEY_LEFT_SUPER:
-			case Glfw.GLFW_KEY_RIGHT_SUPER: supr = (mods & Glfw.GLFW_MOD_SUPER)!=0; break;
-			case Glfw.GLFW_KEY_LEFT_ALT:
-			case Glfw.GLFW_KEY_RIGHT_ALT: option = (mods & Glfw.GLFW_MOD_ALT)!=0; break;
+			case GLFW_KEY_LEFT_SHIFT:
+			case GLFW_KEY_RIGHT_SHIFT: shift = (mods & GLFW_MOD_SHIFT)!=0; break;
+			case GLFW_KEY_LEFT_CONTROL:
+			case GLFW_KEY_RIGHT_CONTROL: control = (mods & GLFW_MOD_CONTROL)!=0; break;
+			case GLFW_KEY_LEFT_SUPER:
+			case GLFW_KEY_RIGHT_SUPER: supr = (mods & GLFW_MOD_SUPER)!=0; break;
+			case GLFW_KEY_LEFT_ALT:
+			case GLFW_KEY_RIGHT_ALT: option = (mods & GLFW_MOD_ALT)!=0; break;
 			default:
 				break;
 		}
 
 
-		shift = (mods & Glfw.GLFW_MOD_SHIFT)!=0;
-		supr = (mods & Glfw.GLFW_MOD_SUPER)!=0;
-		control = (mods & Glfw.GLFW_MOD_CONTROL)!=0;
-		option = (mods & Glfw.GLFW_MOD_ALT)!=0;
+		shift = (mods & GLFW_MOD_SHIFT)!=0;
+		supr = (mods & GLFW_MOD_SUPER)!=0;
+		control = (mods & GLFW_MOD_CONTROL)!=0;
+		option = (mods & GLFW_MOD_ALT)!=0;
 
 		if (shift)
-			down.add(Glfw.GLFW_KEY_LEFT_SHIFT);
+			down.add(GLFW_KEY_LEFT_SHIFT);
 		else
-			down.remove(Glfw.GLFW_KEY_LEFT_SHIFT);
+			down.remove(GLFW_KEY_LEFT_SHIFT);
 
 		if (supr)
-			down.add(Glfw.GLFW_KEY_LEFT_SUPER);
+			down.add(GLFW_KEY_LEFT_SUPER);
 		else
-			down.remove(Glfw.GLFW_KEY_LEFT_SUPER);
+			down.remove(GLFW_KEY_LEFT_SUPER);
 
 		if (control)
-			down.add(Glfw.GLFW_KEY_LEFT_CONTROL);
+			down.add(GLFW_KEY_LEFT_CONTROL);
 		else
-			down.remove(Glfw.GLFW_KEY_LEFT_CONTROL);
+			down.remove(GLFW_KEY_LEFT_CONTROL);
 
 		if (option)
-			down.add(Glfw.GLFW_KEY_LEFT_ALT);
+			down.add(GLFW_KEY_LEFT_ALT);
 		else
-			down.remove(Glfw.GLFW_KEY_LEFT_ALT);
+			down.remove(GLFW_KEY_LEFT_ALT);
 
 		Log.log("finalkey",()-> scancode+" / "+action+" -> "+shift + " " + control + " " + supr + " " + option);
 
@@ -87,32 +85,32 @@ public class CanonicalModifierKeys {
 
 	public boolean isShift()
 	{
-		boolean a = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT);
-		boolean b = glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT);
+		boolean a = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT)!=0;
+		boolean b = glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT)!=0;
 
 		return /*(a | b) &*/ shift;
 	}
 
 	public boolean isAlt()
 	{
-		boolean a = glfwGetKey(window, GLFW_KEY_LEFT_ALT);
-		boolean b = glfwGetKey(window, GLFW_KEY_RIGHT_ALT);
+		boolean a = glfwGetKey(window, GLFW_KEY_LEFT_ALT)!=0;
+		boolean b = glfwGetKey(window, GLFW_KEY_RIGHT_ALT)!=0;
 
 		return /*(a | b) &*/ option;
 	}
 
 	public boolean isControl()
 	{
-		boolean a = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL);
-		boolean b = glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL);
+		boolean a = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL)!=0;
+		boolean b = glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL)!=0;
 
 		return /*(a | b) &*/ control;
 	}
 
 	public boolean isSuper()
 	{
-		boolean a = glfwGetKey(window, GLFW_KEY_LEFT_SUPER);
-		boolean b = glfwGetKey(window, GLFW_KEY_RIGHT_SUPER);
+		boolean a = glfwGetKey(window, GLFW_KEY_LEFT_SUPER)!=0;
+		boolean b = glfwGetKey(window, GLFW_KEY_RIGHT_SUPER)!=0;
 
 		return /*(a | b) &*/ supr;
 	}

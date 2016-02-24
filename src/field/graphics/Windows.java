@@ -1,19 +1,18 @@
 package field.graphics;
 
-import com.badlogic.jglfw.Glfw;
-import com.badlogic.jglfw.GlfwCallback;
-import com.badlogic.jglfw.GlfwCallbackAdapter;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.MultimapBuilder;
 import field.app.RunLoop;
 import field.utility.Log;
-import fieldagent.Main;
+import org.lwjgl.glfw.*;
 
 import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
-import static com.badlogic.jglfw.Glfw.glfwInit;
-import static com.badlogic.jglfw.Glfw.glfwSetCallback;
+import static org.lwjgl.glfw.GLFW.*;
 
 /**
  * All Window instances must be registered with this singleton Windows.
@@ -24,36 +23,40 @@ public class Windows {
 
 	static public final Windows windows = new Windows();
 	private final ClassLoader mainClassLoader;
+	private final GlfwCallback c;
 
 	private Windows() {
+
 
 		RunLoop.main.getLoop()
 			    .attach(-2, this::events);
 
 		glfwInit();
-		glfwSetCallback(makeCallback());
+
+		c = makeCallback();
+//		glfwSetCallback(c);
+
+
 		mainClassLoader = Thread.currentThread()
 					.getContextClassLoader();
 
 
-		Log.log("startup.debug", ()->"main thread is :" + Thread.currentThread());
+		Log.log("startup.debug", () -> "main thread is :" + Thread.currentThread());
 	}
+
 
 	Deque<Runnable> events = new ConcurrentLinkedDeque<>();
 
 	protected boolean events(int p) {
 		RunLoop.main.shouldSleep.remove(Windows.this);
 
-		if (events.size()>0) Log.log("event.debug", ()->"events :"+events.size());
-		while (!events.isEmpty())
-		{
+		if (events.size() > 0) Log.log("event.debug", () -> "events :" + events.size());
+		while (!events.isEmpty()) {
 			try {
 				events.removeFirst()
 				      .run();
-			}
-			catch(Throwable t)
-			{
-				Log.log("events.error", ()->"Exception thrown while handling event"+ t);
+			} catch (Throwable t) {
+				Log.log("events.error", () -> "Exception thrown while handling event" + t);
 			}
 		}
 		return true;
@@ -65,13 +68,37 @@ public class Windows {
 
 
 	Map<Long, GlfwCallback> adaptors = new LinkedHashMap<>();
+	Multimap<Long, Object> callbacksForWindows = ArrayListMultimap.create();
+
 
 	public void register(long window, GlfwCallback adaptor) {
 		adaptors.put(window, adaptor);
+
+		glfwSetCharCallback(window, keep(window, GLFWCharCallback.create(c::character)));
+		glfwSetKeyCallback(window, keep(window, GLFWKeyCallback.create(c::key)));
+		glfwSetCharModsCallback(window, keep(window, GLFWCharModsCallback.create((w, codepoint, mods) -> {
+			System.out.println(" char mod called ? " + w + " " + codepoint + " " + mods);
+		})));
+		glfwSetWindowSizeCallback(window, keep(window, GLFWWindowSizeCallback.create(c::windowSize)));
+		glfwSetWindowPosCallback(window, keep(window, GLFWWindowPosCallback.create(c::windowPos)));
+		glfwSetCursorPosCallback(window, keep(window, GLFWCursorPosCallback.create(c::cursorPos)));
+		glfwSetMouseButtonCallback(window, keep(window, GLFWMouseButtonCallback.create(c::mouseButton)));
+		glfwSetWindowCloseCallback(window, keep(window, GLFWWindowCloseCallback.create(c::windowClose)));
+		glfwSetErrorCallback(keep(0, GLFWErrorCallback.createString(c::error)));
+		glfwSetCursorEnterCallback(window, keep(window, GLFWCursorEnterCallback.create((w, en) -> c.cursorEnter(w, en == GLFW_TRUE))));
+		glfwSetWindowRefreshCallback(window, keep(window, GLFWWindowRefreshCallback.create(c::windowRefresh)));
+		glfwSetWindowFocusCallback(window, keep(window, GLFWWindowFocusCallback.create((w, en) -> c.windowFocus(w, en == GLFW_TRUE))));
+		glfwSetScrollCallback(window, keep(window, GLFWScrollCallback.create(c::scroll)));
+		glfwSetDropCallback(window, keep(window, GLFWDropCallback.createString(c::drop)));
+	}
+
+	private <T> T keep(long window, T t) {
+		callbacksForWindows.put(window, t);
+		return t;
 	}
 
 	protected GlfwCallback makeCallback() {
-		return new GlfwCallbackAdapter() {
+		return new GlfwCallback() {
 
 			@Override
 			public void error(int error, String description) {
@@ -123,12 +150,12 @@ public class Windows {
 			boolean fakeButton1 = false;
 
 			@Override
-			public void mouseButton(long window, int button, boolean pressed, int mods) {
-				if (button == 0 && mods == 2 && pressed) {
+			public void mouseButton(long window, int button, int pressed, int mods) {
+				if (button == 0 && mods == 2 && pressed != 0) {
 					button = 1;
 					mods = 0;
 					fakeButton1 = true;
-				} else if (button == 0 && !pressed && fakeButton1) {
+				} else if (button == 0 && pressed == 0 && fakeButton1) {
 					button = 1;
 					mods = 0;
 					fakeButton1 = false;
@@ -172,8 +199,7 @@ public class Windows {
 
 				if (RunLoop.main.isMainThread()) {
 					r.run();
-				}
-				else {
+				} else {
 					events.addLast(r);
 					RunLoop.main.shouldSleep.add(Windows.this);
 				}
@@ -197,12 +223,11 @@ public class Windows {
 
 			@Override
 			public void key(long window, int key, int scancode, int action, int mods) {
-				Log.log("thata", ()->key+" "+scancode+" "+action+" "+mods);
+				Log.log("thata", () -> key + " " + scancode + " " + action + " " + mods);
 
 
 				// we occasionally get a spurious 'a' (scancode 0) on command-tabbing to our application. If it's just a plain 'a' let's assume that the character callback will handle it
-				if (scancode==0 && mods==0)
-					return;
+				if (scancode == 0 && mods == 0) return;
 
 				Runnable r = () -> {
 					checkClassLoader();
@@ -218,8 +243,8 @@ public class Windows {
 			}
 
 			@Override
-			public void character(long window, char character) {
-				Log.log("thata", ()->character);
+			public void character(long window, int character) {
+				Log.log("thata", () -> character);
 				Runnable r = () -> {
 					checkClassLoader();
 					GlfwCallback a = adaptors.get(window);
@@ -320,7 +345,7 @@ public class Windows {
 		ClassLoader c = Thread.currentThread()
 				      .getContextClassLoader();
 		if (c != mainClassLoader) {
-			Log.log("startup.debug", ()->"had to change classloader from <" + c + "- >" + mainClassLoader);
+			Log.log("startup.debug", () -> "had to change classloader from <" + c + "- >" + mainClassLoader);
 			Thread.currentThread()
 			      .setContextClassLoader(mainClassLoader);
 		}

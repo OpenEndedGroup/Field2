@@ -1,6 +1,8 @@
 package fieldbox.ui;
 
-import com.badlogic.jglfw.GlfwCallback;
+import static org.lwjgl.glfw.GLFW.*;
+
+import field.graphics.GlfwCallback;
 import field.graphics.GraphicsContext;
 import field.app.RunLoop;
 import field.graphics.Scene;
@@ -10,8 +12,6 @@ import org.lwjgl.opengl.GL11;
 
 import java.nio.ByteBuffer;
 
-import static com.badlogic.jglfw.Glfw.glfwCreateCursor;
-import static com.badlogic.jglfw.Glfw.glfwShowWindow;
 
 /**
  * Created by marc on 4/14/14.

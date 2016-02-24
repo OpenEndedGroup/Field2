@@ -1,6 +1,6 @@
 package fieldbox.boxes;
 
-import com.badlogic.jglfw.Glfw;
+import static org.lwjgl.glfw.GLFW.*;
 import field.graphics.FLine;
 import field.graphics.StandardFLineDrawing;
 import field.graphics.Window;
@@ -331,7 +331,6 @@ public class FrameManipulation extends Box  {
 
 
 				return (Mouse.Dragger) (drag, termination) -> {
-					System.out.println(" consumed by code ? " + drag.properties.isTrue(Window.consumed, false));
 
 					if (drag.properties.isTrue(Window.consumed, false)) return true;
 
@@ -360,8 +359,6 @@ public class FrameManipulation extends Box  {
 						Drawing.dirty(hitBox);
 					}
 
-
-					System.out.println(" termination ? "+termination);
 
 					if (termination) {
 
@@ -395,7 +392,7 @@ public class FrameManipulation extends Box  {
 				  if (!e.after.buttonsDown.contains(0)) return null;
 				  if (e.after.keyboardState.isAltDown()) return null;
 
-				  boolean shift = e.after.keyboardState.keysDown.contains(Glfw.GLFW_KEY_LEFT_SHIFT) || e.after.keyboardState.keysDown.contains(Glfw.GLFW_KEY_RIGHT_SHIFT);
+				  boolean shift = e.after.keyboardState.keysDown.contains(GLFW_KEY_LEFT_SHIFT) || e.after.keyboardState.keysDown.contains(GLFW_KEY_RIGHT_SHIFT);
 				  if (!shift) breadthFirst(both()).forEach(x -> Callbacks.transition(x, Mouse.isSelected, false, false, Callbacks.onSelect, Callbacks.onDeselect));
 
 				  Map<Box, Boolean> frozenAt = new LinkedHashMap<Box, Boolean>();

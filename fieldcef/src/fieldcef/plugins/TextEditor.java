@@ -1,6 +1,6 @@
 package fieldcef.plugins;
 
-import com.badlogic.jglfw.Glfw;
+import static org.lwjgl.glfw.GLFW.*;
 import field.app.RunLoop;
 import field.graphics.Window;
 import field.linalg.Vec2;
@@ -176,7 +176,7 @@ public class TextEditor extends Box implements IO.Loaded {
 
 			first(Boxes.window, both()).ifPresent(x -> x.addKeyboardHandler(event -> {
 				Set<Integer> kpressed = Window.KeyboardState.keysPressed(event.before, event.after);
-				if (kpressed.contains(Glfw.GLFW_KEY_LEFT_SHIFT) || kpressed.contains(Glfw.GLFW_KEY_RIGHT_SHIFT)) {
+				if (kpressed.contains(GLFW_KEY_LEFT_SHIFT) || kpressed.contains(GLFW_KEY_RIGHT_SHIFT)) {
 					if (event.after.keysDown.size() == 1) trigger();
 				}
 
@@ -187,8 +187,8 @@ public class TextEditor extends Box implements IO.Loaded {
 				    .attach(x -> {
 					    int maxh = window.getHeight() - 25 - 10 - 10 - 2;
 					    Rect f = browser.properties.get(Box.frame);
-					    if ((int)f.h !=  heightLast) {
-						    heightLast = (int) f.h;
+					    if ((int)maxh!=  heightLast &&  selection().count()>0) {
+						    heightLast = (int) maxh;
 						    f = f.duplicate();
 						    executeJavaScript("$(\"body\").height("+Math.min(maxh, maxhOnCreation - 40) + ")");
 					    }

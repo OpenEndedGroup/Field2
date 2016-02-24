@@ -1,6 +1,6 @@
 package fielded.windowmanager;
 
-import com.badlogic.jglfw.Glfw;
+import static org.lwjgl.glfw.GLFW.*;
 import field.app.RunLoop;
 import field.graphics.Window;
 import field.utility.Dict;
@@ -28,7 +28,7 @@ public class OSXWindowTricks extends Box {
 
 		first(Boxes.window, both()).ifPresent(x -> x.addKeyboardHandler(event -> {
 			Set<Integer> kpressed = Window.KeyboardState.keysPressed(event.before, event.after);
-			if (kpressed.contains(Glfw.GLFW_KEY_LEFT_SHIFT) || kpressed.contains(Glfw.GLFW_KEY_RIGHT_SHIFT)) {
+			if (kpressed.contains(GLFW_KEY_LEFT_SHIFT) || kpressed.contains(GLFW_KEY_RIGHT_SHIFT)) {
 				if (event.after.keysDown.size() == 1) trigger();
 			}
 

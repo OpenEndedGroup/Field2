@@ -1,6 +1,6 @@
 package fieldbox.boxes.plugins;
 
-import com.badlogic.jglfw.Glfw;
+import static org.lwjgl.glfw.GLFW.*;
 import field.graphics.FLine;
 import field.graphics.StandardFLineDrawing;
 import field.graphics.Window;
@@ -97,7 +97,7 @@ public class Typing extends Box {
 
 			if (!listening) return null;
 
-			if (v == Glfw.GLFW_KEY_ENTER)
+			if (v == GLFW_KEY_ENTER)
 			{
 				try{
 					go(ct);
@@ -110,12 +110,12 @@ public class Typing extends Box {
 				Drawing.dirty(this);
 				listening = false;
 			}
-			if (v==Glfw.GLFW_KEY_BACKSPACE && ct.length()>0)
+			if (v==GLFW_KEY_BACKSPACE && ct.length()>0)
 			{
 				ct = ct.substring(0, ct.length()-1);
 				Drawing.dirty(this);
 			}
-			if (v== Glfw.GLFW_KEY_ESC)
+			if (v== GLFW_KEY_ESCAPE)
 			{
 				listening = false;
 				ct = "";
