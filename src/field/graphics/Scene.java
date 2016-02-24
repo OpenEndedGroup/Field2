@@ -532,6 +532,26 @@ public class Scene extends Box implements Linker.AsMap {
 			return this;
 		}
 
+		/**
+		 * by default this transient will wait until it has run once in all contexts. Use this method to limit this to just some of the graphics contexts
+		 */
+		public Transient setAllContexts(Collection<GraphicsContext> c)
+		{
+			allContexts.clear();
+			allContexts.addAll(c);
+			return this;
+		}
+
+		/**
+		 * by default this transient will wait until it has run once in all contexts. Use this method to limit this to just some of the graphics contexts where object 'o' has state stored
+		 */
+		public Transient setAllContextsFor(Object o)
+		{
+			allContexts.clear();
+			GraphicsContext.allGraphicsContexts.stream().filter(x -> x.context.containsKey(o)).forEach(x -> allContexts.add(x));
+			return this;
+		}
+
 		@Override
 		public boolean perform(int pass) {
 			if (allContexts.remove(GraphicsContext.getContext())) call.accept(pass);
