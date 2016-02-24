@@ -52,7 +52,7 @@ public class RunLoop {
 	long interval = 100;
 	long intervalIn = 0;
 
-	static public boolean printTelemetry = true;
+	static public boolean printTelemetry = false;
 
 	public void enterMainLoop() {
 		mainThread = Thread.currentThread();
@@ -64,45 +64,45 @@ public class RunLoop {
 				long a = System.nanoTime();
 				if (lock.tryLock(1, TimeUnit.DAYS)) {
 					long b = System.nanoTime();
+
 					mainLoop.updateAll();
+
 					long c = System.nanoTime();
 					ThreadSync.get()
 						  .serviceAndCull();
 					long d = System.nanoTime();
 
-					getLock += b-a;
-					hasLock += d-b;
-					service += d-c;
-					mainloop += c-b;
+					getLock += b - a;
+					hasLock += d - b;
+					service += d - c;
+					mainloop += c - b;
 				} else {
 					locksMissed++;
 				}
-				if (shouldSleep.size() == 0)
-				{
+				if (shouldSleep.size() == 0) {
 					Thread.sleep(2);
 					sleepsTaken++;
 				}
 
-				if (tick%interval==0)
-				{
+				if (tick % interval == 0) {
 
 					if (printTelemetry) {
 						System.out.println(
 							    " a" + (getLock / (double) interval) + " b" + (hasLock / (double) interval) + " c" + (service / (double) interval) + " d" + (mainloop / (double) interval) + " m" + locksMissed + " s" + sleepsTaken);
 						System.out.println(" f" + (System.nanoTime() - intervalIn) / interval);
-						System.out.println(" m" + (Runtime.getRuntime().freeMemory() - freeMemIn) / interval);
-
-
+						System.out.println(" m" + (Runtime.getRuntime()
+										  .freeMemory() - freeMemIn) / interval);
 
 					}
-						getLock = 0;
-						hasLock = 0;
-						service = 0;
-						mainloop = 0;
-						locksMissed = 0;
-						sleepsTaken = 0;
-						intervalIn = System.nanoTime();
-					freeMemIn = Runtime.getRuntime().freeMemory();
+					getLock = 0;
+					hasLock = 0;
+					service = 0;
+					mainloop = 0;
+					locksMissed = 0;
+					sleepsTaken = 0;
+					intervalIn = System.nanoTime();
+					freeMemIn = Runtime.getRuntime()
+							   .freeMemory();
 				}
 
 			} catch (Throwable t) {
@@ -119,12 +119,9 @@ public class RunLoop {
 		mainLoop.attach(i -> {
 			try {
 				r.run();
-			}
-			catch(Throwable t)
-			{
+			} catch (Throwable t) {
 				t.printStackTrace();
-			}
-			finally {
+			} finally {
 				return false;
 			}
 
@@ -150,10 +147,8 @@ public class RunLoop {
 
 			@Override
 			public Errors.ErrorConsumer getErrorConsumer() {
-				if (p0 instanceof Errors.ErrorConsumer)
-					return ((Errors.ErrorConsumer)p0);
-				if (p0 instanceof Errors.SavesErrorConsumer)
-					return ((Errors.SavesErrorConsumer)p0).getErrorConsumer();
+				if (p0 instanceof Errors.ErrorConsumer) return ((Errors.ErrorConsumer) p0);
+				if (p0 instanceof Errors.SavesErrorConsumer) return ((Errors.SavesErrorConsumer) p0).getErrorConsumer();
 				return ec;
 			}
 		});
@@ -183,10 +178,8 @@ public class RunLoop {
 
 			@Override
 			public Errors.ErrorConsumer getErrorConsumer() {
-				if (p0 instanceof Errors.ErrorConsumer)
-					return ((Errors.ErrorConsumer)p0);
-				if (p0 instanceof Errors.SavesErrorConsumer)
-					return ((Errors.SavesErrorConsumer)p0).getErrorConsumer();
+				if (p0 instanceof Errors.ErrorConsumer) return ((Errors.ErrorConsumer) p0);
+				if (p0 instanceof Errors.SavesErrorConsumer) return ((Errors.SavesErrorConsumer) p0).getErrorConsumer();
 				return ec;
 			}
 		});
@@ -215,10 +208,8 @@ public class RunLoop {
 
 			@Override
 			public Errors.ErrorConsumer getErrorConsumer() {
-				if (p0 instanceof Errors.ErrorConsumer)
-					return ((Errors.ErrorConsumer)p0);
-				if (p0 instanceof Errors.SavesErrorConsumer)
-					return ((Errors.SavesErrorConsumer)p0).getErrorConsumer();
+				if (p0 instanceof Errors.ErrorConsumer) return ((Errors.ErrorConsumer) p0);
+				if (p0 instanceof Errors.SavesErrorConsumer) return ((Errors.SavesErrorConsumer) p0).getErrorConsumer();
 				return ec;
 			}
 		});
