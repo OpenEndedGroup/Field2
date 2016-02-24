@@ -238,6 +238,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 
 	static private void _forEach(Box t, Consumer<Box> b, LinkedHashSet<Box> visited) {
 		if (visited.contains(t)) return;
+		if (t.disconnected) return;
 		b.accept(t);
 		visited.add(t);
 		for(Box c : t.children)
@@ -480,7 +481,6 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 //		Log.log("underscore.debug", " cannonical type information " + cannon.getTypeInformation());
 
 		Object converted = Conversions.convert(value, cannon.getTypeInformation());
-
 
 		Missing.setTo(this, cannon, converted);
 
