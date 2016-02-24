@@ -1,5 +1,6 @@
 package field.graphics;
 
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
@@ -54,6 +55,13 @@ public interface ArrayBuffer {
 	}
 
 	/**
+	 * returns a read/write view onto this buffer as a ByteBuffer (equivalent to bytes(false))
+	 */
+	default ByteBuffer bytes() {
+		return bytes(false);
+	}
+
+	/**
 	 * returns a read/write view onto this buffer as a FloatBuffer. If this is marked as readOnly then OpenGL won't necessarily get any changes we
 	 * make to this buffer.
 	 */
@@ -64,6 +72,12 @@ public interface ArrayBuffer {
 	 * make to this buffer.
 	 */
 	IntBuffer ints(boolean readOnly);
+
+	/**
+	 * returns a read/write view onto this buffer as an ByteBuffer. If this is marked as readOnly then OpenGL won't necessarily get any changes we
+	 * make to this buffer.
+	 */
+	ByteBuffer bytes(boolean readOnly);
 
 	/**
 	 * Replaces this buffer with a buffer of an identical class, but of a different size. Size here is in elements (that is, floats / ints *
