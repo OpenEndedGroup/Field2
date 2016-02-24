@@ -93,6 +93,14 @@ public class BaseMesh extends Scene implements Scene.Perform {
 	ArrayBuffer[] buffers = new ArrayBuffer[16];
 	ArrayBufferFactory arrayBufferFactory = SimpleArrayBuffer::newArrayBuffer;
 
+	public ArrayBufferFactory getArrayBufferFactory() {
+		return arrayBufferFactory;
+	}
+
+	public void setArrayBufferFactory(ArrayBufferFactory arrayBufferFactory) {
+		this.arrayBufferFactory = arrayBufferFactory;
+	}
+
 	/**
 	 * limit the number of vertices sent to OpenGL without truncating the declared size of the storage.
 	 */
