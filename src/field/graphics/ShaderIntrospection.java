@@ -188,6 +188,9 @@ public class ShaderIntrospection {
 		Set<field.graphics.Uniform> up = new LinkedHashSet<>(ubp.getUniforms()
 									.values());
 
+		s.children().stream().filter(x -> x instanceof field.graphics.Uniform).forEach(x -> up.add((field.graphics.Uniform)x));
+		s.scene.values().stream().flatMap(x -> x.stream()).filter(x -> x instanceof field.graphics.Uniform).forEach(x -> up.add((field.graphics.Uniform)x));
+
 		String e = checkUniforms("", up, up, convert);
 		directAttachmentErrors = e;
 
@@ -246,7 +249,7 @@ public class ShaderIntrospection {
 
 		if (directAttachmentErrors != null && directAttachmentErrors.trim()
 									    .length() > 0) {
-			e1 += "<p>Uniforms connected directed to this shader have problems &mdash;</p>";
+			e1 += "<p>Uniforms connected directly to this shader have problems &mdash;</p>";
 			e1 += "<div class='mesh-problem'>" + directAttachmentErrors + "</dv>";
 		}
 
@@ -274,7 +277,7 @@ public class ShaderIntrospection {
 			Attribute a = v.get(e.getKey());
 
 			if (a == null) {
-				errors += "&mdash; this mesh declares <i>unused aux channel</i>l <b>" + e.getKey() + "</b> of <b>" + simpleFloatTypeName(e.getValue()
+				errors += "&mdash; this mesh declares <i>unused aux channel</i> <b>" + e.getKey() + "</b> of <b>" + simpleFloatTypeName(e.getValue()
 																			  .getDimension()) + "</b>\n";
 			} else {
 				switch (a.type) {
@@ -328,6 +331,8 @@ public class ShaderIntrospection {
 		UniformBundle ubp = s.getDefaultBundle();
 		Set<field.graphics.Uniform> up = new LinkedHashSet<>(ubp.getUniforms()
 									.values());
+		s.children().stream().filter(x -> x instanceof field.graphics.Uniform).forEach(x -> up.add((field.graphics.Uniform)x));
+		s.scene.values().stream().flatMap(x -> x.stream()).filter(x -> x instanceof field.graphics.Uniform).forEach(x -> up.add((field.graphics.Uniform)x));
 
 
 		String e2 = checkUniforms("mesh", up, u, convert);
