@@ -8,7 +8,7 @@ import fieldbox.boxes.Box;
 import fieldbox.boxes.Drawing;
 import fielded.boxbrowser.BoxBrowser;
 import fieldnashorn.annotations.HiddenInAutocomplete;
-import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,7 +26,7 @@ import static org.lwjgl.opengl.GL12.*;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL30.*;
-import static org.lwjgl.opengl.GL32.glFramebufferTexture;
+import static org.lwjgl.opengl.GL32.*;
 
 /**
  * FBO - OpenGL Frame Buffer Objects.
@@ -63,8 +63,9 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 		if (specification.depth) pre += "There is a depth render-buffer associated with this framebuffer; ";
 		if (specification.internalFormat == GL_RGBA32F) pre += "This is a floating-point resolution buffer; ";
 		if (specification.layers != 1) pre += "This is a multi-layer (<b>" + specification.layers + "</b> layers) buffer; ";
-		pre
-			    += "It has drawn its scene <b>" + warnIfZero(drawCount) + "</b> time" + (drawCount == 1 ? "" : "s") + (drawCount == 0 ? "</b>(are you sure .draw() is being called)" : "") + " and it has been bound as a texture <b>" + warnIfZero(boundCount) + "</b> time" + (boundCount == 1 ? "" : "s") + "<br>";
+		pre += "It has drawn its scene <b>" + warnIfZero(
+			    drawCount) + "</b> time" + (drawCount == 1 ? "" : "s") + (drawCount == 0 ? "</b>(are you sure .draw() is being called)" : "") + " and it has been bound as a texture <b>" + warnIfZero(
+			    boundCount) + "</b> time" + (boundCount == 1 ? "" : "s") + "<br>";
 
 		int tries = 0;
 		while (!m.isDone()) {
@@ -102,8 +103,8 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 	}
 
 	private String warnIfZero(int x) {
-		if (x==0) return "<span class='warning'>"+x+"</span>";
-		return ""+x;
+		if (x == 0) return "<span class='warning'>" + x + "</span>";
+		return "" + x;
 	}
 
 	@HiddenInAutocomplete
@@ -129,8 +130,9 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 		public final int num;
 		public final int layers;
 		public final boolean multisample;
+		public final boolean multisample_raw;
 
-		public FBOSpecification(int unit, int internalFormat, int width, int height, int format, int type, int elementSize, boolean depth, int num, boolean multisample, int layers) {
+		public FBOSpecification(int unit, int internalFormat, int width, int height, int format, int type, int elementSize, boolean depth, int num, boolean multisample, boolean multisample_raw, int layers) {
 			this.unit = unit;
 			this.internalFormat = internalFormat;
 			this.width = width;
@@ -142,24 +144,29 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 			this.depth = depth;
 			this.num = num;
 			this.multisample = multisample;
+			this.multisample_raw = multisample_raw;
 
 			this.layers = layers;
 		}
 
 		static public FBOSpecification singleFloat(int unit, int width, int height) {
-			return new FBOSpecification(unit, GL_RGBA32F, width, height, GL_RGBA, GL_FLOAT, 32, false, 1, false, 1);
+			return new FBOSpecification(unit, GL_RGBA32F, width, height, GL_RGBA, GL_FLOAT, 32, false, 1, false, false, 1);
 		}
 
 		static public FBOSpecification layeredFloat(int unit, int width, int height, int layers) {
-			return new FBOSpecification(unit, GL_RGBA32F, width, height, GL_RGBA, GL_FLOAT, 32, false, 1, false, layers);
+			return new FBOSpecification(unit, GL_RGBA32F, width, height, GL_RGBA, GL_FLOAT, 32, false, 1, false, false, layers);
+		}
+
+		static public FBOSpecification layeredFloatMS(int unit, int width, int height, int layers) {
+			return new FBOSpecification(unit, GL_RGBA32F, width, height, GL_RGBA, GL_FLOAT, 32, false, 1, false, true, layers);
 		}
 
 		static public FBOSpecification rgba(int unit, int width, int height) {
-			return new FBOSpecification(unit, GL_RGBA, width, height, GL_RGBA, GL_BYTE, 8, false, 1, false, 1);
+			return new FBOSpecification(unit, GL_RGBA, width, height, GL_RGBA, GL_BYTE, 8, false, 1, false, false, 1);
 		}
 
 		static public FBOSpecification rgbaMultisample(int unit, int width, int height) {
-			return new FBOSpecification(unit, GL_RGBA, width, height, GL_RGBA, GL_BYTE, 8, false, 1, true, 1);
+			return new FBOSpecification(unit, GL_RGBA, width, height, GL_RGBA, GL_BYTE, 8, false, 1, true, false, 1);
 		}
 
 		@Override
@@ -176,6 +183,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 				    ", num=" + num +
 				    ", layers=" + layers +
 				    ", multisample=" + multisample +
+				    ", multisample_raw=" + multisample_raw +
 				    '}';
 		}
 	}
@@ -243,46 +251,65 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 			s.text[i] = glGenTextures();
 		if (specification.depth) s.depth = glGenRenderbuffers();
 
-
 		glBindFramebuffer(GL_FRAMEBUFFER, s.name);
 		GraphicsContext.checkError();
-
 
 		if (specification.layers == 1) {
 			for (int i = 0; i < s.text.length; i++) {
 
-				glBindTexture(GL_TEXTURE_2D, s.text[i]);
+				if (specification.multisample_raw) {
+					glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, s.text[i]);
 
-				glTexImage2D(GL_TEXTURE_2D, 0, specification.internalFormat, specification.width, specification.height, 0, specification.format, specification.type, (ByteBuffer) null);
+					glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 8, specification.internalFormat, specification.width, specification.height, false);
 
-				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, s.text[i], 0);
 
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+					glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, s.text[i], 0);
+				} else {
+					glBindTexture(GL_TEXTURE_2D, s.text[i]);
 
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+					glTexImage2D(GL_TEXTURE_2D, 0, specification.internalFormat, specification.width, specification.height, 0, specification.format, specification.type,
+						     (ByteBuffer) null);
 
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, s.text[i], 0);
 
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+				}
 			}
 		} else {
 			for (int i = 0; i < s.text.length; i++) {
 
-				glBindTexture(GL_TEXTURE_2D_ARRAY, s.text[i]);
+				if (specification.multisample_raw) {
 
-				glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, specification.internalFormat, specification.width, specification.height, specification.layers, 0, specification.format,
-					     specification.type, (ByteBuffer) null);
+					glBindTexture(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, s.text[i]);
 
-				glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, s.text[i], 0);
+					glTexImage3DMultisample(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, 8, specification.internalFormat, specification.width, specification.height, specification.layers,
+								false);
 
-				glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-				glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+					glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, s.text[i], 0);
 
-				glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+				} else {
+					glBindTexture(GL_TEXTURE_2D_ARRAY, s.text[i]);
 
-				glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+					glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, specification.internalFormat, specification.width, specification.height, specification.layers, 0, specification.format,
+						     specification.type, (ByteBuffer) null);
+
+					glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, s.text[i], 0);
+					glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+					glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+					glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+
+					glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+				}
 
 			}
 
@@ -305,6 +332,8 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 
 		int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 		if (status != GL_FRAMEBUFFER_COMPLETE) throw new IllegalArgumentException(" bad status, " + status);
+
+		GL11.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		GraphicsContext.checkError();
@@ -393,10 +422,14 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 		for (int i = 0; i < s.text.length; i++) {
 			if (specification.layers == 1) {
 				glActiveTexture(GL_TEXTURE0 + specification.unit + i);
-				glBindTexture(GL_TEXTURE_2D, s.text[i]);
+				if (specification.multisample_raw) glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, s.text[i]);
+				else glBindTexture(GL_TEXTURE_2D, s.text[i]);
+
 			} else {
 				glActiveTexture(GL_TEXTURE0 + specification.unit + i);
-				glBindTexture(GL_TEXTURE_2D_ARRAY, s.text[i]);
+				if (specification.multisample_raw) glBindTexture(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, s.text[i]);
+				else glBindTexture(GL_TEXTURE_2D_ARRAY, s.text[i]);
+
 			}
 		}
 		return true;
