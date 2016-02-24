@@ -110,7 +110,7 @@ public class CefApp extends CefAppHandlerAdapter {
 			}
 		};
 
-			t.run();
+		t.run();
 	}
 
 	/**
@@ -242,7 +242,7 @@ public class CefApp extends CefAppHandlerAdapter {
 	private final void initialize() {
 		String library_path = getJcefLibPath();
 		System.out.println("initialize on " + Thread.currentThread() +
-			    " with library path " + library_path);
+					       " with library path " + library_path);
 		System.err.println(" calling N_initialize <"+appHandler_+">");
 		isInitialized_ = N_Initialize(library_path, appHandler_);
 		System.err.println(" survived call to N_initialize ");
