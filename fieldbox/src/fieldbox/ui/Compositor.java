@@ -6,6 +6,7 @@ import field.utility.Dict;
 import field.utility.Log;
 import field.utility.Options;
 import fieldagent.Main;
+import org.lwjgl.opengl.GL11;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -34,7 +35,8 @@ public class Compositor {
 	}
 
 	public void updateScene() {
-		fadeup = fading++ < 50;
+		fadeup = fading++ < 50 && Main.os!=Main.OS.mac;
+
 		if (GraphicsContext.isResizing) {
 			for (Layer l : layers.values()) {
 				if (l.fbo.specification.width * l.res != window.getWidth() || l.fbo.specification.height * l.res != window.getHeight()) {
@@ -42,21 +44,19 @@ public class Compositor {
 					Scene sceneWas = l.fbo.scene;
 					l.fbo = newFBO(l.fbo.specification.unit, l.res);
 					l.fbo.setScene(sceneWas);
-					resizing= true;
-					Log.log("graphics.debug", ()->" scene was :" + sceneWas);
+					resizing = true;
+					Log.log("graphics.debug", () -> " scene was :" + sceneWas);
 				}
 			}
 		}
 
 		for (Layer l : layers.values()) {
 			l.needsRedrawing = Math.max(-1, l.needsRedrawing - 1);
-			if (resizing)
-				l.fbo.draw();
-			else
-			if (l.needsRedrawing > -1 || fadeup) {
-				Log.log("drawing", ()->" drawing dependancies of " + l);
+			if (resizing) l.fbo.draw();
+			else if (l.needsRedrawing > -1 || fadeup) {
+				Log.log("drawing", () -> " drawing dependancies of " + l);
 				l.drawDependancies();
-				Log.log("drawing",()-> " drawing because dirty " + l);
+				Log.log("drawing", () -> " drawing because dirty " + l);
 				l.fbo.draw();
 			}
 		}
@@ -72,7 +72,9 @@ public class Compositor {
 	}
 
 	private FBO newFBO(int unit) {
-		if (Options.dict().isTrue(new Dict.Prop<Boolean>("multisample"), Main.os!= Main.OS.mac)) return new FBO(FBO.FBOSpecification.rgbaMultisample(unit, window.getFrameBufferWidth(), window.getFrameBufferHeight()));
+		if (Options.dict()
+			   .isTrue(new Dict.Prop<Boolean>("multisample"), Main.os != Main.OS.mac))
+			return new FBO(FBO.FBOSpecification.rgbaMultisample(unit, window.getFrameBufferWidth(), window.getFrameBufferHeight()));
 		return new FBO(FBO.FBOSpecification.rgba(unit, window.getFrameBufferWidth(), window.getFrameBufferHeight()));
 	}
 
@@ -82,7 +84,8 @@ public class Compositor {
 			return new FBO(FBO.FBOSpecification.rgba(unit, window.getFrameBufferWidth() / res, window.getFrameBufferHeight() / res));
 
 		} else {
-			if (Options.dict().isTrue(new Dict.Prop<Boolean>("multisample"), false))
+			if (Options.dict()
+				   .isTrue(new Dict.Prop<Boolean>("multisample"), Main.os != Main.OS.mac))
 				return new FBO(FBO.FBOSpecification.rgbaMultisample(unit, window.getFrameBufferWidth() / res, window.getFrameBufferHeight() / res));
 			return new FBO(FBO.FBOSpecification.rgba(unit, window.getFrameBufferWidth() / res, window.getFrameBufferHeight() / res));
 		}
@@ -170,13 +173,13 @@ public class Compositor {
 			// javaC / IDEA need these casts
 			dependsOn.put(l, new Cache<Layer>(l, x -> x.mod, x -> {
 				x.drawDependancies();
-				Log.log("drawing",()-> "layer:" + x);
+				Log.log("drawing", () -> "layer:" + x);
 				x.fbo.draw();
 				x.mod++;
 			}));
 			l.dependsOn.put(this, new Cache<Layer>(this, x -> x.mod, x -> {
 				x.drawDependancies();
-				Log.log("drawing",()-> "layer2:" + x);
+				Log.log("drawing", () -> "layer2:" + x);
 				x.fbo.draw();
 				x.mod++;
 			}));
