@@ -8,6 +8,7 @@ import field.utility.IdempotencyMap;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Boxes;
 import fieldbox.boxes.XPathSupport;
+import fieldbox.io.IO;
 import fieldlinker.Linker.AsMap;
 
 import java.util.ArrayList;
@@ -106,6 +107,10 @@ public class Pseudo extends Box {
 											    .type()
 											    .doc("`_.named.x` returns an array of all the boxes named `x` that are _below_ this box. If you want to search everywhere, try `_.root.named.x`. To match regex or use whitespace in names, try `_.named['.*x']`");
 
+	static public Dict.Prop<FunctionOfBoxValued<WithID>> withID = new Dict.Prop<>("withID").toCannon()
+											    .type()
+											    .doc("`_.withID['...uid...']` returns the boxes (if it exists) with uid that's _below_ this box. If you want to search everywhere, try `_.root.named.x`. To match regex or use whitespace in names, try `_.named['.*x']`");
+
 
 	static public Dict.Prop<FunctionOfBoxValued<Oncer>> once = new Dict.Prop<FunctionOfBoxValued<Oncer>>("once").toCannon()
 														    .type()
@@ -126,6 +131,7 @@ public class Pseudo extends Box {
 //		this.properties.put(query, XPath::new);
 		this.properties.put(ref, Refer::new);
 		this.properties.put(named, Namer::new);
+		this.properties.put(withID, WithID::new);
 		this.properties.put(once, Oncer::new);
 		this.properties.put(here, Herer::new);
 
@@ -188,6 +194,70 @@ public class Pseudo extends Box {
 				 .filter(x -> x.properties.get(Box.name)
 							  .matches(p))
 				 .collect(Collectors.toList());
+		}
+
+		@Override
+		public Object asMap_set(String p, Object val) {
+			return null;
+		}
+
+
+		@Override
+		public Object asMap_new(Object a) {
+			return null;
+		}
+
+		@Override
+		public Object asMap_new(Object a, Object b) {
+			return null;
+		}
+
+		@Override
+		public Object asMap_getElement(int element) {
+			return asMap_get("" + element);
+		}
+
+		@Override
+		public boolean asMap_delete(Object o) {
+			return false;
+		}
+	}
+
+	static public class WithID implements AsMap {
+
+		private final Box on;
+
+		public WithID(Box on) {
+			this.on = on;
+		}
+
+		@Override
+		public boolean asMap_isProperty(String s) {
+			return true;
+		}
+
+		@Override
+		public Object asMap_call(Object o, Object o1) {
+			return asMap_getElement(o1);
+		}
+
+		@Override
+		public Object asMap_getElement(Object element) {
+			return asMap_get(element + "");
+		}
+
+		@Override
+		public Object asMap_setElement(int element, Object o) {
+			return null;
+		}
+
+		@Override
+		public Object asMap_get(String p) {
+			return on.breadthFirst(on.downwards())
+				 .filter(x -> x.properties.has(IO.id))
+				 .filter(x -> x.properties.get(IO.id)
+							  .matches(p))
+				 .findFirst().orElse(null);
 		}
 
 		@Override
