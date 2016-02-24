@@ -112,7 +112,8 @@ public class Vec2 implements Externalizable, Supplier<Vec2>, Mutable {
 	 * @see #Vec2(int, ByteBuffer)
 	 */
 	public Vec2(ByteBuffer buffer) {
-		this(buffer.position(), buffer);
+		this(buffer.position(), buffer);		buffer.position(buffer.position()+2*8);
+
 	}
 
 	/**
@@ -139,7 +140,8 @@ public class Vec2 implements Externalizable, Supplier<Vec2>, Mutable {
 	 * @see #Vec2(int, DoubleBuffer)
 	 */
 	public Vec2(DoubleBuffer buffer) {
-		this(buffer.position(), buffer);
+		this(buffer.position(), buffer);		buffer.position(buffer.position()+2);
+
 	}
 
 	/**
@@ -167,7 +169,8 @@ public class Vec2 implements Externalizable, Supplier<Vec2>, Mutable {
 	 * @see #Vec2(int, DoubleBuffer)
 	 */
 	public Vec2(FloatBuffer buffer) {
-		this(buffer.position(), buffer);
+		this(buffer.position(), buffer);		buffer.position(buffer.position()+2);
+
 	}
 
 	/**
