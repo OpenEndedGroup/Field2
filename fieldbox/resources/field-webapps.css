@@ -1,0 +1,301 @@
+
+@font-face {
+    font-family: 'Source Code Pro';
+    src: url('/field/filesystem/fonts/SourceCodePro-Regular.ttf.woff') format('woff');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Source Code Pro';
+    src: url('/field/filesystem/fonts/SourceCodePro-Light.ttf.woff') format('woff');
+    font-weight: 100;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Source Code Pro';
+    src: url('/field/filesystem/fonts/SourceCodePro-Bold.ttf.woff') format('woff');
+    font-weight: 700;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Source Sans Pro';
+    src: url('/field/filesystem/fonts/SourceSansPro-Regular.ttf.woff') format('woff');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Source Sans Pro';
+    src: url('/field/filesystem/fonts/SourceSansPro-Light.ttf.woff') format('woff');
+    font-weight: 100;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Source Sans Pro';
+    src: url('/field/filesystem/fonts/SourceSansPro-Bold.ttf.woff') format('woff');
+    font-weight: 700;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Source Sans Pro';
+    src: url('/field/filesystem/fonts/SourceSansPro-It.ttf.woff') format('woff');
+    font-weight: 400;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Source Sans Pro';
+    src: url('/field/filesystem/fonts/SourceSansPro-LightIt.ttf.woff') format('woff');
+    font-weight: 100;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Source Sans Pro';
+    src: url('/field/filesystem/fonts/SourceSansPro-BoldIt.ttf.woff') format('woff');
+    font-weight: 700;
+    font-style: italic;
+}
+
+html {
+    background: #2d3133;
+//    background: rgba(0, 0, 0, 0);
+}
+
+body {
+    background: #2d3133;
+    color: #aaa;
+    font-size: 17px;
+    font-family: "Gill Sans";
+    margin: 10px;
+
+}
+
+pre
+{
+    padding: 10px;
+    background: rgba(0,0,0,0.2);
+}
+a {
+    text-decoration: none;
+    color: #aaa;
+}
+
+p {
+    padding-left: 4px;
+    padding-right: 4px;
+    font-size: 15px;
+
+    border-bottom: 1px dashed black;
+    padding-bottom: 5px;
+    padding-top: 5px;
+    margin:0px;
+    text-align: center;
+}
+
+.step
+{
+    float:left;
+    opacity: 0.5;
+    font-variant: small-caps;
+}
+
+
+
+.CodeMirror
+{
+    background:rgba(0,0,0,0.2);
+    color:#eee;
+    height: auto;
+    font-size: 12px;
+}
+
+.CodeMirror-scroll
+{
+    background:rgba(0,0,0,0.2);
+    height: auto;
+}
+
+h1 {
+    padding-left:4px;
+    padding-right:4px;
+    padding-bottom: 5px;
+    margin-top:-5px;
+    margin-left:-5px;
+    margin-right:-5px;
+    margin-bottom: 4px;
+    background: rgba(0,0,0,0.1);
+    font-size: 20px;
+    text-align: center;
+}
+
+.grouped
+{
+    background:rgba(0,0,0,0.1);
+    border-radius: 5px;
+    padding:5px;
+    margin:-5px;
+}
+
+.maptable {
+    font-family: "Source Code Pro";
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 2px;
+}
+
+.maptable-entry
+{
+    display:inline-flex;
+    margin:0px;
+    border:1px solid rgba(0,0,0,0.1);
+    border-radius:2px;
+    padding:2px;
+    padding-left:4px;
+    padding-right:4px;
+}
+
+.all
+{
+    font-size: 15px;
+    border-radius: 15px;
+    padding: 10px;
+    border: 5px solid rgba(0,0,0,0.5);
+    text-align: center;
+}
+
+br
+{
+    padding:10px;
+}
+
+
+.smaller {
+    font-size: 65%;
+    opacity: 0.5;
+    padding-left: 0.2em;
+    padding-right: 0.2em;
+    padding-top: 0.35em;
+    font-weight: normal;
+    font-variant: small-caps;
+    display: block;
+}
+
+.smaller-inframe {
+    font-size: 65%;
+    opacity: 0.5;
+    padding-left: 0.2em;
+    padding-right: 0.2em;
+    padding-top: 0.35em;
+    font-weight: normal;
+    font-variant: small-caps;
+    float:right;
+    margin-right: 0.35em;
+}
+
+.all a
+{
+    border-bottom: 1px solid;
+}
+
+.warning
+{
+    color: rgba(255,255,255,0.7);
+    padding: 5px;
+    margin: 5px;
+}
+.error
+{
+    color: rgba(255,255,255,0.7);
+    background: rgba(100,0,0,1);
+    padding: 5px;
+    margin: 5px;
+    border: 2px solid #fa6;
+}
+
+.error b
+{
+    color: rgba(255,255,255,1);
+    font-family: "Courier New", "Courier", "Source Code Pro";
+}
+
+.warning b
+{
+    color: rgba(255,255,255,1);
+    font-family: "Courier New", "Courier", "Source Code Pro";
+}
+
+
+
+.maptable-key {
+    padding:4px;
+    display:block;
+    text-align:right;
+    flex:1 auto;
+    border-right: 3px solid rgba(255,255,255,0.1);
+    color: rgba(255,200,128, 0.7);
+}
+
+.maptable-value {
+    padding:4px;
+    display:block;
+    flex:1 auto;
+    color: rgba(128,200,255, 0.7);
+}
+
+.maptable-key > .maptable-entry
+{
+    display:block;
+}
+.maptable-value > .maptable-entry
+{
+    display:block;
+}
+
+.mesh-problem
+{
+    padding-left:20px;
+    /*text-indent:-5px;*/
+}
+.number
+{
+    color:rgba(200,200,200,0.7);
+}
+
+.operator
+{
+    color:rgba(255,200,128,0.7);
+}
+
+.number > .operator
+{
+    color:rgba(200,200,200,0.7);
+}
+
+
+
+input {
+    background-color: #555;
+    border-image-source: none;
+    -webkit-appearance: none;
+    border: #555 1px;
+    margin: 3px;
+    color: white;
+}
+
+textarea{
+    background-color: #555;
+    border-image-source: none;
+    -webkit-appearance: none;
+    border: #555 1px;
+    margin: 3px;
+    color: white;
+}
+
+
+
+

@@ -3,6 +3,7 @@ package fielded.boxbrowser;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.MapMaker;
 import com.google.common.io.Files;
+import field.app.RunLoop;
 import field.graphics.Shader;
 import field.utility.Dict;
 import field.utility.Pair;
@@ -190,41 +191,43 @@ public class WebApps extends Box implements IO.Loaded {
 				// now we wait for it to open a websocket with id 'uid' and grab that socket.
 
 
-				s.addHandlerFirst((server, socket, address, payload) -> {
-					System.out.println(" socket opened with :" + server + " " + socket + " " + address + " " + payload);
+				s.addHandlerLast((server, socket, address, payload) -> {
+					System.out.println(" socket opened with :" + server + " " + socket + " " + address + " " + payload + "  on thread :" + Thread.currentThread());
 
-					if (("" + payload).equals(uid)) {
+					RunLoop.main.once(() -> {
+						if (("" + payload).equals(uid)) {
 
-						System.out.println(" Socket is live, executing code ");
+							System.out.println(" Socket is live, executing code ");
 
-						Consumer<String> executeJS = s -> {
-							socket.send(s);
-						};
+							Consumer<String> executeJS = s -> {
+								socket.send(s);
+							};
 
-						Consumer<String> append = s -> {
-							executeJS.accept("$(document.body).append('" + s.replace("'", "\"") + "');");
-						};
+							Consumer<String> append = s -> {
+								executeJS.accept("$('.all').append('" + s.replace("'", "\"") + "');");
+							};
 
-						LinkedHashMap<String, Object> p2 = new LinkedHashMap<String, Object>();
-						p2.putAll(params);
-						p2.put("files", files);
-						p2.put("execute", executeJS);
-						p2.put("append", append);
+							LinkedHashMap<String, Object> p2 = new LinkedHashMap<String, Object>();
+							p2.putAll(params);
+							p2.put("files", files);
+							p2.put("execute", executeJS);
+							p2.put("append", append);
 
-						Object res = Callbacks.call(bx, Callbacks.main, p2);
+							Object res = Callbacks.call(bx, Callbacks.main, p2);
 
-						if (res != null) {
-							Optional<Out> o = root.find(Out.__out, root.both())
-									      .findAny();
-							if (o.isPresent()) {
-								append.accept(o.get()
-									       .convert(res));
-							} else {
-								append.accept("" + res);
+							if (res != null) {
+								Optional<Out> o = root.find(Out.__out, root.both())
+										      .findAny();
+								if (o.isPresent()) {
+									append.accept(o.get()
+										       .convert(res));
+								} else {
+									append.accept("" + res);
+								}
 							}
-						}
 
-					}
+						}
+					});
 					return payload;
 				});
 
