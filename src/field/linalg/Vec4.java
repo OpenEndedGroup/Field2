@@ -149,6 +149,7 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable {
 	 */
 	public Vec4(ByteBuffer buffer) {
 		this(buffer.position(), buffer);
+		buffer.position(buffer.position()+8*4);
 	}
 
 	/**
@@ -178,6 +179,7 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable {
 	 */
 	public Vec4(DoubleBuffer buffer) {
 		this(buffer.position(), buffer);
+		buffer.position(buffer.position()+4);
 	}
 
 	/**
@@ -207,6 +209,7 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable {
 	 */
 	public Vec4(FloatBuffer buffer) {
 		this(buffer.position(), buffer);
+		buffer.position(buffer.position()+4);
 	}
 
 	/**
