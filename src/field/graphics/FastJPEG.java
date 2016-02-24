@@ -6,13 +6,26 @@ import java.nio.ByteBuffer;
 /**
  * This is a fast native jpeg loader. Well battle tested, thread-safe. We have versions for linux and os x.
  */
-public class FastJPEG {
+public class FastJPEG implements JPEGLoader{
+
+	static public boolean available;
 
 	static {
-		System.loadLibrary("fieldjpegturb");
+		available = false;
+		try {
+//			System.loadLibrary("fieldjpegturb");
+//			available = true;
+		} catch (Throwable t) {
+			System.out.println(" Fast jpeg loading is not available. This isn't typically going to be a problem.");
+		}
 	}
 
-	static public final FastJPEG j = new FastJPEG();
+	static public final JPEGLoader j;
+
+	static {
+		if (available) j = new FastJPEG();
+		else j = new SlowJPEG();
+	}
 
 	public native void decompress(String filename, Buffer dest, int width, int height);
 
