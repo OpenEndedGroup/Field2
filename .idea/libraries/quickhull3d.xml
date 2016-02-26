@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="quickhull3d">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/modules/fieldcore/resources/quickhull3d.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$PROJECT_DIR$/modules/fieldcore/resources/quickhull3d.jar!/doc/quickhull3d" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/modules/fieldcore/resources/quickhull3d.jar!/" />
+    </SOURCES>
+  </library>
+</component>

@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="edn-java-0.4.4">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/fieldbox/resources/edn-java-0.4.4.jar!/" />
+      <root url="jar://$PROJECT_DIR$/modules/fieldbox/resources/edn-java-0.4.4.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

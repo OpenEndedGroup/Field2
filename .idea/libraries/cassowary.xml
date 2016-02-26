@@ -1,11 +1,11 @@
 <component name="libraryTable">
   <library name="cassowary">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/fieldbox/resources/cassowary.jar!/" />
+      <root url="jar://$PROJECT_DIR$/modules/fieldbox/resources/cassowary.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
-      <root url="jar://$PROJECT_DIR$/fieldbox/resources/cassowary.jar!/" />
+      <root url="jar://$PROJECT_DIR$/modules/fieldbox/resources/cassowary.jar!/" />
     </SOURCES>
   </library>
 </component>

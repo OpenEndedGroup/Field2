@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="javacl-1.0-20141231.011028-81-shaded">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/modules/fieldopencl/resources/javacl-1.0-20141231.011028-81-shaded.jar!/" />
+      <root url="jar://$PROJECT_DIR$/modules/fieldopencl/resources/javacl-generator-1.0-20140629.155539-82.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

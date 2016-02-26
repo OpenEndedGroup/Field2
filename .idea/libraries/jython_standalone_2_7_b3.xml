@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="jython-standalone-2.7-b3">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/fieldjython/lib/jython-standalone-2.7-b3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/modules/fieldjython/resources/jython-standalone-2.7-b3.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

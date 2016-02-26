@@ -1,0 +1,10 @@
+<component name="ArtifactManager">
+  <artifact name="fieldlinker:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/fieldlinker_jar</output-path>
+    <root id="root">
+      <element id="archive" name="fieldlinker.jar">
+        <element id="module-output" name="fieldlinker" />
+      </element>
+    </root>
+  </artifact>
+</component>

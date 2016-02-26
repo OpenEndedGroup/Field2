@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="swt">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/fielded/lib/swt.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>
