@@ -10,11 +10,8 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="fieldagent" />
     <orderEntry type="module" module-name="fieldcore" />
-    <orderEntry type="module" module-name="fielded" />
     <orderEntry type="module" module-name="fieldlinker" />
     <orderEntry type="library" name="jython-standalone-2.7-b3" level="project" />
-    <orderEntry type="module" module-name="fieldbox" />
-    <orderEntry type="module" module-name="fieldnashorn" />
     <orderEntry type="module-library">
       <library>
         <CLASSES>

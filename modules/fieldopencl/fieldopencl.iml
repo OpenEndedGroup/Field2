@@ -10,8 +10,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="fieldcore" />
     <orderEntry type="library" name="javacl-1.0-20141231.011028-81-shaded" level="project" />
-    <orderEntry type="module" module-name="fieldbox" />
-    <orderEntry type="module" module-name="fielded" />
     <orderEntry type="module-library">
       <library>
         <CLASSES>

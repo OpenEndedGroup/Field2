@@ -1,5 +1,5 @@
 <component name="ArtifactManager">
-  <artifact name="fieldlinker:jar">
+  <artifact build-on-make="true" name="fieldlinker:jar">
     <output-path>$PROJECT_DIR$/out/artifacts/fieldlinker_jar</output-path>
     <root id="root">
       <element id="archive" name="fieldlinker.jar">

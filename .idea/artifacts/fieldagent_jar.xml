@@ -1,32 +1,10 @@
 <component name="ArtifactManager">
-  <artifact name="fieldagent:jar">
+  <artifact build-on-make="true" name="fieldagent:jar">
     <output-path>$PROJECT_DIR$/out/artifacts/fieldagent_jar</output-path>
     <root id="root">
       <element id="archive" name="fieldagent.jar">
         <element id="module-output" name="fieldagent" />
-        <element id="module-output" name="fieldcore" />
-        <element id="module-output" name="fieldlinker" />
-        <element id="module-output" name="fieldbox" />
-        <element id="module-output" name="fieldnashorn" />
-        <element id="module-output" name="fielded" />
-        <element id="module-output" name="fieldcef" />
       </element>
-      <element id="library" level="project" name="quickhull3d" />
-      <element id="library" level="project" name="pegdown-1.4.2" />
-      <element id="library" level="project" name="nashorn-local" />
-      <element id="library" level="project" name="lwjgl_util" />
-      <element id="library" level="project" name="protobuf-java-2.6.1" />
-      <element id="library" level="project" name="javax.json-1.0.4" />
-      <element id="library" level="project" name="commons-math3-3.2" />
-      <element id="library" level="project" name="lwjgl" />
-      <element id="library" level="project" name="json-20160212" />
-      <element id="library" level="project" name="parboiled-core-1.1.7" />
-      <element id="library" level="project" name="java_websocket" />
-      <element id="library" level="project" name="cassowary" />
-      <element id="library" level="project" name="edn-java-0.4.4" />
-      <element id="library" level="project" name="guava-16.0.1" />
-      <element id="library" level="project" name="poly2tri-core-0.1.1-SNAPSHOT" />
-      <element id="library" level="project" name="qdox-2.0-M1" />
     </root>
   </artifact>
 </component>

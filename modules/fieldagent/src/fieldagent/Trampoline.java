@@ -214,7 +214,8 @@ public class Trampoline {
 				url = getParent().getResource(name);
 			}
 
-			if (traceLoader) System.out.println("C: " + name + " -> " + url);
+			if (traceLoader)
+				System.out.println("C: " + name + " -> " + url);
 			if (traceLoader) if (url == null) System.out.println(" URL search paths are " + Arrays.asList(getURLs())+" inside "+getParent());
 
 			return url;
@@ -242,11 +243,11 @@ public class Trampoline {
 
 	static public void main(String[] a) {
 
-		try {
-			Thread.sleep(4000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+//		try {
+//			Thread.sleep(4000);
+//		} catch (InterruptedException e) {
+//			e.printStackTrace();
+//		}
 
 		if (a.length == 0) {
 			System.err.println(" No main.class specified. Add one to the command line");

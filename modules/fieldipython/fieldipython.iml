@@ -9,9 +9,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="fieldagent" />
-    <orderEntry type="module" module-name="fieldbox" />
     <orderEntry type="module" module-name="fieldcore" />
-    <orderEntry type="module" module-name="fielded" />
     <orderEntry type="module" module-name="fieldlinker" />
     <orderEntry type="module-library">
       <library>
@@ -33,6 +31,5 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="jpy-0.8-SNAPSHOT" level="project" />
-    <orderEntry type="module" module-name="fieldnashorn" />
   </component>
 </module>

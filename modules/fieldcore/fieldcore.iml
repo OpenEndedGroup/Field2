@@ -13,13 +13,16 @@
     <orderEntry type="library" exported="" name="nashorn-local" level="project" />
     <orderEntry type="library" exported="" name="guava-16.0.1" level="project" />
     <orderEntry type="library" exported="" name="lwjgl" level="project" />
-    <orderEntry type="module" module-name="fieldbox" />
     <orderEntry type="library" exported="" name="commons-math3-3.2" level="project" />
-    <orderEntry type="library" exported="" name="pegdown-1.4.2" level="project" />
-    <orderEntry type="library" name="parboiled-core-1.1.7" level="project" />
     <orderEntry type="library" name="lwjgl_util" level="project" />
     <orderEntry type="library" name="poly2tri-core-0.1.1-SNAPSHOT" level="project" />
     <orderEntry type="library" name="quickhull3d" level="project" />
     <orderEntry type="library" exported="" name="json-20160212" level="project" />
+    <orderEntry type="library" name="java_websocket" level="project" />
+    <orderEntry type="library" name="edn-java-0.4.4" level="project" />
+    <orderEntry type="library" name="protobuf-java-2.6.1" level="project" />
+    <orderEntry type="library" name="qdox-2.0-M1" level="project" />
+    <orderEntry type="library" name="cassowary" level="project" />
+    <orderEntry type="module" module-name="fieldcef_macosx" />
   </component>
 </module>

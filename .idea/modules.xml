@@ -3,15 +3,12 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/modules/fieldagent/fieldagent.iml" filepath="$PROJECT_DIR$/modules/fieldagent/fieldagent.iml" />
-      <module fileurl="file://$PROJECT_DIR$/modules/fieldbox/fieldbox.iml" filepath="$PROJECT_DIR$/modules/fieldbox/fieldbox.iml" />
-      <module fileurl="file://$PROJECT_DIR$/modules/fieldcef/fieldcef.iml" filepath="$PROJECT_DIR$/modules/fieldcef/fieldcef.iml" />
+      <module fileurl="file://$PROJECT_DIR$/modules/fieldcef_macosx/fieldcef_macosx.iml" filepath="$PROJECT_DIR$/modules/fieldcef_macosx/fieldcef_macosx.iml" />
       <module fileurl="file://$PROJECT_DIR$/modules/fieldclojure/fieldclojure.iml" filepath="$PROJECT_DIR$/modules/fieldclojure/fieldclojure.iml" />
       <module fileurl="file://$PROJECT_DIR$/modules/fieldcore/fieldcore.iml" filepath="$PROJECT_DIR$/modules/fieldcore/fieldcore.iml" />
-      <module fileurl="file://$PROJECT_DIR$/modules/fielded/fielded.iml" filepath="$PROJECT_DIR$/modules/fielded/fielded.iml" />
       <module fileurl="file://$PROJECT_DIR$/modules/fieldipython/fieldipython.iml" filepath="$PROJECT_DIR$/modules/fieldipython/fieldipython.iml" />
       <module fileurl="file://$PROJECT_DIR$/modules/fieldjython/fieldjython.iml" filepath="$PROJECT_DIR$/modules/fieldjython/fieldjython.iml" />
       <module fileurl="file://$PROJECT_DIR$/modules/fieldlinker/fieldlinker.iml" filepath="$PROJECT_DIR$/modules/fieldlinker/fieldlinker.iml" />
-      <module fileurl="file://$PROJECT_DIR$/modules/fieldnashorn/fieldnashorn.iml" filepath="$PROJECT_DIR$/modules/fieldnashorn/fieldnashorn.iml" />
       <module fileurl="file://$PROJECT_DIR$/modules/fieldopencl/fieldopencl.iml" filepath="$PROJECT_DIR$/modules/fieldopencl/fieldopencl.iml" />
       <module fileurl="file://$PROJECT_DIR$/modules/fieldprocessing/fieldprocessing.iml" filepath="$PROJECT_DIR$/modules/fieldprocessing/fieldprocessing.iml" />
     </modules>
