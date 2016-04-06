@@ -215,7 +215,11 @@ public class Browser extends Box implements IO.Loaded {
 			    "\n" +
 			    "void main()\n" +
 			    "{\n" +
-			    "\tvec4 current = texelFetch(te, ivec2(vtc.xy*textureSize(te,0)), 0);\n" +
+			"\tvec4 current = texelFetch(te, ivec2(vtc.xy*textureSize(te,0)), 0);\n" +
+				"\tfloat m = min(current.x, min(current.y, current.z));\n"+
+			"float sat = 0.2;\n"+
+			"\tcurrent.xyz = (current.xyz-vec3(m)*sat)/(1-sat);\n"+
+			"current.xyz = pow(current.xyz, vec3(1.1));\n"+
 			    "\t_output  = vec4(current.zyx,current.w*vtc.z);\n" +
 			    "\t if (vtc.x==0 || vtc.x==1 || vtc.y==0 || vtc.y==1) _output.w=0;\n" +
 			    "}");
