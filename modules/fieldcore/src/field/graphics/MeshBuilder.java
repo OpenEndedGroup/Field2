@@ -45,6 +45,21 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	public MeshBuilder open() {
 		if (openCount == 0) {
 			doOpen();
+			target.attach("__forceClose__" + System.identityHashCode(this), new Scene.Perform() {
+				@Override
+				public boolean perform(int pass) {
+					if (openCount > 0) {
+						openCount = 0;
+						doClose();
+					}
+					return false;
+				}
+
+				@Override
+				public int[] getPasses() {
+					return new int[]{-1};
+				}
+			});
 		}
 		openCount++;
 		return this;
@@ -104,7 +119,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	 */
 	public MeshBuilder aux(Map<Integer, Object> add) {
 		Iterator<Map.Entry<Integer, Object>> m = add.entrySet()
-							    .iterator();
+			.iterator();
 		while (m.hasNext()) {
 			Map.Entry<Integer, Object> n = m.next();
 			float[] fa = toFloatArray(n.getValue());
@@ -190,19 +205,16 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 
 	/**
 	 * binds a FloatBuffer to this aux attribute. Dimension must be 1,2,3 or 4, storage.limit() must equal the number of vertices in this mesh * that dimension. You can call this over and over again to force a re-upload of this FloatBuffer to the GPU
-	 *
+	 * <p>
 	 * Will throw an exception unless you give it a clean FloatBuffer (not-sliced, allocateDirect etc.)
 	 */
 	public MeshBuilder bindAux(int attribute, int dimension, FloatBuffer storage) throws NoSuchFieldException, IllegalAccessException {
 		ArrayBuffer a = ensureExists(attribute, dimension, vertexCursor);
 
-		if (a instanceof SimpleArrayBuffer)
-		{
-			((SimpleArrayBuffer)a).setCustomStorage(storage);
-		}
-		else
-		{
-			throw new IllegalArgumentException(" can't bind to arraybuffer of class "+(a.getClass()));
+		if (a instanceof SimpleArrayBuffer) {
+			((SimpleArrayBuffer) a).setCustomStorage(storage);
+		} else {
+			throw new IllegalArgumentException(" can't bind to arraybuffer of class " + (a.getClass()));
 		}
 
 		return this;
@@ -316,7 +328,8 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with middle1 " + v2 + " > " + (vertexCursor - 1));
 		if (vertexCursor - 1 - v3 < 0)
 			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with middle2 " + v3 + " > " + (vertexCursor - 1));
-		if (vertexCursor - 1 - v4 < 0) throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with end " + v3 + " > " + (vertexCursor - 1));
+		if (vertexCursor - 1 - v4 < 0)
+			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with end " + v3 + " > " + (vertexCursor - 1));
 		dest.put(vertexCursor - 1 - v1);
 		dest.put(vertexCursor - 1 - v2);
 		dest.put(vertexCursor - 1 - v3);
@@ -339,7 +352,8 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with middle1 " + v2 + " > " + (vertexCursor - 1));
 		if (vertexCursor - 1 - v3 < 0)
 			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with middle2 " + v3 + " > " + (vertexCursor - 1));
-		if (vertexCursor - 1 - v4 < 0) throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with end " + v3 + " > " + (vertexCursor - 1));
+		if (vertexCursor - 1 - v4 < 0)
+			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with end " + v3 + " > " + (vertexCursor - 1));
 
 		dest.put(vertexCursor - 1 - v1);
 		dest.put(vertexCursor - 1 - v2);
@@ -367,7 +381,8 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with start " + v1 + " > " + (vertexCursor - 1));
 		if (vertexCursor - 1 - v2 < 0)
 			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with middle " + v2 + " > " + (vertexCursor - 1));
-		if (vertexCursor - 1 - v3 < 0) throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with end " + v3 + " > " + (vertexCursor - 1));
+		if (vertexCursor - 1 - v3 < 0)
+			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with end " + v3 + " > " + (vertexCursor - 1));
 
 		dest.put(vertexCursor - 1 - v1);
 		dest.put(vertexCursor - 1 - v2);
@@ -386,7 +401,8 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 		IntBuffer dest = ensureElementSize(2, elementCursor);
 		if (vertexCursor - 1 - v1 < 0)
 			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with start " + v1 + " > " + (vertexCursor - 1));
-		if (vertexCursor - 1 - v2 < 0) throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with end " + v2 + " > " + (vertexCursor - 1));
+		if (vertexCursor - 1 - v2 < 0)
+			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with end " + v2 + " > " + (vertexCursor - 1));
 
 		dest.put(vertexCursor - 1 - v1);
 		dest.put(vertexCursor - 1 - v2);
@@ -402,12 +418,14 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	 */
 	public MeshBuilder nextLine(int start, int end) {
 		IntBuffer dest = ensureElementSize(2, elementCursor + Math.abs(start - end));
-		if (start < 0) throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access an unwritten index with start " + start);
-		if (end < 0) throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access an unwritten index with end " + start);
+		if (start < 0)
+			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access an unwritten index with start " + start);
+		if (end < 0)
+			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access an unwritten index with end " + start);
 		if (end > start) {
 			if (vertexCursor - 1 - (start + 1) < 0)
 				throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with start " + start + " > " + (vertexCursor - 1));
-			if (vertexCursor - 1 - (end-1 + 1) < 0)
+			if (vertexCursor - 1 - (end - 1 + 1) < 0)
 				throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with end " + end + " > " + (vertexCursor - 1));
 
 			for (int a = start; a < end; a++) {
@@ -418,7 +436,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 		} else {
 			if (vertexCursor - 1 - (start - 1) < 0)
 				throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with start " + start + " > " + (vertexCursor - 1));
-			if (vertexCursor - 1 - (end+1 - 1) < 0)
+			if (vertexCursor - 1 - (end + 1 - 1) < 0)
 				throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with end " + end + " > " + (vertexCursor - 1));
 
 			for (int a = start - 1; a > end; a--) {
@@ -431,30 +449,27 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 		return this;
 	}
 
-	/** Adds a string of line segments corresponding to the Vec3's in this List. (note, nothing will happen if line.size()<=1
-	 *
+	/**
+	 * Adds a string of line segments corresponding to the Vec3's in this List. (note, nothing will happen if line.size()<=1
 	 */
-	public MeshBuilder nextLine(List<Vec3> line)
-	{
-		if(line.size()<=1) return this;
+	public MeshBuilder nextLine(List<Vec3> line) {
+		if (line.size() <= 1) return this;
 
-		for(int i=0;i<line.size();i++)
-		{
+		for (int i = 0; i < line.size(); i++) {
 			nextVertex(line.get(i));
 		}
-		nextLine(0, line.size()-1);
+		nextLine(0, line.size() - 1);
 		return this;
 	}
 
 	/**
 	 * Adds a contour, via the tesselator, to a triangle mesh. Like the rest of the public api, toTesselate refers to vertex indices by starting at '0' (the most recently added via nextVertex(...)) and the '1' (the one added before that) etc..
 	 */
-	public MeshBuilder nextElement(List<Integer> toTesselate)
-	{
+	public MeshBuilder nextElement(List<Integer> toTesselate) {
 
 		ArrayList<Integer> abs = new ArrayList<Integer>(toTesselate.size());
-		for(int i=0;i<toTesselate.size();i++)
-			abs.add(-toTesselate.get(i)+vertexCursor);
+		for (int i = 0; i < toTesselate.size(); i++)
+			abs.add(-toTesselate.get(i) + vertexCursor);
 
 		MeshBuilder_tesselationSupport tess = getTessSupport();
 		tess.begin();
@@ -473,7 +488,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 
 		Map<Integer, ArrayBuffer> b = target.buffers();
 		Iterator<Map.Entry<Integer, ArrayBuffer>> m = b.entrySet()
-							       .iterator();
+			.iterator();
 
 		Map<Integer, float[]> q = new LinkedHashMap<>();
 		while (m.hasNext()) {
@@ -483,12 +498,12 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 			float[] z = aux.get(n.getKey());
 			if (z == null) {
 				z = new float[n.getValue()
-					       .getDimension()];
+					.getDimension()];
 			}
 
 			FloatBuffer fs = n.getValue()
-					      .floats(true);
-			fs.position(z.length*(vertex-1));
+				.floats(true);
+			fs.position(z.length * (vertex - 1));
 			fs.get(z);
 			q.put(n.getKey(), z);
 		}
@@ -534,9 +549,12 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	 * protecting this merge operation between two bookmarks).
 	 */
 	public MeshBuilder merge(MeshBuilder source) {
-		if (target.elements == null && source.target.elements != null) throw new IllegalArgumentException(" cannot merge, mismatch in element dimension ");
-		if (target.elements != null && source.target.elements == null) throw new IllegalArgumentException(" cannot merge, mismatch in element dimension ");
-		if (target.elements.getDimension() != source.target.elements.getDimension()) throw new IllegalArgumentException(" cannot merge, mismatch in element dimension ");
+		if (target.elements == null && source.target.elements != null)
+			throw new IllegalArgumentException(" cannot merge, mismatch in element dimension ");
+		if (target.elements != null && source.target.elements == null)
+			throw new IllegalArgumentException(" cannot merge, mismatch in element dimension ");
+		if (target.elements.getDimension() != source.target.elements.getDimension())
+			throw new IllegalArgumentException(" cannot merge, mismatch in element dimension ");
 
 		FloatBuffer v = ensureSize(0, 3, vertexCursor + source.vertexCursor);
 		v.put(source.target.vertex(true));
@@ -548,9 +566,9 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 
 		Set<Integer> auxes = new LinkedHashSet<>();
 		auxes.addAll(this.target.buffers()
-					.keySet());
+			.keySet());
 		auxes.addAll(source.target.buffers()
-					  .keySet());
+			.keySet());
 		auxes.remove(0);
 
 		for (Integer ii : auxes) {
@@ -565,7 +583,8 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 				FloatBuffer right = b.floats();
 				left.put(right); // fill with blank ?
 			}
-			if (b == null) ensureSize(ii, a.getDimension(), vertexCursor + source.vertexCursor); // fill with blank?
+			if (b == null)
+				ensureSize(ii, a.getDimension(), vertexCursor + source.vertexCursor); // fill with blank?
 		}
 
 		elementCursor += source.elementCursor;
@@ -613,7 +632,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 
 		Map<Integer, ArrayBuffer> b = target.buffers();
 		Iterator<Map.Entry<Integer, ArrayBuffer>> m = b.entrySet()
-							       .iterator();
+			.iterator();
 
 		while (m.hasNext()) {
 			Map.Entry<Integer, ArrayBuffer> n = m.next();
@@ -622,7 +641,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 			float[] z = aux.get(n.getKey());
 			if (z == null) {
 				z = new float[n.getValue()
-					       .getDimension()];
+					.getDimension()];
 			}
 			ensureSize(n.getKey(), z.length, vertexCursor).put(z);
 		}
@@ -673,7 +692,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	protected Object computeHash() {
 		// for now, at least
 		HashSet<Integer> q = new HashSet<>(target.buffers()
-							 .keySet());
+			.keySet());
 		q.remove(0);
 		return new Pair(shrinkage, q);
 	}
@@ -692,13 +711,11 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 		protected long buildNumber = MeshBuilder.this.buildNumber;
 		protected Object hash = computeHash();
 
-		public Bookmark()
-		{
+		public Bookmark() {
 		}
 
-		public Bookmark(int absolute)
-		{
-			vertexCursor=absolute;
+		public Bookmark(int absolute) {
+			vertexCursor = absolute;
 		}
 
 		public int at() {
@@ -720,7 +737,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 			this.buildNumber = MeshBuilder.this.buildNumber;
 
 			Log.log("cache",
-				()->"evaluating cache " + MeshBuilder.this.vertexCursor + " / " + vertexCursor + "  " + MeshBuilder.this.elementCursor + " / " + elementCursor + " " + this.externalHash + "=" + externalHash + " " + computeHash() + "=" + this.hash);
+				() -> "evaluating cache " + MeshBuilder.this.vertexCursor + " / " + vertexCursor + "  " + MeshBuilder.this.elementCursor + " / " + elementCursor + " " + this.externalHash + "=" + externalHash + " " + computeHash() + "=" + this.hash);
 
 			if (MeshBuilder.this.vertexCursor != vertexCursor || MeshBuilder.this.elementCursor != elementCursor) {
 				Log.log("cache",
@@ -741,7 +758,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 				return false;
 			}
 			cacheHits++;
-			Log.log("cache", ()->"succeeded");
+			Log.log("cache", () -> "succeeded");
 			return true;
 		}
 
