@@ -1,5 +1,5 @@
 // CEF has problems with access the native clipboard. So here we'll duplicate some of the emacs mode kill ring functionality, dress it up like
-// command-c,v,x, and, later on, sync it with the native clipboard via our websocket
+// command-c,v,x, and sync it with the native clipboard via our websocket
 var killRing = [];
 
 function addToRing(str) {
