@@ -48,6 +48,8 @@ public class TextEditor extends Box implements IO.Loaded {
 	long lastTriggerAt = -1;
 	int ignoreHide = 0;
 	private int maxhOnCreation = 0;
+	private String setHeightCode = "";
+	private String setWidthCode = "";
 
 	public TextEditor(Box root) {
 		this.properties.put(textEditor, this);
@@ -89,7 +91,6 @@ public class TextEditor extends Box implements IO.Loaded {
 
 			maxh = window.getHeight() - 25 - 10 - 10 - 2;
 
-
 			browser = new Browser();
 
 
@@ -130,8 +131,8 @@ public class TextEditor extends Box implements IO.Loaded {
 
 			browser.properties.put(Box.name, "texteditor");
 
-			executeJavaScript("$(\"body\").height(" + (maxh - 10) + ")");
-			executeJavaScript("$(\"body\").width(" + (maxw-28*2) + ")");
+			executeJavaScript("$(\".CodeMirror\").height(" + (maxh - 10) + ")");
+			executeJavaScript("$(\".CodeMirror\").width(" + (maxw-28*2) + ")");
 
 			this.properties.put(Boxes.dontSave, true);
 			styles = findAndLoad(styleSheet, false);
@@ -156,6 +157,9 @@ public class TextEditor extends Box implements IO.Loaded {
 				 .register(x -> x.equals("selection.changed"), c -> {
 					 Log.log("shy", () -> "selection is now" + selection().count());
 
+					browser.executeJavaScript("_messageBus.publish('defocus', {})");
+					browser.setFocus(false);
+
 					 System.out.println(" SELECTION is currently " + selection().collect(Collectors.toList()));
 					 if (selection().count() != 1) {
 						 System.out.println(" SELECTION COUNT IS NOT 1 " + selection().collect(Collectors.toList()));
@@ -163,6 +167,10 @@ public class TextEditor extends Box implements IO.Loaded {
 						 Drawing.dirty(this);
 					 } else {
 						 System.out.println(" SELECTION COUNT IS 1 " + selection().collect(Collectors.toList()) + " showing");
+
+						 executeJavaScript(setHeightCode);
+						 executeJavaScript(setWidthCode);
+
 						 browser.properties.put(Box.hidden, false);
 //						 browser.setFocus(true);
 						 Drawing.dirty(this);
@@ -174,8 +182,12 @@ public class TextEditor extends Box implements IO.Loaded {
 
 			first(Boxes.window, both()).ifPresent(x -> x.addKeyboardHandler(event -> {
 				Set<Integer> kpressed = Window.KeyboardState.keysPressed(event.before, event.after);
-				if (kpressed.contains(GLFW_KEY_LEFT_SHIFT) || kpressed.contains(GLFW_KEY_RIGHT_SHIFT)) {
-					if (event.after.keysDown.size() == 1) trigger();
+				if ((kpressed.contains(GLFW_KEY_LEFT_SHIFT) || kpressed.contains(GLFW_KEY_RIGHT_SHIFT)) && event.after.keysDown.size() == 1) {
+						trigger();
+				}
+				else if (event.after.keysDown.size() == 1)
+				{
+					lastTriggerAt = 0;
 				}
 
 				return true;
@@ -183,18 +195,26 @@ public class TextEditor extends Box implements IO.Loaded {
 
 			RunLoop.main.getLoop()
 				    .attach(x -> {
-					    int maxh = window.getHeight() - 25 - 10 - 10 - 2;
+					    int maxh = window.getHeight();// - 25 - 10 - 10 - 2;
 					    Rect f = browser.properties.get(Box.frame);
+
+//					    System.out.println(" window height is :"+window.getHeight()+" -> "+maxh+" -> "+(maxh/(float)window.getHeight()));
+
 					    if ((int)maxh!=  heightLast &&  selection().count()>0) {
 						    heightLast = (int) maxh;
 						    f = f.duplicate();
-						    executeJavaScript("$(\"body\").height("+Math.min(maxh, maxhOnCreation - 40) + ")");
+						    System.out.println("\n\n -- set height to be :"+Math.min(maxh, maxhOnCreation - 40)+"\n\n");
+
+						    setHeightCode = "$(\".CodeMirror\").height("+Math.min(maxh, maxhOnCreation - 40) + ")";
+						    executeJavaScript(setHeightCode);
 					    }
 					    if ((int)f.w != frameLast)
 					    {
 						    frameLast = (int)f.w;
 						    f = f.duplicate();
-						    executeJavaScript("$(\"body\").width("+ Math.min(maxw-28*2, (int)(f.w-28)) + ")");
+						    System.out.println("\n\n -- set width to be :"+Math.min(maxw-28*2, (int)(f.w-28))+"\n\n");
+						    setWidthCode = "$(\".CodeMirror\").width("+ Math.min(maxw-28*2, (int)(f.w-28)) + ")";
+						    executeJavaScript(setWidthCode);
 					    }
 
 					    return true;
@@ -202,12 +222,13 @@ public class TextEditor extends Box implements IO.Loaded {
 		}, 100);
 	}
 
+
 	@HiddenInAutocomplete
 	public void trigger() {
 		long now = System.currentTimeMillis();
 		if (now - lastTriggerAt < 500) {
 			if (!browser.getFocus()) browser.executeJavaScript_queued("_messageBus.publish('focus', {})");
-			else browser.executeJavaScript_queued("_messageBus.publish('de" + "focus', {})");
+//			else browser.executeJavaScript_queued("_messageBus.publish('defocus', {})");
 			browser.setFocus(!browser.getFocus());
 		}
 		lastTriggerAt = now;
