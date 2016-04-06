@@ -2,7 +2,6 @@ package fieldagent;
 
 import com.google.common.collect.MapMaker;
 import com.google.common.io.ByteStreams;
-import sun.misc.Resource;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -184,7 +183,7 @@ public class Trampoline {
 
 
 		LinkedHashSet<String> blacklist_prefix = new LinkedHashSet<String>(Arrays
-			    .asList("fieldagent", "java", "sun", "jdk", "javax", "sunw", "apple", "com.apple", "org.cef"));
+			    .asList("fieldagent", "com.sun", "java", "sun", "jdk", "javax", "sunw", "apple", "com.apple", "org.cef"));
 
 		protected boolean shouldLoad(String name) {
 
@@ -243,11 +242,11 @@ public class Trampoline {
 
 	static public void main(String[] a) {
 
-//		try {
-//			Thread.sleep(4000);
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
-//		}
+		try {
+			Thread.sleep(4000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 
 		if (a.length == 0) {
 			System.err.println(" No main.class specified. Add one to the command line");
