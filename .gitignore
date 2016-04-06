@@ -14,11 +14,6 @@ hs_err_pid*
 *.lib
 *.a
 
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
 
 # Executables
 *.exe
