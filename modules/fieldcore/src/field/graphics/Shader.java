@@ -125,50 +125,58 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 			Log.log("graphics.trace", ()->" shader name " + finalS.name);
 
 			if (s.name == -1) {
-				s.name = GL20.glCreateShader(type.gl);
-				GL20.glShaderSource(s.name, s.source);
-				GL20.glCompileShader(s.name);
-				status = GL20.glGetShaderi(s.name, GL20.GL_COMPILE_STATUS);
+				try {
+					Log.log("graphics.trace", () -> " creating shader");
+					s.name = GL20.glCreateShader(type.gl);
+					GL20.glShaderSource(s.name, s.source);
+					GL20.glCompileShader(s.name);
+					status = GL20.glGetShaderi(s.name, GL20.GL_COMPILE_STATUS);
+					Log.log("graphics.trace", () -> " shader compile status" + status);
 
-				if (status == 0) {
-					String ret = GL20.glGetShaderInfoLog(s.name, 10000);
-					Log.log("graphics.error", ()->type + " program failed to compile");
-					Log.log("graphics.error", ()->" log is <" + ret + ">");
-					Log.log("graphics.error", ()->" shader source is <" + source + ">, reporting to <" + onError + ">");
-					if (onError != null) {
-						onError.beginError();
-						String log = ret;
-						String[] lines = log.split("\n");
-						for (String ll : lines) {
-							try {
-								String[] ss = ll.split(":");
-								if (ss.length > 2) {
-									int ii = Integer.parseInt(ss[2]);
-									onError.errorOnLine(ii, ll);
-								}
-							} catch (NumberFormatException e) {
+					if (status == 0) {
+						String ret = GL20.glGetShaderInfoLog(s.name, 10000);
+						Log.log("graphics.error", () -> type + " program failed to compile");
+						Log.log("graphics.error", () -> " log is <" + ret + ">");
+						Log.log("graphics.error", () -> " shader source is <" + source + ">, reporting to <" + onError + ">");
+						if (onError != null) {
+							onError.beginError();
+							String log = ret;
+							String[] lines = log.split("\n");
+							for (String ll : lines) {
 								try {
-									Matcher q = Pattern.compile(".*?\\((.*?)\\)")
-											   .matcher(ll);
-									q.find();
-									String g = q.group(1);
-									int ii = Integer.parseInt(g);
-									onError.errorOnLine(ii, ll);
-								} catch (Exception e2) {
-									e2.printStackTrace();
+									String[] ss = ll.split(":");
+									if (ss.length > 2) {
+										int ii = Integer.parseInt(ss[2]);
+										onError.errorOnLine(ii, ll);
+									}
+								} catch (NumberFormatException e) {
+									try {
+										Matcher q = Pattern.compile(".*?\\((.*?)\\)")
+											.matcher(ll);
+										q.find();
+										String g = q.group(1);
+										int ii = Integer.parseInt(g);
+										onError.errorOnLine(ii, ll);
+									} catch (Exception e2) {
+										e2.printStackTrace();
+									}
 								}
 							}
+							onError.endError();
 						}
-						onError.endError();
-					}
-					Log.log("graphics.error", ()->" shader is not good");
-					s.good = false;
-					return false;
-				} else {
-					if (onError != null) onError.noError();
+						Log.log("graphics.error", () -> " shader is not good");
+						s.good = false;
+						return false;
+					} else {
+						if (onError != null) onError.noError();
 
-					s.good = true;
-					return true;
+						s.good = true;
+						return true;
+					}
+				}
+				catch(Throwable t)
+				{
+					t.printStackTrace();
 				}
 			}
 			return false;
@@ -295,10 +303,12 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 		}
 
 		if (name.valid) {
+//			System.out.println(" setting shader to be :"+name.name);
 			Log.log("graphics.trace", () -> " using program " + name.name);
 			GraphicsContext.getContext().stateTracker.shader.set(name.name);
 			GraphicsContext.getContext().uniformCache.changeShader(name.name);
 		} else {
+			System.out.println(" shader is invalid, not being used ");
 			Log.log("graphics.trace", ()->"WARNING: program not valid, not being used");
 			if (introspection!=null)
 				introspection.errorIsInvalid = "Shader failed GL validation, it is not being used\n";
