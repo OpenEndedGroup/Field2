@@ -497,6 +497,23 @@ public class Drawing extends Box {
 		return new Vec2(scale);
 	}
 
+	/**
+	 * Returns the shader (for lines and meshes) that's currently shading the main layer of this window
+	 */
+	public Shader getShader()
+	{
+		return getShader("__main__");
+	}
+
+	/**
+	 * Returns the shader (for lines and meshes) that's currently shading a specific ayer of this window
+	 */
+	public Shader getShader(String layerName)
+	{
+		PerLayer layer = layerLocal.computeIfAbsent(layerName, (k) -> new PerLayer());
+		return layer.shader;
+	}
+
 	public Vec2 getTranslation() {
 		return new Vec2(translation);
 	}
