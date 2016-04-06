@@ -13,8 +13,8 @@ public class FastJPEG implements JPEGLoader{
 	static {
 		available = false;
 		try {
-//			System.loadLibrary("fieldjpegturb");
-//			available = true;
+			System.loadLibrary("fieldjpegturb");
+			available = true;
 		} catch (Throwable t) {
 			System.out.println(" Fast jpeg loading is not available. This isn't typically going to be a problem.");
 		}
