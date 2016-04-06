@@ -1,22 +1,22 @@
-LazyLoad.js("/field/filesystem/codemirror-4.4/lib/codemirror.js");
-LazyLoad.css("/field/filesystem/codemirror-4.4/lib/codemirror.css");
-LazyLoad.css("/field/filesystem/codemirror-4.4/theme/default.css");
-LazyLoad.js("/field/filesystem/codemirror-4.4/mode/javascript/javascript.js");
-LazyLoad.js("/field/filesystem/codemirror-4.4/mode/python/python.js");
-LazyLoad.js("/field/filesystem/codemirror-4.4/mode/xml/xml.js");
-LazyLoad.js("/field/filesystem/codemirror-4.4/mode/css/css.js");
-LazyLoad.js("/field/filesystem/codemirror-4.4/mode/htmlmixed/htmlmixed.js");
-LazyLoad.js("/field/filesystem/codemirror-4.4/mode/glsl/glsl.js");
-LazyLoad.js("/field/filesystem/codemirror-4.4/mode/clojure/clojure.js");
-LazyLoad.js("/field/filesystem/codemirror-4.4/addon/fold/foldcode.js");
-LazyLoad.js("/field/filesystem/codemirror-4.4/addon/fold/foldgutter.js");
-LazyLoad.css("/field/filesystem/codemirror-4.4/addon/fold/foldgutter.css");
-LazyLoad.js("/field/filesystem/codemirror-4.4/addon/fold/indent-fold.js");
-LazyLoad.js("/field/filesystem/codemirror-4.4/addon/edit/closebrackets.js");
-LazyLoad.js("/field/filesystem/codemirror-4.4/addon/edit/matchbrackets.js");
-LazyLoad.js("/field/filesystem/codemirror-4.4/addon/search/search.js");
-LazyLoad.js("/field/filesystem/codemirror-4.4/addon/search/searchcursor.js");
-LazyLoad.js("/field/filesystem/codemirror-4.4/addon/dialog/dialog.js");
+LazyLoad.js("/field/filesystem/codemirror-5.12/lib/codemirror.js");
+LazyLoad.css("/field/filesystem/codemirror-5.12/lib/codemirror.css");
+LazyLoad.css("/field/filesystem/codemirror-5.12/theme/default.css");
+LazyLoad.js("/field/filesystem/codemirror-5.12/mode/javascript/javascript.js");
+LazyLoad.js("/field/filesystem/codemirror-5.12/mode/python/python.js");
+LazyLoad.js("/field/filesystem/codemirror-5.12/mode/xml/xml.js");
+LazyLoad.js("/field/filesystem/codemirror-5.12/mode/css/css.js");
+LazyLoad.js("/field/filesystem/codemirror-5.12/mode/htmlmixed/htmlmixed.js");
+LazyLoad.js("/field/filesystem/codemirror-5.12/mode/glsl/glsl.js");
+LazyLoad.js("/field/filesystem/codemirror-5.12/mode/clojure/clojure.js");
+LazyLoad.js("/field/filesystem/codemirror-5.12/addon/fold/foldcode.js");
+LazyLoad.js("/field/filesystem/codemirror-5.12/addon/fold/foldgutter.js");
+LazyLoad.css("/field/filesystem/codemirror-5.12/addon/fold/foldgutter.css");
+LazyLoad.js("/field/filesystem/codemirror-5.12/addon/fold/indent-fold.js");
+LazyLoad.js("/field/filesystem/codemirror-5.12/addon/edit/closebrackets.js");
+LazyLoad.js("/field/filesystem/codemirror-5.12/addon/edit/matchbrackets.js");
+LazyLoad.js("/field/filesystem/codemirror-5.12/addon/search/search.js");
+LazyLoad.js("/field/filesystem/codemirror-5.12/addon/search/searchcursor.js");
+LazyLoad.js("/field/filesystem/codemirror-5.12/addon/dialog/dialog.js");
 
 LazyLoad.js("/field/filesystem/raphael-min.js");
 
@@ -38,13 +38,13 @@ LazyLoad.css("/field/filesystem/field-codemirror.css");
 LazyLoad.js("/field/filesystem/farbtastic/farbtastic.js");
 LazyLoad.css("/field/filesystem/farbtastic/farbtastic.css");
 
-//LazyLoad.css("/field/filesystem/codemirror-4.4/addon/dialog/dialog.css")
-LazyLoad.css("/field/filesystem/codemirror-4.4/addon/hint/show-hint.css");
-LazyLoad.css("/field/filesystem/codemirror-4.4/addon/tern/tern.css");
+//LazyLoad.css("/field/filesystem/codemirror-5.12/addon/dialog/dialog.css")
+LazyLoad.css("/field/filesystem/codemirror-5.12/addon/hint/show-hint.css");
+LazyLoad.css("/field/filesystem/codemirror-5.12/addon/tern/tern.css");
 
-LazyLoad.js("/field/filesystem/codemirror-4.4/addon/dialog/dialog.js");
-LazyLoad.js("/field/filesystem/codemirror-4.4/addon/tern/tern.js");
-LazyLoad.js("/field/filesystem/codemirror-4.4/addon/hint/show-hint.js");
+LazyLoad.js("/field/filesystem/codemirror-5.12/addon/dialog/dialog.js");
+LazyLoad.js("/field/filesystem/codemirror-5.12/addon/tern/tern.js");
+LazyLoad.js("/field/filesystem/codemirror-5.12/addon/hint/show-hint.js");
 
 LazyLoad.js("/field/filesystem/d3.min.js");
 

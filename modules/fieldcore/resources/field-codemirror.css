@@ -164,6 +164,12 @@ a {
     background: #ddd;
 }
 
+.CodeMirror
+{
+    font-family: "Source Code Pro" !important;
+    font-size:15px;
+}
+
 .CodeMirror pre {
     padding: 0 0 0 5px;
 }

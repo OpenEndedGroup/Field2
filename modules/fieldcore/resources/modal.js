@@ -2,23 +2,23 @@ var currentmodal = null;
 
 function runModal(placeholder, getcompletionsfunction, cssclass, initialText, allowAlternative) {
 
-		var w = $(".CodeMirror").width();
-		var h = $(".CodeMirror").height();
+    var w = $(".CodeMirror").width();
+    var h = $(".CodeMirror").height();
 
-		var mx= h - 100;
+    var mx = h - 100;
 
-		var shift = ($(window).height()-h)/2;
-		var shiftx = ($(window).width()-w)/2;
+    var shift = ($(window).height() - h) / 2;
+    var shiftx = ($(window).width() - w) / 2;
 
-    var modal = $("<dialog class='" + cssclass +"'><input spellcheck='false' data-autosize-input='{ \"space\": 10 }' autocomplete='off' placeholder='" + placeholder + "' class='Field-textBox' type='text' name='main'></input><ol style='max-height:"+mx+"'></ol></dialog>");
+    var modal = $("<dialog class='" + cssclass + "'><input spellcheck='false' data-autosize-input='{ \"space\": 10 }' autocomplete='off' placeholder='" + placeholder + "' class='Field-textBox' type='text' name='main'></input><ol style='max-height:" + mx + "'></ol></dialog>");
 
     modal.appendTo($("body"));
 
-		modal.css("top", -shift);
-		modal.css("bottom", shift);
+    modal.css("top", -shift);
+    modal.css("bottom", shift);
 
-		modal.css("left", -shiftx);
-		modal.css("right", shiftx);
+    modal.css("left", -shiftx);
+    modal.css("right", shiftx);
 
 
     var inputBox = modal.find("input");
@@ -144,7 +144,7 @@ function runModalAtCursor(placeholder, completeme, initialText) {
         h = $(".CodeMirror").height() - p.top - 100;
         $($(m).children()[1]).height(h)
     }
-    $(m).css("left", Math.min($(".CodeMirror").width()-500, cc.right));
+    $(m).css("left", Math.min($(".CodeMirror").width() - 500, cc.right));
 }
 
 //runModalAtCursor("banana", completme)
