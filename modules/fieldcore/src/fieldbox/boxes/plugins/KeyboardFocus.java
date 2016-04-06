@@ -35,14 +35,32 @@ public class KeyboardFocus extends Box {
 
 
 			FLine fr = new FLine().rect(f.x, f.y, f.w - 1, f.h - 1);
-			fr.attributes.put(StandardFLineDrawing.thicken, new BasicStroke(3));
-			fr.attributes.put(StandardFLineDrawing.color, new Vec4(0.1f, 0.6, 1.0, 0.7f));
+			fr.attributes.put(StandardFLineDrawing.thicken, new BasicStroke(10));
+			fr.attributes.put(StandardFLineDrawing.color, new Vec4(0.1f, 0.6, 1.0, 0.07f));
+
+			return fr;
+		});
+		this.properties.putToMap(FLineDrawing.frameDrawing, "__keyboardFocusRing2__", (x) -> {
+
+			if (focused == null) return new FLine();
+			if (focused.size() == 0) return new FLine();
+//			if (focused.get(focused.size() - 1) instanceof Browser) return new FLine();
+
+			Rect f = focused.get(focused.size() - 1).properties.get(Box.frame);
+
+			if (f == null) return new FLine();
+
+
+			FLine fr = new FLine().rect(f.x-5, f.y-5, f.w - 1+10, f.h - 1+10);
+			fr.attributes.put(StandardFLineDrawing.thicken, new BasicStroke(1));
+			fr.attributes.put(StandardFLineDrawing.color, new Vec4(0.1f, 0.6, 1.0, 0.2f));
 
 			return fr;
 		});
 
 		this.properties.putToMap(Callbacks.onDelete, "__keyboardFocusRing__", x -> {
 			focused.remove(x);
+			Drawing.dirty(KeyboardFocus.this);
 			return null;
 		});
 
