@@ -4,6 +4,7 @@ import field.app.RunLoop;
 import field.utility.Options;
 import fieldagent.Main;
 import fieldbox.io.IO;
+import fieldbox.io.IO2;
 import fieldcef.browser.CefSystem;
 
 import java.awt.*;
@@ -16,6 +17,7 @@ public class FieldBox {
 	static public final FieldBox fieldBox = new FieldBox();
 
 	public IO io;
+	public IO2 io2;
 
 
 	public void go() {
@@ -32,23 +34,25 @@ public class FieldBox {
 			System.err.println(" finished building the CefSystem");
 		}).start();
 
-		if (Main.os== Main.OS.mac)
+		if (Main.os == Main.OS.mac)
 			Toolkit.getDefaultToolkit();
 
 		// TODO --- get from command line / previous
 		Options.parseCommandLine(s);
 
-
-		fieldBox.io = new IO(Options.getDirectory("workspace",() -> System.getProperty("user.home")+"/Documents/FirstNewFieldWorkspace/"));
-		fieldBox.io.addFilespec("code", IO.EXECUTION, IO.EXECUTION);
 		LoggingDefaults.initialize();
+
+		fieldBox.io = new IO(Options.getDirectory("workspace", () -> System.getProperty("user.home") + "/Documents/FirstNewFieldWorkspace/"));
+		fieldBox.io.addFilespec("code", IO.EXECUTION, IO.EXECUTION);
+
+
+//		fieldBox.io2 = new IO2();
 
 		Open open = new Open(Options.getString("file", () -> "testIB.field2"));
 
 		fieldBox.go();
 
 	}
-
 
 
 }

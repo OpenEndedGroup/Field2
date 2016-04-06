@@ -24,5 +24,6 @@
     <orderEntry type="library" name="qdox-2.0-M1" level="project" />
     <orderEntry type="library" name="cassowary" level="project" />
     <orderEntry type="module" module-name="fieldcef_macosx" />
+    <orderEntry type="library" name="orient" level="project" />
   </component>
 </module>

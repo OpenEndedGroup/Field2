@@ -4,12 +4,13 @@ import field.utility.Util;
 import fieldbox.boxes.Box;
 import fieldbox.io.IO;
 
+import java.io.Serializable;
 import java.util.Optional;
 
 /**
  * A serializeable, cached, immutable reference to a box.
  */
-public class BoxRef {
+public class BoxRef implements Serializable{
 
 	protected transient Box ref;
 	public String uuid;
