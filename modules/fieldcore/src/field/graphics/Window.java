@@ -14,6 +14,7 @@ import fieldlinker.Linker;
 import org.lwjgl.glfw.GLFW;
 import static org.lwjgl.glfw.GLFW.*;
 import org.lwjgl.opengl.*;
+import org.lwjgl.system.Configuration;
 import org.lwjgl.system.libffi.Closure;
 
 import java.awt.*;
@@ -96,6 +97,8 @@ public class Window implements ProvidesGraphicsContext {
 
 	public Window(int x, int y, int w, int h, String title, boolean permitRetina) {
 
+		Configuration.GLFW_CHECK_THREAD0.set(false);
+
 		Windows.windows.init();
 		currentBounds = new Rect(x, y, w, h);
 
@@ -125,7 +128,7 @@ public class Window implements ProvidesGraphicsContext {
 			glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 1);
 		}
 
-		glfwWindowHint(GLFW_DOUBLE_BUFFER, doubleBuffered ? 1 : 0);
+		glfwWindowHint(GLFW_DOUBLEBUFFER, doubleBuffered ? 1 : 0);
 
 		glfwWindowHint(GLFW_DECORATED, title == null ? 0 : 1);
 
@@ -148,7 +151,7 @@ public class Window implements ProvidesGraphicsContext {
 
 		if (shareContext==this)
 		{
-			glcontext = GL.createCapabilities();
+			glcontext = GL.createCapabilities(true);
 		}
 		else
 		{

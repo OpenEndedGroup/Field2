@@ -5,7 +5,6 @@ import field.utility.Log;
 import field.utility.Options;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GLUtil;
 
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
@@ -170,7 +169,7 @@ public class GraphicsContext {
 
 		if (e != 0) {
 			throw new IllegalStateException(
-				    "GLERROR:" + GLUtil.getErrorString(e) + " -- " + message.get() + "\nState tracker is:" + GraphicsContext.getContext().stateTracker.dumpOutput());
+				    "GLERROR:" + /*GLUtil.getErrorString(*/e/*)*/ + " -- " + message.get() + "\nState tracker is:" + GraphicsContext.getContext().stateTracker.dumpOutput());
 		}
 	}
 

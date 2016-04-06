@@ -162,7 +162,7 @@ public class ShaderIntrospection {
 		int e = GL11.glGetError();
 
 		if (e != 0) {
-			introspectionHasAnError = "Shader Introspection caused a GL error " + GLUtil.getErrorString(e) + "\n";
+			introspectionHasAnError = "Shader Introspection caused a GL error " + /*GLUtil.getErrorString(*/e/*)*/ + "\n";
 		}
 	}
 
