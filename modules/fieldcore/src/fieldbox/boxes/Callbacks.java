@@ -1,8 +1,8 @@
 package fieldbox.boxes;
 
-import field.nashorn.api.scripting.ScriptObjectMirror;
-import field.nashorn.api.scripting.ScriptUtils;
-import field.nashorn.internal.runtime.ScriptObject;
+import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import jdk.nashorn.api.scripting.ScriptUtils;
+import jdk.nashorn.internal.runtime.ScriptObject;
 import field.utility.Dict;
 import field.utility.IdempotencyMap;
 import field.utility.Log;

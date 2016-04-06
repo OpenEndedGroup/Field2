@@ -1,10 +1,10 @@
 package field.app;
 
 import com.google.common.collect.MapMaker;
-import field.nashorn.internal.runtime.Undefined;
 import field.utility.Dict;
 import field.utility.Options;
 import field.utility.Util;
+//import jdk.nashorn.internal.runtime.Undefined;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -115,7 +115,8 @@ public class ThreadSync {
 		if (o instanceof Boolean) return !((Boolean) o).booleanValue();
 
 		// !
-		return o instanceof Undefined;
+//		return o instanceof Undefined;
+		return null;
 
 	}
 

@@ -1,7 +1,6 @@
 package fieldnashorn;
 
-import field.nashorn.api.scripting.NashornScriptEngineFactory;
-import field.nashorn.api.scripting.ScriptObjectMirror;
+
 import field.utility.Cached;
 import field.utility.Dict;
 import field.utility.Log;
@@ -9,6 +8,8 @@ import field.utility.Pair;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Boxes;
 import fielded.Animatable;
+import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
+import jdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import javax.script.*;
 import java.util.Map;
@@ -33,8 +34,7 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 
 	public Nashorn() {
 
-
-		engine = factory.getScriptEngine("-scripting", "--optimistic-types=true");
+		engine = factory.getScriptEngine("-scripting", "--optimistic-types=true", "--language=es6");
 
 		global = new SimpleBindings();
 		try {
@@ -201,7 +201,7 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 
 	Cached<Pair<Box, Dict.Prop<String>>, Pair<Box, Dict.Prop<String>>, NashornExecution> cached = new Cached<>((next, was) -> {
 
-		ScriptEngine en = bindingsPerBox.computeIfAbsent(next.first, k -> factory.getScriptEngine("-scripting"));
+		ScriptEngine en = bindingsPerBox.computeIfAbsent(next.first, k -> factory.getScriptEngine("-scripting", "--language=es6"));
 
 		ScriptContext b = en.getContext();
 		en.setBindings(global, ScriptContext.GLOBAL_SCOPE);

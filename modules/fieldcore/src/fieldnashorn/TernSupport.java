@@ -1,7 +1,7 @@
 package fieldnashorn;
 
-import field.dynalink.beans.StaticClass;
-import field.nashorn.api.scripting.ScriptObjectMirror;
+import jdk.dynalink.beans.StaticClass;
+import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import field.utility.Log;
 import field.utility.Pair;
 import fieldbox.boxes.Box;

@@ -1,16 +1,16 @@
 package field.graphics;
 
-import field.dynalink.beans.StaticClass;
+import jdk.dynalink.beans.StaticClass;
 import field.linalg.*;
-import field.nashorn.api.scripting.ScriptUtils;
-import field.nashorn.internal.runtime.ConsString;
-import field.nashorn.internal.runtime.ScriptFunction;
-import field.nashorn.internal.runtime.ScriptObject;
-import field.nashorn.internal.runtime.linker.JavaAdapterFactory;
 import field.utility.*;
 import fieldbox.boxes.Box;
 import fieldlinker.Linker;
 import fieldnashorn.annotations.HiddenInAutocomplete;
+import jdk.nashorn.api.scripting.ScriptUtils;
+//import jdk.nashorn.internal.runtime.ConsString;
+import jdk.nashorn.internal.runtime.ScriptFunction;
+import jdk.nashorn.internal.runtime.ScriptObject;
+import jdk.nashorn.internal.runtime.linker.JavaAdapterFactory;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.awt.*;
@@ -1095,7 +1095,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 	public Object asMap_set(String name, Object value) {
 
 		// workaround bug in Nashorn
-		if (value instanceof ConsString) value = value.toString();
+//		if (value instanceof ConsString) value = value.toString();
 
 
 		Dict.Prop cannon = new Dict.Prop(name).toCannon();
@@ -1270,7 +1270,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 		public Object asMap_set(String name, Object value) {
 
 			// workaround bug in Nashorn
-			if (value instanceof ConsString) value = value.toString();
+//			if (value instanceof ConsString) value = value.toString();
 
 
 //			Log.log("underscore.debug", " underscore box set :" + name + " to " + value.getClass() + " <" + Function.class.getName() + ">");

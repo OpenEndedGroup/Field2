@@ -111,8 +111,8 @@ public class Scene extends Box implements Linker.AsMap {
 					     .map(x -> x.remove(p))
 					     .filter(x -> x)
 					     .collect(Collectors.toList());
-		if (removed.size()==0)
-			System.err.println(" removed a Perform that wasn't there :"+p+" "+scene);
+		if (removed.size()==0) {
+		}
 
 	}
 
@@ -314,7 +314,7 @@ public class Scene extends Box implements Linker.AsMap {
 
 
 		String ccDesc = ""+cc;
-		if (cc.getClass().getName().startsWith("field.nashorn.javaadapters."))
+		if (cc.getClass().getName().startsWith("jdk.nashorn.javaadapters."))
 			ccDesc = "";
 
 		String desc = InverseDebugMapping.describe(cc);
@@ -525,7 +525,7 @@ public class Scene extends Box implements Linker.AsMap {
 		}
 
 		/**
-		 * by default this transient will wait until it has run once in all contexts
+		 * by default this transient will wait until it has run once in all contexts. Set this to change make this transient execute only once in the first context that happens to execute it
 		 */
 		public Transient setOnceOnly() {
 			onceOnly = true;

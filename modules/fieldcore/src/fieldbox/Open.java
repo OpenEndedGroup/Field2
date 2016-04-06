@@ -2,7 +2,7 @@ package fieldbox;
 
 import field.app.RunLoop;
 import field.app.ThreadSync;
-import field.dynalink.linker.GuardingDynamicLinker;
+import jdk.dynalink.linker.GuardingDynamicLinker;
 import field.graphics.*;
 import field.utility.AutoPersist;
 import field.utility.Dict;
@@ -177,6 +177,8 @@ public class Open {
 		new Chorder(boxes.root()).connect(boxes.root());
 
 		new DefaultMenus(boxes.root(), filename).connect(boxes.root());
+
+		new Meshes(boxes.root()).connect(boxes.root());
 
 		new IsExecuting(boxes.root()).connect(boxes.root());
 
@@ -393,9 +395,29 @@ public class Open {
 		special.put(">>root<<", root);
 
 		Set<Box> created = new LinkedHashSet<Box>();
-		IO.Document doc = FieldBox.fieldBox.io.readDocument(filename.startsWith("/") ? filename : (IO.WORKSPACE + "/" + filename), special, created);
-		Log.println("io.debug", "created :" + created);
 
+		if (filename.endsWith(".field2")) {
+			IO.Document doc = FieldBox.fieldBox.io.readDocument(filename.startsWith("/") ? filename : (IO.WORKSPACE + "/" + filename), special, created);
+			Log.println("io.debug", "created :" + created);
+		}
+		else
+		{
+			try {
+				created = FieldBox.fieldBox.io2.loadTopology(filename, root, (x) -> null, (x) -> true);
+
+				if (created==null)
+					created = new LinkedHashSet<>();
+
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (InstantiationException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			}
+		}
 		Drawing.dirty(root);
 
 		return created;

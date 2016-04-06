@@ -2,8 +2,8 @@ package fieldnashorn;
 
 import field.app.ThreadSync;
 import field.linalg.Vec4;
-import field.nashorn.api.scripting.ScriptObjectMirror;
-import field.nashorn.internal.runtime.ECMAException;
+import jdk.nashorn.api.scripting.NashornException;
+import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import field.utility.Dict;
 import field.utility.Log;
 import field.utility.Pair;
@@ -203,7 +203,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 			t.printStackTrace();
 
 
-			if (t instanceof ECMAException) {
+			if (t instanceof NashornException) {
 				handleScriptException(t, lineErrors, lineTransform, m);
 				return;
 			}
@@ -252,8 +252,8 @@ public class NashornExecution implements Execution.ExecutionSupport {
 				lineErrors.accept(new Pair<>(lineTransform.apply(((ScriptException) e).getLineNumber()), extraMessage + " " + e.getMessage()));
 				e.printStackTrace();
 			}
-			if (e instanceof ECMAException) {
-				Integer lt = lineTransform.apply(((ECMAException) e).getLineNumber());
+			if (e instanceof NashornException) {
+				Integer lt = lineTransform.apply(((NashornException) e).getLineNumber());
 				lineErrors.accept(new Pair<>(lt, extraMessage + " " + e.getMessage()));
 				e.printStackTrace();
 			} else {                        // let's see if we can't scrape a line number out of the exception stacktrace

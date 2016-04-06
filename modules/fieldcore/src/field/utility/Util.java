@@ -1,7 +1,7 @@
 package field.utility;
 
 import field.graphics.Bracketable;
-import field.nashorn.internal.runtime.Undefined;
+//import jdk.nashorn.internal.runtime.Undefined;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -70,7 +70,7 @@ public class Util {
 				if (convertReturn != null) q = Conversions.convert(q, convertReturn);
 
 
-				if (q instanceof Undefined) return null;
+//				if (q instanceof Undefined) return null;
 
 				return (R) q;
 			} catch (Throwable t) {

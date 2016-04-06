@@ -1,7 +1,7 @@
 package fieldbox.boxes;
 
 import field.app.RunLoop;
-import field.nashorn.internal.runtime.ConsString;
+//import jdk.nashorn.internal.runtime.ConsString;
 import field.utility.*;
 import fieldbox.DefaultMenus;
 import fieldbox.boxes.plugins.Missing;
@@ -420,6 +420,8 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	@HiddenInAutocomplete
 	public Object asMap_get(String m) {
 
+		System.out.println(" get :"+m);
+
 		if (m == null) return null;
 
 		if (m.equals("_")) return new Subscope(this);
@@ -470,9 +472,10 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	public Object asMap_set(String name, Object value) {
 
 		// workaround bug in Nashorn
-		if (value instanceof ConsString) value = value.toString();
+//		if (value instanceof ConsString) value = value.toString();
 
 
+		System.out.println(" box set :"+name+" <- "+value);
 //		Log.log("underscore.debug", " underscore box set :" + name + " to " + value.getClass() + " <" + Function.class.getName() + ">");
 		Dict.Prop cannon = new Dict.Prop(name).toCannon();
 
