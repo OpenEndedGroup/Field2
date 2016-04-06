@@ -48,7 +48,7 @@ public class TextDrawing extends Box {
 
 			layerLocal.get(layer).mainShader.attach(new Guard(mesh, (p) -> mesh.getVertexLimit() > 0));
 
-			Drawing drawing = first(Drawing.drawing, both()).orElseThrow(() -> new IllegalArgumentException(" where has drawing gone ?"));
+			Drawing drawing = first(Drawing.drawing, both()).orElseThrow(() -> new IllegalArgumentException(" where has Drawing gone ?"));
 			drawing.addBracketable(this.mesh);
 		}
 	}
