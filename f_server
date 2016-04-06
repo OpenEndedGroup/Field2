@@ -1,0 +1,22 @@
+#!/bin/bash
+
+echo "starting server"
+
+PID=` ps auxw | grep 'field.db.server' | grep java | grep -v grep | awk '{print $2}'`
+
+echo $PID
+
+#java=/usr/lib/jvm/jdk1.9.0/bin/java
+java=$1
+
+if [ "x$PID" = "x" ]
+then
+    pushd $(dirname `which "$0"`) >/dev/null; fieldhome="$PWD"; popd >/dev/null
+
+    out=$fieldhome/out/production/
+
+    $java -Dfield.db.server=1 -DappDir=$fieldhome -Xmx1g -Xms1g -cp $out/fieldcore/orientdb/*:$out/fieldcore fieldbox.io.Server&
+else
+    echo "server already running"
+
+fi
