@@ -151,7 +151,6 @@ _messageBus.subscribe("selection.changed", function (d, e) {
 
 	}
 
-	console.log("<<Selection.changed");
 	ignoreChange = false;
 
 });
