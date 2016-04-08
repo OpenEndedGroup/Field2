@@ -18,17 +18,16 @@ import static org.lwjgl.opengl.GL20.*;
  * Obviously you can .connect these to Shader's to set the value of uniform variables inside shaders, but it's often more useful to .connect these to, say, BaseMeshes to set these values per-mesh
  * rather than per shader. More likely yet is that you have a bunch of uniforms to set at a single point in the graph. See UniformBundle.
  * <p>
- * todo: uniform cache (store both locations (invalidate on reload) and current values (invalidate on shader change) per context per shader)
  */
 public class Uniform<T> extends Scene implements Scene.Perform {
 
 	private final String name;
 	FloatBuffer matrix3 = ByteBuffer.allocateDirect(4 * 3 * 3)
-					.order(ByteOrder.nativeOrder())
-					.asFloatBuffer();
+		.order(ByteOrder.nativeOrder())
+		.asFloatBuffer();
 	FloatBuffer matrix4 = ByteBuffer.allocateDirect(4 * 4 * 4)
-					.order(ByteOrder.nativeOrder())
-					.asFloatBuffer();
+		.order(ByteOrder.nativeOrder())
+		.asFloatBuffer();
 	boolean transpose = false;
 	boolean intOnly = false;
 	boolean pushed = false;
@@ -40,7 +39,7 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 		this.name = name;
 		this.value = value;
 		if (value instanceof Errors.ErrorConsumer)
-			this.ec = ((Errors.ErrorConsumer)value);
+			this.ec = ((Errors.ErrorConsumer) value);
 		else
 			this.ec = Errors.errors.get();
 	}
@@ -49,7 +48,7 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 		this.name = name;
 		this.value = () -> value;
 		if (value instanceof Errors.ErrorConsumer)
-			this.ec = ((Errors.ErrorConsumer)value);
+			this.ec = ((Errors.ErrorConsumer) value);
 		else
 			this.ec = Errors.errors.get();
 	}
@@ -82,8 +81,10 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 //		if (t instanceof Vector3D) return new float[]{(float) ((Vector3D) t).getX(), (float) ((Vector3D) t).getY(), (float) ((Vector3D) t).getZ()};
 
 		if (t instanceof Vec2) return new float[]{(float) ((Vec2) t).x, (float) ((Vec2) t).y};
-		if (t instanceof Vec3) return new float[]{(float) ((Vec3) t).x, (float) ((Vec3) t).y, (float) ((Vec3) t).z};
-		if (t instanceof Vec4) return new float[]{(float) ((Vec4) t).x, (float) ((Vec4) t).y, (float) ((Vec4) t).z, (float) ((Vec4) t).w};
+		if (t instanceof Vec3)
+			return new float[]{(float) ((Vec3) t).x, (float) ((Vec3) t).y, (float) ((Vec3) t).z};
+		if (t instanceof Vec4)
+			return new float[]{(float) ((Vec4) t).x, (float) ((Vec4) t).y, (float) ((Vec4) t).z, (float) ((Vec4) t).w};
 
 		return null;
 	}
@@ -98,7 +99,8 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 
 	static public float[][] rewriteToFloatMatrix(Object t) {
 
-		if (t instanceof Mat2) return new float[][]{{(float) ((Mat2) t).m00, (float) ((Mat2) t).m10}, {(float) ((Mat2) t).m01, (float) ((Mat2) t).m11}};
+		if (t instanceof Mat2)
+			return new float[][]{{(float) ((Mat2) t).m00, (float) ((Mat2) t).m10}, {(float) ((Mat2) t).m01, (float) ((Mat2) t).m11}};
 		if (t instanceof Mat3)
 			return new float[][]{{(float) ((Mat3) t).m00, (float) ((Mat3) t).m10, (float) ((Mat3) t).m20}, {(float) ((Mat3) t).m01, (float) ((Mat3) t).m11, (float) ((Mat3) t).m21}, {(float) ((Mat3) t).m02, (float) ((Mat3) t).m12, (float) ((Mat3) t).m22}};
 		if (t instanceof Mat4)
@@ -110,7 +112,7 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 	static public boolean isAccepableInstance(Object o) {
 		try {
 			return o instanceof Number || o instanceof Vec2 || o instanceof Vec3 || o instanceof Vec4 || o instanceof Mat2 || o instanceof Mat3 || o instanceof Mat4 || (o instanceof Supplier || isAccepableInstance(
-				    ((Supplier) o).get()));
+				((Supplier) o).get()));
 		} catch (ClassCastException e) {
 			return false;
 		}
@@ -158,17 +160,18 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 			if (pushed) {
 				Runnable r = GraphicsContext.getContext().uniformCache.pop(this.name);
 				pushed = false;
-				if (r!=null)
-				{
+				if (r != null) {
 					r.run();
 				}
 			}
 		}
 		return true;
 	}
+
 	private boolean setUniformNow() {
 		return setUniformNow(true);
 	}
+
 
 	//todo: array names
 	private boolean setUniformNow(boolean push) {
@@ -184,13 +187,11 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 			boolean changed = GraphicsContext.getContext().uniformCache.push(this.name, t, () -> {
 				GraphicsContext cc = GraphicsContext.getContext();
 
-				if (cc!=was)
-				{
+				if (cc != was) {
 					System.out.println(" graphics context doesn't match ");
 					new Exception().printStackTrace();
 				}
-				if (Thread.currentThread()!=wasThread)
-				{
+				if (Thread.currentThread() != wasThread) {
 					System.out.println(" thread doesn't match ");
 					new Exception().printStackTrace();
 				}
@@ -198,15 +199,15 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 				setUniformNow(false);
 			});
 			pushed = true;
-		}
 
-		//TODO: could use changed to eliminate calls to setuniform
+			// bold
+			if (!changed) return true;
+		}
 
 		try {
 			if (name == null) return true;
 
-
-			int location = glGetUniformLocation(name, this.name);
+			int location = cached_glGetUniformLocation(name, this.name);
 			GraphicsContext.checkError(() -> "while setting :" + name + " / " + this.name);
 
 			lastType = null;
@@ -226,20 +227,17 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 					if (tf.length == 1) {
 						glUniform1f(location, tf[0]);
 						lastType = Float.class;
-					}
-					else if (tf.length == 2) {
+					} else if (tf.length == 2) {
 						glUniform2f(location, tf[0], tf[1]);
 						lastType = Vec2.class;
-					}
-					else if (tf.length == 3) {
+					} else if (tf.length == 3) {
 						glUniform3f(location, tf[0], tf[1], tf[2]);
 						lastType = Vec3.class;
-					}
-					else if (tf.length == 4) {
+					} else if (tf.length == 4) {
 						glUniform4f(location, tf[0], tf[1], tf[2], tf[3]);
 						lastType = Vec4.class;
-					}
-					else throw new IllegalArgumentException(" bad dimension after conversion to float array " + t + " -> " + tf.length);
+					} else
+						throw new IllegalArgumentException(" bad dimension after conversion to float array " + t + " -> " + tf.length);
 					GraphicsContext.checkError(() -> "while setting :" + name + " / " + this.name);
 				} else {
 					int[] ti = rewriteToIntArray(t);
@@ -248,21 +246,17 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 						if (ti.length == 1) {
 							glUniform1i(location, ti[0]);
 							lastType = Integer.class;
-						}
-						else if (ti.length == 2)
-						{
+						} else if (ti.length == 2) {
 							glUniform2i(location, ti[0], ti[1]);
 							lastType = int[].class;
-						}
-						else if (ti.length == 3) {
+						} else if (ti.length == 3) {
 							glUniform3i(location, ti[0], ti[1], ti[2]);
 							lastType = int[].class;
-						}
-						else if (ti.length == 4) {
+						} else if (ti.length == 4) {
 							glUniform4i(location, ti[0], ti[1], ti[2], ti[3]);
 							lastType = int[].class;
-						}
-						else throw new IllegalArgumentException(" bad dimension after conversion to int array " + t + " -> " + ti.length);
+						} else
+							throw new IllegalArgumentException(" bad dimension after conversion to int array " + t + " -> " + ti.length);
 						GraphicsContext.checkError(() -> "while setting :" + name + " / " + this.name);
 					} else {
 						float[][] tm = rewriteToFloatMatrix(t);
@@ -294,8 +288,10 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 								matrix4.rewind();
 								lastType = Mat2.class;
 								glUniformMatrix2fv(location, transpose, matrix4);
-							} else throw new IllegalArgumentException(" bad dimension after conversion to float matrix " + t + " -> " + tm.length);
-						} else throw new IllegalArgumentException(" cannot convert " + t + " to something that OpenGL can use as a uniform");
+							} else
+								throw new IllegalArgumentException(" bad dimension after conversion to float matrix " + t + " -> " + tm.length);
+						} else
+							throw new IllegalArgumentException(" cannot convert " + t + " to something that OpenGL can use as a uniform");
 						GraphicsContext.checkError(() -> "while setting :" + name + " / " + this.name);
 
 					}
@@ -305,6 +301,21 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 		} finally {
 			GraphicsContext.checkError(() -> "while setting :" + name + " / " + this.name);
 		}
+	}
+
+	int cachedLocation = -1;
+	int cachedName = -1;
+	Shader cachedShader = null;
+	int cachedModCount = -1;
+
+	private int cached_glGetUniformLocation(Integer shad, String name) {
+//		if (cachedName == shad && GraphicsContext.getContext().uniformCache.getCurrentShader() == cachedShader && GraphicsContext.getContext().uniformCache.getCurrentShader().getModCount() == cachedModCount)
+//			return cachedLocation;
+
+		cachedName = shad;
+		cachedShader = GraphicsContext.getContext().uniformCache.getCurrentShader();
+		cachedModCount = GraphicsContext.getContext().uniformCache.getCurrentShader().getModCount();
+		return cachedLocation = glGetUniformLocation(shad, name);
 	}
 
 	@Override
@@ -322,5 +333,7 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 	/**
 	 * returns the type that this Uniform ended up setting (note: this will be null, if the uniform has never been actually sent to OpenGL, or if an error occured doing so). It will be one of Float.class, Vec2.class, Vec3.class etc.
 	 */
-	public Class getLastType() {return lastType;}
+	public Class getLastType() {
+		return lastType;
+	}
 }

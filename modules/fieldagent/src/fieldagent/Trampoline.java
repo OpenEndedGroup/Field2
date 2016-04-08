@@ -122,8 +122,6 @@ public class Trampoline {
 								      .getLocation()
 								      .getFile(), name.replace(".", "/") + ".class");
 
-						System.out.println(" file is :"+f);
-
 						if (f.exists())
 						{
 							Record rec = new Record(f.getAbsolutePath(), f.lastModified());

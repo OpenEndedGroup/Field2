@@ -187,7 +187,7 @@ public class OutputBox extends Box implements IO.Loaded {
 
 	private String findAndLoad(String f, boolean append) {
 
-		String[] roots = {Main.app + "/fielded/internal/", Main.app + "/fielded/external/", Main.app + "/fieldcef/internal"};
+		String[] roots = {Main.app + "/modules/fieldcore/resources/", Main.app + "/modules/fieldcef_macosx/resources/"};
 		for (String s : roots) {
 			if (new File(s + "/" + f).exists()) return readFile(s + "/" + f, append);
 		}

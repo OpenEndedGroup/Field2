@@ -131,8 +131,7 @@ public class GraphicsContext {
 		return (T) currentGraphicsContext.get().context.remove(key);
 	}
 
-	static public final boolean noChecks = Options.dict()
-						      .isTrue(new Dict.Prop("noChecks"), false);
+	static public final boolean noChecks = Options.dict().isTrue(new Dict.Prop("noChecks"), false);
 
 	public static void checkError() {
 		if (noChecks) return;

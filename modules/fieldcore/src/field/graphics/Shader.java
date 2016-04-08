@@ -34,6 +34,7 @@ import static org.lwjgl.opengl.GL20.*;
 public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Linker.AsMap, HandlesCompletion, BoxBrowser.HasHTMLInformation {
 
 	private ShaderIntrospection introspection;
+	private int modCount;
 
 	@Override
 	public String generateMarkdown(Box inside, Dict.Prop property) {
@@ -299,6 +300,8 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 				}
 
 				introspection.introspectNow();
+
+				modCount ++;
 			}
 		}
 
@@ -306,7 +309,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 //			System.out.println(" setting shader to be :"+name.name);
 			Log.log("graphics.trace", () -> " using program " + name.name);
 			GraphicsContext.getContext().stateTracker.shader.set(name.name);
-			GraphicsContext.getContext().uniformCache.changeShader(name.name);
+			GraphicsContext.getContext().uniformCache.changeShader(this, name.name);
 		} else {
 			System.out.println(" shader is invalid, not being used ");
 			Log.log("graphics.trace", ()->"WARNING: program not valid, not being used");
@@ -427,5 +430,9 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 	@HiddenInAutocomplete
 	public Object asMap_new(Object a, Object b) {
 		throw new NotImplementedException();
+	}
+
+	public int getModCount() {
+		return modCount;
 	}
 }

@@ -365,8 +365,6 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
 	protected int upload(State s) {
 
-		System.out.println(" ----------------------- upload part 2 <"+this+">");
-
 		GraphicsContext.checkError(() -> " upload part 2 entry");
 
 

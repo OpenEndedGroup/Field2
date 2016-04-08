@@ -20,8 +20,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -32,8 +30,8 @@ import java.util.stream.Stream;
 public class TextEditor extends Box implements IO.Loaded {
 
 	static public final Dict.Prop<TextEditor> textEditor = new Dict.Prop<>("textEditor").toCannon()
-											    .type()
-											    .doc("The TextEditor that is stuck in front of the window, in window coordinates");
+		.type()
+		.doc("The TextEditor that is stuck in front of the window, in window coordinates");
 	private final Box root;
 	@HiddenInAutocomplete
 	public Browser browser;
@@ -50,6 +48,8 @@ public class TextEditor extends Box implements IO.Loaded {
 	long lastTriggerAt = -1;
 	int ignoreHide = 0;
 	private int maxhOnCreation = 0;
+	private String setHeightCode = "";
+	private String setWidthCode = "";
 
 	public TextEditor(Box root) {
 		this.properties.put(textEditor, this);
@@ -82,15 +82,14 @@ public class TextEditor extends Box implements IO.Loaded {
 		RunLoop.main.delay(() -> {
 
 			FieldBoxWindow window = this.find(Boxes.window, this.both())
-						    .findFirst()
-						    .get();
+				.findFirst()
+				.get();
 
 			Drawing drawing = root.first(Drawing.drawing)
-					      .orElseThrow(() -> new IllegalArgumentException(" can't install text-drawing into something without drawing support"));
+				.orElseThrow(() -> new IllegalArgumentException(" can't install text-drawing into something without drawing support"));
 
 
 			maxh = window.getHeight() - 25 - 10 - 10 - 2;
-
 
 			browser = new Browser();
 
@@ -99,7 +98,7 @@ public class TextEditor extends Box implements IO.Loaded {
 
 
 			Vec2 v = drawing.windowSystemToDrawingSystem(new Vec2(window.getWidth() - maxw - 10, 10));
-			Vec2 vd = drawing.windowSystemToDrawingSystemDelta(new Vec2(maxw, 1580 * 1));
+			Vec2 vd = drawing.windowSystemToDrawingSystemDelta(new Vec2(maxw, 1080 * 1));
 
 			frameLast = (int) vd.x;
 			browser.properties.put(Box.frame, new Rect(v.x, v.y, vd.x, vd.y));
@@ -107,7 +106,7 @@ public class TextEditor extends Box implements IO.Loaded {
 			System.err.println(" final frame is :" + v + " / " + vd);
 
 
-			maxhOnCreation = 1580 * 1;
+			maxhOnCreation = 1080 * 2;
 
 			browser.pauseForBoot();
 
@@ -132,91 +131,104 @@ public class TextEditor extends Box implements IO.Loaded {
 
 			browser.properties.put(Box.name, "texteditor");
 
-			executeJavaScript("$(\"body\").height(" + (maxh - 10) + ")");
-			executeJavaScript("$(\"body\").width(" + (maxw-28*2) + ")");
+			executeJavaScript("$(\".CodeMirror\").height(" + (maxh - 10) + ")");
+			executeJavaScript("$(\".CodeMirror\").width(" + (maxw-28*2) + ")");
 
 			this.properties.put(Boxes.dontSave, true);
 			styles = findAndLoad(styleSheet, false);
 
 			long[] t = {0};
 			RunLoop.main.getLoop()
-				    .attach(x -> {
-					    if (t[0] == 0) t[0] = System.currentTimeMillis();
-					    if (System.currentTimeMillis() - t[0] > 1000) {
-						    boot();
+				.attach(x -> {
+					if (t[0] == 0) t[0] = System.currentTimeMillis();
+					if (System.currentTimeMillis() - t[0] > 1000) {
+						boot();
 
-						    return false;
-					    }
+						return false;
+					}
 
-					    return true;
-				    });
+					return true;
+				});
 
 
 			find(Watches.watches, both()).forEach(w -> {
 
 				w.getQueue()
-				 .register(x -> x.equals("selection.changed"), c -> {
-					 Log.log("shy", () -> "selection is now" + selection().count());
+					.register(x -> x.equals("selection.changed"), c -> {
+						Log.log("shy", () -> "selection is now" + selection().count());
 
-					 System.out.println(" SELECTION is currently " + selection().collect(Collectors.toList()));
-					 if (selection().count() != 1) {
-						 System.out.println(" SELECTION COUNT IS NOT 1 " + selection().collect(Collectors.toList()));
-						 browser.properties.put(Box.hidden, true);
-						 Drawing.dirty(this);
-					 } else {
-						 System.out.println(" SELECTION COUNT IS 1 " + selection().collect(Collectors.toList()) + " showing");
-						 browser.properties.put(Box.hidden, false);
+						browser.executeJavaScript("_messageBus.publish('defocus', {})");
+						browser.setFocus(false);
+
+						System.out.println(" SELECTION is currently " + selection().collect(Collectors.toList()));
+						if (selection().count() != 1) {
+							System.out.println(" SELECTION COUNT IS NOT 1 " + selection().collect(Collectors.toList()));
+							browser.properties.put(Box.hidden, true);
+							Drawing.dirty(this);
+						} else {
+							System.out.println(" SELECTION COUNT IS 1 " + selection().collect(Collectors.toList()) + " showing");
+
+							executeJavaScript(setHeightCode);
+							executeJavaScript(setWidthCode);
+
+							browser.properties.put(Box.hidden, false);
 //						 browser.setFocus(true);
-						 Drawing.dirty(this);
-					 }
+							Drawing.dirty(this);
+						}
 
-				 });
+					});
 
 			});
 
 			first(Boxes.window, both()).ifPresent(x -> x.addKeyboardHandler(event -> {
 				Set<Integer> kpressed = Window.KeyboardState.keysPressed(event.before, event.after);
-				if (kpressed.contains(GLFW_KEY_LEFT_SHIFT) || kpressed.contains(GLFW_KEY_RIGHT_SHIFT)) {
-					if (event.after.keysDown.size() == 1) trigger();
+				if ((kpressed.contains(GLFW_KEY_LEFT_SHIFT) || kpressed.contains(GLFW_KEY_RIGHT_SHIFT)) && event.after.keysDown.size() == 1) {
+					trigger();
+				}
+				else if (event.after.keysDown.size() == 1)
+				{
+					lastTriggerAt = 0;
 				}
 
 				return true;
 			}));
 
 			RunLoop.main.getLoop()
-				    .attach(x -> {
-					    //int maxh = window.getHeight() - 25 - 10 - 10 - 2;
+				.attach(x -> {
+					int maxh = window.getHeight();// - 25 - 10 - 10 - 2;
+					Rect f = browser.properties.get(Box.frame);
 
-					    float mysteriousScaleFactor = 1.5f;
-					    int maxh = (int)(window.getFrameBufferHeight()/mysteriousScaleFactor - 0);
+//					    System.out.println(" window height is :"+window.getHeight()+" -> "+maxh+" -> "+(maxh/(float)window.getHeight()));
 
-					    Rect f = browser.properties.get(Box.frame);
-					    if ((int)maxh!=  heightLast &&  selection().count()>0) {
-						    heightLast = (int) maxh;
-						    f = f.duplicate();
-						    executeJavaScript("$(\"body\").height("+Math.min(maxh, maxhOnCreation/mysteriousScaleFactor - 40) + ")");
+					if ((int)maxh!=  heightLast &&  selection().count()>0) {
+						heightLast = (int) maxh;
+						f = f.duplicate();
+						System.out.println("\n\n -- set height to be :"+Math.min(maxh, maxhOnCreation - 40)+"\n\n");
 
-						    System.err.println(" set body height to be :"+Math.min(maxh, maxhOnCreation/mysteriousScaleFactor - 40)+" "+window.getRetinaScaleFactor()+" / "+f);
+						setHeightCode = "$(\".CodeMirror\").height("+Math.min(maxh, maxhOnCreation - 40) + ")";
+						executeJavaScript(setHeightCode);
+					}
+					if ((int)f.w != frameLast)
+					{
+						frameLast = (int)f.w;
+						f = f.duplicate();
+						System.out.println("\n\n -- set width to be :"+Math.min(maxw-28*2, (int)(f.w-28))+"\n\n");
+						setWidthCode = "$(\".CodeMirror\").width("+ Math.min(maxw-28*2, (int)(f.w-28)) + ")";
+						executeJavaScript(setWidthCode);
+					}
 
-					    }
-					    if ((int)f.w != frameLast)
-					    {
-						    frameLast = (int)f.w;
-						    f = f.duplicate();
-						    executeJavaScript("$(\"body\").width("+ Math.min(maxw-28*2, (int)(f.w-28)) + ")");
-					    }
-
-					    return true;
-				    });
+					return true;
+				});
 		}, 100);
 	}
+
 
 	@HiddenInAutocomplete
 	public void trigger() {
 		long now = System.currentTimeMillis();
 		if (now - lastTriggerAt < 500) {
 			if (!browser.getFocus()) browser.executeJavaScript_queued("_messageBus.publish('focus', {})");
-			else browser.executeJavaScript_queued("_messageBus.publish('de" + "focus', {})");
+//			else browser.executeJavaScript_queued("_messageBus.publish('defocus', {})");
 			browser.setFocus(!browser.getFocus());
 		}
 		lastTriggerAt = now;
@@ -241,15 +253,15 @@ public class TextEditor extends Box implements IO.Loaded {
 	public void hide() {
 		tick = 0;
 		RunLoop.main.getLoop()
-			    .attach(x -> {
-				    if (tick == 5) {
+			.attach(x -> {
+				if (tick == 5) {
 //					    System.out.println(" hiding because hide() called ");
-					    browser.properties.put(Box.hidden, true);
-					    Drawing.dirty(this);
-				    }
-				    tick++;
-				    return tick != 5;
-			    });
+					browser.properties.put(Box.hidden, true);
+					Drawing.dirty(this);
+				}
+				tick++;
+				return tick != 5;
+			});
 		browser.setFocus(false);
 		Drawing.dirty(browser);
 	}
@@ -263,8 +275,8 @@ public class TextEditor extends Box implements IO.Loaded {
 	@HiddenInAutocomplete
 	public void center() {
 		FieldBoxWindow window = this.find(Boxes.window, both())
-					    .findFirst()
-					    .get();
+			.findFirst()
+			.get();
 		Rect f = browser.properties.get(Box.frame);
 		f.x = (int) ((window.getWidth() - f.w) / 2);
 		f.y = (int) ((window.getHeight() - f.h) / 2);
@@ -274,8 +286,12 @@ public class TextEditor extends Box implements IO.Loaded {
 	@HiddenInAutocomplete
 	private String findAndLoad(String f, boolean append) {
 
-		String[] roots = {Main.app + "/fielded/internal/", Main.app + "/fielded/external/", Main.app + "/fieldcef/internal"};
+		String[] roots = {Main.app + "/modules/fieldcore/resources/", Main.app + "/modules/fieldcef_win/resources/"};
 		for (String s : roots) {
+
+			System.out.println(" checking file :'"+s + "/" + f+"'");
+			System.out.println(" -> "+new File(s + "/" + f).exists());
+
 			if (new File(s + "/" + f).exists()) return readFile(s + "/" + f, append);
 		}
 		Log.log("glassbrowser.error", () -> "Couldnt' find file in playlist :" + f);

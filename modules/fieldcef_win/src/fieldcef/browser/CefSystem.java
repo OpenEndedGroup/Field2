@@ -40,7 +40,7 @@ public class CefSystem {
 
 	protected CefSystem()
 	{
-		cefApp = CefApp.getInstance(new String[]{"--overlay-scrollbars", "--single-process", "--off-screen-rendering-mode-enabled", "--enable-experimental-web-platform-features"});
+		cefApp = CefApp.getInstance(new String[]{"--overlay-scrollbars", "--single-process", "--off-screen-rendering-mode-enabled", "--enable-gpu", "--enable-experimental-web-platform-features"});
 
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			System.out.println(" -- sleeping for 2 seconds, then killing");
