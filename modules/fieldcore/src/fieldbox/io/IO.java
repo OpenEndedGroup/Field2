@@ -17,6 +17,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -82,7 +83,6 @@ public class IO {
 			e.printStackTrace();
 		}
 
-
 		if (!new File(defaultDirectory).exists()) new File(defaultDirectory).mkdir();
 
 		knownProperties.add(Box.name.getName());
@@ -94,12 +94,16 @@ public class IO {
 
 	static public String readFromFile(File f) {
 		try {
-			return Files.readAllLines(f.toPath())
+			return Files.readAllLines(sanitizeName(f).toPath())
 				    .stream()
 				    .reduce((a, b) -> a + "\n" + b).orElse("");
 		} catch (IOException e) {
 			e.printStackTrace();
+		} catch(InvalidPathException e)
+		{
+			System.err.println(" illegal character in filename ? "+f+", continuing on");
 		}
+
 		return "";
 	}
 
@@ -632,7 +636,9 @@ public class IO {
 	}
 
 	private void writeToFile(File filename, String text) throws IOException {
-		Log.log("io.general", ()->" will write :" + text + " to " + filename);
+		filename = sanitizeName(filename);
+		final File finalFilename = filename;
+		Log.log("io.general", ()->" will write :" + text + " to " + finalFilename);
 
 		if (!filename.getParentFile().exists()) filename.getParentFile().mkdirs();
 
@@ -641,6 +647,13 @@ public class IO {
 		w.close();
 	}
 
+	static private File sanitizeName(File filename) {
+
+		String f = filename.getAbsolutePath();
+		f = f.replaceAll(">", "_");
+		f = f.replaceAll("\\?", "_");
+		return new File(f);
+	}
 	public File filenameFor(String value) {
 		if (value.startsWith(TEMPLATES)) {
 			return new File(templateDirectory,

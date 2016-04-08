@@ -3,6 +3,8 @@ package fieldagent;
 import com.google.common.collect.MapMaker;
 import com.google.common.io.ByteStreams;
 import jdk.internal.loader.ClassLoaders;
+import fieldagent.asm.ClassReader;
+import fieldagent.asm.tree.ClassNode;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -11,9 +13,12 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLStreamHandlerFactory;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -230,7 +235,7 @@ public class Trampoline {
 				if (l instanceof URLClassLoader) {
 					System.out.println(" classloader :" + l + " has urls " + Arrays.asList(((URLClassLoader) l).getURLs()));
 
-					u.addAll(Arrays.asList(((URLClassLoader)l).getURLs()));
+					u.addAll(Arrays.asList(((URLClassLoader) l).getURLs()));
 				}
 				l = l.getParent();
 			}
@@ -240,6 +245,64 @@ public class Trampoline {
 	}
 
 	static public void main(String[] a) {
+
+		if (Main.os == Main.OS.mac)
+			try {
+				Thread.sleep(4000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		System.err.println(" app dir is :" + System.getProperty("appDir"));
+
+
+		Set<File> jarsToAdd = new LinkedHashSet<>();
+		Set<File> roots = new LinkedHashSet<>();
+		try {
+			Files.walk(new File(System.getProperty("appDir") + "/out/production").toPath()).forEach(x -> {
+
+				if (x.toFile().getName().endsWith(".jar")) {
+					jarsToAdd.add(x.toFile());
+				} else if (x.toFile().isDirectory()) {
+					File[] l = x.toFile()
+						.listFiles(z -> z.getName()
+							.endsWith(".class"));
+					if (l != null && l.length > 0) {
+						try {
+							byte[] b = Files.readAllBytes(l[0].toPath());
+							ClassReader reader = new ClassReader(b);
+							ClassNode node = new ClassNode();
+							reader.accept(node, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+							String name = node.name;
+							String[] pieces = name.split("/");
+							int o = 1;
+							boolean busted = false;
+							for (int i = pieces.length - 2; i >= 0; i--) {
+								Path q = x.getName(x.getNameCount() - o);
+								if (!q.getName(0).toString().equals(pieces[i])) {
+									System.out.println(" piece mismatch :" + q.getName(0) + " " + pieces[i]);
+									busted = true;
+									break;
+								}
+								o++;
+							}
+
+							if (!busted) {
+								File q = x.toFile();
+								for (int i = 0; i < o - 1; i++)
+									q = q.getParentFile();
+								roots.add(q);
+
+							}
+
+						} catch (IOException e) {
+						}
+					}
+				}
+
+			});
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
 //		try {
 //			Thread.sleep(4000);
@@ -257,6 +320,27 @@ public class Trampoline {
 		System.arraycopy(a, 1, a2, 0, a.length - 1);
 
 		ExtensibleClassloader classloader = new ExtensibleClassloader(new URL[]{}, Thread.currentThread().getContextClassLoader());
+
+		for (File j : jarsToAdd)
+			try {
+				System.out.println("add jar :" + j);
+				classloader.addURL(j.toURI().toURL());
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+			}
+		for (File j : roots)
+			try {
+
+				if (Main.os == Main.OS.windows && j.getAbsolutePath().contains("_macosx"))
+					continue;
+				if (Main.os != Main.OS.windows && j.getAbsolutePath().contains("_win"))
+					continue;
+
+				System.out.println("add root :" + j);
+				classloader.addURL(j.toURI().toURL());
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+			}
 
 		Thread.currentThread().setContextClassLoader(classloader);
 
