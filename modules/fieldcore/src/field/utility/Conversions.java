@@ -2,7 +2,13 @@ package field.utility;
 
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;
+import fieldbox.boxes.Box;
+import fieldbox.execution.Execution;
+import fielded.RemoteEditor;
+import fieldnashorn.Nashorn;
+import fieldnashorn.NashornExecution;
 import jdk.dynalink.beans.StaticClass;
+import jdk.nashorn.api.scripting.NashornScriptEngine;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import jdk.nashorn.api.scripting.ScriptUtils;
 import jdk.nashorn.internal.runtime.ScriptFunction;
@@ -11,6 +17,8 @@ import jdk.nashorn.internal.runtime.linker.JavaAdapterFactory;
 import fieldbox.execution.Errors;
 import fieldbox.execution.InverseDebugMapping;
 
+import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.*;
 import java.util.*;
@@ -415,7 +423,27 @@ public class Conversions {
 		if (value instanceof ScriptObjectMirror) return convert(ScriptUtils.unwrap(value), fit);
 
 
-		if (value instanceof ScriptFunction) {
+		if (value!=null && value.getClass().getName().endsWith(".ScriptFunction"))
+		{
+			Object converted = ScriptUtils.convert(value, fit.get(0));
+			try {
+				String functionName = (String) ReflectionTools.get(value, "data/functionName");
+				Integer lineNumber = (Integer) ReflectionTools.get(value, "data/lineNumber");
+				String url = (String) ReflectionTools.get(value, "data/source/explicitURL");
+
+				System.out.println(" extra secret information about this function is :" + functionName + " " + lineNumber + " " + url);
+
+				extraInfo.accept("LN<"+lineNumber + "@" + url + "> function is called [" + functionName + "]");
+
+			} catch (NoSuchFieldException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			}
+
+			return converted;
+
+			/*
 			StaticClass adapterClassFor = JavaAdapterFactory.getAdapterClassFor(new Class[]{fit.get(0)}, (ScriptObject) value, MethodHandles.lookup());
 
 			String extraString = null;
@@ -439,17 +467,13 @@ public class Conversions {
 				Object o = adapterClassFor.getRepresentedClass()
 							  .newInstance();
 
-
-//				if (extraString!=null) {
-//					if (o instanceof Supplier) return wrapSupplierWithDetails(((Supplier) o), extraString); if (o instanceof Function) return wrapFunctionWithDetails(((Function) o), extraString);
-//				}
 				return o;
 
 			} catch (InstantiationException e) {
 				Log.log("underscore.error", ()->" problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0)+e);
 			} catch (IllegalAccessException e) {
 				Log.log("underscore.error", ()->" problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0)+ e);
-			}
+			}*/
 		}
 
 

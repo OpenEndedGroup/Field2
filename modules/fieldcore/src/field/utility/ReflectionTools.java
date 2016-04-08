@@ -1,6 +1,10 @@
 package field.utility;
 
+import sun.misc.Unsafe;
+
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
+import java.lang.reflect.InaccessibleObjectException;
 import java.lang.reflect.Method;
 
 public class ReflectionTools {
@@ -42,7 +46,7 @@ public class ReflectionTools {
 		for (Method mm : m) {
 //			System.out.println(" check :" + c + " / "+mm+" for " + name);
 			if (mm.getName()
-			      .equals(name)) {
+				.equals(name)) {
 				mm.setAccessible(true);
 				return mm;
 			}
@@ -79,16 +83,14 @@ public class ReflectionTools {
 		try {
 			Field f = c.getDeclaredField(name);
 			if (f != null) {
-				f.setAccessible(true);
-				return f.get(from);
+				return get(from, f);
 			}
 		} catch (NoSuchFieldException e) {
 		}
 		try {
 			Field f = c.getField(name);
 			if (f != null) {
-				f.setAccessible(true);
-				return f.get(from);
+				return get(from, f);
 			}
 		} catch (NoSuchFieldException e) {
 		}
@@ -104,5 +106,39 @@ public class ReflectionTools {
 		if (c != null) return __get(from, c, name);
 
 		throw new NoSuchFieldException(" can't find " + name + " tried everywhere");
+	}
+
+	static Unsafe u;
+	static {
+		try {
+			Field theUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
+			theUnsafe.setAccessible(true);
+			u = (Unsafe) theUnsafe.get(null);
+		}
+		catch(Throwable t)
+		{
+			t.printStackTrace();
+		}
+	}
+
+	private static Object get(Object from, Field f) throws IllegalAccessException {
+		try {
+			f.setAccessible(true);
+			return f.get(from);
+		} catch (InaccessibleObjectException e) {
+			// no, I really mean it.
+
+			if (u==null) throw e;
+			if (!f.getType().isPrimitive()) {
+				long offset = u.objectFieldOffset(f);
+				return u.getObject(from, offset);
+			} else if (f.getType().equals(Integer.TYPE))
+			{
+				long offset = u.objectFieldOffset(f);
+				return u.getInt(from, offset);
+			}
+			else
+				throw e;
+		}
 	}
 }
