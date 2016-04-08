@@ -166,8 +166,9 @@ a {
 
 .CodeMirror
 {
-    font-family: "Source Code Pro" !important;
+    font-family: "Source Code Pro";
     font-size:15px;
+    -webkit-font-smoothing:subpixel-antialiased !important;
 }
 
 .CodeMirror pre {
