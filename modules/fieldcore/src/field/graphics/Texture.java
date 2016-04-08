@@ -179,14 +179,10 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 			pendingUploads.decrementAndGet();
 			State s = GraphicsContext.get(this, null);
 
-			Log.log("graphics.trace", ()->"state for texture in upload is " + s);
-			Log.log("texture.trace2", ()->"upload, part 1, for texture " + this + " " + s + " " + specification.pixels+" "+specification.pixels.get(0));
-
 			if (s == null) return;
 
 			glBindTexture(specification.target, s.name);
 			glTexSubImage2D(specification.target, 0, 0, 0, specification.width, specification.height, specification.format, specification.type, specification.pixels);
-			Log.log("texture.trace2", ()->"upload, part 2? :" + glGetError());
 			glBindTexture(specification.target, 0);
 
 			if (specification.highQuality) {
@@ -534,6 +530,8 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
 		static public TextureSpecification fromJpeg(int unit, String filename, boolean mips) {
 
+			// help with windows path problems
+			filename = new File(filename).getAbsolutePath();
 
 			int[] wh = FastJPEG.j.dimensions(filename);
 			ByteBuffer data = ByteBuffer.allocateDirect(3 * wh[0] * wh[1]);
