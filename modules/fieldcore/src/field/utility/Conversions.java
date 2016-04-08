@@ -60,7 +60,7 @@ public class Conversions {
 		}
 
 		if (cleaner.apply(c.getName())
-			   .equals("FunctionOfBox")) {
+			.equals("FunctionOfBox")) {
 			String inside = "";
 			for (int i = 0; i < tp.length; i++) {
 				if (typeInformation.size() == 0) break;
@@ -70,7 +70,7 @@ public class Conversions {
 
 		}
 		if (cleaner.apply(c.getName())
-			   .equals("IdempotencyMap")) {
+			.equals("IdempotencyMap")) {
 			String inside = "";
 			for (int i = 0; i < tp.length; i++) {
 				if (typeInformation.size() == 0) break;
@@ -79,7 +79,7 @@ public class Conversions {
 			return "&middot; name = " + optionalBracket(inside) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
 
 		} else if (cleaner.apply(c.getName())
-				  .equals("Supplier")) {
+			.equals("Supplier")) {
 			String inside = "";
 			for (int i = 0; i < tp.length; i++) {
 				if (typeInformation.size() == 0) break;
@@ -88,7 +88,7 @@ public class Conversions {
 			return "() &rarr; " + optionalBracket(inside) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
 
 		} else if (cleaner.apply(c.getName())
-				  .equals("Predicate")) {
+			.equals("Predicate")) {
 			String inside = "";
 			for (int i = 0; i < tp.length; i++) {
 				if (typeInformation.size() == 0) break;
@@ -97,7 +97,7 @@ public class Conversions {
 			return "(" + inside + ") &rarr; Boolean " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
 
 		} else if (cleaner.apply(c.getName())
-				  .equals("FunctionOfBoxValued")) {
+			.equals("FunctionOfBoxValued")) {
 			String inside = "";
 			for (int i = 0; i < tp.length; i++) {
 				if (typeInformation.size() == 0) break;
@@ -106,7 +106,7 @@ public class Conversions {
 			return "&#9178; " + optionalBracket(inside) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
 
 		} else if (cleaner.apply(c.getName())
-				  .equals("Function") && tp.length >= 2) {
+			.equals("Function") && tp.length >= 2) {
 			String a = _fold(typeInformation, cleaner, false);
 			String b = "";
 			if (typeInformation.size() == 0) b = "?";
@@ -114,7 +114,7 @@ public class Conversions {
 
 			return optionalBracket(a) + " &rarr; " + optionalBracket(b) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
 		} else if (cleaner.apply(c.getName())
-				  .equals("BiFunctionOfBoxAnd") && tp.length >= 2) {
+			.equals("BiFunctionOfBoxAnd") && tp.length >= 2) {
 			String a = _fold(typeInformation, cleaner, false);
 			String b = "";
 			if (typeInformation.size() == 0) b = "?";
@@ -122,7 +122,7 @@ public class Conversions {
 
 			return "&#9178; " + optionalBracket(a) + " &rarr; " + optionalBracket(b) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
 		} else if (cleaner.apply(c.getName())
-				  .equals("BiFunction") && tp.length >= 2) {
+			.equals("BiFunction") && tp.length >= 2) {
 			String a = _fold(typeInformation, cleaner, false);
 			String b = "";
 			if (typeInformation.size() == 0) b = "?";
@@ -133,7 +133,7 @@ public class Conversions {
 
 			return "(" + a + ", " + b + ") &rarr; " + optionalBracket(d) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
 		} else if (cleaner.apply(c.getName())
-				  .equals("TriFunctionOfBoxAnd") && tp.length >= 2) {
+			.equals("TriFunctionOfBoxAnd") && tp.length >= 2) {
 			String a = _fold(typeInformation, cleaner, false);
 			String b = "";
 			if (typeInformation.size() == 0) b = "?";
@@ -144,7 +144,7 @@ public class Conversions {
 
 			return "&#9178; (" + a + ", " + b + ") &rarr; " + optionalBracket(d) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
 		} else if (cleaner.apply(c.getName())
-				  .equals("Collection")) {
+			.equals("Collection")) {
 			String a = _fold(typeInformation, cleaner);
 			return "[" + a + "]&hellip; ";
 		} else {
@@ -169,7 +169,7 @@ public class Conversions {
 		if (c1.size() != c2.size()) return false;
 		for (int i = 0; i < c1.size(); i++) {
 			if (!c1.get(i)
-			       .equals(c2.get(i))) return false;
+				.equals(c2.get(i))) return false;
 		}
 		return true;
 	}
@@ -177,9 +177,10 @@ public class Conversions {
 
 	static public <A, B> Pair<List<Class>, List<Class>> function(Function<A, B> f) {
 		Type inter = f.getClass()
-			      .getGenericInterfaces()[0];
+			.getGenericInterfaces()[0];
 
-		if (inter instanceof Class) throw new IllegalArgumentException("alas, you can't pass in a lambda to function <" + inter + ">");
+		if (inter instanceof Class)
+			throw new IllegalArgumentException("alas, you can't pass in a lambda to function <" + inter + ">");
 
 		Type[] at = ((ParameterizedType) inter).getActualTypeArguments();
 
@@ -201,11 +202,11 @@ public class Conversions {
 	}
 
 	static SetMultimap<List<Class>, Conversion> inputs = MultimapBuilder.linkedHashKeys()
-									    .linkedHashSetValues()
-									    .build();
+		.linkedHashSetValues()
+		.build();
 	static SetMultimap<List<Class>, Conversion> outputs = MultimapBuilder.linkedHashKeys()
-									     .linkedHashSetValues()
-									     .build();
+		.linkedHashSetValues()
+		.build();
 
 	static public <A, B> void provideConversion(float length, Function<A, B> c, String name) {
 		Conversion conversion = new Conversion();
@@ -222,7 +223,7 @@ public class Conversions {
 		inputs.put(conversion.input, conversion);
 		outputs.put(conversion.output, conversion);
 
-		Log.log("conversions.general", ()->" REGISTERED conversion " + length + " " + conversion.input + " -> " + conversion.output);
+		Log.log("conversions.general", () -> " REGISTERED conversion " + length + " " + conversion.input + " -> " + conversion.output);
 
 	}
 
@@ -231,13 +232,14 @@ public class Conversions {
 
 		for (List<Class> c : alt) {
 			if (c.get(0)
-			     .getName()
-			     .contains("$$Lambda$")) throw new IllegalArgumentException(" alas, you cannot pass in a lambda into getConversion ");
+				.getName()
+				.contains("$$Lambda$"))
+				throw new IllegalArgumentException(" alas, you cannot pass in a lambda into getConversion ");
 			List<Pair<List<Class>, Conversion>> r = getConversion(c, to);
 			if (r != null) return r;
 		}
 
-		Log.log("conversions.general", ()->" no conversion found ");
+		Log.log("conversions.general", () -> " no conversion found ");
 
 		return null;
 	}
@@ -276,7 +278,7 @@ public class Conversions {
 			counts[0] += 1;
 			int in = 0;
 			while (counts[in] > alternatives.get(in)
-							.size() - 1) {
+				.size() - 1) {
 				counts[in] = 0;
 				in++;
 				if (in > alternatives.size() - 1) return null;
@@ -286,7 +288,7 @@ public class Conversions {
 			List<Class> assembled = new ArrayList<>();
 			for (int index = 0; index < counts.length; index++) {
 				assembled.add(alternatives.get(index)
-							  .get(counts[index]));
+					.get(counts[index]));
 			}
 
 			if (m.containsKey(assembled)) return assembled;
@@ -333,8 +335,7 @@ public class Conversions {
 			ei[0] = m;
 		});
 
-		if (ei[0]!=null)
-		{
+		if (ei[0] != null) {
 			InverseDebugMapping.provideExtraInformation(o, ei[0]);
 		}
 
@@ -345,7 +346,7 @@ public class Conversions {
 				((Errors.SavesErrorConsumer) o).setErrorConsumer(wrap(ei[0], ((Errors.SavesErrorConsumer) value).getErrorConsumer()));
 			} else if (value instanceof Errors.ErrorConsumer) {
 				((Errors.SavesErrorConsumer) o).setErrorConsumer(wrap(ei[0], ((Errors.
-					    ErrorConsumer) value)));
+					ErrorConsumer) value)));
 			} else {
 				((Errors.SavesErrorConsumer) o).setErrorConsumer(wrap(ei[0], Errors.errors.get()));
 			}
@@ -356,13 +357,12 @@ public class Conversions {
 	private static Errors.ErrorConsumer wrap(String s, Errors.ErrorConsumer errorConsumer) {
 
 		return (t, m) -> {
-			if (errorConsumer!=null)
+			if (errorConsumer != null)
 				errorConsumer.consume(t, s + "||" + m);
-			else
-			{
+			else {
 				System.err.println(" missing error consumer in graphics scene");
-				System.err.println(" message is "+s+" / "+m);
-				System.err.println(" error is "+t.getMessage());
+				System.err.println(" message is " + s + " / " + m);
+				System.err.println(" error is " + t.getMessage());
 				t.printStackTrace();
 			}
 		};
@@ -379,7 +379,7 @@ public class Conversions {
 
 		if (fit == null) return value;
 		if (fit.get(0)
-		       .isInstance(value)) return value;
+			.isInstance(value)) return value;
 
 		// promote non-arrays to arrays
 		if (List.class.isAssignableFrom(fit.get(0))) {
@@ -406,9 +406,9 @@ public class Conversions {
 		}
 
 		if (fit.get(0)
-		       .isInterface() && value instanceof InvocationHandler) {
+			.isInterface() && value instanceof InvocationHandler) {
 			return Proxy.newProxyInstance(Thread.currentThread()
-							    .getContextClassLoader(), new Class[]{fit.get(0)}, (InvocationHandler) value);
+				.getContextClassLoader(), new Class[]{fit.get(0)}, (InvocationHandler) value);
 		}
 
 
@@ -427,7 +427,7 @@ public class Conversions {
 
 				System.out.println(" extra secret information about this function is :" + functionName + " " + lineNumber + " " + url);
 
-				extraInfo.accept("LN<"+lineNumber + "@" + url + "> function is called [" + functionName + "]");
+				extraInfo.accept("LN<" + lineNumber + "@" + url + "> function is called [" + functionName + "]");
 
 			} catch (NoSuchFieldException e) {
 				e.printStackTrace();
@@ -437,7 +437,7 @@ public class Conversions {
 
 			try {
 				Object o = adapterClassFor.getRepresentedClass()
-							  .newInstance();
+					.newInstance();
 
 
 //				if (extraString!=null) {
@@ -446,9 +446,9 @@ public class Conversions {
 				return o;
 
 			} catch (InstantiationException e) {
-				Log.log("underscore.error", ()->" problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0)+e);
+				Log.log("underscore.error", () -> " problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0) + e);
 			} catch (IllegalAccessException e) {
-				Log.log("underscore.error", ()->" problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0)+ e);
+				Log.log("underscore.error", () -> " problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0) + e);
 			}
 		}
 
@@ -458,13 +458,10 @@ public class Conversions {
 
 	private static Function wrapFunctionWithDetails(Function o, String extraString) {
 		return x -> {
-			try
-			{
+			try {
 				return o.apply(x);
-			}
-			catch (Throwable t)
-			{
-				IllegalArgumentException e = new IllegalArgumentException("Exception thrown in callback "+extraString);
+			} catch (Throwable t) {
+				IllegalArgumentException e = new IllegalArgumentException("Exception thrown in callback " + extraString);
 				e.initCause(t);
 				throw e;
 			}
@@ -473,13 +470,10 @@ public class Conversions {
 
 	private static Supplier wrapSupplierWithDetails(Supplier o, String extraString) {
 		return () -> {
-			try
-			{
+			try {
 				return o.get();
-			}
-			catch (Throwable t)
-			{
-				IllegalArgumentException e = new IllegalArgumentException("Exception thrown in callback "+extraString);
+			} catch (Throwable t) {
+				IllegalArgumentException e = new IllegalArgumentException("Exception thrown in callback " + extraString);
 				e.initCause(t);
 				throw e;
 			}
