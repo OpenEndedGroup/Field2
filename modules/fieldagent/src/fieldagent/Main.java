@@ -10,12 +10,13 @@ public class Main {
 
 	public enum OS
 	{
-		linux, mac
+		linux, mac, windows;
 	}
 
-	public static final OS os = System.getProperty("os.name").contains("Mac") ? OS.mac : OS.linux;
+	public static final OS os = System.getProperty("os.name").contains("Mac") ? OS.mac : (System.getProperty("os.name").toLowerCase().contains("win") ?  OS.windows : OS.linux);
 
 	public static final String app = System.getProperty("appDir")+"/";
+
 
 //	static Set<String> whitelist_prefix = new LinkedHashSet<>(Arrays.asList("field/"));
 //	static Set<String> blacklist_prefix = new LinkedHashSet<>(Arrays.asList("--nothing--"));
