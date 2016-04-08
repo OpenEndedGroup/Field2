@@ -2,6 +2,7 @@ package fieldagent;
 
 import com.google.common.collect.MapMaker;
 import com.google.common.io.ByteStreams;
+import jdk.internal.loader.ClassLoaders;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -21,8 +22,8 @@ import java.util.function.Consumer;
  */
 public class Trampoline {
 
-	static public  final boolean traceLoader = false;
-	static public  boolean whereLoaded = false;
+	static public final boolean traceLoader = false;
+	static public boolean whereLoaded = false;
 
 	static protected Transform transform = new Transform();
 
@@ -47,8 +48,7 @@ public class Trampoline {
 
 	static public List<Consumer<Class>> onLoad = new ArrayList<>();
 
-	static public void registerLoadNotification(Consumer<Class> c)
-	{
+	static public void registerLoadNotification(Consumer<Class> c) {
 		synchronized (onLoad) {
 			onLoad.add(c);
 		}
@@ -99,36 +99,34 @@ public class Trampoline {
 			// if not loaded, search the local (child) resources
 			if (c == null) {
 				try {
-					if (whereLoaded){
+					if (whereLoaded) {
 						URL r = this.getResource(name.replace('.', '/')
-									     .concat(".class"));
-						if (r!=null)
-							System.out.println(name+" <- "+r);
+							.concat(".class"));
+						if (r != null)
+							System.out.println(name + " <- " + r);
 					}
 
 					c = findClass(name);
 					if (traceLoader) System.out.println("C(lc): found  " + c + "we're done here");
-					if (traceLoader && c!=null)System.out.println("C(lc): code source is :"+c.getProtectionDomain().getCodeSource().getLocation());
+					if (traceLoader && c != null)
+						System.out.println("C(lc): code source is :" + c.getProtectionDomain().getCodeSource().getLocation());
 
-					try{
+					try {
 
 						File f = new File(c.getProtectionDomain()
-								      .getCodeSource()
-								      .getLocation()
-								      .getFile(), name.replace(".", "/") + ".class");
+							.getCodeSource()
+							.getLocation()
+							.getFile(), name.replace(".", "/") + ".class");
 
-						System.out.println(" file is :"+f);
+						System.out.println(" file is :" + f);
 
-						if (f.exists())
-						{
+						if (f.exists()) {
 							Record rec = new Record(f.getAbsolutePath(), f.lastModified());
 							if (rec.modification != 0) {
 								loadMap.put(c, rec);
 							}
 						}
-					}
-					catch(Throwable t)
-					{
+					} catch (Throwable t) {
 						t.printStackTrace();
 					}
 
@@ -137,25 +135,27 @@ public class Trampoline {
 						String fn = name.replace(".", "/") + ".class";
 
 						URL r = getResource(fn);
-						if (r != null) try (InputStream where = new BufferedInputStream(r.openStream())) {
-							if (where != null) {
-								byte[] b = ByteStreams.toByteArray(where);
-								b = transformClass(name, b);
-								c = defineClass(name, b, 0, b.length);
+						if (r != null)
+							try (InputStream where = new BufferedInputStream(r.openStream())) {
+								if (where != null) {
+									byte[] b = ByteStreams.toByteArray(where);
+									b = transformClass(name, b);
+									c = defineClass(name, b, 0, b.length);
 
-								Record rec = new Record(r.getFile(), new File(r.getFile()).lastModified());
-								if (rec.modification != 0) {
-									loadMap.put(c, rec);
-									if (traceLoader)System.err.println(" made loadmap rec for "+r.getFile());
+									Record rec = new Record(r.getFile(), new File(r.getFile()).lastModified());
+									if (rec.modification != 0) {
+										loadMap.put(c, rec);
+										if (traceLoader)
+											System.err.println(" made loadmap rec for " + r.getFile());
+									} else if (traceLoader)
+										System.err.println(" couldn't find file for " + r.getFile());
+
+									if (traceLoader)
+										System.out.println(" loaded " + loadMap.size());
 								}
-								else
-								if (traceLoader)System.err.println(" couldn't find file for "+r.getFile());
-
-								if (traceLoader) System.out.println(" loaded " + loadMap.size());
+							} catch (IOException e) {
+								e.printStackTrace();
 							}
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
 					}
 				}
 			}
@@ -183,7 +183,7 @@ public class Trampoline {
 
 
 		LinkedHashSet<String> blacklist_prefix = new LinkedHashSet<String>(Arrays
-			    .asList("fieldagent", "com.sun", "java", "sun", "jdk", "javax", "sunw", "apple", "com.apple", "org.cef"));
+			.asList("fieldagent", "com.sun", "java", "sun", "jdk", "javax", "sunw", "apple", "com.apple", "org.cef"));
 
 		protected boolean shouldLoad(String name) {
 
@@ -215,25 +215,24 @@ public class Trampoline {
 
 			if (traceLoader)
 				System.out.println("C: " + name + " -> " + url);
-			if (traceLoader) if (url == null) System.out.println(" URL search paths are " + Arrays.asList(getURLs())+" inside "+getParent());
+			if (traceLoader) if (url == null)
+				System.out.println(" URL search paths are " + Arrays.asList(getURLs()) + " inside " + getParent());
 
 			return url;
 		}
 
-		public List<URL> collectURLS()
-		{
+		public List<URL> collectURLS() {
 			List<URL> u = new ArrayList<>();
 
-			URLClassLoader l = this;
-			while(l!=null)
-			{
-				u.addAll(Arrays.asList(l.getURLs()));
+			ClassLoader l = this;
+			while (l != null) {
 
-				if (l.getParent() instanceof URLClassLoader)
-				{
-					l = (URLClassLoader) l.getParent();
+				if (l instanceof URLClassLoader) {
+					System.out.println(" classloader :" + l + " has urls " + Arrays.asList(((URLClassLoader) l).getURLs()));
+
+					u.addAll(Arrays.asList(((URLClassLoader)l).getURLs()));
 				}
-				else l = null;
+				l = l.getParent();
 			}
 			return u;
 
@@ -242,11 +241,11 @@ public class Trampoline {
 
 	static public void main(String[] a) {
 
-		try {
-			Thread.sleep(4000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+//		try {
+//			Thread.sleep(4000);
+//		} catch (InterruptedException e) {
+//			e.printStackTrace();
+//		}
 
 		if (a.length == 0) {
 			System.err.println(" No main.class specified. Add one to the command line");
