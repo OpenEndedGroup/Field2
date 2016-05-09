@@ -34,25 +34,30 @@ import static fieldbox.boxes.FLineDrawing.*;
 public class Drawing extends Box {
 
 	static public final Dict.Prop<Collection<Drawer>> drawers = new Dict.Prop<>("drawers").type()
-											      .toCannon()
-											      .doc("a collection of things that will draw inside the OpenGL paint context. Currently FrameDrawer & FLineInteraction plug into the window at this low level");
+		.toCannon()
+		.doc("a collection of things that will draw inside the OpenGL paint context. Currently FrameDrawer & FLineInteraction plug into the window at this low level");
 	static public final Dict.Prop<Collection<Drawer>> lateDrawers = new Dict.Prop<>("lateDrawers").type()
-												      .toCannon()
-												      .doc("a collection of things that will draw inside the OpenGL paint context, after everything else has drawn. Viewport plugs in at this level.");
+		.toCannon()
+		.doc("a collection of things that will draw inside the OpenGL paint context, after everything else has drawn. Viewport plugs in at this level.");
 	static public final Dict.Prop<Collection<Drawer>> glassDrawers = new Dict.Prop<>("glassDrawers").type()
-													.toCannon()
-													.doc("a collection of things that will draw inside the OpenGL paint context. Currently FrameDrawer & FLineInteraction plug into the window at this low level");
+		.toCannon()
+		.doc("a collection of things that will draw inside the OpenGL paint context. Currently FrameDrawer & FLineInteraction plug into the window at this low level");
 	static public final Dict.Prop<Drawing> drawing = new Dict.Prop<>("drawing").type()
-										   .toCannon()
-										   .doc("the Drawing plugin");
+		.toCannon()
+		.doc("the Drawing plugin");
 	static public final Dict.Prop<Boolean> needRepaint = new Dict.Prop<>("_needRepaint").type()
-											    .toCannon();
+		.toCannon();
 	static public final Dict.Prop<Vec2> windowSpace = new Dict.Prop<>("windowSpace").type()
-											.toCannon()
-											.doc("set to make this box stick to the viewport when it pans around. The value is a <code>Vec2(x,y)</code>. <code>x=0, y=0</code> pins the top left of this box to the top left of the window; similarly <code>x=1, y=1</code> pins the bottom right. ");
+		.toCannon()
+		.doc("set to make this box stick to the viewport when it pans around. The value is a <code>Vec2(x,y)</code>. <code>x=0, y=0</code> pins the top left of this box to the top left of the window; similarly <code>x=1, y=1</code> pins the top left of this box to the bottom right. ");
+
+	static public final Dict.Prop<Vec2> windowScale = new Dict.Prop<>("windowScale").type()
+		.toCannon()
+		.doc("like `windowSpace` but changes the width and height of the box to maintain a position in space for the lower right corner of a box. Combine with `_.windowSpace`.");
 
 	static {
 		IO.persist(windowSpace);
+		IO.persist(windowScale);
 	}
 
 	Map<String, PerLayer> layerLocal = new LinkedHashMap<>();
@@ -64,7 +69,7 @@ public class Drawing extends Box {
 	private Vec2 translationNext = null;
 	private Vec2 scale = new Vec2(1.f, 1.f);
 	private Vec2 scaleNext = null;
-	private Vec2 boxScale = new Vec2(1,1);
+	private Vec2 boxScale = new Vec2(1, 1);
 	private float opacity = 1f;
 
 	public Drawing() {
@@ -76,7 +81,7 @@ public class Drawing extends Box {
 		if (frame == null) return false;
 
 		Optional<Drawing> drawing = box.find(Drawing.drawing, box.both())
-								   .findFirst();
+			.findFirst();
 		if (!drawing.isPresent()) return false;
 
 		Object o = event.after;
@@ -85,7 +90,7 @@ public class Drawing extends Box {
 			if (!o2.isPresent()) return false;
 
 			return frame.intersects(drawing.get()
-						       .windowSystemToDrawingSystem(o2.get()));
+				.windowSystemToDrawingSystem(o2.get()));
 		}
 
 		return false;
@@ -101,19 +106,18 @@ public class Drawing extends Box {
 		dirty(b, layerName);
 	}
 
-	static protected void dirty(Box b, String explicitLayerName)
-	{
+	static protected void dirty(Box b, String explicitLayerName) {
 		b.find(Boxes.root, b.both())
-		 .findFirst()
-		 .map(x -> x.properties.put(needRepaint, true));
+			.findFirst()
+			.map(x -> x.properties.put(needRepaint, true));
 
 		b.find(Boxes.window, b.both())
-		 .findFirst()
-		 .ifPresent(x -> {
-			 x.requestRepaint();
-			 x.getCompositor()
-			  .getLayer(explicitLayerName).dirty();
-		 });
+			.findFirst()
+			.ifPresent(x -> {
+				x.requestRepaint();
+				x.getCompositor()
+					.getLayer(explicitLayerName).dirty();
+			});
 
 	}
 
@@ -133,7 +137,7 @@ public class Drawing extends Box {
 		from.properties.putToMap(frameDrawing, "__notificationText__", expires(box -> {
 
 			Drawing d = from.first(drawing, from.both())
-					.get();
+				.get();
 			Rect view = d.getCurrentViewBounds(from);
 			FLine f = new FLine();
 			f.moveTo(view.x + view.w / 2, view.y + view.h / 2 - 10);
@@ -148,7 +152,7 @@ public class Drawing extends Box {
 		from.properties.putToMap(frameDrawing, "__notificationMask__", expires(box -> {
 
 			Drawing d = from.first(drawing, from.both())
-					.get();
+				.get();
 			Rect view = d.getCurrentViewBounds(from);
 			FLine f = new FLine();
 			int w = 20;
@@ -170,7 +174,7 @@ public class Drawing extends Box {
 
 	public Box install(Box root, String layerName) {
 		FieldBoxWindow window = root.first(Boxes.window)
-					    .orElseThrow(() -> new IllegalArgumentException(" can't draw a box hierarchy with no window to draw it in !"));
+			.orElseThrow(() -> new IllegalArgumentException(" can't draw a box hierarchy with no window to draw it in !"));
 
 		GraphicsContext graphicsContext = window.getGraphicsContext();
 
@@ -179,118 +183,118 @@ public class Drawing extends Box {
 		layer.shader = new Shader();
 
 		layer.shader.addSource(Shader.Type.vertex, "#version 410\n" +
-			    "layout(location=0) in vec3 position;\n" +
-			    "layout(location=1) in vec4 color;\n" +
-			    "out vec4 vcolor;\n" +
-			    "uniform vec2 translation;\n" +
-			    "uniform vec2 scale;\n" +
-			    "uniform vec2 bounds;\n" +
-			    "void main()\n" +
-			    "{\n" +
-			    "	vec2 at = (scale.xy*(position.xy+vec2(0.5,0.5))+translation.xy)/bounds.xy;\n" +
-			    "   gl_Position =  vec4(-1+at.x*2, 1-at.y*2, 0.5, 1.0);\n" +
-			    "   vcolor = color;\n" +
-			    "}");
+			"layout(location=0) in vec3 position;\n" +
+			"layout(location=1) in vec4 color;\n" +
+			"out vec4 vcolor;\n" +
+			"uniform vec2 translation;\n" +
+			"uniform vec2 scale;\n" +
+			"uniform vec2 bounds;\n" +
+			"void main()\n" +
+			"{\n" +
+			"	vec2 at = (scale.xy*(position.xy+vec2(0.5,0.5))+translation.xy)/bounds.xy;\n" +
+			"   gl_Position =  vec4(-1+at.x*2, 1-at.y*2, 0.5, 1.0);\n" +
+			"   vcolor = color;\n" +
+			"}");
 
 		layer.shader.addSource(Shader.Type.fragment, "#version 410\n" +
-			    "layout(location=0) out vec4 _output;\n" +
-			    "in vec4 vcolor;\n" +
-			    "uniform float opacity; \n" +
-			    "void main()\n" +
-			    "{\n" +
-			    "	float f = mod(gl_FragCoord.x-gl_FragCoord.y,20)/20.0;\n" +
-			    "	f = (sin(f*3.14*2)+1)/2;" +
-			    "	f = (smoothstep(0.45, 0.55, f)+1)/2;" +
-			    "	_output  = vec4(abs(vcolor.xyzw));\n" +
-			    "	if (vcolor.w<0) _output.w *= f;" +
-			    "	_output.w *= opacity;\n" +
-			    "}");
+			"layout(location=0) out vec4 _output;\n" +
+			"in vec4 vcolor;\n" +
+			"uniform float opacity; \n" +
+			"void main()\n" +
+			"{\n" +
+			"	float f = mod(gl_FragCoord.x-gl_FragCoord.y,20)/20.0;\n" +
+			"	f = (sin(f*3.14*2)+1)/2;" +
+			"	f = (smoothstep(0.45, 0.55, f)+1)/2;" +
+			"	_output  = vec4(abs(vcolor.xyzw));\n" +
+			"	if (vcolor.w<0) _output.w *= f;" +
+			"	_output.w *= opacity;\n" +
+			"}");
 
 		layer.shader.attach(new Uniform<Vec2>("translation", this::getTranslationRounded));
-		layer.shader.attach(new Uniform<Vec2>("scale", () -> new Vec2(scale.x*boxScale.x, scale.y*boxScale.y)));
+		layer.shader.attach(new Uniform<Vec2>("scale", () -> new Vec2(scale.x * boxScale.x, scale.y * boxScale.y)));
 		layer.shader.attach(new Uniform<Vec2>("bounds", () -> new Vec2(Window.getCurrentWidth(), Window.getCurrentHeight())));
 		layer.shader.attach(new Uniform<Float>("opacity", () -> opacity));
 
 		layer.pointShader = new Shader();
 
 		layer.pointShader.addSource(Shader.Type.vertex, "#version 410\n" +
-			    "layout(location=0) in vec3 position;\n" +
-			    "layout(location=1) in vec4 color;\n" +
-			    "layout(location=2) in vec2 pointControl;\n" +
-			    "out vec4 vcolor_q;\n" +
-			    "out vec2 pc_q;\n" +
-			    "uniform vec2 translation;\n" +
-			    "uniform vec2 scale;\n" +
-			    "uniform vec2 bounds;\n" +
-			    "void main()\n" +
-			    "{\n" +
-			    "	vec2 at = (scale.xy*(position.xy+vec2(0.5,0.5))+translation.xy)/bounds.xy;\n" +
-			    "   gl_Position =  vec4(-1+at.x*2, 1-at.y*2, 0.5, 1.0);\n" +
-			    "   vcolor_q = color;\n" +
-			    "   pc_q= pointControl;\n" +
-			    "}");
+			"layout(location=0) in vec3 position;\n" +
+			"layout(location=1) in vec4 color;\n" +
+			"layout(location=2) in vec2 pointControl;\n" +
+			"out vec4 vcolor_q;\n" +
+			"out vec2 pc_q;\n" +
+			"uniform vec2 translation;\n" +
+			"uniform vec2 scale;\n" +
+			"uniform vec2 bounds;\n" +
+			"void main()\n" +
+			"{\n" +
+			"	vec2 at = (scale.xy*(position.xy+vec2(0.5,0.5))+translation.xy)/bounds.xy;\n" +
+			"   gl_Position =  vec4(-1+at.x*2, 1-at.y*2, 0.5, 1.0);\n" +
+			"   vcolor_q = color;\n" +
+			"   pc_q= pointControl;\n" +
+			"}");
 
 		layer.pointShader.addSource(Shader.Type.geometry, "#version 410\n" +
-			    "layout(points) in;\n" +
-			    "layout(triangle_strip, max_vertices=4) out;\n" +
-			    "in vec4[] vcolor_q;\n" +
-			    "in vec2[] pc_q;\n" +
-			    "out vec4 vcolor;\n" +
-			    "out vec2 tc;\n" +
-			    "out vec2 pc;\n" +
-			    "uniform vec2 bounds;\n" +
-			    "void main()\n" +
-			    "{\n" +
-			    "float s1 = (pc_q[0].x+2)/bounds.x; float s2 = s1*bounds.x/bounds.y;\n" +
-			    "vcolor = vcolor_q[0];\n" +
-			    "pc = pc_q[0]\n;" +
-			    "tc = vec2(-1,-1);\n" +
-			    "gl_Position = gl_in[0].gl_Position+vec4(-s1, -s2, 0, 0)*gl_in[0].gl_Position.w;\n" +
-			    "EmitVertex();\n" +
-			    "vcolor = vcolor_q[0];\n" +
-			    "tc = vec2(1,-1);\n" +
-			    "gl_Position = gl_in[0].gl_Position+vec4(s1, -s2, 0, 0)*gl_in[0].gl_Position.w;\n" +
-			    "EmitVertex();\n" +
-			    "vcolor = vcolor_q[0];\n" +
-			    "tc = vec2(-1,1);\n" +
-			    "gl_Position = gl_in[0].gl_Position+vec4(-s1, s2, 0, 0)*gl_in[0].gl_Position.w;\n" +
-			    "EmitVertex();\n" +
-			    "vcolor = vcolor_q[0];\n" +
-			    "tc = vec2(1,1);\n" +
-			    "gl_Position = gl_in[0].gl_Position+vec4(s1, s2, 0, 0)*gl_in[0].gl_Position.w;\n" +
-			    "EmitVertex();\n" +
-			    "EndPrimitive();\n" +
-			    "}");
+			"layout(points) in;\n" +
+			"layout(triangle_strip, max_vertices=4) out;\n" +
+			"in vec4[] vcolor_q;\n" +
+			"in vec2[] pc_q;\n" +
+			"out vec4 vcolor;\n" +
+			"out vec2 tc;\n" +
+			"out vec2 pc;\n" +
+			"uniform vec2 bounds;\n" +
+			"void main()\n" +
+			"{\n" +
+			"float s1 = (pc_q[0].x+2)/bounds.x; float s2 = s1*bounds.x/bounds.y;\n" +
+			"vcolor = vcolor_q[0];\n" +
+			"pc = pc_q[0]\n;" +
+			"tc = vec2(-1,-1);\n" +
+			"gl_Position = gl_in[0].gl_Position+vec4(-s1, -s2, 0, 0)*gl_in[0].gl_Position.w;\n" +
+			"EmitVertex();\n" +
+			"vcolor = vcolor_q[0];\n" +
+			"tc = vec2(1,-1);\n" +
+			"gl_Position = gl_in[0].gl_Position+vec4(s1, -s2, 0, 0)*gl_in[0].gl_Position.w;\n" +
+			"EmitVertex();\n" +
+			"vcolor = vcolor_q[0];\n" +
+			"tc = vec2(-1,1);\n" +
+			"gl_Position = gl_in[0].gl_Position+vec4(-s1, s2, 0, 0)*gl_in[0].gl_Position.w;\n" +
+			"EmitVertex();\n" +
+			"vcolor = vcolor_q[0];\n" +
+			"tc = vec2(1,1);\n" +
+			"gl_Position = gl_in[0].gl_Position+vec4(s1, s2, 0, 0)*gl_in[0].gl_Position.w;\n" +
+			"EmitVertex();\n" +
+			"EndPrimitive();\n" +
+			"}");
 
 		layer.pointShader.addSource(Shader.Type.fragment, "#version 410\n" +
-			    "layout(location=0) out vec4 _output;\n" +
-			    "in vec4 vcolor;\n" +
-			    "in vec2 tc;\n" +
-			    "uniform float opacity; \n" +
-			    "void main()\n" +
-			    "{\n" +
-			    "	float f = mod(gl_FragCoord.x-gl_FragCoord.y,20)/20.0;\n" +
-			    "	f = (sin(f*3.14*2)+1)/2;\n" +
-			    "	f = (smoothstep(0.45, 0.55, f)+1)/2;\n" +
-			    "	_output  = vec4(abs(vcolor.xyzw)*smoothstep(0.1, 0.2, (1-(length(tc.xy)))));\n" +
-			    "	if (vcolor.w<0) _output.w *= f;" +
-			    "	_output.w *= opacity;\n" +
-			    "}");
+			"layout(location=0) out vec4 _output;\n" +
+			"in vec4 vcolor;\n" +
+			"in vec2 tc;\n" +
+			"uniform float opacity; \n" +
+			"void main()\n" +
+			"{\n" +
+			"	float f = mod(gl_FragCoord.x-gl_FragCoord.y,20)/20.0;\n" +
+			"	f = (sin(f*3.14*2)+1)/2;\n" +
+			"	f = (smoothstep(0.45, 0.55, f)+1)/2;\n" +
+			"	_output  = vec4(abs(vcolor.xyzw)*smoothstep(0.1, 0.2, (1-(length(tc.xy)))));\n" +
+			"	if (vcolor.w<0) _output.w *= f;" +
+			"	_output.w *= opacity;\n" +
+			"}");
 
 		layer.pointShader.attach(new Uniform<Vec2>("translation", this::getTranslationRounded));
-		layer.pointShader.attach(new Uniform<Vec2>("scale", () -> new Vec2(scale.x*boxScale.x, scale.y*boxScale.y)));
+		layer.pointShader.attach(new Uniform<Vec2>("scale", () -> new Vec2(scale.x * boxScale.x, scale.y * boxScale.y)));
 		layer.pointShader.attach(new Uniform<Vec2>("bounds", () -> new Vec2(Window.getCurrentWidth(), Window.getCurrentHeight())));
 		layer.pointShader.attach(new Uniform<Float>("opacity", () -> opacity));
 
 
 		window.getCompositor()
-		      .getLayer(layerName)
-		      .getScene()
-		      .attach(layer.shader);
+			.getLayer(layerName)
+			.getScene()
+			.attach(layer.shader);
 		window.getCompositor()
-		      .getLayer(layerName)
-		      .getScene()
-		      .attach(layer.pointShader);
+			.getLayer(layerName)
+			.getScene()
+			.attach(layer.pointShader);
 
 		BaseMesh line = BaseMesh.lineList(1, 1);
 		layer.shader.attach(line);
@@ -312,9 +316,9 @@ public class Drawing extends Box {
 		if (layerName.equals("__main__")) {
 			graphicsContext.preQueue.add(() -> drawNow(root));
 			window.getCompositor()
-			      .getLayer(layerName)
-			      .getScene()
-			      .attach(100, (x) -> lateDrawNow(root));
+				.getLayer(layerName)
+				.getScene()
+				.attach(100, (x) -> lateDrawNow(root));
 		}
 
 		return this;
@@ -362,8 +366,8 @@ public class Drawing extends Box {
 
 		x = x / scale.x;
 		y = y / scale.y;
-		x -= translation.x/scale.x;
-		y -= translation.y/scale.y;
+		x -= translation.x / scale.x;
+		y -= translation.y / scale.y;
 
 		return new Vec2(x, y);
 	}
@@ -375,10 +379,40 @@ public class Drawing extends Box {
 		double y = window.y;
 		double x = window.x;
 
-		x += translation.x;
-		y += translation.y;
 		x = x * scale.x * boxScale.x;
 		y = y * scale.y * boxScale.y;
+		x += translation.x;
+		y += translation.y;
+
+		return new Vec2(x, y);
+	}
+
+	/**
+	 * to convert between event / mouse / pixel coordinates and OpenGL / Box / Drawing coordinates.
+	 */
+	protected Vec2 windowSystemToDrawingSystemNext(Vec2 window) {
+		double y = /*Window.getCurrentHeight() -*/ window.y;
+		double x = window.x;
+
+		x = x / scaleNext.x;
+		y = y / scaleNext.y;
+		x -= translationNext.x / scaleNext.x;
+		y -= translationNext.y / scaleNext.y;
+
+		return new Vec2(x, y);
+	}
+
+	/**
+	 * to convert between OpenGL / Box / Drawing coordinates and event / mouse / pixel coordinates.
+	 */
+	protected  Vec2 drawingSystemToWindowSystemNext(Vec2 window) {
+		double y = window.y;
+		double x = window.x;
+
+		x = x * (scaleNext==null ? scale  : scaleNext).x * boxScale.x;
+		y = y * (scaleNext==null ? scale  : scaleNext).y * boxScale.y;
+		x += (translationNext==null ? translation  :translationNext).x;
+		y += (translationNext==null ? translation  :translationNext).y;
 
 		return new Vec2(x, y);
 	}
@@ -390,8 +424,21 @@ public class Drawing extends Box {
 		double y = /*-*/windowDelta.y;
 		double x = windowDelta.x;
 
-		x = x / (scale.x*boxScale.x);
-		y = y / (scale.y*boxScale.y);
+		x = x / (scale.x * boxScale.x);
+		y = y / (scale.y * boxScale.y);
+
+		return new Vec2(x, y);
+	}
+
+	/**
+	 * to convert between event / mouse / pixel coordinates and OpenGL / Box / Drawing delta's.
+	 */
+	public Vec2 windowSystemToDrawingSystemDeltaNext(Vec2 windowDelta) {
+		double y = /*-*/windowDelta.y;
+		double x = windowDelta.x;
+
+		x = x / ((scaleNext==null ? scale  : scaleNext).x * boxScale.x);
+		y = y / ((scaleNext==null ? scale  : scaleNext).y * boxScale.y);
 
 		return new Vec2(x, y);
 	}
@@ -401,12 +448,12 @@ public class Drawing extends Box {
 		if (q == null || !q) return;
 
 		find(Boxes.window, both()).findFirst()
-					  .ifPresent(x -> {
-						  nextDimensions = new Vec2(x.getWidth(), x.getHeight());
-					  });
+			.ifPresent(x -> {
+				nextDimensions = new Vec2(x.getWidth(), x.getHeight());
+			});
 
-		if (translationNext != null || (lastDimensions != null && !Util.safeEq(lastDimensions, nextDimensions))  || scaleNext != null) {
-			updateWindowSpaceBoxes(translation, translationNext == null ? translation : translationNext, lastDimensions == null ? nextDimensions : lastDimensions, nextDimensions, scale, scaleNext ==null ? scale : scaleNext);
+		if (translationNext != null || (lastDimensions != null && !Util.safeEq(lastDimensions, nextDimensions)) || scaleNext != null) {
+			updateWindowSpaceBoxes(translation, translationNext == null ? translation : translationNext, lastDimensions == null ? nextDimensions : lastDimensions, nextDimensions, scale, scaleNext == null ? scale : scaleNext);
 
 			translation.x = (translationNext == null ? translation : translationNext).x;
 			translation.y = (translationNext == null ? translation : translationNext).y;
@@ -421,11 +468,11 @@ public class Drawing extends Box {
 		try (AutoCloseable ignored = closeable(bracketableList)) {
 			insideDrawing = true;
 			root.find(drawers, root.both())
-			    .collect(Collectors.toList())
-			    .stream()
-			    .flatMap(x -> x.stream()).collect(Collectors.toList()) // avoid concurrent modification
-				    .stream()
-				    .forEach(x -> x.draw(this));
+				.collect(Collectors.toList())
+				.stream()
+				.flatMap(x -> x.stream()).collect(Collectors.toList()) // avoid concurrent modification
+				.stream()
+				.forEach(x -> x.draw(this));
 		} catch (Exception e) {
 			System.err.println(" exception thrown during drawing ");
 			e.printStackTrace();
@@ -434,34 +481,23 @@ public class Drawing extends Box {
 		}
 
 		find(Boxes.window, both()).findFirst()
-					  .ifPresent(x -> {
-						  lastDimensions = new Vec2(x.getWidth(), x.getHeight());
-					  });
+			.ifPresent(x -> {
+				lastDimensions = new Vec2(x.getWidth(), x.getHeight());
+			});
 
 
 	}
 
-	private void updateWindowSpaceBoxes(Vec2 was, Vec2 now) {
-		this.breadthFirst(both())
-		    .filter(x -> x.properties.isTrue(windowSpace, false))
-		    .forEach(box -> {
-			    Rect f = box.properties.get(Box.frame);
-			    f = new Rect(f.x, f.y, f.w, f.h);
-			    f.x = (float) (f.x + was.x - now.x);
-			    f.y = (float) (f.y + was.y - now.y);
-			    box.properties.put(Box.frame, f);
-		    });
-	}
 
 	private void lateDrawNow(Box root) {
 		try {
 			insideDrawing = true;
 			root.find(lateDrawers, root.both())
-			    .collect(Collectors.toList())
-			    .stream()
-			    .flatMap(x -> x.stream()).collect(Collectors.toList()) // avoid concurrent modification
-				    .stream()
-				    .forEach(x -> x.draw(this));
+				.collect(Collectors.toList())
+				.stream()
+				.flatMap(x -> x.stream()).collect(Collectors.toList()) // avoid concurrent modification
+				.stream()
+				.forEach(x -> x.draw(this));
 		} catch (Exception e) {
 			System.err.println(" exception thrown during drawing ");
 			e.printStackTrace();
@@ -472,18 +508,48 @@ public class Drawing extends Box {
 
 	private void updateWindowSpaceBoxes(Vec2 translation, Vec2 translationNext, Vec2 dimensions, Vec2 dimensionsNext, Vec2 scale, Vec2 scaleNext) {
 		this.breadthFirst(both())
-		    .filter(x -> x.properties.get(windowSpace) != null)
-		    .forEach(box -> {
+			.filter(x -> x.properties.get(windowSpace) != null)
+			.forEach(box -> {
 
-			    Vec2 v = box.properties.get(windowSpace);
+				Vec2 v = box.properties.get(windowSpace);
 
-			    Rect f = box.properties.get(Box.frame);
-			    f = new Rect(f.x, f.y, f.w, f.h);
+				Rect f = box.properties.get(Box.frame);
+				f = new Rect(f.x, f.y, f.w, f.h);
 
-			    f.x = (float) (f.x + ((translation.x/scale.x + dimensionsNext.x * v.x/scaleNext.x) - (translationNext.x/scaleNext.x + dimensions.x * v.x/scale.x)) );
-			    f.y = (float) (f.y + ((translation.y/scale.y + dimensionsNext.y * v.y/scaleNext.y) - (translationNext.y/scaleNext.y + dimensions.y * v.y/scale.y)) );
-			    box.properties.put(Box.frame, f);
-		    });
+				float bx = f.x+f.w;
+				float by = f.y+f.h;
+
+				Vec2 at = new Vec2(f.x, f.y);
+				Vec2 delta = deltaToStabalize(dimensions, dimensionsNext, v, at);
+				f.x -= delta.x;
+				f.y -= delta.y;
+
+				Vec2 v2 = box.properties.get(windowScale);
+				if (v2!=null)
+				{
+
+					at = new Vec2(bx,by);
+					delta = deltaToStabalize(dimensions, dimensionsNext, v2, at);
+
+					bx -= delta.x;
+					by -= delta.y;
+
+					f.w = bx - f.x;
+					f.h = by - f.y;
+				}
+
+
+
+				box.properties.put(Box.frame, f);
+			});
+	}
+
+	private Vec2 deltaToStabalize(Vec2 dimensions, Vec2 dimensionsNext, Vec2 v, Vec2 at) {
+		Vec2 tl_win = drawingSystemToWindowSystem(at);
+		Vec2 tl_winN = drawingSystemToWindowSystemNext(at);
+		Vec2 delta = new Vec2(tl_winN).sub(tl_win).sub(new Vec2(dimensionsNext.x*v.x-dimensions.x*v.x, dimensionsNext.y*v.y-dimensions.y*v.y));
+		delta = windowSystemToDrawingSystemDeltaNext(delta);
+		return delta;
 	}
 
 	/**
@@ -500,16 +566,14 @@ public class Drawing extends Box {
 	/**
 	 * Returns the shader (for lines and meshes) that's currently shading the main layer of this window
 	 */
-	public Shader getShader()
-	{
+	public Shader getShader() {
 		return getShader("__main__");
 	}
 
 	/**
 	 * Returns the shader (for lines and meshes) that's currently shading a specific ayer of this window
 	 */
-	public Shader getShader(String layerName)
-	{
+	public Shader getShader(String layerName) {
 		PerLayer layer = layerLocal.computeIfAbsent(layerName, (k) -> new PerLayer());
 		return layer.shader;
 	}
@@ -527,8 +591,7 @@ public class Drawing extends Box {
 	 * which the transformation changes half way through.
 	 */
 	public void setTranslation(Box root, Vec2 t) {
-		if (this.translation.distance(t) > 1e-10)
-		{
+		if (this.translation.distance(t) > 1e-10) {
 			dirty(root);
 			dirty(root, "glass");
 		}
@@ -540,8 +603,7 @@ public class Drawing extends Box {
 	 * which the transformation changes half way through.
 	 */
 	public void setScale(Box root, Vec2 t) {
-		if (this.scale.distance(t) > 1e-10)
-		{
+		if (this.scale.distance(t) > 1e-10) {
 			dirty(root);
 			dirty(root, "glass");
 		}
@@ -553,8 +615,13 @@ public class Drawing extends Box {
 	 */
 	public Rect getCurrentViewBounds(Box b) {
 		FieldBoxWindow window = b.first(Boxes.window, b.both())
-					 .get();
-		return new Rect(-translation.x, -translation.y, window.getWidth() * scale.x, window.getHeight() * scale.y);
+			.get();
+
+		Vec2 tl = windowSystemToDrawingSystem(new Vec2(0, 0));
+		Vec2 br = windowSystemToDrawingSystem(new Vec2(window.getWidth(), window.getHeight()));
+
+
+		return new Rect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
 	}
 
 	public interface Drawer {
