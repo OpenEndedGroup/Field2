@@ -6,6 +6,7 @@ import field.graphics.Window;
 import field.utility.Log;
 import org.lwjgl.glfw.GLFWImage;
 
+import java.io.File;
 import java.net.URL;
 import java.nio.ByteBuffer;
 
@@ -13,7 +14,7 @@ import static org.lwjgl.glfw.GLFW.glfwCreateCursor;
 import static org.lwjgl.glfw.GLFW.glfwSetCursor;
 
 /**
- * Classes for setting cursors (INCOMPLETE)
+ * Classes for setting cursors
  */
 public class Cursors {
 
@@ -41,9 +42,12 @@ public class Cursors {
 	}
 
 	protected static long loadResource(String res) {
+
+
 		URL arrowFile = Cursors.class.getClassLoader()
 					     .getResource(res);
 		String file = arrowFile.getFile();
+		file= new File(file).getAbsolutePath();
 		ByteBuffer dest = ByteBuffer.allocateDirect(3 * cursorSize * cursorSize);
 		ByteBuffer destRGBA = ByteBuffer.allocateDirect(4 * cursorSize * cursorSize);
 		j.decompress(file, dest, cursorSize, cursorSize);

@@ -435,9 +435,7 @@ public class Open {
 		glEnable(GL11.GL_BLEND);
 		glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		glDisable(GL11.GL_DEPTH_TEST);
-
-
-		if (Main.os == Main.OS.linux) glEnable(GL13.GL_MULTISAMPLE);
+		if (Main.os != Main.OS.mac) glEnable(GL13.GL_MULTISAMPLE);
 
 		return true;
 	}
@@ -450,7 +448,7 @@ public class Open {
 		glEnable(GL11.GL_BLEND);
 		glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		glDisable(GL11.GL_DEPTH_TEST);
-		if (Main.os == Main.OS.linux) glEnable(GL13.GL_MULTISAMPLE);
+		if (Main.os != Main.OS.mac) glEnable(GL13.GL_MULTISAMPLE);
 
 		return true;
 	}
@@ -464,7 +462,7 @@ public class Open {
 		glEnable(GL11.GL_BLEND);
 		glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		glDisable(GL11.GL_DEPTH_TEST);
-		if (Main.os == Main.OS.linux) glEnable(GL13.GL_MULTISAMPLE);
+		if (Main.os != Main.OS.mac) glEnable(GL13.GL_MULTISAMPLE);
 
 		return true;
 	}
