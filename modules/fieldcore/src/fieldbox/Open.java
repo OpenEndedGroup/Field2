@@ -2,6 +2,11 @@ package fieldbox;
 
 import field.app.RunLoop;
 import field.app.ThreadSync;
+import fieldcef.plugins.Taps;
+import fieldcef.plugins.GlassBrowser;
+import fieldcef.plugins.OutputBox;
+import fieldcef.plugins.TextEditor;
+import fieldcef.plugins.TextEditor_boxBrowser;
 import jdk.dynalink.linker.GuardingDynamicLinker;
 import field.graphics.*;
 import field.utility.AutoPersist;
@@ -15,10 +20,12 @@ import fieldbox.execution.Execution;
 import fieldbox.io.IO;
 import fieldbox.ui.Compositor;
 import fieldbox.ui.FieldBoxWindow;
-import fieldcef.plugins.GlassBrowser;
-import fieldcef.plugins.OutputBox;
-import fieldcef.plugins.TextEditor;
-import fieldcef.plugins.TextEditor_boxBrowser;
+
+//import fieldcef.plugins.GlassBrowser;
+//import fieldcef.plugins.OutputBox;
+//import fieldcef.plugins.TextEditor;
+//import fieldcef.plugins.TtapsextEditor_boxBrowser;
+
 import fielded.ServerSupport;
 import fielded.boxbrowser.BoxBrowser;
 import fielded.boxbrowser.WebApps;
@@ -213,7 +220,6 @@ public class Open {
 		new FrameChangedHash(boxes.root()).connect(boxes.root());
 
 		new Directionality(boxes.root()).connect(boxes.root());
-
 		new Handles(boxes.root()).connect(boxes.root());
 
 		new Create(boxes.root()).connect(boxes.root());
