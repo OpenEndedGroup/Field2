@@ -372,11 +372,11 @@ public class Browser extends Box implements IO.Loaded {
 			float dy = e.after.dwheely * 8;
 			browser.sendMouseWheelEvent(new MouseWheelEvent(component, MouseWheelEvent.MOUSE_WHEEL, 0, 0, (int) (point.x - r.x) * window.getRetinaScaleFactor(),
 									(int) (point.y - r.y) * window.getRetinaScaleFactor(), (int) (point.x - r.x) * window.getRetinaScaleFactor(),
-									(int) (point.y - r.y) * window.getRetinaScaleFactor(), 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, 1, (int) dy, dy));
+									(int) (point.y - r.y) * window.getRetinaScaleFactor(), 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, 8, (int) dy, dy));
 			float dx = e.after.dwheel * 8;
 			browser.sendMouseWheelEvent(new MouseWheelEvent(component, MouseWheelEvent.MOUSE_WHEEL, KeyEvent.SHIFT_DOWN_MASK, 0, (int) (point.x - r.x) * window.getRetinaScaleFactor(),
 									(int) (point.y - r.y) * window.getRetinaScaleFactor(), (int) (point.x - r.x) * window.getRetinaScaleFactor(),
-									(int) (point.y - r.y) * window.getRetinaScaleFactor(), 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, 1, (int) dx, dx));
+									(int) (point.y - r.y) * window.getRetinaScaleFactor(), 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, 8, (int) dx, dx));
 		});
 
 		this.properties.putToMap(Keyboard.onKeyDown, "__browser__", (e, k) -> {
