@@ -56,6 +56,8 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	private int lineOffset;
 	private Pair<Box, Integer> currentLineNumber = null;
 
+	static public final ThreadLocal<ScriptEngine> currentEngine = new ThreadLocal<>();
+
 
 	public NashornExecution(Box box, Dict.Prop<String> property, ScriptContext b, ScriptEngine engine) {
 		this.box = box;
@@ -196,6 +198,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	private Util.ExceptionlessAutoCloasable pushErrorContext(Consumer<Pair<Integer, String>> lineErrors) {
 		Execution.context.get()
 				 .push(box);
+		currentEngine.set(engine);
 
 		Errors.errors.push((t, m) -> {
 			System.out.println(" exception thrown inside box " + box);
