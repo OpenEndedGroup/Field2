@@ -31,11 +31,9 @@ public class FieldBox {
 			Toolkit.getDefaultToolkit();
 
 		// experimenting with moving this initialization first. Does this remove the occasional crash on startup?
-//		new Thread(() -> {
-			System.err.println(" building the CefSystem");
-			CefSystem sys = CefSystem.cefSystem;
-			System.err.println(" finished building the CefSystem");
-//		}).start();
+		System.err.println(" building the CefSystem");
+		CefSystem sys = CefSystem.cefSystem;
+		System.err.println(" finished building the CefSystem");
 
 		// TODO --- get from command line / previous
 		Options.parseCommandLine(s);

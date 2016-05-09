@@ -2,7 +2,6 @@ package fieldagent;
 
 import com.google.common.collect.MapMaker;
 import com.google.common.io.ByteStreams;
-import jdk.internal.loader.ClassLoaders;
 import fieldagent.asm.ClassReader;
 import fieldagent.asm.tree.ClassNode;
 
@@ -122,8 +121,6 @@ public class Trampoline {
 							.getCodeSource()
 							.getLocation()
 							.getFile(), name.replace(".", "/") + ".class");
-
-						System.out.println(" file is :" + f);
 
 						if (f.exists()) {
 							Record rec = new Record(f.getAbsolutePath(), f.lastModified());
@@ -246,7 +243,7 @@ public class Trampoline {
 
 	static public void main(String[] a) {
 
-		if (Main.os == Main.OS.mac)
+		if (Main.os == Main.OS.mac || Main.os == Main.OS.linux)
 			try {
 				Thread.sleep(4000);
 			} catch (InterruptedException e) {

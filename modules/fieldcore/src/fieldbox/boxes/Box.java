@@ -420,8 +420,6 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	@HiddenInAutocomplete
 	public Object asMap_get(String m) {
 
-		System.out.println(" get :"+m);
-
 		if (m == null) return null;
 
 		if (m.equals("_")) return new Subscope(this);
