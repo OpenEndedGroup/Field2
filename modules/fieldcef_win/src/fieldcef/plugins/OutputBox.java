@@ -93,6 +93,8 @@ public class OutputBox extends Box implements IO.Loaded {
 		this.properties.put(Boxes.dontSave, true);
 
 		browser.properties.put(Box.name, "outputbox");
+		browser.properties.put(Mouse.isSticky, false);
+
 		styles = findAndLoad(styleSheet, false);
 
 		long[] t = {0};
