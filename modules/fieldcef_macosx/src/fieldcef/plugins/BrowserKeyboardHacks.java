@@ -82,7 +82,6 @@ public class BrowserKeyboardHacks {
 			if (translated != null) {
 
 				KeyEvent ke = new KeyEvent(component, KeyEvent.KEY_PRESSED, 0, mod, translated, (char) translated.intValue());
-				System.out.println(" sent :"+mod+" "+translated+" "+(char)translated.intValue());
 				e.properties.put(Window.consumed, true);
 				target.sendKeyEvent(ke);
 

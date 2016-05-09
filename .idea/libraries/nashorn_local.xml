@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="nashorn-local">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/modules/fieldcore/resources/nashorn-local.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

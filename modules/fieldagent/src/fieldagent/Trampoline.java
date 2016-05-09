@@ -26,8 +26,8 @@ import java.util.function.Consumer;
  */
 public class Trampoline {
 
-	static public  final boolean traceLoader = false;
-	static public  boolean whereLoaded = false;
+	static public final boolean traceLoader = false;
+	static public boolean whereLoaded = false;
 
 	static protected Transform transform = new Transform();
 
@@ -52,8 +52,7 @@ public class Trampoline {
 
 	static public List<Consumer<Class>> onLoad = new ArrayList<>();
 
-	static public void registerLoadNotification(Consumer<Class> c)
-	{
+	static public void registerLoadNotification(Consumer<Class> c) {
 		synchronized (onLoad) {
 			onLoad.add(c);
 		}
@@ -104,23 +103,24 @@ public class Trampoline {
 			// if not loaded, search the local (child) resources
 			if (c == null) {
 				try {
-					if (whereLoaded){
+					if (whereLoaded) {
 						URL r = this.getResource(name.replace('.', '/')
-									     .concat(".class"));
-						if (r!=null)
-							System.out.println(name+" <- "+r);
+							.concat(".class"));
+						if (r != null)
+							System.out.println(name + " <- " + r);
 					}
 
 					c = findClass(name);
 					if (traceLoader) System.out.println("C(lc): found  " + c + "we're done here");
-					if (traceLoader && c!=null)System.out.println("C(lc): code source is :"+c.getProtectionDomain().getCodeSource().getLocation());
+					if (traceLoader && c != null)
+						System.out.println("C(lc): code source is :" + c.getProtectionDomain().getCodeSource().getLocation());
 
-					try{
+					try {
 
 						File f = new File(c.getProtectionDomain()
-								      .getCodeSource()
-								      .getLocation()
-								      .getFile(), name.replace(".", "/") + ".class");
+							.getCodeSource()
+							.getLocation()
+							.getFile(), name.replace(".", "/") + ".class");
 
 						if (f.exists())
 						{
@@ -129,9 +129,7 @@ public class Trampoline {
 								loadMap.put(c, rec);
 							}
 						}
-					}
-					catch(Throwable t)
-					{
+					} catch (Throwable t) {
 						t.printStackTrace();
 					}
 
@@ -140,25 +138,27 @@ public class Trampoline {
 						String fn = name.replace(".", "/") + ".class";
 
 						URL r = getResource(fn);
-						if (r != null) try (InputStream where = new BufferedInputStream(r.openStream())) {
-							if (where != null) {
-								byte[] b = ByteStreams.toByteArray(where);
-								b = transformClass(name, b);
-								c = defineClass(name, b, 0, b.length);
+						if (r != null)
+							try (InputStream where = new BufferedInputStream(r.openStream())) {
+								if (where != null) {
+									byte[] b = ByteStreams.toByteArray(where);
+									b = transformClass(name, b);
+									c = defineClass(name, b, 0, b.length);
 
-								Record rec = new Record(r.getFile(), new File(r.getFile()).lastModified());
-								if (rec.modification != 0) {
-									loadMap.put(c, rec);
-									if (traceLoader)System.err.println(" made loadmap rec for "+r.getFile());
+									Record rec = new Record(r.getFile(), new File(r.getFile()).lastModified());
+									if (rec.modification != 0) {
+										loadMap.put(c, rec);
+										if (traceLoader)
+											System.err.println(" made loadmap rec for " + r.getFile());
+									} else if (traceLoader)
+										System.err.println(" couldn't find file for " + r.getFile());
+
+									if (traceLoader)
+										System.out.println(" loaded " + loadMap.size());
 								}
-								else
-								if (traceLoader)System.err.println(" couldn't find file for "+r.getFile());
-
-								if (traceLoader) System.out.println(" loaded " + loadMap.size());
+							} catch (IOException e) {
+								e.printStackTrace();
 							}
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
 					}
 				}
 			}
@@ -186,7 +186,7 @@ public class Trampoline {
 
 
 		LinkedHashSet<String> blacklist_prefix = new LinkedHashSet<String>(Arrays
-			    .asList("fieldagent", "com.sun", "java", "sun", "jdk", "javax", "sunw", "apple", "com.apple", "org.cef"));
+			.asList("fieldagent", "com.sun", "java", "sun", "jdk", "javax", "sunw", "apple", "com.apple", "org.cef"));
 
 		protected boolean shouldLoad(String name) {
 
@@ -218,25 +218,24 @@ public class Trampoline {
 
 			if (traceLoader)
 				System.out.println("C: " + name + " -> " + url);
-			if (traceLoader) if (url == null) System.out.println(" URL search paths are " + Arrays.asList(getURLs())+" inside "+getParent());
+			if (traceLoader) if (url == null)
+				System.out.println(" URL search paths are " + Arrays.asList(getURLs()) + " inside " + getParent());
 
 			return url;
 		}
 
-		public List<URL> collectURLS()
-		{
+		public List<URL> collectURLS() {
 			List<URL> u = new ArrayList<>();
 
-			URLClassLoader l = this;
-			while(l!=null)
-			{
-				u.addAll(Arrays.asList(l.getURLs()));
+			ClassLoader l = this;
+			while (l != null) {
 
-				if (l.getParent() instanceof URLClassLoader)
-				{
-					l = (URLClassLoader) l.getParent();
+				if (l instanceof URLClassLoader) {
+					System.out.println(" classloader :" + l + " has urls " + Arrays.asList(((URLClassLoader) l).getURLs()));
+
+					u.addAll(Arrays.asList(((URLClassLoader) l).getURLs()));
 				}
-				else l = null;
+				l = l.getParent();
 			}
 			return u;
 
@@ -245,25 +244,27 @@ public class Trampoline {
 
 	static public void main(String[] a) {
 
-		System.err.println(" app dir is :"+System.getProperty("appDir"));
+		if (Main.os == Main.OS.mac || Main.os == Main.OS.linux)
+			try {
+				Thread.sleep(4000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		System.err.println(" app dir is :" + System.getProperty("appDir"));
 
 
 		Set<File> jarsToAdd = new LinkedHashSet<>();
 		Set<File> roots = new LinkedHashSet<>();
 		try {
-			Files.walk(new File(System.getProperty("appDir")+"/out/production").toPath()).forEach(x-> {
+			Files.walk(new File(System.getProperty("appDir") + "/out/production").toPath()).forEach(x -> {
 
-				if (x.toFile().getName().endsWith(".jar"))
-				{
+				if (x.toFile().getName().endsWith(".jar")) {
 					jarsToAdd.add(x.toFile());
-				}
-				else if (x.toFile().isDirectory())
-				{
+				} else if (x.toFile().isDirectory()) {
 					File[] l = x.toFile()
 						.listFiles(z -> z.getName()
 							.endsWith(".class"));
-					if (l!=null && l.length>0)
-					{
+					if (l != null && l.length > 0) {
 						try {
 							byte[] b = Files.readAllBytes(l[0].toPath());
 							ClassReader reader = new ClassReader(b);
@@ -273,22 +274,19 @@ public class Trampoline {
 							String[] pieces = name.split("/");
 							int o = 1;
 							boolean busted = false;
-							for(int i=pieces.length-2;i>=0;i--)
-							{
+							for (int i = pieces.length - 2; i >= 0; i--) {
 								Path q = x.getName(x.getNameCount() - o);
-								if (!q.getName(0).toString().equals(pieces[i]))
-								{
-									System.out.println(" piece mismatch :"+q.getName(0)+" "+pieces[i]);
+								if (!q.getName(0).toString().equals(pieces[i])) {
+									System.out.println(" piece mismatch :" + q.getName(0) + " " + pieces[i]);
 									busted = true;
 									break;
 								}
 								o++;
 							}
 
-							if (!busted)
-							{
+							if (!busted) {
 								File q = x.toFile();
-								for(int i=0;i<o-1;i++)
+								for (int i = 0; i < o - 1; i++)
 									q = q.getParentFile();
 								roots.add(q);
 
@@ -321,22 +319,22 @@ public class Trampoline {
 
 		ExtensibleClassloader classloader = new ExtensibleClassloader(new URL[]{}, Thread.currentThread().getContextClassLoader());
 
-		for(File j : jarsToAdd)
+		for (File j : jarsToAdd)
 			try {
-				System.out.println("add jar :"+j);
+				System.out.println("add jar :" + j);
 				classloader.addURL(j.toURI().toURL());
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
 			}
-		for(File j : roots)
+		for (File j : roots)
 			try {
 
-				if (Main.os==Main.OS.windows && j.getAbsolutePath().contains("_macosx"))
+				if (Main.os == Main.OS.windows && j.getAbsolutePath().contains("_macosx"))
 					continue;
-				if (Main.os!=Main.OS.windows && j.getAbsolutePath().contains("_win"))
+				if (Main.os != Main.OS.windows && j.getAbsolutePath().contains("_win"))
 					continue;
 
-				System.out.println("add root :"+j);
+				System.out.println("add root :" + j);
 				classloader.addURL(j.toURI().toURL());
 			} catch (MalformedURLException e) {
 				e.printStackTrace();

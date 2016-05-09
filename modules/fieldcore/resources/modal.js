@@ -5,20 +5,24 @@ function runModal(placeholder, getcompletionsfunction, cssclass, initialText, al
     var w = $(".CodeMirror").width();
     var h = $(".CodeMirror").height();
 
-    var mx = h - 100;
+    var mx = 450;
 
-    var shift = ($(window).height() - h) / 2;
-    var shiftx = ($(window).width() - w) / 2;
+    var shift = ($(window).height() - h)/2;
+    var shiftx = ($(window).width() - w);
 
-    var modal = $("<dialog class='" + cssclass + "'><input spellcheck='false' data-autosize-input='{ \"space\": 10 }' autocomplete='off' placeholder='" + placeholder + "' class='Field-textBox' type='text' name='main'></input><ol style='max-height:" + mx + "'></ol></dialog>");
+    if (shiftx<0) shiftx = 0;
+
+     // shift = 0;
+     // shiftx = 500;
+
+    var modal = $("<dialog style='max-height:"+mx+"!important;' class='" + cssclass + "'><input spellcheck='false' data-autosize-input='{ \"space\": 10 }' autocomplete='off' placeholder='" + placeholder + "' class='Field-textBox' type='text' name='main'></input><ol style='max-height:" + (mx-40) + "'></ol></dialog>");
+
+    $("dialog").remove();
 
     modal.appendTo($("body"));
 
-    modal.css("top", -shift);
-    modal.css("bottom", shift);
-
-    modal.css("left", -shiftx);
-    modal.css("right", shiftx);
+    modal.width(400);
+    modal.height(450);
 
 
     var inputBox = modal.find("input");

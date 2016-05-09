@@ -21,15 +21,8 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="zmq" level="project" />
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../fieldcore/resources/nashorn-local.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
     <orderEntry type="library" name="jpy-0.8-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="rt" level="application" />
+    <orderEntry type="library" name="fieldlinker" level="project" />
   </component>
 </module>

@@ -23,6 +23,7 @@
 package field.linalg;
 
 import field.utility.Mutable;
+import field.utility.Serializable_safe;
 import fieldnashorn.annotations.SafeToToString;
 
 import java.io.Externalizable;
@@ -43,7 +44,7 @@ import java.util.function.Supplier;
  * @author Richard Greenlees
  * @author Kai Burjack
  */
-public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable {
+public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializable_safe {
 
 	private static final long serialVersionUID = 1L;
 

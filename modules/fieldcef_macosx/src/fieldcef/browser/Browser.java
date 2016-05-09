@@ -87,6 +87,8 @@ public class Browser extends Box implements IO.Loaded {
 	private Texture texture;
 	private BaseMesh q;
 	private MeshBuilder builder;
+	private Drawing drawing;
+
 	Cached<Box, Object, Void> geometry = new Cached<>((now, nothing) -> {
 
 		Rect r = now.properties.get(Box.frame);
@@ -98,25 +100,29 @@ public class Browser extends Box implements IO.Loaded {
 			return null;
 		}
 
+		Vec2 s = drawing.getScale();
+
 		builder.open();
+
 		builder.aux(5, 0, 0, op);
 		builder.nextVertex(r.x, r.y, 0);
-		builder.aux(5, r.w / w, 0, op);
+		builder.aux(5, (float)s.x*r.w / w, 0, op);
 		builder.nextVertex(r.x + r.w * 1, r.y, 0);
-		builder.aux(5, r.w / w, r.h / h, op);
+		builder.aux(5, (float)s.x*r.w / w, (float)s.x*r.h / h, op);
 		builder.nextVertex(r.x + r.w * 1, r.y + r.h * 1, 0);
-		builder.aux(5, 0, r.h / h, op);
+		builder.aux(5, 0, (float)s.x*r.h / h, op);
+
+		
 		builder.nextVertex(r.x, r.y + r.h * 1, 0);
 		builder.nextElement_quad(3, 2, 1, 0);
 		builder.close();
 
 		return null;
-	}, (box) -> new Triple<>(box.properties.getFloat(StandardFLineDrawing.opacity, 1), box.properties.get(Box.frame), box.properties.isTrue(FLineDrawing.hidden, false)));
+	}, (box) -> new Quad<>(box.properties.getFloat(StandardFLineDrawing.opacity, 1), drawing.getScale(), box.properties.get(Box.frame), box.properties.isTrue(FLineDrawing.hidden, false)));
 
 	private Shader shader;
 	private ByteBuffer sourceView;
 	private FieldBoxWindow window;
-	private Drawing drawing;
 	private Box root;
 	private Rect damage = new Rect(0, 0, 0, 0);
 	public Runnable callbackOnNextReload = null;
@@ -221,7 +227,8 @@ public class Browser extends Box implements IO.Loaded {
 			"\tcurrent.xyz = (current.xyz-vec3(m)*sat)/(1-sat);\n"+
 			"current.xyz = pow(current.xyz, vec3(1.1));\n"+
 			    "\t_output  = vec4(current.zyx,current.w*vtc.z);\n" +
-			    "\t if (vtc.x==0 || vtc.x==1 || vtc.y==0 || vtc.y==1) _output.w=0;\n" +
+			"\t if (vtc.x==0 || vtc.x==1 || vtc.y==0 || vtc.y==1) _output.w=0;\n" +
+//			"\t _output=vec4(current.xyz,1);\n" +
 			    "}");
 
 		shader.attach(new Uniform<Vec2>("translation", () -> drawing.getTranslationRounded()));
@@ -309,7 +316,7 @@ public class Browser extends Box implements IO.Loaded {
 
 			browser.sendMouseEvent(
 				    new MouseEvent(component, MouseEvent.MOUSE_PRESSED, 0, MouseEvent.getMaskForButton(button + 1) | (e.after.keyboardState.isAltDown() ? KeyEvent.ALT_DOWN_MASK : 0),
-						   (int) (point.x - r.x) * window.getRetinaScaleFactor(), (int) (point.y - r.y) * window.getRetinaScaleFactor(), 1, false, button + 1));
+						   (int) ((point.x - r.x) * window.getRetinaScaleFactor() * drawing.get().getScale().x), (int) ((point.y - r.y) * window.getRetinaScaleFactor()* drawing.get().getScale().y), 1, false, button + 1));
 
 			dragOngoing = true;
 
@@ -372,11 +379,11 @@ public class Browser extends Box implements IO.Loaded {
 			float dy = e.after.dwheely * 8;
 			browser.sendMouseWheelEvent(new MouseWheelEvent(component, MouseWheelEvent.MOUSE_WHEEL, 0, 0, (int) (point.x - r.x) * window.getRetinaScaleFactor(),
 									(int) (point.y - r.y) * window.getRetinaScaleFactor(), (int) (point.x - r.x) * window.getRetinaScaleFactor(),
-									(int) (point.y - r.y) * window.getRetinaScaleFactor(), 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, 1, (int) dy, dy));
+									(int) (point.y - r.y) * window.getRetinaScaleFactor(), 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, 8, (int) dy, dy));
 			float dx = e.after.dwheel * 8;
 			browser.sendMouseWheelEvent(new MouseWheelEvent(component, MouseWheelEvent.MOUSE_WHEEL, KeyEvent.SHIFT_DOWN_MASK, 0, (int) (point.x - r.x) * window.getRetinaScaleFactor(),
 									(int) (point.y - r.y) * window.getRetinaScaleFactor(), (int) (point.x - r.x) * window.getRetinaScaleFactor(),
-									(int) (point.y - r.y) * window.getRetinaScaleFactor(), 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, 1, (int) dx, dx));
+									(int) (point.y - r.y) * window.getRetinaScaleFactor(), 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, 8, (int) dx, dx));
 		});
 
 		this.properties.putToMap(Keyboard.onKeyDown, "__browser__", (e, k) -> {
@@ -556,6 +563,8 @@ public class Browser extends Box implements IO.Loaded {
 	 */
 	protected void paint(boolean popup, Rectangle[] dirty, ByteBuffer buffer, int w, int h) {
 
+		System.out.println(" paint :"+buffer+" "+w+" "+h);
+
 		if (dirty.length == 0) return;
 
 		sourceView.clear();
@@ -573,6 +582,9 @@ public class Browser extends Box implements IO.Loaded {
 				sourceView.limit(r.x * 4 + y * 4 * w + r.width * 4);
 				sourceView.position(r.x * 4 + y * 4 * w);
 				sourceView.put(buffer);
+
+
+
 			}
 			x0 = Math.min(x0, r.x);
 			x1 = Math.max(x1, r.width + r.x);
@@ -616,13 +628,14 @@ public class Browser extends Box implements IO.Loaded {
 
 	public void executeJavaScript_queued(String s) {
 
-		System.out.println(" EJS_q :"+s);
 
 		if (ignore) return;
 
 		if (booted) {
+			System.out.println(" EJS_nq :"+s);
 			executeJavaScript(s);
 		} else {
+			System.out.println(" EJS_q :"+s);
 			bootQueue.add(() -> executeJavaScript(s));
 		}
 	}

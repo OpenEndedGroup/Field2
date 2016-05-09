@@ -9,5 +9,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="fieldcore" />
+    <orderEntry type="library" name="rt" level="application" />
   </component>
 </module>

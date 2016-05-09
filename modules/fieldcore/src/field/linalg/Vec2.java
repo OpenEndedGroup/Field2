@@ -23,6 +23,7 @@
 package field.linalg;
 
 import field.utility.Mutable;
+import field.utility.Serializable_safe;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -42,7 +43,7 @@ import java.util.function.Supplier;
  * @author RGreenlees
  * @author Kai Burjack
  */
-public class Vec2 implements Externalizable, Supplier<Vec2>, Mutable {
+public class Vec2 implements Externalizable, Supplier<Vec2>, Mutable, Serializable_safe {
 
 	private static final long serialVersionUID = 1L;
 
@@ -112,8 +113,8 @@ public class Vec2 implements Externalizable, Supplier<Vec2>, Mutable {
 	 * @see #Vec2(int, ByteBuffer)
 	 */
 	public Vec2(ByteBuffer buffer) {
-		this(buffer.position(), buffer);		buffer.position(buffer.position()+2*8);
-
+		this(buffer.position(), buffer);
+		buffer.position(buffer.position() + 2 * 8);
 	}
 
 	/**
@@ -1386,10 +1387,11 @@ public class Vec2 implements Externalizable, Supplier<Vec2>, Mutable {
 	}
 
 	/** adds a uniformly distributed random number from -amount to amount to each dimension */
-	public void noise(float amount)
+	public Vec2 noise(float amount)
 	{
 		x+= 2*amount*(Math.random()-0.5f);
 		y+= 2*amount*(Math.random()-0.5f);
+		return this;
 	}
 
 }

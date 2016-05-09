@@ -72,21 +72,13 @@ public class DrawBitmapFont {
 	public void draw(String text, Vec2 origin, float scale, Object h) {
 		List<Object> hash = Arrays.asList(text, new Vec2(origin), scale,h);
 		Pair<MeshBuilder.Bookmark, MeshBuilder.Bookmark> m = cache.computeIfAbsent(hash, (k) -> new Pair<>(target.bookmark().invalidate(), target.bookmark()));
-
-//		System.out.println(" looked up hash for "+text+" "+origin+" "+scale+" and got "+m+" "+System.identityHashCode(m));
-
+		
 		float smoothing = Math.min(4, Math.max(0.02f, scale));
 
 		target.skipTo(m.first, m.second, hash, () -> {
 
 			Vec2 at = new Vec2(origin);
 			char[] ca = text.toCharArray();
-//			int mx = 100;
-//			for( int i=0;i<ca.length;i++)
-//			{
-//				BitmapFontData.Glyph g = data.getGlyph(ca[i]);
-//				mx = Math.min(mx, g.yoffset);
-//			}
 
 			float mx = data.getGlyph('M').yoffset;
 

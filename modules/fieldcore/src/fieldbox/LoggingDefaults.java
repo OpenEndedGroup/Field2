@@ -20,7 +20,6 @@ public class LoggingDefaults {
 //		Log.on("INSERT", Log::green);
 //		Log.on("tap.*", Log::green);
 		Log.on("completion.debug", Log::green);
-		Log.on("thata", Log::blue);
 		Log.on(".*error", Log::red);
 //		Log.on("remote.cookie", Log::green);
 //		Log.on("server", Log::green);
@@ -41,7 +40,7 @@ public class LoggingDefaults {
 //		Log.on(".*keyboard.*", Log::green);
 //		Log.disable(".*cache.*");
 //		Log.on(".*keyboard.*", Log::green);
-		//Log.on(".*jar.indexer.*", Log::green);
+		Log.on(".*jar.indexer.*", Log::green);
 //		Log.on("finalkey", Log::green);
 		Log.fallthrough((a,b) -> {});
 	}

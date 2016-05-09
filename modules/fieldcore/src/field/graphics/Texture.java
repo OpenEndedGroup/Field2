@@ -203,10 +203,8 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 		attach(new Transient(() -> {
 			pendingUploads.decrementAndGet();
 			State s = GraphicsContext.get(this, null);
-
-
-			Log.log("graphics.trace", () -> "state for texture in upload is " + s);
-			Log.log("texture.trace", () -> "upload, part 1, for texture " + this + " " + s + " " + upload.capacity());
+			Log.log("graphics.trace", ()->"state for texture in upload is " + s);
+			Log.log("texture.trace", () -> "upload, part 1, for texture " + this + " " + s + " " + upload.capacity()+" "+x0+" "+y0+" "+x1+" "+y1);
 
 			if (s == null) return;
 			s.x0 = x0;

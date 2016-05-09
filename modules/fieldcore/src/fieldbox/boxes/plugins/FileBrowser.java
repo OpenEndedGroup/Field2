@@ -445,9 +445,6 @@ public class FileBrowser extends Box implements IO.Loaded {
 				f.id = s.replace("\"__id__\"", "")
 					.trim();
 				f.id = f.id.substring(1, f.id.length() - 1);
-
-				System.out.println("id is <" + f.id + ">");
-
 			}
 			if (s.trim()
 			     .startsWith("\"__boxclass__\"")) {
