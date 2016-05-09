@@ -60,26 +60,12 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 															   .doc("Geometry to be drawn along with this box")
 															   .autoConstructs(() -> new IdempotencyMap<>(Supplier.class));
 
-	static public final Dict.Prop<Boolean> dirty = new Dict.Prop<>("dirty").type()
-									       .toCannon()
-									       .doc("set `_.dirty=1` to cause a repaint of the window on the next animation cycle");
-
-
 	static public final Dict.Prop<String> layer = new Dict.Prop<>("layer").type()
 									      .toCannon()
 									      .doc("which layer to draw to? Defaults to `__main__`, the other alternative right now is `__glass__` to draw on the blur layer above Field");
 
 	public FLineDrawing(Box root) {
 		this.properties.putToList(Drawing.drawers, this);
-
-		// allow things like _.dirty=1 to cause redraw next frame
-		root.first(Watches.watches)
-		    .map(w -> w.addWatch(dirty, (x) -> {
-			    if (Util.truthy(x.third)) {
-				    x.second.properties.remove(x.first);
-				    Drawing.dirty(x.second);
-			    }
-		    }));
 	}
 
 	static public Function<Box, FLine> boxOrigin(Function<Box, FLine> wrap, Vec2 origin) {
