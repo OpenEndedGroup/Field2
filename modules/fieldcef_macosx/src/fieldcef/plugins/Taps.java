@@ -1,4 +1,4 @@
-package fieldbox.boxes.plugins;
+package fieldcef.plugins;
 
 import field.graphics.FLine;
 import field.graphics.StandardFLineDrawing;
@@ -7,8 +7,9 @@ import field.utility.Dict;
 import field.utility.Log;
 import field.utility.Rect;
 import fieldbox.boxes.*;
+import fieldbox.boxes.plugins.Templates;
 import fieldbox.io.IO;
-import fieldcef.plugins.TextEditor;
+//import fieldcef.plugins.TextEditor;
 import fielded.RemoteEditor;
 import fielded.webserver.Server;
 import org.java_websocket.WebSocket;
@@ -236,6 +237,7 @@ public class Taps extends Box implements IO.Loaded {
 			TextEditor t = inside.find(TextEditor.textEditor, inside.both())
 					     .findFirst()
 					     .get();
+
 			return (x) -> {
 
 				if (editorPosition == null) return new FLine(); // check current editable
