@@ -17,7 +17,6 @@ import fielded.boxbrowser.BoxBrowser;
 import fielded.boxbrowser.ObjectToHTML;
 import fielded.plugins.Out;
 import fieldlinker.Linker;
-import jdk.internal.jline.console.history.History;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -33,19 +32,19 @@ import java.util.stream.Stream;
 public class Variant extends Box implements IO.Loaded {
 
 	static public Dict.Prop<Set<String>> includes = new Dict.Prop<Set<String>>("includes").type()
-											      .toCannon()
-											      .autoConstructs(() -> new LinkedHashSet<String>()); // todo: doc
+		.toCannon()
+		.autoConstructs(() -> new LinkedHashSet<String>()); // todo: doc
 
 
 	static public Dict.Prop<Set<String>> excludes = new Dict.Prop<Set<String>>("excludes").type()
-											      .toCannon()
-											      .autoConstructs(() -> new LinkedHashSet<String>()); // todo: doc
+		.toCannon()
+		.autoConstructs(() -> new LinkedHashSet<String>()); // todo: doc
 
 	// this is set per box, because we need it to be loaded and saved with the boxes
 	static public Dict.Prop<String> theVariant = new Dict.Prop<>("_theVariant").type();
 
 	static public Dict.Prop<FunctionOfBoxValued<CurrentVariant>> variant = new Dict.Prop<FunctionOfBoxValued<CurrentVariant>>("variant").type()
-																	    .toCannon();
+		.toCannon();
 
 	static {
 		IO.persist(theVariant);
@@ -57,12 +56,12 @@ public class Variant extends Box implements IO.Loaded {
 
 			String s = "";
 
-			s += "*Current Variant* : "+val+"\n";
+			s += "*Current Variant* : " + val + "\n";
 
 			Set<String> o = box.properties.get(includes);
-			s += "*Included in* : "+o+"\n";
+			s += "*Included in* : " + o + "\n";
 			o = box.properties.get(excludes);
-			s += "*Excluded in* : "+o+"\n";
+			s += "*Excluded in* : " + o + "\n";
 
 			return s;
 		});
@@ -148,9 +147,9 @@ public class Variant extends Box implements IO.Loaded {
 		Memo m = new Memo();
 
 		documentRoot.breadthFirstAll(documentRoot.both())
-			    .forEach(x -> {
-				    m.state.put(x, x.disconnected);
-			    });
+			.forEach(x -> {
+				m.state.put(x, x.disconnected);
+			});
 
 		return m;
 	}
@@ -158,9 +157,9 @@ public class Variant extends Box implements IO.Loaded {
 	public static Memo connectAll(Box documentRoot) {
 		Memo m = freezeGraph(documentRoot);
 		documentRoot.breadthFirstAll(documentRoot.both())
-			    .forEach(x -> {
-				    x.disconnected = false;
-			    });
+			.forEach(x -> {
+				x.disconnected = false;
+			});
 		return m;
 	}
 
@@ -177,7 +176,7 @@ public class Variant extends Box implements IO.Loaded {
 
 			long s = selection().count();
 			boolean all = (s == 0) || (s == 1 && selection().findFirst()
-									.get() == this);
+				.get() == this);
 
 			if (selectionOrAll() == null) return m;
 
@@ -216,130 +215,130 @@ public class Variant extends Box implements IO.Loaded {
 			});
 
 			m.put(new Pair<>("Copy to variant",
-					 "Selects or creates a new variant" + (s > 1 ? ", copies " + (all ? "all" : "the selected") + " boxes to this variant, and switches to that variant" : (s > 0 ? ", copies the selected box to this variant, and switches to that variant" : ""))),
-			      new RemoteEditor.ExtendedCommand() {
+					"Selects or creates a new variant" + (s > 1 ? ", copies " + (all ? "all" : "the selected") + " boxes to this variant, and switches to that variant" : (s > 0 ? ", copies the selected box to this variant, and switches to that variant" : ""))),
+				new RemoteEditor.ExtendedCommand() {
 
-				      public RemoteEditor.SupportsPrompt p;
+					public RemoteEditor.SupportsPrompt p;
 
-				      @Override
-				      public void begin(RemoteEditor.SupportsPrompt prompt, String alternativeChosen/*, Consumer<String> feedback*/) {
-					      this.p = prompt;
-				      }
+					@Override
+					public void begin(RemoteEditor.SupportsPrompt prompt, String alternativeChosen/*, Consumer<String> feedback*/) {
+						this.p = prompt;
+					}
 
-				      @Override
-				      public void run() {
-					      Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
+					@Override
+					public void run() {
+						Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
 
-					      fillInExistingVariants(m, x -> {
-						      copySelectionToVariant(x);
-						      // should we always do all here?
-						      switchAllToVariant(x);
-					      });
+						fillInExistingVariants(m, x -> {
+							copySelectionToVariant(x);
+							// should we always do all here?
+							switchAllToVariant(x);
+						});
 
-					      p.prompt("New variant name", m, new RemoteEditor.ExtendedCommand() {
+						p.prompt("New variant name", m, new RemoteEditor.ExtendedCommand() {
 
-						      String alt = "";
+							String alt = "";
 
-						      @Override
-						      public void run() {
+							@Override
+							public void run() {
 
-							      System.err.println(" MAKE NEW VARIANT CALLED :" + this.alt);
-							      copySelectionToVariant(this.alt);
-							      // should we always do all here?
-							      switchAllToVariant(this.alt);
-						      }
+								System.err.println(" MAKE NEW VARIANT CALLED :" + this.alt);
+								copySelectionToVariant(this.alt);
+								// should we always do all here?
+								switchAllToVariant(this.alt);
+							}
 
-						      @Override
-						      public void begin(RemoteEditor.SupportsPrompt prompt, String alternativeChosen) {
-							      this.alt = alternativeChosen;
-						      }
-					      });
-				      }
-			      });
+							@Override
+							public void begin(RemoteEditor.SupportsPrompt prompt, String alternativeChosen) {
+								this.alt = alternativeChosen;
+							}
+						});
+					}
+				});
 
 			m.put(new Pair<>("Fork to variant",
-					 "Selects or creates a new variant" + (s > 1 ? ", forks " + (all ? "all" : "the selected") + " boxes to this variant, and switches to that variant" : (s > 0 ? ", forks the selected box to this variant, and switches to that variant" : ""))),
-			      new RemoteEditor.ExtendedCommand() {
+					"Selects or creates a new variant" + (s > 1 ? ", forks " + (all ? "all" : "the selected") + " boxes to this variant, and switches to that variant" : (s > 0 ? ", forks the selected box to this variant, and switches to that variant" : ""))),
+				new RemoteEditor.ExtendedCommand() {
 
-				      public RemoteEditor.SupportsPrompt p;
+					public RemoteEditor.SupportsPrompt p;
 
-				      @Override
-				      public void begin(RemoteEditor.SupportsPrompt prompt, String alternativeChosen/*, Consumer<String> feedback*/) {
-					      this.p = prompt;
-				      }
+					@Override
+					public void begin(RemoteEditor.SupportsPrompt prompt, String alternativeChosen/*, Consumer<String> feedback*/) {
+						this.p = prompt;
+					}
 
-				      @Override
-				      public void run() {
-					      Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
+					@Override
+					public void run() {
+						Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
 
-					      fillInExistingVariants(m, x -> {
-						      forkSelectionToVariant(x);
-						      // should we always do all here?
-						      switchAllToVariant(x);
-					      });
+						fillInExistingVariants(m, x -> {
+							forkSelectionToVariant(x);
+							// should we always do all here?
+							switchAllToVariant(x);
+						});
 
-					      p.prompt("New variant name", m, new RemoteEditor.ExtendedCommand() {
+						p.prompt("New variant name", m, new RemoteEditor.ExtendedCommand() {
 
-						      String alt = "";
+							String alt = "";
 
-						      @Override
-						      public void run() {
+							@Override
+							public void run() {
 
-							      System.err.println(" MAKE NEW VARIANT CALLED :" + this.alt);
-							      forkSelectionToVariant(this.alt);
-							      // should we always do all here?
-							      switchAllToVariant(this.alt);
-						      }
+								System.err.println(" MAKE NEW VARIANT CALLED :" + this.alt);
+								forkSelectionToVariant(this.alt);
+								// should we always do all here?
+								switchAllToVariant(this.alt);
+							}
 
-						      @Override
-						      public void begin(RemoteEditor.SupportsPrompt prompt, String alternativeChosen) {
-							      this.alt = alternativeChosen;
-						      }
-					      });
-				      }
-			      });
+							@Override
+							public void begin(RemoteEditor.SupportsPrompt prompt, String alternativeChosen) {
+								this.alt = alternativeChosen;
+							}
+						});
+					}
+				});
 			m.put(new Pair<>("Remove from variant",
-					 "Selects or creates a new variant" + (s > 1 ? ", disables " + (all ? "all" : "the selected") + " boxes to this variant, and switches to that variant" : (s > 0 ? ", disables the selected box to this variant, and switches to that variant" : ""))),
-			      new RemoteEditor.ExtendedCommand() {
+					"Selects or creates a new variant" + (s > 1 ? ", disables " + (all ? "all" : "the selected") + " boxes to this variant, and switches to that variant" : (s > 0 ? ", disables the selected box to this variant, and switches to that variant" : ""))),
+				new RemoteEditor.ExtendedCommand() {
 
-				      public RemoteEditor.SupportsPrompt p;
+					public RemoteEditor.SupportsPrompt p;
 
-				      @Override
-				      public void begin(RemoteEditor.SupportsPrompt prompt, String alternativeChosen/*, Consumer<String> feedback*/) {
-					      this.p = prompt;
-				      }
+					@Override
+					public void begin(RemoteEditor.SupportsPrompt prompt, String alternativeChosen/*, Consumer<String> feedback*/) {
+						this.p = prompt;
+					}
 
-				      @Override
-				      public void run() {
-					      Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
+					@Override
+					public void run() {
+						Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
 
-					      fillInExistingVariants(m, x -> {
-						      removeSelectionFromVariant(x);
+						fillInExistingVariants(m, x -> {
+							removeSelectionFromVariant(x);
 
-						      // should we always do all here?
-						      switchAllToVariant(x);
-					      });
+							// should we always do all here?
+							switchAllToVariant(x);
+						});
 
-					      p.prompt("New variant name", m, new RemoteEditor.ExtendedCommand() {
+						p.prompt("New variant name", m, new RemoteEditor.ExtendedCommand() {
 
 
-						      String alt;
+							String alt;
 
-						      @Override
-						      public void run() {
-							      System.err.println(" MAKE NEW VARIANT CALLED :" + this.alt);
-							      removeSelectionFromVariant(this.alt);
-							      // should we always do all here?
-							      switchAllToVariant(this.alt);
-						      }
+							@Override
+							public void run() {
+								System.err.println(" MAKE NEW VARIANT CALLED :" + this.alt);
+								removeSelectionFromVariant(this.alt);
+								// should we always do all here?
+								switchAllToVariant(this.alt);
+							}
 
-						      @Override
-						      public void begin(RemoteEditor.SupportsPrompt prompt, String alternativeChosen) {
-							      this.alt = alternativeChosen;
-						      }
-					      });
-				      }
-			      });
+							@Override
+							public void begin(RemoteEditor.SupportsPrompt prompt, String alternativeChosen) {
+								this.alt = alternativeChosen;
+							}
+						});
+					}
+				});
 
 
 			//TODO: fork new variant (copies storage, maintains history)
@@ -367,15 +366,15 @@ public class Variant extends Box implements IO.Loaded {
 			if (isIncluded(x, t)) {
 				x.disconnected = false;
 				x.properties.getOrConstruct(excludes)
-					    .remove(t);
+					.remove(t);
 
 				for (Map.Entry<Dict.Prop, Object> p : x.properties.getMap()
-										  .entrySet())
+					.entrySet())
 					if (p.getKey()
-					     .getName()
-					     .startsWith("__variant:" + t + ":")) x.asMap_set(p.getKey()
-											       .getName()
-											       .substring(("__variant:" + t + ":").length()), p.getValue());
+						.getName()
+						.startsWith("__variant:" + t + ":")) x.asMap_set(p.getKey()
+						.getName()
+						.substring(("__variant:" + t + ":").length()), p.getValue());
 
 			}
 
@@ -398,19 +397,19 @@ public class Variant extends Box implements IO.Loaded {
 			f.attributes.put(StandardFLineDrawing.opacity, 0.5f);
 			return f;
 
-		}, new Vec2(0,1), x));
+		}, new Vec2(0, 1), x));
 	}
 
 	private boolean isExcluded(Box x, String t) {
 		if (t.equals("")) return false;
 		return x.properties.getOrConstruct(excludes)
-				   .contains(t);
+			.contains(t);
 	}
 
 	private boolean isIncluded(Box x, String t) {
 		if (t.equals("")) return true;
 		return x.properties.getOrConstruct(includes)
-				   .contains(t);
+			.contains(t);
 	}
 
 	private void copySelectionToVariant(String variant) {
@@ -418,16 +417,16 @@ public class Variant extends Box implements IO.Loaded {
 			Stream<Box> s = all();
 			s.forEach(x -> {
 				if (!isIncluded(x, variant)) x.properties.getOrConstruct(excludes)
-									 .add(variant);
+					.add(variant);
 			});
 		}
 		{
 			Stream<Box> s = selectionOrAll();
 			s.forEach(x -> {
 				x.properties.getOrConstruct(includes)
-					    .add(variant);
+					.add(variant);
 				x.properties.getOrConstruct(excludes)
-					    .remove(variant);
+					.remove(variant);
 			});
 		}
 
@@ -438,16 +437,16 @@ public class Variant extends Box implements IO.Loaded {
 			Stream<Box> s = all();
 			s.forEach(x -> {
 				if (!isIncluded(x, variant)) x.properties.getOrConstruct(excludes)
-									 .add(variant);
+					.add(variant);
 			});
 		}
 		{
 			Stream<Box> s = selectionOrAll();
 			s.forEach(x -> {
 				x.properties.getOrConstruct(includes)
-					    .add(variant);
+					.add(variant);
 				x.properties.getOrConstruct(excludes)
-					    .remove(variant);
+					.remove(variant);
 
 				String currently = x.properties.get(theVariant);
 				if (currently == null) {
@@ -456,9 +455,9 @@ public class Variant extends Box implements IO.Loaded {
 					Map<Dict.Prop, Object> m = x.properties.getMap();
 					for (Dict.Prop p : new LinkedHashSet<>(m.keySet())) {
 						if (p.getName()
-						     .startsWith("__variant:" + currently + ":")) {
+							.startsWith("__variant:" + currently + ":")) {
 							forkProperty(x, p, new Dict.Prop(p.getName()
-											  .replace("__variant:" + currently + ":", "__variant:" + variant + ":")));
+								.replace("__variant:" + currently + ":", "__variant:" + variant + ":")));
 						}
 					}
 				}
@@ -479,9 +478,9 @@ public class Variant extends Box implements IO.Loaded {
 		Stream<Box> s = selectionOrAll();
 		s.forEach(x -> {
 			x.properties.getOrConstruct(includes)
-				    .remove(variant);
+				.remove(variant);
 			x.properties.getOrConstruct(excludes)
-				    .add(variant);
+				.add(variant);
 		});
 	}
 
@@ -494,18 +493,18 @@ public class Variant extends Box implements IO.Loaded {
 		});
 
 		this.breadthFirstAll(this.downwards())
-		    .filter(x -> x.properties.has(includes))
-		    .forEach(x -> {
-			    x.properties.get(includes)
+			.filter(x -> x.properties.has(includes))
+			.forEach(x -> {
+				x.properties.get(includes)
 					.forEach(y -> inc(seen, y));
-		    });
+			});
 
 		seen.entrySet()
-		    .forEach(x -> {
-			    target.put(new Pair<>(x.getKey(), "Used by " + x.getValue() + " box" + (x.getValue() > 1 ? "es" : "")), () -> {
-				    task.accept(x.getKey());
-			    });
-		    });
+			.forEach(x -> {
+				target.put(new Pair<>(x.getKey(), "Used by " + x.getValue() + " box" + (x.getValue() > 1 ? "es" : "")), () -> {
+					task.accept(x.getKey());
+				});
+			});
 
 
 	}
@@ -523,8 +522,8 @@ public class Variant extends Box implements IO.Loaded {
 		long s = selection().count();
 
 		if (s == 1 && selection().findFirst()
-					 .get() == this) return this.breadthFirst(downwards())
-								    .filter(x -> x != this);
+			.get() == this) return this.breadthFirst(downwards())
+			.filter(x -> x != this);
 
 		return selection().filter(x -> isProgeny(x, this));
 	}
@@ -532,13 +531,13 @@ public class Variant extends Box implements IO.Loaded {
 	private Stream<Box> all() {
 
 		return this.breadthFirstAll(this.downwards())
-			   .filter(x -> x != this);
+			.filter(x -> x != this);
 	}
 
 	private boolean isProgeny(Box x, Variant me) {
 		return me.breadthFirstAll(me.downwards())
-			 .filter(y -> y != this)
-			 .anyMatch(y -> y == x);
+			.filter(y -> y != this)
+			.anyMatch(y -> y == x);
 	}
 
 
