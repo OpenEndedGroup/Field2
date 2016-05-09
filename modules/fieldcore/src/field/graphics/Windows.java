@@ -29,7 +29,7 @@ public class Windows {
 
 
 		RunLoop.main.getLoop()
-			    .attach(-2, this::events);
+			.attach(-2, this::events);
 
 		glfwInit();
 
@@ -38,7 +38,7 @@ public class Windows {
 
 
 		mainClassLoader = Thread.currentThread()
-					.getContextClassLoader();
+			.getContextClassLoader();
 
 
 		Log.log("startup.debug", () -> "main thread is :" + Thread.currentThread());
@@ -54,7 +54,7 @@ public class Windows {
 		while (!events.isEmpty()) {
 			try {
 				events.removeFirst()
-				      .run();
+					.run();
 			} catch (Throwable t) {
 				Log.log("events.error", () -> "Exception thrown while handling event" + t);
 			}
@@ -84,12 +84,12 @@ public class Windows {
 		glfwSetCursorPosCallback(window, keep(window, GLFWCursorPosCallback.create(c::cursorPos)));
 		glfwSetMouseButtonCallback(window, keep(window, GLFWMouseButtonCallback.create(c::mouseButton)));
 		glfwSetWindowCloseCallback(window, keep(window, GLFWWindowCloseCallback.create(c::windowClose)));
-		glfwSetErrorCallback(keep(0, GLFWErrorCallback.createString(c::error)));
-		glfwSetCursorEnterCallback(window, keep(window, GLFWCursorEnterCallback.create((w, en) -> c.cursorEnter(w, en == GLFW_TRUE))));
+		glfwSetErrorCallback(keep(0, GLFWErrorCallback.create((a, b) -> c.error(a, "" + b))));
+		glfwSetCursorEnterCallback(window, keep(window, GLFWCursorEnterCallback.create((w, en) -> c.cursorEnter(w, en == true))));
 		glfwSetWindowRefreshCallback(window, keep(window, GLFWWindowRefreshCallback.create(c::windowRefresh)));
-		glfwSetWindowFocusCallback(window, keep(window, GLFWWindowFocusCallback.create((w, en) -> c.windowFocus(w, en == GLFW_TRUE))));
+		glfwSetWindowFocusCallback(window, keep(window, GLFWWindowFocusCallback.create((w, en) -> c.windowFocus(w, en == true))));
 		glfwSetScrollCallback(window, keep(window, GLFWScrollCallback.create(c::scroll)));
-		glfwSetDropCallback(window, keep(window, GLFWDropCallback.createString(c::drop)));
+		glfwSetDropCallback(window, keep(window, GLFWDropCallback.create((a, b, d) -> c.drop(a, null))));
 	}
 
 	private <T> T keep(long window, T t) {
@@ -121,7 +121,8 @@ public class Windows {
 				Runnable r = () -> {
 					checkClassLoader();
 					GlfwCallback a = adaptors.get(window);
-					if (a != null) a.windowFocus(window, focused);
+					if (a != null)
+						a.windowFocus(window, focused);
 				};
 
 				if (RunLoop.main.isMainThread()) r.run();
@@ -178,7 +179,8 @@ public class Windows {
 //					}
 
 
-					if (a != null) a.mouseButton(window, fbutton, pressed, fmods);
+					if (a != null)
+						a.mouseButton(window, fbutton, pressed, fmods);
 				};
 
 				if (RunLoop.main.isMainThread()) r.run();
@@ -194,7 +196,8 @@ public class Windows {
 				Runnable r = () -> {
 					checkClassLoader();
 					GlfwCallback a = adaptors.get(window);
-					if (a != null) a.scroll(window, scrollX, scrollY);
+					if (a != null)
+						a.scroll(window, scrollX, scrollY);
 				};
 
 				if (RunLoop.main.isMainThread()) {
@@ -211,7 +214,8 @@ public class Windows {
 				Runnable r = () -> {
 					checkClassLoader();
 					GlfwCallback a = adaptors.get(window);
-					if (a != null) a.cursorPos(window, x, y);
+					if (a != null)
+						a.cursorPos(window, x, y);
 				};
 
 				if (RunLoop.main.isMainThread()) r.run();
@@ -232,7 +236,8 @@ public class Windows {
 				Runnable r = () -> {
 					checkClassLoader();
 					GlfwCallback a = adaptors.get(window);
-					if (a != null) a.key(window, key, scancode, action, mods);
+					if (a != null)
+						a.key(window, key, scancode, action, mods);
 				};
 
 				if (RunLoop.main.isMainThread()) r.run();
@@ -248,7 +253,8 @@ public class Windows {
 				Runnable r = () -> {
 					checkClassLoader();
 					GlfwCallback a = adaptors.get(window);
-					if (a != null) a.character(window, character);
+					if (a != null)
+						a.character(window, character);
 				};
 
 				if (RunLoop.main.isMainThread()) r.run();
@@ -296,7 +302,8 @@ public class Windows {
 				Runnable r = () -> {
 					checkClassLoader();
 					GlfwCallback a = adaptors.get(window);
-					if (a != null) a.windowPos(window, x, y);
+					if (a != null)
+						a.windowPos(window, x, y);
 				};
 
 				if (RunLoop.main.isMainThread()) r.run();
@@ -311,7 +318,8 @@ public class Windows {
 				Runnable r = () -> {
 					checkClassLoader();
 					GlfwCallback a = adaptors.get(window);
-					if (a != null) a.windowSize(window, w, h);
+					if (a != null)
+						a.windowSize(window, w, h);
 				};
 
 				if (RunLoop.main.isMainThread()) r.run();
@@ -326,7 +334,8 @@ public class Windows {
 				Runnable r = () -> {
 					checkClassLoader();
 					GlfwCallback a = adaptors.get(window);
-					if (a != null) a.framebufferSize(window, w, h);
+					if (a != null)
+						a.framebufferSize(window, w, h);
 				};
 
 				if (RunLoop.main.isMainThread()) r.run();
@@ -343,11 +352,11 @@ public class Windows {
 
 	private void checkClassLoader() {
 		ClassLoader c = Thread.currentThread()
-				      .getContextClassLoader();
+			.getContextClassLoader();
 		if (c != mainClassLoader) {
 			Log.log("startup.debug", () -> "had to change classloader from <" + c + "- >" + mainClassLoader);
 			Thread.currentThread()
-			      .setContextClassLoader(mainClassLoader);
+				.setContextClassLoader(mainClassLoader);
 		}
 
 

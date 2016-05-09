@@ -167,8 +167,9 @@ public class GraphicsContext {
 //		}
 
 		if (e != 0) {
-			throw new IllegalStateException(
+			System.err.println(
 				    "GLERROR:" + /*GLUtil.getErrorString(*/e/*)*/ + " -- " + message.get() + "\nState tracker is:" + GraphicsContext.getContext().stateTracker.dumpOutput());
+//			System.exit(0);
 		}
 	}
 

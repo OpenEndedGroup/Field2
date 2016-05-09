@@ -70,14 +70,16 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 		});
 
 		String pre
-			    = "Framebuffer object has dimensions <b>" + specification.width + "</b>x<b>" + specification.height + "</b> and is bound to texture unit <b>" + specification.unit + "</b><br>";
+			= "Framebuffer object has dimensions <b>" + specification.width + "</b>x<b>" + specification.height + "</b> and is bound to texture unit <b>" + specification.unit + "</b><br>";
 		if (specification.forceSingleBuffered) pre += "Single-buffered updates are on; ";
 		if (specification.compressed) pre += "Target is compressed; ";
-		if (specification.highQuality) pre += "Mip-maps are automatically regenerated on update; ";
-		if (specification.type == GL_FLOAT) pre += "This is a floating-point resolution texture; ";
+		if (specification.highQuality)
+			pre += "Mip-maps are automatically regenerated on update; ";
+		if (specification.type == GL_FLOAT)
+			pre += "This is a floating-point resolution texture; ";
 		pre = p(pre);
 		pre
-			    += p("This has been bound <b>" + warnIfZero(boundCount) + "</b> time" + (boundCount == 1 ? "" : "s") + " and modified <b>"+uploadCount+"</b> time"+(uploadCount==1 ? "" : "s")+"<br>");
+			+= p("This has been bound <b>" + warnIfZero(boundCount) + "</b> time" + (boundCount == 1 ? "" : "s") + " and modified <b>" + uploadCount + "</b> time" + (uploadCount == 1 ? "" : "s") + "<br>");
 
 		int tries = 0;
 		while (!m.isDone()) {
@@ -86,7 +88,8 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			if (++tries > 5) return pre + p("<b>Image data for FBO is not available (FBO must be actively repainting)<b>");
+			if (++tries > 5)
+				return pre + p("<b>Image data for FBO is not available (FBO must be actively repainting)<b>");
 		}
 
 		try {
@@ -114,18 +117,19 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
 	}
 
-	private String p(String p)
-	{
-		return "<p>"+p+"</p>";
-	}
-	private String warnIfZero(int x) {
-		if (x==0) return "<span class='warning'>"+x+"</span>";
-		return ""+x;
+	private String p(String p) {
+		return "<p>" + p + "</p>";
 	}
 
-	/** must be called before first render */
-	public Texture makeBindless()
-	{
+	private String warnIfZero(int x) {
+		if (x == 0) return "<span class='warning'>" + x + "</span>";
+		return "" + x;
+	}
+
+	/**
+	 * must be called before first render
+	 */
+	public Texture makeBindless() {
 		bindless = true;
 		return this;
 	}
@@ -139,8 +143,8 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 			pendingUploads.decrementAndGet();
 			State s = GraphicsContext.get(this, null);
 
-			Log.log("graphics.trace", ()->"state for texture in upload is " + s);
-			Log.log("texture.trace", ()->"upload, part 1, for texture " + this + " " + s + " " + upload.capacity());
+			Log.log("graphics.trace", () -> "state for texture in upload is " + s);
+			Log.log("texture.trace", () -> "upload, part 1, for texture " + this + " " + s + " " + upload.capacity());
 
 			if (s == null) return;
 
@@ -149,7 +153,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 			s.y0 = 0;
 			s.y1 = specification.height;
 
-			Log.log("graphics.trace", ()->"uploading ");
+			Log.log("graphics.trace", () -> "uploading ");
 			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, isDoubleBuffered ? (stream ? s.pboA : s.pboB) : s.pbo);
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 			glPixelStorei(GL_UNPACK_ROW_LENGTH, specification.width);
@@ -165,7 +169,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 			bytesUploaded += s.old.limit();
 			GL15.glUnmapBuffer(GL21.GL_PIXEL_UNPACK_BUFFER);
 			GL15.glBindBuffer(GL21.GL_PIXEL_UNPACK_BUFFER, 0);
-			Log.log("graphics.trace", ()->"uploaded part 1");
+			Log.log("graphics.trace", () -> "uploaded part 1");
 			s.mod++;
 		}, -2).setOnceOnly().setAllContextsFor(this));
 	}
@@ -201,7 +205,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 			State s = GraphicsContext.get(this, null);
 
 
-			Log.log("graphics.trace", ()->"state for texture in upload is " + s);
+			Log.log("graphics.trace", () -> "state for texture in upload is " + s);
 			Log.log("texture.trace", () -> "upload, part 1, for texture " + this + " " + s + " " + upload.capacity());
 
 			if (s == null) return;
@@ -214,7 +218,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 			glPixelStorei(GL_UNPACK_ROW_LENGTH, specification.width);
 
 			int start = specification.elementSize * (specification.width * y0 + x0);
-			int end = Math.min(specification.elementSize*specification.width*specification.height, specification.elementSize * (specification.width * (y1 ) + x1));
+			int end = Math.min(specification.elementSize * specification.width * specification.height, specification.elementSize * (specification.width * (y1) + x1));
 			s.old = glMapBufferRange(GL21.GL_PIXEL_UNPACK_BUFFER, start, end - start, GL30.GL_MAP_WRITE_BIT | GL30.GL_MAP_INVALIDATE_RANGE_BIT | GL30.GL_MAP_UNSYNCHRONIZED_BIT, s.old);
 
 			s.old.position(0);
@@ -233,7 +237,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
 			GL15.glUnmapBuffer(GL21.GL_PIXEL_UNPACK_BUFFER);
 			GL15.glBindBuffer(GL21.GL_PIXEL_UNPACK_BUFFER, 0);
-			Log.log("graphics.trace", ()->"uploaded part 1");
+			Log.log("graphics.trace", () -> "uploaded part 1");
 			s.mod++;
 		}, -2).setOnceOnly().setAllContextsFor(this));
 	}
@@ -248,7 +252,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
 		State s = GraphicsContext.get(this);
 
-		Log.log("graphics.trace", ()->"activating texture :" + specification.unit + " = " + s.name);
+		Log.log("graphics.trace", () -> "activating texture :" + specification.unit + " = " + s.name);
 
 		glActiveTexture(GL_TEXTURE0 + specification.unit);
 		glBindTexture(specification.target, s.name);
@@ -256,7 +260,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 		Runnable m = postDrawQueue.getAndSet(null);
 		if (m != null) m.run();
 
-		boundCount ++;
+		boundCount++;
 
 		return true;
 	}
@@ -278,7 +282,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
 	protected State setup() {
 
-		GraphicsContext.checkError(() -> "setting up texture "+specification);
+		GraphicsContext.checkError(() -> "setting up texture " + specification);
 
 		State s = new State();
 		s.name = glGenTextures();
@@ -289,7 +293,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
 		glActiveTexture(GL_TEXTURE0 + specification.unit);
 		glBindTexture(specification.target, s.name);
-		GraphicsContext.checkError(() -> "setting up texture "+specification);
+		GraphicsContext.checkError(() -> "setting up texture " + specification);
 
 
 		if (!specification.highQuality) {
@@ -305,31 +309,30 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
 		}
 
-		GraphicsContext.checkError(() -> "setting up texture "+specification);
+		GraphicsContext.checkError(() -> "setting up texture " + specification);
 
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, specification.width);
 
-		GraphicsContext.checkError(() -> "setting up texture "+specification);
+		GraphicsContext.checkError(() -> "setting up texture " + specification);
 
 		ARBTextureStorage.glTexStorage2D(specification.target,
-						 specification.highQuality ? (int) (Math.floor(Math.log(Math.max(specification.width, specification.height)) / Math.log(2)) + 1) : 1,
-						 specification.internalFormat, specification.width, specification.height);
+			specification.highQuality ? (int) (Math.floor(Math.log(Math.max(specification.width, specification.height)) / Math.log(2)) + 1) : 1,
+			specification.internalFormat, specification.width, specification.height);
 
-		GraphicsContext.checkError(() -> "setting up texture "+specification);
+		GraphicsContext.checkError(() -> "setting up texture " + specification);
 
 
-		if (specification.compressed)
-		{
-			glCompressedTexSubImage2D(specification.target, 0, 0, 0, specification.width, specification.height, specification.internalFormat, specification.pixels.capacity(), specification.pixels);
-		}
-		else {
+		if (specification.compressed) {
+//			glCompressedTexSubImage2D(specification.target, 0, 0, 0, specification.width, specification.height, specification.internalFormat, specification.pixels.capacity(), specification.pixels);
+			throw new IllegalArgumentException(" not implemented ");
+		} else {
 			glTexSubImage2D(specification.target, 0, 0, 0, specification.width, specification.height, specification.format, specification.type, specification.pixels);
 			if (specification.highQuality) {
 				glGenerateMipmap(specification.target);
 			}
 		}
-		GraphicsContext.checkError(() -> "setting up texture "+specification);
+		GraphicsContext.checkError(() -> "setting up texture " + specification);
 
 
 		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, s.pbo);
@@ -340,7 +343,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
 		glBufferData(GL_PIXEL_UNPACK_BUFFER, specification.elementSize * specification.width * specification.height, GL15.GL_STREAM_DRAW);
 
-		GraphicsContext.checkError(() -> "setting up texture "+specification);
+		GraphicsContext.checkError(() -> "setting up texture " + specification);
 
 		if (isDoubleBuffered) {
 			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, s.pboB);
@@ -350,10 +353,9 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
 		}
 		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-		GraphicsContext.checkError(() -> "setting up texture "+specification);
+		GraphicsContext.checkError(() -> "setting up texture " + specification);
 
-		if (bindless)
-		{
+		if (bindless) {
 			s.textureHandle = NVBindlessTexture.glGetTextureHandleNV(s.name);
 			System.out.println(" bind handle " + s.textureHandle);
 			NVBindlessTexture.glMakeTextureHandleResidentNV(s.textureHandle);
@@ -402,7 +404,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
 	@Override
 	public String toString() {
-		return super.toString()+System.identityHashCode(this);
+		return super.toString() + System.identityHashCode(this);
 	}
 
 	public int forceUploadNow(ByteBuffer from) {
@@ -424,10 +426,10 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 		return this;
 	}
 
-	public int getPBOSource(GraphicsContext context)
-	{
+	public int getPBOSource(GraphicsContext context) {
 		State s = GraphicsContext.get(this);
-		if (isDoubleBuffered) throw new IllegalArgumentException("can't reliably get the pbo source of a double buffered texture");
+		if (isDoubleBuffered)
+			throw new IllegalArgumentException("can't reliably get the pbo source of a double buffered texture");
 		//mod++;
 
 		System.out.println(" marking texture PBO as needing uploading ");
@@ -518,6 +520,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 		static public TextureSpecification byte3(int unit, int width, int height, ByteBuffer source, boolean mips) {
 			return new TextureSpecification(unit, GL_TEXTURE_2D, GL_RGB8, width, height, GL_RGB, GL_UNSIGNED_BYTE, 3, source, mips);
 		}
+
 		static public TextureSpecification byte3(int unit, int width, int height, ByteBuffer source, boolean mips, boolean forceSingleBuffered) {
 			return new TextureSpecification(unit, GL_TEXTURE_2D, GL_RGB8, width, height, GL_RGB, GL_UNSIGNED_BYTE, 3, source, mips, forceSingleBuffered, false);
 		}
@@ -540,9 +543,9 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
 		static public TextureSpecification from1DRGBAFloatBuffer(int unit, int length, FloatBuffer source) {
 			ByteBuffer data = ByteBuffer.allocateDirect(4 * 4 * length)
-						    .order(ByteOrder.nativeOrder());
+				.order(ByteOrder.nativeOrder());
 			data.asFloatBuffer()
-			    .put(source);
+				.put(source);
 			data.rewind();
 			return new TextureSpecification(unit, GL_TEXTURE_2D, GL30.GL_RGBA32F, length, 1, GL_RGBA, GL_FLOAT, 16, data, false);
 		}
@@ -550,7 +553,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 		static public TextureSpecification from1DFloatBuffer(int unit, int length, FloatBuffer source) {
 			ByteBuffer data = ByteBuffer.allocateDirect(4 * length);
 			data.asFloatBuffer()
-			    .put(source);
+				.put(source);
 			data.rewind();
 			return new TextureSpecification(unit, GL_TEXTURE_2D, GL30.GL_R32F, length, 1, GL_RED, GL_FLOAT, 4, data, false);
 		}
@@ -582,6 +585,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 		static public TextureSpecification bptc(int unit, int width, int height, ByteBuffer source) {
 			return new TextureSpecification(unit, GL_TEXTURE_2D, ARBTextureCompressionBPTC.GL_COMPRESSED_RGBA_BPTC_UNORM_ARB, width, height, GL_NONE, GL_NONE, 0, source, false, false, true);
 		}
+
 		static public TextureSpecification float1(int unit, int width, int height, ByteBuffer source) {
 			return new TextureSpecification(unit, GL_TEXTURE_2D, GL30.GL_R32F, width, height, GL_RED, GL_FLOAT, 4, source, false);
 		}
@@ -593,17 +597,17 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 		@Override
 		public String toString() {
 			return "TextureSpecification{" +
-				    "unit=" + unit +
-				    ", target=" + target +
-				    ", internalFormat=" + internalFormat +
-				    ", width=" + width +
-				    ", height=" + height +
-				    ", format=" + format +
-				    ", type=" + type +
-				    ", elementSize=" + elementSize +
-				    ", highQuality=" + highQuality +
-				    ", pixels=" + pixels +
-				    '}';
+				"unit=" + unit +
+				", target=" + target +
+				", internalFormat=" + internalFormat +
+				", width=" + width +
+				", height=" + height +
+				", format=" + format +
+				", type=" + type +
+				", elementSize=" + elementSize +
+				", highQuality=" + highQuality +
+				", pixels=" + pixels +
+				'}';
 		}
 	}
 
@@ -656,6 +660,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
 		return c;
 	}
+
 	/**
 	 * this operates asynchronously if we are not currently inside the draw loop (that is, if there is no valid context for our thread). only one debug download can be pending at a time. You can
 	 * pass in null to this routine and you'll get a correctly sized ByteByffer back that you can reuse for subsequent calls. Regardless of the original format of the FBO this always returns

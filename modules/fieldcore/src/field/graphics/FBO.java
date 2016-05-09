@@ -3,6 +3,7 @@ package field.graphics;
 import field.app.RunLoop;
 import field.utility.Dict;
 import field.utility.Log;
+import field.utility.Rect;
 import field.utility.Util;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Drawing;
@@ -23,6 +24,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.*;
+import static org.lwjgl.opengl.GL13.GL_MULTISAMPLE;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL30.*;
@@ -58,14 +60,17 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 		});
 
 		String pre
-			    = "Framebuffer object has dimensions <b>" + specification.width + "</b>x<b>" + specification.height + "</b> and is bound to texture unit <b>" + specification.unit + "</b><br>";
+			= "Framebuffer object has dimensions <b>" + specification.width + "</b>x<b>" + specification.height + "</b> and is bound to texture unit <b>" + specification.unit + "</b><br>";
 		if (specification.multisample) pre += "Multisampling is turned on; ";
-		if (specification.depth) pre += "There is a depth render-buffer associated with this framebuffer; ";
-		if (specification.internalFormat == GL_RGBA32F) pre += "This is a floating-point resolution buffer; ";
-		if (specification.layers != 1) pre += "This is a multi-layer (<b>" + specification.layers + "</b> layers) buffer; ";
+		if (specification.depth)
+			pre += "There is a depth render-buffer associated with this framebuffer; ";
+		if (specification.internalFormat == GL_RGBA32F)
+			pre += "This is a floating-point resolution buffer; ";
+		if (specification.layers != 1)
+			pre += "This is a multi-layer (<b>" + specification.layers + "</b> layers) buffer; ";
 		pre += "It has drawn its scene <b>" + warnIfZero(
-			    drawCount) + "</b> time" + (drawCount == 1 ? "" : "s") + (drawCount == 0 ? "</b>(are you sure .draw() is being called)" : "") + " and it has been bound as a texture <b>" + warnIfZero(
-			    boundCount) + "</b> time" + (boundCount == 1 ? "" : "s") + "<br>";
+			drawCount) + "</b> time" + (drawCount == 1 ? "" : "s") + (drawCount == 0 ? "</b>(are you sure .draw() is being called)" : "") + " and it has been bound as a texture <b>" + warnIfZero(
+			boundCount) + "</b> time" + (boundCount == 1 ? "" : "s") + "<br>";
 
 		int tries = 0;
 		while (!m.isDone()) {
@@ -74,7 +79,8 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			if (++tries > 5) return pre + "<b>Image data for FBO is not available (FBO must be actively repainting)<b>";
+			if (++tries > 5)
+				return pre + "<b>Image data for FBO is not available (FBO must be actively repainting)<b>";
 		}
 
 		try {
@@ -132,6 +138,8 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 		public final boolean multisample;
 		public final boolean multisample_raw;
 
+		public int overrideTextureID = -1;
+
 		public FBOSpecification(int unit, int internalFormat, int width, int height, int format, int type, int elementSize, boolean depth, int num, boolean multisample, boolean multisample_raw, int layers) {
 			this.unit = unit;
 			this.internalFormat = internalFormat;
@@ -147,6 +155,11 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 			this.multisample_raw = multisample_raw;
 
 			this.layers = layers;
+		}
+
+		public FBOSpecification setOverrideTextureID(int overrideTextureID) {
+			this.overrideTextureID = overrideTextureID;
+			return this;
 		}
 
 		static public FBOSpecification singleFloat(int unit, int width, int height) {
@@ -169,22 +182,26 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 			return new FBOSpecification(unit, GL_RGBA, width, height, GL_RGBA, GL_BYTE, 8, false, 1, true, false, 1);
 		}
 
+		static public FBOSpecification srgba(int unit, int width, int height) {
+			return new FBOSpecification(unit, GL21.GL_SRGB8_ALPHA8, width, height, GL_RGBA, GL_BYTE, 8, false, 1, false, false, 1);
+		}
+
 		@Override
 		public String toString() {
 			return "FBOSpecification{" +
-				    "unit=" + unit +
-				    ", internalFormat=" + internalFormat +
-				    ", width=" + width +
-				    ", height=" + height +
-				    ", format=" + format +
-				    ", type=" + type +
-				    ", elementSize=" + elementSize +
-				    ", depth=" + depth +
-				    ", num=" + num +
-				    ", layers=" + layers +
-				    ", multisample=" + multisample +
-				    ", multisample_raw=" + multisample_raw +
-				    '}';
+				"unit=" + unit +
+				", internalFormat=" + internalFormat +
+				", width=" + width +
+				", height=" + height +
+				", format=" + format +
+				", type=" + type +
+				", elementSize=" + elementSize +
+				", depth=" + depth +
+				", num=" + num +
+				", layers=" + layers +
+				", multisample=" + multisample +
+				", multisample_raw=" + multisample_raw +
+				'}';
 		}
 	}
 
@@ -194,6 +211,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 
 	public FBO(FBOSpecification specification) {
 		this.specification = specification;
+		this.viewport = new Rect(0, 0, this.specification.width, this.specification.height);
 	}
 
 
@@ -216,7 +234,6 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 			for (int i = 0; i < s.msRenderBuffers.length; i++) {
 				s.msRenderBuffers[i] = glGenRenderbuffers();
 				int converageSamples = 4;
-
 
 				glBindRenderbuffer(GL_RENDERBUFFER, s.msRenderBuffers[i]);
 
@@ -241,14 +258,16 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 
 			int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 
-			if (status != GL_FRAMEBUFFER_COMPLETE) throw new IllegalArgumentException(" bad status, " + status);
+			if (status != GL_FRAMEBUFFER_COMPLETE)
+				throw new IllegalArgumentException(" bad status, " + status);
 		}
 
 		GraphicsContext.checkError();
-
 		s.text = new int[specification.num];
 		for (int i = 0; i < s.text.length; i++)
-			s.text[i] = glGenTextures();
+			if (i == 0 && specification.overrideTextureID != -1) s.text[i] = specification.overrideTextureID;
+			else s.text[i] = glGenTextures();
+
 		if (specification.depth) s.depth = glGenRenderbuffers();
 
 		glBindFramebuffer(GL_FRAMEBUFFER, s.name);
@@ -267,8 +286,9 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 				} else {
 					glBindTexture(GL_TEXTURE_2D, s.text[i]);
 
-					glTexImage2D(GL_TEXTURE_2D, 0, specification.internalFormat, specification.width, specification.height, 0, specification.format, specification.type,
-						     (ByteBuffer) null);
+					if (specification.overrideTextureID == -1)
+						glTexImage2D(GL_TEXTURE_2D, 0, specification.internalFormat, specification.width, specification.height, 0, specification.format, specification.type,
+							(ByteBuffer) null);
 
 					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, s.text[i], 0);
 
@@ -289,7 +309,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 					glBindTexture(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, s.text[i]);
 
 					glTexImage3DMultisample(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, 8, specification.internalFormat, specification.width, specification.height, specification.layers,
-								false);
+						false);
 
 
 					glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, s.text[i], 0);
@@ -298,7 +318,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 					glBindTexture(GL_TEXTURE_2D_ARRAY, s.text[i]);
 
 					glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, specification.internalFormat, specification.width, specification.height, specification.layers, 0, specification.format,
-						     specification.type, (ByteBuffer) null);
+						specification.type, (ByteBuffer) null);
 
 					glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, s.text[i], 0);
 					glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -331,7 +351,8 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 		}
 
 		int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-		if (status != GL_FRAMEBUFFER_COMPLETE) throw new IllegalArgumentException(" bad status, " + status);
+		if (status != GL_FRAMEBUFFER_COMPLETE)
+			throw new IllegalArgumentException(" bad status, " + status);
 
 		GL11.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -347,6 +368,13 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 
 	int drawCount = 0;
 
+	private Rect viewport = new Rect(0, 0, 0, 0);
+
+	public FBO setViewport(Rect viewport) {
+		this.viewport = viewport;
+		return this;
+	}
+
 	public boolean draw() {
 		drawCount++;
 		GraphicsContext.checkError(() -> "on FBO draw entry, specification " + specification);
@@ -356,14 +384,37 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 
 			GraphicsContext.getContext().stateTracker.fbo.set(specification.multisample ? s.multisample : s.name);
 
-			int[] v = {0, 0, specification.width, specification.height};
+			int[] v = {(int) viewport.x, (int) viewport.y, (int) viewport.w, (int) viewport.h};
 
 			GraphicsContext.getContext().stateTracker.scissor.set(v);
 
 			GraphicsContext.getContext().stateTracker.viewport.set(v);
 
+			GraphicsContext.checkError(() -> "prior to debug red");
+			int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+			if (status != GL_FRAMEBUFFER_COMPLETE)
+				throw new IllegalArgumentException(" bad status, " + status + " on " + s.name);
+
+//                      else System.out.println(" FBO "+s.name+" is confirmed complete  in draw method");
+
+			if (specification.internalFormat == GL21.GL_SRGB8_ALPHA8) {
+				glEnable(GL_FRAMEBUFFER_SRGB);
+			}
+
+			if (specification.overrideTextureID != -1) {
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, specification.overrideTextureID, 0);
+			}
+
+			if (specification.multisample) {
+				glEnable(GL_MULTISAMPLE);
+			}
 
 			scene.updateAll();
+			GraphicsContext.checkError(() -> "after scene update");
+
+//                      GL11.glClearColor(1, 0, 1, 1);
+//                      GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
+
 
 			if (specification.multisample) {
 				glBindFramebuffer(GL_READ_FRAMEBUFFER, s.multisample);
@@ -378,18 +429,22 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 			}
 
 
+
+
 			Runnable m = postDrawQueue.getAndSet(null);
 
 			if (m != null) m.run();
 
 			GraphicsContext.checkError(() -> "on FBO draw exit1");
+			if (specification.internalFormat == GL21.GL_SRGB8_ALPHA8) {
+				glDisable(GL_FRAMEBUFFER_SRGB);
+			}
 
 			return true;
 		} finally {
 			GraphicsContext.checkError(() -> "on FBO draw exit2");
 		}
 	}
-
 
 	public void setScene(Scene d) {
 		this.scene = d;
@@ -422,12 +477,16 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 		for (int i = 0; i < s.text.length; i++) {
 			if (specification.layers == 1) {
 				glActiveTexture(GL_TEXTURE0 + specification.unit + i);
-				if (specification.multisample_raw) glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, s.text[i]);
+				if (specification.multisample_raw)
+					glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, s.text[i]);
 				else glBindTexture(GL_TEXTURE_2D, s.text[i]);
+
+				glGenerateMipmap(GL_TEXTURE_2D);
 
 			} else {
 				glActiveTexture(GL_TEXTURE0 + specification.unit + i);
-				if (specification.multisample_raw) glBindTexture(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, s.text[i]);
+				if (specification.multisample_raw)
+					glBindTexture(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, s.text[i]);
 				else glBindTexture(GL_TEXTURE_2D_ARRAY, s.text[i]);
 
 			}
@@ -539,8 +598,8 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 		int sz = specification.width * specification.height * 4 * 4;
 		if (to == null || !to.isDirect() || to.limit() < sz) {
 			ato = ByteBuffer.allocateDirect(sz)
-					.order(ByteOrder.nativeOrder())
-					.asFloatBuffer();
+				.order(ByteOrder.nativeOrder())
+				.asFloatBuffer();
 		} else ato = to;
 
 		// we hack this so that people don't hang the main thread (requiring a restart of Field) by blindly calling 'get' when isDone is false
