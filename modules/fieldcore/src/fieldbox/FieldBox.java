@@ -26,16 +26,16 @@ public class FieldBox {
 
 
 	static public void main(String[] s) {
+		System.err.println(" lauching toolkit");
+		if (Main.os == Main.OS.mac)
+			Toolkit.getDefaultToolkit();
 
 		// experimenting with moving this initialization first. Does this remove the occasional crash on startup?
-		new Thread(() -> {
+//		new Thread(() -> {
 			System.err.println(" building the CefSystem");
 			CefSystem sys = CefSystem.cefSystem;
 			System.err.println(" finished building the CefSystem");
-		}).start();
-
-		if (Main.os == Main.OS.mac)
-			Toolkit.getDefaultToolkit();
+//		}).start();
 
 		// TODO --- get from command line / previous
 		Options.parseCommandLine(s);
