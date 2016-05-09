@@ -307,7 +307,6 @@ public class Browser extends Box implements IO.Loaded {
 
 			if (isSelected() && properties.isTrue(Mouse.isSticky, false)) e.properties.put(Window.consumed, true);
 			else {
-//				setFocus(true);
 				if (!properties.isTrue(Mouse.isSticky, false)) return null;
 			}
 
@@ -742,9 +741,10 @@ public class Browser extends Box implements IO.Loaded {
 	Out out_cached = null;
 
 
-	public void printHTML(String text) {
+	public void printRaw(String text) {
 		executeJavaScript_queued("$(document.body).append('" + TextUtils.html(text) + "');" + scrollDown());
 	}
+
 
 	public void print(Object text) {
 
@@ -758,6 +758,20 @@ public class Browser extends Box implements IO.Loaded {
 		}
 
 		executeJavaScript_queued("$(document.body).append('" + TextUtils.quoteNoOuter(texts.replace("'", "\"")) + "');" + scrollDown());
+	}
+
+	public void println(Object text) {
+
+		getOutCached();
+		String texts = "";
+
+		if (out_cached != null) {
+			texts = out_cached.convert(text);
+		} else {
+			texts = text + "";
+		}
+
+		executeJavaScript_queued("$(document.body).append('" + TextUtils.quoteNoOuter(texts.replace("'", "\"")) + "<br>');" + scrollDown());
 	}
 
 	public void clearAndPrint(Object text)
