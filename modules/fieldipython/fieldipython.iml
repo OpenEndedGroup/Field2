@@ -31,5 +31,6 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="jpy-0.8-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="rt" level="application" />
   </component>
 </module>

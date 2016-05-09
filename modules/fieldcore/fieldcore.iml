@@ -25,5 +25,6 @@
     <orderEntry type="library" name="cassowary" level="project" />
     <orderEntry type="module" module-name="fieldcef_macosx" />
     <orderEntry type="library" name="orient" level="project" />
+    <orderEntry type="library" name="rt" level="application" />
   </component>
 </module>

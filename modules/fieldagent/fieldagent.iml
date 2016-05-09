@@ -9,5 +9,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="guava-16.0.1 (2)" level="project" />
+    <orderEntry type="library" name="rt" level="application" />
   </component>
 </module>
