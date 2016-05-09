@@ -65,7 +65,7 @@ public class MessageQueue<t_message, t_address> {
 					e.printStackTrace();
 				}
 			}
-		});
+		}).start();
 		return x -> stop.complete(x);
 	}
 
