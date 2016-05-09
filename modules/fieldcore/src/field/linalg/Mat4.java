@@ -22,6 +22,9 @@
  */
 package field.linalg;
 
+import field.utility.Mutable;
+import field.utility.Serializable_safe;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -39,7 +42,7 @@ import java.util.function.Supplier;
  * @author Richard Greenlees
  * @author Kai Burjack
  */
-public class Mat4 implements Externalizable, Supplier<Mat4> {
+public class Mat4 implements Externalizable, Supplier<Mat4>, Mutable, Serializable_safe {
 
 	/**
 	 * Argument to the first parameter of {@link #frustumPlane(int, Vec4)} or return value of {@link #isAabInsideFrustum(double, double, double, double, double, double) isAabInsideFrustum()} or
@@ -5586,5 +5589,10 @@ public class Mat4 implements Externalizable, Supplier<Mat4> {
 		Vec3 w = new Vec3(m02, m12, m22);
 
 		return u.cross(v).dot(w) < 0;
+	}
+
+	@Override
+	public Mutable duplicate() {
+		return new Mat4(this);
 	}
 }

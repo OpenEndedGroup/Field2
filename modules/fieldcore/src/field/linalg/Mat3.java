@@ -22,6 +22,9 @@
  */
 package field.linalg;
 
+import field.utility.Mutable;
+import field.utility.Serializable_safe;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -41,7 +44,7 @@ import java.util.function.Supplier;
  * @author Richard Greenlees
  * @author Kai Burjack
  */
-public class Mat3 implements Externalizable, Supplier<Mat3> {
+public class Mat3 implements Externalizable, Supplier<Mat3>, Mutable, Serializable_safe {
 
 	private static final long serialVersionUID = 1L;
 
@@ -1800,4 +1803,8 @@ public class Mat3 implements Externalizable, Supplier<Mat3> {
 		return this;
 	}
 
+	@Override
+	public Mutable duplicate() {
+		return new Mat3(this);
+	}
 }
