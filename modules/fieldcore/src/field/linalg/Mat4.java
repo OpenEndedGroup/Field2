@@ -234,6 +234,26 @@ public class Mat4 implements Externalizable, Supplier<Mat4> {
 		this.m33 = m33;
 	}
 
+	public Mat4(FloatBuffer loadFrom)
+	{
+		this.m00 = loadFrom.get();
+		this.m01 = loadFrom.get();
+		this.m02 = loadFrom.get();
+		this.m03 = loadFrom.get();
+		this.m10 = loadFrom.get();
+		this.m11 = loadFrom.get();
+		this.m12 = loadFrom.get();
+		this.m13 = loadFrom.get();
+		this.m20 = loadFrom.get();
+		this.m21 = loadFrom.get();
+		this.m22 = loadFrom.get();
+		this.m23 = loadFrom.get();
+		this.m30 = loadFrom.get();
+		this.m31 = loadFrom.get();
+		this.m32 = loadFrom.get();
+		this.m33 = loadFrom.get();
+	}
+
 	/**
 	 * Create a new 4x4 matrix using the supplied double values
 	 */
@@ -1432,7 +1452,7 @@ public class Mat4 implements Externalizable, Supplier<Mat4> {
 	 * @return the string representation
 	 */
 	public String toString() {
-		DecimalFormat formatter = new DecimalFormat("  0.000E0; -"); //$NON-NLS-1$
+		DecimalFormat formatter = new DecimalFormat("  0.0000000E0; -"); //$NON-NLS-1$
 		return toString(formatter).replaceAll("E(\\d+)", "E+$1"); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
