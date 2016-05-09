@@ -261,7 +261,8 @@ public class Viewport extends Box implements IO.Loaded, ProvidesGraphicsContext 
 			int h = window.getHeight();
 			int w = window.getWidth();
 
-			int[] v = new int[]{(int) tl.x * 2, (int) (h - bl.y) * 2, (int) (bl.x - tl.x + 2) * 2, (int) (bl.y - tl.y + 2) * 2};
+			float rs = window.getRetinaScaleFactor();
+			int[] v = new int[]{(int) ((int) tl.x * rs), (int) ((int) (h - bl.y) * rs), (int) ((int) (bl.x - tl.x + 2) * rs), (int) ((int) (bl.y - tl.y + 2) * rs)};
 
 
 			GraphicsContext.getContext().stateTracker.scissor.set(v);
