@@ -20,15 +20,17 @@ import java.util.stream.Stream;
  */
 public class ThreadSync {
 	static public final boolean enabled = Options.dict()
-						     .isTrue(new Dict.Prop("threaded"), false);
+		.isTrue(new Dict.Prop("threaded"), false);
 	static private final ExecutorService executor = Executors.newCachedThreadPool();
 	static public Object NULL = new Object();
-	static ThreadLocal<Fiber> fiber = new ThreadLocal<>();
+	public static ThreadLocal<Fiber> fiber = new ThreadLocal<>();
 	static ThreadLocal<ThreadSync> threadingModel = new ThreadLocal<>();
 	static private Map<Thread, ThreadSync> models = new MapMaker().weakKeys()
-								      .makeMap();
+		.makeMap();
 	public Thread mainThread;
 	Set<Fiber> live = new LinkedHashSet<Fiber>();
+
+	public Fiber currentFiber;
 
 	// this should be getThreadingModelForCurrentThread();
 	protected ThreadSync() {
@@ -72,7 +74,8 @@ public class ThreadSync {
 	}
 
 	static public Object yield(Object o) throws InterruptedException, Stop {
-		if (fiber.get() == null) throw new IllegalArgumentException(" yield called from non-fiber thread");
+		if (fiber.get() == null)
+			throw new IllegalArgumentException(" yield called from non-fiber thread");
 		if (fiber.get().stopped) throw new Stop();
 		if (o == null) o = NULL;
 
@@ -93,7 +96,8 @@ public class ThreadSync {
 	}
 
 	static public Object pause(Supplier<Object> during) throws InterruptedException, Stop {
-		if (fiber.get() == null) throw new IllegalArgumentException(" yield called from non-fiber thread");
+		if (fiber.get() == null)
+			throw new IllegalArgumentException(" yield called from non-fiber thread");
 		if (fiber.get().stopped) throw new Stop();
 
 		fiber.get().paused = () -> isFalse(during.get());
@@ -129,17 +133,19 @@ public class ThreadSync {
 		f.out = out;
 		threadingModel.set(this);
 		ClassLoader loader = Thread.currentThread()
-					   .getContextClassLoader();
+			.getContextClassLoader();
 
 		f.runner = executor.submit(() -> {
 
 			try {
 				Thread.currentThread()
-				      .setName("running fiber");
+					.setName("running fiber");
 				Thread.currentThread()
-				      .setContextClassLoader(loader);
+					.setContextClassLoader(loader);
+
 				fiber.set(f);
 				f.input.take();
+
 				Object a = r.call();
 				if (a == null) f.output.put(NULL);
 				else f.output.put(a);
@@ -167,18 +173,24 @@ public class ThreadSync {
 				fiber.set(null);
 			}
 		});
+		currentFiber = f;
+		try {
 
-		Object o = f.output.take();
-		if (f.runner.isDone()) live.remove(this);
-		if (o == NULL) o = null;
-		out.accept((V) o);
-		f.lastReturn = (V) o;
-		if (f.exception != null) if (f.handler == null) throw new RuntimeException(f.exception);
-		else f.handler.accept(f.exception);
+			Object o = f.output.take();
+			if (f.runner.isDone()) live.remove(this);
+			if (o == NULL) o = null;
+			out.accept((V) o);
+			f.lastReturn = (V) o;
+			if (f.exception != null) if (f.handler == null)
+				throw new RuntimeException(f.exception);
+			else f.handler.accept(f.exception);
 
-		System.out.println(" returning, exception is :" + f.exception);
+			System.out.println(" returning, exception is :" + f.exception);
 
-		return f;
+			return f;
+		} finally {
+			currentFiber = null;
+		}
 	}
 
 	private void shutdown() throws InterruptedException {
@@ -213,8 +225,10 @@ public class ThreadSync {
 				f.wasPaused = false;
 				if (f.exception != null) {
 					i.remove();
-					if (f.handler != null) f.handler.accept(f.exception);
-					else throw new IllegalStateException(f.exception);
+					if (f.handler != null)
+						f.handler.accept(f.exception);
+					else
+						throw new IllegalStateException(f.exception);
 				} else {
 
 					Object o = f.output.poll();
@@ -259,8 +273,10 @@ public class ThreadSync {
 				f.out.accept(o);
 				if (f.exception != null) {
 					i.remove();
-					if (f.handler != null) f.handler.accept(f.exception);
-					else throw new IllegalStateException(f.exception);
+					if (f.handler != null)
+						f.handler.accept(f.exception);
+					else
+						throw new IllegalStateException(f.exception);
 				}
 			}
 		}
@@ -276,7 +292,34 @@ public class ThreadSync {
 
 	public Stream<Fiber> findByTag(Object tag) {
 		return live.stream()
-			   .filter(x -> Util.safeEq(x, tag));
+			.filter(x -> Util.safeEq(x, tag));
+	}
+
+	public static void inMainThread(Runnable o) throws InterruptedException, ExecutionException {
+		if (!enabled || fiber.get()==null)
+			o.run();
+		else {
+			CompletableFuture<Boolean> c = new CompletableFuture<>();
+			RunLoop.main.once(() -> {
+				try {
+					o.run();
+					c.complete(true);
+				}
+				catch(Throwable t)
+				{
+					t.printStackTrace();
+					c.cancel(true);
+				}
+			});
+			while(!c.isDone())
+			{
+				yield(0);
+			}
+			if (c.isCompletedExceptionally())
+			{
+				c.get();
+			}
+		}
 	}
 
 	public static class Stop extends RuntimeException {
@@ -318,6 +361,9 @@ public class ThreadSync {
 		public volatile boolean wasPaused = false;
 
 		public Object tag;
+
+		public List<Runnable> serviceTasks = new ArrayList<>();
+
 	}
 
 }
