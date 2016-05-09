@@ -1059,7 +1059,7 @@ public class RemoteEditor extends Box {
 		return true;
 	}
 
-	public Execution getExecution(Box box, Dict.Prop<String> prop) {
+	static public Execution getExecution(Box box, Dict.Prop<String> prop) {
 
 		return box.breadthFirst(box.upwards())
 			  .filter(x -> x.properties.has(Execution.execution))

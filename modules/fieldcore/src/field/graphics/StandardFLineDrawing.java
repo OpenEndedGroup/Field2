@@ -74,13 +74,11 @@ public class StandardFLineDrawing {
 
 	static public final Dict.Prop<Number> pointSize = new Dict.Prop<>("pointSize").type()
 										      .toCannon()
-										      .doc("sets the size of the point (if this line is drawn .pointed=1). This can be applied per vertex or per line.");
+										      .doc("sets the size of the point (if this line is drawn `.pointed=true`). This can be applied per vertex or per line.");
 
 
 	static public void dispatchLine(FLine fline, MeshBuilder mesh, MeshBuilder line, MeshBuilder points, Optional<TextDrawing> ot, String layerName) {
 
-
-		Log.log("drawing.trace", ()->"dispatching line :" + fline);
 
 		Vec4 sc = new Vec4(fline.attributes.getOr(strokeColor, () -> fline.attributes.getOr(color, () -> new Vec4(0, 0, 0, 1))).get());
 		Vec4 fc = new Vec4(fline.attributes.getOr(fillColor, () -> fline.attributes.getOr(color, () -> new Vec4(0, 0, 0, 1))).get());
@@ -120,7 +118,7 @@ public class StandardFLineDrawing {
 				   .filter(node -> node.attributes.has(text))
 				   .forEach(node -> {
 					   String textToDraw = node.attributes.get(text);
-					   float textScale = node.attributes.getFloat(StandardFLineDrawing.textScale, 1f) * 0.15f;
+					   float textScale = node.attributes.getFloat(StandardFLineDrawing.textScale, 1f) * 0.15f ;
 					   float align = node.attributes.getFloat(StandardFLineDrawing.textAlign, 0.5f);
 					   ot.map(t -> t.getFontSupport(fline.attributes.getOr(font, () -> "source-sans-pro-regular-92.fnt"), layerName))
 					     .ifPresent(fs -> {

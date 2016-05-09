@@ -29,13 +29,14 @@ cm.on("change", function (cm, change) {
 	}
 	console.log("<<change (" + cookie.widgets + "\n||"+cm.getValue()+"||");
 
+
 });
 
 _messageBus.subscribe("focus", function (d, e) {
 	cm.focus()
 });
 _messageBus.subscribe("defocus", function (d, e) {
-	cm.blur()
+	// cm.blur()
 });
 
 serializeAllWidgets = function () {
@@ -111,7 +112,8 @@ _messageBus.subscribe("selection.changed", function (d, e) {
 
 	if (!d.box) {
 		cm.setOption("readOnly", "nocursor");
-		$(".CodeMirror").hide();
+	$(".CodeMirror").hide();
+
 		_messageBus.publish("status", "(no selection)");
 
 		document.title = "Field Editor (No Selection)";

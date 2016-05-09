@@ -113,8 +113,8 @@ public class Vec2 implements Externalizable, Supplier<Vec2>, Mutable, Serializab
 	 * @see #Vec2(int, ByteBuffer)
 	 */
 	public Vec2(ByteBuffer buffer) {
-		this(buffer.position(), buffer);		buffer.position(buffer.position()+2*8);
-
+		this(buffer.position(), buffer);
+		buffer.position(buffer.position() + 2 * 8);
 	}
 
 	/**

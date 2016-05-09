@@ -22,5 +22,6 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="rt" level="application" />
+    <orderEntry type="library" name="fieldlinker" level="project" />
   </component>
 </module>

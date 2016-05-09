@@ -146,17 +146,17 @@ public class ThreadSync {
 
 				return a;
 			} catch (Stop s) {
-				f.output.put(NULL);
 				f.runner.cancel(true);
+				f.output.put(NULL);
 				return null;
 			} catch (Throwable t) {
 				f.exception = t;
+				f.runner.cancel(true);
 				System.err.println(" -- caught throwable ");
 				f.output.put(NULL);
 				t.printStackTrace();
 				System.err.println(" -- rethrowing <" + f.output.peek() + "> -> " + f.handler);
 				if (f.output.peek() == null) f.output.put(NULL);
-				f.runner.cancel(true);
 				throw t;
 			} finally {
 				// need to unwide sub fibers to allow recursion.

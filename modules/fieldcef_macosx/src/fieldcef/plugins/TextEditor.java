@@ -1,6 +1,7 @@
 package fieldcef.plugins;
 
 import static org.lwjgl.glfw.GLFW.*;
+
 import field.app.RunLoop;
 import field.graphics.Window;
 import field.linalg.Vec2;
@@ -30,8 +31,8 @@ import java.util.stream.Stream;
 public class TextEditor extends Box implements IO.Loaded {
 
 	static public final Dict.Prop<TextEditor> textEditor = new Dict.Prop<>("textEditor").toCannon()
-											    .type()
-											    .doc("The TextEditor that is stuck in front of the window, in window coordinates");
+		.type()
+		.doc("The TextEditor that is stuck in front of the window, in window coordinates");
 	private final Box root;
 	@HiddenInAutocomplete
 	public Browser browser;
@@ -82,11 +83,11 @@ public class TextEditor extends Box implements IO.Loaded {
 		RunLoop.main.delay(() -> {
 
 			FieldBoxWindow window = this.find(Boxes.window, this.both())
-						    .findFirst()
-						    .get();
+				.findFirst()
+				.get();
 
 			Drawing drawing = root.first(Drawing.drawing)
-					      .orElseThrow(() -> new IllegalArgumentException(" can't install text-drawing into something without drawing support"));
+				.orElseThrow(() -> new IllegalArgumentException(" can't install text-drawing into something without drawing support"));
 
 
 			maxh = window.getHeight() - 25 - 10 - 10 - 2;
@@ -114,6 +115,8 @@ public class TextEditor extends Box implements IO.Loaded {
 			browser.properties.put(FLineDrawing.layer, "glass");
 
 			browser.properties.put(Drawing.windowSpace, new Vec2(1, 0));
+			browser.properties.put(Drawing.windowScale, new Vec2(1, 1));
+
 			browser.properties.put(Boxes.dontSave, true);
 			browser.properties.put(Box.hidden, true);
 			browser.properties.put(Mouse.isSticky, true);
@@ -132,61 +135,60 @@ public class TextEditor extends Box implements IO.Loaded {
 			browser.properties.put(Box.name, "texteditor");
 
 			executeJavaScript("$(\".CodeMirror\").height(" + (maxh - 10) + ")");
-			executeJavaScript("$(\".CodeMirror\").width(" + (maxw-28*2) + ")");
+			executeJavaScript("$(\".CodeMirror\").width(" + (maxw - 28 * 2) + ")");
 
 			this.properties.put(Boxes.dontSave, true);
 			styles = findAndLoad(styleSheet, false);
 
 			long[] t = {0};
 			RunLoop.main.getLoop()
-				    .attach(x -> {
-					    if (t[0] == 0) t[0] = System.currentTimeMillis();
-					    if (System.currentTimeMillis() - t[0] > 1000) {
-						    boot();
+				.attach(x -> {
+					if (t[0] == 0) t[0] = System.currentTimeMillis();
+					if (System.currentTimeMillis() - t[0] > 1000) {
+						boot();
 
-						    return false;
-					    }
+						return false;
+					}
 
-					    return true;
-				    });
+					return true;
+				});
 
 
 			find(Watches.watches, both()).forEach(w -> {
 
 				w.getQueue()
-				 .register(x -> x.equals("selection.changed"), c -> {
-					 Log.log("shy", () -> "selection is now" + selection().count());
+					.register(x -> x.equals("selection.changed"), c -> {
+						Log.log("shy", () -> "selection is now" + selection().count());
 
-					browser.executeJavaScript("_messageBus.publish('defocus', {})");
-					browser.setFocus(false);
+						browser.executeJavaScript("_messageBus.publish('defocus', {})");
+						browser.setFocus(false);
 
-					 System.out.println(" SELECTION is currently " + selection().collect(Collectors.toList()));
-					 if (selection().count() != 1) {
-						 System.out.println(" SELECTION COUNT IS NOT 1 " + selection().collect(Collectors.toList()));
-						 browser.properties.put(Box.hidden, true);
-						 Drawing.dirty(this);
-					 } else {
-						 System.out.println(" SELECTION COUNT IS 1 " + selection().collect(Collectors.toList()) + " showing");
+						System.out.println(" SELECTION is currently " + selection().collect(Collectors.toList()));
+						if (selection().count() != 1) {
+							System.out.println(" SELECTION COUNT IS NOT 1 " + selection().collect(Collectors.toList()));
+							browser.properties.put(Box.hidden, true);
+							Drawing.dirty(this);
+						} else {
+							System.out.println(" SELECTION COUNT IS 1 " + selection().collect(Collectors.toList()) + " showing");
 
-						 executeJavaScript(setHeightCode);
-						 executeJavaScript(setWidthCode);
 
-						 browser.properties.put(Box.hidden, false);
+							executeJavaScript(setHeightCode);
+							executeJavaScript(setWidthCode);
+
+							browser.properties.put(Box.hidden, false);
 //						 browser.setFocus(true);
-						 Drawing.dirty(this);
-					 }
+							Drawing.dirty(this);
+						}
 
-				 });
+					});
 
 			});
 
 			first(Boxes.window, both()).ifPresent(x -> x.addKeyboardHandler(event -> {
 				Set<Integer> kpressed = Window.KeyboardState.keysPressed(event.before, event.after);
 				if ((kpressed.contains(GLFW_KEY_LEFT_SHIFT) || kpressed.contains(GLFW_KEY_RIGHT_SHIFT)) && event.after.keysDown.size() == 1) {
-						trigger();
-				}
-				else if (event.after.keysDown.size() == 1)
-				{
+					trigger();
+				} else if (event.after.keysDown.size() == 1) {
 					lastTriggerAt = 0;
 				}
 
@@ -194,31 +196,53 @@ public class TextEditor extends Box implements IO.Loaded {
 			}));
 
 			RunLoop.main.getLoop()
-				    .attach(x -> {
-					    int maxh = window.getHeight();// - 25 - 10 - 10 - 2;
-					    Rect f = browser.properties.get(Box.frame);
+				.attach(x -> {
+
+					int maxh = window.getHeight();// - 25 - 10 - 10 - 2;
+					Rect f = browser.properties.get(Box.frame);
+
+					f = f.duplicate();
+
+					Vec2 d1 = drawing.drawingSystemToWindowSystem(new Vec2(f.x, f.y));
+					Vec2 d2 = drawing.drawingSystemToWindowSystem(new Vec2(f.x + f.w, f.y + f.h));
+
+					f.x = (float) d1.x;
+					f.y = (float) d1.y;
+					f.w = (float) (d2.x - d1.x);
+					f.h = (float) (d2.y - d1.y);
+
 
 //					    System.out.println(" window height is :"+window.getHeight()+" -> "+maxh+" -> "+(maxh/(float)window.getHeight()));
 
-					    if ((int)maxh!=  heightLast &&  selection().count()>0) {
-						    heightLast = (int) maxh;
-						    f = f.duplicate();
-						    System.out.println("\n\n -- set height to be :"+Math.min(maxh, maxhOnCreation - 40)+"\n\n");
+					if ((int) maxh != heightLast && selection().count() > 0) {
+						heightLast = (int) maxh;
+						f = f.duplicate();
+						System.out.println("\n\n -- set height to be :" + Math.min(maxh, maxhOnCreation - 40) + "\n\n");
 
-						    setHeightCode = "$(\".CodeMirror\").height("+Math.min(maxh, maxhOnCreation - 40) + ")";
-						    executeJavaScript(setHeightCode);
-					    }
-					    if ((int)f.w != frameLast)
-					    {
-						    frameLast = (int)f.w;
-						    f = f.duplicate();
-						    System.out.println("\n\n -- set width to be :"+Math.min(maxw-28*2, (int)(f.w-28))+"\n\n");
-						    setWidthCode = "$(\".CodeMirror\").width("+ Math.min(maxw-28*2, (int)(f.w-28)) + ")";
-						    executeJavaScript(setWidthCode);
-					    }
+						setHeightCode = "$(\".CodeMirror\").height(" + Math.min(maxh, maxhOnCreation - 40) + ")";
+						executeJavaScript(setHeightCode);
+					}
 
-					    return true;
-				    });
+
+					if ((int) f.w != frameLast) {
+						frameLast = (int) f.w;
+						f = f.duplicate();
+						System.out.println("\n\n -- set width to be :" + Math.min(maxw - 28 * 2, (int) (f.w - 28)) + "\n\n");
+
+//						setWidthCode = "$(\".CodeMirror\").width(" + Math.min(maxw - 28 * 2, (int) (f.w - 28)) + ")";
+//						setWidthCode = "cm.setSize("+ vd.x +")";
+						setWidthCode = "$(\"body\").width(" + Math.min(maxw - 28 * 2, (int) (f.w - 28)) + ");cm.refresh();";
+						executeJavaScript(setWidthCode);
+
+						if (true)
+							return true;
+
+
+					}
+
+
+					return true;
+				});
 		}, 100);
 	}
 
@@ -253,15 +277,15 @@ public class TextEditor extends Box implements IO.Loaded {
 	public void hide() {
 		tick = 0;
 		RunLoop.main.getLoop()
-			    .attach(x -> {
-				    if (tick == 5) {
+			.attach(x -> {
+				if (tick == 5) {
 //					    System.out.println(" hiding because hide() called ");
-					    browser.properties.put(Box.hidden, true);
-					    Drawing.dirty(this);
-				    }
-				    tick++;
-				    return tick != 5;
-			    });
+					browser.properties.put(Box.hidden, true);
+					Drawing.dirty(this);
+				}
+				tick++;
+				return tick != 5;
+			});
 		browser.setFocus(false);
 		Drawing.dirty(browser);
 	}
@@ -275,8 +299,8 @@ public class TextEditor extends Box implements IO.Loaded {
 	@HiddenInAutocomplete
 	public void center() {
 		FieldBoxWindow window = this.find(Boxes.window, both())
-					    .findFirst()
-					    .get();
+			.findFirst()
+			.get();
 		Rect f = browser.properties.get(Box.frame);
 		f.x = (int) ((window.getWidth() - f.w) / 2);
 		f.y = (int) ((window.getHeight() - f.h) / 2);
@@ -296,7 +320,7 @@ public class TextEditor extends Box implements IO.Loaded {
 
 	@HiddenInAutocomplete
 	private Stream<Box> selection() {
-		return breadthFirst(both()).filter(x -> x.properties.isTrue(Mouse.isSelected, false)).filter(x -> x!=browser).filter(x ->x!=this);
+		return breadthFirst(both()).filter(x -> x.properties.isTrue(Mouse.isSelected, false)).filter(x -> x != browser).filter(x -> x != this);
 	}
 
 
