@@ -20,13 +20,13 @@ import java.util.stream.Stream;
  */
 public class ThreadSync {
 	static public final boolean enabled = Options.dict()
-						     .isTrue(new Dict.Prop("threaded"), false);
+		.isTrue(new Dict.Prop("threaded"), false);
 	static private final ExecutorService executor = Executors.newCachedThreadPool();
 	static public Object NULL = new Object();
 	static ThreadLocal<Fiber> fiber = new ThreadLocal<>();
 	static ThreadLocal<ThreadSync> threadingModel = new ThreadLocal<>();
 	static private Map<Thread, ThreadSync> models = new MapMaker().weakKeys()
-								      .makeMap();
+		.makeMap();
 	public Thread mainThread;
 	Set<Fiber> live = new LinkedHashSet<Fiber>();
 
@@ -72,11 +72,16 @@ public class ThreadSync {
 	}
 
 	static public Object yield(Object o) throws InterruptedException, Stop {
+
 		if (fiber.get() == null) throw new IllegalArgumentException(" yield called from non-fiber thread");
+
+		fiber.get().debugStatus = "yield from " + Arrays.asList(new Exception().getStackTrace());
+
 		if (fiber.get().stopped) throw new Stop();
 		if (o == null) o = NULL;
 
 		fiber.get().output.put(o);
+
 		if (fiber.get().stopped) throw new Stop();
 		Object t = fiber.get().input.take();
 
@@ -120,43 +125,47 @@ public class ThreadSync {
 
 	}
 
-	public <K, V> Fiber<K, V> run(Supplier<K> in, Consumer<V> out, Callable<V> r, Consumer<Throwable> h) throws InterruptedException {
+	Object nothing = new Object();
+
+	public <K, V> Fiber<K, V> run(String tag, Supplier<K> in, Consumer<V> out, Callable<V> r, Consumer<Throwable> h) throws InterruptedException {
 		Fiber<K, V> f = new Fiber<>();
 		live.add(f);
+		f.debugDescription = tag;
 		f.handler = h;
 		f.in = in;
 		f.input.put(in.get());
 		f.out = out;
 		threadingModel.set(this);
 		ClassLoader loader = Thread.currentThread()
-					   .getContextClassLoader();
+			.getContextClassLoader();
 
 		f.runner = executor.submit(() -> {
 
 			try {
 				Thread.currentThread()
-				      .setName("running fiber");
+					.setName("" + f.debugDescription);
 				Thread.currentThread()
-				      .setContextClassLoader(loader);
+					.setContextClassLoader(loader);
+
 				fiber.set(f);
 				f.input.take();
 				Object a = r.call();
-				if (a == null) f.output.put(NULL);
-				else f.output.put(a);
+				if (a == null) f.output.put(nothing);
+				else f.output.put(a == null ? nothing : a);
 
 				return a;
 			} catch (Stop s) {
 				f.runner.cancel(true);
-				f.output.put(NULL);
+				f.output.put(nothing);
 				return null;
 			} catch (Throwable t) {
 				f.exception = t;
 				f.runner.cancel(true);
 				System.err.println(" -- caught throwable ");
-				f.output.put(NULL);
+				f.output.put(nothing);
 				t.printStackTrace();
 				System.err.println(" -- rethrowing <" + f.output.peek() + "> -> " + f.handler);
-				if (f.output.peek() == null) f.output.put(NULL);
+				if (f.output.peek() == null) f.output.put(nothing);
 				throw t;
 			} finally {
 				// need to unwide sub fibers to allow recursion.
@@ -168,7 +177,8 @@ public class ThreadSync {
 			}
 		});
 
-		Object o = f.output.take();
+		Object o = debugTake(f);
+
 		if (f.runner.isDone()) live.remove(this);
 		if (o == NULL) o = null;
 		out.accept((V) o);
@@ -179,6 +189,32 @@ public class ThreadSync {
 		System.out.println(" returning, exception is :" + f.exception);
 
 		return f;
+	}
+
+	private <K, V> Object debugTake(Fiber<K, V> f) {
+
+		Object o = null;
+		try {
+
+			while (o == null) {
+				o = f.output.poll(1, TimeUnit.SECONDS);
+				if (o == null) {
+					System.out.println(" debugTake failed to get a result, we are hanging the main thread waiting on:");
+					System.out.println(f + " " + f.debugDescription + " " + f.debugStatus);
+					System.out.println(f.stopped+" "+f.runner+" "+f.runner.isCancelled()+" "+f.runner.isDone());
+					System.out.println(" meanwhile :");
+					for (Fiber ll : live) {
+						System.out.println(ll +" "+ll.debugDescription+" "+ll.debugStatus);
+					}
+				}
+			}
+
+			return o;
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		return null;
 	}
 
 	private void shutdown() throws InterruptedException {
@@ -192,18 +228,19 @@ public class ThreadSync {
 		models.remove(Thread.currentThread());
 	}
 
-	public Fiber run(Callable r, Consumer<Throwable> h) throws InterruptedException {
-		return run(nothing(), discard(), r, h);
+	public Fiber run(String tag, Callable r, Consumer<Throwable> h) throws InterruptedException {
+		return run(tag, nothing(), discard(), r, h);
 	}
 
-	public Fiber run(Callable r) throws InterruptedException {
-		return run(nothing(), discard(), r, t -> {
+	public Fiber run(String tag, Callable r) throws InterruptedException {
+		return run(tag, nothing(), discard(), r, t -> {
 			throw new RuntimeException(t);
 		});
 	}
 
 	public boolean serviceAndCull() throws InterruptedException {
 		threadingModel.set(this);
+
 		Iterator<Fiber> i = live.iterator();
 		Set<Fiber> repost = new LinkedHashSet<>();
 		while (i.hasNext()) {
@@ -276,7 +313,7 @@ public class ThreadSync {
 
 	public Stream<Fiber> findByTag(Object tag) {
 		return live.stream()
-			   .filter(x -> Util.safeEq(x, tag));
+			.filter(x -> Util.safeEq(x, tag));
 	}
 
 	public static class Stop extends RuntimeException {
@@ -303,8 +340,8 @@ public class ThreadSync {
 	}
 
 	public class Fiber<K, V> {
-		public final BlockingQueue output = new LinkedBlockingDeque<>(2);
-		public final BlockingQueue input = new LinkedBlockingDeque<>(2);
+		public final BlockingQueue output = new LinkedBlockingDeque<>(1);
+		public final BlockingQueue input = new LinkedBlockingDeque<>(1);
 		public Supplier<K> in;
 		public Consumer<V> out;
 
@@ -318,6 +355,13 @@ public class ThreadSync {
 		public volatile boolean wasPaused = false;
 
 		public Object tag;
+		public String debugDescription;
+		public String debugStatus;
+
+		@Override
+		public String toString() {
+			return "fiber:" + debugDescription;
+		}
 	}
 
 }
