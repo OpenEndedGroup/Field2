@@ -49,10 +49,13 @@ public class IdempotencyMap<T> extends LinkedHashMapAndArrayList<T> implements M
 		if (t.isAssignableFrom(value.getClass())) return (T) value;
 
 		Object ovalue = value;
+
+		if (value instanceof ScriptObjectMirror)
+			value = ScriptUtils.unwrap(value);
+
 		value = Conversions.convert(value, t);
-//		if (value instanceof ScriptObjectMirror)
-//			value = ScriptUtils.unwrap(value);
-//
+
+
 //		if (value instanceof ScriptFunction) {
 //			StaticClass adapterClassFor = JavaAdapterFactory.getAdapterClassFor(new Class[]{t}, (ScriptObject) value, MethodHandles.lookup());
 //			try {
@@ -72,6 +75,7 @@ public class IdempotencyMap<T> extends LinkedHashMapAndArrayList<T> implements M
 		}
 		if (!t.isAssignableFrom(value.getClass()))
 			throw new ClassCastException(" expected " + t + ", got " + value + " / " + value.getClass());
+
 		return (T) value;
 	}
 

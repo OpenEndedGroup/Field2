@@ -224,6 +224,8 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 	protected boolean perform0() {
 		boolean work = false;
 
+		GraphicsContext.checkError(() -> "on shader entry");
+
 		Log.log("graphics.trace", () -> " checking :" + source.keySet());
 
 		for (Map.Entry<Type, Source> s : source.entrySet()) {
@@ -316,6 +318,8 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 			if (introspection!=null)
 				introspection.errorIsInvalid = "Shader failed GL validation, it is not being used\n";
 		}
+
+		GraphicsContext.checkError(() -> "on shader exit");
 
 		return true;
 	}

@@ -17,6 +17,8 @@ import static org.lwjgl.opengl.GL15.GL_ELEMENT_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL20.glDisableVertexAttribArray;
 import static org.lwjgl.opengl.GL20.glEnableVertexAttribArray;
 import static org.lwjgl.opengl.GL30.*;
+import static org.lwjgl.opengl.GL31.glDrawArraysInstanced;
+import static org.lwjgl.opengl.GL31.glDrawElementsInstanced;
 import static org.lwjgl.opengl.GL32.GL_LINES_ADJACENCY;
 
 /**
@@ -99,6 +101,14 @@ public class BaseMesh extends Scene implements Scene.Perform {
 
 	public void setArrayBufferFactory(ArrayBufferFactory arrayBufferFactory) {
 		this.arrayBufferFactory = arrayBufferFactory;
+	}
+
+	int instances = 0;
+
+	public BaseMesh setInstances(int num)
+	{
+		this.instances = num;
+		return this;
 	}
 
 	/**
@@ -226,6 +236,8 @@ public class BaseMesh extends Scene implements Scene.Perform {
 			if (va == null) {
 				va = glGenVertexArrays();
 				GraphicsContext.put(this, va);
+				Integer finalVa1 = va;
+				Log.log("graphics.trace", ()->" allocated new VA name for this " + finalVa1);
 			}
 
 			final Integer finalVa = va;
@@ -283,14 +295,29 @@ public class BaseMesh extends Scene implements Scene.Perform {
 				}
 
 				GraphicsContext.checkError(() -> "on entry "+this);
-				if (primitiveSize == 0) {
-					glDrawArrays(primitiveType, 0, limitVertex);
-				} else {
-					Log.log("graphics.trace", () -> "drawing "+primitiveType+" "+limitElement+" "+primitiveSize+" "+ GraphicsContext.getContext().stateTracker.fbo.get());
-					Log.log("graphics.trace", () -> "target FBO is complete ? "+ GL30.glCheckFramebufferStatus(GL30.GL_DRAW_FRAMEBUFFER));
-					GraphicsContext.checkError(() -> "before draw "+this);
-					glDrawElements(primitiveType, limitElement * primitiveSize, GL_UNSIGNED_INT, 0);
-					GraphicsContext.checkError(() -> "after draw "+this);
+				if (instances==0) {
+					if (primitiveSize == 0) {
+						glDrawArrays(primitiveType, 0, limitVertex);
+					} else {
+						Log.log("graphics.trace", () -> "drawing " + primitiveType + " " + limitElement + " " + primitiveSize + " " + GraphicsContext.getContext().stateTracker.fbo.get());
+						Log.log("graphics.trace", () -> "target FBO is complete ? " + GL30.glCheckFramebufferStatus(GL30.GL_DRAW_FRAMEBUFFER));
+						GraphicsContext.checkError(() -> "before draw " + this);
+						glDrawElements(primitiveType, limitElement * primitiveSize, GL_UNSIGNED_INT, 0);
+						GraphicsContext.checkError(() -> "after draw " + this);
+					}
+				}
+				else
+				{
+					if (primitiveSize == 0) {
+						glDrawArraysInstanced(primitiveType, 0, limitVertex, instances);
+					} else {
+						Log.log("graphics.trace", () -> "drawing " + primitiveType + " " + limitElement + " " + primitiveSize + " " + GraphicsContext.getContext().stateTracker.fbo.get());
+						Log.log("graphics.trace", () -> "target FBO is complete ? " + GL30.glCheckFramebufferStatus(GL30.GL_DRAW_FRAMEBUFFER));
+						GraphicsContext.checkError(() -> "before draw " + this);
+						glDrawElementsInstanced(primitiveType, limitElement * primitiveSize, GL_UNSIGNED_INT, 0, instances);
+						GraphicsContext.checkError(() -> "after draw " + this);
+					}
+
 				}
 				GraphicsContext.checkError(() -> "on exit "+this);
 				return true;

@@ -23,6 +23,8 @@ public class FastJPEG implements JPEGLoader {
 		} catch (Throwable t) {
 		}
 		if (!available) System.out.println(" Fast jpeg loading is not available. This isn't typically going to be a problem.");
+		else
+			System.out.println(" Fast jpeg loading is available");
 	}
 
 	static public final JPEGLoader j;

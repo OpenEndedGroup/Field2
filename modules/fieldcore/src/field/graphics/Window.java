@@ -9,8 +9,10 @@ import field.graphics.util.KeyEventMapping;
 import field.linalg.Vec2;
 import field.utility.*;
 import fieldagent.Main;
+import fieldbox.boxes.Keyboard;
 import fieldbox.boxes.Mouse;
 import fieldlinker.Linker;
+import fieldnashorn.annotations.HiddenInAutocomplete;
 import org.lwjgl.glfw.GLFW;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -91,6 +93,9 @@ public class Window implements ProvidesGraphicsContext {
 	static public boolean doubleBuffered = Options.dict()
 		.isTrue(new Dict.Prop("doubleBuffered"), Main.os == Main.OS.mac);
 
+	static public boolean dontShare = Options.dict()
+		.isTrue(new Dict.Prop("dontShare"), false);
+
 	static public Window shareContext = null;
 	protected final Window shareContextAtConstruction;
 
@@ -108,7 +113,7 @@ public class Window implements ProvidesGraphicsContext {
 		currentBounds = new Rect(x, y, w, h);
 
 		shareContextAtConstruction = shareContext;
-		if (shareContext == null || ThreadSync.enabled) {
+		if (shareContext == null || ThreadSync.enabled || dontShare) {
 			shareContext = this;
 			graphicsContext = GraphicsContext.newContext();
 		} else
@@ -502,6 +507,29 @@ public class Window implements ProvidesGraphicsContext {
 	}
 
 	/**
+	 * returns the last seen key state
+	 */
+	public KeyboardState getCurrentKeyboardState() {
+		return keyboardState;
+	}
+
+	/**
+	 * sets the last seen mouse state
+	 */
+	@HiddenInAutocomplete
+	public void setCurrentMouseState(MouseState state) {
+		mouseState = state;
+	}
+
+	/**
+	 * sets the last seen mouse state
+	 */
+	@HiddenInAutocomplete
+	public void setCurrentKeyboardState(KeyboardState state) {
+		keyboardState = state;
+	}
+
+	/**
 	 * A keyboard handler is a Function<Event<KeyboardState>, Boolean>>, that is a function that takes a transition between two KeyboardStates and returns a boolean, whether or not it ever wants
 	 * to be called again
 	 */
@@ -530,7 +558,13 @@ public class Window implements ProvidesGraphicsContext {
 		return this;
 	}
 
-	private void fireMouseTransition(MouseState before, MouseState after) {
+	/**
+	 * post an event to this window
+	 * @param before
+	 * @param after
+	 */
+	@HiddenInAutocomplete
+	public void fireMouseTransition(MouseState before, MouseState after) {
 		after.keyboardState = keyboardState;
 
 		if ((after.mods & GLFW_MOD_SHIFT) != 0)
@@ -627,7 +661,13 @@ public class Window implements ProvidesGraphicsContext {
 		}
 	}
 
-	private void fireKeyboardTransition(KeyboardState before, KeyboardState after) {
+	/**
+	 * post an event to this window
+	 * @param before
+	 * @param after
+	 */
+	@HiddenInAutocomplete
+	public void fireKeyboardTransition(KeyboardState before, KeyboardState after) {
 		after.mouseState = mouseState;
 		Iterator<Function<Event<KeyboardState>, Boolean>> i = keyboardHandlers.iterator();
 		Event<KeyboardState> event = new Event<>(before, after);

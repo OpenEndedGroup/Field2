@@ -278,23 +278,7 @@ public class FrameManipulation extends Box  {
 				Log.log("selection", ()->"working set is :"+workingSet);
 
 
-				breadthFirst(both())
-
-//					    .filter(x -> !x.properties.isTrue(Mouse.isSticky, false) || x == hitBox)
-						    .filter(x -> x.properties.has(Box.frame))
-						    .filter(x -> x.properties.has(Box.name)).forEach(x -> {
-
-					if (x.properties.isTrue(Mouse.isSelected, false) && !workingSet.contains(x)) {
-						Callbacks.transition(x, Mouse.isSelected, false, false, Callbacks.onSelect, Callbacks.onDeselect);
-						System.out.println(" deselecting " + x + " because were not in the working set");
-						Drawing.dirty(x);
-					} else if (!x.properties.isTrue(Mouse.isSelected, false) && workingSet.contains(x)) {
-						Callbacks.transition(x, Mouse.isSelected, true, false, Callbacks.onSelect, Callbacks.onDeselect);
-						System.out.println(" selecting " + x + " because were are in the working set");
-						Drawing.dirty(x);
-					}
-
-				});
+				setSelectionTo(this, workingSet);
 			}
 			else
 			{
@@ -451,6 +435,22 @@ public class FrameManipulation extends Box  {
 					  return true;
 				  };
 			  });
+	}
+
+	static public void setSelectionTo(Box root, Set<Box> workingSet) {
+		root.breadthFirst(root.both())
+				    .filter(x -> x.properties.has(Box.frame))
+				    .filter(x -> x.properties.has(Box.name)).forEach(x -> {
+
+			if (x.properties.isTrue(Mouse.isSelected, false) && !workingSet.contains(x)) {
+				Callbacks.transition(x, Mouse.isSelected, false, false, Callbacks.onSelect, Callbacks.onDeselect);
+				Drawing.dirty(x);
+			} else if (!x.properties.isTrue(Mouse.isSelected, false) && workingSet.contains(x)) {
+				Callbacks.transition(x, Mouse.isSelected, true, false, Callbacks.onSelect, Callbacks.onDeselect);
+				Drawing.dirty(x);
+			}
+
+		});
 	}
 
 	private Set<Box> singleChildrenFor(Box z) {

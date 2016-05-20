@@ -14,6 +14,7 @@ import fieldbox.execution.Completion;
 import fieldbox.execution.Execution;
 import fieldbox.io.IO;
 import fieldbox.ui.FieldBoxWindow;
+import fielded.boxbrowser.TransientCommands;
 import fielded.webserver.RateLimitingQueue;
 import fielded.webserver.Server;
 import fielded.windowmanager.LinuxWindowTricks;
@@ -234,6 +235,11 @@ public class RemoteEditor extends Box {
 			}
 		});
 
+		server.addHandlerLast((s, socket, address, payload) -> {
+			System.out.println("? "+address);
+			TransientCommands.transientCommands.handle(address, (JSONObject)payload, null);
+			return payload;
+		});
 
 		server.addHandlerLast(Predicate.isEqual("text.updated"), () -> socketName, (s, socket, address, payload) -> {
 

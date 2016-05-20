@@ -409,11 +409,14 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
 		State s = GraphicsContext.getContext().lookup(this);
 
-		glFinish();
+//		glFinish();
 		glBindTexture(specification.target, s.name);
 		glTexSubImage2D(specification.target, 0, 0, 0, specification.width, specification.height, specification.format, specification.type, from);
+		if (specification.highQuality) {
+			glGenerateMipmap(specification.target);
+		}
 		glBindTexture(specification.target, 0);
-		glFinish();
+//		glFinish();
 
 		uploadCount++;
 		return mod;

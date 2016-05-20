@@ -147,6 +147,14 @@ public class Scene extends Box implements Linker.AsMap {
 	}
 
 
+	/**
+	 * returns everything that's under this Scene, all the passes
+	 * @return
+	 */
+	public TreeMap<Integer, Set<Consumer<Integer>>> getScene() {
+		return scene;
+	}
+
 	protected TreeMap<Integer, Set<Consumer<Integer>>> collectChildrenPasses() {
 
 
@@ -186,7 +194,7 @@ public class Scene extends Box implements Linker.AsMap {
 	}
 
 	protected boolean update(Queue<Pair<Integer, Callable<Boolean>>> a) {
-		GraphicsContext.checkError(() -> "on entry ");
+		GraphicsContext.checkError(() -> "on scene entry for "+this);
 		exceptions.clear();
 
 		boolean ret = true;

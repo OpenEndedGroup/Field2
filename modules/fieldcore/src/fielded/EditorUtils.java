@@ -51,13 +51,16 @@ public class EditorUtils {
 		CompletableFuture<JSONObject> c = new CompletableFuture<>();
 
 		messageTable.put(prefix + suffix, s -> c.complete(s));
-		System.out.println(" message table is :" + messageTable);
+		System.out.println(" message table is :" + messageTable+" sending message"+message);
 		editor.sendJavaScriptNow(message);
 
 		if (ThreadSync.get().mainThread==Thread.currentThread())
 		{
 			try {
-				return c.get();
+				System.out.println(" main thread is waiting for a response");
+				JSONObject r = c.get();
+				System.out.println(" response is :"+r);
+				return r;
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			} catch (ExecutionException e) {
@@ -116,29 +119,14 @@ public class EditorUtils {
 		return editor.currentSelection.properties.get(editor.currentlyEditing);
 	}
 
-	public void setCurrentText(String to) {
-		try {
-			Dict.Prop<String> p = getCurrentProperty();
-
-			//TODO: we can do this in remote editor better.
-
-			editor.setCurrentlyEditingProperty(null);
-			editor.currentSelection.properties.put(p, to);
-			for (int i = 0; i < 1; i++)
-				ThreadSync.yield(1);
-			editor.setCurrentlyEditingProperty(p);
-			for (int i = 0; i < 1; i++)
-				ThreadSync.yield(1);
-			for (int i = 0; i < 1; i++)
-				ThreadSync.yield(1);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-	}
-
 	public void replaceRange(int start, int end, String to)
 	{
 		editor.sendJavaScriptNow("cm.getDoc().replaceRange(\""+to+"\", cm.posFromIndex("+start+"), cm.posFromIndex("+end+"))");
+	}
+
+	public void insertAtStart(String insertion)
+	{
+		editor.sendJavaScriptNow("cm.getDoc().replaceRange(\""+insertion+"\", cm.posFromIndex(0))");
 	}
 
 	public Dict.Prop<String> getCurrentProperty() {
