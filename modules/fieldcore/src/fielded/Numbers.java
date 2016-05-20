@@ -11,8 +11,12 @@ import java.math.BigDecimal;
 public class Numbers {
 
 	static public Quad<Integer, Integer, String, Double> extractNumberAt(String code, int cursor) {
+		code = code+" ";
+		if (!Character.isDigit(code.charAt(cursor)) && Character.isDigit(code.charAt(cursor-1)))
+			cursor--;
 		int first = cursor;
 		int second = cursor;
+
 
 		String a = "" + code.charAt(cursor);
 
@@ -45,7 +49,7 @@ public class Numbers {
 
 		try {
 
-			int indexOfPoint = a.contains(".") ? a.lastIndexOf(".") : a.length();
+			int indexOfPoint = a.contains(".") ? a.lastIndexOf(".") : a.length()-1;
 			int indexOfCursor = cursor-first;
 
 
