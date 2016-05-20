@@ -235,7 +235,7 @@ public class Viewport extends Box implements IO.Loaded, ProvidesGraphicsContext 
 
 	}
 
-	protected void drawNow(Drawing context) {
+	protected void drawNow(DrawingInterface context) {
 
 		Camera c = this.properties.get(Viewport.camera);
 		if (c != null) {
@@ -252,6 +252,9 @@ public class Viewport extends Box implements IO.Loaded, ProvidesGraphicsContext 
 
 			Drawing d = this.first(Drawing.drawing)
 					.get();
+
+
+			// TODO, blast radius of change to DrawingInterface? Viewports cannot clip properly on non-window renderers
 
 			Vec2 tl = d.drawingSystemToWindowSystem(new Vec2(f.x, f.y));
 			Vec2 bl = d.drawingSystemToWindowSystem(new Vec2(f.x + f.w, f.y + f.h));
