@@ -56,19 +56,23 @@ public class IdempotencyMap<T> extends LinkedHashMapAndArrayList<T> implements M
 		if (value instanceof ScriptObjectMirror)
 			value = ScriptUtils.unwrap(value);
 
-		if (value instanceof ScriptFunction) {
-			StaticClass adapterClassFor = JavaAdapterFactory.getAdapterClassFor(new Class[]{t}, (ScriptObject) value, MethodHandles.lookup());
-			try {
-				return (T) adapterClassFor.getRepresentedClass()
-							  .newInstance();
-			} catch (InstantiationException e) {
-				Object fv = value;
-				Log.log("processing.error", ()->" problem instantiating adaptor class to take us from " + fv + " ->" + t+ e);
-			} catch (IllegalAccessException e) {
-				Object fv = value;
-				Log.log("processing.error", ()->" problem instantiating adaptor class to take us from " + fv + " ->" + t+e);
-			}
-		}
+		value = Conversions.convert(value, t);
+
+		if (value!=null && t.isAssignableFrom(value.getClass())) return (T)value;
+
+//		if (value instanceof ScriptFunction) {
+//			StaticClass adapterClassFor = JavaAdapterFactory.getAdapterClassFor(new Class[]{t}, (ScriptObject) value, MethodHandles.lookup());
+//			try {
+//				return (T) adapterClassFor.getRepresentedClass()
+//							  .newInstance();
+//			} catch (InstantiationException e) {
+//				Object fv = value;
+//				Log.log("processing.error", ()->" problem instantiating adaptor class to take us from " + fv + " ->" + t+ e);
+//			} catch (IllegalAccessException e) {
+//				Object fv = value;
+//				Log.log("processing.error", ()->" problem instantiating adaptor class to take us from " + fv + " ->" + t+e);
+//			}
+//		}
 
 
 		throw new ClassCastException(" expected " + t + ", got " + value + " / " + value.getClass());
