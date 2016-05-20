@@ -42,8 +42,8 @@ import java.util.regex.Pattern;
 public class NashornExecution implements Execution.ExecutionSupport {
 
 	static public final Dict.Prop<SourceTransformer> sourceTransformer = new Dict.Prop<SourceTransformer>("sourceTransformer").doc(
-		    "an instanceof of a SourceTransformer that will take the source code here and transform it into JavaScript. This allows things like Babel.js to be used in Field")
-																  .toCannon();
+		"an instanceof of a SourceTransformer that will take the source code here and transform it into JavaScript. This allows things like Babel.js to be used in Field")
+		.toCannon();
 
 	private final Dict.Prop<String> property;
 	private final Box box;
@@ -66,8 +66,8 @@ public class NashornExecution implements Execution.ExecutionSupport {
 		this.engine = engine;
 
 		output = box.find(Out.__out, box.both())
-			    .findFirst()
-			    .orElseThrow(() -> new IllegalStateException("Can't find html output support"));
+			.findFirst()
+			.orElseThrow(() -> new IllegalStateException("Can't find html output support"));
 	}
 
 	@Override
@@ -80,6 +80,9 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	Function<Integer, Integer> lineTransform;
 
 	protected void executeAndReturn(String textFragment, Consumer<Pair<Integer, String>> lineErrors, final Consumer<String> success, boolean printResult) {
+
+		lineErrors = new ErrorHelper().errorHelper(lineErrors, box);
+
 		try (AutoCloseable __ = pushErrorContext(lineErrors)) {
 
 			Writer writer = null;
@@ -96,16 +99,18 @@ public class NashornExecution implements Execution.ExecutionSupport {
 					public void write(char[] cbuf, int off, int len) throws IOException {
 						if (len > 0) {
 							String s = new String(cbuf, off, len);
-							if (s.endsWith("\n")) s = s.substring(0, s.length() - 1) + "<br>";
+							if (s.endsWith("\n"))
+								s = s.substring(0, s.length() - 1) + "<br>";
 							if (s.trim()
-							     .length() == 0) return;
+								.length() == 0) return;
 							written[0] = true;
 
-							if (currentLineNumber == null || currentLineNumber.first == null || currentLineNumber.second == -1) success.accept(s);
+							if (currentLineNumber == null || currentLineNumber.first == null || currentLineNumber.second == -1)
+								success.accept(s);
 							else {
 								final String finalS = s;
 								Optional<Consumer<Triple<Box, Integer, String>>> o = box.find(Execution.directedOutput, box.upwards())
-															.findFirst();
+									.findFirst();
 
 								if (o.isPresent()) {
 									o.ifPresent(x -> x.accept(new Triple<>(currentLineNumber.first, currentLineNumber.second, finalS)));
@@ -124,8 +129,9 @@ public class NashornExecution implements Execution.ExecutionSupport {
 					public void close() throws IOException {
 
 					}
-				}; engine.getContext()
-					 .setWriter(writer);
+				};
+				engine.getContext()
+					.setWriter(writer);
 			}
 
 			Log.log("nashorn.general", () -> "\n>>javascript in");
@@ -163,7 +169,8 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 			output.setWriter(writer, this::setCurrentLineNumberForPrinting);
 
-			Object ret = engineeval(textFragment, context, e -> handleScriptException(e, lineErrors, lineTransform));
+			Consumer<Pair<Integer, String>> finalLineErrors = lineErrors;
+			Object ret = engineeval(textFragment, context, e -> handleScriptException(e, finalLineErrors, lineTransform));
 
 			Log.log("nashorn.general", () -> "\n<<javascript out" + ret + " " + (ret != null ? ret.getClass() + "" : ""));
 			if (writer != null) writer.flush();
@@ -190,14 +197,13 @@ public class NashornExecution implements Execution.ExecutionSupport {
 		}
 	}
 
-	private void setCurrentLineNumberForPrinting(Pair<Box, Integer> boxLine)
-	{
-		currentLineNumber= boxLine;
+	private void setCurrentLineNumberForPrinting(Pair<Box, Integer> boxLine) {
+		currentLineNumber = boxLine;
 	}
 
 	private Util.ExceptionlessAutoCloasable pushErrorContext(Consumer<Pair<Integer, String>> lineErrors) {
 		Execution.context.get()
-				 .push(box);
+			.push(box);
 		currentEngine.set(engine);
 
 		Errors.errors.push((t, m) -> {
@@ -213,7 +219,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 			int ln = -1;
 			Matcher matcher = Pattern.compile("LN<(.*)@(.*)>")
-						 .matcher(t.getMessage() + " " + m);
+				.matcher(t.getMessage() + " " + m);
 
 			if (matcher.find()) {
 				try {
@@ -235,7 +241,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 		return () -> {
 			Execution.context.get()
-					 .pop();
+				.pop();
 
 			Errors.errors.pop();
 		};
@@ -254,8 +260,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 			if (e instanceof ScriptException) {
 				lineErrors.accept(new Pair<>(lineTransform.apply(((ScriptException) e).getLineNumber()), extraMessage + " " + e.getMessage()));
 				e.printStackTrace();
-			}
-			if (e instanceof NashornException) {
+			} else if (e instanceof NashornException) {
 				Integer lt = lineTransform.apply(((NashornException) e).getLineNumber());
 				lineErrors.accept(new Pair<>(lt, extraMessage + " " + e.getMessage()));
 				e.printStackTrace();
@@ -265,10 +270,10 @@ public class NashornExecution implements Execution.ExecutionSupport {
 				if (s != null) {
 					for (int i = 0; i < s.length; i++) {
 						if (s[i].getFileName() != null && s[i].getFileName()
-										      .startsWith("bx[")) {
+							.startsWith("bx[")) {
 							String m = e.getMessage();
-							if (m==null)
-								m = ""+e.getClass();
+							if (m == null)
+								m = "" + e.getClass();
 							lineErrors.accept(new Pair<>(lineTransform.apply(s[i].getLineNumber()), extraMessage + " " + m));
 							found = true;
 						}
@@ -291,7 +296,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 		if (ThreadSync.enabled && Thread.currentThread() == ThreadSync.get().mainThread) {
 			try {
 				ThreadSync.Fiber f = ThreadSync.get()
-							       .run(() -> engine.eval(textFragment, context), exception);
+					.run("execution of {{"+textFragment+"}}", () -> engine.eval(textFragment, context), exception);
 				f.tag = box;
 				return f.lastReturn;
 
@@ -324,8 +329,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 			// is "run" defined here or anywhere above?
 
-			if (box.find(Callbacks.run, box.upwards()).findAny().isPresent())
-			{
+			if (box.find(Callbacks.run, box.upwards()).findAny().isPresent()) {
 				end(lineErrors, success);
 
 
@@ -337,10 +341,8 @@ public class NashornExecution implements Execution.ExecutionSupport {
 				box.properties.putToMap(Boxes.insideRunLoop, name, () -> {
 					try {
 						Callbacks.call(box, Callbacks.run, initiator, first[0]);
-					}
-					catch(Throwable t)
-					{
-						Errors.tryToReportTo(t, "Exception in `_.run()`, called from box `"+box+"`", e);
+					} catch (Throwable t) {
+						Errors.tryToReportTo(t, "Exception in `_.run()`, called from box `" + box + "`", e);
 						first[0] = false;
 						return false;
 					}
@@ -349,7 +351,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 				});
 				box.first(IsExecuting.isExecuting)
-				   .ifPresent(x -> x.accept(box, name));
+					.ifPresent(x -> x.accept(box, name));
 
 				uniq++;
 				return name;
@@ -359,13 +361,13 @@ public class NashornExecution implements Execution.ExecutionSupport {
 			context.setAttribute("_r", null, ScriptContext.ENGINE_SCOPE);
 
 			initiator.entrySet()
-				 .forEach(x -> context.setAttribute(x.getKey(), x.getValue(), ScriptContext.ENGINE_SCOPE));
+				.forEach(x -> context.setAttribute(x.getKey(), x.getValue(), ScriptContext.ENGINE_SCOPE));
 
 			String allText = DisabledRangeHelper.getStringWithDisabledRanges(box, property, "/*", "*/");
 
 			executeAndReturn(allText, lineErrors, success, true);
 			Object _r = context.getBindings(ScriptContext.ENGINE_SCOPE)
-					   .get("_r");
+				.get("_r");
 
 			Supplier<Boolean> r = interpretAnimation(_r);
 			if (r != null) {
@@ -373,7 +375,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 				String name = "main._animator_" + (uniq);
 				box.properties.putToMap(Boxes.insideRunLoop, name, r);
 				box.first(IsExecuting.isExecuting)
-				   .ifPresent(x -> x.accept(box, name));
+					.ifPresent(x -> x.accept(box, name));
 
 				uniq++;
 				return name;
@@ -423,7 +425,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 		this.box.find(Execution.completions, this.box.upwards())
 			.flatMap(x -> x.values()
-				       .stream())
+				.stream())
 			.forEach(x -> x.completion(this.box, allText, line, ch, results));
 	}
 
@@ -436,7 +438,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 		this.box.find(Execution.imports, this.box.upwards())
 			.flatMap(x -> x.values()
-				       .stream())
+				.stream())
 			.forEach(x -> x.completion(this.box, allText, line, ch, results));
 	}
 
