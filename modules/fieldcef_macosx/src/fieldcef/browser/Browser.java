@@ -14,6 +14,7 @@ import fieldbox.io.IO;
 import fieldbox.ui.FieldBoxWindow;
 import fieldcef.plugins.BrowserKeyboardHacks;
 import fielded.TextUtils;
+import fielded.boxbrowser.TransientCommands;
 import fielded.plugins.Out;
 import org.cef.browser.CefRendererBrowserBuffer;
 import org.json.JSONObject;
@@ -41,11 +42,11 @@ import static field.graphics.StandardFLineDrawing.*;
 public class Browser extends Box implements IO.Loaded {
 
 	static public final Dict.Prop<String> url = new Dict.Prop<String>("url").type()
-										.toCannon()
-										.doc("URL for the browser. Setting this will cause the browser to navigate, and repaint automatically");
+		.toCannon()
+		.doc("URL for the browser. Setting this will cause the browser to navigate, and repaint automatically");
 	static public final Dict.Prop<String> html = new Dict.Prop<String>("html").type()
-										  .toCannon()
-										  .doc("HTML for the browser. Setting this will cause the browser to reload it's contents from this string, and repaint automatically");
+		.toCannon()
+		.doc("HTML for the browser. Setting this will cause the browser to reload it's contents from this string, and repaint automatically");
 	private final KeyEventMapping mapper = new KeyEventMapping();
 	public CefRendererBrowserBuffer browser;
 	protected BrowserKeyboardHacks keyboardHacks;
@@ -59,7 +60,7 @@ public class Browser extends Box implements IO.Loaded {
 		String u = now.properties.get(url);
 
 		if (u != null) {
-			Log.log("HTML", ()->"loading URL <" + u + ">");
+			Log.log("HTML", () -> "loading URL <" + u + ">");
 			browser.loadURL(u);
 		}
 
@@ -69,7 +70,7 @@ public class Browser extends Box implements IO.Loaded {
 		String u = now.properties.get(html);
 
 		if (u != null) {
-			Log.log("HTML", ()->"loading html");
+			Log.log("HTML", () -> "loading html");
 			browser.loadString(u, u);
 		}
 
@@ -106,13 +107,13 @@ public class Browser extends Box implements IO.Loaded {
 
 		builder.aux(5, 0, 0, op);
 		builder.nextVertex(r.x, r.y, 0);
-		builder.aux(5, (float)s.x*r.w / w, 0, op);
+		builder.aux(5, (float) s.x * r.w / w, 0, op);
 		builder.nextVertex(r.x + r.w * 1, r.y, 0);
-		builder.aux(5, (float)s.x*r.w / w, (float)s.x*r.h / h, op);
+		builder.aux(5, (float) s.x * r.w / w, (float) s.x * r.h / h, op);
 		builder.nextVertex(r.x + r.w * 1, r.y + r.h * 1, 0);
-		builder.aux(5, 0, (float)s.x*r.h / h, op);
+		builder.aux(5, 0, (float) s.x * r.h / h, op);
 
-		
+
 		builder.nextVertex(r.x, r.y + r.h * 1, 0);
 		builder.nextElement_quad(3, 2, 1, 0);
 		builder.close();
@@ -144,9 +145,9 @@ public class Browser extends Box implements IO.Loaded {
 
 			browser.close();
 			window.getCompositor()
-			      .getLayer(properties.computeIfAbsent(FLineDrawing.layer, k -> "__main__"))
-			      .getScene()
-			      .detach(shader);
+				.getLayer(properties.computeIfAbsent(FLineDrawing.layer, k -> "__main__"))
+				.getScene()
+				.detach(shader);
 
 			return null;
 		});
@@ -155,16 +156,16 @@ public class Browser extends Box implements IO.Loaded {
 		this.h = (int) this.properties.get(Box.frame).h;
 
 		root = this.find(Boxes.root, both())
-			   .findFirst()
-			   .orElseThrow(() -> new IllegalArgumentException(" did you call loaded without adding to the graph?"));
+			.findFirst()
+			.orElseThrow(() -> new IllegalArgumentException(" did you call loaded without adding to the graph?"));
 
 		window = root.first(Boxes.window)
-			     .orElseThrow(() -> new IllegalArgumentException(" can't draw a box hierarchy with no window to draw it in !"));
+			.orElseThrow(() -> new IllegalArgumentException(" can't draw a box hierarchy with no window to draw it in !"));
 		drawing = root.first(Drawing.drawing)
-			      .orElseThrow(() -> new IllegalArgumentException(" can't install text-drawing into something without drawing support"));
+			.orElseThrow(() -> new IllegalArgumentException(" can't install text-drawing into something without drawing support"));
 
 
-		System.out.println("MAKING CefSystem :"+w+" "+h+" "+ window.getRetinaScaleFactor());
+		System.out.println("MAKING CefSystem :" + w + " " + h + " " + window.getRetinaScaleFactor());
 
 		browser = CefSystem.cefSystem.makeBrowser(w * window.getRetinaScaleFactor(), h * window.getRetinaScaleFactor(), this::paint, this::message, () -> {
 			try {
@@ -182,12 +183,12 @@ public class Browser extends Box implements IO.Loaded {
 
 
 		keyboardHacks = new BrowserKeyboardHacks(browser);
-		System.out.println("MAKING sourceTextureBuffer :"+w+" "+h+" "+ window.getRetinaScaleFactor());
+		System.out.println("MAKING sourceTextureBuffer :" + w + " " + h + " " + window.getRetinaScaleFactor());
 		source = ByteBuffer.allocateDirect(w * h * 4 * window.getRetinaScaleFactor() * window.getRetinaScaleFactor());
 		source.position(0)
-		      .limit(source.capacity());
+			.limit(source.capacity());
 		sourceView = source.slice();
-		System.out.println("MAKING sourceTexture :"+w+" "+h+" "+ window.getRetinaScaleFactor());
+		System.out.println("MAKING sourceTexture :" + w + " " + h + " " + window.getRetinaScaleFactor());
 		texture = new Texture(Texture.TextureSpecification.byte4(0, w * window.getRetinaScaleFactor(), h * window.getRetinaScaleFactor(), source, false)).setIsDoubleBuffered(false);
 
 		q = BaseMesh.triangleList(0, 0);
@@ -195,41 +196,41 @@ public class Browser extends Box implements IO.Loaded {
 
 		shader = new Shader();
 		shader.addSource(Shader.Type.vertex, "#version 410\n" +
-			    "layout(location=0) in vec3 position;\n" +
-			    "layout(location=5) in vec4 tc;\n" +
-			    "out vec4 vtc;\n" +
-			    "out float op;\n" +
+			"layout(location=0) in vec3 position;\n" +
+			"layout(location=5) in vec4 tc;\n" +
+			"out vec4 vtc;\n" +
+			"out float op;\n" +
 
-			    "uniform vec2 translation;\n" +
-			    "uniform vec2 scale;\n" +
-			    "uniform vec2 bounds;\n" +
-			    "uniform float smoothing;\n" +
+			"uniform vec2 translation;\n" +
+			"uniform vec2 scale;\n" +
+			"uniform vec2 bounds;\n" +
+			"uniform float smoothing;\n" +
 
-			    "void main()\n" +
-			    "{\n" +
-			    "	vec2 at = (scale.xy*position.xy+translation.xy)/bounds.xy;\n" +
-			    "   gl_Position =  vec4(-1+at.x*2, 1-at.y*2, 0.5, 1.0);\n" +
-			    "   vtc =tc;\n" +
-			    "}");
+			"void main()\n" +
+			"{\n" +
+			"	vec2 at = (scale.xy*position.xy+translation.xy)/bounds.xy;\n" +
+			"   gl_Position =  vec4(-1+at.x*2, 1-at.y*2, 0.5, 1.0);\n" +
+			"   vtc =tc;\n" +
+			"}");
 
 
 		shader.addSource(Shader.Type.fragment, "#version 410\n" +
-			    "layout(location=0) out vec4 _output;\n" +
-			    "in vec4 vtc;\n" +
-			    "in vec4 col;\n" +
-			    "uniform sampler2D te;\n" +
-			    "\n" +
-			    "void main()\n" +
-			    "{\n" +
+			"layout(location=0) out vec4 _output;\n" +
+			"in vec4 vtc;\n" +
+			"in vec4 col;\n" +
+			"uniform sampler2D te;\n" +
+			"\n" +
+			"void main()\n" +
+			"{\n" +
 			"\tvec4 current = texelFetch(te, ivec2(vtc.xy*textureSize(te,0)), 0);\n" +
-				"\tfloat m = min(current.x, min(current.y, current.z));\n"+
-			"float sat = 0.2;\n"+
-			"\tcurrent.xyz = (current.xyz-vec3(m)*sat)/(1-sat);\n"+
-			"current.xyz = pow(current.xyz, vec3(1.1));\n"+
-			    "\t_output  = vec4(current.zyx,current.w*vtc.z);\n" +
+			"\tfloat m = min(current.x, min(current.y, current.z));\n" +
+			"float sat = 0.2;\n" +
+			"\tcurrent.xyz = (current.xyz-vec3(m)*sat)/(1-sat);\n" +
+			"current.xyz = pow(current.xyz, vec3(1.1));\n" +
+			"\t_output  = vec4(current.zyx,current.w*vtc.z);\n" +
 			"\t if (vtc.x==0 || vtc.x==1 || vtc.y==0 || vtc.y==1) _output.w=0;\n" +
 //			"\t _output=vec4(current.xyz,1);\n" +
-			    "}");
+			"}");
 
 		shader.attach(new Uniform<Vec2>("translation", () -> drawing.getTranslationRounded()));
 		shader.attach(new Uniform<Vec2>("scale", () -> drawing.getScale()));
@@ -244,9 +245,9 @@ public class Browser extends Box implements IO.Loaded {
 		shader.attach(texture);
 
 		window.getCompositor()
-		      .getLayer(properties.computeIfAbsent(FLineDrawing.layer, k -> "__main__"))
-		      .getScene()
-		      .attach(shader);
+			.getLayer(properties.computeIfAbsent(FLineDrawing.layer, k -> "__main__"))
+			.getScene()
+			.attach(shader);
 
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__updateSize__", () -> {
 			Rect r = properties.get(Box.frame);
@@ -292,7 +293,7 @@ public class Browser extends Box implements IO.Loaded {
 
 		this.properties.putToMap(Mouse.onMouseDown, "__browser__", (e, button) -> {
 
-			Log.log("selection", ()->"is browser hidden ? " + properties.isTrue(Box.hidden, false) + " " + this);
+			Log.log("selection", () -> "is browser hidden ? " + properties.isTrue(Box.hidden, false) + " " + this);
 
 			Rect r = properties.get(Box.frame);
 
@@ -305,18 +306,19 @@ public class Browser extends Box implements IO.Loaded {
 			e.properties.put(Window.consumed, true);
 
 			Optional<Drawing> drawing = this.find(Drawing.drawing, both())
-							.findFirst();
+				.findFirst();
 			Vec2 point = new Vec2(e.after.mx, e.after.my);
 
-			if (isSelected() && properties.isTrue(Mouse.isSticky, false)) e.properties.put(Window.consumed, true);
+			if (isSelected() && properties.isTrue(Mouse.isSticky, false))
+				e.properties.put(Window.consumed, true);
 			else {
 //				setFocus(true);
 				if (!properties.isTrue(Mouse.isSticky, false)) return null;
 			}
 
 			browser.sendMouseEvent(
-				    new MouseEvent(component, MouseEvent.MOUSE_PRESSED, 0, MouseEvent.getMaskForButton(button + 1) | (e.after.keyboardState.isAltDown() ? KeyEvent.ALT_DOWN_MASK : 0),
-						   (int) ((point.x - r.x) * window.getRetinaScaleFactor() * drawing.get().getScale().x), (int) ((point.y - r.y) * window.getRetinaScaleFactor()* drawing.get().getScale().y), 1, false, button + 1));
+				new MouseEvent(component, MouseEvent.MOUSE_PRESSED, 0, MouseEvent.getMaskForButton(button + 1) | (e.after.keyboardState.isAltDown() ? KeyEvent.ALT_DOWN_MASK : 0),
+					(int) ((point.x - r.x) * window.getRetinaScaleFactor() * drawing.get().getScale().x), (int) ((point.y - r.y) * window.getRetinaScaleFactor() * drawing.get().getScale().y), 1, false, button + 1));
 
 			dragOngoing = true;
 
@@ -330,11 +332,11 @@ public class Browser extends Box implements IO.Loaded {
 
 				if (!term) {
 					browser.sendMouseEvent(new MouseEvent(component, MouseEvent.MOUSE_DRAGGED, 0, MouseEvent.getMaskForButton(button + 1),
-									      (int) (point2.x - r.x) * window.getRetinaScaleFactor(), (int) (point2.y - r.y) * window.getRetinaScaleFactor(), 1, false,
-									      button + 1));
+						(int) (point2.x - r.x) * window.getRetinaScaleFactor(), (int) (point2.y - r.y) * window.getRetinaScaleFactor(), 1, false,
+						button + 1));
 				} else browser.sendMouseEvent(
-					    new MouseEvent(component, MouseEvent.MOUSE_RELEASED, 0, MouseEvent.getMaskForButton(button + 1), (int) (point2.x - r.x) * window.getRetinaScaleFactor(),
-							   (int) (point2.y - r.y) * window.getRetinaScaleFactor(), 1, false, button + 1));
+					new MouseEvent(component, MouseEvent.MOUSE_RELEASED, 0, MouseEvent.getMaskForButton(button + 1), (int) (point2.x - r.x) * window.getRetinaScaleFactor(),
+						(int) (point2.y - r.y) * window.getRetinaScaleFactor(), 1, false, button + 1));
 
 				dragOngoing = !term;
 
@@ -354,12 +356,12 @@ public class Browser extends Box implements IO.Loaded {
 			e.properties.put(Window.consumed, true);
 
 			Optional<Drawing> drawing = this.find(Drawing.drawing, both())
-							.findFirst();
+				.findFirst();
 			Vec2 point = new Vec2(e.after.mx, e.after.my);
 
 
 			browser.sendMouseEvent(new MouseEvent(component, MouseEvent.MOUSE_MOVED, 0, 0, (int) (point.x - r.x) * window.getRetinaScaleFactor(),
-							      (int) (point.y - r.y) * window.getRetinaScaleFactor(), 0, false));
+				(int) (point.y - r.y) * window.getRetinaScaleFactor(), 0, false));
 			return null;
 		});
 
@@ -378,12 +380,12 @@ public class Browser extends Box implements IO.Loaded {
 
 			float dy = e.after.dwheely * 8;
 			browser.sendMouseWheelEvent(new MouseWheelEvent(component, MouseWheelEvent.MOUSE_WHEEL, 0, 0, (int) (point.x - r.x) * window.getRetinaScaleFactor(),
-									(int) (point.y - r.y) * window.getRetinaScaleFactor(), (int) (point.x - r.x) * window.getRetinaScaleFactor(),
-									(int) (point.y - r.y) * window.getRetinaScaleFactor(), 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, 8, (int) dy, dy));
+				(int) (point.y - r.y) * window.getRetinaScaleFactor(), (int) (point.x - r.x) * window.getRetinaScaleFactor(),
+				(int) (point.y - r.y) * window.getRetinaScaleFactor(), 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, 1, (int) dy, dy));
 			float dx = e.after.dwheel * 8;
 			browser.sendMouseWheelEvent(new MouseWheelEvent(component, MouseWheelEvent.MOUSE_WHEEL, KeyEvent.SHIFT_DOWN_MASK, 0, (int) (point.x - r.x) * window.getRetinaScaleFactor(),
-									(int) (point.y - r.y) * window.getRetinaScaleFactor(), (int) (point.x - r.x) * window.getRetinaScaleFactor(),
-									(int) (point.y - r.y) * window.getRetinaScaleFactor(), 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, 8, (int) dx, dx));
+				(int) (point.y - r.y) * window.getRetinaScaleFactor(), (int) (point.x - r.x) * window.getRetinaScaleFactor(),
+				(int) (point.y - r.y) * window.getRetinaScaleFactor(), 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, 1, (int) dx, dx));
 		});
 
 		this.properties.putToMap(Keyboard.onKeyDown, "__browser__", (e, k) -> {
@@ -439,7 +441,7 @@ public class Browser extends Box implements IO.Loaded {
 			return (e2, term) -> {
 
 				if (term) {
-					Log.log("keyboard", ()->"actual up " + e + " " + fk);
+					Log.log("keyboard", () -> "actual up " + e + " " + fk);
 					KeyEvent ke2 = new KeyEvent(component, KeyEvent.KEY_RELEASED, 0, fmod, fk, KeyEvent.CHAR_UNDEFINED);
 					browser.sendKeyEvent(ke2);
 					e2.properties.put(Window.consumed, true);
@@ -491,9 +493,9 @@ public class Browser extends Box implements IO.Loaded {
 			if (found == null) {
 //				if (mod==0)
 //				{
-				Log.log("keyboard",()-> "sending char " + k);
+				Log.log("keyboard", () -> "sending char " + k);
 				KeyEvent ke = new KeyEvent(component, KeyEvent.KEY_TYPED, 0, mod, KeyEvent.VK_UNDEFINED, k);
-				Log.log("keyboard",()-> "awt event is " + ke);
+				Log.log("keyboard", () -> "awt event is " + ke);
 				browser.sendKeyEvent(ke);
 //				}
 //				else
@@ -504,7 +506,7 @@ public class Browser extends Box implements IO.Loaded {
 //					browser.sendKeyEvent(ke);
 //				}
 			} else {
-				Log.log("keyboard", ()->"faking keypress instead because we found a translation");
+				Log.log("keyboard", () -> "faking keypress instead because we found a translation");
 				KeyEvent ke = new KeyEvent(component, KeyEvent.KEY_PRESSED, 0, mod, found, KeyEvent.CHAR_UNDEFINED);
 				browser.sendKeyEvent(ke);
 				ke = new KeyEvent(component, KeyEvent.KEY_RELEASED, 0, mod, found, KeyEvent.CHAR_UNDEFINED);
@@ -527,12 +529,12 @@ public class Browser extends Box implements IO.Loaded {
 		});
 
 		this.properties.putToMap(Callbacks.onSelect, "__pullFocus__", (k) -> {
-			if (!(k instanceof Browser)) getKeyboardFocus().claimFocus((Box)k);
+			if (!(k instanceof Browser)) getKeyboardFocus().claimFocus((Box) k);
 			return null;
 		});
 
 		this.properties.putToMap(Callbacks.onDeselect, "__pullFocus__", (k) -> {
-			if (!(k instanceof Browser)) getKeyboardFocus().disclaimFocus((Box)k);
+			if (!(k instanceof Browser)) getKeyboardFocus().disclaimFocus((Box) k);
 			return null;
 		});
 	}
@@ -541,7 +543,7 @@ public class Browser extends Box implements IO.Loaded {
 
 	private KeyboardFocus getKeyboardFocus() {
 		return cachedFocus == null ? cachedFocus = find(KeyboardFocus._keyboardFocus, both()).findFirst()
-												     .get() : cachedFocus;
+			.get() : cachedFocus;
 	}
 
 	private boolean isSelected() {
@@ -551,9 +553,9 @@ public class Browser extends Box implements IO.Loaded {
 	private boolean intersects(Rect r, Window.Event<Window.MouseState> e) {
 
 		Optional<Drawing> drawing = this.find(Drawing.drawing, both())
-						.findFirst();
+			.findFirst();
 		Vec2 point = drawing.map(x -> x.windowSystemToDrawingSystem(new Vec2(e.after.x, e.after.y)))
-				    .orElseThrow(() -> new IllegalArgumentException(" can't mouse around something without drawing support (to provide coordinate system)"));
+			.orElseThrow(() -> new IllegalArgumentException(" can't mouse around something without drawing support (to provide coordinate system)"));
 
 		return (r.x < point.x && r.x + r.w > point.x) && (r.y < point.y && r.y + r.h > point.y);
 	}
@@ -563,7 +565,7 @@ public class Browser extends Box implements IO.Loaded {
 	 */
 	protected void paint(boolean popup, Rectangle[] dirty, ByteBuffer buffer, int w, int h) {
 
-		System.out.println(" paint :"+buffer+" "+w+" "+h);
+//		System.out.println(" paint :" + buffer + " " + w + " " + h);
 
 		if (dirty.length == 0) return;
 
@@ -582,7 +584,6 @@ public class Browser extends Box implements IO.Loaded {
 				sourceView.limit(r.x * 4 + y * 4 * w + r.width * 4);
 				sourceView.position(r.x * 4 + y * 4 * w);
 				sourceView.put(buffer);
-
 
 
 			}
@@ -632,10 +633,10 @@ public class Browser extends Box implements IO.Loaded {
 		if (ignore) return;
 
 		if (booted) {
-			System.out.println(" EJS_nq :"+s);
+			System.out.println(" EJS_nq :" + s);
 			executeJavaScript(s);
 		} else {
-			System.out.println(" EJS_q :"+s);
+			System.out.println(" EJS_q :" + s);
 			bootQueue.add(() -> executeJavaScript(s));
 		}
 	}
@@ -674,7 +675,7 @@ public class Browser extends Box implements IO.Loaded {
 				browser.setZoomLevel(2 * window.getRetinaScaleFactor());
 			}
 			Log.log("cef.debug", () -> " texture was dirty, uploading ");
-			texture.upload(source, true, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (1+damage.h + damage.y));
+			texture.upload(source, true, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (1 + damage.h + damage.y));
 			Drawing.dirty(this);
 			again = 3;
 			hasRepainted = true;
@@ -685,9 +686,7 @@ public class Browser extends Box implements IO.Loaded {
 			Drawing.dirty(this);
 			RunLoop.main.shouldSleep.add(this);
 			again--;
-		}
-		else
-		if (again == 0) {
+		} else if (again == 0) {
 			damage = null;
 			RunLoop.main.shouldSleep.remove(this);
 		}
@@ -708,7 +707,7 @@ public class Browser extends Box implements IO.Loaded {
 		}
 
 		for (Pair<String, Consumer<String>> p : m) {
-			Log.log("cef.debug", ()->"dispatching message <" + p.first + ">");
+			Log.log("cef.debug", () -> "dispatching message <" + p.first + ">");
 
 			JSONObject o = new JSONObject(p.first);
 			String address = o.getString("address");
@@ -725,19 +724,18 @@ public class Browser extends Box implements IO.Loaded {
 				payload = new JSONObject(sw.toString());
 			}
 
-			for (Pair<Predicate<String>, Handler> p2 : handlers) {
-				if (p2.first.test(address)) {
-					Log.log("cef.debug", ()->"found handler");
+			if (!TransientCommands.transientCommands.handle(address, (JSONObject) payload, p.second))
+				for (Pair<Predicate<String>, Handler> p2 : handlers) {
+					if (p2.first.test(address)) {
+						Log.log("cef.debug", () -> "found handler");
 
-					try {
-						p2.second.handle(address, (JSONObject) payload, p.second);
-					}
-					catch(Throwable t)
-					{
-						t.printStackTrace();
+						try {
+							p2.second.handle(address, (JSONObject) payload, p.second);
+						} catch (Throwable t) {
+							t.printStackTrace();
+						}
 					}
 				}
-			}
 
 		}
 
@@ -764,8 +762,7 @@ public class Browser extends Box implements IO.Loaded {
 		executeJavaScript_queued("$(document.body).append('" + TextUtils.quoteNoOuter(texts.replace("'", "\"")) + "');" + scrollDown());
 	}
 
-	public void clearAndPrint(Object text)
-	{
+	public void clearAndPrint(Object text) {
 		clear();
 		print(text);
 	}
@@ -801,16 +798,16 @@ public class Browser extends Box implements IO.Loaded {
 
 	public void injectCSS(String css) {
 		executeJavaScript_queued("var css = document.createElement(\"style\");\n" +
-						     "css.type = \"text/css\";\n" +
-						     "css.innerHTML = \"" + css + "\";\n" +
-						     "document.body.appendChild(css);");
+			"css.type = \"text/css\";\n" +
+			"css.innerHTML = \"" + css + "\";\n" +
+			"document.body.appendChild(css);");
 	}
 
 	public Out getOutCached() {
 		if (out_cached != null) return out_cached;
 
 		out_cached = find(Out.__out, both()).findAny()
-						    .orElseGet(() -> null);
+			.orElseGet(() -> null);
 
 		return out_cached;
 	}
