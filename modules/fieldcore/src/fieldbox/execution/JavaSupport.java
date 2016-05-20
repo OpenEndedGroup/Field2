@@ -533,7 +533,6 @@ public class JavaSupport {
 				  .isPresent();
 	}
 
-
 	public List<Pair<String, String>> getPossibleJavaClassesFor(String left) {
 		try {
 			List<Pair<String, String>> rr = new ArrayList<>();

@@ -1,5 +1,6 @@
 package fieldbox;
 
+import field.graphics.GraphicsContext;
 import field.utility.Log;
 
 /**
@@ -31,7 +32,10 @@ public class LoggingDefaults {
 //		Log.on("cef.debug*", Log::red);
 ////		Log.on(".*trace.*", Log::blue);
 //		Log.off(".*trace.*");
-//		Log.on("graphics.trace", Log::green);
+//		Log.on("graphics.trace", (a,b) -> {
+//			GraphicsContext.checkError(() -> "before printing "+a+" "+b);
+//			Log.green(a, b);
+//		});
 //		Log.on("texture.trace", Log::green);
 //		Log.on("texture.trace2", Log::green);
 //		Log.disable("keyboard2");

@@ -42,7 +42,7 @@ public class FLineInteraction extends Box implements Drawing.Drawer, Mouse.OnMou
 	Set<FLine> all = null;
 
 	@Override
-	public void draw(Drawing context) {
+	public void draw(DrawingInterface context) {
 		all = new LinkedHashSet<>();
 		this.breadthFirst(this.both()).forEach(x -> {
 			Rect r = x.properties.get(frame);

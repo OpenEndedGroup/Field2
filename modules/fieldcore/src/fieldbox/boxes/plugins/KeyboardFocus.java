@@ -11,6 +11,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Draws a highlght for where keyboard focus is going to go
@@ -83,6 +84,12 @@ public class KeyboardFocus extends Box {
 	public boolean isFocused(Box b) {
 		if (focused.size() == 0) return false;
 		return focused.get(focused.size() - 1) == b;
+	}
+
+	public Optional<Box> getFocus()
+	{
+		if (focused.size()>0) return Optional.of(focused.get(focused.size()-1));
+		return Optional.empty();
 	}
 
 	public void claimFocus(Box b) {
