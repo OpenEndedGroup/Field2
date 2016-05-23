@@ -271,6 +271,7 @@ public class Server {
 					T t = c.call();
 					f.complete(t);
 				} catch (Throwable tt) {
+					tt.printStackTrace();
 					f.completeExceptionally(tt);
 				}
 			});
