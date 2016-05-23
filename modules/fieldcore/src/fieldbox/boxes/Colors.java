@@ -3,16 +3,18 @@ package fieldbox.boxes;
 import field.linalg.Vec3;
 import field.linalg.Vec4;
 
+import java.util.function.Supplier;
+
 /**
  * Default colors for the "theme" of Field's canvas
  */
 public class Colors {
 	static public Vec3 backgroundColor = new Vec3(0.23f*0.8f, 0.24f*0.8f, 0.245f*0.8f);
 
-	static public Vec4 boxBackground1Selected = new Vec4(1,1,1,0.7f);
-	static public Vec4 boxBackground2Selected = new Vec4(0.8f,0.8f,0.8f,0.7f);
-	static public Vec4 boxBackground1 = new Vec4(1f,1f,1f,0.5f);
-	static public Vec4 boxBackground2= new Vec4(0.8f,0.8f,0.8f,0.5f);
+	static public Vec4 boxBackground1Selected = new Vec4(1,1,1,0.8f);
+	static public Vec4 boxBackground2Selected = new Vec4(0.8f,0.8f,0.8f,0.8f);
+	static public Vec4 boxBackground1 = new Vec4(1f,1f,1f,0.6f);
+	static public Vec4 boxBackground2= new Vec4(0.8f,0.8f,0.8f,0.6f);
 
 	static public Vec3 executionColor = new Vec3(0.2f, 0.5f, 0.3f);
 
@@ -25,4 +27,6 @@ public class Colors {
 	public static Vec4 statusBarBackground = new Vec4(0.32f*0.09f, 0.28f*0.09f, 0.1f*0.09f, 0.2f);
 
 
+	public static Vec4 focusRing1 = new Vec4(0.1f, 0.6, 1.0, 0.2f);
+	public static Vec4 focusRing2 = new Vec4(0.1f, 0.6, 1.0, 0.4f);
 }
