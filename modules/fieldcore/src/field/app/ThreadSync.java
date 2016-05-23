@@ -8,6 +8,7 @@ import field.utility.Util;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -49,6 +50,27 @@ public class ThreadSync {
 			throw new Stop();
 		};
 	}
+
+	static public <T> T callInMainThreadAndWait(Callable<T> c) throws Exception {
+		if (Thread.currentThread() == get().mainThread) {
+			return c.call();
+		} else {
+			CompletableFuture<T> f = new CompletableFuture<>();
+			RunLoop.main.once(() -> {
+				try {
+					f.complete(c.call());
+				} catch (Throwable t) {
+					f.completeExceptionally(t);
+				}
+			});
+
+			while (!f.isDone()) {
+				ThreadSync.yield(true);
+			}
+			return f.get();
+		}
+	}
+
 
 	static public <K> Supplier<K> input(Iterable<K> a) {
 		return input(a.iterator());
@@ -119,8 +141,6 @@ public class ThreadSync {
 		if (o instanceof Collection) return o;
 		if (o instanceof Boolean) return !((Boolean) o).booleanValue();
 
-		// !
-//		return o instanceof Undefined;
 		return null;
 
 	}
@@ -182,7 +202,7 @@ public class ThreadSync {
 		if (f.runner.isDone()) live.remove(this);
 		if (o == NULL) o = null;
 		out.accept((V) o);
-		f.lastReturn = (V) o;
+		f.lastReturn = o == nothing ? null : (V) o;
 		if (f.exception != null) if (f.handler == null) throw new RuntimeException(f.exception);
 		else f.handler.accept(f.exception);
 
@@ -201,10 +221,10 @@ public class ThreadSync {
 				if (o == null) {
 					System.out.println(" debugTake failed to get a result, we are hanging the main thread waiting on:");
 					System.out.println(f + " " + f.debugDescription + " " + f.debugStatus);
-					System.out.println(f.stopped+" "+f.runner+" "+f.runner.isCancelled()+" "+f.runner.isDone());
+					System.out.println(f.stopped + " " + f.runner + " " + f.runner.isCancelled() + " " + f.runner.isDone());
 					System.out.println(" meanwhile :");
 					for (Fiber ll : live) {
-						System.out.println(ll +" "+ll.debugDescription+" "+ll.debugStatus);
+						System.out.println(ll + " " + ll.debugDescription + " " + ll.debugStatus + " " + ll.runner + " " + ll.runner.isDone() + " " + ll.runner.isCancelled());
 					}
 				}
 			}
