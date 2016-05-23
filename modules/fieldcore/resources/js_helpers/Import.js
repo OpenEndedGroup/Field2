@@ -27,7 +27,8 @@ _field.sendWithReturn("request.imports", {
                                     _field.sendWithReturn("execution.fragment", {
                                         box: cm.currentbox,
                                         property: cm.currentproperty,
-                                        text: completions[this.i].header
+                                        text: completions[this.i].header,
+                                        disabledRanges: "[" + allDisabledBracketRanges() + "]"
                                     }, function (d, e) {
                                         if (d.type == 'error')
                                             appendRemoteOutputToLine(anchorLine, d.line + " : " + d.message, "Field-remoteOutput", "Field-remoteOutput-error", 1);
