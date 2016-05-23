@@ -36,7 +36,7 @@ public class KeyboardFocus extends Box {
 
 			FLine fr = new FLine().rect(f.x, f.y, f.w - 1, f.h - 1);
 			fr.attributes.put(StandardFLineDrawing.thicken, new BasicStroke(10));
-			fr.attributes.put(StandardFLineDrawing.color, new Vec4(0.1f, 0.6, 1.0, 0.07f));
+			fr.attributes.put(StandardFLineDrawing.color, Colors.focusRing1);
 
 			return fr;
 		});
@@ -53,7 +53,7 @@ public class KeyboardFocus extends Box {
 
 			FLine fr = new FLine().rect(f.x-5, f.y-5, f.w - 1+10, f.h - 1+10);
 			fr.attributes.put(StandardFLineDrawing.thicken, new BasicStroke(1));
-			fr.attributes.put(StandardFLineDrawing.color, new Vec4(0.1f, 0.6, 1.0, 0.2f));
+			fr.attributes.put(StandardFLineDrawing.color, Colors.focusRing2);
 
 			return fr;
 		});
