@@ -24,7 +24,8 @@ insertTap = function (selection_start, selection_end, uid, w, h) {
         box: cm.currentbox,
         property: cm.currentproperty,
         text: fragment,
-        lineoffset: -1
+        lineoffset: -1,
+        disabledRanges: "[" + allDisabledBracketRanges() + "]"
     }, function (d, e) {
 
     });
