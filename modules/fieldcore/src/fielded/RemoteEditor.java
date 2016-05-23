@@ -40,19 +40,19 @@ import static fieldbox.boxes.FLineDrawing.*;
 public class RemoteEditor extends Box {
 
 	static public final Dict.Prop<EditorUtils> editorUtils = new Dict.Prop<EditorUtils>("editorUtils").toCannon()
-													  .doc("utility class for manipulating the editor at a high level");
+		.doc("utility class for manipulating the editor at a high level");
 
 	static public final Dict.Prop<Supplier<Map<Pair<String, String>, Runnable>>> hotkeyCommands = new Dict.Prop<>("hotkeyCommands").type()
-																       .doc("commands injected into the editor as hotkey menuSpecs")
-																       .toCannon();
+		.doc("commands injected into the editor as hotkey menuSpecs")
+		.toCannon();
 	static public final Dict.Prop<RemoteEditor> editor = new Dict.Prop<>("editor").type()
-										      .doc("the (remote) editor object")
-										      .toCannon();
+		.doc("the (remote) editor object")
+		.toCannon();
 	static public final Dict.Prop<Function<Box, Consumer<String>>> outputFactory = new Dict.Prop<>("outputFactory");
 	static public final Dict.Prop<Function<Box, Consumer<Pair<Integer, String>>>> outputErrorFactory = new Dict.Prop<>("outputErrorFactory");
 
 	static public final Dict.Prop<String> defaultEditorProperty = new Dict.Prop<String>("defaultEditorProperty").type()
-														    .doc("The property that the editor will switch to. Will default to 'code' if not set.");
+		.doc("The property that the editor will switch to. Will default to 'code' if not set.");
 	private final Server server;
 	private final String socketName;
 	private final MessageQueue<Quad<Dict.Prop, Box, Object, Object>, String> queue;
@@ -100,7 +100,7 @@ public class RemoteEditor extends Box {
 			prevTick = RunLoop.tick;
 			warned = false;
 			lastSend = value.iterator()
-					.next().second.toString();
+				.next().second.toString();
 
 			Log.log("remote.trace", () -> " >> " + key + " " + value.size());
 
@@ -116,7 +116,7 @@ public class RemoteEditor extends Box {
 				if (overflowedAt.size() > 3 && overflowedAt.getLast() - overflowedAt.getFirst() < 10) {
 					//TODO: tell somebody we've dropped something
 					server.send(socketName, "_messageBus.publish('" + key + "', " + value.iterator()
-													     .next().second + ")");
+						.next().second + ")");
 				} else {
 					String m = "";
 					for (Pair<String, String> v : value) {
@@ -127,7 +127,7 @@ public class RemoteEditor extends Box {
 
 			} else {
 				server.send(socketName, "_messageBus.publish('" + key + "', " + value.iterator()
-												     .next().second + ")");
+					.next().second + ")");
 			}
 		}
 	};
@@ -164,7 +164,7 @@ public class RemoteEditor extends Box {
 		server.addHandlerLast(x -> x.equals("log"), (s, socket, address, payload) -> {
 
 			if (logStack.size() > 0) logStack.get(logStack.size() - 1)
-							 .accept("" + payload);
+				.accept("" + payload);
 
 			return payload;
 		});
@@ -172,72 +172,81 @@ public class RemoteEditor extends Box {
 		server.addHandlerLast(x -> x.equals("error"), (s, socket, address, payload) -> {
 
 			if (logStack.size() > 0) errorStack.get(errorStack.size() - 1)
-							   .accept("" + payload);
+				.accept("" + payload);
 
 			return payload;
 		});
 
 		server.addHandlerLast(Predicate.isEqual("focus.window"), () -> socketName, (s, socket, address, payload) -> {
 			find(Boxes.window, both()).findFirst()
-						  .ifPresent(w -> w.requestRaise());
+				.ifPresent(w -> w.requestRaise());
 			return payload;
 		});
 
 		this.properties.put(outputFactory, x -> newOutput(x, "box.output", (m) -> new JSONStringer().object()
-													    .key("type")
-													    .value("success")
-													    .key("message")
-													    .value(m)
-													    .endObject()
-													    .toString()));
+			.key("type")
+			.value("success")
+			.key("message")
+			.value(m)
+			.key("append")
+			.value(true)
+			.endObject()
+			.toString()));
+
 		this.properties.put(outputErrorFactory, x -> newOutput(x, "box.error", (Function<Pair<Integer, String>, String>) (lineerror) -> new JSONStringer().object()
-																				  .key("type")
-																				  .value("error")
-																				  .key("line")
-																				  .value((int) lineerror.first)
-																				  .key("message")
-																				  .value(lineerror.second)
-																				  .endObject()
-																				  .toString()));
+			.key("type")
+			.value("error")
+			.key("line")
+			.value((int) lineerror.first)
+			.key("append")
+			.value(true)
+			.key("message")
+			.value(lineerror.second)
+			.endObject()
+			.toString()));
 
 		this.properties.put(Execution.directedOutput, z -> {
 			// TODO: multiple properties?
 			if (z.first == currentSelection) {
 				rater.add(new Pair<String, String>("box.output.directed", new JSONStringer().object()
-													    .key("box")
-													    .value(z.first.properties.getOrConstruct(IO.id))
-													    .key("line")
-													    .value(z.second)
-													    .key("message")
-													    .value(z.third)
-													    .endObject()
-													    .toString()));
+					.key("box")
+					.value(z.first.properties.getOrConstruct(IO.id))
+					.key("append")
+					.value(z.fourth)
+					.key("line")
+					.value(z.second)
+					.key("message")
+					.value(z.third)
+					.endObject()
+					.toString()));
 			} else {
 				synchronized (whenSelected) {
 					List<Runnable> r = whenSelected.get(z.first.properties.getOrConstruct(IO.id));
 					try {
-						if (r != null && r.size() > 20) whenSelected.replaceValues(z.first.properties.getOrConstruct(IO.id), r.subList(20, r.size()));
+						if (r != null && r.size() > 20)
+							whenSelected.replaceValues(z.first.properties.getOrConstruct(IO.id), r.subList(20, r.size()));
+					} catch (ConcurrentModificationException e) {
 					}
-					catch(ConcurrentModificationException e)
-					{}
 					whenSelected.put(z.first.properties.getOrConstruct(IO.id), () -> {
 						rater.add(new Pair<String, String>("box.output.directed", new JSONStringer().object()
-															    .key("box")
-															    .value(z.first.properties.getOrConstruct(IO.id))
-															    .key("line")
-															    .value(z.second)
-															    .key("message")
-															    .value(z.third)
-															    .endObject()
-															    .toString()));
+							.key("box")
+							.value(z.first.properties.getOrConstruct(IO.id))
+							.key("append")
+							.value(z.fourth)
+							.key("line")
+							.value(z.second)
+							.key("message")
+							.value(z.third)
+							.endObject()
+							.toString()));
 					});
 				}
 			}
 		});
 
 		server.addHandlerLast((s, socket, address, payload) -> {
-			System.out.println("? "+address);
-			TransientCommands.transientCommands.handle(address, (JSONObject)payload, null);
+			System.out.println("? " + address);
+			TransientCommands.transientCommands.handle(address, (JSONObject) payload, null);
 			return payload;
 		});
 
@@ -247,7 +256,8 @@ public class RemoteEditor extends Box {
 
 			Optional<Box> box = findBoxByID(p.getString("box"));
 
-			if (!box.isPresent()) System.err.println(" remote editor is talking about a box that isn't anywhere <" + p + ">");
+			if (!box.isPresent())
+				System.err.println(" remote editor is talking about a box that isn't anywhere <" + p + ">");
 
 			String prop = p.getString("property");
 
@@ -274,7 +284,7 @@ public class RemoteEditor extends Box {
 			String returnAddress = p.getString("returnAddress");
 
 			FieldBoxWindow w = this.first(Boxes.window, both())
-					       .get();
+				.get();
 
 			String current = w.getCurrentClipboard();
 			final String finalCurrent = current;
@@ -302,7 +312,7 @@ public class RemoteEditor extends Box {
 			JSONObject p = (JSONObject) payload;
 
 			FieldBoxWindow w = this.first(Boxes.window, both())
-					       .get();
+				.get();
 
 			w.setCurrentClipboard(p.getString("value"));
 
@@ -354,7 +364,8 @@ public class RemoteEditor extends Box {
 
 			String prop = p.getString("property");
 
-			if (box.get() != currentSelection) System.err.println(" (warning?) remote editor is trying to execute a box we're not editing ?");
+			if (box.get() != currentSelection)
+				System.err.println(" (warning?) remote editor is trying to execute a box we're not editing ?");
 
 			String text = p.getString("text");
 
@@ -371,23 +382,31 @@ public class RemoteEditor extends Box {
 			System.out.println(" SUFFIX IS :" + suffix);
 
 			Execution.ExecutionSupport support = getExecution(box.get(), new Dict.Prop<String>(prop)).support(box.get(), new Dict.Prop<String>(prop));
-			support.setLineOffsetForFragment(lineoffset);
+			support.setLineOffsetForFragment(lineoffset, new Dict.Prop<String>(prop));
+
+			List<Pair<Integer, Integer>> dis = parseDisabledRanges(p.getString("disabledRanges"));
+
+			if (dis != null) {
+				text = DisabledRangeHelper.rewriteWithDisabledRanges(text, "/* -- start -- ", "-- end -- */", dis, lineoffset);
+			}
+
+
 			support.executeTextFragment(text, suffix, newOutput(box.get(), returnAddress, (m) -> new JSONStringer().object()
-															       .key("type")
-															       .value("success")
-															       .key("message")
-															       .value(m)
-															       .endObject()
-															       .toString()), newOutput(box.get(), returnAddress,
-																		       (Function<Pair<Integer, String>, String>) (lineerror) -> new JSONStringer().object()
-																												  .key("type")
-																												  .value("error")
-																												  .key("line")
-																												  .value((int) lineerror.first)
-																												  .key("message")
-																												  .value(lineerror.second)
-																												  .endObject()
-																												  .toString()));
+				.key("type")
+				.value("success")
+				.key("message")
+				.value(m)
+				.endObject()
+				.toString()), newOutput(box.get(), returnAddress,
+				(Function<Pair<Integer, String>, String>) (lineerror) -> new JSONStringer().object()
+					.key("type")
+					.value("error")
+					.key("line")
+					.value((int) lineerror.first)
+					.key("message")
+					.value(lineerror.second)
+					.endObject()
+					.toString()));
 
 			boxFeedback(box, new Vec4(0, 0.5f, 0.3f, 0.5f));
 
@@ -406,7 +425,8 @@ public class RemoteEditor extends Box {
 
 			String prop = p.getString("property");
 
-			if (box.get() != currentSelection) System.err.println(" (warning?) remote editor is trying to execute a box we're not editing ?");
+			if (box.get() != currentSelection)
+				System.err.println(" (warning?) remote editor is trying to execute a box we're not editing ?");
 
 			String text = p.getString("text");
 
@@ -423,21 +443,21 @@ public class RemoteEditor extends Box {
 
 			Execution.ExecutionSupport support = getExecution(box.get(), new Dict.Prop<String>(prop)).support(box.get(), new Dict.Prop<String>(prop));
 			support.executeAll(text, newOutput(box.get(), returnAddress, (Function<Pair<Integer, String>, String>) (lineerror) -> new JSONStringer().object()
-																				.key("type")
-																				.value("error")
-																				.key("line")
-																				.value((int) lineerror.first)
-																				.key("message")
-																				.value(lineerror.second)
-																				.endObject()
-																				.toString()),
-					   newOutput(box.get(), returnAddress, (m) -> new JSONStringer().object()
-													.key("type")
-													.value("success")
-													.key("message")
-													.value(m)
-													.endObject()
-													.toString()));
+					.key("type")
+					.value("error")
+					.key("line")
+					.value((int) lineerror.first)
+					.key("message")
+					.value(lineerror.second)
+					.endObject()
+					.toString()),
+				newOutput(box.get(), returnAddress, (m) -> new JSONStringer().object()
+					.key("type")
+					.value("success")
+					.key("message")
+					.value(m)
+					.endObject()
+					.toString()));
 			boxFeedback(box, new Vec4(0, 0.5f, 0.3f, 0.5f));
 
 			return payload;
@@ -456,7 +476,8 @@ public class RemoteEditor extends Box {
 
 			String prop = p.getString("property");
 
-			if (box.get() != currentSelection) System.err.println(" (warning?) remote editor is trying to execute a box we're not editing ?");
+			if (box.get() != currentSelection)
+				System.err.println(" (warning?) remote editor is trying to execute a box we're not editing ?");
 
 			String text = p.getString("text");
 
@@ -468,22 +489,22 @@ public class RemoteEditor extends Box {
 
 			Execution.ExecutionSupport support = getExecution(box.get(), new Dict.Prop<String>(prop)).support(box.get(), new Dict.Prop<String>(prop));
 			support.begin(newOutput(box.get(), returnAddress, (Function<Pair<Integer, String>, String>) (lineerror) -> new JSONStringer().object()
-																		     .key("type")
-																		     .value("error")
-																		     .key("line")
-																		     .value((int) lineerror.first)
-																		     .key("message")
-																		     .value(lineerror.second)
-																		     .endObject()
-																		     .toString()), newOutput(box.get(), returnAddress,
-																					     (m) -> new JSONStringer().object()
-																								      .key("type")
-																								      .value("success")
-																								      .key("message")
-																								      .value(m)
-																								      .endObject()
-																								      .toString()),
-				      Collections.singletonMap("_t", null));
+					.key("type")
+					.value("error")
+					.key("line")
+					.value((int) lineerror.first)
+					.key("message")
+					.value(lineerror.second)
+					.endObject()
+					.toString()), newOutput(box.get(), returnAddress,
+				(m) -> new JSONStringer().object()
+					.key("type")
+					.value("success")
+					.key("message")
+					.value(m)
+					.endObject()
+					.toString()),
+				Collections.singletonMap("_t", null));
 
 			boxFeedback(box, new Vec4(0, 0.5f, 0.3f, 0.5f));
 
@@ -501,7 +522,8 @@ public class RemoteEditor extends Box {
 
 			String prop = p.getString("property");
 
-			if (box.get() != currentSelection) System.err.println(" (warning?) remote editor is trying to execute a box we're not editing ?");
+			if (box.get() != currentSelection)
+				System.err.println(" (warning?) remote editor is trying to execute a box we're not editing ?");
 
 			String text = p.getString("text");
 
@@ -513,21 +535,21 @@ public class RemoteEditor extends Box {
 
 			Execution.ExecutionSupport support = getExecution(box.get(), new Dict.Prop<String>(prop)).support(box.get(), new Dict.Prop<String>(prop));
 			support.end(newOutput(box.get(), returnAddress, (Function<Pair<Integer, String>, String>) (lineerror) -> new JSONStringer().object()
-																		   .key("type")
-																		   .value("error")
-																		   .key("line")
-																		   .value((int) lineerror.first)
-																		   .key("message")
-																		   .value(lineerror.second)
-																		   .endObject()
-																		   .toString()), newOutput(box.get(), returnAddress,
-																					   (m) -> new JSONStringer().object()
-																								    .key("type")
-																								    .value("success")
-																								    .key("message")
-																								    .value(m)
-																								    .endObject()
-																								    .toString()));
+				.key("type")
+				.value("error")
+				.key("line")
+				.value((int) lineerror.first)
+				.key("message")
+				.value(lineerror.second)
+				.endObject()
+				.toString()), newOutput(box.get(), returnAddress,
+				(m) -> new JSONStringer().object()
+					.key("type")
+					.value("success")
+					.key("message")
+					.value(m)
+					.endObject()
+					.toString()));
 
 			boxFeedback(box, new Vec4(0, 0.5f, 0.3f, 0.5f));
 
@@ -546,7 +568,8 @@ public class RemoteEditor extends Box {
 
 			String prop = p.getString("property");
 
-			if (box.get() != currentSelection) System.err.println(" (warning?) remote editor is trying to request completions in a box we're not editing ?");
+			if (box.get() != currentSelection)
+				System.err.println(" (warning?) remote editor is trying to request completions in a box we're not editing ?");
 
 			String text = p.getString("text");
 
@@ -595,7 +618,8 @@ public class RemoteEditor extends Box {
 
 			String prop = p.getString("property");
 
-			if (box.get() != currentSelection) System.err.println(" (warning?) remote editor is trying to request completions in a box we're not editing ?");
+			if (box.get() != currentSelection)
+				System.err.println(" (warning?) remote editor is trying to request completions in a box we're not editing ?");
 
 			String text = p.getString("text");
 
@@ -659,19 +683,19 @@ public class RemoteEditor extends Box {
 			String command = p.getString("command");
 
 			find(Commands.commands, both()).flatMap(m -> m.get()
-								      .entrySet()
-								      .stream())
-						       .filter(m -> m.getKey().first.trim()
-										    .toLowerCase()
-										    .equals(command.trim()
-												   .toLowerCase()))
-						       .findFirst()
-						       .ifPresent(m -> {
-							       Runnable r = m.getValue();
-							       if (r instanceof ExtendedCommand) ((ExtendedCommand) r).begin(
-									   commandHelper.supportsPrompt(x -> server.send(socketName, "_messageBus.publish('begin.commands', " + x + ")")), null);
-							       r.run();
-						       });
+				.entrySet()
+				.stream())
+				.filter(m -> m.getKey().first.trim()
+					.toLowerCase()
+					.equals(command.trim()
+						.toLowerCase()))
+				.findFirst()
+				.ifPresent(m -> {
+					Runnable r = m.getValue();
+					if (r instanceof ExtendedCommand) ((ExtendedCommand) r).begin(
+						commandHelper.supportsPrompt(x -> server.send(socketName, "_messageBus.publish('begin.commands', " + x + ")")), null);
+					r.run();
+				});
 
 			return payload;
 		});
@@ -711,18 +735,18 @@ public class RemoteEditor extends Box {
 			//todo: handle no box case
 
 			List<Map.Entry<Pair<String, String>, Runnable>> commands = box.get()
-										      .find(Commands.commands, box.get()
-														  .both())
-										      .flatMap(m -> m.get()
-												     .entrySet()
-												     .stream())
-										      .collect(Collectors.toList());
+				.find(Commands.commands, box.get()
+					.both())
+				.flatMap(m -> m.get()
+					.entrySet()
+					.stream())
+				.collect(Collectors.toList());
 
 			Map<Pair<String, String>, Runnable> mergeMap = new LinkedHashMap<>();
 			for (Object key : allJSCommands.keySet()) {
 				mergeMap.put(new Pair<>("" + key, allJSCommands.getJSONArray("" + key)
-									       .getString(0)), wrapCommandForHotkeys(allJSCommands.getJSONArray("" + key)
-																  .getString(1)));
+					.getString(0)), wrapCommandForHotkeys(allJSCommands.getJSONArray("" + key)
+					.getString(1)));
 			}
 
 
@@ -740,7 +764,7 @@ public class RemoteEditor extends Box {
 			commandHelper.callTable.clear();
 			for (Map.Entry<Pair<String, String>, Runnable> r : commands) {
 				String u = UUID.randomUUID()
-					       .toString();
+					.toString();
 				commandHelper.callTable.put(u, r.getValue());
 				stringer.object();
 				stringer.key("name")
@@ -771,7 +795,8 @@ public class RemoteEditor extends Box {
 			ExtendedCommand r = commandHelper.callTable_alternative;
 
 			if (r != null) {
-				if (r instanceof ExtendedCommand) r.begin(commandHelper.supportsPrompt(x -> server.send(socketName, "_messageBus.publish('begin.commands', " + x + ")")), text);
+				if (r instanceof ExtendedCommand)
+					r.begin(commandHelper.supportsPrompt(x -> server.send(socketName, "_messageBus.publish('begin.commands', " + x + ")")), text);
 				r.run();
 			}
 
@@ -816,7 +841,7 @@ public class RemoteEditor extends Box {
 		List<String> fileStrings = new ArrayList<>();
 		for (File file : files) {
 			if (!file.isDirectory() && file.toString()
-						       .endsWith(".js")) {
+				.endsWith(".js")) {
 				String fullPath = file.toString();
 				fileStrings.add(fullPath.substring(fullPath.lastIndexOf('/') + 1));
 			}
@@ -852,11 +877,11 @@ public class RemoteEditor extends Box {
 					public void begin(SupportsPrompt prompt, String alternativeChosen) {
 						altWas = "";
 						String[] indivKeys = alternativeChosen.trim()
-										      .toLowerCase()
-										      .split("-");
+							.toLowerCase()
+							.split("-");
 						for (String key : indivKeys) {
 							altWas += key.substring(0, 1)
-								     .toUpperCase() + key.substring(1) + "-";
+								.toUpperCase() + key.substring(1) + "-";
 						}
 						altWas = altWas.substring(0, altWas.length() - 1);
 					}
@@ -887,7 +912,7 @@ public class RemoteEditor extends Box {
 								Log.log("hotkeys.error", () -> "couldn't parse <" + line + "> in file, on line " + finalN);
 							} else {
 								if (parts[0].trim()
-									    .equals(altWas)) {
+									.equals(altWas)) {
 									// filter it out
 								} else {
 									next += line + "\n";
@@ -919,7 +944,7 @@ public class RemoteEditor extends Box {
 							System.err.println("Error: Cannot open properties text file in read");
 						}
 						for (String line : propertiesContents.toString()
-										     .split("\n")) {
+							.split("\n")) {
 							String[] splitLine = line.split(":");
 							Log.log("hotkeys.debug", () -> " line is :" + splitLine.length + " <" + line + ">");
 							if (splitLine.length > 1) {
@@ -936,9 +961,10 @@ public class RemoteEditor extends Box {
 	protected <T> Consumer<T> newOutput(Box inside, String returnAddress, Function<T, String> toJson) {
 		Consumer<T> c = x -> {
 			String json = toJson.apply(x)
-					    .trim();
+				.trim();
 
-			if (json.endsWith("}")) json = json.substring(0, json.length() - 1) + ",box:'" + inside.properties.get(IO.id) + "'}";
+			if (json.endsWith("}"))
+				json = json.substring(0, json.length() - 1) + ",box:'" + inside.properties.get(IO.id) + "'}";
 
 			rater.add(new Pair<>(returnAddress, json));
 		};
@@ -948,7 +974,7 @@ public class RemoteEditor extends Box {
 
 	protected Optional<Box> findBoxByID(String uid) {
 		return breadthFirst(downwards()).filter(x -> Util.safeEq(x.properties.get(IO.id), uid))
-						.findFirst();
+			.findFirst();
 	}
 
 	public Dict.Prop<String> getCurrentlyEditingProperty() {
@@ -1038,28 +1064,29 @@ public class RemoteEditor extends Box {
 		if (selectionHasChanged) {
 			selectionHasChanged = false;
 			Set<Box> selection = this.breadthFirst(downwards())
-						 .filter(x -> x.properties.isTrue(Mouse.isSelected, false))
-						 .collect(Collectors.toSet());
+				.filter(x -> x.properties.isTrue(Mouse.isSelected, false))
+				.collect(Collectors.toSet());
 			if (selection.size() != 1) {
 				changeSelection(null, currentlyEditing);
 			} else {
 				Box target = selection.iterator()
-						      .next();
+					.next();
 
 				Dict.Prop objectProp;
 
 				if (currentlyEditing != null && target.properties.has(currentlyEditing)) {
 					objectProp = currentlyEditing;
 				} else objectProp = target.find(defaultEditorProperty, target.upwards())
-							  .findFirst()
-							  .map(x -> (Dict.Prop) new Dict.Prop<String>(x).toCannon())
-							  .orElseGet(() -> (Dict.Prop) Execution.code);
+					.findFirst()
+					.map(x -> (Dict.Prop) new Dict.Prop<String>(x).toCannon())
+					.orElseGet(() -> (Dict.Prop) Execution.code);
 
 
 				Log.log("remoteeditor",
 					() -> " looking for a defaultEditorProperty on <" + target + "> <" + target.properties.get(defaultEditorProperty) + ">, got <" + objectProp + ">");
 
-				if (!(target == currentSelection && objectProp.equals(currentlyEditing))) changeSelection(target, objectProp);
+				if (!(target == currentSelection && objectProp.equals(currentlyEditing)))
+					changeSelection(target, objectProp);
 			}
 		}
 		return true;
@@ -1068,12 +1095,12 @@ public class RemoteEditor extends Box {
 	static public Execution getExecution(Box box, Dict.Prop<String> prop) {
 
 		return box.breadthFirst(box.upwards())
-			  .filter(x -> x.properties.has(Execution.execution))
-			  .map(x -> x.properties.get(Execution.execution))
-			  .filter(x -> x != null)
-			  .filter(x -> x.support(box, prop) != null)
-			  .findFirst()
-			  .orElseGet(() -> null);
+			.filter(x -> x.properties.has(Execution.execution))
+			.map(x -> x.properties.get(Execution.execution))
+			.filter(x -> x != null)
+			.filter(x -> x.support(box, prop) != null)
+			.findFirst()
+			.orElseGet(() -> null);
 
 
 	}

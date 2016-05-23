@@ -524,7 +524,7 @@ public class FieldClojure extends Execution {
 			}
 
 			@Override
-			public void setLineOffsetForFragment(int lineOffset) {
+			public void setLineOffsetForFragment(int lineOffset, Dict.Prop<String> origin) {
 				this.lineOffset = lineOffset;
 			}
 		};
