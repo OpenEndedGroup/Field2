@@ -12,7 +12,9 @@ import fieldagent.Main;
 import fieldbox.boxes.Mouse;
 import fieldlinker.Linker;
 import org.lwjgl.glfw.GLFW;
+
 import static org.lwjgl.glfw.GLFW.*;
+
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.Configuration;
 import org.lwjgl.system.libffi.Closure;
@@ -37,8 +39,8 @@ import static org.lwjgl.glfw.GLFW.glfwWindowHint;
 public class Window implements ProvidesGraphicsContext {
 
 	static public final Dict.Prop<Boolean> consumed = new Dict.Prop<>("consumed").type()
-										     .doc("marks an event as handled elsewhere")
-										     .toCannon();
+		.doc("marks an event as handled elsewhere")
+		.toCannon();
 	static ThreadLocal<Window> currentWindow = new ThreadLocal<Window>() {
 		@Override
 		protected Window initialValue() {
@@ -48,7 +50,7 @@ public class Window implements ProvidesGraphicsContext {
 
 	static public final boolean glDebugging = Options.dict().isTrue(new Dict.Prop<>("gldebugging"), false);
 
-	private final int retinaScaleFactor;
+	private int retinaScaleFactor;
 
 	/**
 	 * the Scene associated with this window.
@@ -57,9 +59,9 @@ public class Window implements ProvidesGraphicsContext {
 	 */
 
 	public final Scene scene = new Scene();
-	private final long windowOpenedAt;
-	private final CanonicalModifierKeys modifiers;
-	private final GLCapabilities glcontext;
+	private long windowOpenedAt;
+	private CanonicalModifierKeys modifiers;
+	private GLCapabilities glcontext;
 	private final Consumer<Integer> perform = (i) -> loop();
 	private Closure c;
 	volatile boolean isThreaded = false;
@@ -84,10 +86,10 @@ public class Window implements ProvidesGraphicsContext {
 	private Rect currentBounds;
 
 	static public boolean doubleBuffered = Options.dict()
-						      .isTrue(new Dict.Prop("doubleBuffered"), Main.os== Main.OS.mac);
+		.isTrue(new Dict.Prop("doubleBuffered"), Main.os == Main.OS.mac);
 
 	static public Window shareContext = null;
-	protected final Window shareContextAtConstruction ;
+	protected final Window shareContextAtConstruction;
 
 	private Thread onlyThread = null;
 
@@ -103,13 +105,11 @@ public class Window implements ProvidesGraphicsContext {
 		currentBounds = new Rect(x, y, w, h);
 
 		shareContextAtConstruction = shareContext;
-		if (shareContext==null) {
+		if (shareContext == null) {
 			shareContext = this;
 			graphicsContext = GraphicsContext.newContext();
-		}
-		else
+		} else
 			graphicsContext = shareContext.graphicsContext;
-
 
 
 		glfwWindowHint(GLFW_DEPTH_BITS, 24);
@@ -125,7 +125,7 @@ public class Window implements ProvidesGraphicsContext {
 
 
 			if (glDebugging)
-			glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 1);
+				glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 1);
 		}
 
 		glfwWindowHint(GLFW_DOUBLEBUFFER, doubleBuffered ? 1 : 0);
@@ -137,52 +137,57 @@ public class Window implements ProvidesGraphicsContext {
 		this.x = x;
 		this.y = y;
 
-		window = glfwCreateWindow(w, h, title, 0, shareContext==this ? 0 : shareContext.window);
 
-		glfwSetWindowPos(window, x, y);
-		Windows.windows.register(window, makeCallback());
+		try {
+			ThreadSync.callInMainThreadAndWait(() -> {
+				window = glfwCreateWindow(w, h, title, 0, shareContext == this ? 0 : shareContext.window);
+				glfwSetWindowPos(window, x, y);
+				Windows.windows.register(window, makeCallback());
 
-		glfwShowWindow(window);
+				glfwShowWindow(window);
 
-		glfwMakeContextCurrent(window);
-		glfwSwapInterval(1);
+				glfwMakeContextCurrent(window);
+				glfwSwapInterval(1);
 
-		glfwWindowShouldClose(window);
+				glfwWindowShouldClose(window);
 
-		if (shareContext==this)
-		{
-			glcontext = GL.createCapabilities(true);
+				if (shareContext == this) {
+					glcontext = GL.createCapabilities(true);
+				} else {
+					glcontext = shareContext.glcontext;
+					GL.setCapabilities(glcontext);
+				}
+
+
+				GL11.glClearColor(0.25f, 0.25f, 0.25f, 1);
+				GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
+				if (glDebugging) {
+					GL11.glEnable(GL43.GL_DEBUG_OUTPUT_SYNCHRONOUS);
+					c = GLUtil.setupDebugMessageCallback();
+				}
+
+				glfwSwapBuffers(window);
+
+				RunLoop.main.getLoop()
+					.attach(0, perform);
+
+
+				glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS, GL11.GL_TRUE);
+
+				retinaScaleFactor = permitRetina ? (int) (Options.dict()
+					.getFloat(new Dict.Prop<Number>("retina"), 0f) + 1) : 1;
+
+				windowOpenedAt = RunLoop.tick;
+
+
+				modifiers = new CanonicalModifierKeys(window);
+
+				return window;
+			});
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-		else
-		{
-			glcontext = shareContext.glcontext;
-			GL.setCapabilities(glcontext);
-		}
 
-
-
-		GL11.glClearColor(0.25f, 0.25f, 0.25f, 1);
-		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
-		if (glDebugging) {
-			GL11.glEnable(GL43.GL_DEBUG_OUTPUT_SYNCHRONOUS);
-			c = GLUtil.setupDebugMessageCallback();
-		}
-
-		glfwSwapBuffers(window);
-
-		RunLoop.main.getLoop()
-			    .attach(0, perform);
-
-
-		glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS, GL11.GL_TRUE);
-
-		retinaScaleFactor = permitRetina ? (int) (Options.dict()
-								 .getFloat(new Dict.Prop<Number>("retina"), 0f) + 1) : 1;
-
-		windowOpenedAt = RunLoop.tick;
-
-
-		modifiers = new CanonicalModifierKeys(window);
 
 		new Thread() {
 			long lastAt = System.currentTimeMillis();
@@ -193,7 +198,8 @@ public class Window implements ProvidesGraphicsContext {
 				while (true) {
 					if (System.currentTimeMillis() - lastAt > 5000) {
 						double f = 1000 * (frame - lastWas) / (float) (System.currentTimeMillis() - lastAt);
-						if (lastWas > 0 && (frame != lastWas)) System.err.println(" frame rate is :" + f + " for " + Window.this);
+						if (lastWas > 0 && (frame != lastWas))
+							System.err.println(" frame rate is :" + f + " for " + Window.this);
 						lastWas = frame;
 						lastAt = System.currentTimeMillis();
 					}
@@ -211,9 +217,10 @@ public class Window implements ProvidesGraphicsContext {
 	}
 
 	public void goThreaded() {
-		if (shareContextAtConstruction!=null) throw new IllegalArgumentException(" can't multithread a window if it's sharing a context on construciton. Set Window.shareContext to null before creating window");
+		if (shareContextAtConstruction != null)
+			throw new IllegalArgumentException(" can't multithread a window if it's sharing a context on construciton. Set Window.shareContext to null before creating window");
 		RunLoop.main.getLoop()
-			    .detach(perform);
+			.detach(perform);
 		isThreaded = true;
 
 
@@ -296,21 +303,24 @@ public class Window implements ProvidesGraphicsContext {
 
 			if (frame == 10) glfwSetWindowPos(window, x, y);
 
-			if (Main.os== Main.OS.mac) {
+			if (Main.os == Main.OS.mac && false) {
+
+				if (frameHack < 5) System.out.println(" frame hack :" + frameHack);
+
 				// shenanegians required to order front a window on El Capitan
 				if (frameHack++ == 0) {
 					Rect r = getBounds();
+					setBounds((int) r.x + 1, (int) r.y + 1, (int) r.w + 1, (int) r.h + 10);
+				}
+				if (frameHack == 5) {
+					Rect r = getBounds();
+					setBounds((int) r.x - 1, (int) r.y - 1, (int) r.w - 1, (int) r.h - 10);
+				}
+				if (frameHack == 10) {
+					Rect r = getBounds();
 					setBounds((int) r.x, (int) r.y, (int) r.w, (int) r.h + 1);
 				}
-				if (frameHack == 1) {
-					Rect r = getBounds();
-					setBounds((int) r.x, (int) r.y, (int) r.w, (int) r.h - 1);
-				}
-				if (frameHack == 2) {
-					Rect r = getBounds();
-					setBounds((int) r.x, (int) r.y, (int) r.w, (int) r.h + 1);
-				}
-				if (frameHack == 3) {
+				if (frameHack == 15) {
 					Rect r = getBounds();
 					setBounds((int) r.x, (int) r.y, (int) r.w, (int) r.h - 1);
 				}
@@ -321,7 +331,6 @@ public class Window implements ProvidesGraphicsContext {
 			}
 
 			if (renderControl.skipRender()) {
-				System.out.println(" skipping render ");
 				if (!isThreaded) glfwPollEvents();
 				return;
 			}
@@ -420,15 +429,13 @@ public class Window implements ProvidesGraphicsContext {
 	public void setBounds(int x, int y, int w, int h) {
 		glfwSetWindowSize(window, w, h);
 		glfwSetWindowPos(window, x, y);
-		glfwSetWindowSize(window, w, h);
-		glfwSetWindowPos(window, x, y);
 		currentBounds = new Rect(x, y, w, h);
 	}
 
 
 	public Rect getBounds() {
-		if (currentBounds==null)
-			currentBounds = new Rect(0,0,500,500);
+		if (currentBounds == null)
+			currentBounds = new Rect(0, 0, 500, 500);
 		currentBounds.x = glfwGetWindowX(window);
 		currentBounds.y = glfwGetWindowY(window);
 		currentBounds.w = glfwGetWindowWidth(window);
@@ -459,7 +466,7 @@ public class Window implements ProvidesGraphicsContext {
 	}
 
 	public GraphicsContext getGraphicsContext() {
-		if (graphicsContext==null)
+		if (graphicsContext == null)
 			System.err.println("WARNING: no graphics context for window");
 		return graphicsContext;
 	}
@@ -524,23 +531,27 @@ public class Window implements ProvidesGraphicsContext {
 	private void fireMouseTransition(MouseState before, MouseState after) {
 		after.keyboardState = keyboardState;
 
-		if ((after.mods & GLFW_MOD_SHIFT) != 0) after.keyboardState = after.keyboardState.withKey(GLFW_KEY_LEFT_SHIFT, true);
+		if ((after.mods & GLFW_MOD_SHIFT) != 0)
+			after.keyboardState = after.keyboardState.withKey(GLFW_KEY_LEFT_SHIFT, true);
 		else after.keyboardState = after.keyboardState.withKey(GLFW_KEY_LEFT_SHIFT, false)
-							      .withKey(GLFW_KEY_RIGHT_SHIFT, false);
-		if ((after.mods & GLFW_MOD_CONTROL) != 0) after.keyboardState = after.keyboardState.withKey(GLFW_KEY_LEFT_CONTROL, true);
+			.withKey(GLFW_KEY_RIGHT_SHIFT, false);
+		if ((after.mods & GLFW_MOD_CONTROL) != 0)
+			after.keyboardState = after.keyboardState.withKey(GLFW_KEY_LEFT_CONTROL, true);
 		else after.keyboardState = after.keyboardState.withKey(GLFW_KEY_LEFT_CONTROL, false)
-							      .withKey(GLFW_KEY_RIGHT_CONTROL, false);
-		if ((after.mods & GLFW_MOD_ALT) != 0) after.keyboardState = after.keyboardState.withKey(GLFW_KEY_LEFT_ALT, true);
+			.withKey(GLFW_KEY_RIGHT_CONTROL, false);
+		if ((after.mods & GLFW_MOD_ALT) != 0)
+			after.keyboardState = after.keyboardState.withKey(GLFW_KEY_LEFT_ALT, true);
 		else after.keyboardState = after.keyboardState.withKey(GLFW_KEY_LEFT_ALT, false)
-							      .withKey(GLFW_KEY_RIGHT_ALT, false);
-		if ((after.mods & GLFW_MOD_SUPER) != 0) after.keyboardState = after.keyboardState.withKey(GLFW_KEY_LEFT_SUPER, true);
+			.withKey(GLFW_KEY_RIGHT_ALT, false);
+		if ((after.mods & GLFW_MOD_SUPER) != 0)
+			after.keyboardState = after.keyboardState.withKey(GLFW_KEY_LEFT_SUPER, true);
 		else after.keyboardState = after.keyboardState.withKey(GLFW_KEY_LEFT_SUPER, false)
-							      .withKey(GLFW_KEY_RIGHT_SUPER, false);
+			.withKey(GLFW_KEY_RIGHT_SUPER, false);
 
 		Iterator<Function<Event<MouseState>, Boolean>> i = mouseHandlers.iterator();
 		Event<MouseState> event = new Event<>(before, after);
 		while (i.hasNext()) if (!i.next()
-					  .apply(event)) i.remove();
+			.apply(event)) i.remove();
 
 		doHighLevelMouseEvents(event);
 	}
@@ -551,7 +562,7 @@ public class Window implements ProvidesGraphicsContext {
 		Iterator<Function<Event<MouseState>, Boolean>> i = mouseHandlers.iterator();
 		Event<MouseState> event = new Event<>(before, after);
 		while (i.hasNext()) if (!i.next()
-					  .apply(event)) i.remove();
+			.apply(event)) i.remove();
 
 		doHighLevelMouseEvents(event);
 	}
@@ -567,8 +578,8 @@ public class Window implements ProvidesGraphicsContext {
 			.filter(x -> x != null)
 			.forEach(drags -> {
 				drags.stream()
-				     .filter(d -> d != null)
-				     .forEach(dragger -> dragger.update(event, true));
+					.filter(d -> d != null)
+					.forEach(dragger -> dragger.update(event, true));
 				drags.clear();
 			});
 
@@ -592,25 +603,25 @@ public class Window implements ProvidesGraphicsContext {
 
 
 		if (event.after.dwheely != 0.0 || event.after.dwheel != 0.0) onMouseScroll.values()
-											  .forEach(Util.wrap(x -> x.onMouseScroll(event), errors));
+			.forEach(Util.wrap(x -> x.onMouseScroll(event), errors));
 
 
 		pressed.stream()
-		       .forEach(p -> {
-			       Collection<Mouse.Dragger> dragger = ongoingDrags.computeIfAbsent(p, (x) -> new ArrayList<>());
+			.forEach(p -> {
+				Collection<Mouse.Dragger> dragger = ongoingDrags.computeIfAbsent(p, (x) -> new ArrayList<>());
 
-			       onMouseDown.values()
-					  .stream()
-					  .map(Util.wrap(x -> x.onMouseDown(event, p), errors, null, Mouse.Dragger.class))
-					  .filter(x -> x != null)
-					  .collect(Collectors.toCollection(() -> dragger));
-		       });
+				onMouseDown.values()
+					.stream()
+					.map(Util.wrap(x -> x.onMouseDown(event, p), errors, null, Mouse.Dragger.class))
+					.filter(x -> x != null)
+					.collect(Collectors.toCollection(() -> dragger));
+			});
 
 		if (errors.hasErrors()) {
 			errors.getErrors()
-			      .forEach(x -> {
-				      x.first.printStackTrace();
-			      });
+				.forEach(x -> {
+					x.first.printStackTrace();
+				});
 		}
 	}
 
@@ -619,14 +630,14 @@ public class Window implements ProvidesGraphicsContext {
 		Iterator<Function<Event<KeyboardState>, Boolean>> i = keyboardHandlers.iterator();
 		Event<KeyboardState> event = new Event<>(before, after);
 		while (i.hasNext()) if (!i.next()
-					  .apply(event)) i.remove();
+			.apply(event)) i.remove();
 	}
 
 	private void fireDrop(Drop drop) {
 		Iterator<Function<Event<Drop>, Boolean>> i = dropHandlers.iterator();
 		Event<Drop> event = new Event<>(null, drop);
 		while (i.hasNext()) if (!i.next()
-					  .apply(event)) i.remove();
+			.apply(event)) i.remove();
 	}
 
 	public int getWidth() {
@@ -664,7 +675,7 @@ public class Window implements ProvidesGraphicsContext {
 			@Override
 			public void mouseButton(long window, int button, int pressed, int mods) {
 				if (window == Window.this.window) {
-					MouseState next = mouseState.withButton(button, pressed!=0, mods);
+					MouseState next = mouseState.withButton(button, pressed != 0, mods);
 					fireMouseTransition(mouseState, next);
 					mouseState = next;
 				}
@@ -717,19 +728,19 @@ public class Window implements ProvidesGraphicsContext {
 			@Override
 			public void character(long window, int character) {
 				if (window == Window.this.window) {
-					KeyboardState next = keyboardState.withChar((char)character, true);
+					KeyboardState next = keyboardState.withChar((char) character, true);
 
-					boolean shift = ((glfwGetKey(window, GLFW_KEY_LEFT_SHIFT)) | (glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT)))!=0 ;
-					boolean alt = ((glfwGetKey(window, GLFW_KEY_LEFT_ALT)) | (glfwGetKey(window, GLFW_KEY_RIGHT_ALT)))!=0;
-					boolean meta = ((glfwGetKey(window, GLFW_KEY_LEFT_SUPER)) | (glfwGetKey(window, GLFW_KEY_RIGHT_SUPER)))!=0;
-					boolean ctrl = ((glfwGetKey(window, GLFW_KEY_LEFT_CONTROL)) | (glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL)))!=0;
+					boolean shift = ((glfwGetKey(window, GLFW_KEY_LEFT_SHIFT)) | (glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT))) != 0;
+					boolean alt = ((glfwGetKey(window, GLFW_KEY_LEFT_ALT)) | (glfwGetKey(window, GLFW_KEY_RIGHT_ALT))) != 0;
+					boolean meta = ((glfwGetKey(window, GLFW_KEY_LEFT_SUPER)) | (glfwGetKey(window, GLFW_KEY_RIGHT_SUPER))) != 0;
+					boolean ctrl = ((glfwGetKey(window, GLFW_KEY_LEFT_CONTROL)) | (glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL))) != 0;
 
 					next = modifiers.cleanModifiers(next);
 					next = next.clean(window);
 
 					fireKeyboardTransition(keyboardState, next);
 					keyboardState = next;
-					next = keyboardState.withChar((char)character, false);
+					next = keyboardState.withChar((char) character, false);
 
 					next = modifiers.cleanModifiers(next);
 					next = next.clean(window);
@@ -894,12 +905,12 @@ public class Window implements ProvidesGraphicsContext {
 		@Override
 		public String toString() {
 			return "MouseState{" +
-				    "buttonsDown=" + buttonsDown +
-				    ", x=" + x +
-				    ", y=" + y +
-				    ", dwheel=" + dwheel +
-				    ", time=" + time +
-				    '}';
+				"buttonsDown=" + buttonsDown +
+				", x=" + x +
+				", y=" + y +
+				", dwheel=" + dwheel +
+				", time=" + time +
+				'}';
 		}
 
 		@Override
@@ -1026,10 +1037,10 @@ public class Window implements ProvidesGraphicsContext {
 		@Override
 		public String toString() {
 			return "KeyboardState{" +
-				    "keysDown=" + keysDown +
-				    ", charsDown=" + charsDown +
-				    ", time=" + time +
-				    '}';
+				"keysDown=" + keysDown +
+				", charsDown=" + charsDown +
+				", time=" + time +
+				'}';
 		}
 
 		public Optional<Vec2> position() {
@@ -1047,7 +1058,7 @@ public class Window implements ProvidesGraphicsContext {
 				if (m == GLFW_KEY_LEFT_SHIFT || m == GLFW_KEY_RIGHT_SHIFT || m == GLFW_KEY_LEFT_ALT || m == GLFW_KEY_RIGHT_ALT || m == GLFW_KEY_LEFT_SUPER || m == GLFW_KEY_RIGHT_SUPER || m == GLFW_KEY_LEFT_CONTROL || m == GLFW_KEY_RIGHT_CONTROL)
 					continue;
 
-				boolean notReally = glfwGetKey(window, m)!=0;
+				boolean notReally = glfwGetKey(window, m) != 0;
 				if (!notReally) {
 					Log.log("keyboard.debug", () -> "Got an imposter :" + m + " " + KeyEventMapping.lookup(m));
 					ii.remove();
@@ -1108,33 +1119,32 @@ public class Window implements ProvidesGraphicsContext {
 	private IntBuffer glfwGetWindowWidth_x = ByteBuffer.allocateDirect(4).order(ByteOrder.nativeOrder()).asIntBuffer();
 	private IntBuffer glfwGetWindowWidth_y = ByteBuffer.allocateDirect(4).order(ByteOrder.nativeOrder()).asIntBuffer();
 
-	private int glfwGetWindowWidth(long window)
-	{
+	private int glfwGetWindowWidth(long window) {
 		glfwGetWindowSize(window, glfwGetWindowWidth_x, glfwGetWindowWidth_y);
 		return glfwGetWindowWidth_x.get(0);
 	}
-	private int glfwGetWindowHeight(long window)
-	{
+
+	private int glfwGetWindowHeight(long window) {
 		glfwGetWindowSize(window, glfwGetWindowWidth_x, glfwGetWindowWidth_y);
 		return glfwGetWindowWidth_y.get(0);
 	}
-	private int glfwGetFrameBufferWidth(long window)
-	{
+
+	private int glfwGetFrameBufferWidth(long window) {
 		glfwGetFramebufferSize(window, glfwGetWindowWidth_x, glfwGetWindowWidth_y);
 		return glfwGetWindowWidth_x.get(0);
 	}
-	private int glfwGetFrameBufferHeight(long window)
-	{
+
+	private int glfwGetFrameBufferHeight(long window) {
 		glfwGetFramebufferSize(window, glfwGetWindowWidth_x, glfwGetWindowWidth_y);
 		return glfwGetWindowWidth_y.get(0);
 	}
-	private int glfwGetWindowX(long window)
-	{
+
+	private int glfwGetWindowX(long window) {
 		glfwGetWindowPos(window, glfwGetWindowWidth_x, glfwGetWindowWidth_y);
 		return glfwGetWindowWidth_x.get(0);
 	}
-	private int glfwGetWindowY(long window)
-	{
+
+	private int glfwGetWindowY(long window) {
 		glfwGetWindowPos(window, glfwGetWindowWidth_x, glfwGetWindowWidth_y);
 		return glfwGetWindowWidth_y.get(0);
 	}
