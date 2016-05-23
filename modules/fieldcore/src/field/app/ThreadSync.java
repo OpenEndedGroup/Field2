@@ -183,7 +183,7 @@ public class ThreadSync {
 		currentFiber = f;
 		try {
 
-			Object o = f.output.take();
+			Object o = debugTake(f);
 			if (f.runner.isDone()) live.remove(this);
 			if (o == NULL) o = null;
 			out.accept((V) o);
