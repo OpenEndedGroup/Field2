@@ -145,15 +145,9 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 
 			float w = selected ? 10 : 5;
 
-//			if (selected) f.circle(at.x, at.y, w);
-
-
 			Log.log("nub", ()->"middle is " + at);
 
-			f.attributes.put(strokeColor, selected ? new Vec4(1, 1, 1, -0.1f) : new Vec4(0, 0, 0, 0.1f));
-//			if (selected) f.attributes.put(thicken, new BasicStroke(selected ? 16 : 0.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
-
-//			f.attributes.put(filled, true);
+			f.attributes.put(strokeColor, selected ? new Vec4(1, 1, 1, -0.4f) : new Vec4(0, 0, 0, 0.1f));
 			f.attributes.put(stroked, true);
 
 			return f;
