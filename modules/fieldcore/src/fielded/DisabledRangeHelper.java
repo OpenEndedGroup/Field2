@@ -24,45 +24,50 @@ public class DisabledRangeHelper {
 			r.add(new Pair<>(a1.getInt(0), a1.getInt(1)));
 		}
 
-		System.out.println(" parsed disabled ranges, got :"+r);
-
 		return r;
 	}
 
-	static public String rewriteWithDisabledRanges(String code, String commentStartCharacter, String commentEndCharacter, List<Pair<Integer, Integer>> disabled)
-	{
+	static public String rewriteWithDisabledRanges(String code, String commentStartCharacter, String commentEndCharacter, List<Pair<Integer, Integer>> disabled) {
+		return rewriteWithDisabledRanges(code, commentStartCharacter, commentEndCharacter, disabled, 0);
+	}
+
+	static public String rewriteWithDisabledRanges(String code, String commentStartCharacter, String commentEndCharacter, List<Pair<Integer, Integer>> disabled, int lineoffset) {
 		String[] lines = code.split("\n");
-		if (lines.length==0) return "";
+		if (lines.length == 0) return "";
 
 		ArrayList<String> m = new ArrayList<>(Arrays.asList(lines));
 
 		List<Pair<Integer, Boolean>> kinds = new ArrayList<>();
 		disabled.forEach(x -> {
-			kinds.add(new Pair<>(x.first, true));
-			kinds.add(new Pair<>(x.second, false));
+			// not >=0, if we select exactly this block, we want to be able to execute it
+			if (x.first - lineoffset > 0 && x.first - lineoffset < lines.length && x.second - lineoffset >=0 && x.second - lineoffset < lines.length) {
+				kinds.add(new Pair<>(x.first - lineoffset, true));
+				kinds.add(new Pair<>(x.second - lineoffset, false));
+			}
 		});
 
 		Collections.sort(kinds, (a, b) -> Integer.compare(a.first, b.first));
 
-		for(int i=kinds.size()-1;i>=0;i--)
-		{
+		for (int i = kinds.size() - 1; i >= 0; i--) {
 			m.add(kinds.get(i).first + (kinds.get(i).second ? 0 : 1), kinds.get(i).second ? commentStartCharacter : commentEndCharacter);
 		}
 
 		String q = m.stream()
-			    .reduce((a, b) -> a + "\n" + b)
-			    .get();
+			.reduce((a, b) -> {
+				if (a.endsWith(commentStartCharacter)) return a + "" + b;
+				if (b.startsWith(commentEndCharacter)) return a + "" + b;
+				return a + "\n" + b;
+			})
+			.get();
 
 
-		System.out.println(" inserted "+disabled+" into\n"+code+"\n got \n"+q);
 		return q;
 	}
 
-	static public String getStringWithDisabledRanges(Box from, Dict.Prop<String> stringProp, String start, String end)
-	{
+	static public String getStringWithDisabledRanges(Box from, Dict.Prop<String> stringProp, String start, String end) {
 		String code = from.properties.get(stringProp);
 		List<Pair<Integer, Integer>> dis = from.properties.get(new Dict.Prop<List<Pair<Integer, Integer>>>(stringProp.getName() + "_disabled"));
-		if (dis==null) return code;
+		if (dis == null) return code;
 
 		return rewriteWithDisabledRanges(code, start, end, dis);
 	}
