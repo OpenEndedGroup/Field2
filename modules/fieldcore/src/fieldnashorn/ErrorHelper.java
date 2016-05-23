@@ -70,14 +70,11 @@ public class ErrorHelper {
 
 			String text = line.second + "<br>Do you mean to import ";
 			for (Pair<String, String> p : matches) {
-				//text+="<a href='banana.html'>"+p.first+"<a><br>";
 				text += TransientCommands.transientCommands.refForCommand(p.first, () -> {
 					EditorUtils ed = box.first(RemoteEditor.editorUtils, box.both()).orElseThrow(() -> new IllegalStateException(" no editortools ? "));
 					RunLoop.workerPool.submit(() -> {
 
 						int s = ed.getCursorPosition();
-						System.out.println(" current cursor position is :"+s);
-
 
 						String[] f = p.first.split("\\.");
 						String insert = "var "+f[f.length - 1]+" = Java.type('"+p.first+"')\\n";
@@ -87,6 +84,8 @@ public class ErrorHelper {
 				});
 
 			}
+
+			text+="?<br>";
 
 			return new Pair<Integer, String>(line.first, text);
 

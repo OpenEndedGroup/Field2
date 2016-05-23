@@ -62,14 +62,16 @@ public class RunLoop {
 				tick++;
 
 				long a = System.nanoTime();
+				boolean didWork = false;
 				if (lock.tryLock(1, TimeUnit.DAYS)) {
 					long b = System.nanoTime();
 
 					mainLoop.updateAll();
 
 					long c = System.nanoTime();
-					ThreadSync.get()
-						  .serviceAndCull();
+					didWork = ThreadSync.get()
+						.serviceAndCull();
+
 					long d = System.nanoTime();
 
 					getLock += b - a;
@@ -79,7 +81,8 @@ public class RunLoop {
 				} else {
 					locksMissed++;
 				}
-				if (shouldSleep.size() == 0) {
+
+				if (shouldSleep.size() == 0 && !didWork) {
 					Thread.sleep(2);
 					sleepsTaken++;
 				}

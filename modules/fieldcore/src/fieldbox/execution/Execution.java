@@ -1,9 +1,6 @@
 package fieldbox.execution;
 
-import field.utility.Dict;
-import field.utility.LinkedHashMapAndArrayList;
-import field.utility.Pair;
-import field.utility.Triple;
+import field.utility.*;
 import fieldbox.boxes.Box;
 import fielded.RemoteEditor;
 
@@ -29,7 +26,7 @@ public class Execution extends Box {
 	static public Dict.Prop<LinkedHashMapAndArrayList<CompletionSupport>> imports= new Dict.Prop<>("imports").toCannon().type().doc("Functions that can return import help for code in the editor");
 	static public Dict.Prop<FunctionOfBox<Boolean>> executionFilter = new Dict.Prop<>("executionFilter").toCannon().type().doc("defines a function that, when called with a box, returns a boolean describing whether this box should be handled by this Execution implementation");
 
-	static public Dict.Prop<Consumer<Triple<Box, Integer, String>>> directedOutput = new Dict.Prop<>("_directedOutput").toCannon();
+	static public Dict.Prop<Consumer<Quad<Box, Integer, String, Boolean>>> directedOutput = new Dict.Prop<>("_directedOutput").toCannon();
 
 	private final BiFunction<Box, Dict.Prop<String>, ? extends ExecutionSupport> support;
 
@@ -59,6 +56,8 @@ public class Execution extends Box {
 		void executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors);
 
 		void executeAll(String allText, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success);
+
+		default void setLineOffsetForFragment(int line, Dict.Prop<String> origin){}
 
 		String begin(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success, Map<String, Object> initiator);
 
@@ -112,8 +111,6 @@ public class Execution extends Box {
 				    .orElse(x -> (is -> System.out.println("output (without remote editor attached) :" + is))).apply(box));
 		}
 
-		default void setLineOffsetForFragment(int lineOffset)
-		{}
 	}
 
 	/**

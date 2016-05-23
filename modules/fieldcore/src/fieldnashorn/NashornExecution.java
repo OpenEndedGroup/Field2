@@ -2,13 +2,9 @@ package fieldnashorn;
 
 import field.app.ThreadSync;
 import field.linalg.Vec4;
+import field.utility.*;
 import jdk.nashorn.api.scripting.NashornException;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
-import field.utility.Dict;
-import field.utility.Log;
-import field.utility.Pair;
-import field.utility.Util;
-import field.utility.Triple;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Boxes;
 import fieldbox.boxes.Callbacks;
@@ -54,9 +50,10 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	int uniq = 0;
 	private TernSupport ternSupport;
 	private int lineOffset;
-	private Pair<Box, Integer> currentLineNumber = null;
+	private Triple<Box, Integer, Boolean> currentLineNumber = null;
 
 	static public final ThreadLocal<ScriptEngine> currentEngine = new ThreadLocal<>();
+	private Dict.Prop<String> originProperty;
 
 
 	public NashornExecution(Box box, Dict.Prop<String> property, ScriptContext b, ScriptEngine engine) {
@@ -109,11 +106,11 @@ public class NashornExecution implements Execution.ExecutionSupport {
 								success.accept(s);
 							else {
 								final String finalS = s;
-								Optional<Consumer<Triple<Box, Integer, String>>> o = box.find(Execution.directedOutput, box.upwards())
+								Optional<Consumer<Quad<Box, Integer, String, Boolean>>> o = box.find(Execution.directedOutput, box.upwards())
 									.findFirst();
 
 								if (o.isPresent()) {
-									o.ifPresent(x -> x.accept(new Triple<>(currentLineNumber.first, currentLineNumber.second, finalS)));
+									o.ifPresent(x -> x.accept(new Quad<>(currentLineNumber.first, currentLineNumber.second, finalS, currentLineNumber.third)));
 								} else {
 									success.accept(finalS);
 								}
@@ -170,11 +167,16 @@ public class NashornExecution implements Execution.ExecutionSupport {
 			output.setWriter(writer, this::setCurrentLineNumberForPrinting);
 
 			Consumer<Pair<Integer, String>> finalLineErrors = lineErrors;
-			Object ret = engineeval(textFragment, context, e -> handleScriptException(e, finalLineErrors, lineTransform));
+			boolean[] error = {false};
+
+			Object ret = engineeval(textFragment, context, e -> {
+				error[0] = true;
+				handleScriptException(e, finalLineErrors, lineTransform);
+			});
 
 			Log.log("nashorn.general", () -> "\n<<javascript out" + ret + " " + (ret != null ? ret.getClass() + "" : ""));
 			if (writer != null) writer.flush();
-			if (success != null && printResult && !written[0]) {
+			if (success != null && printResult && !written[0] && !error[0]) {
 				if (ret != null) {
 					if (ret instanceof ScriptObjectMirror && ((ScriptObjectMirror) ret).isFunction()) {
 						success.accept("[function defined]<br>");
@@ -197,7 +199,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 		}
 	}
 
-	private void setCurrentLineNumberForPrinting(Pair<Box, Integer> boxLine) {
+	private void setCurrentLineNumberForPrinting(Triple<Box, Integer, Boolean> boxLine) {
 		currentLineNumber = boxLine;
 	}
 
@@ -293,10 +295,14 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	}
 
 	private Object engineeval(String textFragment, ScriptContext context, Consumer<Throwable> exception) throws ScriptException {
+		Set<Throwable> seenBefore = new LinkedHashSet<>();
 		if (ThreadSync.enabled && Thread.currentThread() == ThreadSync.get().mainThread) {
 			try {
 				ThreadSync.Fiber f = ThreadSync.get()
-					.run("execution of {{"+textFragment+"}}", () -> engine.eval(textFragment, context), exception);
+					.run("execution of {{"+textFragment+"}}", () -> engine.eval(textFragment, context), t -> {
+						if (seenBefore.add(t))
+							exception.accept(t);
+					});
 				f.tag = box;
 				return f.lastReturn;
 
@@ -318,8 +324,9 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	}
 
 	@Override
-	public void setLineOffsetForFragment(int line) {
+	public void setLineOffsetForFragment(int line, Dict.Prop<String> origin) {
 		lineOffset = line;
+		originProperty = origin;
 	}
 
 	@Override
@@ -363,7 +370,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 			initiator.entrySet()
 				.forEach(x -> context.setAttribute(x.getKey(), x.getValue(), ScriptContext.ENGINE_SCOPE));
 
-			String allText = DisabledRangeHelper.getStringWithDisabledRanges(box, property, "/*", "*/");
+			String allText = DisabledRangeHelper.getStringWithDisabledRanges(box, property, "/* -- start -- ", "-- end -- */");
 
 			executeAndReturn(allText, lineErrors, success, true);
 			Object _r = context.getBindings(ScriptContext.ENGINE_SCOPE)

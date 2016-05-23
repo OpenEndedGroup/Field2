@@ -166,9 +166,15 @@ a {
 
 .CodeMirror
 {
-    font-family: "Source Code Pro";
+    font-family: "Fira Code", "Source Code Pro" !important;
+    font-variant-ligatures: normal;
     font-size:15px;
-    -webkit-font-smoothing:subpixel-antialiased !important;
+
+    -webkit-font-variant-ligatures: common-ligatures;
+    font-variant-ligatures: common-ligatures;
+    -webkit-font-feature-settings: "kern";
+    font-feature-settings: "kern";
+    font-kerning: normal;
 }
 
 .CodeMirror pre {
@@ -176,8 +182,8 @@ a {
 }
 
 .CodeMirror div.CodeMirror-cursor {
-    border: 2px solid red;
-    background: #a00;
+    border: 2px solid rgba(255, 0, 0, 0.35);
+    background: rgba(255, 0, 0, 0.35);
 }
 
 /* Shown when moving in bi-directional text */
@@ -354,6 +360,7 @@ a {
     border: 1px solid rgba(0, 0, 0, 0.1);
     margin-right:50px;
 	overflow-wrap: break-word;
+    font-size:80%;
 }
 
 .Field-remoteOutput-error {
@@ -373,6 +380,7 @@ a {
     border: 1px solid rgba(0, 0, 0, 0.1);
     margin-right:50px;
 	overflow-wrap: break-word;
+    font-size:80%;
 }
 
 .Field-remoteColor {
@@ -889,3 +897,63 @@ code {
 .FieldError-line {
     background: rgba(128, 0, 0, 0.5);
 }
+
+.FieldDisabled-line::after {
+    content: " ";
+    white-space: pre;
+    display:inline-block;
+    position:absolute;
+    top:0px;
+    width:100%;
+
+    background: rgba(64,64,64, 0.5);
+    border-right: 2px rgba(128,128,128,0.5) dashed;
+    z-index:2;
+}
+
+.FieldDisabled-line-top::after {
+    content: " ";
+    white-space: pre;
+    display:inline-block;
+    position:absolute;
+    top:0px;
+    width:100%;
+    height:90%;
+
+    background: rgba(64,64,64, 0.5);
+    border-top: 2px rgba(128,128,128,0.5) dashed;
+    border-right: 2px rgba(128,128,128,0.5) dashed;
+    z-index:2;
+}
+
+.FieldDisabled-line-bottom::after   {
+    content: " ";
+    white-space: pre;
+    display:inline-block;
+    position:absolute;
+    top:0px;
+    width:100%;
+
+    background: rgba(64,64,64, 0.5);
+    border-bottom: 2px rgba(128,128,128,0.5) dashed;
+    border-right: 2px rgba(128,128,128,0.5) dashed;
+    z-index:2;
+}
+
+
+.cm-s-default span.cm-keyword {
+    color: #dba;
+    font-style: italic;
+}
+
+.cm-s-default span.cm-def {
+    color: #acf;
+    font-weight: 900;
+}
+
+.cm-s-default span.cm-property {
+    color: #aab;
+    font-weight: 900;
+}
+
+

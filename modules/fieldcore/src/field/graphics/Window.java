@@ -53,7 +53,7 @@ public class Window implements ProvidesGraphicsContext {
 
 	static public final boolean glDebugging = Options.dict().isTrue(new Dict.Prop<>("gldebugging"), false);
 
-	private final int retinaScaleFactor;
+	private int retinaScaleFactor;
 
 	/**
 	 * the Scene associated with this window.
@@ -62,9 +62,9 @@ public class Window implements ProvidesGraphicsContext {
 	 */
 
 	public final Scene scene = new Scene();
-	private final long windowOpenedAt;
-	private final CanonicalModifierKeys modifiers;
-	private final GLCapabilities glcontext;
+	private long windowOpenedAt;
+	private CanonicalModifierKeys modifiers;
+	private GLCapabilities glcontext;
 	private final Consumer<Integer> perform = (i) -> loop();
 	private final Thread createdInThread;
 	private Callback c;
@@ -75,6 +75,7 @@ public class Window implements ProvidesGraphicsContext {
 
 	protected int w, x;
 	protected int h, y;
+
 
 	protected MouseState mouseState = new MouseState();
 	protected KeyboardState keyboardState = new KeyboardState();
@@ -92,7 +93,6 @@ public class Window implements ProvidesGraphicsContext {
 
 	static public boolean doubleBuffered = Options.dict()
 		.isTrue(new Dict.Prop("doubleBuffered"), Main.os == Main.OS.mac);
-
 	static public boolean dontShare = Options.dict()
 		.isTrue(new Dict.Prop("dontShare"), false);
 
@@ -147,52 +147,59 @@ public class Window implements ProvidesGraphicsContext {
 		this.x = x;
 		this.y = y;
 
-		window = glfwCreateWindow(w, h, title, 0, (shareContext == this ? 0 : shareContext.window));
 
-		if (window == 0) {
-			System.err.println(" FAILED TO CREATE WINDOW :" + shareContext);
+	try {
+			ThreadSync.callInMainThreadAndWait(() -> {
+				window = glfwCreateWindow(w, h, title, 0, shareContext == this ? 0 : shareContext.window);
+				if (window == 0) {
+					System.err.println(" FAILED TO CREATE WINDOW :" + shareContext);
+				}
+				glfwSetWindowPos(window, x, y);
+				Windows.windows.register(window, makeCallback());
+
+				glfwShowWindow(window);
+
+				glfwMakeContextCurrent(window);
+				glfwSwapInterval(1);
+
+				glfwWindowShouldClose(window);
+
+				if (shareContext == this) {
+					glcontext = GL.createCapabilities(true);
+				} else {
+					glcontext = shareContext.glcontext;
+					GL.setCapabilities(glcontext);
+				}
+
+
+				GL11.glClearColor(0.25f, 0.25f, 0.25f, 1);
+				GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
+				if (glDebugging) {
+					GL11.glEnable(GL43.GL_DEBUG_OUTPUT_SYNCHRONOUS);
+					c = GLUtil.setupDebugMessageCallback();
+				}
+
+				glfwSwapBuffers(window);
+
+				RunLoop.main.getLoop()
+					.attach(0, perform);
+
+
+				glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS, GL11.GL_TRUE);
+
+				retinaScaleFactor = permitRetina ? (int) (Options.dict()
+					.getFloat(new Dict.Prop<Number>("retina"), 0f) + 1) : 1;
+
+				windowOpenedAt = RunLoop.tick;
+
+				modifiers = new CanonicalModifierKeys(window);
+
+				return window;
+			});
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 
-		glfwSetWindowPos(window, x, y);
-		Windows.windows.register(window, makeCallback());
-
-		glfwShowWindow(window);
-
-		glfwMakeContextCurrent(window);
-		glfwSwapInterval(1);
-
-		glfwWindowShouldClose(window);
-
-		if (shareContext == this) {
-			glcontext = GL.createCapabilities(true);
-		} else {
-			glcontext = shareContext.glcontext;
-			GL.setCapabilities(glcontext);
-		}
-
-
-		GL11.glClearColor(0.25f, 0.25f, 0.25f, 1);
-		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
-		if (glDebugging) {
-			GL11.glEnable(GL43.GL_DEBUG_OUTPUT_SYNCHRONOUS);
-			c = GLUtil.setupDebugMessageCallback();
-		}
-
-		glfwSwapBuffers(window);
-
-		RunLoop.main.getLoop()
-			.attach(0, perform);
-
-
-		glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS, GL11.GL_TRUE);
-
-		retinaScaleFactor = permitRetina ? (int) (Options.dict()
-			.getFloat(new Dict.Prop<Number>("retina"), 0f) + 1) : 1;
-
-		windowOpenedAt = RunLoop.tick;
-
-
-		modifiers = new CanonicalModifierKeys(window);
 
 		new Thread() {
 			long lastAt = System.currentTimeMillis();
@@ -307,6 +314,7 @@ public class Window implements ProvidesGraphicsContext {
 
 	public RenderControl renderControl = () -> false;
 
+
 	public void loop() {
 
 		currentWindow.set(this);
@@ -315,22 +323,24 @@ public class Window implements ProvidesGraphicsContext {
 				throw new Error();
 
 
-			if (Main.os == Main.OS.mac) {
-				if (frame == 10) glfwSetWindowPos(window, x, y);
+			if (Main.os == Main.OS.mac && false) {
+
+				if (frameHack < 5) System.out.println(" frame hack :" + frameHack);
+
 				// shenanegians required to order front a window on El Capitan
 				if (frameHack++ == 0) {
 					Rect r = getBounds();
+					setBounds((int) r.x + 1, (int) r.y + 1, (int) r.w + 1, (int) r.h + 10);
+				}
+				if (frameHack == 5) {
+					Rect r = getBounds();
+					setBounds((int) r.x - 1, (int) r.y - 1, (int) r.w - 1, (int) r.h - 10);
+				}
+				if (frameHack == 10) {
+					Rect r = getBounds();
 					setBounds((int) r.x, (int) r.y, (int) r.w, (int) r.h + 1);
 				}
-				if (frameHack == 1) {
-					Rect r = getBounds();
-					setBounds((int) r.x, (int) r.y, (int) r.w, (int) r.h - 1);
-				}
-				if (frameHack == 2) {
-					Rect r = getBounds();
-					setBounds((int) r.x, (int) r.y, (int) r.w, (int) r.h + 1);
-				}
-				if (frameHack == 3) {
+				if (frameHack == 15) {
 					Rect r = getBounds();
 					setBounds((int) r.x, (int) r.y, (int) r.w, (int) r.h - 1);
 				}
@@ -432,8 +442,6 @@ public class Window implements ProvidesGraphicsContext {
 	}
 
 	public void setBounds(int x, int y, int w, int h) {
-		glfwSetWindowSize(window, w, h);
-		glfwSetWindowPos(window, x, y);
 		glfwSetWindowSize(window, w, h);
 		glfwSetWindowPos(window, x, y);
 		currentBounds = new Rect(x, y, w, h);

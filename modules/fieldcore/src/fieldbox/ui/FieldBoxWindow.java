@@ -8,6 +8,7 @@ import field.app.RunLoop;
 import field.graphics.Scene;
 import field.graphics.Window;
 import field.utility.Log;
+import fieldagent.Main;
 import org.lwjgl.opengl.GL11;
 
 import java.nio.ByteBuffer;
@@ -21,8 +22,12 @@ public class FieldBoxWindow extends Window {
 	private Compositor compositor;
 
 	public FieldBoxWindow(int x, int y, int w, int h, String filename) {
-		super(x, y, w, h, "Field - " + filename);
+		super(x, y, w - (Main.os == Main.OS.mac ? 1 : 0), h, "Field — "+filename, true);
 
+		if (Main.os==Main.OS.mac)
+		{
+			setBounds(x, y, w, h);
+		}
 		compositor = new Compositor(this);
 	}
 

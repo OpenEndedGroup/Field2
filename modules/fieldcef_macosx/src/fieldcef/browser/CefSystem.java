@@ -13,12 +13,6 @@ import org.cef.handler.CefLifeSpanHandler;
 import org.cef.handler.CefLoadHandlerAdapter;
 import org.cef.handler.CefMessageRouterHandler;
 
-import sun.jvmstat.monitor.HostIdentifier;
-import sun.jvmstat.monitor.MonitorException;
-import sun.jvmstat.monitor.MonitoredHost;
-import sun.jvmstat.monitor.MonitoredVm;
-import sun.jvmstat.monitor.MonitoredVmUtil;
-import sun.jvmstat.monitor.VmIdentifier;
 
 import java.awt.*;
 import java.io.File;
@@ -38,9 +32,9 @@ public class CefSystem {
 	private final CefClient client;
 	private final CefMessageRouter router;
 
-	protected CefSystem()
-	{
+	protected CefSystem() {
 		cefApp = CefApp.getInstance(new String[]{"--overlay-scrollbars", "--off-screen-rendering-mode-enabled", "--enable-experimental-web-platform-features"});
+
 
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			System.out.println(" -- sleeping for 2 seconds, then killing");
@@ -49,10 +43,10 @@ public class CefSystem {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			Integer pid = new GetOwnPid().getPid();
-			System.err.println(" pid is :"+pid);
+			long pid = new GetOwnPid().getPid();
+			System.err.println(" pid is :" + pid);
 			try {
-				SimpleCommand.go(new File("."), "/bin/kill", "-9", ""+pid.intValue());
+				SimpleCommand.go(new File("."), "/bin/kill", "-9", "" + pid);
 			} catch (IOException e) {
 				e.printStackTrace();
 			} catch (InterruptedException e) {
@@ -69,7 +63,7 @@ public class CefSystem {
 
 			@Override
 			public void onAfterCreated(CefBrowser browser) {
-				Log.log("cef.debug", ()->"afterCreated "+browser);
+				Log.log("cef.debug", () -> "afterCreated " + browser);
 			}
 
 			@Override
@@ -79,24 +73,26 @@ public class CefSystem {
 
 			@Override
 			public boolean doClose(CefBrowser browser) {
-				System.out.println("CEF : doclose"); return true;
+				System.out.println("CEF : doclose");
+				return true;
 			}
 
 			@Override
 			public void onBeforeClose(CefBrowser browser) {
-				System.out.println("CEF : beforedoclose"); Log.log("cef.debug", ()->"beforeClose "+browser);
+				System.out.println("CEF : beforedoclose");
+				Log.log("cef.debug", () -> "beforeClose " + browser);
 			}
 		});
 
 		client.addDisplayHandler(new CefDisplayHandler() {
 			@Override
 			public void onAddressChange(CefBrowser browser, String url) {
-				Log.log("cef.debug", ()->"Address change :" + browser + " -> " + url);
+				Log.log("cef.debug", () -> "Address change :" + browser + " -> " + url);
 			}
 
 			@Override
 			public void onTitleChange(CefBrowser browser, String title) {
-				Log.log("cef.debug", ()->"Title change :" + browser + " -> " + title);
+				Log.log("cef.debug", () -> "Title change :" + browser + " -> " + title);
 			}
 
 			@Override
@@ -120,26 +116,26 @@ public class CefSystem {
 		client.addLoadHandler(new CefLoadHandlerAdapter() {
 			@Override
 			public void onLoadingStateChange(CefBrowser browser, boolean isLoading, boolean canGoBack, boolean canGoForward) {
-				Log.log("cef.debug",()-> "state change :" + browser + " -> " + isLoading+" "+canGoBack+" "+canGoForward);
+				Log.log("cef.debug", () -> "state change :" + browser + " -> " + isLoading + " " + canGoBack + " " + canGoForward);
 			}
 
 			@Override
 			public void onLoadStart(CefBrowser browser, int frameIdentifer) {
-				Log.log("cef.debug", ()->"load start:" + browser + " -> " + frameIdentifer);
+				Log.log("cef.debug", () -> "load start:" + browser + " -> " + frameIdentifer);
 			}
 
 
 			@Override
 			public void onLoadEnd(CefBrowser browser, int frameIdentifier, int httpStatusCode) {
-				Log.log("cef.debug", ()->"load end:" + browser + " -> " + frameIdentifier);
-				Runnable r =completionCallbacks.get(browser);
-				if (r!=null)
+				Log.log("cef.debug", () -> "load end:" + browser + " -> " + frameIdentifier);
+				Runnable r = completionCallbacks.get(browser);
+				if (r != null)
 					r.run();
 			}
 
 			@Override
 			public void onLoadError(CefBrowser browser, int frameIdentifer, ErrorCode errorCode, String errorText, String failedUrl) {
-				Log.log("cef.error", ()->"load error:" + browser + " -> " + frameIdentifer + " " + errorCode + " " + errorText + " " + failedUrl);
+				Log.log("cef.error", () -> "load error:" + browser + " -> " + frameIdentifer + " " + errorCode + " " + errorText + " " + failedUrl);
 			}
 		});
 
@@ -149,15 +145,12 @@ public class CefSystem {
 		router.addHandler(new CefMessageRouterHandler() {
 			@Override
 			public boolean onQuery(CefBrowser browser, long query_id, String request, boolean persistent, CefQueryCallback callback) {
-				Log.log("cef.debug",()-> " -- query :" + request + " " + callback + " " + query_id);
+				Log.log("cef.debug", () -> " -- query :" + request + " " + callback + " " + query_id);
 				MessageCallback m = callbacks.get(browser);
-				if (m!=null)
-				{
+				if (m != null) {
 					m.message(query_id, request, x -> callback.success(x));
-				}
-				else
-				{
-					Log.log("cef.error", ()->"No message handler");
+				} else {
+					Log.log("cef.error", () -> "No message handler");
 					callback.failure(0, "No message handler");
 				}
 				return true;
@@ -186,22 +179,19 @@ public class CefSystem {
 //		}
 	}
 
-	public interface PaintCallback
-	{
+	public interface PaintCallback {
 		void onPaint(boolean popup, Rectangle[] dirtyRects, ByteBuffer buffer, int width, int height);
 
 	}
 
-	public interface MessageCallback
-	{
+	public interface MessageCallback {
 		void message(long id, String message, Consumer<String> answer);
 	}
 
 	Map<CefBrowser, MessageCallback> callbacks = new MapMaker().weakKeys().makeMap();
 	Map<CefBrowser, Runnable> completionCallbacks = new MapMaker().weakKeys().makeMap();
 
-	public CefRendererBrowserBuffer makeBrowser(int w, int h, PaintCallback callback, MessageCallback message, Runnable completionCallback)
-	{
+	public CefRendererBrowserBuffer makeBrowser(int w, int h, PaintCallback callback, MessageCallback message, Runnable completionCallback) {
 		CefRenderer cefRenderer = new CefRenderer() {
 			@Override
 			public void render() {
@@ -214,11 +204,10 @@ public class CefSystem {
 			}
 		};
 		CefRendererBrowserBuffer browser = (CefRendererBrowserBuffer) client
-			    .createBrowser(null, true, CefBrowserFactory.RenderType.RENDER_BYTE_BUFFER, null, w, h, cefRenderer);
+			.createBrowser(null, true, CefBrowserFactory.RenderType.RENDER_BYTE_BUFFER, null, w, h, cefRenderer);
 
 		callbacks.put(browser, message);
 		completionCallbacks.put(browser, completionCallback);
-
 
 
 		return browser;
@@ -226,41 +215,10 @@ public class CefSystem {
 
 	public class GetOwnPid {
 
-
-		public void run() {
-			System.out.println(getPid(this.getClass()));
+		public long getPid() {
+			return ProcessHandle.current().getPid();
 		}
 
-		public Integer getPid() {
-			return getPid(Trampoline.class);
-		}
-		public Integer getPid(Class<?> mainClass) {
-			MonitoredHost monitoredHost;
-			Set<Integer> activeVmPids;
-			try {
-				monitoredHost = MonitoredHost.getMonitoredHost(new HostIdentifier((String) null));
-				activeVmPids = monitoredHost.activeVms();
-				MonitoredVm mvm = null;
-				for (Integer vmPid : activeVmPids) {
-					try {
-						mvm = monitoredHost.getMonitoredVm(new VmIdentifier(vmPid.toString()));
-						String mvmMainClass = MonitoredVmUtil.mainClass(mvm, true);
-						if (mainClass.getName().equals(mvmMainClass)) {
-							return vmPid;
-						}
-					} finally {
-						if (mvm != null) {
-							mvm.detach();
-						}
-					}
-				}
-			} catch (java.net.URISyntaxException e) {
-				throw new InternalError(e.getMessage());
-			} catch (MonitorException e) {
-				throw new InternalError(e.getMessage());
-			}
-			return null;
-		}
 	}
 
 

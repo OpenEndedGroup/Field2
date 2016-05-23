@@ -50,7 +50,8 @@ function executeBracket(bra, disablePrint) {
 		box: cm.currentbox,
 		property: cm.currentproperty,
 		text: fragment,
-		lineoffset: cmGetLineNumber(bra.h1)
+		lineoffset: cmGetLineNumber(bra.h1),
+		disabledRanges: "[" + allDisabledBracketRanges() + "]"
 	}, function (d, e) {
 		if (d.type == 'error')
 			appendRemoteOutputToLine(anchorLine, d.line + " : " + d.message, "Field-remoteOutput", "Field-remoteOutput-error", 1);
@@ -85,7 +86,8 @@ function executeBracketLimited(bra, lineLimit) {
 		box: cm.currentbox,
 		property: cm.currentproperty,
 		text: fragment,
-		lineoffset: cmGetLineNumber(bra.h1)
+		lineoffset: cmGetLineNumber(bra.h1),
+		disabledRanges: "[" + allDisabledBracketRanges() + "]"
 	}, function (d, e) {
 		if (d.type == 'error')
 			appendRemoteOutputToLine(anchorLine, d.line + " : " + d.message, "Field-remoteOutput", "Field-remoteOutput-error", 1);
@@ -156,7 +158,7 @@ function pathStringForTwoLineHandles(lh1, lh2, level) {
 
 		rr = -10;
 
-		return "M" + w2 + "," + r1.top + "L" + (w - rr) + "," + r1.top + "Q" + w + "," + r1.top + "," + w + "," + (r1.top - rr) + "L" + w + "," + (r2.bottom + rr) + "Q" + w + "," + (r2.bottom) + "," + (w - rr) + "," + (r2.bottom) + "L" + w2 + "," + r2.bottom;
+		return "M" + w2 + "," + r1.top + "L" + (w - rr) + "," + r1.top + "Q" + w + "," + r1.top + "," + w + "," + (r1.top - rr) + "L" + w + "," + (r2.bottom + rr) + "Q" + w + "," + (r2.bottom+1) + "," + (w - rr) + "," + (r2.bottom+1) + "L" + w2 + "," + (r2.bottom+1);
 	}
 	return null;
 }
@@ -350,6 +352,14 @@ var ignoreBracketChanges = false;
 function updateAllBrackets() {
 	if (ignoreBracketChanges) return;
 
+	var ln = cm.lineCount();
+	for(var i=0;i<ln;i++)
+	{
+		cm.removeLineClass(i, "wrap", "FieldDisabled-line");
+		cm.removeLineClass(i, "wrap", "FieldDisabled-line-top");
+		cm.removeLineClass(i, "wrap", "FieldDisabled-line-bottom");
+	}
+
 	sortConflicts();
 	raph.forEach(function (e) {
 		if ("isHandleDecorator" in e) {
@@ -366,7 +376,16 @@ function updateAllBrackets() {
 				});
 				e.isHandleDecorator = 0
 			}
+		}
+		if (e.disabled)
+		{
+			console.log(" found a disabled line, trying to set its background");
+			console.log(" at line "+e.h1+" "+cmGetLineNumber(e.h1));
+			cm.addLineClass(cmGetLineNumber(e.h1), "wrap", "FieldDisabled-line-top");
+			cm.addLineClass(cmGetLineNumber(e.h2), "wrap", "FieldDisabled-line-bottom");
 
+			for(var a=cmGetLineNumber(e.h1)+1;a<cmGetLineNumber(e.h2);a++)
+				cm.addLineClass(a, "wrap", "FieldDisabled-line");
 		}
 	});
 
@@ -429,6 +448,7 @@ globalCommands.push({
 		updateAllBrackets();
 		if (currentBracket != null)
 			currentBracket.remove();
+		updateAllBrackets();
 	},
 	"guard": function () {
 		updateAllBrackets();

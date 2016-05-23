@@ -523,7 +523,7 @@ public class FrameManipulation extends Box  {
 			b.properties.putToMap(FLineDrawing.frameDrawing, "__feedback__", FLineDrawing.expires(box -> {
 				FLine f = new FLine();
 				f.attributes.put(StandardFLineDrawing.hasText, true);
-				f.moveTo(r.x + r.w / 2, r.y + r.h + 14);
+				f.moveTo(r.x + r.w / 2, r.y + r.h + 17);
 				List<String> text = new ArrayList<String>();
 				List<Vec4> color = new ArrayList<Vec4>();
 
