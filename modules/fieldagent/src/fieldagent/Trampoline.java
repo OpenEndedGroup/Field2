@@ -4,6 +4,7 @@ import com.google.common.collect.MapMaker;
 import com.google.common.io.ByteStreams;
 import fieldagent.asm.ClassReader;
 import fieldagent.asm.tree.ClassNode;
+import jdk.internal.module.Modules;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -243,12 +244,12 @@ public class Trampoline {
 
 	static public void main(String[] a) {
 
-		if (Main.os == Main.OS.mac || Main.os == Main.OS.linux)
-			try {
-				Thread.sleep(4000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+//		if (Main.os == Main.OS.mac || Main.os == Main.OS.linux)
+//			try {
+//				Thread.sleep(4000);
+//			} catch (InterruptedException e) {
+//				e.printStackTrace();
+//			}
 		System.err.println(" app dir is :" + System.getProperty("appDir"));
 
 
