@@ -6,7 +6,6 @@ function escapeHtml(str) {
 function appendRemoteOutputToLine(line, text, checkClass, lineClass, append) {
 	lh = cm.getLineHandle(line);
 	if (!lh) {
-		console.log(" -- appendRemoteOutputToLine failed, no line :"+line);
 		return;
 	}
 
@@ -17,13 +16,13 @@ function appendRemoteOutputToLine(line, text, checkClass, lineClass, append) {
 		for (var i = 0; i < w.length; i++) {
 			var ele = $(w[i].node);
 			if (ele.hasClass(checkClass) || ele.hasClass(lineClass)) {
-				if (!append) {
-					w[i].clear();
-					i--;
-				} else {
-					append = false;
+				// if (!append) {
+				// 	w[i].clear();
+				// 	i--;
+				// } else {
+				// 	append = false;
 					found = w[i];
-				}
+				// }
 			}
 		}
 
@@ -37,7 +36,10 @@ function appendRemoteOutputToLine(line, text, checkClass, lineClass, append) {
 		$(d).removeClass(lineClass);
 		$(d).addClass(lineClass);
 
-		$(d).append("\n" + text.trim());
+		if (!append)
+			$(d).find(".outputline").remove();
+
+		$(d).append("<div class='outputline'>"+text.trim()+"</div>");
 
 		$(d).animate({
 			scrollTop: $(d)[0].scrollHeight
@@ -63,7 +65,7 @@ function appendRemoteOutputToLine(line, text, checkClass, lineClass, append) {
 		});
 		d.bm = bm;
 
-		$(d).append("\n"+text.trim());
+		$(d).append("<div class='outputline'>"+text.trim()+"</div>");
 
 		if (text.trim().length < 1 || text.trim() == "&#10003;") {
 			$(d).animate({opacity: 0.0, "max-height": "0%"}, {
@@ -212,8 +214,9 @@ boxOutputs = {};
 
 _messageBus.subscribe("box.output", function (d, e) {
 	box = d.box;
+	append = d.append
 	if (cm.currentbox === box) {
-		appendRemoteOutputToLine(cm.lineCount() - 1, d.message, "Field-remoteOutput-error", "Field-remoteOutput", true)
+		appendRemoteOutputToLine(cm.lineCount() - 1, d.message, "Field-remoteOutput-error", "Field-remoteOutput", append)
 	} else {
 	}
 	if (boxOutputs[box] === undefined)
@@ -224,16 +227,18 @@ _messageBus.subscribe("box.output", function (d, e) {
 
 _messageBus.subscribe("box.output.directed", function (d, e) {
 	box = d.box;
+	append = d.append
 	if (cm.currentbox === box) {
-		appendRemoteOutputToLine(d.line-1, d.message, "Field-remoteOutput-error", "Field-remoteOutput", true)
+		appendRemoteOutputToLine(d.line-1, d.message, "Field-remoteOutput-error", "Field-remoteOutput", append)
 	} else {
 	}
 });
 
 _messageBus.subscribe("box.error", function (d, e) {
 	box = d.box;
+	append = d.append
 	if (cm.currentbox === box) {
-		appendRemoteOutputToLine(cm.lineCount() - 1, d.message, "Field-remoteOutput", "Field-remoteOutput-error", true)
+		appendRemoteOutputToLine(cm.lineCount() - 1, d.message, "Field-remoteOutput", "Field-remoteOutput-error", append)
 	} else {
 	}
 	if (boxOutputs[box] === undefined)

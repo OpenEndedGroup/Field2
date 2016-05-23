@@ -1,8 +1,10 @@
 package fielded.plugins;
 
+import field.app.RunLoop;
 import field.utility.Dict;
 import field.utility.IdempotencyMap;
 import field.utility.Pair;
+import field.utility.Triple;
 import fieldbox.boxes.Box;
 import fieldbox.execution.InverseDebugMapping;
 import fieldbox.io.IO;
@@ -26,47 +28,43 @@ import java.util.regex.Pattern;
 public class Out extends Box {
 	ObjectToHTML output = new ObjectToHTML();
 	static public final Dict.Prop<Function<Object, Object>> out = new Dict.Prop<Function<Object, Object>>("out").toCannon()
-														    .type()
-														    .doc(" ... ");
+		.type()
+		.doc("write an object to the editor window. This will attempt to map the object into a useful (HTML) view of it using routines in `_.outMap`. `_.out(...)` clears any previous output from any previous output area.");
+	static public final Dict.Prop<Function<Object, Object>> outCollect = new Dict.Prop<Function<Object, Object>>("outCollect").toCannon()
+		.type()
+		.doc("write an object to the editor window. This will attempt to map the object into a useful (HTML) view of it using routines in `_.outMap`. `_.outCollect(...)` clears any previous output from any previous update cycle.");
+	static public final Dict.Prop<Function<Object, Object>> outAppend = new Dict.Prop<Function<Object, Object>>("outAppend").toCannon()
+		.type()
+		.doc("write an object to the editor window. This will attempt to map the object into a useful (HTML) view of it using routines in `_.outMap`. `_.outAppend(...)` appends to any previous output.");
+
 	static public final Dict.Prop<IdempotencyMap<Function<Object, Object>>> outMap = new Dict.Prop<>("outMap").toCannon()
-														  .type()
-														  .doc(" ... ");
+		.type()
+		.doc("a map of functions that can be called upon to transform objects to HTML for the purposes of `_.out(...)`. Objects are transformed until a string starting with `{HTML`} is returned, or until no transformation changes anything.");
 	static public final Dict.Prop<Out> __out = new Dict.Prop<>("__out").toCannon()
-									   .type();
+		.type();
 
 	Writer theWriter = new PrintWriter(System.out);
-	Consumer<Pair<Box, Integer>> theLineOut;
+	Consumer<Triple<Box, Integer, Boolean>> theLineOut;
+	Pattern c = Pattern.compile("bx\\[(.*?)\\]/(.*)");
+
+	long t = 0;
 
 	public Out(Box root_unused) {
 		this.properties.put(__out, this);
 
 		this.properties.put(out, x -> {
-			StackTraceElement[] st = new Exception().getStackTrace();
-			String uid = null;
-			int uidLine = 0;
-			for (StackTraceElement ee : st) {
-				if (ee.getFileName()!=null && ee.getFileName().startsWith("bx[")) {
-					Pattern c = Pattern.compile("bx\\[(.*?)\\]/(.*)");
-					Matcher m = c.matcher(ee.getFileName());
-					if (m.find()) {
-						uid = m.group(2);
-						uidLine = ee.getLineNumber();
-						break;
-					}
-				}
+			return doOutput(x, false);
+		});
+		this.properties.put(outCollect, x -> {
+			if (t == RunLoop.tick)
+				return doOutput(x, true);
+			else {
+				t = RunLoop.tick;
+				return doOutput(x, false);
 			}
-
-			if (uid != null) {
-				theLineOut.accept(new Pair<>(find(uid), uidLine));
-			} else theLineOut.accept(null);
-
-
-			try {
-				theWriter.append(convert(x));
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			return x;
+		});
+		this.properties.put(outAppend, x -> {
+			return doOutput(x, true);
 		});
 
 		this.properties.put(outMap, output.map);
@@ -79,11 +77,11 @@ public class Out extends Box {
 
 			String found = InverseDebugMapping.describe(x);
 			if (found.startsWith(":")) found = found.substring(1);
-			if (found.length() > 0) found = "'" + found + "'";
+			if (found.length() > 0) found = "'<i>" + found + "</i>'";
 
 			return "{HTML}<div class='maptable-entry'><b>[[__" + groupName + "__:" + safe(
-				    x.toString()) + " " + found + " " + (x.toString()) + " ]]</b>[[__" + groupName + "smaller__:" + shorten(x.getClass()) + " <span class='smaller'>" + shorten(
-				    nonAnonymous(x.getClass())) + "</span> ]]</div>";
+				x.toString()) + " " + found + " " + (x.toString()) + " ]]</b>[[__" + groupName + "smaller__:" + shorten(x.getClass()) + " <span class='smaller'>" + shorten(
+				nonAnonymous(x.getClass())) + "</span> ]]</div>";
 		});
 
 		output.map._put("field_nashorn_api_scripting_ScriptObjectMirror", x -> {
@@ -140,7 +138,7 @@ public class Out extends Box {
 			int num = 0;
 			for (Object oo : k) {
 				s += "<div class='maptable-entry'> <div class='maptable-key'>" + output.convert(oo, "key") + "</div><div class='maptable-value'>" + output.convert(((Map) x).get(oo),
-																						   "value") + "</div></div>";
+					"value") + "</div></div>";
 				num++;
 				if (num > 10 && k.size() > 15) {
 					s += "<div class='maptable-entry'><div class='maptable-key'> ... </div> <div class='maptable-value'> " + num + "/" + k.size() + " total </div></div>";
@@ -156,10 +154,38 @@ public class Out extends Box {
 		});
 	}
 
+	public Object doOutput(Object x, boolean append) {
+		StackTraceElement[] st = new Exception().getStackTrace();
+		String uid = null;
+		int uidLine = 0;
+		for (StackTraceElement ee : st) {
+			if (ee.getFileName() != null && ee.getFileName().startsWith("bx[")) {
+				Matcher m = c.matcher(ee.getFileName());
+				if (m.find()) {
+					uid = m.group(2);
+					uidLine = ee.getLineNumber();
+					break;
+				}
+			}
+		}
+
+		if (uid != null) {
+			theLineOut.accept(new Triple<>(find(uid), uidLine, append));
+		} else theLineOut.accept(null);
+
+
+		try {
+			theWriter.append(convert(x));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return x;
+	}
+
 	private Class nonAnonymous(Class a) {
 		if (!a.isAnonymousClass()) return a;
 		while (a != null && a.getName()
-				     .contains("$")) a = a.getSuperclass();
+			.contains("$")) a = a.getSuperclass();
 
 		return a;
 	}
@@ -167,11 +193,11 @@ public class Out extends Box {
 
 	private Box find(String uid) {
 		return this.breadthFirst(this.both())
-			   .filter(x -> x.properties.has(IO.id))
-			   .filter(x -> x.properties.get(IO.id)
-						    .equals(uid))
-			   .findFirst()
-			   .orElse(null);
+			.filter(x -> x.properties.has(IO.id))
+			.filter(x -> x.properties.get(IO.id)
+				.equals(uid))
+			.findFirst()
+			.orElse(null);
 	}
 
 	private String safe(String s) {
@@ -193,7 +219,7 @@ public class Out extends Box {
 		return shor;
 	}
 
-	public Out setWriter(Writer theWriter, Consumer<Pair<Box, Integer>> lineNumber) {
+	public Out setWriter(Writer theWriter, Consumer<Triple<Box, Integer, Boolean>> lineNumber) {
 		this.theWriter = theWriter;
 		this.theLineOut = lineNumber;
 		return this;
@@ -220,7 +246,7 @@ public class Out extends Box {
 				String groupPayload = m.group(3);
 
 				if (!prev.containsKey(groupName) || !prev.get(groupName)
-									 .equals(groupValue)) {
+					.equals(groupValue)) {
 					prev.put(groupName, groupValue);
 					s = s.substring(0, m.start()) + groupPayload + s.substring(m.end());
 					continue;
