@@ -1,158 +1,155 @@
 var ignoreChange = false;
 
 cm.on("change", function (cm, change) {
-	if (ignoreChange) return;
+    if (ignoreChange) return;
 
-	console.log(">>change");
+    console.log(">>change");
 
-	if (cm.currentbox && cm.currentproperty) {
-		_messageBus.publish("toField.text.updated", {
-			box: cm.currentbox,
-			property: cm.currentproperty,
-			text: cm.getValue(),
-			disabledRanges: "[" + allDisabledBracketRanges() + "]"
-		});
+    if (cm.currentbox && cm.currentproperty) {
+        _messageBus.publish("toField.text.updated", {
+            box: cm.currentbox,
+            property: cm.currentproperty,
+            text: cm.getValue(),
+            disabledRanges: "[" + allDisabledBracketRanges() + "]"
+        });
 
-		cookie = {};
-		cookie.brackets = serializeAllBrackets();
-		cookie.output = serializeAllOutput();
-		cookie.currentpos = cm.getCursor();
-		cookie.widgets = serializeAllWidgets();
+        cookie = {};
+        cookie.brackets = serializeAllBrackets();
+        cookie.output = serializeAllOutput();
+        cookie.currentpos = cm.getCursor();
+        cookie.widgets = serializeAllWidgets();
 
-		//cookie.history = cm.getDoc().getHistory()
+        //cookie.history = cm.getDoc().getHistory()
 
-		_messageBus.publish("toField.store.cookie", {
-			box: cm.currentbox,
-			property: cm.currentproperty,
-			"cookie": cookie
-		})
-	}
-	console.log("<<change (" + cookie.widgets + "\n||"+cm.getValue()+"||");
+        _messageBus.publish("toField.store.cookie", {
+            box: cm.currentbox,
+            property: cm.currentproperty,
+            "cookie": cookie
+        })
+    }
+    console.log("<<change (" + cookie.widgets + "\n||" + cm.getValue() + "||");
 
 
 });
 
 _messageBus.subscribe("focus", function (d, e) {
-	cm.focus()
+    cm.focus()
 });
 _messageBus.subscribe("defocus", function (d, e) {
-	// cm.blur()
+    // cm.blur()
 });
 
 serializeAllWidgets = function () {
-	return jQuery.makeArray($('*').filter(function () {
-		return $(this).data('serialization') !== undefined;
-	}).map(function () {
-		return $(this).data("serialization")()
-	}))
+    return jQuery.makeArray($('*').filter(function () {
+        return $(this).data('serialization') !== undefined;
+    }).map(function () {
+        return $(this).data("serialization")()
+    }))
 };
 
 _messageBus.subscribe("selection.changed", function (d, e) {
 
-	ignoreChange = true;
+    ignoreChange = true;
 
-	console.log(">>Selection.changed");
-	if (cm.currentbox) {
-		cookie = {};
-		cookie.brackets = serializeAllBrackets();
-		cookie.output = serializeAllOutput();
-		cookie.currentpos = cm.getCursor();
-		cookie.widgets = serializeAllWidgets();
-		cookie.history = cm.getDoc().getHistory();
-		_messageBus.publish("toField.store.cookie", {
-			box: cm.currentbox,
-			property: cm.currentproperty,
-			"cookie": cookie
-		});
-		clearOutputs(0, cm.lineCount());
-		raph.clear();
-	}
+    console.log(">>Selection.changed");
+    if (cm.currentbox) {
+        cookie = {};
+        cookie.brackets = serializeAllBrackets();
+        cookie.output = serializeAllOutput();
+        cookie.currentpos = cm.getCursor();
+        cookie.widgets = serializeAllWidgets();
+        cookie.history = cm.getDoc().getHistory();
+        _messageBus.publish("toField.store.cookie", {
+            box: cm.currentbox,
+            property: cm.currentproperty,
+            "cookie": cookie
+        });
+        clearOutputs(0, cm.lineCount());
+        raph.clear();
+    }
 
-	cm.currentbox = d.box;
-	cm.currentproperty = d.property;
-	cm.setValue(d.text);
+    cm.currentbox = d.box;
+    cm.currentproperty = d.property;
+    cm.setValue(d.text);
 
-	if (d.cookie) {
-		if (d.cookie.history)
-			cm.getDoc().setHistory(d.cookie.history);
-		else
-			cm.getDoc().clearHistory();
+    if (d.cookie) {
+        if (d.cookie.history)
+            cm.getDoc().setHistory(d.cookie.history);
+        else
+            cm.getDoc().clearHistory();
 
-		if (d.cookie.output) {
-			try {
-				eval(d.cookie.output)
-			}
-			catch(e)
-			{
-				console.log(e);
-			}
-			setTimeout(updateAllBrackets, 50)
-		}
-		if (d.cookie.brackets) {
-			raph.clear();
+        if (d.cookie.output) {
+            try {
+                eval(d.cookie.output)
+            }
+            catch (e) {
+                console.log(e);
+            }
+            setTimeout(updateAllBrackets, 50)
+        }
+        if (d.cookie.brackets) {
+            raph.clear();
 
-			d.cookie.brackets.replace(/cm.getLineHandle/g, "cmGetLineHandle");
+            d.cookie.brackets.replace(/cm.getLineHandle/g, "cmGetLineHandle");
 
-			try{
-				eval(d.cookie.brackets)
-			}
-			catch(e)
-			{
-				console.log(e);
-			}
+            try {
+                eval(d.cookie.brackets)
+            }
+            catch (e) {
+                console.log(e);
+            }
 
-			setTimeout(updateAllBrackets, 50)
-		}
+            setTimeout(updateAllBrackets, 50)
+        }
 
-		if (d.cookie.currentpos) {
-			cm.setCursor(d.cookie.currentpos);
-			cm.scrollIntoView();
-		}
-	}
+        if (d.cookie.currentpos) {
+            cm.setCursor(d.cookie.currentpos);
+            cm.scrollIntoView();
+        }
+    }
 
-	if (!d.box) {
-		cm.setOption("readOnly", "nocursor");
-	$(".CodeMirror").hide();
+    if (!d.box) {
+        cm.setOption("readOnly", "nocursor");
+        $(".CodeMirror").hide();
 
-		_messageBus.publish("status", "(no selection)");
+        _messageBus.publish("status", "(no selection)");
 
-		document.title = "Field Editor (No Selection)";
-	} else {
-		cm.setOption("readOnly", false);
-		$(".CodeMirror").show();
-		cm.refresh();
-		_messageBus.publish("status", "Selected '" + d.name + "'");
+        document.title = "Field Editor (No Selection)";
+    } else {
+        cm.setOption("readOnly", false);
+        $(".CodeMirror").show();
+        cm.refresh();
+        _messageBus.publish("status", "Selected '" + d.name + "'");
 
-		document.title = d.name + "/" + d.property + " - Field Editor";
+        document.title = d.name + "/" + d.property + " - Field Editor";
 
-		if (d.languageName)
-			console.log(" setting language to " + d.languageName);
-		cm.setOption("mode", d.languageName);
-	}
+        if (d.languageName)
+            console.log(" setting language to " + d.languageName);
+        cm.setOption("mode", d.languageName);
+    }
 
-	if (d.cookie) {
-		if (d.cookie.currentpos) {
-			cm.scrollIntoView({line: 0, ch: 0}, 100);
-			cm.setCursor(d.cookie.currentpos);
-			cm.scrollIntoView(null, 100);
-		}
+    if (d.cookie) {
+        if (d.cookie.currentpos) {
+            cm.scrollIntoView({line: 0, ch: 0}, 100);
+            cm.setCursor(d.cookie.currentpos);
+            cm.scrollIntoView(null, 100);
+        }
 
-		if (d.cookie.widgets) {
+        if (d.cookie.widgets) {
 
-			for (var i = 0; i < d.cookie.widgets.length; i++) {
-				console.log(" evaluating widget " + i + " " + d.cookie.widgets[i]);
-				try{
-				eval(d.cookie.widgets[i]);
-				}
-				catch(e)
-				{
-					console.log(e);
-				}
-			}
-		}
+            for (var i = 0; i < d.cookie.widgets.length; i++) {
+                console.log(" evaluating widget " + i + " " + d.cookie.widgets[i]);
+                try {
+                    eval(d.cookie.widgets[i]);
+                }
+                catch (e) {
+                    console.log(e);
+                }
+            }
+        }
 
-	}
+    }
 
-	ignoreChange = false;
+    ignoreChange = false;
 
 });
