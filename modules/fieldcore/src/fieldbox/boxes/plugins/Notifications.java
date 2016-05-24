@@ -19,7 +19,7 @@ import static field.graphics.StandardFLineDrawing.*;
 public class Notifications extends Box {
 
 	static public final Dict.Prop<Box.BiFunctionOfBoxAnd<String, String>> badge = new Dict.Prop<>("badge").toCannon(); // TODO
-	static public final Dict.Prop<FunctionOfBoxValued<IdempotencyMap>> badges = new Dict.Prop<>("badges").toCannon(); // TODO
+	static public final Dict.Prop<FunctionOfBoxValued<IdempotencyMap<String>>> badges = new Dict.Prop<>("badges").toCannon(); // TODO
 
 	static public final Dict.Prop<ArrayList<String>> _badgeList = new Dict.Prop<>("_badgeList");
 	static public final Dict.Prop<IdempotencyMap> _badgesList = new Dict.Prop<>("_badgesList");
@@ -32,22 +32,24 @@ public class Notifications extends Box {
 				public String _put(String key, String v) {
 					badge(x, v, key, () -> {
 						this.remove(key);
-						System.out.println(" running exit handler for " + key);
 					}, -1);
 					String c = super._put(key, v);
-					System.out.println(" keyset now :" + keySet());
 					return c;
+				}
 
+				@Override
+				protected void _removed(Object y) {
+					super._removed(y);
+					x.properties.removeFromMap(FLineDrawing.frameDrawing, "__badge__" + y);
+					x.properties.removeFromMap(FLineDrawing.frameDrawing, "__nameGlass__" + y);
 				}
 
 				@Override
 				public void clear() {
-					System.out.println(" clearing keyset() " + keySet());
 					keySet().forEach(y -> {
 						x.properties.removeFromMap(FLineDrawing.frameDrawing, "__badge__" + y);
 						x.properties.removeFromMap(FLineDrawing.frameDrawing, "__nameGlass__" + y);
 						x.properties.removeFromCollection(_badgeList, y);
-
 					});
 					Drawing.dirty(x);
 					super.clear();
@@ -86,7 +88,6 @@ public class Notifications extends Box {
 			f.nodes.get(f.nodes.size() - 1).attributes.put(StandardFLineDrawing.text, name);
 
 			return f;
-
 		}, duration, () -> {
 			box.properties.removeFromCollection(_badgeList, id);
 			exit.run();
@@ -100,8 +101,6 @@ public class Notifications extends Box {
 					      .indexOf(id);
 			Rect rect = box.properties.get(frame);
 			if (rect == null) return null;
-
-			boolean selected = box.properties.isTrue(Mouse.isSelected, false);
 
 			FLine f = new FLine();
 
