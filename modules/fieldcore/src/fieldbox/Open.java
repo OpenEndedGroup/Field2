@@ -74,10 +74,6 @@ public class Open {
 	private int atY = AutoPersist.persist("window_atY", () -> 0, x -> x, (x) -> window == null ? x : (int) window.getBounds().y);
 
 	public Open(String filename) {
-		System.err.println(":HI:");
-
-		Log.log("startup", () -> "trouble is :" + GuardingDynamicLinker.class + " " + Linker.class);
-		Log.log("startup", () -> "trouble is :" + GuardingDynamicLinker.class.getClassLoader() + " " + Linker.class.getClassLoader());
 
 		DefaultMenus.safeToSave = false;
 
