@@ -207,6 +207,8 @@ public class Open {
 
 		new HotkeyMenus(boxes.root(), null).connect(boxes.root());
 
+		new Threading().connect(boxes.root());
+
 //		new Typing(boxes.root()).connect(boxes.root());
 
 		new RunCommand(boxes.root()).connect(boxes.root());
