@@ -15,67 +15,46 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * A Box that draws itself in a particular way, and drags it's children around with them
  */
-public class BoxGroup extends Box implements IO.Loaded{
+public class BoxGroup extends Box implements IO.Loaded {
 
 	static public Dict.Prop<Boolean> _collapsed = new Dict.Prop<>("collapsed").type().doc("is this group collapsed?");
 
-	static
-	{
+	static {
 		IO.persist(_collapsed);
 	}
 
 	public BoxGroup() {
 
+		this.properties.putToMap(Mouse.onDoubleClick, "doubleClickMe", (e) -> {
+			if (properties.get(Box.frame).intersects(new Vec2(e.after.mx, e.after.my)))
+				properties.put(_collapsed, !properties.isTrue(_collapsed, false));
+		});
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__checkforcollapsed__", () -> {
-			if (this.properties.isTrue(_collapsed, false)!=collapsed)
-			{
+			if (this.properties.isTrue(_collapsed, false) != isCollapsed()) {
 				if (this.properties.isTrue(_collapsed, false)) collapse();
 				else expand();
 			}
 			return true;
 		});
 
-		this.properties.putToMap(FLineDrawing.frameDrawing, "__outline__", FrameChangedHash.getCached(this, (a, b) -> {
-			Rect r = computeFrame();
+		addCachedLine("__outline__", this::drawFrame);
+		addCachedLine("__outline2__", this::drawName);
+		addCachedLine("__outline2b__", this::drawNameBottom);
+		addCachedLine("__outline3a__", this::drawFrameTop);
 
-			if (r == null) return new FLine();
-
-			return drawFrame(r);
-		}, () -> {
-
-			long l = 0;
-			for (Box c : children()) {
-				l = l * 31 + c.hashCode() + 17 * (c.disconnected ? 1 : 0);
-			}
-			return l;
-		}));
-
-		this.properties.putToMap(FLineDrawing.frameDrawing, "__outline2__", FrameChangedHash.getCached(this, (a, b) -> {
-			Rect r = computeFrame();
-
-			if (r == null) return new FLine();
-
-			return drawName(r);
-
-		}, () -> {
-
-			long l = 0;
-			for (Box c : children) {
-				l = l * 31 + c.hashCode() + 17 * (c.disconnected ? 1 : 0);
-			}
-			return l;
-		}));
 
 		this.properties.putToMap(Commands.command, "Isolate contents of group", (k) -> {
 			isolateContents();
 			return null;
 		});
 		this.properties.putToMap(Commands.commandDoc, "Isolate contents of group",
-					 "Make sure that the contents of this group are not connected to the root of the box graph directly. This will then allow you to collapse and expand this this group. All connections from the contents of the group will go through this group box. ");
+			"Make sure that the contents of this group are not connected to the root of the box graph directly. This will then allow you to collapse and expand this this group. All connections from the contents of the group will go through this group box. ");
 
 		this.properties.putToMap(Commands.commandGuard, "Isolate contents of group", (k) -> !isContentsIsolated());
 
@@ -90,7 +69,7 @@ public class BoxGroup extends Box implements IO.Loaded{
 			return null;
 		});
 		this.properties.putToMap(Commands.commandDoc, "Integrate contents of group",
-					 "Make sure that the contents of this group are also directly connected to the root of the box graph. This means, if you delete the group, the boxes remain connected. ");
+			"Make sure that the contents of this group are also directly connected to the root of the box graph. This means, if you delete the group, the boxes remain connected. ");
 
 		this.properties.putToMap(Commands.commandGuard, "Integrate contents of group", (k) -> isContentsIsolated());
 
@@ -114,14 +93,14 @@ public class BoxGroup extends Box implements IO.Loaded{
 
 		this.properties.putToMap(Callbacks.onFrameChanged, "__drageverything__", (on, next) -> {
 
-			System.out.println(" on frame change :"+on+" / "+this);
+			System.out.println(" on frame change :" + on + " / " + this);
 
 			if (on == this) {
 				Rect from = on.properties.get(Box.frame);
 
-				System.out.println("   on :"+from+" -> "+next);
+				System.out.println("   on :" + from + " -> " + next);
 
-				if (from.w!=next.w && collapsed) return next;
+				if (from.w != next.w && collapsed) return next;
 
 				if (from.x == next.x) {
 					if (from.w != next.w) {
@@ -162,8 +141,25 @@ public class BoxGroup extends Box implements IO.Loaded{
 		});
 	}
 
+	public void addCachedLine(String name, Function<Rect, FLine> q) {
+		this.properties.putToMap(FLineDrawing.frameDrawing, name, FrameChangedHash.getCached(this, (a, b) -> {
+			Rect r = computeFrame();
+
+			if (r == null) return new FLine();
+
+			return q.apply(r);
+		}, () -> {
+
+			long l = 0;
+			for (Box c : children()) {
+				l = l * 31 + c.hashCode() + 17 * (c.disconnected ? 1 : 0);
+			}
+			return l;
+		}));
+	}
+
 	private Rect computeFrame() {
-		if (collapsed) {
+		if (isCollapsed()) {
 			Rect r = this.properties.get(Box.frame);
 			Rect rr = new Rect(r.x, r.y, 50, 50);
 			if (!rr.equals(r)) {
@@ -190,70 +186,100 @@ public class BoxGroup extends Box implements IO.Loaded{
 	Map<String, Boolean> collapsedState = new LinkedHashMap<>();
 
 	private void collapse() {
+
+//		if (this.parents().size()==0)
+//		{
+			Box root = this.find(Boxes.root, both())
+				.findFirst()
+				.get();
+			root.connect(this);
+//		}
+
 		this.properties.put(_collapsed, true);
 		collapsedAt = this.properties.get(Box.frame);
 		collapsed = true;
-		this.breadthFirst(this.downwards())
-		    .filter(x -> x != this)
-		    .forEach(x -> {
-			    collapsedState.put(x.properties.getOrConstruct(IO.id), x.disconnected);
-			    x.disconnected = true;
-		    });
+//		this.breadthFirst(this.downwards())
+		this.children().stream()
+			.filter(x -> x != this)
+			.forEach(x -> {
+				collapsedState.put(x.properties.getOrConstruct(IO.id), x.disconnected);
+				x.disconnected = true;
+			});
+		Drawing.dirty(this, 2);
 	}
 
 	private void expand() {
 		this.properties.put(_collapsed, false);
 		collapsed = false;
-		this.breadthFirstAll(this.downwards())
-		    .filter(x -> x != this)
-		    .forEach(x -> {
-			    Boolean m = collapsedState.get(x.properties.getOrConstruct(IO.id));
-			    x.disconnected = m!=null ? m.booleanValue() : false;
-		    });
+//		this.breadthFirst(this.downwards())
+		this.children().stream()
+			.filter(x -> x != this)
+			.forEach(x -> {
+				Boolean m = collapsedState.get(x.properties.getOrConstruct(IO.id));
+				x.disconnected = m != null ? m.booleanValue() : false;
+			});
+
+		Drawing.dirty(this, 2);
 	}
 
 	boolean collapsed = false;
 	Rect collapsedAt = null;
 
 	public boolean isCollapsed() {
-		return collapsed;
+
+		// do we have any non-disconnected children?
+
+		boolean[] found ={false};
+//		this.breadthFirst(this.downwards())
+		this.children().stream()
+			.filter(x -> x != this)
+			.forEach(x -> {
+				if (!x.disconnected ) found[0] = true;
+			});
+
+
+		return !found[0];
 	}
 
 	protected void isolateContents() {
 		Box root = this.find(Boxes.root, both())
-			       .findFirst()
-			       .get();
-		this.breadthFirst(this.downwards())
-		    .filter(x -> x != this)
-		    .forEach(x -> {
-			    root.disconnect(x);
-		    });
+			.findFirst()
+			.get();
+//		this.breadthFirst(this.downwards())
+		this.children().stream()
+			.filter(x -> x != this)
+			.forEach(x -> {
+				root.disconnect(x);
+			});
 
 		root.connect(this);
 	}
 
 	protected void integrateContents() {
 		Box root = this.find(Boxes.root, both())
-			       .findFirst()
-			       .get();
-		this.breadthFirst(this.downwards())
-		    .filter(x -> x != this)
-		    .forEach(x -> {
-			    root.connect(x);
-		    });
+			.findFirst()
+			.get();
+//		this.breadthFirst(this.downwards())
+		this.children().stream()
+			.filter(x -> x != this)
+			.forEach(x -> {
+				root.connect(x);
+			});
 
 		root.disconnect(this);
 	}
+
 	public boolean isContentsIsolated() {
 		Box root = this.find(Boxes.root, both())
-			       .findFirst()
-			       .get();
-		return !this.breadthFirst(this.downwards())
-			    .filter(x -> x != this)
-			    .filter(x -> root.children()
-					     .contains(x))
-			    .findAny()
-			    .isPresent();
+			.findFirst()
+			.get();
+//		this.breadthFirst(this.downwards())
+		return !this.children().stream()
+			.filter(x -> x != this)
+			.filter(x -> root.children()
+				.contains(x))
+			.findAny()
+			.isPresent();
 	}
 
 	protected void changeChildren(Consumer<Vec2> p) {
@@ -285,16 +311,40 @@ public class BoxGroup extends Box implements IO.Loaded{
 		return f;
 	}
 
+	private FLine drawFrameTop(Rect r) {
+		FLine f = new FLine();
+
+		f.attributes.put(StandardFLineDrawing.strokeColor, new Vec4(1,1,1, 0.15f));
+		f.attributes.put(StandardFLineDrawing.fillColor, new Vec4(1,1,1, 0.15f));
+		f.attributes.put(StandardFLineDrawing.thicken, new BasicStroke(3));
+
+		float inset = 10;
+		float out = 1.f;
+		f.moveTo(r.x-out, r.y+inset+out).lineTo(r.x-out, r.y-out).lineTo(r.x+r.w+out, r.y-out).lineTo(r.x+r.w+out, r.y+inset+out);
+		f.moveTo(r.x-out, r.h+r.y-inset-out).lineTo(r.x-out, r.h+r.y+out).lineTo(r.x+r.w+out, r.h+r.y+out).lineTo(r.x+r.w+out, r.h+r.y-inset-out);
+		return f;
+	}
+
 	private FLine drawName(Rect r) {
-		FLine f = new FLine().moveTo(r.x + r.w / 2, r.y -4);
+		FLine f = new FLine().moveTo(r.x + r.w / 2+2, r.y - 6);
 		f.attributes.put(StandardFLineDrawing.hasText, true);
+		f.attributes.put(StandardFLineDrawing.color, new Vec4(1, 1, 1, 0.5f));
 		f.last().attributes.put(StandardFLineDrawing.textAlign, 0.5f);
-		if (collapsed)
-		{
-			f.last().attributes.put(StandardFLineDrawing.text, this.properties.get(Box.name)+" (contains "+collapsedState.size()+" box"+(collapsedState.size()==1 ? "" : "es)"));
+		if (isCollapsed()) {
+			f.last().attributes.put(StandardFLineDrawing.text, this.properties.get(Box.name));
+		} else
+			f.last().attributes.put(StandardFLineDrawing.text, this.properties.get(Box.name));
+		return f;
+	}
+
+	private FLine drawNameBottom(Rect r) {
+		FLine f = new FLine().moveTo(r.x + r.w / 2, r.y +r.h/2+5);
+		f.attributes.put(StandardFLineDrawing.hasText, true);
+		f.attributes.put(StandardFLineDrawing.color, new Vec4(1, 1, 1, 0.5f));
+		f.last().attributes.put(StandardFLineDrawing.textAlign, 0.5f);
+		if (isCollapsed()) {
+			f.last().attributes.put(StandardFLineDrawing.text, "+" + (collapsedState.size()));
 		}
-		else
-		f.last().attributes.put(StandardFLineDrawing.text, this.properties.get(Box.name));
 		return f;
 	}
 
