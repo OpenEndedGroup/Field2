@@ -239,9 +239,9 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 		if (t.disconnected) return;
 		b.accept(t);
 		visited.add(t);
-		for(Box c : t.children)
+		for(Box c : new ArrayList<>(t.children))
 			_forEach(c, b, visited);
-		for(Box c : t.parents)
+		for(Box c : new ArrayList<>(t.parents))
 			_forEach(c, b, visited);
 	}
 
