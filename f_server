@@ -15,7 +15,7 @@ then
 
     out=$fieldhome/out/production/
 
-    $java -Dfield.db.server=1 -DappDir=$fieldhome -Xmx1g -Xms1g -cp $out/fieldcore/orientdb/*:$out/fieldcore fieldbox.io.Server&
+    $java -XaddExports:jdk.management/com.sun.management.internal=ALL-UNNAMED -addmods java.xml.bind -Dfield.db.server=1 -DappDir=$fieldhome -Xmx1g -Xms1g -cp $out/fieldcore/orientdb/*:$out/fieldcore fieldbox.io.Server&
 else
     echo "server already running"
 
