@@ -218,6 +218,7 @@ a {
     margin:0px;
     border:1px solid rgba(0,0,0,0.1);
     border-radius:2px;
+    text-indent: 0;
     padding:2px;
     padding-left:4px;
     padding-right:4px;
@@ -942,6 +943,14 @@ code {
 }
 
 
+.advice {
+    white-space: pre;
+    margin-left:40px;
+    margin-top:10px;
+    text-indent: -20px;
+}
+
+
 .cm-s-default span.cm-keyword {
     color: #dba;
     font-style: italic;
@@ -955,6 +964,21 @@ code {
 .cm-s-default span.cm-property {
     color: #aab;
     font-weight: 900;
+}
+
+.notification
+{
+    font-size: 17px;
+}
+
+.notification b
+{
+    color:#fff;
+}
+
+.notification i
+{
+    color:#fff;
 }
 
 
