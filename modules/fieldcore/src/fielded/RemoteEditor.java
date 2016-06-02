@@ -270,6 +270,7 @@ public class RemoteEditor extends Box {
 			box.get().properties.put(new Dict.Prop<String>(prop), text);
 
 			boxFeedback(box, new Vec4(0, 0, 0, 0.2f));
+			Callbacks.call(box.get(), Callbacks.onEdit);
 
 			String disabledRanges = p.getString("disabledRanges");
 
