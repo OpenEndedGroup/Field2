@@ -55,7 +55,7 @@ public class StandardFLineDrawing {
 									    .doc("NODE ATTRIBUTE. set this to be the text label centered on this node");
 	static public final Dict.Prop<Number> textScale = new Dict.Prop<>("textScale").type()
 										      .toCannon()
-										      .doc("the scale of the text on this node. Defaults to 0.2f, the size of the labels on the boxes in Field");
+										      .doc("the scale of the text on this node. Defaults to 1, the size of the labels on the boxes in Field");
 	static public final Dict.Prop<Number> textAlign = new Dict.Prop<>("textAlign").type()
 										      .toCannon()
 										      .doc("0.5 centers the text, 0 is left justified, 1 is right");
