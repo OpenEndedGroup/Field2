@@ -283,6 +283,7 @@ public class FrameManipulation extends Box  {
 			else
 			{
 				workingSet.add(hitBox);
+				hitBox.breadthFirst(hitBox.downwards()).forEach(x->workingSet.add(x));
 			}
 
 
