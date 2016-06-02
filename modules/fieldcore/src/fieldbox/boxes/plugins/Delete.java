@@ -1,6 +1,7 @@
 package fieldbox.boxes.plugins;
 
 import static org.lwjgl.glfw.GLFW.*;
+
 import field.graphics.Window;
 import fieldbox.boxes.*;
 
@@ -36,7 +37,7 @@ public class Delete extends Box {
 
 		properties.put(MarkingMenus.menuSpecs, (event) -> {
 			if (selected().findAny()
-				      .isPresent()) {
+				.isPresent()) {
 				MarkingMenus.MenuSpecification spec = new MarkingMenus.MenuSpecification();
 				long count = selected().count();
 
@@ -52,7 +53,7 @@ public class Delete extends Box {
 					}
 
 					find(Watches.watches, both()).forEach(w -> w.getQueue()
-										    .accept("selection.changed", null));
+						.accept("selection.changed", null));
 
 					Drawing.dirty(Delete.this);
 				}));
@@ -63,36 +64,36 @@ public class Delete extends Box {
 				// disconnected for now
 				{
 					List cc = selected().flatMap(x -> x.breadthFirst(x.downwards())
-									   .filter(y -> x != y))
-							    .filter(x -> !x.properties.isTrue(Box.hidden, false))
-							    .filter(x -> !x.properties.isTrue(Box.decorative, false))
-							    .collect(Collectors.toList());
+						.filter(y -> x != y))
+						.filter(x -> !x.properties.isTrue(Box.hidden, false))
+						.filter(x -> !x.properties.isTrue(Box.decorative, false))
+						.collect(Collectors.toList());
 
 					System.out.println(" children are :" + cc);
 
 					long c = cc.size();
 					if (c > 0) {
 						spec.items.put(MarkingMenus.Position.NE2,
-							       new MarkingMenus.MenuItem("Hide " + count + " child" + (count == 1 ? "" : "ren") + " box" + (count == 1 ? "" : "es"), () -> {
-								       recursivelyHideFrom(selected());
-							       }));
+							new MarkingMenus.MenuItem("Hide " + count + " child" + (count == 1 ? "" : "ren") + " box" + (count == 1 ? "" : "es"), () -> {
+								recursivelyHideFrom(selected());
+							}));
 					}
 				}
 				{
 					List cc = selected().flatMap(x -> x.breadthFirstAll(x.allDownwardsFrom())
-									   .filter(y -> x != y))
-							    .filter(x -> x.disconnected)
-							    .filter(x -> !x.properties.isTrue(Box.decorative, false))
-							    .collect(Collectors.toList());
+						.filter(y -> x != y))
+						.filter(x -> x.disconnected)
+						.filter(x -> !x.properties.isTrue(Box.decorative, false))
+						.collect(Collectors.toList());
 
 					System.out.println(" children are :" + cc);
 
 					long c = cc.size();
 					if (c > 0) {
 						spec.items.put(MarkingMenus.Position.SW2,
-							       new MarkingMenus.MenuItem("Show" + count + " hidden child" + (count == 1 ? "" : "ren") + " box" + (count == 1 ? "" : "es"), () -> {
-								       recursivelyShowFrom(selected());
-							       }));
+							new MarkingMenus.MenuItem("Show" + count + " hidden child" + (count == 1 ? "" : "ren") + " box" + (count == 1 ? "" : "es"), () -> {
+								recursivelyShowFrom(selected());
+							}));
 					}
 				}
 				return spec;
@@ -104,22 +105,22 @@ public class Delete extends Box {
 
 	private void recursivelyHideFrom(Stream<Box> selected) {
 		selected.flatMap(x -> x.breadthFirst(x.downwards())
-				       .filter(y -> y != x))
-			.forEach(x -> x.disconnected=true);
+			.filter(y -> y != x)).collect(Collectors.toList()).stream()
+			.forEach(x -> x.disconnected = true);
 		Drawing.dirty(this);
 	}
 
 	private void recursivelyShowFrom(Stream<Box> selected) {
 		selected.flatMap(x -> x.breadthFirstAll(x.allDownwardsFrom())
-				       .filter(y -> y != x))
-			.forEach(x -> x.disconnected=false);
+			.filter(y -> y != x)).collect(Collectors.toList()).stream()
+			.forEach(x -> x.disconnected = false);
 		Drawing.dirty(this);
 	}
 
 	private Stream<Box> selected() {
 		return root.breadthFirst(root.allDownwardsFrom())
-			   .filter(x -> x.properties.isTrue(Mouse.isSelected, false))
-			   .filter(x -> !x.properties.isTrue(Box.undeletable, false));
+			.filter(x -> x.properties.isTrue(Mouse.isSelected, false))
+			.filter(x -> !x.properties.isTrue(Box.undeletable, false));
 	}
 
 }
