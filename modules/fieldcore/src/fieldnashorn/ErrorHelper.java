@@ -4,7 +4,6 @@ import field.app.RunLoop;
 import field.utility.Pair;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.FrameManipulation;
-import fieldbox.boxes.plugins.PluginUtils;
 import fieldbox.execution.JavaSupport;
 import fieldbox.io.IO;
 import fielded.EditorUtils;
@@ -12,8 +11,8 @@ import fielded.RemoteEditor;
 import fielded.boxbrowser.TransientCommands;
 import fielded.plugins.Out;
 
-import java.util.Collections;
-import java.util.List;
+import javax.script.ScriptContext;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,10 +35,6 @@ public class ErrorHelper {
 
 		return (line) -> {
 
-			// do something smart here
-
-			// let's offer a link for all boxes
-
 			line = replaceBoxReferences(box, line);
 			line = replaceMissingRefs(box, line);
 
@@ -53,7 +48,6 @@ public class ErrorHelper {
 
 		while (m.find()) {
 			String found = m.group(0);
-			System.out.println(" found :" + found + " in " + box);
 
 			String missing = m.group(1);
 
@@ -66,31 +60,58 @@ public class ErrorHelper {
 				return f[f.length - 1].toLowerCase().equals(missing.toLowerCase());
 			}).collect(Collectors.toList());
 
-			if (matches.size() == 0) return line;
+			String text = "";
+			if (matches.size() != 0) {
 
-			String text = line.second + "<br>Do you mean to import ";
-			for (Pair<String, String> p : matches) {
-				text += TransientCommands.transientCommands.refForCommand(p.first, () -> {
-					EditorUtils ed = box.first(RemoteEditor.editorUtils, box.both()).orElseThrow(() -> new IllegalStateException(" no editortools ? "));
-					RunLoop.workerPool.submit(() -> {
+				text = line.second + "<br><div class='advice'>Do you mean to import ";
+				for (Pair<String, String> p : matches) {
+					text += "<br>" + TransientCommands.transientCommands.refForCommand(p.first, () -> {
+						EditorUtils ed = box.first(RemoteEditor.editorUtils, box.both()).orElseThrow(() -> new IllegalStateException(" no editortools ? "));
+						RunLoop.workerPool.submit(() -> {
 
-						int s = ed.getCursorPosition();
+							int s = ed.getCursorPosition();
 
-						String[] f = p.first.split("\\.");
-						String insert = "var "+f[f.length - 1]+" = Java.type('"+p.first+"')\\n";
-						ed.insertAtStart(insert);
+							String[] f = p.first.split("\\.");
+							String insert = "var " + f[f.length - 1] + " = Java.type('" + p.first + "')\\n";
+							ed.insertAtStart(insert);
 
+						});
 					});
-				});
+				}
 
+				text += "?<br></div>";
+				return new Pair<Integer, String>(line.first, text);
 			}
 
-			text+="?<br>";
+			ScriptContext bindings = box.properties.get(Nashorn.boxBindings);
+			List<Pair<String, Object>> possibleNames = new ArrayList<>();
+			if (bindings != null) {
+				List<String> q = editsOfString(missing.toLowerCase());
+				for (String qq : q) {
+					Object foundval = bindings.getBindings(100).get(qq);
+					if (foundval != null) {
+						possibleNames.add(new Pair<>(qq, foundval));
+					}
+				}
+			}
+
+			if (possibleNames.size() > 0 && possibleNames.size() < 10) {
+				text = line.second + "<br><div class='advice'><div style='margin-bottom:0px'>Do you mean :</div>";
+				for (Pair<String, Object> o : possibleNames) {
+					text += "<br><b>" + o.first + "</b> ->" + html(box, o.second);
+				}
+				text += "?<br></div>";
+				return new Pair<Integer, String>(line.first, text);
+			}
 
 			return new Pair<Integer, String>(line.first, text);
 
 		}
 		return line;
+	}
+
+	private String html(Box box, Object second) {
+		return box.first(Out.__out).map(x -> x.convert(second)).orElseGet(() -> "" + second);
 	}
 
 	private Pair<Integer, String> replaceBoxReferences(Box box, Pair<Integer, String> line) {
@@ -130,6 +151,50 @@ public class ErrorHelper {
 				.equals(uid))
 			.findFirst()
 			.orElse(null);
+	}
+
+	public List<String> editsOfString(String n) {
+
+		String alphabet = "abcdefghijklmnopqrstuvwxyz";
+		n = n.toLowerCase();
+
+		List<Pair<String, String>> splits = new ArrayList<>();
+		for (int i = 0; i < n.length(); i++) {
+			splits.add(new Pair<>(n.substring(0, i), n.substring(i, n.length())));
+		}
+		splits.add(new Pair<>(n, ""));
+
+
+		Set<String> deletes = new LinkedHashSet<>();
+		for (Pair<String, String> p : splits) {
+			if (p.second.length() > 0)
+				deletes.add(p.first + p.second.substring(1));
+		}
+
+		Set<String> transposes = new LinkedHashSet<>();
+		for (Pair<String, String> p : splits) {
+			if (p.second.length() > 1)
+				transposes.add(p.first + p.second.charAt(1) + p.second.charAt(0) + p.second.substring(2));
+		}
+
+		Set<String> replaces = new LinkedHashSet<>();
+		for (Pair<String, String> p : splits) {
+			if (p.second.length() > 0)
+				for (int q = 0; q < alphabet.length(); q++)
+					replaces.add(p.first + alphabet.charAt(q) + p.second.substring(1));
+		}
+
+		Set<String> inserts = new LinkedHashSet<>();
+		for (Pair<String, String> p : splits) {
+			for (int q = 0; q < alphabet.length(); q++)
+				inserts.add(p.first + alphabet.charAt(q) + p.second.substring(0));
+		}
+
+
+		deletes.addAll(transposes);
+		deletes.addAll(replaces);
+		deletes.addAll(inserts);
+		return new ArrayList<>(deletes);
 	}
 
 
