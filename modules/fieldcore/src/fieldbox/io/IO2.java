@@ -2,8 +2,9 @@ package fieldbox.io;
 
 import com.orientechnologies.orient.core.Orient;
 import com.orientechnologies.orient.core.metadata.schema.OType;
+import com.orientechnologies.orient.core.record.impl.ODocument;
 import com.tinkerpop.blueprints.Direction;
-import com.tinkerpop.blueprints.Edge;
+import com.tinkerpop.blueprints.Parameter;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
@@ -11,7 +12,6 @@ import field.utility.Dict;
 import field.utility.Log;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Boxes;
-import fieldbox.io.IO;
 
 import java.io.*;
 import java.lang.reflect.Constructor;
@@ -28,7 +28,15 @@ import java.util.stream.Collectors;
  */
 public class IO2 {
 
-	private final OrientGraph graph;
+	// known roots
+	static public final String tagged = "__tagged__";
+
+	static public final Dict.Prop<Vertex> _dbvertex = new Dict.Prop<Vertex>("_dbvertex").type().toCannon();
+	static public final Dict.Prop<String> _dbparent = new Dict.Prop<Vertex>("_dbparent").type().toCannon().set(Dict.domain, "attributes");
+
+	static public final Dict.Prop<String> tags = new Dict.Prop<Vertex>("tags").type().toCannon().doc("TODO").set(IO.persistent, true).set(_dbparent, tagged);
+
+	public final OrientGraph graph;
 	private UUID version;
 
 	public IO2() {
@@ -48,7 +56,7 @@ public class IO2 {
 
 		Set<String> indexedKeys = graph.getIndexedKeys(Vertex.class);
 		if (indexedKeys.size() == 0) {
-			graph.createKeyIndex("uid", Vertex.class);
+			graph.createKeyIndex("uid", Vertex.class, new Parameter<>("type", "UNIQUE"));
 		}
 
 
@@ -72,30 +80,29 @@ public class IO2 {
 
 			System.out.println(e + " =========== " + key.getClass().getName() + " -- " + value.getClass().getName());
 
-			if (e.getKey().getClass().getName().contains("OrientShutdownHook"))
-			{
+			if (e.getKey().getClass().getName().contains("OrientShutdownHook")) {
 				toRemove.add(e.getKey());
 			}
 
 		}
 
-		System.out.println(" removing :"+toRemove);
+		System.out.println(" removing :" + toRemove);
 		boolean q = map.keySet().removeAll(toRemove);
-		System.out.println(" removed :"+q+" -> "+map.keySet());
+		System.out.println(" removed :" + q + " -> " + map.keySet());
 
 	}
 
 	Map<Box, Vertex> insideSave = new LinkedHashMap<>();
 	Map<Vertex, Box> insideLoad = new LinkedHashMap<>();
 
-	public Set<Box> saveTopology(String name, Box root, Predicate<Box> save, Function<Box, String> alias) {
+	public Set<Box> saveTopology(String name, Box root, Predicate<Box> save, Function<Box, String> alias) throws IOException {
 
 		version = UUID.randomUUID();
 
 		// version this, this seems like a common pattern. We could connect all nodes to a particular "version" node here as well.
 		// export rafts do not contain versions ?
 
-		Vertex topology = versionForward("topology", name);
+		Vertex topology = versionForward("topology", name, null); //TODO, we might have loaded an earlier topology
 		topology.setProperty("__thisVersion", version.toString());
 
 		List<Vertex> all = new ArrayList<>();
@@ -118,7 +125,13 @@ public class IO2 {
 				System.out.println(" -------------- check for dontsave at :" + x + " " + x.properties.isTrue(Boxes.dontSave, false));
 
 				try {
-					all.add(_saveBox(x, aalias, t -> save.test(t) && complete.contains(t)));
+					all.add(_saveBox(x, aalias, t -> save.test(t) && complete.contains(t), q -> {
+						String uid = q.properties.getOrConstruct(IO.id);
+						Vertex existingVertex = q.properties.get(_dbvertex);
+
+
+						return versionForward("uid", uid, existingVertex);
+					}));
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -130,6 +143,17 @@ public class IO2 {
 			topology.addEdge("contents", v);
 		}
 
+		Map<Dict.Prop, Object> q = root.properties.getMap();
+		for (Map.Entry<Dict.Prop, Object> e : q.entrySet()) {
+			System.out.println(" looking at property for root :" + e.getKey());
+			if (!e.getKey().getName().equals("uid") && (IO.isPeristant(e.getKey()) || e.getKey().getName().equals("code"))) { // code is aliased in IO1
+				System.out.println(" this property is persistent ");
+				topology.setProperty(e.getKey().getName(), toValue(e.getKey(), e.getValue(), alias, save, null));
+			}
+		}
+
+		//TODO: load this
+
 		graph.commit();
 
 		// todo, check existing things
@@ -137,36 +161,68 @@ public class IO2 {
 
 		// per topology properties needed, rather than per box?
 		// is "disconnected" per topology rather than box?
-		Set<Box> q = insideSave.keySet();
+		Set<Box> ret = insideSave.keySet();
 
 
-		return q;
+		return ret;
 	}
 
-	private Vertex versionForward(String className, String name) {
+	public Vertex createOnDemand(String className, String name) {
 		Collection<Vertex> c = allOf(graph.getVertices(className, name));
-		Vertex topology = null;
-		if (c.size() == 0) {
-			topology = graph.addVertex(null, className, name);
-		} else {
 
-			// version this? here
-			topology = c.iterator().next();
+		System.out.println(" looked for " + name + " / " + className + " got " + c);
+
+		if (c.size() == 0)
+			return graph.addVertex(null, className, name);
+
+		return c.iterator().next();
+	}
+
+	private Vertex versionForward(String className, String name, Vertex existingVertex) {
+		Vertex topology = null;
+		if (existingVertex == null) {
+
+			Collection<Vertex> c = allOf(graph.getVertices(className, name));
+
+			System.out.println(" looked for " + name + " / " + className + " got " + c);
+
+			if (c.size() == 0) {
+				topology = graph.addVertex(null, className, name);
+			} else {
+
+				// version this? here
+				topology = c.iterator().next();
+				topology.setProperty(className, name + "@" + version);
+
+				graph.commit();
+				graph.begin();
+
+
+				System.out.println(" renamed existing to :" + name + "@" + version);
+
+				Vertex next = graph.addVertex(null, className, name);
+
+				topology.addEdge("nextVersion", next);
+				topology = next;
+
+				// question: what do we do if this thing hasn't actually changed?
+				// we could compute a hash as we are saving the box, and if it hasn't changed, we could rollback the transaction.
+
+			}
+		} else {
+			((ODocument) ((OrientVertex) existingVertex).getRecord()).reload();
+
+			topology = existingVertex;
+			name = trimVersionFrom(name);
 
 			topology.setProperty(className, name + "@" + version);
+
+			System.out.println(" renamed existing to :" + name + "@" + version);
+
 			Vertex next = graph.addVertex(null, className, name);
 
 			topology.addEdge("nextVersion", next);
 			topology = next;
-
-//            for (String s : topology.getPropertyKeys())
-//                topology.removeProperty(s);
-//
-//            for (Edge e : topology.getEdges(Direction.BOTH))
-//                graph.removeEdge(e);
-
-			// question: what do we do if this thing hasn't actually changed?
-			// we could compute a hash as we are saving the box, and if it hasn't changed, we could rollback the transaction.
 
 		}
 		return topology;
@@ -177,6 +233,12 @@ public class IO2 {
 		if (c.size() == 0)
 			return null;
 
+		Vertex topology = c.iterator().next();
+		return loadTopology(topology, root, alias, load);
+	}
+
+	public Set<Box> loadTopology(Vertex topology, Box root, Function<String, Box> alias, Predicate<Vertex> load) throws ClassNotFoundException, IOException, InstantiationException, IllegalAccessException {
+
 		Function<String, Box> aalias = x -> {
 			Box q = alias.apply(x);
 			if (q != null) return q;
@@ -184,8 +246,6 @@ public class IO2 {
 			return null;
 		};
 
-
-		Vertex topology = c.iterator().next();
 
 		Collection<Vertex> all = allOf(topology.getVertices(Direction.OUT, "contents"));
 
@@ -206,41 +266,49 @@ public class IO2 {
 		}).filter(x -> x != null).collect(Collectors.toSet());
 
 
-		System.out.println(" going to run loaded on the things we've loaded :" + loaded);
-		for (Box qq : loaded) {
-			if (qq instanceof IO.Loaded) {
-				System.out.println("        " + qq);
-				try {
-					((IO.Loaded) qq).loaded();
-				} catch (Throwable t) {
-					t.printStackTrace();
-				}
-			}
-		}
-
 		return loaded;
 	}
 
-//    public Box loadBox(String uid, Function<String, Box> alias, Predicate<Vertex> load) {
-//
-//        insideLoad.clear();
-//        try {
-//            return _loadBox(uid, alias, load);
-//        } catch (InstantiationException e) {
-//            e.printStackTrace();
-//        } catch (IllegalAccessException e) {
-//            e.printStackTrace();
-//        } catch (ClassNotFoundException e) {
-//            e.printStackTrace();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } finally {
-//            insideLoad.clear();
-//        }
-//        return null;
-//    }
+	public Box loadBox(String uid, Function<String, Box> alias, Predicate<Vertex> load) {
 
-	protected Box _loadBox(String uid, Function<String, Box> alias, Predicate<Vertex> load) throws IllegalAccessException, InstantiationException, IOException, ClassNotFoundException {
+		insideLoad.clear();
+		try {
+			return _loadBox(uid, alias, load);
+		} catch (InstantiationException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			insideLoad.clear();
+		}
+		return null;
+	}
+
+	public Box loadBox(Vertex uid, Function<String, Box> alias, Predicate<Vertex> load) {
+
+		insideLoad.clear();
+		try {
+			return _loadBox(uid, alias, load);
+		} catch (InstantiationException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			insideLoad.clear();
+		}
+		return null;
+	}
+
+
+	public Box _loadBox(String uid, Function<String, Box> alias, Predicate<Vertex> load) throws IllegalAccessException, InstantiationException, IOException, ClassNotFoundException {
 		Iterable<Vertex> vert = graph.getVertices("uid", uid);
 		Collection<Vertex> v = allOf(vert);
 		if (v.size() == 0) return null;
@@ -250,7 +318,7 @@ public class IO2 {
 		return _loadBox(vertex, alias, load);
 	}
 
-	private Box _loadBox(Vertex vertex, Function<String, Box> alias, Predicate<Vertex> load) throws InstantiationException, IllegalAccessException, IOException, ClassNotFoundException {
+	public Box _loadBox(Vertex vertex, Function<String, Box> alias, Predicate<Vertex> load) throws InstantiationException, IllegalAccessException, IOException, ClassNotFoundException {
 		if (insideLoad.containsKey(vertex)) {
 			return insideLoad.get(vertex);
 		}
@@ -279,15 +347,22 @@ public class IO2 {
 			Class c = this.getClass()
 				.getClassLoader()
 				.loadClass("" + boxClass.getName());
+
+			System.out.println(" constructing class " + c);
 			try {
-				System.out.println(" constructing class " + c);
 				Constructor<Box> cc = c.getDeclaredConstructor();
 				System.out.println(" constructor " + cc);
 				cc.setAccessible(true);
 				b = cc.newInstance();
 				b.properties.put(IO.desiredBoxClass, "" + boxClass);
 				System.out.println(" got instance " + b);
-			} catch (NoSuchMethodException e) {
+			} catch (Throwable e) {
+				Constructor<Box> cc = c.getDeclaredConstructor(Box.class);
+				System.out.println(" constructor " + cc);
+				cc.setAccessible(true);
+				b = cc.newInstance(alias.apply(">>root<<"));
+				b.properties.put(IO.desiredBoxClass, "" + boxClass);
+				System.out.println(" got instance " + b);
 			}
 		} catch (Throwable e) {
 			final Class<? extends Box> finalBoxClass = boxClass;
@@ -300,7 +375,7 @@ public class IO2 {
 			b = new Box();
 
 		if (keys.contains("__class")) {
-			b.properties.put(IO.desiredBoxClass, vertex.getProperty("__class"));
+			b.properties.put(IO.desiredBoxClass, fromValue(IO.desiredBoxClass, vertex.getProperty("__class"), alias, load));
 			keys.remove("__class");
 		}
 
@@ -385,15 +460,23 @@ public class IO2 {
 		}
 
 
-		b.properties.put(new Dict.Prop<Vertex>("_dbvertex"), vertex);
-		b.properties.put(IO.id, vertex.getProperty("uid"));
+		b.properties.put(_dbvertex, vertex);
+		b.properties.put(IO.id, trimVersionFrom(vertex.getProperty("uid")));
 
 		return b;
 	}
 
+	private String trimVersionFrom(String uid) {
+
+		if (uid.contains("@")) {
+			return uid.split("@")[0];
+		}
+		return uid;
+	}
+
 	Pattern extractClass = Pattern.compile("%%(.*?)%%(.*)", Pattern.DOTALL);
 
-	private <T> T fromValue(Dict.Prop<T> key, Object value, Function<String, Box> alias, Predicate<Vertex> load) throws InstantiationException, IllegalAccessException, IOException, ClassNotFoundException {
+	public <T> T fromValue(Dict.Prop<T> key, Object value, Function<String, Box> alias, Predicate<Vertex> load) throws InstantiationException, IllegalAccessException, IOException, ClassNotFoundException {
 		if (value == null) return null;
 
 		if (value instanceof String) {
@@ -418,7 +501,7 @@ public class IO2 {
 	}
 
 
-	private <T> T fromValue(Dict.Prop<T> key, String className, String content, Function<String, Box> alias, Predicate<Vertex> load) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public <T> T fromValue(Dict.Prop<T> key, String className, String content, Function<String, Box> alias, Predicate<Vertex> load) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		if (className.equals("java.lang.String")) return (T) content;
 		if (className.equals("java.io.Serializable")) return (T) deserialize(content);
@@ -433,37 +516,57 @@ public class IO2 {
 	public Vertex saveBox(Box x, Function<Box, String> alias, Predicate<Box> save) throws IOException {
 		insideSave.clear();
 		try {
-			Vertex v = _saveBox(x, alias, save);
+			Vertex v = _saveBox(x, alias, save, q -> {
+				String uid = q.properties.getOrConstruct(IO.id);
+				Vertex existingVertex = q.properties.get(_dbvertex);
+				return versionForward("uid", uid, existingVertex);
+			});
 			return v;
 		} finally {
 			insideSave.clear();
 		}
 	}
 
-	protected Vertex _saveBox(Box x, Function<Box, String> alias, Predicate<Box> save) throws IOException {
-
+	protected Vertex _saveBox(Box x, Function<Box, String> alias, Predicate<Box> save, Function<Box, Vertex> forward) throws IOException {
 		System.out.println(" -------- check, again, for dontSave :" + x.properties.isTrue(Boxes.dontSave, false));
 		if (x.properties.isTrue(Boxes.dontSave, false)) return null;
 
 		if (insideSave.containsKey(x)) return insideSave.get(x);
-		if (!save.test(x)) return null;
+		if (!save.test(x)) {
+			Vertex existingVertex = x.properties.get(_dbvertex);
+			if (existingVertex != null)
+				((ODocument) ((OrientVertex) existingVertex).getRecord()).reload();
+			return existingVertex;
+		}
 		if (alias.apply(x) != null)
 			throw new IllegalArgumentException(" can't save a box called " + alias.apply(x) + " / " + x);
 
 		String uid = x.properties.getOrConstruct(IO.id);
 
+		System.out.println(" getting a vertex for " + uid);
 
-		Vertex at = versionForward("uid", uid);
+		Vertex at = forward.apply(x);
 		insideSave.put(x, at);
 
 		Map<Dict.Prop, Object> q = x.properties.getMap();
 		for (Map.Entry<Dict.Prop, Object> e : q.entrySet()) {
 			System.out.println(" looking at property :" + e.getKey());
-			if (IO.isPeristant(e.getKey()) || e.getKey().getName().equals("code")) { // code is aliased in IO1
+			if (!e.getKey().getName().equals("uid") && (IO.isPeristant(e.getKey()) || e.getKey().getName().equals("code"))) { // code is aliased in IO1
 				System.out.println(" this property is persistent ");
-				at.setProperty(e.getKey().getName(), toValue(e.getKey(), e.getValue(), alias, save));
+				at.setProperty(e.getKey().getName(), toValue(e.getKey(), e.getValue(), alias, save, forward));
+
+				String p = e.getKey().getAttributes().get(_dbparent);
+				if (p != null && p.length() > 0) {
+
+					Vertex v = createOnDemand("known", p);
+					v.setProperty("uid", p);
+					at.addEdge(e.getKey().getName(), v);
+
+				}
 			}
 		}
+
+		x.properties.put(_dbvertex, at);
 
 		if (x.properties.get(IO.desiredBoxClass) != null)
 			at.setProperty("__class", x.properties.get(IO.desiredBoxClass));
@@ -476,7 +579,7 @@ public class IO2 {
 			try {
 				String name = alias.apply(z);
 				if (name == null)
-					return _saveBox(z, alias, save);
+					return _saveBox(z, alias, save, forward);
 				else return null;
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -497,7 +600,7 @@ public class IO2 {
 			try {
 				String name = alias.apply(z);
 				if (name != null) return null;
-				return _saveBox(z, alias, save);
+				return _saveBox(z, alias, save, forward);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -516,12 +619,12 @@ public class IO2 {
 		return at;
 	}
 
-	private Object toValue(Dict.Prop key, Object value, Function<Box, String> alias, Predicate<Box> save) throws IOException {
+	private Object toValue(Dict.Prop key, Object value, Function<Box, String> alias, Predicate<Box> save, Function<Box, Vertex> forward) throws IOException {
 
 		if (value == null) return null;
 		if (value instanceof String) return "%%java.lang.String%%" + value;
 		if (value instanceof Box)
-			return _saveBox((Box) value, alias, save);
+			return _saveBox((Box) value, alias, save, forward);
 
 		if (value instanceof Serializable) return "%%java.io.Serializable%%" + serialize((Serializable) value);
 		if (value instanceof Class) return "%%java.lang.Class%%" + ((Class) value).getName();
@@ -540,7 +643,7 @@ public class IO2 {
 		}
 	}
 
-	private Object deserialize(String value) throws IOException, ClassNotFoundException {
+	static private Object deserialize(String value) throws IOException, ClassNotFoundException {
 		byte[] a = Base64.getDecoder().decode(value);
 		ByteArrayInputStream b = new ByteArrayInputStream(a);
 		ObjectInputStream oos = new ObjectInputStream(b);
@@ -562,4 +665,29 @@ public class IO2 {
 	}
 
 
+	public void advanceBox(Box loaded, Function<Box, String> alias) throws IOException {
+		Vertex v = loaded.properties.get(_dbvertex);
+		if (v == null) return;
+
+		if (v != null)
+			((ODocument) ((OrientVertex) v).getRecord()).reload();
+
+		// 'v' as it is, make a new vertex with, crucially, an independent ID
+
+		UUID newID = UUID.randomUUID();
+
+		_saveBox(loaded, alias, x -> x == loaded, x -> {
+			Vertex next = graph.addVertex(null, "uid", newID.toString());
+			graph.commit();
+
+			v.addEdge("copied", next);
+			graph.begin();
+
+			System.out.println(" moving forward from :" + x + " to " + next);
+			return next;
+		});
+
+		loaded.properties.put(IO.id, newID.toString());
+
+	}
 }

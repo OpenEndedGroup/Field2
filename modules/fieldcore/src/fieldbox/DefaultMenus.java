@@ -221,9 +221,14 @@ public class DefaultMenus extends Box {
 		}
 		else
 		{
-			FieldBox.fieldBox.io2.saveTopology(filename, root, (x) -> true, (x) -> null);
+			try {
+				FieldBox.fieldBox.io2.saveTopology(filename, root, (x) -> true, (x) -> null);
+				Drawing.notify("Saved to " + filename, this, 200);
+			} catch (IOException e) {
+				e.printStackTrace();
+				Drawing.notify("Error saving to" + filename, this, 200);
+			}
 			Log.println("io.debug", " going to notify ...");
-			Drawing.notify("Saved to " + filename, this, 200);
 			Log.println("io.debug", " ... notified ");
 		}
 	}
