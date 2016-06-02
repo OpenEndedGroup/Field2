@@ -95,6 +95,8 @@ public class Browser extends Box implements IO.Loaded {
 		Rect r = now.properties.get(Box.frame);
 		float op = now.properties.getFloat(StandardFLineDrawing.opacity, 1);
 
+		op = (float) Math.sqrt(op);
+
 		if (now.properties.isTrue(FLineDrawing.hidden, false)) {
 			builder.open();
 			builder.close();
@@ -745,7 +747,7 @@ public class Browser extends Box implements IO.Loaded {
 
 
 	public void printHTML(String text) {
-		executeJavaScript_queued("$(document.body).append('" + TextUtils.html(text) + "');" + scrollDown());
+		executeJavaScript_queued("$(document.body).append('" + TextUtils.quoteNoOuter(text.replace("'", "\""))+"');"  + scrollDown());
 	}
 
 	public void print(Object text) {

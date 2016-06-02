@@ -44,7 +44,7 @@ public class FieldBox {
 		fieldBox.io.addFilespec("code", IO.EXECUTION, IO.EXECUTION);
 
 
-//		fieldBox.io2 = new IO2();
+		fieldBox.io2 = new IO2();
 
 		Open open = new Open(Options.getString("file", () -> "testIB.field2"));
 

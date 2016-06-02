@@ -33,7 +33,7 @@ public class ThreadSyncFeedback extends Box {
 				Stream<Box> s = selection();
 
 				List<Box> c = s.filter(x -> lastRunning.containsKey(x))
-					       .collect(Collectors.toList());
+					.collect(Collectors.toList());
 
 				System.out.println(" filtered selection is :" + c + " " + lastRunning + " " + selection().collect(Collectors.toList()));
 
@@ -44,22 +44,22 @@ public class ThreadSyncFeedback extends Box {
 			});
 		}
 
-		this.properties.put(fPause, this::pause);
-		this.properties.put(fCont, this::pause);
-		this.properties.put(fStep, this::pause);
-		this.properties.put(fKill, this::kill);
+		this.properties.put(fPause, ThreadSyncFeedback::pause);
+		this.properties.put(fCont, ThreadSyncFeedback::pause);
+		this.properties.put(fStep, ThreadSyncFeedback::pause);
+		this.properties.put(fKill, ThreadSyncFeedback::kill);
 	}
 
 	static public boolean isPaused(Box x) {
 //		return false;
 
 		return ThreadSync.get()
-				 .getFibers()
-				 .stream()
-				 .filter(z -> z.tag == x)
-				 .filter(z -> z.wasPaused)
-				 .findAny()
-				 .isPresent();
+			.getFibers()
+			.stream()
+			.filter(z -> z.tag == x)
+			.filter(z -> z.wasPaused)
+			.findAny()
+			.isPresent();
 	}
 
 	private MarkingMenus.MenuSpecification menuSpecification(List<Box> target) {
@@ -70,94 +70,95 @@ public class ThreadSyncFeedback extends Box {
 		item.setSubmenu(menu);
 		m.items.put(MarkingMenus.Position.SE2, item);
 
-		menu.items.put(MarkingMenus.Position.W, new MarkingMenus.MenuItem("Pause", () -> target.forEach(this::pause)));
-		menu.items.put(MarkingMenus.Position.W2, new MarkingMenus.MenuItem("Kill", () -> target.forEach(this::kill)));
-		menu.items.put(MarkingMenus.Position.E, new MarkingMenus.MenuItem("Step", () -> target.forEach(this::step)));
-		menu.items.put(MarkingMenus.Position.E2, new MarkingMenus.MenuItem("Continue", () -> target.forEach(this::cont)));
+		menu.items.put(MarkingMenus.Position.W, new MarkingMenus.MenuItem("Pause", () -> target.forEach(ThreadSyncFeedback::pause)));
+		menu.items.put(MarkingMenus.Position.W2, new MarkingMenus.MenuItem("Kill", () -> target.forEach(ThreadSyncFeedback::kill)));
+		menu.items.put(MarkingMenus.Position.E, new MarkingMenus.MenuItem("Step", () -> target.forEach(ThreadSyncFeedback::step)));
+		menu.items.put(MarkingMenus.Position.E2, new MarkingMenus.MenuItem("Continue", () -> target.forEach(ThreadSyncFeedback::cont)));
 
 		return m;
 	}
 
-	private boolean cont(Box box) {
+	static protected boolean cont(Box box) {
 
 		List<ThreadSync.Fiber> live = ThreadSync.get()
-							.getFibers();
+			.getFibers();
 		boolean[] done = {false};
 
 		live.stream()
-		    .filter(x -> x.tag == box)
-		    .forEach(x -> {
-			    x.paused = () -> false;
-			    done[0] = true;
-		    });
+			.filter(x -> x.tag == box)
+			.forEach(x -> {
+				x.paused = () -> false;
+				done[0] = true;
+			});
 
 		Drawing.dirty(box, 3);
 		return done[0];
 	}
 
-	private boolean  pause(Box box) {
+	static protected boolean pause(Box box) {
 
 		List<ThreadSync.Fiber> live = ThreadSync.get()
-							.getFibers();
+			.getFibers();
 		boolean[] done = {false};
 		live.stream()
-		    .filter(x -> x.tag == box)
-		    .forEach(x -> {
-			    x.paused = () -> true;
-			    done[0] = true;
-		    });
+			.filter(x -> x.tag == box)
+			.forEach(x -> {
+				x.paused = () -> true;
+				done[0] = true;
+			});
 		Drawing.dirty(box, 3);
 		return done[0];
 	}
 
-	private boolean  step(Box box) {
+	static protected boolean step(Box box) {
 
 		List<ThreadSync.Fiber> live = ThreadSync.get()
-							.getFibers();
+			.getFibers();
 		boolean[] done = {false};
 		live.stream()
-		    .filter(x -> x.tag == box)
-		    .forEach(x -> {
-			    x.paused = () -> {
-				    x.paused = () -> true;
-				    return false;
-			    };
-			    done[0] = true;
-		    });
+			.filter(x -> x.tag == box)
+			.forEach(x -> {
+				x.paused = () -> {
+					x.paused = () -> true;
+					return false;
+				};
+				done[0] = true;
+			});
 		Drawing.dirty(box, 3);
 		return done[0];
 	}
 
-	private boolean kill(Box box) {
+	static protected boolean kill(Box box) {
 
 		List<ThreadSync.Fiber> live = ThreadSync.get()
-							.getFibers();
+			.getFibers();
 		boolean[] done = {false};
 		live.stream()
-		    .filter(x -> x.tag == box)
-		    .forEach(x -> {
-			    x.stopped = true;
-			    done[0] = true;
-			    x.paused = () -> false;
-		    });
+			.filter(x -> x.tag == box)
+			.forEach(x -> {
+				x.stopped = true;
+				done[0] = true;
+				x.paused = () -> false;
+			});
 		Drawing.dirty(box, 3);
 		return done[0];
 	}
 
 	private Stream<Box> selection() {
 		return breadthFirst(both()).filter(x -> x.properties.isTrue(Mouse.isSelected, false))
-					   .filter(x -> !x.properties.isTrue(Mouse.isSticky, false))
-					   .filter(x -> x.properties.has(Box.name));
+			.filter(x -> !x.properties.isTrue(Mouse.isSticky, false))
+			.filter(x -> x.properties.has(Box.name));
 	}
 
 	protected boolean run() {
 		List<ThreadSync.Fiber> live = ThreadSync.get()
-							.getFibers();
+			.getFibers();
 
 		Map<Box, Integer> running = new LinkedHashMap<>();
 
 		live.forEach(x -> {
-			if (x.tag instanceof Box) running.put((Box) x.tag, running.computeIfAbsent((Box) x.tag, (k) -> 0) + 1);
+			if (x.tag instanceof Box)
+				running.put((Box) x.tag, running.computeIfAbsent((Box) x.tag, (k) -> 0) + 1);
 		});
 
 		Set<Box> started = new LinkedHashSet<>(running.keySet());
@@ -167,7 +168,7 @@ public class ThreadSyncFeedback extends Box {
 		finished.removeAll(running.keySet());
 
 		started.stream()
-		       .forEach(x -> addBadge(x));
+			.forEach(x -> addBadge(x));
 		finished.stream()
 			.forEach(x -> removeBadge(x));
 

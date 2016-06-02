@@ -9,8 +9,7 @@ import com.orientechnologies.orient.server.OServerMain;
  */
 public class Server implements Runnable {
 
-	static public void main(String[] a)
-	{
+	static public void main(String[] a) {
 		new Server().run();
 	}
 
@@ -34,7 +33,16 @@ public class Server implements Runnable {
 					+ "</protocols>"
 					+ "<listeners>"
 					+ "<listener ip-address=\"0.0.0.0\" port-range=\"2424-2430\" protocol=\"binary\"/>"
-					+ "<listener ip-address=\"0.0.0.0\" port-range=\"2480-2490\" protocol=\"http\"/>"
+					+ "<listener ip-address=\"0.0.0.0\" port-range=\"2480-2490\" protocol=\"http\">"+
+				" <commands>\n" +
+					"    <command implementation=\"com.orientechnologies.orient.server.network.protocol.http.command.get.OServerCommandGetStaticContent\" pattern=\"GET|www GET|studio/ GET| GET|*.htm GET|*.html GET|*.xml GET|*.jpeg GET|*.jpg GET|*.png GET|*.gif GET|*.js GET|*.css GET|*.swf GET|*.ico GET|*.txt GET|*.otf GET|*.pjs GET|*.svg\">\n" +
+					"      <parameters>\n" +
+					"        <entry value=\"Cache-Control: no-cache, no-store, max-age=0, must-revalidate\\r\\nPragma: no-cache\" name=\"http.cache:*.htm *.html\"/>\n" +
+					"        <entry value=\"Cache-Control: max-age=120\" name=\"http.cache:default\"/>\n" +
+					"      </parameters>\n" +
+					"    </command>\n" +
+					"  </commands>\n" +
+					"</listener>\n"
 					+ "</listeners>"
 					+ "</network>"
 					+ "<users>"
@@ -53,16 +61,15 @@ public class Server implements Runnable {
 			OServer m = server.activate();
 
 			OServerAdmin admin = new OServerAdmin("remote:localhost").connect("admin", "admin");
-			System.out.println(" databases are :"+admin.listDatabases());
+			System.out.println(" databases are :" + admin.listDatabases());
 
-			if (!admin.listDatabases().containsKey("FIELD"))
-			{
+			if (!admin.listDatabases().containsKey("FIELD")) {
 				System.err.println(" creating database ");
 				admin.createDatabase("FIELD", "graph", "plocal");
 				System.err.println(" finished ");
 			}
 
-			while(true)
+			while (true)
 				Thread.sleep(1000);
 
 		} catch (Exception e) {

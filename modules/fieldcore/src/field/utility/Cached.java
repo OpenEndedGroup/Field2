@@ -39,11 +39,22 @@ public class Cached<t_check, t_witness, t_value> implements Function<t_check, t_
 	}
 
 	public t_value apply(t_check check) {
-		t_witness w = witness.apply(check);
+		t_witness w;
+		try {
+			w = witness.apply(check);
+		}
+		catch(Throwable t)
+		{
+			System.err.println(" exception thrown by witness :"+witness+" carying on");
+			t.printStackTrace();
+			w=null;
+			invalid = true;
+		}
 
+		t_witness finalW = w;
 		if (invalid || !Util.safeEq(w, valid)) {
 			if (debug != null) {
-				Log.log("cached." + debug, ()->" cache invalid :" + invalid + " " + w + " " + valid + " " + Util.safeEq(w, valid));
+				Log.log("cached." + debug, ()->" cache invalid :" + invalid + " " + finalW + " " + valid + " " + Util.safeEq(finalW, valid));
 			}
 			value = compute.apply(check, value);
 			valid = w;
@@ -53,7 +64,7 @@ public class Cached<t_check, t_witness, t_value> implements Function<t_check, t_
 
 			invalid = false;
 		} else if (debug != null)
-			Log.log("cached." + debug,()-> " cache valid :" + invalid + " " + w + " " + valid + " " + Util.safeEq(w, valid));
+			Log.log("cached." + debug,()-> " cache valid :" + invalid + " " + finalW + " " + valid + " " + Util.safeEq(finalW, valid));
 		return value;
 	}
 

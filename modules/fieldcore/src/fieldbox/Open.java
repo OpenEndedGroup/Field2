@@ -2,12 +2,7 @@ package fieldbox;
 
 import field.app.RunLoop;
 import field.app.ThreadSync;
-import fieldcef.plugins.Taps;
-import fieldcef.plugins.GlassBrowser;
-import fieldcef.plugins.OutputBox;
-import fieldcef.plugins.TextEditor;
-import fieldcef.plugins.TextEditor_boxBrowser;
-import jdk.dynalink.linker.GuardingDynamicLinker;
+import fieldcef.plugins.*;
 import field.graphics.*;
 import field.utility.AutoPersist;
 import field.utility.Dict;
@@ -74,10 +69,6 @@ public class Open {
 	private int atY = AutoPersist.persist("window_atY", () -> 0, x -> x, (x) -> window == null ? x : (int) window.getBounds().y);
 
 	public Open(String filename) {
-		System.err.println(":HI:");
-
-		Log.log("startup", () -> "trouble is :" + GuardingDynamicLinker.class + " " + Linker.class);
-		Log.log("startup", () -> "trouble is :" + GuardingDynamicLinker.class.getClassLoader() + " " + Linker.class.getClassLoader());
 
 		DefaultMenus.safeToSave = false;
 
@@ -210,6 +201,8 @@ public class Open {
 //		new StatusBar(boxes.root()).connect(boxes.root());
 
 		new HotkeyMenus(boxes.root(), null).connect(boxes.root());
+
+		new Threading().connect(boxes.root());
 
 //		new Typing(boxes.root()).connect(boxes.root());
 
@@ -375,8 +368,10 @@ public class Open {
 			new GlassBrowser(boxes.root()).connect(boxes.root());
 			new OutputBox(boxes.root()).connect(boxes.root());
 
+			new NotificationBox(boxes.root()).connect(boxes.root());
 			new BoxBrowser(boxes.root()).connect(boxes.root());
 			new TextEditor_boxBrowser(boxes.root()).connect(boxes.root());
+
 
 			// call loaded on everything above root
 			Log.log("startup", () -> "calling .loaded on plugins");
@@ -413,6 +408,24 @@ public class Open {
 
 				if (created==null)
 					created = new LinkedHashSet<>();
+
+				System.out.println(" going to run loaded on the things we've loaded :" + created);
+				Set<Box> toRemove = new LinkedHashSet<>();
+				for (Box qq : created) {
+					if (qq instanceof IO.Loaded) {
+						System.out.println("        " + qq);
+						try {
+							((IO.Loaded) qq).loaded();
+						} catch (Throwable t) {
+							t.printStackTrace();
+							toRemove.add(qq);
+						}
+					}
+				}
+				for (Box b : toRemove) {
+					b.disconnectFromAll();
+				}
+
 
 			} catch (ClassNotFoundException e) {
 				e.printStackTrace();

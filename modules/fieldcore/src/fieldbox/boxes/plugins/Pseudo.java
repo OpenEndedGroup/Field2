@@ -16,6 +16,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -65,7 +66,6 @@ public class Pseudo extends Box {
 		.toCannon()
 		.type();
 
-
 	static public Dict.Prop<FunctionOfBoxValued<Sync>> sync = new Dict.Prop<FunctionOfBoxValued<Sync>>("sync").doc(
 		" `_.sync.canvas = function() { ... return blah } executes that function on the main thread, and sets `_.canvas` to be the return value of that function. This does this synchronously.")
 		.toCannon()
@@ -85,6 +85,19 @@ public class Pseudo extends Box {
 		.toCannon()
 		.type()
 		.autoConstructs(() -> new IdempotencyMap<>(Runnable.class));
+
+	static public Dict.Prop<FunctionOfBoxValued<MainThreader>> inMainThread = new Dict.Prop<FunctionOfBoxValued<MainThreader>>("inMainThread").doc(
+		"`_.inMainThread.foo = ()=>{ ... }` execute that function in the main thread, waiting for it to return and sets `_.foo` to the return value")
+		.toCannon()
+		.type();
+
+
+	static public Dict.Prop<IdempotencyMap<Runnable>> next10 = new Dict.Prop<IdempotencyMap<Runnable>>("next10").doc(
+		"`_.next10.A = ()=>{ ... }` executes this function 10 update cycles later. Note, `A` will overwrite anything else that's been set in this box with this name for this cycle")
+		.toCannon()
+		.type()
+		.autoConstructs(() -> new IdempotencyMap<>(Runnable.class));
+
 
 	static public Dict.Prop<FunctionOfBoxValued<Replacer>> replace = new Dict.Prop<FunctionOfBoxValued<Replacer>>("replace").doc(
 		"`_.replace.x = 10` replaces the value of `x` where it is found (e.g. here or some parent).")
@@ -126,6 +139,7 @@ public class Pseudo extends Box {
 		this.properties.put(withID, WithID::new);
 		this.properties.put(once, Oncer::new);
 		this.properties.put(here, Herer::new);
+		this.properties.put(inMainThread, MainThreader::new);
 
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__next__", () -> {
 			r.breadthFirst(r.downwards())
@@ -138,13 +152,24 @@ public class Pseudo extends Box {
 				});
 			return true;
 		});
+		this.properties.putToMap(Boxes.insideRunLoop, "main.__next10__", () -> {
+			r.breadthFirst(r.downwards())
+				.map(x -> x.properties.get(next10))
+				.filter(x -> x != null)
+				.forEach(x -> {
+					ArrayList<Runnable> q = new ArrayList<>(x.values());
+					x.clear();
+					q.forEach(z -> RunLoop.main.delayTicks(z, 10));
+				});
+			return true;
+		});
 
 		this.properties.put(sync, Sync::new);
 	}
 
 	static public class Namer implements AsMap {
 
-		private final Box on;
+		protected final Box on;
 
 		public Namer(Box on) {
 			this.on = on;
@@ -204,6 +229,39 @@ public class Pseudo extends Box {
 		public boolean asMap_delete(Object o) {
 			return false;
 		}
+	}
+
+	static public class MainThreader extends Namer {
+
+		public MainThreader(Box on) {
+			super(on);
+		}
+
+
+
+		@Override
+		public Object asMap_setElement(int element, Object o) {
+			return asMap_set("" + element, o);
+		}
+
+		@Override
+		public Object asMap_set(String p, Object val) {
+
+			Supplier q = (Supplier) Conversions.convert(val, Supplier.class);
+			if (q == null)
+				throw new IllegalArgumentException(" can't convert " + val + " to something I can call");
+			try {
+				Object m = ThreadSync.callInMainThreadAndWait((Callable<Object>) q::get);
+				on.properties.put(new Dict.Prop<>(p), m);
+				return m;
+			} catch (Exception e) {
+				e.printStackTrace();
+				IllegalArgumentException t = new IllegalArgumentException(" function threw an exception ");
+				t.initCause(e);
+				throw t;
+			}
+		}
+
 	}
 
 	static public class WithID implements AsMap {
@@ -415,7 +473,6 @@ public class Pseudo extends Box {
 			return false;
 		}
 	}
-
 
 	static public class First implements AsMap {
 

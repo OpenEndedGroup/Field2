@@ -66,6 +66,8 @@ public class ThreadSync {
 				}
 			});
 
+			// should be rejoin?
+
 			while (!f.isDone()) {
 				ThreadSync.yield(true);
 			}
@@ -110,7 +112,7 @@ public class ThreadSync {
 		Object t = fiber.get().input.take();
 
 		if (fiber.get().stopped) throw new Stop();
-		return t;
+		return t == NULL ? null : t;
 	}
 
 	static public void leave(Object o) throws InterruptedException, Stop {
@@ -122,20 +124,19 @@ public class ThreadSync {
 		if (fiber.get().stopped) throw new Stop();
 		if (o == null) o = NULL;
 
-		System.out.println(" LEAVE :"+fiber.get().input.size()+" | "+fiber.get().output.size());
+		System.out.println(" LEAVE :" + fiber.get().input.size() + " | " + fiber.get().output.size());
 
 		Object t = fiber.get().input.poll();
 		fiber.get().output.offer(o);
 
-		System.out.println(" after leave :"+fiber.get().input.size()+" | "+fiber.get().output.size());
+		System.out.println(" after leave :" + fiber.get().input.size() + " | " + fiber.get().output.size());
 
 		if (fiber.get().stopped) throw new Stop();
 
 	}
 
 	static public void leaveFor(int n, Object o) throws InterruptedException, Stop {
-		for(int i=0;i<n;i++)
-		{
+		for (int i = 0; i < n; i++) {
 			leave(o);
 		}
 	}
@@ -269,20 +270,26 @@ public class ThreadSync {
 		try {
 
 			while (o == null) {
+				if (f.runner.isDone()) {
+					Object m = f.output.poll();
+					if (m != null && m != NULL)
+						return Collections.singletonList(m);
+					else return Collections.emptyList();
+				}
 				o = f.output.poll(1, TimeUnit.SECONDS);
 				if (o == null) {
 					System.out.println(" debugTake failed to get a result, we are hanging the main thread waiting on:");
 					System.out.println(f + " " + f.debugDescription + " " + f.debugStatus);
 					System.out.println(f.stopped + " " + f.runner + " " + f.runner.isCancelled() + " " + f.runner.isDone());
-					System.out.println(" queues are :"+f.input.size()+" "+f.output.size());
+					System.out.println(" queues are :" + f.input.size() + " " + f.output.size());
 					System.out.println(" meanwhile :");
 					for (Fiber ll : live) {
-						System.out.println(ll + " " + ll.debugDescription + " " + ll.debugStatus + " " + ll.runner + " " + ll.runner.isDone() + " " + ll.runner.isCancelled()+" "+f.input.size()+" "+f.output.size());
+						System.out.println(ll + " " + ll.debugDescription + " " + ll.debugStatus + " " + ll.runner + " " + ll.runner.isDone() + " " + ll.runner.isCancelled() + " " + f.input.size() + " " + f.output.size());
 					}
 				}
 			}
 
-			ArrayList<Object> m = new ArrayList<>(f.output.size()+1);
+			ArrayList<Object> m = new ArrayList<>(f.output.size() + 1);
 
 			m.add(o);
 			f.output.drainTo(m);
@@ -372,13 +379,10 @@ public class ThreadSync {
 				Object o = f.in.get();
 				if (o == null) o = NULL;
 
-				System.out.println(" status :"+f.input.size()+" | "+f.output.size());
+				System.out.println(" status :" + f.input.size() + " | " + f.output.size());
 
 				f.input.put(o);
 				o = debugTake(f);
-
-				System.out.println(" status out :"+f.input.size()+" | "+f.output.size());
-
 				if (o == NULL) o = null;
 				f.out.accept(o);
 				if (f.exception != null) {
@@ -406,7 +410,7 @@ public class ThreadSync {
 	}
 
 	public static void inMainThread(Runnable o) throws InterruptedException, ExecutionException {
-		if (!enabled || fiber.get()==null)
+		if (!enabled || fiber.get() == null)
 			o.run();
 		else {
 			CompletableFuture<Boolean> c = new CompletableFuture<>();
@@ -414,19 +418,15 @@ public class ThreadSync {
 				try {
 					o.run();
 					c.complete(true);
-				}
-				catch(Throwable t)
-				{
+				} catch (Throwable t) {
 					t.printStackTrace();
 					c.cancel(true);
 				}
 			});
-			while(!c.isDone())
-			{
+			while (!c.isDone()) {
 				yield(0);
 			}
-			if (c.isCompletedExceptionally())
-			{
+			if (c.isCompletedExceptionally()) {
 				c.get();
 			}
 		}
