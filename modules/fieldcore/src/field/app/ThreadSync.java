@@ -64,6 +64,8 @@ public class ThreadSync {
 				}
 			});
 
+			// should be rejoin?
+
 			while (!f.isDone()) {
 				ThreadSync.yield(true);
 			}
@@ -85,8 +87,8 @@ public class ThreadSync {
 		};
 	}
 
-	static public Supplier nothing() {
-		return constant("nothing");
+	static public Supplier NULL() {
+		return constant("NULL");
 	}
 
 	static public <V> Consumer<V> toCollection(Collection<V> to) {
@@ -108,7 +110,7 @@ public class ThreadSync {
 		Object t = fiber.get().input.take();
 
 		if (fiber.get().stopped) throw new Stop();
-		return t;
+		return t==NULL ? null : t;
 	}
 
 	static public Object wait(int n) throws InterruptedException, Stop {
@@ -145,7 +147,6 @@ public class ThreadSync {
 
 	}
 
-	Object nothing = new Object();
 
 	public <K, V> Fiber<K, V> run(String tag, Supplier<K> in, Consumer<V> out, Callable<V> r, Consumer<Throwable> h) throws InterruptedException {
 		Fiber<K, V> f = new Fiber<>();
@@ -170,22 +171,22 @@ public class ThreadSync {
 				fiber.set(f);
 				f.input.take();
 				Object a = r.call();
-				if (a == null) f.output.put(nothing);
-				else f.output.put(a == null ? nothing : a);
+				if (a == null) f.output.put(NULL);
+				else f.output.put(a == null ? NULL : a);
 
 				return a;
 			} catch (Stop s) {
 				f.runner.cancel(true);
-				f.output.put(nothing);
+				f.output.put(NULL);
 				return null;
 			} catch (Throwable t) {
 				f.exception = t;
 				f.runner.cancel(true);
 				System.err.println(" -- caught throwable ");
-				f.output.put(nothing);
+				f.output.put(NULL);
 				t.printStackTrace();
 				System.err.println(" -- rethrowing <" + f.output.peek() + "> -> " + f.handler);
-				if (f.output.peek() == null) f.output.put(nothing);
+				if (f.output.peek() == null) f.output.put(NULL);
 				throw t;
 			} finally {
 				// need to unwide sub fibers to allow recursion.
@@ -202,7 +203,7 @@ public class ThreadSync {
 		if (f.runner.isDone()) live.remove(this);
 		if (o == NULL) o = null;
 		out.accept((V) o);
-		f.lastReturn = o == nothing ? null : (V) o;
+		f.lastReturn = o == NULL ? null : (V) o;
 		if (f.exception != null) if (f.handler == null) throw new RuntimeException(f.exception);
 		else f.handler.accept(f.exception);
 
@@ -217,6 +218,7 @@ public class ThreadSync {
 		try {
 
 			while (o == null) {
+				if (f.runner.isDone()) return f.output.poll();
 				o = f.output.poll(1, TimeUnit.SECONDS);
 				if (o == null) {
 					System.out.println(" debugTake failed to get a result, we are hanging the main thread waiting on:");
@@ -249,11 +251,11 @@ public class ThreadSync {
 	}
 
 	public Fiber run(String tag, Callable r, Consumer<Throwable> h) throws InterruptedException {
-		return run(tag, nothing(), discard(), r, h);
+		return run(tag, NULL(), discard(), r, h);
 	}
 
 	public Fiber run(String tag, Callable r) throws InterruptedException {
-		return run(tag, nothing(), discard(), r, t -> {
+		return run(tag, NULL(), discard(), r, t -> {
 			throw new RuntimeException(t);
 		});
 	}
@@ -311,7 +313,7 @@ public class ThreadSync {
 				Object o = f.in.get();
 				if (o == null) o = NULL;
 				f.input.put(o);
-				o = f.output.take();
+				o = debugTake(f);
 				if (o == NULL) o = null;
 				f.out.accept(o);
 				if (f.exception != null) {
