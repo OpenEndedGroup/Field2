@@ -3,6 +3,7 @@ package fieldcef.browser;
 import field.app.RunLoop;
 import field.graphics.*;
 import field.graphics.Window;
+import field.graphics.csg.Plane;
 import field.graphics.util.KeyEventMapping;
 import field.linalg.Vec2;
 import field.linalg.Vec4;
@@ -10,6 +11,7 @@ import field.utility.*;
 import fieldbox.boxes.*;
 import fieldbox.boxes.plugins.Chorder;
 import fieldbox.boxes.plugins.KeyboardFocus;
+import fieldbox.boxes.plugins.Planes;
 import fieldbox.io.IO;
 import fieldbox.ui.FieldBoxWindow;
 import fieldcef.plugins.BrowserKeyboardHacks;
@@ -139,6 +141,7 @@ public class Browser extends Box implements IO.Loaded {
 
 		this.properties.computeIfAbsent(Box.frame, (k) -> new Rect(0, 0, 512, 512));
 		this.properties.put(Box.name, "(browser)");
+		this.properties.put(Planes.plane, "__always__");
 		this.properties.put(Chorder.nox, true);
 
 		this.properties.putToListMap(Callbacks.onDelete, (bx) -> {
@@ -228,8 +231,9 @@ public class Browser extends Box implements IO.Loaded {
 			"\tfloat m = min(current.x, min(current.y, current.z));\n" +
 			"float sat = 0.2;\n" +
 			"\tcurrent.xyz = (current.xyz-vec3(m)*sat)/(1-sat);\n" +
+			"float d = (current.x+current.y+current.z)/3;\n"+
 			"current.xyz = pow(current.xyz, vec3(1.1));\n" +
-			"\t_output  = vec4(current.zyx,current.w*vtc.z);\n" +
+			"\t_output  = vec4(current.zyx,min(1, d*3)*current.w*vtc.z);\n" +
 			"\t if (vtc.x==0 || vtc.x==1 || vtc.y==0 || vtc.y==1) _output.w=0;\n" +
 //			"\t _output=vec4(current.xyz,1);\n" +
 			"}");
@@ -304,6 +308,8 @@ public class Browser extends Box implements IO.Loaded {
 			if (!intersects(r.inset(10), e)) return null;
 
 			if (properties.isTrue(Box.hidden, false)) return null;
+
+			if (e.after.keyboardState.isSuperDown()) return null;
 
 			e.properties.put(Window.consumed, true);
 

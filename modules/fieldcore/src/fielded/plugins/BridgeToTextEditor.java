@@ -43,6 +43,8 @@ public class BridgeToTextEditor extends Box {
 	}
 
 	protected void lazyInit(Box root) {
+		this.properties.put(Boxes.dontSave, true);
+
 		RemoteEditor delegate = root.find(RemoteEditor.editor, root.both()).findFirst()
 			    .orElseThrow(() -> new IllegalArgumentException(" can't instantiate BridgeToTextEditor execution - no remote editor found"));
 		teExecution = new TextEditorExecution(delegate);

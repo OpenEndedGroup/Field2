@@ -338,7 +338,7 @@ public class Open {
 		Execution execution = new Execution((box, prop) -> (prop.equals(Execution.code) ? javascript.apply(box, prop) : null));
 		execution.connect(boxes.root());
 
-		new ServerSupport(boxes);//.openEditor();
+		new ServerSupport(boxes.root());//.openEditor();
 
 		// add a red line time slider to the sheet (this isn't saved with the document, so we'll add it each time
 		TimeSlider ts = new TimeSlider();

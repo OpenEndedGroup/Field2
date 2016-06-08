@@ -149,7 +149,7 @@ public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 									    .get();
 
 						 if (enabled) {
-							 String u = "http://localhost:" + ServerSupport.webserverPort + "/id/" + prevSelection.properties.get(IO.id);
+							 String u = "http://localhost:" + find(ServerSupport.server, both()).findFirst().get().port + "/id/" + prevSelection.properties.get(IO.id);
 							 setURL(u, () -> {
 								 System.out.println(" presentation mode second callback happened");
 
@@ -199,7 +199,7 @@ public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 	public void enable() {
 		enabled = true;
 		if (prevSelection != null) {
-			String u = "http://localhost:" + ServerSupport.webserverPort + "/id/" + prevSelection.properties.get(IO.id);
+			String u = "http://localhost:" + find(ServerSupport.server, both()).findFirst().get().port+ "/id/" + prevSelection.properties.get(IO.id);
 			System.out.println("presentation mode setting url to be :" + u);
 			setURL(u, () -> {
 				System.out.println(" presentation mode callback happened");
