@@ -105,6 +105,7 @@ public class Mouse {
 				} catch (Throwable t) {
 					System.err.println(" Exception thrown in dragger update :" + t);
 					System.err.println(" dragger will not be called again");
+					t.printStackTrace();
 					cont = false;
 				}
 				if (!cont) dd.remove();
