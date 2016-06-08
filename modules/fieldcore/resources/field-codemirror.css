@@ -207,7 +207,7 @@ a {
 }
 
 .maptable {
-    font-family: "Source Code Pro";
+    font-family: "Fira Code", "Source Code Pro";
     background-color: rgba(0, 0, 0, 0.2);
     border-radius: 2px;
 }
@@ -808,7 +808,7 @@ input {
     position: fixed;
     bottom: 15px;
     right: 15px;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(60, 60, 60, 0.9);
     padding: 5px;
     border-radius: 5px;
     transition: 1s opacity;
@@ -816,7 +816,7 @@ input {
 }
 
 .Field-status .highlighted {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(60, 60, 60, 0.9);
     padding: 2px;
     padding-top: 0px;
     border-radius: 5px;
@@ -830,7 +830,10 @@ input {
 }
 
 code {
-    font-size: 80%;
+    font-size: 90%;
+    font-family: "Fira Code";
+    font-opacity:100% !important;
+    font-weight: bolder;
 }
 
 .CodeMirror-scroll {
@@ -979,6 +982,14 @@ code {
 .notification i
 {
     color:#fff;
+}
+
+
+span.comp {
+    /*font-family: "Fira Code";*/
+    font-weight: 900;
+    font-size: 90%;
+    padding-top: 3px;
 }
 
 
