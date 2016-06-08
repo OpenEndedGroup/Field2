@@ -79,7 +79,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	protected void executeAndReturn(String textFragment, Consumer<Pair<Integer, String>> lineErrors, final Consumer<String> success, boolean printResult) {
 
 		lineErrors = new ErrorHelper().errorHelper(lineErrors, box);
-
+		Callbacks.call(box, Callbacks.onExecute);
 		try (AutoCloseable __ = pushErrorContext(lineErrors)) {
 
 			Writer writer = null;
