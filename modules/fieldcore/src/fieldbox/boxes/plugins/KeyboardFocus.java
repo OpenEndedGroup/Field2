@@ -11,6 +11,8 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * Draws a highlght for where keyboard focus is going to go
@@ -22,6 +24,7 @@ public class KeyboardFocus extends Box {
 
 	public KeyboardFocus(Box root) {
 		this.properties.put(_keyboardFocus, this);
+		this.properties.put(Planes.plane, "__always__");
 
 		this.properties.putToMap(FLineDrawing.frameDrawing, "__keyboardFocusRing__", (x) -> {
 
@@ -34,7 +37,7 @@ public class KeyboardFocus extends Box {
 			if (f == null) return new FLine();
 
 
-			FLine fr = new FLine().rect(f.x, f.y, f.w , f.h );
+			FLine fr = new FLine().rect(f.x, f.y, f.w, f.h);
 			fr.attributes.put(StandardFLineDrawing.thicken, new BasicStroke(10));
 			fr.attributes.put(StandardFLineDrawing.color, Colors.focusRing1);
 
@@ -51,7 +54,7 @@ public class KeyboardFocus extends Box {
 			if (f == null) return new FLine();
 
 
-			FLine fr = new FLine().rect(f.x-5, f.y-5, f.w +10, f.h +10);
+			FLine fr = new FLine().rect(f.x - 5, f.y - 5, f.w + 10, f.h + 10);
 			fr.attributes.put(StandardFLineDrawing.thicken, new BasicStroke(1));
 			fr.attributes.put(StandardFLineDrawing.color, Colors.focusRing2);
 
@@ -101,4 +104,8 @@ public class KeyboardFocus extends Box {
 		focused.remove(b);
 	}
 
+	public Optional<Box> getFocus() {
+		if (focused.size() == 0) return Optional.empty();
+		return Optional.of(focused.get(focused.size() - 1));
+	}
 }
