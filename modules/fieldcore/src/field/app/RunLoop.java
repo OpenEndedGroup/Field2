@@ -5,11 +5,10 @@ import fieldbox.execution.Errors;
 import org.omg.SendingContext.RunTime;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 
 /**
  * Created by marc on 3/25/14.
@@ -19,7 +18,7 @@ public class RunLoop {
 	static public final RunLoop main = new RunLoop();
 	static public final ReentrantLock lock = new ReentrantLock(true);
 	static public final ExecutorService workerPool = Executors.newFixedThreadPool(Runtime.getRuntime()
-											     .availableProcessors() + 2);
+		.availableProcessors() + 2);
 	static public long tick = 0;
 	protected final Thread shutdownThread;
 	public Scene mainLoop = new Scene();
@@ -30,7 +29,7 @@ public class RunLoop {
 
 	protected RunLoop() {
 		Runtime.getRuntime()
-		       .addShutdownHook(shutdownThread = new Thread(() -> exit()));
+			.addShutdownHook(shutdownThread = new Thread(() -> exit()));
 	}
 
 	public Scene getLoop() {
@@ -91,10 +90,10 @@ public class RunLoop {
 
 					if (printTelemetry) {
 						System.out.println(
-							    " a" + (getLock / (double) interval) + " b" + (hasLock / (double) interval) + " c" + (service / (double) interval) + " d" + (mainloop / (double) interval) + " m" + locksMissed + " s" + sleepsTaken);
+							" a" + (getLock / (double) interval) + " b" + (hasLock / (double) interval) + " c" + (service / (double) interval) + " d" + (mainloop / (double) interval) + " m" + locksMissed + " s" + sleepsTaken);
 						System.out.println(" f" + (System.nanoTime() - intervalIn) / interval);
 						System.out.println(" m" + (Runtime.getRuntime()
-										  .freeMemory() - freeMemIn) / interval);
+							.freeMemory() - freeMemIn) / interval);
 
 					}
 					getLock = 0;
@@ -105,7 +104,7 @@ public class RunLoop {
 					sleepsTaken = 0;
 					intervalIn = System.nanoTime();
 					freeMemIn = Runtime.getRuntime()
-							   .freeMemory();
+						.freeMemory();
 				}
 
 			} catch (Throwable t) {
@@ -131,6 +130,23 @@ public class RunLoop {
 		});
 	}
 
+	public <T> void when(Future<T> f, Consumer<T> a) {
+		mainLoop.attach(i -> {
+			if (!f.isDone()) return true;
+
+			try {
+				T t = f.get();
+				a.accept(t);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} catch (ExecutionException e) {
+				e.printStackTrace();
+			}
+			return false;
+		});
+
+	}
+
 	public void nTimes(Runnable p0, int n) {
 		mainLoop.attach(new Scene.Perform() {
 			int t = 0;
@@ -151,7 +167,8 @@ public class RunLoop {
 			@Override
 			public Errors.ErrorConsumer getErrorConsumer() {
 				if (p0 instanceof Errors.ErrorConsumer) return ((Errors.ErrorConsumer) p0);
-				if (p0 instanceof Errors.SavesErrorConsumer) return ((Errors.SavesErrorConsumer) p0).getErrorConsumer();
+				if (p0 instanceof Errors.SavesErrorConsumer)
+					return ((Errors.SavesErrorConsumer) p0).getErrorConsumer();
 				return ec;
 			}
 		});
@@ -182,7 +199,8 @@ public class RunLoop {
 			@Override
 			public Errors.ErrorConsumer getErrorConsumer() {
 				if (p0 instanceof Errors.ErrorConsumer) return ((Errors.ErrorConsumer) p0);
-				if (p0 instanceof Errors.SavesErrorConsumer) return ((Errors.SavesErrorConsumer) p0).getErrorConsumer();
+				if (p0 instanceof Errors.SavesErrorConsumer)
+					return ((Errors.SavesErrorConsumer) p0).getErrorConsumer();
 				return ec;
 			}
 		});
@@ -212,7 +230,8 @@ public class RunLoop {
 			@Override
 			public Errors.ErrorConsumer getErrorConsumer() {
 				if (p0 instanceof Errors.ErrorConsumer) return ((Errors.ErrorConsumer) p0);
-				if (p0 instanceof Errors.SavesErrorConsumer) return ((Errors.SavesErrorConsumer) p0).getErrorConsumer();
+				if (p0 instanceof Errors.SavesErrorConsumer)
+					return ((Errors.SavesErrorConsumer) p0).getErrorConsumer();
 				return ec;
 			}
 		});
