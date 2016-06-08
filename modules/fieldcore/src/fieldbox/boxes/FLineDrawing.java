@@ -8,6 +8,7 @@ import field.linalg.Vec3;
 import field.linalg.Vec4;
 import field.utility.*;
 import fieldbox.boxes.plugins.FileBrowser;
+import fieldbox.boxes.plugins.Planes;
 
 import java.awt.*;
 import java.util.*;
@@ -46,25 +47,27 @@ import static field.graphics.StandardFLineDrawing.*;
 public class FLineDrawing extends Box implements Drawing.Drawer {
 
 	static public final Dict.Prop<Map<String, Function<Box, FLine>>> frameDrawing = new Dict.Prop<>("frameDrawing").type()
-														       .toCannon()
-														       .doc("Functions that compute lines to be drawn along with this box");
+		.toCannon()
+		.doc("Functions that compute lines to be drawn along with this box");
 
 	static public final Dict.Prop<IdempotencyMap<Supplier<FLine>>> lines = new Dict.Prop<>("lines").type()
-												       .toCannon()
-												       .doc("Geometry to be drawn along with this box")
-												       .autoConstructs(() -> new IdempotencyMap<>(Supplier.class));
+		.toCannon()
+		.doc("Geometry to be drawn along with this box")
+		.autoConstructs(() -> new IdempotencyMap<>(Supplier.class));
 
 
 	static public final Dict.Prop<IdempotencyMap<Supplier<Collection<Supplier<FLine>>>>> bulkLines = new Dict.Prop<>("bulkLines").type()
-															   .toCannon()
-															   .doc("Geometry to be drawn along with this box")
-															   .autoConstructs(() -> new IdempotencyMap<>(Supplier.class));
+		.toCannon()
+		.doc("Geometry to be drawn along with this box")
+		.autoConstructs(() -> new IdempotencyMap<>(Supplier.class));
 
 	static public final Dict.Prop<String> layer = new Dict.Prop<>("layer").type()
-									      .toCannon()
-									      .doc("which layer to draw to? Defaults to `__main__`, the other alternative right now is `__glass__` to draw on the blur layer above Field");
+		.toCannon()
+		.doc("which layer to draw to? Defaults to `__main__`, the other alternative right now is `__glass__` to draw on the blur layer above Field");
+	private final Box root;
 
 	public FLineDrawing(Box root) {
+		this.root = root;
 		this.properties.putToList(Drawing.drawers, this);
 	}
 
@@ -73,7 +76,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 			Rect frame = box.properties.get(Box.frame);
 			Vec2 o = new Vec2(frame.x + frame.w * origin.x, frame.y + frame.h * origin.y);
 			return wrap.apply(box)
-				   .byTransforming((pos) -> new Vec3(pos.x + o.x, pos.y + o.y, pos.z));
+				.byTransforming((pos) -> new Vec3(pos.x + o.x, pos.y + o.y, pos.z));
 		}, (box) -> new Pair<>(box.properties.get(frame), box.properties.isTrue(Mouse.isSelected, false)));
 	}
 
@@ -82,7 +85,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 			Rect frame = box.properties.get(Box.frame);
 			Vec2 o = new Vec2(frame.x + frame.w * origin.x, frame.y + frame.h * origin.y);
 			return wrap.get()
-				   .byTransforming((pos) -> new Vec3(pos.x + o.x, pos.y + o.y, pos.z));
+				.byTransforming((pos) -> new Vec3(pos.x + o.x, pos.y + o.y, pos.z));
 		}, (box) -> new Pair<>(box.properties.get(frame), box.properties.isTrue(Mouse.isSelected, false))).toSupplier(() -> inside);
 	}
 
@@ -92,7 +95,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 			if (frame == null) return null;
 
 			return wrap.apply(box)
-				   .byTransforming((pos) -> new Vec3(frame.x + pos.x * frame.w, frame.y + pos.y * frame.h, pos.z));
+				.byTransforming((pos) -> new Vec3(frame.x + pos.x * frame.w, frame.y + pos.y * frame.h, pos.z));
 		}, (box) -> new Pair<>(box.properties.get(frame), box.properties.isTrue(Mouse.isSelected, false)));
 	}
 
@@ -100,16 +103,16 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 		return new Cached<Box, Object, FLine>((box, previously) -> {
 
 			Rect v = box.find(Drawing.drawing, box.upwards())
-				    .findFirst()
-				    .get()
-				    .getCurrentViewBounds(box);
+				.findFirst()
+				.get()
+				.getCurrentViewBounds(box);
 
 			return wrap.apply(box)
-				   .byTransforming((pos) -> new Vec3(v.x + v.w / 2 + pos.x, v.y + v.h / 2 + pos.y, pos.z));
+				.byTransforming((pos) -> new Vec3(v.x + v.w / 2 + pos.x, v.y + v.h / 2 + pos.y, pos.z));
 		}, (box) -> box.find(Drawing.drawing, box.upwards())
-			       .findFirst()
-			       .get()
-			       .getCurrentViewBounds(box));
+			.findFirst()
+			.get()
+			.getCurrentViewBounds(box));
 	}
 
 
@@ -121,15 +124,15 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 			Mat4 o = Mat4.mul(p, v, new Mat4());
 			o.transpose();
 			return wrap.get()
-				   .byTransforming(x -> {
-					   Vec3 q = Mat4.transform(o, x, new Vec3());
-					   q.x *= scale.x;
-					   q.y *= scale.y;
-					   q.x += center.x;
-					   q.y += center.y;
-					   q.z = 0;
-					   return q;
-				   });
+				.byTransforming(x -> {
+					Vec3 q = Mat4.transform(o, x, new Vec3());
+					q.x *= scale.x;
+					q.y *= scale.y;
+					q.x += center.x;
+					q.y += center.y;
+					q.z = 0;
+					return q;
+				});
 		}, (c) -> new Pair<Camera, Camera.State>(camera, camera.getState())).toSupplier(() -> camera);
 	}
 
@@ -159,6 +162,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 			return counter[0] == 0 ? null : f;
 		};
 	}
+
 	static public Function<Box, FLine> expires(Function<Box, FLine> wrap, int updates, Function<Integer, Double> opacityCurve, Runnable done) {
 		int[] counter = {updates};
 		float[] lf = {-1};
@@ -167,11 +171,11 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 			FLine f = wrap.apply(box);
 			String l = f.attributes.getOr(layer, () -> "__main__");
 			float ff = opacityCurve.apply(counter[0])
-					      .floatValue();
+				.floatValue();
 
 			f.attributes.multiply(opacity, 1, ff);
 			f.modify();
-			if (counter[0] >= 0 || ff!=lf[0]) Drawing.dirty(box, l);
+			if (counter[0] >= 0 || ff != lf[0]) Drawing.dirty(box, l);
 			lf[0] = ff;
 			if (--counter[0] == 0) done.run();
 			return counter[0] == 0 ? null : f;
@@ -199,89 +203,94 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 		Optional<TextDrawing> text = first(TextDrawing.textDrawing, both());
 
 		this.breadthFirst(this.both())
-		    .forEach(Util.wrap(x -> {
+			.forEach(Util.wrap(x -> {
+				if (Planes.on(root, x)<=0) {
+					return;
+				}
 
-			    Log.log("drawing.trace", ()->"lines for " + x);
+//			    System.out.println(" lines for :"+x);
 
-			    if (x.properties.isTrue(Box.hidden, false)) return;
+				Log.log("drawing.trace", () -> "lines for " + x);
 
-			    String defaultLayer = x.properties.getOr(layer, () -> "__main__");
+				if (x.properties.isTrue(Box.hidden, false)) return;
 
-			    Map<String, Function<Box, FLine>> drawing = x.properties.computeIfAbsent(frameDrawing, this::defaultdrawsLines);
-			    List<FLine> all = new ArrayList<>();
-			    Iterator<Function<Box, FLine>> it = drawing.values()
-								       .iterator();
-			    while (it.hasNext()) {
-				    Function<Box, FLine> f = it.next();
-				    FLine fl = f.apply(x);
-				    if (fl == null) it.remove();
-				    else all.add(fl);
-			    }
+				String defaultLayer = x.properties.getOr(layer, () -> "__main__");
 
-			    Log.log("drawing.trace", ()->" --> " + drawing);
+				Map<String, Function<Box, FLine>> drawing = x.properties.computeIfAbsent(frameDrawing, this::defaultdrawsLines);
+				List<FLine> all = new ArrayList<>();
+				Iterator<Function<Box, FLine>> it = drawing.values()
+					.iterator();
+				while (it.hasNext()) {
+					Function<Box, FLine> f = it.next();
+					FLine fl = f.apply(x);
+					if (fl == null) it.remove();
+					else all.add(fl);
+				}
 
-			    drawing.values()
-				   .stream()
-				   .map(c -> c.apply(x))
-				   .filter(fline -> fline != null)
-				   .collect(Collectors.toList())
-				   .forEach(fline -> dispatchLine(fline, context, text, defaultLayer));
-			    Map<String, Supplier<FLine>> ll = x.properties.computeIfAbsent(lines, (k) -> new IdempotencyMap<>(Supplier.class));
+				Log.log("drawing.trace", () -> " --> " + drawing);
 
-			    all = new ArrayList<>();
-			    Iterator<Supplier<FLine>> it2 = ll.values()
-							      .iterator();
-			    while (it2.hasNext()) {
-				    Supplier<FLine> f = it2.next();
-				    FLine fl = f.get();
-				    if (fl == null) it2.remove();
-				    else all.add(fl);
-			    }
+				drawing.values()
+					.stream()
+					.map(c -> c.apply(x))
+					.filter(fline -> fline != null)
+					.collect(Collectors.toList())
+					.forEach(fline -> dispatchLine(fline, context, text, defaultLayer));
+				Map<String, Supplier<FLine>> ll = x.properties.computeIfAbsent(lines, (k) -> new IdempotencyMap<>(Supplier.class));
 
-			    Log.log("drawing.trace",()-> " --> " + ll);
+				all = new ArrayList<>();
+				Iterator<Supplier<FLine>> it2 = ll.values()
+					.iterator();
+				while (it2.hasNext()) {
+					Supplier<FLine> f = it2.next();
+					FLine fl = f.get();
+					if (fl == null) it2.remove();
+					else all.add(fl);
+				}
 
-			    ll.values()
-			      .stream()
-			      .map(c -> c.get())
-			      .filter(fline -> fline != null)
-			      .forEach(fline -> dispatchLine(fline, context, text, defaultLayer));
+				Log.log("drawing.trace", () -> " --> " + ll);
+
+				ll.values()
+					.stream()
+					.map(c -> c.get())
+					.filter(fline -> fline != null)
+					.forEach(fline -> dispatchLine(fline, context, text, defaultLayer));
 
 
-			    Map<String, Supplier<Collection<Supplier<FLine>>>> bl = x.properties.get(bulkLines);
+				Map<String, Supplier<Collection<Supplier<FLine>>>> bl = x.properties.get(bulkLines);
 
-			    if (bl != null) {
-				    all = new ArrayList<>();
-				    Iterator<Supplier<Collection<Supplier<FLine>>>> it3 = bl.values()
-										  .iterator();
-				    while (it3.hasNext()) {
-					    Supplier<Collection<Supplier<FLine>>> f = it3.next();
-					    Collection<Supplier<FLine>> fl = f.get();
-					    if (fl == null) it3.remove();
-					    else {
-						    final List<FLine> finalAll = all;
-						    fl.stream()
-						      .map(z -> z.get())
-						      .filter(z -> z != null)
-						      .forEach(z -> finalAll.add(z));
-					    }
-				    }
+				if (bl != null) {
+					all = new ArrayList<>();
+					Iterator<Supplier<Collection<Supplier<FLine>>>> it3 = bl.values()
+						.iterator();
+					while (it3.hasNext()) {
+						Supplier<Collection<Supplier<FLine>>> f = it3.next();
+						Collection<Supplier<FLine>> fl = f.get();
+						if (fl == null) it3.remove();
+						else {
+							final List<FLine> finalAll = all;
+							fl.stream()
+								.map(z -> z.get())
+								.filter(z -> z != null)
+								.forEach(z -> finalAll.add(z));
+						}
+					}
 
-				    final List<FLine> finalAll = all;
-				    Log.log("drawing.trace", ()->" --> " + finalAll);
+					final List<FLine> finalAll = all;
+					Log.log("drawing.trace", () -> " --> " + finalAll);
 
-				    all.forEach(fline -> dispatchLine(fline, context, text, defaultLayer));
-			    }
-			    Log.log("drawing.trace", ()->"lines for " + x + " finished");
+					all.forEach(fline -> dispatchLine(fline, context, text, defaultLayer));
+				}
+				Log.log("drawing.trace", () -> "lines for " + x + " finished");
 
-		    }, error));
+			}, error));
 
 		if (error.hasErrors()) {
 			error.getErrors()
-			     .stream()
-			     .forEach(x -> {
-				     System.err.println("exception caused by :" + x.second);
-				     x.first.printStackTrace();
-			     });
+				.stream()
+				.forEach(x -> {
+					System.err.println("exception caused by :" + x.second);
+					x.first.printStackTrace();
+				});
 		}
 	}
 
@@ -303,8 +312,11 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 		Map<String, Function<Box, FLine>> r = new IdempotencyMap<>(Function.class);
 
 		r.put("__outline__", new Cached<Box, Object, FLine>((box, previously) -> {
+
+			System.out.println(" __outline__ for :" + box);
+
 			Rect rect = box.properties.get(frame);
-			if (rect == null) return null;
+			if (rect == null) return new FLine();
 
 			boolean selected = box.properties.isTrue(Mouse.isSelected, false);
 
@@ -328,7 +340,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 
 		r.put("__outlineFill__", new Cached<Box, Object, FLine>((box, previously) -> {
 			Rect rect = box.properties.get(frame);
-			if (rect == null) return null;
+			if (rect == null) return new FLine();
 
 			boolean selected = box.properties.isTrue(Mouse.isSelected, false);
 
@@ -364,7 +376,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 
 		r.put("__name__", new Cached<Box, Object, FLine>((box, previously) -> {
 			Rect rect = box.properties.get(frame);
-			if (rect == null) return null;
+			if (rect == null) return new FLine();
 
 			boolean selected = box.properties.isTrue(Mouse.isSelected, false);
 
@@ -406,10 +418,10 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 			f.attributes.put(filled, true);
 			f.attributes.put(stroked, false);
 			f.attributes.put(fillColor,
-					 selected ? new Vec4(Colors.boxTextBackground2.x, Colors.boxTextBackground2.y, Colors.boxTextBackground2.z, 0.5f) : new Vec4(Colors.boxTextBackground1.x,
-																				     Colors.boxTextBackground1.y,
-																				     Colors.boxTextBackground1.z,
-																				     0.5f));
+				selected ? new Vec4(Colors.boxTextBackground2.x, Colors.boxTextBackground2.y, Colors.boxTextBackground2.z, 0.5f) : new Vec4(Colors.boxTextBackground1.x,
+					Colors.boxTextBackground1.y,
+					Colors.boxTextBackground1.z,
+					0.5f));
 			f.attributes.put(strokeColor, new Vec4(0, 0, 0, 1f));
 
 //			f.attributes.put(layer, "glass");

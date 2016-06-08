@@ -3,11 +3,13 @@ package fieldbox.boxes;
 import field.graphics.FLine;
 import field.graphics.FLinesAndJavaShapes;
 import field.graphics.Window;
+import field.graphics.csg.Plane;
 import field.linalg.Vec2;
 import field.linalg.Vec4;
 import field.utility.Dict;
 import field.utility.IdempotencyMap;
 import field.utility.SimpleVoronoi;
+import fieldbox.boxes.plugins.Planes;
 
 import java.awt.*;
 import java.awt.geom.Area;
@@ -44,6 +46,7 @@ public class MarkingMenus extends Box {
 
 		this.properties.put(markingMenus, this);
 		this.properties.put(FLineDrawing.layer, "glass2");
+		this.properties.put(Planes.plane, "__always__");
 
 		this.properties.putToMap(Mouse.onMouseDown, "__markingmenus__", (event, button) -> {
 			if (button != 1) return null;

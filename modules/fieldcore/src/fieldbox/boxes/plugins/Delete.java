@@ -18,6 +18,9 @@ public class Delete extends Box {
 	protected final Box root;
 
 	public Delete(Box root) {
+
+		this.properties.put(Planes.plane, "__root__ creation");
+
 		this.root = root;
 		this.properties.putToMap(Keyboard.onKeyDown, "__delete__", (event, key) -> {
 			if (event.properties.isTrue(Window.consumed, false)) return null;

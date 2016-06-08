@@ -38,6 +38,7 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 
 	public Dispatch(Box root) {
 		this.root = root;
+		this.properties.put(Planes.plane, "__always__");
 		this.properties.putToMap(Mouse.onMouseDown, "__dispatch__", this);
 
 		this.properties.putToMap(FLineDrawing.frameDrawing, "__allTopology__", FrameChangedHash.getCached(this,
@@ -49,11 +50,15 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 					.filter(x -> !x.properties.isTrue(
 						Box.hidden, false))
 					.forEach(x -> {
+						if (Planes.on(root, x)<1) return;
+
+						System.out.println(" check :"+x);
 
 						int n = 0;
-						for (Box x2 : x.children()) {
+						for (Box x2 : new ArrayList<>(x.children())) {
+							System.out.println(" check :"+x+" -> "+x2);
 							if (x2.properties.has(
-								Box.frame)) {
+								Box.frame) && Planes.on(root, x2)>=1 ) {
 
 								ensureBox(x, x2);
 
@@ -78,10 +83,13 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 				.filter(x -> x.properties.isTrue(Mouse.isSelected, false))
 				.forEach(x -> {
 					if (x.disconnected) return;
+					if (Planes.on(root, x)<1) return;
+					if (x instanceof DispatchBox) return;
 
 					int n = 0;
-					for (Box x2 : x.children()) {
-						if (x2.properties.has(Box.frame) && x2.properties.has(Box.name) && x2.properties.get(Box.name).trim().length() > 0 && !x2.disconnected) {
+					for (Box x2 : new ArrayList<>(x.children())) {
+						if (x2 instanceof DispatchBox) continue;
+						if (x2.properties.has(Box.frame) && x2.properties.has(Box.name) && x2.properties.get(Box.name).trim().length() > 0 && !x2.disconnected && Planes.on(root, x2)>=1 && !x2.properties.isTrue(Box.hidden, false)) {
 							FLine m = arc(x.properties.get(Box.frame), x2.properties.get(Box.frame), true).first;
 							if (f.nodes.size() == 0) f.attributes.putAll(m.attributes);
 							f.nodes.addAll(m.nodes);
@@ -90,8 +98,9 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 						}
 					}
 
-					for (Box x2 : x.parents()) {
-						if (x2.properties.has(Box.frame) && x2.properties.has(Box.name) && x2.properties.get(Box.name).trim().length() > 0 && !x2.disconnected) {
+					for (Box x2 : new ArrayList<>(x.parents())) {
+						if (x2 instanceof DispatchBox) continue;
+						if (x2.properties.has(Box.frame) && x2.properties.has(Box.name) && x2.properties.get(Box.name).trim().length() > 0 && !x2.disconnected && Planes.on(root, x2)>=1 && !x2.properties.isTrue(Box.hidden, false)) {
 							FLine m = arc(x2.properties.get(Box.frame), x.properties.get(Box.frame), true).first;
 							if (f.nodes.size() == 0) f.attributes.putAll(m.attributes);
 							f.nodes.addAll(m.nodes);
@@ -203,9 +212,11 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 	}
 
 	private void ensureBox(Box start, Box box) {
+		if ((start instanceof DispatchBox) || (box instanceof DispatchBox)) return ;
 
-		if (!root.breadthFirst(root.downwards()).filter(x -> x instanceof DispatchBox).filter(x -> ((DispatchBox) x).head() == start && ((DispatchBox) x).tail() == box).findAny().isPresent()) {
+		if (!root.breadthFirst(root.both()).filter(x -> x instanceof DispatchBox).filter(x -> ((DispatchBox) x).head() == start && ((DispatchBox) x).tail() == box).findAny().isPresent()) {
 			if (!start.disconnected && !box.disconnected) {
+				System.out.println(" yes we should");
 				DispatchBox db = new DispatchBox(start, box);
 				root.connect(db);
 			}
@@ -233,7 +244,7 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 		Vec2[] a = new Vec2[]{new Vec2(f1.x + inset, f1.y + inset), new Vec2(f1.x + f1.w - inset, f1.y + f1.h - inset), new Vec2(f1.x + f1.w - inset, f1.y + inset), new Vec2(f1.x + inset, f1.y + f1.h - inset)};
 		inset = 15;
 //		Vec2[] b = new Vec2[]{new Vec2(f2.x + f2.w - inset, f2.y + inset), new Vec2(f2.x + f2.w - inset, f2.y + f2.h - inset), new Vec2(f2.x + inset, f2.y + f2.h - inset), new Vec2(f2.x + inset, f2.y + inset)};
-		Vec2[] b = new Vec2[]{new Vec2(f2.x + f2.w / 2, f2.y+f2.h/2-inset), new Vec2(f2.x + f2.w / 2, f2.y + f2.h/2 +inset )};//, new Vec2(f2.x + inset, f2.y + f2.h - inset), new Vec2(f2.x + inset, f2.y + inset)};
+		Vec2[] b = new Vec2[]{new Vec2(f2.x + f2.w / 2, f2.y + f2.h / 2 - inset), new Vec2(f2.x + f2.w / 2, f2.y + f2.h / 2 + inset)};//, new Vec2(f2.x + inset, f2.y + f2.h - inset), new Vec2(f2.x + inset, f2.y + inset)};
 
 		float d = Float.POSITIVE_INFINITY;
 		int[] da = {0, 0};

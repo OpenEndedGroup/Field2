@@ -8,10 +8,7 @@ import field.utility.*;
 import fieldbox.boxes.*;
 import fieldbox.io.IO;
 
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -55,6 +52,7 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 		this.properties.put(DispatchBox.head, new BoxRef(head));
 		this.properties.put(DispatchBox.tail, new BoxRef(tail));
 		this.properties.put(Chorder.nox, true);
+
 		loaded();
 	}
 
@@ -93,6 +91,17 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 	public void loaded() {
 
 		if (head() == null || tail() == null) throw new RuntimeException("can't load");
+
+		String p1 = head().properties.get(Planes.plane);
+		String p2 = tail().properties.get(Planes.plane);
+		p1 = p1==null ? "" : p1;
+		p2 = p2==null ? "" : p2;
+		String q = (p1+" "+p2).trim();
+
+		if (q.length()>0)
+			this.properties.put(Planes.plane, q);
+
+		System.out.println(" new dispatch box has plane :"+q);
 
 		this.properties.put(Box.decorative, true);
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__checkfordeletion__", this::checkForDeletion);
@@ -136,7 +145,9 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 			Rect r1 = ((DispatchBox) box).head().properties.get(frame);
 			Rect r2 = ((DispatchBox) box).tail().properties.get(frame);
 
-			if (r1 == null || r2 == null) return null;
+			if (r1 == null || r2 == null) {
+				return null;
+			}
 
 			Pair<FLine, Vec2> fa = arc(r1, r2, selected);
 
@@ -168,23 +179,39 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 		Box t = tail();
 		if (h == null || t == null) {
 			Drawing.dirty(this);
-			Callbacks.delete(this);
+//			Callbacks.delete(this);
 			this.disconnectFromAll();
 			return true;
 		}
 
 		if (h.disconnected || t.disconnected) {
 			Drawing.dirty(this);
-			Callbacks.delete(this);
+//			Callbacks.delete(this);
 			this.disconnectFromAll();
-			System.out.println(" is disconnected ");
 			return true;
 		}
+
+		Optional<Box> r = h.find(Boxes.root, h.both()).findAny();
+		if (!r.isPresent()) {
+			Drawing.dirty(this);
+//			Callbacks.delete(this);
+			this.disconnectFromAll();
+			return true;
+		}
+
+		if (Planes.on(r.get(), h)<1 || Planes.on(r.get(), t)<1)
+		{
+			Drawing.dirty(this);
+//			Callbacks.delete(this);
+			this.disconnectFromAll();
+			return true;
+		}
+
 
 		Set<Box> hc = h.children();
 		if (!hc.contains(t)) {
 			Drawing.dirty(this);
-			Callbacks.delete(this);
+//			Callbacks.delete(this);
 			this.disconnectFromAll();
 			return true;
 		}
@@ -212,6 +239,7 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 		Box tb = tail();
 		if (hb == null) return false;
 		if (tb == null) return false;
+
 
 		Rect h = hb.properties.get(frame);
 		Rect t = tb.properties.get(frame);
