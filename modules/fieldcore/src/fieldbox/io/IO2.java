@@ -331,7 +331,7 @@ public class IO2 {
 			try {
 				Object c = fromValue(null, vertex.getProperty("__class"), alias, load);
 				System.err.println(" trying to load :'" + c + "'");
-				boxClass = (Class<? extends Box>) Thread.currentThread().getContextClassLoader().loadClass((String) c);
+				boxClass = (Class<? extends Box>) Thread.currentThread().getContextClassLoader().loadClass(""+c);
 				System.err.println(" succeeded ");
 			} catch (ClassNotFoundException e) {
 				Log.log("error", () -> "can't find class to instantiate " + vertex.getProperty("__class") + " of type " + (vertex.getProperty("__class") == null ? null : vertex.getProperty("__class").getClass()) + " box, continuing on anyway");
