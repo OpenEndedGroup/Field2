@@ -14,6 +14,7 @@ import fieldbox.execution.Completion;
 import fieldbox.execution.Execution;
 import fieldbox.io.IO;
 import fieldbox.ui.FieldBoxWindow;
+import fieldcef.plugins.TextEditor;
 import fielded.boxbrowser.TransientCommands;
 import fielded.webserver.RateLimitingQueue;
 import fielded.webserver.Server;
@@ -24,6 +25,8 @@ import org.json.JSONStringer;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -138,12 +141,17 @@ public class RemoteEditor extends Box {
 	Box currentSelection;
 	boolean selectionHasChanged = false;
 
+	AtomicInteger current_ln = new AtomicInteger();
+	AtomicReference<String> completionHelp = new AtomicReference<>("");
+
+
 	public RemoteEditor(Server server, String socketName, Watches watches, MessageQueue<Quad<Dict.Prop, Box, Object, Object>, String> queue) {
 		this.server = server;
 		this.socketName = socketName;
 		this.queue = queue;
 		this.watches = watches;
 		this.properties.put(editor, this);
+		this.properties.put(Boxes.dontSave, true);
 
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__watch_service__", this::update);
 		this.properties.put(editorUtils, new EditorUtils(this));
@@ -245,8 +253,8 @@ public class RemoteEditor extends Box {
 		});
 
 		server.addHandlerLast((s, socket, address, payload) -> {
-			System.out.println("? " + address);
-			TransientCommands.transientCommands.handle(address, (JSONObject) payload, null);
+			if (payload instanceof JSONObject)
+				TransientCommands.transientCommands.handle(address, (JSONObject) payload, null);
 			return payload;
 		});
 
@@ -276,6 +284,25 @@ public class RemoteEditor extends Box {
 
 			box.get().properties.put(new Dict.Prop<List<Pair<Integer, Integer>>>("_" + prop + "_disabled"), parseDisabledRanges(disabledRanges));
 
+			int c = p.getInt("ch");
+			int ln = p.getInt("line");
+
+			int v = current_ln.incrementAndGet();
+
+			RunLoop.main.workerPool.submit(() -> {
+				if (current_ln.get() != v) return;
+				Execution.ExecutionSupport support = getExecution(box.get(), new Dict.Prop<String>(prop)).support(box.get(), new Dict.Prop<String>(prop));
+
+				System.out.println(" go for completion on :" + support);
+
+				support.completion(text, ln, c, cc -> {
+					if (cc.size() > 0) {
+						System.out.println(" completions :" + cc.size() + " first is " + cc.get(0) + " " + cc.get(0).replacewith + " " + cc.get(0).info);
+						completionHelp.set("<span class='comp'>" + cc.get(0).replacewith + "</span><br>" + cc.get(0).info);
+					}
+				});
+			});
+
 			return payload;
 		});
 
@@ -284,8 +311,7 @@ public class RemoteEditor extends Box {
 			JSONObject p = (JSONObject) payload;
 			String returnAddress = p.getString("returnAddress");
 
-			FieldBoxWindow w = this.first(Boxes.window, both())
-				.get();
+			FieldBoxWindow w = this.first(Boxes.window, both()).get();
 
 			String current = w.getCurrentClipboard();
 			final String finalCurrent = current;
@@ -974,7 +1000,7 @@ public class RemoteEditor extends Box {
 	}
 
 	protected Optional<Box> findBoxByID(String uid) {
-		return breadthFirst(downwards()).filter(x -> Util.safeEq(x.properties.get(IO.id), uid))
+		return breadthFirst(both()).filter(x -> Util.safeEq(x.properties.get(IO.id), uid))
 			.findFirst();
 	}
 
@@ -993,7 +1019,7 @@ public class RemoteEditor extends Box {
 		return currentSelection;
 	}
 
-	private void changeSelection(Box currentSelection, Dict.Prop<String> editingProperty) {
+	public void changeSelection(Box currentSelection, Dict.Prop<String> editingProperty) {
 
 		Log.log("remote.trace", () -> " publishing selection changed :" + currentSelection + " " + editingProperty);
 
@@ -1037,7 +1063,9 @@ public class RemoteEditor extends Box {
 			} else {
 				// this can happen when we're editing something that isn't 'code'
 				String cmln = FieldBox.fieldBox.io.getLanguageForProperty(editingProperty);
-				Log.log("remote.general", () -> "langage :" + cmln);
+				String finalCmln = cmln;
+				Log.log("remote.general", () -> "langage :" + finalCmln);
+				if (cmln == null || cmln.trim().equals("")) cmln = "javascript";
 				buildMessage.put("languageName", cmln);
 
 			}
@@ -1061,12 +1089,21 @@ public class RemoteEditor extends Box {
 		this.currentSelection = currentSelection;
 	}
 
+	String lastCh = "";
+	boolean pinned = false;
+
 	protected boolean update() {
-		if (selectionHasChanged) {
+
+		if (selectionHasChanged && !pinned) {
+
 			selectionHasChanged = false;
-			Set<Box> selection = this.breadthFirst(downwards())
+			lastCh = completionHelp.get();
+
+			Set<Box> selection = this.breadthFirst(both())
 				.filter(x -> x.properties.isTrue(Mouse.isSelected, false))
+				.filter(x -> !(x instanceof TextEditor))
 				.collect(Collectors.toSet());
+
 			if (selection.size() != 1) {
 				changeSelection(null, currentlyEditing);
 			} else {
@@ -1090,12 +1127,22 @@ public class RemoteEditor extends Box {
 					changeSelection(target, objectProp);
 			}
 		}
+
+		String ch = completionHelp.get();
+		if (!ch.equals(lastCh)) {
+			JSONStringer h = new JSONStringer();
+			h.object().key("message").value(ch).endObject();
+			server.send(socketName, "_messageBus.publish('extra.help', " + h + ")");
+			lastCh = ch;
+		}
+
+
 		return true;
 	}
 
 	static public Execution getExecution(Box box, Dict.Prop<String> prop) {
 
-		return box.breadthFirst(box.upwards())
+		return box.breadthFirst(box.both())
 			.filter(x -> x.properties.has(Execution.execution))
 			.map(x -> x.properties.get(Execution.execution))
 			.filter(x -> x != null)
@@ -1160,6 +1207,16 @@ public class RemoteEditor extends Box {
 
 	public interface SupportsPrompt {
 		void prompt(String prompt, Map<Pair<String, String>, Runnable> options, ExtendedCommand alternative);
+	}
+
+	public void pin()
+	{
+		pinned = true;
+	}
+
+	public void unpin()
+	{
+		pinned = false;
 	}
 
 	static {
