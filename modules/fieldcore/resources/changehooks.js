@@ -10,6 +10,8 @@ cm.on("change", function (cm, change) {
             box: cm.currentbox,
             property: cm.currentproperty,
             text: cm.getValue(),
+            ch: cm.getCursor().ch,
+            line: cm.getCursor().line,
             disabledRanges: "[" + allDisabledBracketRanges() + "]"
         });
 
@@ -30,6 +32,10 @@ cm.on("change", function (cm, change) {
     console.log("<<change (" + cookie.widgets + "\n||" + cm.getValue() + "||");
 
 
+});
+
+_messageBus.subscribe("extra.help", function (d, e) {
+    setHelpBox(d.message);
 });
 
 _messageBus.subscribe("focus", function (d, e) {
@@ -115,6 +121,8 @@ _messageBus.subscribe("selection.changed", function (d, e) {
         _messageBus.publish("status", "(no selection)");
 
         document.title = "Field Editor (No Selection)";
+        setHelpBox("");
+
     } else {
         cm.setOption("readOnly", false);
         $(".CodeMirror").show();
@@ -122,6 +130,7 @@ _messageBus.subscribe("selection.changed", function (d, e) {
         _messageBus.publish("status", "Selected '" + d.name + "'");
 
         document.title = d.name + "/" + d.property + " - Field Editor";
+        setHelpBox("<b>"+d.name+"</b>/"+d.property);
 
         if (d.languageName)
             console.log(" setting language to " + d.languageName);
