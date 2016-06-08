@@ -1,6 +1,7 @@
 package fielded.boxbrowser;
 
 import field.utility.Dict;
+import field.utility.MarkdownToHTML;
 import field.utility.Pair;
 import fieldbox.boxes.Box;
 import fieldbox.execution.Execution;
@@ -9,10 +10,6 @@ import fielded.ServerSupport;
 import fielded.webserver.NanoHTTPD;
 import fielded.webserver.Server;
 
-//import org.pegdown.Extensions;
-//import org.pegdown.LinkRenderer;
-//import org.pegdown.PegDownProcessor;
-//import org.pegdown.ast.WikiLinkNode;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -34,9 +31,8 @@ public class BoxBrowser extends Box implements IO.Loaded {
 	private final Box root;
 	private Server s;
 
-//	PegDownProcessor proc = new PegDownProcessor(1000, Extensions.WIKILINKS);
 
-	public interface HasHTMLInformation {
+	public interface HasMarkdownInformation {
 		String generateMarkdown(Box inside, Dict.Prop property);
 	}
 
@@ -109,9 +105,9 @@ public class BoxBrowser extends Box implements IO.Loaded {
 					   props.add(p);
 				   }
 
-				   System.out.println(" checking :" + box + " / " + x + " " + x.properties.get(p) + " / " + (x.properties.get(p) instanceof HasHTMLInformation));
+				   System.out.println(" checking :" + box + " / " + x + " " + x.properties.get(p) + " / " + (x.properties.get(p) instanceof HasMarkdownInformation));
 
-				   if (x == box && x.properties.get(p) instanceof HasHTMLInformation) {
+				   if (x == box && x.properties.get(p) instanceof HasMarkdownInformation) {
 					   sections.add(new Pair<>(p.getName(), render(x, x.properties.get(p), p)));
 					   props.add(p);
 				   }
@@ -135,7 +131,7 @@ public class BoxBrowser extends Box implements IO.Loaded {
 
 	private NanoHTTPD.Response handleBox(Box box, Dict.Prop<Object> property) {
 		if (!box.properties.has(property)) return new NanoHTTPD.Response(NanoHTTPD.Response.Status.OK, null,
-										 preamble + "<p>no property called " + markdownToHtml("`" + property.getName() + "`") + "</p>" + postamble);
+										 preamble + "<p>no property called " + MarkdownToHTML.convert("`" + property.getName() + "`") + "</p>" + postamble);
 
 		return new NanoHTTPD.Response(NanoHTTPD.Response.Status.OK, null, preamble + render(box, box.properties.get(property), property) + postamble);
 	}
@@ -154,7 +150,7 @@ public class BoxBrowser extends Box implements IO.Loaded {
 					    .get(toMarkdown)
 					    .apply(box, source);
 
-			String html = "<p>" + markdownToHtml(md) + "</p>";
+			String html = "<p>" + MarkdownToHTML.convert(md) + "</p>";
 			return html;
 		}
 		if (property.getAttributes()
@@ -167,8 +163,8 @@ public class BoxBrowser extends Box implements IO.Loaded {
 			return html;
 		}
 
-		if (source instanceof HasHTMLInformation) {
-			String html = "<p>" + ((HasHTMLInformation) source).generateMarkdown(box, property) + "</p>";
+		if (source instanceof HasMarkdownInformation) {
+			String html = "<p>" + ((HasMarkdownInformation) source).generateMarkdown(box, property) + "</p>";
 			return html;
 		}
 
@@ -204,7 +200,7 @@ public class BoxBrowser extends Box implements IO.Loaded {
 		}
 
 		if (sections.size() == 0) {
-			return "<p>nothing in property called " + markdownToHtml("`" + property.getName() + "`") + "</p>";
+			return "<p>nothing in property called " + MarkdownToHTML.convert("`" + property.getName() + "`") + "</p>";
 		}
 
 		String o = "" + sections.stream()
@@ -221,7 +217,7 @@ public class BoxBrowser extends Box implements IO.Loaded {
 
 	private String render(Box box, Dict.Prop<Object> property, Section x) {
 		if (x.comment > 0) {
-			String h = markdownToHtml(x.a);
+			String h = MarkdownToHTML.convert(x.a);
 
 			return "<p>" + h + "</p>";
 		} else {
@@ -230,10 +226,5 @@ public class BoxBrowser extends Box implements IO.Loaded {
 				    "<script language='javascript'>CodeMirror.fromTextArea($('.ta_" + cn + "')[0], {viewportMargin:Infinity, mode:'javascript', readOnly:true})</script>";
 		}
 	}
-
-	private String markdownToHtml(String a) {
-		return a;
-	}
-
 
 }

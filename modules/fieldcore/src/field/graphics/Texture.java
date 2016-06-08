@@ -38,7 +38,7 @@ import static org.lwjgl.opengl.GL30.*;
  * <p>
  * Follows the same pattern as FBO --- create a texture by picking one of the growing number of static helpers in TextureSpecification that mask the complexity of OpenGL enums
  */
-public class Texture extends BaseScene<Texture.State> implements Scene.Perform, OffersUniform<Integer>, BoxBrowser.HasHTMLInformation {
+public class Texture extends BaseScene<Texture.State> implements Scene.Perform, OffersUniform<Integer>, BoxBrowser.HasMarkdownInformation {
 
 	// global statistics on how much we're sending to OpennGL
 	static public int bytesUploaded = 0;
