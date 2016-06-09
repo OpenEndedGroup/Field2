@@ -99,7 +99,6 @@ public class FrameManipulation extends Box {
 
 		Rect view = q.getCurrentViewBounds(b);
 
-
 		b.properties.putToMap(FLineDrawing.frameDrawing, "__panning__", FLineDrawing.expires(box -> {
 
 			FLine f = new FLine();
@@ -122,6 +121,7 @@ public class FrameManipulation extends Box {
 			}
 
 			f.attributes.put(StandardFLineDrawing.color, new Vec4(0, 0, 0, 0.25f));
+			f.attributes.put(FLineDrawing.layer, "__main__.fast");
 
 			return f;
 		}, 100));
@@ -138,9 +138,12 @@ public class FrameManipulation extends Box {
 
 			f.attributes.put(StandardFLineDrawing.thicken, new BasicStroke(10));
 			f.attributes.put(StandardFLineDrawing.color, new Vec4(0, 0, 0, 0.25f));
+			f.attributes.put(FLineDrawing.layer, "__main__.fast");
 
 			return f;
 		}, 100));
+
+		System.out.println(b+" -> "+b.properties.get(FLineDrawing.frameDrawing).keySet());
 
 
 	}
