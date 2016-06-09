@@ -233,7 +233,7 @@ public class Browser extends Box implements IO.Loaded {
 			"\tcurrent.xyz = (current.xyz-vec3(m)*sat)/(1-sat);\n" +
 			"float d = (current.x+current.y+current.z)/3;\n"+
 			"current.xyz = pow(current.xyz, vec3(1.1));\n" +
-			"\t_output  = vec4(current.zyx,min(1, d*3)*current.w*vtc.z);\n" +
+			"\t_output  = vec4(current.zyx,max(0.4, min(1, d*3))*current.w*vtc.z);\n" +
 			"\t if (vtc.x==0 || vtc.x==1 || vtc.y==0 || vtc.y==1) _output.w=0;\n" +
 //			"\t _output=vec4(current.xyz,1);\n" +
 			"}");
