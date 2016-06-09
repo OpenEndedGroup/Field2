@@ -218,10 +218,10 @@ public class TextEditor extends Box implements IO.Loaded {
 					if ((int) f.h != heightLast) {
 						heightLast = (int) f.h;
 						f = f.duplicate();
-						System.out.println("\n\n -- set height to be :" + Math.min(f.h, maxhOnCreation - 40) + "\n\n");
+						System.out.println("\n\n -- set height to be :" + Math.min(f.h-20, maxhOnCreation - 40) + "\n\n");
 
-						setHeightCode = "$(\"body\").height(" + Math.min(f.h, maxhOnCreation - 40) + ");cm.refresh();";
-						setHeightCode += "$(\".CodeMirror\").height(" + Math.min(f.h, maxhOnCreation - 40) + ");cm.refresh();";
+						setHeightCode = "$(\"body\").height(" + Math.min(f.h-20, maxhOnCreation - 40) + ");cm.refresh();";
+						setHeightCode += "$(\".CodeMirror\").height(" + Math.min(f.h-20, maxhOnCreation - 40) + ");cm.refresh();";
 						executeJavaScript(setHeightCode);
 					}
 
@@ -358,5 +358,12 @@ public class TextEditor extends Box implements IO.Loaded {
 		pinned = true;
 	}
 
+	public void unpin() {
+		pinned = false;
+	}
+
+	public boolean isPinned() {
+		return pinned;
+	}
 }
 
