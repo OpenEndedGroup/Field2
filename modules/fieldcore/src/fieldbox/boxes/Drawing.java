@@ -30,7 +30,7 @@ import static fieldbox.boxes.FLineDrawing.*;
  * This class also maintains the current relationships between window coordinates (aka mouse coordinates, aka pixels) and OpenGL coordinates (aka Box's frames aka drawing coordinates). The
  * transformation between for geometry happens entirely in the OpenGL shaders here and the math is duplicated in convenience functions.
  * <p>
- * This class is the low level drawing plumbing FieldBox (Boxes) to talk to the Field graphics system (MeshBuilder). For drawing that you can use from Boxes, see FrameDrawer
+ * This class is the low level drawing plumbing FieldBox (Boxes) to talk to the Field graphics system (MeshBuilder). For drawing that you can use from Boxes, see FLineDrawing
  */
 public class Drawing extends Box {
 
@@ -40,9 +40,6 @@ public class Drawing extends Box {
 	static public final Dict.Prop<Collection<Drawer>> lateDrawers = new Dict.Prop<>("lateDrawers").type()
 		.toCannon()
 		.doc("a collection of things that will draw inside the OpenGL paint context, after everything else has drawn. Viewport plugs in at this level.");
-	static public final Dict.Prop<Collection<Drawer>> glassDrawers = new Dict.Prop<>("glassDrawers").type()
-		.toCannon()
-		.doc("a collection of things that will draw inside the OpenGL paint context. Currently FrameDrawer & FLineInteraction plug into the window at this low level");
 	static public final Dict.Prop<Drawing> drawing = new Dict.Prop<>("drawing").type()
 		.toCannon()
 		.doc("the Drawing plugin");
