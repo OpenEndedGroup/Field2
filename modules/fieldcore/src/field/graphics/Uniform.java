@@ -323,4 +323,9 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 	 * returns the type that this Uniform ended up setting (note: this will be null, if the uniform has never been actually sent to OpenGL, or if an error occured doing so). It will be one of Float.class, Vec2.class, Vec3.class etc.
 	 */
 	public Class getLastType() {return lastType;}
+
+	@Override
+	public String toString() {
+		return getName()+" = "+mostRecentValue+" / "+lastType;
+	}
 }
