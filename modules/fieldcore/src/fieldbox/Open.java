@@ -24,6 +24,7 @@ import fieldbox.ui.FieldBoxWindow;
 import fielded.ServerSupport;
 import fielded.boxbrowser.BoxBrowser;
 import fielded.boxbrowser.WebApps;
+import fielded.plugins.MakeNewTextEditor;
 import fielded.plugins.Out;
 import fieldlinker.Linker;
 import fieldnashorn.Nashorn;
@@ -205,6 +206,8 @@ public class Open {
 		new Threading().connect(boxes.root());
 
 //		new Typing(boxes.root()).connect(boxes.root());
+
+		new MakeNewTextEditor(boxes.root()).connect(boxes.root());
 
 		new RunCommand(boxes.root()).connect(boxes.root());
 

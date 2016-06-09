@@ -23,8 +23,9 @@ import java.util.stream.Stream;
  */
 public class MakeNewTextEditor extends Box {
 
-	static public Dict.Prop<TriFunctionOfBoxAnd<Box, String, Boolean>> setCurrentlyEdited = new Dict.Prop<>("setCurrentlyEdited").type().toCannon();
 	static public Dict.Prop<FunctionOfBox<Box>> makeNewTextEditor = new Dict.Prop<>("makeNewTextEditor").type().toCannon();
+
+	static public Dict.Prop<TriFunctionOfBoxAnd<Box, String, Boolean>> setCurrentlyEdited = new Dict.Prop<>("setCurrentlyEdited").type().toCannon();
 
 	public MakeNewTextEditor(Box root) {
 
@@ -37,10 +38,21 @@ public class MakeNewTextEditor extends Box {
 
 			LinkedHashMap<Pair<String, String>, Runnable> r = new LinkedHashMap<>();
 			r.put(new Pair<String, String>("New Text Editor", "Makes a new, independent text editor"), () -> {
-
 				makeNewTextEditor(target);
-
 			});
+
+
+			boolean anyUnPinned = target.breadthFirst(upwards()).filter(x -> x instanceof TextEditor).findFirst().map(x -> !((TextEditor) x).isPinned()).filter(x -> x).isPresent();
+			if (anyUnPinned)
+				r.put(new Pair<String, String>("Pin Editor", "Make this editor no longer track which box is selected"), () -> {
+					pin(target);
+				});
+			boolean anyPinned = target.breadthFirst(upwards()).filter(x -> x instanceof TextEditor).findFirst().map(x -> ((TextEditor) x).isPinned()).filter(x -> x).isPresent();
+
+			if (anyPinned)
+				r.put(new Pair<String, String>("Unpin Editor", "Make this editor automatically track which box is selected"), () -> {
+					unpin(target);
+				});
 
 			return r;
 		});
@@ -52,6 +64,18 @@ public class MakeNewTextEditor extends Box {
 			ed.changeSelection(to, new Dict.Prop<String>(prop));
 			return true;
 		});
+	}
+
+	private void pin(Box target) {
+		RemoteEditor ed = target.find(RemoteEditor.editor, upwards()).findFirst().get();
+		ed.pin();
+		target.breadthFirst(upwards()).filter(x -> x instanceof TextEditor).forEach(x -> ((TextEditor) x).pin());
+	}
+
+	private void unpin(Box target) {
+		RemoteEditor ed = target.find(RemoteEditor.editor, upwards()).findFirst().get();
+		ed.unpin();
+		target.breadthFirst(upwards()).filter(x -> x instanceof TextEditor).forEach(x -> ((TextEditor) x).unpin());
 	}
 
 	static public Box makeNewTextEditor(Box target) {
@@ -67,6 +91,7 @@ public class MakeNewTextEditor extends Box {
 
 		return te.browser;
 	}
+
 
 	private Stream<Box> selection() {
 		return breadthFirst(both()).filter(x -> x.properties.isTrue(Mouse.isSelected, false));
