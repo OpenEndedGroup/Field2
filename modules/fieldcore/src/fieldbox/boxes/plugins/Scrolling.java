@@ -14,6 +14,7 @@ import fieldbox.ui.FieldBoxWindow;
 public class Scrolling extends Box {
 
 	public Scrolling(Box root_unused) {
+		this.properties.put(Planes.plane, "__always__");
 		this.properties.putToMap(Mouse.onMouseScroll, "__scrolling__", e -> {
 
 			if (e.properties.isTrue(FieldBoxWindow.consumed, false)) return;
@@ -69,7 +70,7 @@ public class Scrolling extends Box {
 							x.setTranslation(this, t);
 						}
 
-						FrameManipulation.continueTranslationFeedback(root_unused, false);
+						FrameManipulation.continueTranslationFeedback(Scrolling.this, false);
 					});
 			}
 		});

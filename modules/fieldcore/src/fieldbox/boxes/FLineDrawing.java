@@ -217,6 +217,8 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 				String defaultLayer = x.properties.getOr(layer, () -> "__main__");
 
 				Map<String, Function<Box, FLine>> drawing = x.properties.computeIfAbsent(frameDrawing, this::defaultdrawsLines);
+
+
 				List<FLine> all = new ArrayList<>();
 				Iterator<Function<Box, FLine>> it = drawing.values()
 					.iterator();
