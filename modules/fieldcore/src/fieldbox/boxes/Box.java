@@ -414,7 +414,8 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 		for (Field ff : f)
 			r.add(ff.getName());
 
-		System.out.println(" known non properties for " + this + " is " + r);
+		r.remove("children");
+		r.remove("parents");
 
 		return r;
 	}
@@ -426,6 +427,9 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 		if (m == null) return null;
 
 		if (m.equals("_")) return new Subscope(this);
+
+		if (m.equals("children")) return new BoxChildHelper(children);
+		if (m.equals("parents")) return new BoxChildHelper(parents);
 
 		Dict.Prop cannon = new Dict.Prop(m).toCannon();
 
