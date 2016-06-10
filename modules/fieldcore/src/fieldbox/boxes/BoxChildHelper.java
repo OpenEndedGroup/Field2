@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 /**
  * Class to provide more useful access to children and parent lists inside Field
  */
+@SafeToToString
 public class BoxChildHelper implements Linker.AsMap, Collection<Box>, ObjectToHTML.MasqueradesAs , HandlesCompletion{
 
 	private final ArrayList<Box> c;
