@@ -78,8 +78,8 @@ public class TopologyBox extends Box
 
 			boolean selected = box.properties.isTrue(Mouse.isSelected, false);
 
-			f.attributes.put(fillColor, selected ? new Vec4(1, 1, 1, -0.5f) : new Vec4(1, 1, 1, 0.5f));
-			f.attributes.put(strokeColor, selected ? new Vec4(1, 1, 1, 0.1f) : new Vec4(1, 1, 1, 0.1f));
+			f.attributes.put(fillColor, selected ? new Vec4(1, 1, 1, -1f) : new Vec4(1, 1, 1, 0.85f));
+			f.attributes.put(strokeColor, selected ? new Vec4(1, 1, 1, 0.25f) : new Vec4(1, 1, 1, 0.15f));
 			f.attributes.put(thicken, new BasicStroke(selected ? 3 : 0.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
 
 			f.attributes.put(filled, true);
@@ -106,7 +106,7 @@ public class TopologyBox extends Box
 			f.circle(at.x, at.y, w);
 
 
-			f.attributes.put(fillColor, selected ? new Vec4(1, 1, 1, 0.5f) : new Vec4(1, 1, 1, 0.5f));
+			f.attributes.put(fillColor, selected ? new Vec4(1, 1, 1, 0.85f) : new Vec4(1, 1, 1, 0.85f));
 			f.attributes.put(strokeColor, selected ? new Vec4(1, 1, 1, -0.1f) : new Vec4(1, 1, 1, 0.1f));
 			f.attributes.put(thicken, new BasicStroke(selected ? 16 : 0.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
 
