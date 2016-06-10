@@ -588,7 +588,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 					return null;
 				} else
 					return new Completion(-1, -1, x, "<span class='type'>" + Conversions.fold(q.getTypeInformation(), t -> compress(
-						t)) + "</span> <span class='doc'>" + format(q.getDocumentation()) + "</span>");
+						t)) + "</span> "+possibleToString(this,q)+" &mdash; <span class='doc'>" + format(q.getDocumentation()) + "</span>");
 			})
 			.filter(x -> x != null)
 			.collect(Collectors.toList());
@@ -607,6 +607,36 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 		Log.log("completion.debug", () -> "returning " + l1 + " as completions");
 
 		return l1;
+	}
+
+	private String possibleToString(Box box, Dict.Prop q) {
+//		if (!box.properties.has(q)) return "";
+
+		Optional m = box.find(q, box.upwards()).findFirst();
+		if (!m.isPresent()) return "(unset)";
+
+		Object v = m.get();
+		if (v instanceof Box.FunctionOfBoxValued) {
+			v = ((Box.FunctionOfBoxValued) v).apply(this);
+		}
+
+		// does this v have something to say?
+
+		if (v==null)
+			return "null";
+
+		try {
+			if (v.getClass().getMethod("toString").getDeclaringClass()!=Object.class)
+			{
+				String r = " = "+v;
+				if (r.length()<40)
+					return r;
+			}
+
+		} catch (NoSuchMethodException e) {
+			e.printStackTrace();
+		}
+		return "";
 	}
 
 	private String format(String documentation) {
