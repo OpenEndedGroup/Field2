@@ -52,11 +52,8 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 					.forEach(x -> {
 						if (Planes.on(root, x)<1) return;
 
-						System.out.println(" check :"+x);
-
 						int n = 0;
 						for (Box x2 : new ArrayList<>(x.children())) {
-							System.out.println(" check :"+x+" -> "+x2);
 							if (x2.properties.has(
 								Box.frame) && Planes.on(root, x2)>=1 ) {
 
