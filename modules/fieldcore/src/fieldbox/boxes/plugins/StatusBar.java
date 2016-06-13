@@ -23,7 +23,7 @@ public class StatusBar extends Box {
 	static public Dict.Prop<StatusBar> statusBar = new Dict.Prop<StatusBar>("statusBar").type()
 											    .toCannon()
 											    .doc("The status-bar plugin");
-	static public Dict.Prop<Map<String, Supplier<String>>> statuses = new Dict.Prop<>("statuses").type()
+	static public Dict.Prop<IdempotencyMap<Supplier<String>>> statuses = new Dict.Prop<>("statuses").type()
 												     .toCannon()
 												     .autoConstructs(() -> new IdempotencyMap<>(Supplier.class))
 												     .doc("Add things here to the status bar, and call `_.statusBar.update()` to update/repaint");
@@ -34,7 +34,6 @@ public class StatusBar extends Box {
 	public StatusBar(Box b) {
 
 		this.properties.put(statusBar, this);
-
 
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__updateStatusBarWidth__", () -> {
 
@@ -110,7 +109,7 @@ public class StatusBar extends Box {
 						     update();
 					     }));
 
-		this.properties.putToMap(statuses, "_default_", () -> "[ctrl] menus [alt] execution [command] modify [g] attach [n] new");
+		this.properties.putToMap(statuses, "_default_", () -> "[ctrl] menus [alt] execution [command-space] commands [g] attach [n] new");
 
 	}
 

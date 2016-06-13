@@ -305,8 +305,6 @@ public class Window implements ProvidesGraphicsContext {
 
 			if (Main.os == Main.OS.mac && false) {
 
-				if (frameHack < 5) System.out.println(" frame hack :" + frameHack);
-
 				// shenanegians required to order front a window on El Capitan
 				if (frameHack++ == 0) {
 					Rect r = getBounds();

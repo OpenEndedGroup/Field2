@@ -359,7 +359,6 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 		if (bindless)
 		{
 			s.textureHandle = NVBindlessTexture.glGetTextureHandleNV(s.name);
-			System.out.println(" bind handle " + s.textureHandle);
 			NVBindlessTexture.glMakeTextureHandleResidentNV(s.textureHandle);
 			glBindTexture(specification.target, 0);
 		}
@@ -434,7 +433,6 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 		if (isDoubleBuffered) throw new IllegalArgumentException("can't reliably get the pbo source of a double buffered texture");
 		//mod++;
 
-		System.out.println(" marking texture PBO as needing uploading ");
 		s.mod++;
 
 		s.x0 = 0;

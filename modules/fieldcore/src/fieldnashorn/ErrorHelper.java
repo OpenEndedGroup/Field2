@@ -119,7 +119,6 @@ public class ErrorHelper {
 
 		while (m.find()) {
 			String found = m.group(0);
-			System.out.println(" found :" + found + " in " + box);
 
 			String name = m.group(1);
 			String uid = m.group(2);

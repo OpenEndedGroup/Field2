@@ -94,18 +94,11 @@ public class TextEditor extends Box implements IO.Loaded {
 
 			browser = new Browser();
 
-
-			System.err.println(" at the point where we set the maximum width of the browser the window is " + window.getWidth() + " " + maxw + " " + maxh);
-
-
 			Vec2 v = drawing.windowSystemToDrawingSystem(new Vec2(window.getWidth() - maxw - 10, 10));
 			Vec2 vd = drawing.windowSystemToDrawingSystemDelta(new Vec2(maxw, 1080 * 1));
 
 			frameLast = (int) vd.x;
 			browser.properties.put(Box.frame, new Rect(v.x, v.y, vd.x, vd.y));
-
-			System.err.println(" final frame is :" + v + " / " + vd);
-
 
 			maxhOnCreation = 1080 * 1;
 
@@ -121,13 +114,7 @@ public class TextEditor extends Box implements IO.Loaded {
 			browser.properties.put(Box.hidden, true);
 			browser.properties.put(Mouse.isSticky, true);
 
-//			browser.properties.put(FrameManipulation.lockHeight, true);
-//			browser.properties.put(FrameManipulation.lockWidth, false);
-//			browser.properties.put(FrameManipulation.lockX, false);
-//			browser.properties.put(FrameManipulation.lockY, true);
-
 			browser.properties.put(Box.undeletable, true);
-
 
 			browser.connect(root);
 			browser.loaded();
@@ -166,13 +153,10 @@ public class TextEditor extends Box implements IO.Loaded {
 							browser.setFocus(false);
 						}
 
-						System.out.println(" SELECTION is currently " + selection().collect(Collectors.toList()));
 						if (selection().count() != 1 && !pinned) {
-							System.out.println(" SELECTION COUNT IS NOT 1 " + selection().collect(Collectors.toList()));
 							browser.properties.put(Box.hidden, true);
 							Drawing.dirty(this);
 						} else {
-							System.out.println(" SELECTION COUNT IS 1 " + selection().collect(Collectors.toList()) + " showing");
 
 							executeJavaScript(setHeightCode);
 							executeJavaScript(setWidthCode);
@@ -213,12 +197,10 @@ public class TextEditor extends Box implements IO.Loaded {
 					f.h = (float) (d2.y - d1.y);
 
 
-//					    System.out.println(" window height is :"+window.getHeight()+" -> "+maxh+" -> "+(maxh/(float)window.getHeight()));
 
 					if ((int) f.h != heightLast) {
 						heightLast = (int) f.h;
 						f = f.duplicate();
-						System.out.println("\n\n -- set height to be :" + Math.min(f.h-20, maxhOnCreation - 40) + "\n\n");
 
 						setHeightCode = "$(\"body\").height(" + Math.min(f.h-20, maxhOnCreation - 40) + ");cm.refresh();";
 						setHeightCode += "$(\".CodeMirror\").height(" + Math.min(f.h-20, maxhOnCreation - 40) + ");cm.refresh();";
@@ -229,16 +211,9 @@ public class TextEditor extends Box implements IO.Loaded {
 					if ((int) f.w != frameLast) {
 						frameLast = (int) f.w;
 						f = f.duplicate();
-						System.out.println("\n\n -- set width to be :" + Math.min(maxw - 28 * 2, (int) (f.w - 28)) + "\n\n");
 
-//						setWidthCode = "$(\".CodeMirror\").width(" + Math.min(maxw - 28 * 2, (int) (f.w - 28)) + ")";
-//						setWidthCode = "cm.setSize("+ vd.x +")";
 						setWidthCode = "$(\"body\").width(" + Math.min(maxw - 28 * 2, (int) (f.w - 28)) + ");cm.refresh();";
 						executeJavaScript(setWidthCode);
-
-						if (true)
-							return true;
-
 
 					}
 
@@ -254,7 +229,6 @@ public class TextEditor extends Box implements IO.Loaded {
 		long now = System.currentTimeMillis();
 		if (now - lastTriggerAt < 500) {
 			if (!browser.getFocus()) browser.executeJavaScript_queued("_messageBus.publish('focus', {})");
-//			else browser.executeJavaScript_queued("_messageBus.publish('defocus', {})");
 			browser.setFocus(!browser.getFocus());
 		}
 		lastTriggerAt = now;
@@ -281,7 +255,6 @@ public class TextEditor extends Box implements IO.Loaded {
 		RunLoop.main.getLoop()
 			.attach(x -> {
 				if (tick == 5) {
-//					    System.out.println(" hiding because hide() called ");
 					browser.properties.put(Box.hidden, true);
 					Drawing.dirty(this);
 				}

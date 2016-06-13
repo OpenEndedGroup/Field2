@@ -170,8 +170,6 @@ public class Browser extends Box implements IO.Loaded {
 			.orElseThrow(() -> new IllegalArgumentException(" can't install text-drawing into something without drawing support"));
 
 
-		System.out.println("MAKING CefSystem :" + w + " " + h + " " + window.getRetinaScaleFactor());
-
 		browser = CefSystem.cefSystem.makeBrowser(w * window.getRetinaScaleFactor(), h * window.getRetinaScaleFactor(), this::paint, this::message, () -> {
 			try {
 				if (callbackOnNextReload != null) {
@@ -188,12 +186,10 @@ public class Browser extends Box implements IO.Loaded {
 
 
 		keyboardHacks = new BrowserKeyboardHacks(browser);
-		System.out.println("MAKING sourceTextureBuffer :" + w + " " + h + " " + window.getRetinaScaleFactor());
 		source = ByteBuffer.allocateDirect(w * h * 4 * window.getRetinaScaleFactor() * window.getRetinaScaleFactor());
 		source.position(0)
 			.limit(source.capacity());
 		sourceView = source.slice();
-		System.out.println("MAKING sourceTexture :" + w + " " + h + " " + window.getRetinaScaleFactor());
 		texture = new Texture(Texture.TextureSpecification.byte4(0, w * window.getRetinaScaleFactor(), h * window.getRetinaScaleFactor(), source, false)).setIsDoubleBuffered(false);
 
 		q = BaseMesh.triangleList(0, 0);
@@ -636,15 +632,11 @@ public class Browser extends Box implements IO.Loaded {
 	}
 
 	public void executeJavaScript_queued(String s) {
-
-
 		if (ignore) return;
 
 		if (booted) {
-			System.out.println(" EJS_nq :" + s);
 			executeJavaScript(s);
 		} else {
-			System.out.println(" EJS_q :" + s);
 			bootQueue.add(() -> executeJavaScript(s));
 		}
 	}

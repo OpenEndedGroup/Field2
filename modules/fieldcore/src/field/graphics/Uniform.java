@@ -186,12 +186,10 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 
 				if (cc!=was)
 				{
-					System.out.println(" graphics context doesn't match ");
 					new Exception().printStackTrace();
 				}
 				if (Thread.currentThread()!=wasThread)
 				{
-					System.out.println(" thread doesn't match ");
 					new Exception().printStackTrace();
 				}
 
@@ -214,7 +212,6 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 			if (location != -1) {
 
 				if (t == null) {
-					System.out.println(" warning :" + name + " uniform is null");
 					return true;
 				}
 

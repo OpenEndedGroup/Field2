@@ -504,10 +504,10 @@ public class ShaderIntrospection {
 		s.scene.values()
 		       .stream()
 		       .flatMap(x -> x.stream())
-		       .map(x -> {
-			       System.out.println(x);
-			       return x;
-		       })
+//		       .map(x -> {
+//			       System.out.println(x);
+//			       return x;
+//		       })
 		       .forEach(x -> {
 			       if (x instanceof Scene.Perform && p.test((Scene.Perform) x)) r.add((T) x);
 			       if (x instanceof Scene) r.addAll(collect(((Scene) x), p));

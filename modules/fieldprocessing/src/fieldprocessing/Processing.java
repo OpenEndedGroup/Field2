@@ -108,7 +108,6 @@ public class Processing extends Execution {
 
 			@Override
 			public void executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors) {
-				System.out.println(" WRAPPED :"+textFragment);
 				queue.add(() -> {
 					Execution delegateTo = box.find(Execution.execution, box.upwards())
 								  .findFirst()
@@ -132,7 +131,6 @@ public class Processing extends Execution {
 
 			@Override
 			public void executeAll(String allText, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
-				System.out.println(" WRAPPED :"+allText);
 				queue.add(() -> {
 					Execution delegateTo = box.find(Execution.execution, box.upwards())
 								  .findFirst()
@@ -163,7 +161,6 @@ public class Processing extends Execution {
 
 			@Override
 			public void end(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success) {
-				System.out.println(" WRAPPED (end)");
 				Execution delegateTo = box.find(Execution.execution, box.upwards()).filter(x -> x != Processing.this)
 							  .findFirst()
 							  .orElseThrow(() -> new IllegalArgumentException(" can't instantiate Processing execution - no default execution found"));
@@ -173,7 +170,6 @@ public class Processing extends Execution {
 
 			@Override
 			public void setConsoleOutput(Consumer<String> stdout, Consumer<String> stderr) {
-				System.out.println(" WRAPPED (stdout)");
 				Execution delegateTo = box.find(Execution.execution, box.upwards()).filter(x -> x != Processing.this)
 							  .findFirst()
 							  .orElseThrow(() -> new IllegalArgumentException(" can't instantiate Processing execution - no default execution found"));
@@ -183,7 +179,6 @@ public class Processing extends Execution {
 
 			@Override
 			public void completion(String allText, int line, int ch, Consumer<List<Completion>> results) {
-				System.out.println(" WRAPPED (completion) "+allText);
 				Execution delegateTo = box.find(Execution.execution, box.upwards()).filter(x -> x != Processing.this)
 							  .findFirst()
 							  .orElseThrow(() -> new IllegalArgumentException(" can't instantiate Processing execution - no default execution found"));
@@ -193,7 +188,6 @@ public class Processing extends Execution {
 
 			@Override
 			public void imports(String allText, int line, int ch, Consumer<List<Completion>> results) {
-				System.out.println(" WRAPPED (imports) "+allText);
 				Execution delegateTo = box.find(Execution.execution, box.upwards()).filter(x -> x != Processing.this)
 							  .findFirst()
 							  .orElseThrow(() -> new IllegalArgumentException(" can't instantiate Processing execution - no default execution found"));

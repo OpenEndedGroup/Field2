@@ -134,7 +134,7 @@ public class NotificationBox extends Box implements IO.Loaded {
 
 
 		String bootstrap
-			= "<html class='outputbox' style='background:rgba(0,0,0,0.2);padding:8px;'><head><style>" + styles + "</style></head><body class='outputbox' style='background:rgba(0,0,0,0.02);'>" + postamble;
+			= "<html class='outputbox' style='background:rgba(0,0,0,0.2);padding:8px;'><head><style>" + styles + "</style></head><body class='outputbox' style='border-radius: 5px; background:rgba(0,0,0,0.02);'>" + postamble;
 		String res = UUID.randomUUID()
 			.toString();
 		s.setFixedResource("/" + res, bootstrap);

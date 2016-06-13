@@ -137,8 +137,6 @@ public class ThreadSync {
 
 	private static Object isFalse(Object o) {
 
-		System.out.println(" isFalse :" + o);
-
 		if (o == null) return true;
 		if (o instanceof Collection) return o;
 		if (o instanceof Boolean) return !((Boolean) o).booleanValue();
@@ -206,8 +204,6 @@ public class ThreadSync {
 		f.lastReturn = o == NULL ? null : (V) o;
 		if (f.exception != null) if (f.handler == null) throw new RuntimeException(f.exception);
 		else f.handler.accept(f.exception);
-
-		System.out.println(" returning, exception is :" + f.exception);
 
 		return f;
 	}
@@ -284,7 +280,6 @@ public class ThreadSync {
 					i.remove();
 				}
 			} else {
-				System.out.println(" -- getting paused for :" + f);
 				Object p = f.paused.get();
 				f.wasPaused = true;
 

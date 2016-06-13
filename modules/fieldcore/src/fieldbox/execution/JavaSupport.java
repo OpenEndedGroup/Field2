@@ -154,8 +154,6 @@ public class JavaSupport {
 
 	static public String compress(String name, String signature) {
 
-		System.out.println(" compress :"+name+" = "+signature);
-
 		signature = " " + signature;
 
 		Pattern p = Pattern.compile("([A-Za-z]*?)\\.([A-Za-z]*?)");
@@ -174,7 +172,7 @@ public class JavaSupport {
 		signature = signature.trim();
 		String[] leader = signature.split(" ");
 		if (signature.contains(name)) {
-			signature = signature.replaceFirst(leader[0], "") + " &rarr; " + leader[0];
+			signature = signature.replaceFirst(leader[0], "") + " -> " + leader[0];
 			signature = signature.replaceFirst(name, "");
 		}
 

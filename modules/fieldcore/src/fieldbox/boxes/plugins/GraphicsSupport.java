@@ -157,9 +157,6 @@ public class GraphicsSupport extends Box {
 
 			@Override
 			public void errorOnLine(int line, String error) {
-
-				System.out.println(" HAS ERROR :"+b.first(RemoteEditor.outputErrorFactory).isPresent());
-
 				b.first(RemoteEditor.outputErrorFactory)
 				 .orElse((x) -> (is -> System.err.println("error (without remote editor attached) :" + is))).apply(b).accept(new Pair<>(line, "Error on "+shader+" reload: "+error));
 			}

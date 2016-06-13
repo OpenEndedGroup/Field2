@@ -72,8 +72,6 @@ public class Delete extends Box {
 						.filter(x -> !x.properties.isTrue(Box.decorative, false))
 						.collect(Collectors.toList());
 
-					System.out.println(" children are :" + cc);
-
 					long c = cc.size();
 					if (c > 0) {
 						spec.items.put(MarkingMenus.Position.NE2,
@@ -88,8 +86,6 @@ public class Delete extends Box {
 						.filter(x -> x.disconnected)
 						.filter(x -> !x.properties.isTrue(Box.decorative, false))
 						.collect(Collectors.toList());
-
-					System.out.println(" children are :" + cc);
 
 					long c = cc.size();
 					if (c > 0) {

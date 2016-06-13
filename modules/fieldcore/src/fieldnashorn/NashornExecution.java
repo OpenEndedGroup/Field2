@@ -257,7 +257,6 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 		RemoteEditor.boxFeedback(Optional.of(box), new Vec4(1, 0, 0, 0.5), "__redmark__", -1, -1);
 
-		System.out.println(" handling exception to :" + lineErrors);
 		try {
 			if (e instanceof ScriptException) {
 				lineErrors.accept(new Pair<>(lineTransform.apply(((ScriptException) e).getLineNumber()), extraMessage + " " + e.getMessage()));
@@ -423,8 +422,6 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	@Override
 	public void completion(String allText, int line, int ch, Consumer<List<Completion>> results) {
 		List<Completion> r1 = ternSupport.completion(engine, box.properties.get(IO.id), allText, line, ch);
-
-		System.out.println(" using completion :" + r1);
 
 		if (r1 != null) {
 			results.accept(r1);

@@ -39,7 +39,6 @@ public class Hotswapper {
 //			public void run() {
 
 		Log.log("reload", () -> "Entering reload  thread ");
-		System.out.println(" SWAP SINGLE CLASS ENTRY ");
 
 
 		Log.log("reload", () -> "L1");
@@ -60,8 +59,6 @@ public class Hotswapper {
 
 					String rr = c.getName()
 						.replaceAll("\\.", "/") + ".class";
-					System.out.println(" looked up resource : " + rr + " -> " + c.getClassLoader()
-						.getResource(rr) + " " + c);
 					Log.log("reload", () -> "L6:" + c);
 					try {
 						cached.replace(new File(c.getClassLoader()
@@ -76,7 +73,7 @@ public class Hotswapper {
 
 				}
 			} catch (Exception e1) {
-				warnings.accept("exception thrown while trying to reload classes: <i>"+e1.getMessage()+"</i>");
+				warnings.accept("exception thrown while trying to reload classes: <i>" + e1.getMessage() + "</i>");
 				e1.printStackTrace();
 				return false;
 			}
@@ -91,15 +88,12 @@ public class Hotswapper {
 			}
 		}
 		Log.log("reload", () -> "L10");
-		System.out.println(" SWAP SINGLE CLASS EXIT ");
 
 		boolean ok = true;
 		for (Class c : cc) {
 			Log.log("reload", () -> "L11" + c);
-			System.out.println(" has outer class ? :" + c.getEnclosingClass());
 			if (c.getEnclosingClass() != null) {
 				Log.log("reload", () -> "L12" + c);
-				System.out.println(" recursive swap :" + c.getEnclosingClass());
 				ok &= swapClass(warnings, c.getEnclosingClass());
 			}
 		}
@@ -108,7 +102,7 @@ public class Hotswapper {
 	}
 
 	static public void doSomething() {
-		Hotswapper h = new Hotswapper();
+		Hotswapper h = cached = cached != null ? cached : new Hotswapper();
 		try {
 			try {
 				h.connect("localhost", "5005", "");
@@ -121,8 +115,11 @@ public class Hotswapper {
 							if (paths == null) return false;
 							for (String s : paths) {
 //								if (s.contains("nashorn"))
-//									Log.log("watching", () -> s + " ? ");
-								if (s.endsWith("bx[TARGET]")) return true;
+//								Log.log("watching", () -> s + " ? ");
+								if (s.contains("bx[TARGET]")) {
+									Log.log("watching", () -> "found it ! " + s);
+									return true;
+								}
 							}
 							return false;
 						} catch (AbsentInformationException e) {
@@ -133,25 +130,12 @@ public class Hotswapper {
 				Log.log("watching", () -> "found " + found);
 				if (found.size() > 0) {
 					for (int i = 0; i < found.size(); i++) {
-						System.out.println("watching.fields" + found.get(i)
-							.allFields());
+						System.out.println("watching.fields" + found.get(i).allFields());
 
 
 						final int finalI = i;
-						Log.log("watching.fields", () -> found.get(finalI)
-							.allFields());
+						Log.log("watching.fields", () -> found.get(finalI).allFields());
 						try {
-							Log.log("watching.lines", () -> {
-								try {
-									return found.get(finalI)
-										.allLineLocations();
-								} catch (AbsentInformationException e) {
-									e.printStackTrace();
-								}
-								return "";
-							});
-
-
 							found.get(i)
 								.allLineLocations()
 								.stream()
@@ -176,59 +160,75 @@ public class Hotswapper {
 				}
 
 				new Thread(() -> {
-					while (true) {
-						try {
-							EventSet e = h.vm.eventQueue()
-								.remove();
-							e.forEach(x -> {
-								System.out.println("EVENT :" + x);
+					try {
+						while (true) {
+							try {
+								System.out.println(" waiting for event queue ");
+								EventSet e = h.vm.eventQueue()
+									.remove();
 
-								if (x instanceof BreakpointEvent) {
-									System.out.println(" --- frames are ?");
-									try {
-										System.out.println("     frames :" + ((BreakpointEvent) x).thread()
-											.frames());
-										System.out.println("     frames :" + ((BreakpointEvent) x).thread()
-											.frames()
-											.get(0)
-											.visibleVariables());
-										((BreakpointEvent) x).thread()
-											.frames()
-											.get(0)
-											.visibleVariables()
-											.forEach(y -> {
-												System.out.println("  " + y);
-												System.out.println("   " + y.typeName());
-												try {
-													System.out.println("   " + y.type());
-												} catch (ClassNotLoadedException e1) {
-													e1.printStackTrace();
-												}
-												System.out.println("   " + y.getClass());
+								System.out.println(" event set contains :" + e.size());
 
-												try {
-													System.out.println("   " + ((BreakpointEvent) x).thread()
-														.frames()
-														.get(0)
-														.getValue(y));
-												} catch (IncompatibleThreadStateException e1) {
-													e1.printStackTrace();
-												}
-											});
-									} catch (IncompatibleThreadStateException e1) {
-										e1.printStackTrace();
-									} catch (AbsentInformationException e1) {
-										e1.printStackTrace();
+								e.forEach(x -> {
+									System.out.println("EVENT :" + x);
+
+									if (x instanceof BreakpointEvent) {
+										System.out.println(" --- frames are ?");
+										try {
+											System.out.println("     frames :" + ((BreakpointEvent) x).thread()
+												.frames());
+											System.out.println("     frames :" + ((BreakpointEvent) x).thread()
+												.frames()
+												.get(0)
+												.visibleVariables());
+											List<StackFrame> frames = ((BreakpointEvent) x).thread()
+												.frames();
+											for (StackFrame ff : frames) {
+												System.out.println(" -- f :" + ff + " = " + ff.visibleVariables());
+												ff
+													.visibleVariables()
+													.forEach(y -> {
+														System.out.println("  " + y);
+														System.out.println("   " + y.typeName());
+														try {
+															System.out.println("   " + y.type());
+														} catch (ClassNotLoadedException e1) {
+															e1.printStackTrace();
+														}
+														System.out.println("   " + y.getClass());
+
+														try {
+															System.out.println("   " + ((BreakpointEvent) x).thread()
+																.frames()
+																.get(0)
+																.getValue(y));
+														} catch (IncompatibleThreadStateException e1) {
+															e1.printStackTrace();
+														}
+													});
+											}
+
+
+										} catch (IncompatibleThreadStateException e1) {
+											e1.printStackTrace();
+										} catch (AbsentInformationException e1) {
+											e1.printStackTrace();
+										}
+										((BreakpointEvent) x).thread().resume();
+
 									}
 
-								}
+								});
 
-							});
-
-							e.resume();
-						} catch (InterruptedException e) {
-							e.printStackTrace();
+								e.resume();
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
 						}
+					}
+					finally
+					{
+						System.out.println(" -- we are exiting the queue thread");
 					}
 				}).start();
 

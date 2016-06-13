@@ -213,7 +213,6 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 
 		if (!root.breadthFirst(root.both()).filter(x -> x instanceof DispatchBox).filter(x -> ((DispatchBox) x).head() == start && ((DispatchBox) x).tail() == box).findAny().isPresent()) {
 			if (!start.disconnected && !box.disconnected) {
-				System.out.println(" yes we should");
 				DispatchBox db = new DispatchBox(start, box);
 				root.connect(db);
 			}

@@ -143,9 +143,6 @@ public class FrameManipulation extends Box {
 			return f;
 		}, 100));
 
-		System.out.println(b+" -> "+b.properties.get(FLineDrawing.frameDrawing).keySet());
-
-
 	}
 
 	public Mouse.Dragger onMouseDown(Window.Event<Window.MouseState> e, int button) {
@@ -215,7 +212,6 @@ public class FrameManipulation extends Box {
 	}
 
 	public Mouse.Dragger button0(Window.Event<Window.MouseState> e) {
-		System.out.println(" starting consumed by code ? " + e.properties.isTrue(Window.consumed, false));
 		Optional<Drawing> drawing = this.find(Drawing.drawing, both())
 			.findFirst();
 
@@ -305,12 +301,10 @@ public class FrameManipulation extends Box {
 				hitBox.properties.put(Mouse.isManipulated, true);
 
 
-				System.out.println(" working set is :" + workingSet);
 
 				Set<Box> dependands = workingSet.stream()
 					.flatMap(x -> singleChildrenFor(x).stream())
 					.collect(Collectors.toSet());
-				System.out.println(" depends is :" + workingSet);
 
 				workingSet.addAll(dependands);
 
@@ -341,14 +335,12 @@ public class FrameManipulation extends Box {
 					if (!e.after.keyboardState.isSuperDown())
 						if (termination && frame(hitBox).equals(originalFrame) && selected) {
 							hitBox.properties.put(Mouse.isSelected, false);
-							System.out.println(" deselecting because we haven't moved ");
 							Drawing.dirty(hitBox);
 						}
 
 
 					if (termination) {
 
-						System.out.println(" comparing drags ? " + drag.after.x + " " + drag.after.y + "   " + e.after.x + " " + e.after.y + " " + hitBox);
 						if (!e.after.keyboardState.isSuperDown())
 							if (drag.after.x == e.after.x && drag.after.y == e.after.y) {
 								if (!shift /*&& !hitBox.properties.isTrue(Mouse.isSticky, false)*/)
@@ -359,7 +351,6 @@ public class FrameManipulation extends Box {
 											Callbacks.onDeselect));
 
 								Callbacks.transition(hitBox, Mouse.isSelected, true, false, Callbacks.onSelect, Callbacks.onDeselect);
-								System.out.println(" deselecting because this is the end of the drag, and we haven't moved");
 
 							}
 

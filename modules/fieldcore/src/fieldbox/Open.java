@@ -89,8 +89,6 @@ public class Open {
 			pluginList = null;
 		}
 
-		System.out.println(" window dimensions are :" + atX + " " + atY + " " + sizeX + " " + sizeY);
-
 		window = new FieldBoxWindow(atX, atY, sizeX, sizeY, filename);
 
 		window.scene.attach(-5, this::defaultGLPreambleBackground);
@@ -412,11 +410,9 @@ public class Open {
 				if (created==null)
 					created = new LinkedHashSet<>();
 
-				System.out.println(" going to run loaded on the things we've loaded :" + created);
 				Set<Box> toRemove = new LinkedHashSet<>();
 				for (Box qq : created) {
 					if (qq instanceof IO.Loaded) {
-						System.out.println("        " + qq);
 						try {
 							((IO.Loaded) qq).loaded();
 						} catch (Throwable t) {
@@ -446,7 +442,6 @@ public class Open {
 
 	}
 
-
 	public boolean defaultGLPreamble(int pass) {
 
 
@@ -457,7 +452,6 @@ public class Open {
 		glEnable(GL11.GL_BLEND);
 		glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		glDisable(GL11.GL_DEPTH_TEST);
-
 
 		if (Main.os == Main.OS.linux) glEnable(GL13.GL_MULTISAMPLE);
 

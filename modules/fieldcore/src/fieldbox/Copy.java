@@ -66,7 +66,6 @@ public class Copy implements Runnable {
 		all.add(io.filenameFor(IO.WORKSPACE+from));
 
 		all.forEach(x -> {
-			System.out.println(x);
 			if (!x.exists()) throw new IllegalArgumentException(" box references a file that doesn't exist :"+x);
 		});
 
@@ -79,8 +78,6 @@ public class Copy implements Runnable {
 			try {
 				Path a = x.toPath();
 				Path b = new File(new File(to), x.getName()).toPath();
-
-				System.out.println(a+" -> "+b);
 
 				Files.copy(a, b);
 			} catch (Throwable e) {

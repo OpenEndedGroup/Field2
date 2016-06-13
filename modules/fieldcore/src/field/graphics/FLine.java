@@ -316,13 +316,10 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 					o.add(qq);
 				} else {
 					boolean done = false;
-					System.out.println(" looking at :" + transformation.length + " transformations ");
 					for (Function<Object, Object> f : transformation) {
-						System.out.println(" trying transformation :" + f);
 						try {
 							Object m = f.apply(q);
 							if (m != null) {
-								System.out.println(" transformation returns :" + m + " for " + q);
 								o.add(m);
 								done = true;
 								workDone |= !m.equals(q);

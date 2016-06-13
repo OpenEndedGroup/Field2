@@ -68,11 +68,7 @@ public class OutputBox extends Box implements IO.Loaded {
 
 	@Override
 	public void loaded() {
-
 		out = find(Out.__out, both()).findAny().orElseGet(() -> null);
-
-		System.out.println(" found output as :"+out);
-
 	}
 
 

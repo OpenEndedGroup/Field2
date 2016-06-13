@@ -65,7 +65,6 @@ public class Alignment extends Box {
 		root.breadthFirst(root.allDownwardsFrom())
 		    .filter(x -> x.properties.has(Box.frame))
 		    .map(x -> {
-			    System.out.println(" checking :" + x.properties.get(Box.frame) + " against " + r[0]);
 			    return x;
 		    })
 		    .filter(x -> x.properties.get(Box.frame).y < r[0].y + r[0].h && x.properties.get(Box.frame).y + x.properties.get(Box.frame).h > r[0].y && x.properties.get(Box.frame).x > r[0].x)

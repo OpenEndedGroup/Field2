@@ -473,8 +473,6 @@ public class IO {
 							  .startsWith(".") ? "" : ".") + e.getValue()
 											  .getDefaultSuffix(root));
 
-			System.out.println(" checking for default override :" + filename);
-
 			if (filename.exists()) {
 				String text = readFromFile(filename);
 				box.properties.put(new Dict.Prop<String>(e.getKey()), text);
@@ -580,7 +578,6 @@ public class IO {
 			if (text == null) continue;
 			File filename = filenameFor(defaultPrefix, e.getValue());
 
-			System.out.println(" filename for :" + defaultPrefix + " " + e.getValue() + " is " + filename);
 			try {
 				writeToFile(filename, text);
 			} catch (Exception ex) {
@@ -624,7 +621,6 @@ public class IO {
 	}
 
 	private String serializeToString(Object data) {
-		System.out.println(" data :"+data);
 		String written = edn.write(data);
 		Log.log("io.general", () -> "edn is " + written);
 		return written;
@@ -698,8 +694,6 @@ public class IO {
 
 	private String makeFilenameFor(String defaultSubDirectory, String defaultSuffix, String defaultName, Box box) {
 
-		System.out.println(" makeFilenameFor " + defaultSubDirectory + " " + defaultSuffix + " " + defaultName + " " + box);
-
 		String name = box.properties.get(Box.name);
 		if (name == null) name = "untitled_box";
 
@@ -729,7 +723,6 @@ public class IO {
 
 	private String relativize(String q) {
 
-		System.out.println(" relativize :" + q + " " + defaultDirectory + " " + templateDirectory);
 		if (q.contains("{{")) {
 			q = q.substring(q.lastIndexOf("{{"));
 		}
@@ -738,14 +731,12 @@ public class IO {
 
 		String q2 = q.replace(defaultDirectory, WORKSPACE)
 			     .replace(templateDirectory, TEMPLATES);
-		System.out.println("    -> " + q2);
 		return q2;
 
 
 	}
 
 	public String findTemplateCalled(String name) {
-		System.out.println(" template path is :" + templateDirectory);
 		String q = findTemplateCalled(name, templateDirectory);
 		if (q != null) return q;
 		q = findTemplateCalled(name, defaultDirectory);

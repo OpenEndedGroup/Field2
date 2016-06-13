@@ -165,10 +165,24 @@ function pathStringForTwoLineHandles(lh1, lh2, level) {
 
 raph.clear();
 
-function makePathForHandles(h1, h2, level, disabled) {
-	f = findPathForLines(h1, h2);
+function makePathForHandles(h1, h2, level, disabled, annotation) {
+	var f = findPathForLines(h1, h2);
 	if (f) {
 		f.disabled=disabled;
+		f.annotation = annotation;
+		if (f.t)
+			f.t.remove();
+
+		// var r1 = rectForLineHandle(h1);
+		// var r2 = rectForLineHandle(h2);
+		// var t = raph.text(5, (r1.top+r2.bottom)/2, annotation="PEACH")
+		// t.attr({"text-align":"right"});
+		// t.attr({"fill":"#bbb"});
+		// t.attr({"fill-opacity":0.3});
+		// f.annotation = annotation;
+		// t.isHandleAnnotation = 1;
+		// f.t = t;
+
 		return f;
 	}
 
@@ -195,6 +209,7 @@ function makePathForHandles(h1, h2, level, disabled) {
 			path: ps
 		});
 
+
 		path.attr({"stroke-dasharray": (disabled ? "- " : "")});
 		path.attr({"fill-opacity": (disabled ? 0.1 : 0.25)});
 		path.attr({"stroke": (disabled ? "#fff" : "#000")});
@@ -204,11 +219,13 @@ function makePathForHandles(h1, h2, level, disabled) {
 				"stroke-opacity": 1.0,
 			})
 		});
+
 		path.mouseout(function () {
 			path.attr({
 				"stroke-opacity": 0.25,
 			})
 		});
+
 		path.mousedown(function (e) {
 			if (e.altKey) {
 				currentBracket = path;
@@ -223,10 +240,22 @@ function makePathForHandles(h1, h2, level, disabled) {
 
 		h1.on("delete", function (x) {
 			path.remove()
+			path.t.remove()
 		});
 		h2.on("delete", function (x) {
 			path.remove()
+			path.t.remove()
 		});
+
+		// var r1 = rectForLineHandle(h1);
+		// var r2 = rectForLineHandle(h2);
+		// var t = raph.text(5, (r1.top+r2.bottom)/2, annotation="PEACH")
+		// t.attr({"text-align":"right"});
+		// t.attr({"fill":"#bbb"});
+		// t.attr({"fill-opacity":0.3});
+		// path.annotation = annotation;
+		// t.isHandleAnnotation = 1;
+		// path.t = t;
 
 		return path
 	}
@@ -238,7 +267,7 @@ function serializeAllBrackets() {
 	updateAllBrackets();
 	raph.forEach(function (e) {
 		if ("isHandleDecorator" in e) {
-			ret += "makePathForHandles(cmGetLineHandle(" + cmGetLineNumber(e.h1) + ", false), cmGetLineHandle(" + cmGetLineNumber(e.h2) + ", true), " + e.level + ", " + e.disabled + ")\n"
+			ret += "makePathForHandles(cmGetLineHandle(" + cmGetLineNumber(e.h1) + ", false), cmGetLineHandle(" + cmGetLineNumber(e.h2) + ", true), " + e.level + ", " + e.disabled + ", '"+e.annotation+"')\n"
 		}
 	});
 	return ret
@@ -261,6 +290,8 @@ function findPathForLines(h1, h2) {
 			if (cmGetLineNumber(e.h1) == h1 && cmGetLineNumber(e.h2) == h2)
 				found = e
 		}
+		else 			console.log("didn't find isHandleDecorator in ",e)
+
 	});
 	return found;
 }
@@ -295,31 +326,34 @@ function sortConflicts() {
 	});
 	raph.forEach(function (e) {
 		if ("isHandleDecorator" in e) {
-//            console.log("bracket level is " + e.level);
 		}
 	});
 
 	raph.forEach(function (e) {
-		var a = (cmGetLineNumber(e.h1));
-		var b = (cmGetLineNumber(e.h2));
-		raph.forEach(function (e2) {
-			if ("isHandleDecorator" in e && e != e2) {
-				var a2 = (cmGetLineNumber(e2.h1));
-				var b2 = (cmGetLineNumber(e2.h2));
-				if (a == a2 && b == b2) {
-					if (e.level > e2.level) {
-						e.kill = 1
-					}
-					else {
-						e2.kill = 1
+		if ("isHandleDecorator" in e) {
+			var a = (cmGetLineNumber(e.h1));
+			var b = (cmGetLineNumber(e.h2));
+			raph.forEach(function (e2) {
+				if ("isHandleDecorator" in e2 && e != e2) {
+					var a2 = (cmGetLineNumber(e2.h1));
+					var b2 = (cmGetLineNumber(e2.h2));
+					if (a == a2 && b == b2) {
+						if (e.level > e2.level) {
+							e.kill = 1
+						}
+						else {
+							e2.kill = 1
+						}
 					}
 				}
-			}
-		})
+			})
+		}
 	});
 	raph.forEach(function (e) {
 		if ("isHandleDecorator" in e) {
 			if (e.kill == 1) {
+				if (e.t)
+					e.t.remove();
 				e.remove();
 			}
 		}

@@ -23,8 +23,6 @@ public class SimpleCommand {
 		p.redirectOutput(ProcessBuilder.Redirect.to(t1));
 		p.redirectError(ProcessBuilder.Redirect.to(t2));
 
-		System.out.println(" starting process :" + p + " " + command + " " + String.join(" ", args));
-
 		int ret = p.start()
 			   .waitFor();
 
@@ -42,8 +40,6 @@ public class SimpleCommand {
 
 		ProcessBuilder p = new ProcessBuilder(all);
 		p.directory(dir);
-
-		System.out.println(" starting process :" + p + " " + command + " " + String.join(" ", args));
 
 		p.redirectErrorStream(true);
 

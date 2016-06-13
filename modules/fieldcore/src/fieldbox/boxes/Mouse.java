@@ -75,8 +75,6 @@ public class Mouse {
 			if (startAt == lastStartAt && System.currentTimeMillis() - lastStartAtTime < 300) {
 				event.properties.put(clickNumber, ++click);
 
-				System.out.println(" ?? double click :"+click);
-
 			} else {
 				event.properties.put(clickNumber, click=1);
 				lastStartAt = startAt;

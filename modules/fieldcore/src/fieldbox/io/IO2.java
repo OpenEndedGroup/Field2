@@ -348,21 +348,16 @@ public class IO2 {
 				.getClassLoader()
 				.loadClass("" + boxClass.getName());
 
-			System.out.println(" constructing class " + c);
 			try {
 				Constructor<Box> cc = c.getDeclaredConstructor();
-				System.out.println(" constructor " + cc);
 				cc.setAccessible(true);
 				b = cc.newInstance();
 				b.properties.put(IO.desiredBoxClass, "" + boxClass);
-				System.out.println(" got instance " + b);
 			} catch (Throwable e) {
 				Constructor<Box> cc = c.getDeclaredConstructor(Box.class);
-				System.out.println(" constructor " + cc);
 				cc.setAccessible(true);
 				b = cc.newInstance(alias.apply(">>root<<"));
 				b.properties.put(IO.desiredBoxClass, "" + boxClass);
-				System.out.println(" got instance " + b);
 			}
 		} catch (Throwable e) {
 			final Class<? extends Box> finalBoxClass = boxClass;

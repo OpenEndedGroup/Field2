@@ -49,12 +49,8 @@ public class Templates extends Box implements IO.Loaded {
 
 			String path = fieldbox.FieldBox.fieldBox.io.findTemplateCalled(name);
 
-			System.err.println(" about to load :" + path);
-
 			Box c = loadBox(path, of.properties.get(Box.frame)
 							   .convert(0.9, 0.9));
-
-			System.out.println(" loaded box :" + c + " of class " + c.getClass());
 
 			IO.uniqifyIfNecessary(root, c);
 
@@ -84,12 +80,8 @@ public class Templates extends Box implements IO.Loaded {
 
 				String path = fieldbox.FieldBox.fieldBox.io.findTemplateCalled(template);
 
-				System.err.println(" about to load :" + path);
-
 				Box c = loadBox(path, box.properties.get(Box.frame)
 								    .convert(0.9, 0.9));
-
-				System.out.println(" loaded box :" + c + " of class " + c.getClass());
 
 				c.properties.put(Box.name, name);
 

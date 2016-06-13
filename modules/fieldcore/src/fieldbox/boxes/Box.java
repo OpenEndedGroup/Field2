@@ -480,7 +480,6 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 //		if (value instanceof ConsString) value = value.toString();
 
 
-		System.out.println(" box set :" + name + " <- " + value);
 //		Log.log("underscore.debug", " underscore box set :" + name + " to " + value.getClass() + " <" + Function.class.getName() + ">");
 		Dict.Prop cannon = new Dict.Prop(name).toCannon();
 
@@ -642,7 +641,6 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	private String format(String documentation) {
 		String doc = MarkdownToHTML.convert(documentation);
 		doc = doc.trim();
-		System.out.println(" doc is ||" + doc + "||");
 		if (doc.startsWith("<p>") && doc.endsWith("</p>")) {
 			doc = doc.replaceFirst("<p>", "").substring(0, doc.length() - 4);
 		}

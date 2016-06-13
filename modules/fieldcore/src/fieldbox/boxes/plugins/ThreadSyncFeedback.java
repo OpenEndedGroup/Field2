@@ -35,8 +35,6 @@ public class ThreadSyncFeedback extends Box {
 				List<Box> c = s.filter(x -> lastRunning.containsKey(x))
 					.collect(Collectors.toList());
 
-				System.out.println(" filtered selection is :" + c + " " + lastRunning + " " + selection().collect(Collectors.toList()));
-
 				if (c.size() == 0) return null;
 
 				return menuSpecification(c);

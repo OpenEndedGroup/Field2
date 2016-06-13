@@ -313,10 +313,6 @@ public class FileBrowser extends Box implements IO.Loaded {
 
 		files.values()
 		     .stream()
-		     .filter(f -> {
-			     System.out.println(" checking :" + f.name + " " + name + " " + f.name.equals(name));
-			     return true;
-		     })
 		     .filter(f -> f.name != null)
 		     .filter(f -> matchNoSuffix(f.name, name))
 		     .forEach(f -> {

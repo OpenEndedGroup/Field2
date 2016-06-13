@@ -40,7 +40,6 @@ public class BoxDefaultCode {
 		String n = c.getName();
 		n = n.replaceAll("\\.", "/");
 		n = n+propertyName;
-		System.out.println(" :: looking for resource "+n);
 		URL is =
 			Thread.currentThread().getContextClassLoader().getResource(n);
 		if (is != null) {

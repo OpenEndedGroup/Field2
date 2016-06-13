@@ -308,7 +308,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 			GraphicsContext.getContext().stateTracker.shader.set(name.name);
 			GraphicsContext.getContext().uniformCache.changeShader(name.name);
 		} else {
-			System.out.println(" shader is invalid, not being used ");
+			System.err.println("WARNING: shader is invalid, not being used ");
 			Log.log("graphics.trace", ()->"WARNING: program not valid, not being used");
 			if (introspection!=null)
 				introspection.errorIsInvalid = "Shader failed GL validation, it is not being used\n";

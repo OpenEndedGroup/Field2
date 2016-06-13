@@ -101,8 +101,6 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 		if (q.length()>0)
 			this.properties.put(Planes.plane, q);
 
-		System.out.println(" new dispatch box has plane :"+q);
-
 		this.properties.put(Box.decorative, true);
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__checkfordeletion__", this::checkForDeletion);
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__updateframe__", this::updateFrameToMiddle);

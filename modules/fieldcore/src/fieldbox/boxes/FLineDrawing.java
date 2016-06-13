@@ -315,8 +315,6 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 
 		r.put("__outline__", new Cached<Box, Object, FLine>((box, previously) -> {
 
-			System.out.println(" __outline__ for :" + box);
-
 			Rect rect = box.properties.get(frame);
 			if (rect == null) return new FLine();
 

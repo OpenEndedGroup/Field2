@@ -118,8 +118,6 @@ public class Out extends Box {
 			}
 			s += "</div>";
 
-			System.out.println("S ||" + s);
-
 			return s;
 		});
 
@@ -147,8 +145,6 @@ public class Out extends Box {
 
 			}
 			s += "</div>";
-
-			System.out.println("S ||" + s);
 
 			return s;
 		});

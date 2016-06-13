@@ -105,8 +105,6 @@ public class BoxBrowser extends Box implements IO.Loaded {
 					   props.add(p);
 				   }
 
-				   System.out.println(" checking :" + box + " / " + x + " " + x.properties.get(p) + " / " + (x.properties.get(p) instanceof HasMarkdownInformation));
-
 				   if (x == box && x.properties.get(p) instanceof HasMarkdownInformation) {
 					   sections.add(new Pair<>(p.getName(), render(x, x.properties.get(p), p)));
 					   props.add(p);
