@@ -66,9 +66,9 @@ goCommands = function () {
             }
 //            completions = completions.concat(globalCommands)
 
-            completions.sort(function (a, b) {
-                return a.name < b.name ? -1 : 1;
-            });
+            // completions.sort(function (a, b) {
+            //     return a.name < b.name ? -1 : 1;
+            // });
 
             completionFunction = function (e) {
                 var m = [];
@@ -126,9 +126,9 @@ hotkeys = function () {
                 d[i].callback.remote = 1;
                 completions.push(d[i])
             }
-            completions.sort(function (a, b) {
-                return a.name < b.name ? -1 : 1;
-            });
+            // completions.sort(function (a, b) {
+            //     return a.name < b.name ? -1 : 1;
+            // });
 
             completionFunction = function (e) {
                 var m = [];
@@ -170,9 +170,9 @@ _messageBus.subscribe("begin.commands", function (d, e) {
         d.commands[i].callback.remote = 1;
         completions.push(d.commands[i])
     }
-    completions.sort(function (a, b) {
-        return a.name < b.name ? -1 : 1;
-    });
+    // completions.sort(function (a, b) {
+    //     return a.name < b.name ? -1 : 1;
+    // });
 
     completionFunction = function (e) {
         var m = [];

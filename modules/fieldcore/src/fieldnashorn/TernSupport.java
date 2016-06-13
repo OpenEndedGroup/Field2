@@ -98,7 +98,7 @@ public class TernSupport {
 				"files:[{type:\"full\",name:\"" + boxName + ".js\",text:__someFile}]},\n" +
 				"	function (e,r){\n" +
 				"		for(var i=0;i<r.completions.length;i++)" +
-				"			__completions.add(new __fieldglobal.fieldbox.execution.Completion(r.start, r.end, r.completions[i].name, '<span class=type>'+r.completions[i].type.replace('->','&rarr;')+'&nbsp;&mdash;&nbsp;</span><span class=doc>'+(r.completions[i].doc==null ? '' : r.completions[i].doc)+'</span>'))" +
+				"			__completions.add(new __fieldglobal.fieldbox.execution.Completion(r.start, r.end, r.completions[i].name, '<span class=type>'+r.completions[i].type+'&nbsp;&mdash;&nbsp;</span><span class=doc>'+(r.completions[i].doc==null ? '' : r.completions[i].doc)+'</span>'))" +
 				"	})");
 			r.addAll((ArrayList<Completion>) engine.get("__completions"));
 
@@ -174,8 +174,10 @@ public class TernSupport {
 							}
 							r.addAll(completions);
 							Collections.sort(r, (a, b) -> {
-								if (a.rank != b.rank) return Double.compare(a.rank, b.rank);
-								if (a.replacewith.length()!=b.replacewith.length()) return -Double.compare(a.replacewith.length(), b.replacewith.length()-1);
+								if (a.rank != b.rank)
+									return Double.compare(a.rank, b.rank);
+								if (a.replacewith.length() != b.replacewith.length())
+									return -Double.compare(a.replacewith.length(), b.replacewith.length() );
 								return String.CASE_INSENSITIVE_ORDER.compare(a.replacewith, b.replacewith);
 							});
 							customCompleted = true;
@@ -195,10 +197,10 @@ public class TernSupport {
 						r.addAll(completions);
 						Collections.sort(r, (a, b) -> {
 							if (a.rank != b.rank) return Double.compare(a.rank, b.rank);
-							if (a.replacewith.length()!=b.replacewith.length()) return -Double.compare(a.replacewith.length(), b.replacewith.length()-1);
+							if (a.replacewith.length() != b.replacewith.length())
+								return -Double.compare(a.replacewith.length(), b.replacewith.length() );
 							return String.CASE_INSENSITIVE_ORDER.compare(a.replacewith, b.replacewith);
 						});
-						System.out.println("r :"+r);
 					}
 					return r;
 				}
@@ -217,6 +219,9 @@ public class TernSupport {
 
 				if (right.trim()
 					.length() != right.length()) right = "";
+
+				// downweight Tern in favor of Java
+				r.forEach(x -> x.rank += 1);
 
 				// now if e is an actual java object --- i.e. it's got nothing to do with nashorn, then we could use a more general Field java completion service
 				// and just add the dot back in
@@ -267,12 +272,37 @@ public class TernSupport {
 		} catch (ScriptException e) {
 			e.printStackTrace();
 		}
+		Collections.sort(r, (a, b) -> {
+			return String.CASE_INSENSITIVE_ORDER.compare(a.replacewith, b.replacewith);
+		});
+
+		for (int i = 1; i < r.size(); i++) {
+			Completion a = r.get(i - 1);
+			Completion b = r.get(i);
+			if (a.replacewith.equals(b.replacewith)) {
+				if (a.rank > b.rank) {
+					r.remove(i-1);
+					i--;
+				} else if (a.rank < b.rank) {
+					r.remove(i);
+					i--;
+				} else if (a.info.length() > b.info.length()) {
+					r.remove(i);
+					i--;
+				} else {
+					r.remove(i - 1);
+					i--;
+				}
+			}
+		}
 
 		Collections.sort(r, (a, b) -> {
 			if (a.rank != b.rank) return Double.compare(a.rank, b.rank);
-			if (a.replacewith.length()!=b.replacewith.length()) return -Double.compare(a.replacewith.length(), b.replacewith.length()-1);
+			if (a.replacewith.length() != b.replacewith.length())
+				return -Double.compare(a.replacewith.length(), b.replacewith.length() );
 			return String.CASE_INSENSITIVE_ORDER.compare(a.replacewith, b.replacewith);
 		});
+
 
 		return r;
 	}
@@ -301,14 +331,14 @@ public class TernSupport {
 				String[] q = fff.list();
 				int n = q == null ? 0 : q.length;
 				Completion c = new Completion(-1, -1, fff.getAbsolutePath() + "/", "&nbsp;" + n + " file" + (n == 1 ? "" : "s") + "<span class=doc><i>completion from filesystem</i></span>");
-				c.rank=-111;
+				c.rank = -111;
 				ret.add(c);
 			} else {
 				long length = fff.length();
 				long time = fff.lastModified();
 				Completion c = new Completion(-1, -1, fff.getAbsolutePath(),
 					"&nbsp;" + formatSize(length) + " " + formatDate(time) + " ago <span class=doc><i>completion from filesystem</i></span>");
-				c.rank=-110;
+				c.rank = -110;
 				ret.add(c);
 			}
 		}
@@ -377,7 +407,7 @@ public class TernSupport {
 		final long[] dividers = new long[]{T, G, M, K, 1};
 		final String[] units = new String[]{"TB", "GB", "MB", "KB", "B"};
 		if (value < 0) throw new IllegalArgumentException("Invalid file size: " + value);
-		if (value==0) return "(empty)";
+		if (value == 0) return "(empty)";
 		String result = null;
 		for (int i = 0; i < dividers.length; i++) {
 			final long divider = dividers[i];

@@ -11,6 +11,7 @@ import field.utility.Rect;
 import fieldagent.Main;
 import fieldbox.boxes.*;
 import fieldbox.boxes.plugins.Planes;
+import fieldbox.execution.CompletionStats;
 import fieldbox.io.IO;
 import fieldbox.ui.FieldBoxWindow;
 import fieldcef.browser.Browser;
@@ -43,8 +44,8 @@ public class GlassBrowser extends Box implements IO.Loaded {
 	String styleSheet = "field-codemirror.css";
 
 	// we'll need to make sure that this is centered on larger screens
-	int maxw = 650;
-	int maxh = 800;
+	int maxw = 500-25;
+	int maxh = 550-25;
 	public Browser browser;
 	public String styles;
 
@@ -161,6 +162,10 @@ public class GlassBrowser extends Box implements IO.Loaded {
 		browser.addHandler(x -> x.equals("call.command"), (address, payload, ret) -> {
 			String command = payload.getString("command");
 			Runnable r = commandHelper.callTable.get(command);
+			String name = commandHelper.callTableName.get(command);
+
+			CompletionStats.stats.notify(name);
+
 			if (r != null) {
 				if (r instanceof RemoteEditor.ExtendedCommand)
 					((RemoteEditor.ExtendedCommand) r).begin(commandHelper.supportsPrompt(x -> {

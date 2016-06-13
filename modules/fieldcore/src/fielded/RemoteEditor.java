@@ -11,6 +11,7 @@ import field.utility.*;
 import fieldbox.FieldBox;
 import fieldbox.boxes.*;
 import fieldbox.execution.Completion;
+import fieldbox.execution.CompletionStats;
 import fieldbox.execution.Execution;
 import fieldbox.io.IO;
 import fieldbox.ui.FieldBoxWindow;
@@ -292,13 +293,33 @@ public class RemoteEditor extends Box {
 			RunLoop.main.workerPool.submit(() -> {
 				if (current_ln.get() != v) return;
 				Execution.ExecutionSupport support = getExecution(box.get(), new Dict.Prop<String>(prop)).support(box.get(), new Dict.Prop<String>(prop));
-
-				System.out.println(" go for completion on :" + support);
-
 				support.completion(text, ln, c, cc -> {
 					if (cc.size() > 0) {
-						System.out.println(" completions :" + cc.size() + " first is " + cc.get(0) + " " + cc.get(0).replacewith + " " + cc.get(0).info);
-						completionHelp.set("<span class='comp'>" + cc.get(0).replacewith + "</span><br>" + cc.get(0).info);
+
+						CompletionStats.stats.autosuggest(cc);
+
+						// Tern just loves decodeURIComponent
+						if (cc.size() > 20 && cc.get(0).replacewith.equals("decodeURIComponent"))
+							return;
+
+						String also = "";
+						if (cc.size() < 20 && cc.size() > 1) {
+							for (int i = 1; i < cc.size(); i++) {
+								also += "<b>" + cc.get(i).replacewith + "</b>, ";
+								if (also.length() > 60) {
+									also = also.substring(0, also.length() - 2) + "...";
+									break;
+								}
+							}
+							if (also.length() <= 60)
+								also = also.substring(0, also.length() - 2);
+							also = "<br><i>also</i>  " + also;
+							also = "<div style='font-size:80%'>" + also + "</div>";
+						}
+
+						completionHelp.set("<div class='comp-space'>" + cc.get(0).replacewith + "</div> <span class=doc>" + cc.get(0).info.replace("&mdash;", "<br>") +"</span>"+also);
+
+
 					}
 				});
 			});
@@ -405,8 +426,6 @@ public class RemoteEditor extends Box {
 			Log.log("remote.debug", () -> "lineoffset ;" + lineoffset + " " + p.has("lineoffset"));
 
 			String suffix = address.length() < "execution.fragment.".length() ? "" : address.substring("execution.fragment.".length());
-
-			System.out.println(" SUFFIX IS :" + suffix);
 
 			Execution.ExecutionSupport support = getExecution(box.get(), new Dict.Prop<String>(prop)).support(box.get(), new Dict.Prop<String>(prop));
 			support.setLineOffsetForFragment(lineoffset, new Dict.Prop<String>(prop));
@@ -583,6 +602,12 @@ public class RemoteEditor extends Box {
 			return payload;
 		});
 
+		server.addHandlerLast(Predicate.isEqual("notify.completion"), () -> socketName, (s, socket, address, payload) -> {
+			JSONObject p = (JSONObject) payload;
+			CompletionStats.stats.notify(p.getString("uuid"));
+			return payload;
+		});
+
 		server.addHandlerLast(Predicate.isEqual("request.completions"), () -> socketName, (s, socket, address, payload) -> {
 
 			Log.log("remote.trace", () -> " inside request completions ");
@@ -609,9 +634,9 @@ public class RemoteEditor extends Box {
 
 			Execution.ExecutionSupport support = getExecution(box.get(), new Dict.Prop<String>(prop)).support(box.get(), new Dict.Prop<String>(prop));
 
-			System.out.println(" go for completion on :" + support);
-
 			support.completion(text, line, ch, newOutput(box.get(), returnAddress, (responses) -> {
+
+				CompletionStats.stats.autosuggest(responses);
 
 				JSONStringer stringer = new JSONStringer();
 				stringer.array();
@@ -623,6 +648,8 @@ public class RemoteEditor extends Box {
 						.value(res.end);
 					stringer.key("replaceWith")
 						.value(res.replacewith);
+					stringer.key("uuid")
+						.value(res.uuid);
 					stringer.key("info")
 						.value(res.info);
 					stringer.endObject();
@@ -709,6 +736,8 @@ public class RemoteEditor extends Box {
 			JSONObject p = (JSONObject) payload;
 			String command = p.getString("command");
 
+			CompletionStats.stats.notify(command);
+
 			find(Commands.commands, both()).flatMap(m -> m.get()
 				.entrySet()
 				.stream())
@@ -733,6 +762,9 @@ public class RemoteEditor extends Box {
 			String command = p.getString("command");
 
 			Runnable r = commandHelper.callTable.get(command);
+
+			String name = commandHelper.callTableName.get(command);
+			CompletionStats.stats.notify(name);
 
 			if (r != null) {
 				if (r instanceof ExtendedCommand)
@@ -840,6 +872,7 @@ public class RemoteEditor extends Box {
 	}
 
 	static public void boxFeedback(Optional<Box> box, Vec4 color, String name, int index, int duration) {
+
 		if (box.get().properties.get(frameDrawing) != null) // we only decorate things that are drawn
 			box.get().properties.putToMap(frameDrawing, name, expires(boxOrigin((bx) -> {
 
@@ -848,10 +881,11 @@ public class RemoteEditor extends Box {
 				f.attributes.put(filled, true);
 				f.attributes.put(stroked, false);
 				f.attributes.put(StandardFLineDrawing.color, color);
+				f.attributes.put(FLineDrawing.layer, "glass2");
 				return f;
 
 			}, new Vec2(1, 1)), duration));
-		Drawing.dirty(box.get());
+		Drawing.dirty(box.get(), "glass2");
 	}
 
 	static public void removeBoxFeedback(Optional<Box> box, String name) {
@@ -1209,13 +1243,11 @@ public class RemoteEditor extends Box {
 		void prompt(String prompt, Map<Pair<String, String>, Runnable> options, ExtendedCommand alternative);
 	}
 
-	public void pin()
-	{
+	public void pin() {
 		pinned = true;
 	}
 
-	public void unpin()
-	{
+	public void unpin() {
 		pinned = false;
 	}
 

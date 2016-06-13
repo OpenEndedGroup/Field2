@@ -8,8 +8,7 @@ _field.sendWithReturn("request.completions", {
 				ch: cm.listSelections()[0].anchor.ch
 		},
 		function (d, e) {
-
-				var completions = d;
+			var completions = d;
 				completionFunction = function (e) {
 						var m = [];
 						for (var i = 0; i < completions.length; i++) {
@@ -20,6 +19,7 @@ _field.sendWithReturn("request.completions", {
 												text: matched + " " + completions[i].info,
 												callback: function () {
 														cm.replaceRange(completions[this.i].replaceWith, cm.posFromIndex(completions[this.i].start), cm.posFromIndex(completions[this.i].end))
+													_field.send("notify.completion", {uuid:completions[this.i].uuid})
 												}.bind({
 														"i": i
 												})

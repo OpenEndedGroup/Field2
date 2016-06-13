@@ -1,5 +1,7 @@
 package fieldbox.execution;
 
+import java.util.UUID;
+
 /**
  * helper class for completion results
  */
@@ -10,6 +12,8 @@ public class Completion {
 	public String header;
 
 	public float rank = 0;
+
+	public String uuid = UUID.randomUUID().toString();
 
 	public Completion(int start, int end, String replacewith, String info) {
 		this.start = start;
