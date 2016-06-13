@@ -104,7 +104,7 @@ public class Drawing extends Box {
 		dirty(b, layerName);
 	}
 
-	static protected void dirty(Box b, String explicitLayerName) {
+	static public void dirty(Box b, String explicitLayerName) {
 		b.find(Boxes.root, b.both())
 			.findFirst()
 			.map(x -> x.properties.put(needRepaint, true));
