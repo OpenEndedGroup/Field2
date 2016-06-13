@@ -76,6 +76,9 @@ html {
 }
 
 body {
+    font-variant-ligatures: normal;
+    -webkit-font-variant-ligatures: common-ligatures;
+    font-variant-ligatures: common-ligatures;
     background: rgba(0, 0, 0, 0);
     color: #aaa;
     font-size: 12px;
@@ -167,12 +170,8 @@ a {
 .CodeMirror
 {
     font-family: "Fira Code", "Source Code Pro" !important;
-    font-variant-ligatures: normal;
     font-size:15px;
 
-    -webkit-font-variant-ligatures: common-ligatures;
-    /* for iOS and Safari 6 */
-    font-variant-ligatures: common-ligatures;
     -webkit-font-feature-settings: "kern";
     font-feature-settings: "kern";
     font-kerning: normal;
@@ -660,6 +659,7 @@ input {
     margin-top: 1px;
     background: #222;
     pointer-events: all;
+    font-weight: 900;
 }
 
 .Field-modal ol {
@@ -729,6 +729,7 @@ input {
     opacity: 0.5;
     /*text-height: 120%;*/
     float: left;
+    font-weight:normal;
     clear: both;
     margin-left: 25px;
     margin-right: 10px;
@@ -737,10 +738,10 @@ input {
 
 .Field-modal-positioned ol li span.type,
 .Field-modal ol li span.type {
-    font-style: italic;
-    font-weight: 400;
+    font-weight: 200;
+    font-family: "fira code";
+    font-size: 70%;
     opacity: 0.75;
-    font-size: 90%;
     padding-top: 3px;
 }
 
@@ -1003,4 +1004,41 @@ span.comp {
     padding-bottom:4px;
 }
 
+div#hbox.Field-status span.stars
+{
+    float: right;
+    position: absolute;
+    right: 4px;
+    font-size: 70%;
+    top: 4px;
+}
+
+div#hbox.Field-status span.doc
+{
+    display: inline;
+}
+
+div#hbox.Field-status span.doc span.type
+{
+//    display: inline;
+    font-size:70%;
+}
+
+div#hbox.Field-status .comp-space {
+    font-weight: 900;
+    padding: 0px;
+    padding-bottom:4px;
+    display:inline;
+}
+
+dialog.Field-modal ol li span.stars,
+dialog.Field-modal-positioned ol li span.stars
+{
+    float: right;
+    position: absolute;
+    right: 30px;
+    padding-top:4px;
+    font-size: 70%;
+    opacity:0.5;
+}
 
