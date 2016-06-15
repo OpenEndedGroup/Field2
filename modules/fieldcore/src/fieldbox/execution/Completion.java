@@ -20,7 +20,7 @@ public class Completion {
 		this.end = end;
 		this.replacewith = replacewith;
 		this.info = info;
-		rank -= replacewith.length();
+//		rank -= replacewith.length();
 	}
 
 	@Override
