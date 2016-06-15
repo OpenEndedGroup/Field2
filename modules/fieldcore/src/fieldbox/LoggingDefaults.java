@@ -19,10 +19,14 @@ public class LoggingDefaults {
 //		Log.on(".*serial.*", Log::green);
 //		Log.on("nashorn.general", Log::green);
 //		Log.on("INSERT", Log::green);
-//		Log.on("tap.*", Log::green);
+		Log.on("cef.console", Log::green);
+		Log.on("cef.*", Log::green);
+		Log.on("glass.*", Log::green);
 		Log.on("completion.debug", Log::green);
 		Log.on(".*error", Log::red);
-//		Log.on("remote.cookie", Log::green);
+		Log.disable("drawing.*");//, Log::green);
+		Log.disable("cache");//, Log::green);
+		Log.disable("taps");//, Log::green);
 //		Log.on("server", Log::green);
 //		Log.on("python.debug", Log::green);
 //		Log.on("calllogic", Log::green);
@@ -46,6 +50,8 @@ public class LoggingDefaults {
 //		Log.on(".*keyboard.*", Log::green);
 		Log.on(".*jar.indexer.*", Log::green);
 //		Log.on("finalkey", Log::green);
+		Log.disable("drawing");
+//		Log.fallthrough((a,b) -> Log.println(a, b.get()));
 		Log.fallthrough((a,b) -> {});
 	}
 }
