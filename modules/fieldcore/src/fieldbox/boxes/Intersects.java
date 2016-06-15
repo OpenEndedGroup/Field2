@@ -3,6 +3,7 @@ package fieldbox.boxes;
 import field.graphics.Window;
 import field.linalg.Vec2;
 import field.utility.Rect;
+import fieldbox.boxes.plugins.Planes;
 
 import java.util.Optional;
 
@@ -15,17 +16,18 @@ public class Intersects {
 		Vec2 point = e == null ? null : new Vec2(e.mx, e.my);
 
 		Optional<Box> hit = point == null ? Optional.empty() : root.breadthFirst(root.both())
-									   .filter(b -> frame(b) != null)
-									   .filter(b -> !b.properties.isTrue(Box.hidden, false))
-									   .filter(b -> point == null || frame(b).intersects(point))
-									   .filter(x -> !x.properties.isTrue(Mouse.isSticky, false))
-									   .sorted((a, b) -> Float.compare(order(frame(a)), order(frame(b))))
-									   .findFirst();
+			.filter(b -> frame(b) != null)
+			.filter(b -> !b.properties.isTrue(Box.hidden, false))
+			.filter(b -> point == null || frame(b).intersects(point))
+			.filter(x -> !x.properties.isTrue(Mouse.isSticky, false))
+			.filter(x -> Planes.on(root, x)>=1)
+			.sorted((a, b) -> Float.compare(order(frame(a)), order(frame(b))))
+			.findFirst();
 
 		Box startAt = hit.orElseGet(() -> root.breadthFirst(root.both())
-						      .filter(x -> x.properties.isTrue(Mouse.isSelected, false) && !x.properties.isTrue(Mouse.isSticky, false))
-						      .findFirst()
-						      .orElseGet(() -> root));
+			.filter(x -> x.properties.isTrue(Mouse.isSelected, false) && !x.properties.isTrue(Mouse.isSticky, false))
+			.findFirst()
+			.orElseGet(() -> root));
 
 		return startAt;
 

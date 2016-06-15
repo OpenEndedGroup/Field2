@@ -24,6 +24,7 @@ import fieldbox.ui.FieldBoxWindow;
 import fielded.ServerSupport;
 import fielded.boxbrowser.BoxBrowser;
 import fielded.boxbrowser.WebApps;
+import fielded.plugins.MakeNewTextEditor;
 import fielded.plugins.Out;
 import fieldlinker.Linker;
 import fieldnashorn.Nashorn;
@@ -87,8 +88,6 @@ public class Open {
 			e.printStackTrace();
 			pluginList = null;
 		}
-
-		System.out.println(" window dimensions are :" + atX + " " + atY + " " + sizeX + " " + sizeY);
 
 		window = new FieldBoxWindow(atX, atY, sizeX, sizeY, filename);
 
@@ -205,6 +204,8 @@ public class Open {
 		new Threading().connect(boxes.root());
 
 //		new Typing(boxes.root()).connect(boxes.root());
+
+		new MakeNewTextEditor(boxes.root()).connect(boxes.root());
 
 		new RunCommand(boxes.root()).connect(boxes.root());
 
@@ -338,7 +339,7 @@ public class Open {
 		Execution execution = new Execution((box, prop) -> (prop.equals(Execution.code) ? javascript.apply(box, prop) : null));
 		execution.connect(boxes.root());
 
-		new ServerSupport(boxes);//.openEditor();
+		new ServerSupport(boxes.root());//.openEditor();
 
 		// add a red line time slider to the sheet (this isn't saved with the document, so we'll add it each time
 		TimeSlider ts = new TimeSlider();
@@ -411,11 +412,9 @@ public class Open {
 				if (created==null)
 					created = new LinkedHashSet<>();
 
-				System.out.println(" going to run loaded on the things we've loaded :" + created);
 				Set<Box> toRemove = new LinkedHashSet<>();
 				for (Box qq : created) {
 					if (qq instanceof IO.Loaded) {
-						System.out.println("        " + qq);
 						try {
 							((IO.Loaded) qq).loaded();
 						} catch (Throwable t) {
@@ -444,7 +443,6 @@ public class Open {
 		return created;
 
 	}
-
 
 	public boolean defaultGLPreamble(int pass) {
 

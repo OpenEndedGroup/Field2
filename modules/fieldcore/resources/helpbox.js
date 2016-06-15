@@ -4,24 +4,25 @@
 //helpBox
 var helpBox = $("<div class='Field-status' id = 'hbox'></div>");
 
-//helpBox.appendTo($("body"))
-helpBox.html("Commands &#8963;&#9251;");
+helpBox.appendTo($(".CodeMirror"))
+helpBox.html("");
 
 //Help Menu
 //var helpMenu = $("")
 
-helpBox.css("bottom", "3.5em");
-//helpBox.css("position", "relative")
+helpBox.css("bottom", "1.5em");
+helpBox.css("position", "absolute")
 helpBox.css("opacity", "0.3");
-helpBox.css("opacity", "1");
+// helpBox.css("text-align", "right");
+//helpBox.css("opacity", "1");
 
-function setHelpBox() {
+function setHelpBox(text) {
     helpBox.css("transition", "opacity 0s");
     helpBox.css("opacity", 1);
-//    helpBox.html(text)
+    helpBox.html(text)
     setTimeout(function () {
-        helpBox.css("transition", "opacity 1s");
-        helpBox.css("opacity", 1)
+        helpBox.css("transition", "opacity 0.5s");
+        helpBox.css("opacity", 0.3)
     }, 1000)
 }
 

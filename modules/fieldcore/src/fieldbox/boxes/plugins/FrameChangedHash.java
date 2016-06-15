@@ -22,6 +22,7 @@ public class FrameChangedHash extends Box {
 	static public final Dict.Prop<Long> sceneHash = new Dict.Prop<>("_sceneHash");
 
 	public FrameChangedHash(Box root) {
+		properties.put(Planes.plane, "__always__");
 		properties.putToMap(FLineDrawing.frameDrawing, "__updateHash__", (box) -> {
 			properties.put(sceneHash, hashWas = hash());
 
@@ -53,6 +54,8 @@ public class FrameChangedHash extends Box {
 			long h = from.find(sceneHash, from.both())
 				     .findFirst()
 				     .orElse(0L) * 31 + salt.get();
+
+//			System.out.println("SH:"+h);
 
 			return h;
 		});

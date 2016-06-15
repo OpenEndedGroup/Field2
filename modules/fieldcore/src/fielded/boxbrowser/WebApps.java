@@ -183,12 +183,9 @@ public class WebApps extends Box implements IO.Loaded {
 
 
 				s.addHandlerLast((server, socket, address, payload) -> {
-					System.out.println(" socket opened with :" + server + " " + socket + " " + address + " " + payload + "  on thread :" + Thread.currentThread());
 
 					RunLoop.main.once(() -> {
 						if (("" + payload).equals(uid)) {
-
-							System.out.println(" Socket is live, executing code ");
 
 							Consumer<String> executeJS = s -> {
 								socket.send(s);
@@ -228,8 +225,6 @@ public class WebApps extends Box implements IO.Loaded {
 		});
 
 		s.addURIHandler((uri, method, headers, params, files) -> {
-
-			System.out.println(" looking up uri :" + uri);
 
 			if (uri.startsWith("/")) uri = uri.substring(1);
 

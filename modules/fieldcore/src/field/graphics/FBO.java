@@ -37,7 +37,7 @@ import static org.lwjgl.opengl.GL32.*;
  * OpenGL enums, we'll grow these as necessary). They can have multiple layers, optional depth buffers, optional stencils, multisampling, a variety of components and bit-depths and dimensions.
  * <p>
  */
-public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUniform<Integer>, BoxBrowser.HasHTMLInformation {
+public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUniform<Integer>, BoxBrowser.HasMarkdownInformation {
 
 
 	@Override

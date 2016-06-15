@@ -4,6 +4,7 @@ import field.graphics.Window;
 import field.utility.Dict;
 import field.utility.IdempotencyMap;
 import field.utility.Util;
+import fieldbox.boxes.plugins.KeyboardFocus;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -65,13 +66,15 @@ public class Keyboard {
 			}
 		}
 
+		Box focused = root.find(KeyboardFocus._keyboardFocus, root.both()).map(x -> x.getFocus()).findFirst().orElseGet(() -> Optional.empty()).orElseGet(() -> root);
+
 		Util.Errors errors = new Util.Errors();
 		pressed.stream().forEach(p -> {
 			Collection<Hold> hold = ongoingDrags.computeIfAbsent(p, (x) -> new ArrayList<>());
 
 			// change map to handle errors on x
 
-			root.find(onKeyDown, root.both())
+			focused.find(onKeyDown, root.both())
 			    .flatMap(x -> x.values()
 					   .stream())
 			    .map(Util.wrap(x -> x.onKeyDown(event, p), errors, null, Hold.class))
@@ -80,7 +83,7 @@ public class Keyboard {
 		});
 
 		typed.stream().forEach(p -> {
-			root.find(onCharTyped, root.both()).flatMap(x -> x.values().stream()).forEach(x -> x.onCharTyped(event, p));
+			focused.find(onCharTyped, root.both()).flatMap(x -> x.values().stream()).forEach(x -> x.onCharTyped(event, p));
 		});
 		if (errors.hasErrors()) {
 			errors.getErrors()

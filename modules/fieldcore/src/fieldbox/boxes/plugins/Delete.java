@@ -18,6 +18,9 @@ public class Delete extends Box {
 	protected final Box root;
 
 	public Delete(Box root) {
+
+		this.properties.put(Planes.plane, "__root__ creation");
+
 		this.root = root;
 		this.properties.putToMap(Keyboard.onKeyDown, "__delete__", (event, key) -> {
 			if (event.properties.isTrue(Window.consumed, false)) return null;
@@ -69,8 +72,6 @@ public class Delete extends Box {
 						.filter(x -> !x.properties.isTrue(Box.decorative, false))
 						.collect(Collectors.toList());
 
-					System.out.println(" children are :" + cc);
-
 					long c = cc.size();
 					if (c > 0) {
 						spec.items.put(MarkingMenus.Position.NE2,
@@ -85,8 +86,6 @@ public class Delete extends Box {
 						.filter(x -> x.disconnected)
 						.filter(x -> !x.properties.isTrue(Box.decorative, false))
 						.collect(Collectors.toList());
-
-					System.out.println(" children are :" + cc);
 
 					long c = cc.size();
 					if (c > 0) {

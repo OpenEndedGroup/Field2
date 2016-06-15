@@ -245,7 +245,7 @@ public class IO2Interface extends Box {
 			for (Box b : allLoaded) on.advanceBox(b, backwardsAlias);
 
 			if (loaded.parents().size() == 0) {
-				System.out.println(" warning: box seems to not be connected to anything at all");
+				System.err.println(" WARNING: box seems to not be connected to anything at all");
 				root.connect(loaded);
 			}
 

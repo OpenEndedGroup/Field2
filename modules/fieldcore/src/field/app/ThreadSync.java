@@ -184,8 +184,6 @@ public class ThreadSync {
 
 	private static Object isFalse(Object o) {
 
-		System.out.println(" isFalse :" + o);
-
 		if (o == null) return true;
 		if (o instanceof Collection) return o;
 		if (o instanceof Boolean) return !((Boolean) o).booleanValue();
@@ -349,7 +347,6 @@ public class ThreadSync {
 					i.remove();
 				}
 			} else {
-				System.out.println(" -- getting paused for :" + f);
 				Object p = f.paused.get();
 				System.out.println(" is " + p);
 				f.wasPaused = true;

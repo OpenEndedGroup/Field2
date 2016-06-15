@@ -24,6 +24,7 @@ package field.linalg;
 
 import field.utility.Mutable;
 import field.utility.Serializable_safe;
+import fieldnashorn.annotations.SafeToToString;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -984,6 +985,7 @@ public class Vec3 implements Externalizable, Supplier<Vec3>, Mutable, Serializab
 	 *
 	 * @return the length squared
 	 */
+	@SafeToToString
 	public double lengthSquared() {
 		return x * x + y * y + z * z;
 	}
@@ -993,6 +995,7 @@ public class Vec3 implements Externalizable, Supplier<Vec3>, Mutable, Serializab
 	 *
 	 * @return the length
 	 */
+	@SafeToToString
 	public double length() {
 		return Math.sqrt(lengthSquared());
 	}

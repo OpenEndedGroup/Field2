@@ -14,6 +14,7 @@ import fieldbox.ui.FieldBoxWindow;
 public class Scrolling extends Box {
 
 	public Scrolling(Box root_unused) {
+		this.properties.put(Planes.plane, "__always__");
 		this.properties.putToMap(Mouse.onMouseScroll, "__scrolling__", e -> {
 
 			if (e.properties.isTrue(FieldBoxWindow.consumed, false)) return;
@@ -44,20 +45,9 @@ public class Scrolling extends Box {
 
 							Vec2 trans;
 							{
-								System.out.println(" start at :"+dm);
 								Vec2 dm2 = windowSystemToDrawingSystem(d, t, x.getTranslation());
-								System.out.println(" d to d " + dm + " -> " + dm2);
 								x.setTranslation(this, trans = x.getTranslation().add(new Vec2(dm).sub(dm2).mul(-t.x)));
-								Vec2 dm3= windowSystemToDrawingSystem(d, t, trans);
-								System.out.println(" final check" + dm + " -> " + dm3);
 							}
-//							for (int i = 0; i < 10; i++) {
-//								Vec2 dm2 = windowSystemToDrawingSystem(d, t, trans);
-//								System.out.println(" iterate d to d " + dm + " -> " + dm2);
-//								x.setTranslation(this, trans = x.getTranslation().add(new Vec2(dm).sub(dm2).mul(-0.1f)));
-//							}
-
-//						    x.setTranslation(this, x.getTranslation().scale(r));
 						} else {
 							Vec2 t = x.getTranslation();
 
@@ -69,7 +59,7 @@ public class Scrolling extends Box {
 							x.setTranslation(this, t);
 						}
 
-						FrameManipulation.continueTranslationFeedback(root_unused, false);
+						FrameManipulation.continueTranslationFeedback(Scrolling.this, false);
 					});
 			}
 		});

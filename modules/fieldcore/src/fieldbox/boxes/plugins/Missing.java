@@ -158,8 +158,6 @@ public class Missing {
 		LinkedHashSet<Box> up = new LinkedHashSet<>();
 		downwardsFrom(head, up, head.upwards());
 
-		System.out.println(" across predicates are :"+up+" / "+down);
-
 		return x-> down.contains(x.from) && up.contains(x.to);
 	}
 

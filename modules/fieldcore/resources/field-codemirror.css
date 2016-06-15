@@ -76,6 +76,9 @@ html {
 }
 
 body {
+    font-variant-ligatures: normal;
+    -webkit-font-variant-ligatures: common-ligatures;
+    font-variant-ligatures: common-ligatures;
     background: rgba(0, 0, 0, 0);
     color: #aaa;
     font-size: 12px;
@@ -167,7 +170,6 @@ a {
 .CodeMirror
 {
     font-family: "Fira Code", "Source Code Pro" !important;
-    font-variant-ligatures: normal;
     font-size:15px;
 
     -webkit-font-variant-ligatures: common-ligatures;
@@ -206,7 +208,7 @@ a {
 }
 
 .maptable {
-    font-family: "Source Code Pro";
+    font-family: "Fira Code", "Source Code Pro";
     background-color: rgba(0, 0, 0, 0.2);
     border-radius: 2px;
 }
@@ -659,6 +661,7 @@ input {
     margin-top: 1px;
     background: #222;
     pointer-events: all;
+    font-weight: 900;
 }
 
 .Field-modal ol {
@@ -728,6 +731,7 @@ input {
     opacity: 0.5;
     /*text-height: 120%;*/
     float: left;
+    font-weight:normal;
     clear: both;
     margin-left: 25px;
     margin-right: 10px;
@@ -736,10 +740,10 @@ input {
 
 .Field-modal-positioned ol li span.type,
 .Field-modal ol li span.type {
-    font-style: italic;
-    font-weight: 400;
+    font-weight: 200;
+    font-family: "fira code";
+    font-size: 70%;
     opacity: 0.75;
-    font-size: 90%;
     padding-top: 3px;
 }
 
@@ -807,7 +811,7 @@ input {
     position: fixed;
     bottom: 15px;
     right: 15px;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(60, 60, 60, 0.9);
     padding: 5px;
     border-radius: 5px;
     transition: 1s opacity;
@@ -815,7 +819,7 @@ input {
 }
 
 .Field-status .highlighted {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(60, 60, 60, 0.9);
     padding: 2px;
     padding-top: 0px;
     border-radius: 5px;
@@ -829,7 +833,10 @@ input {
 }
 
 code {
-    font-size: 80%;
+    font-size: 90%;
+    font-family: "Fira Code";
+    font-opacity:100% !important;
+    font-weight: bolder;
 }
 
 .CodeMirror-scroll {
@@ -980,4 +987,60 @@ code {
     color:#fff;
 }
 
+.Field-status .type
+{
+    font-family: "Fira Code";
+    font-size:80%;
+}
+
+span.comp {
+    /*font-family: "Fira Code";*/
+    font-weight: 900;
+    font-size: 90%;
+}
+
+.comp-space {
+    /*font-family: "Fira Code";*/
+    font-weight: 900;
+    padding: 0px;
+    padding-bottom:4px;
+}
+
+div#hbox.Field-status span.stars
+{
+    float: right;
+    position: absolute;
+    right: 4px;
+    font-size: 70%;
+    top: 4px;
+}
+
+div#hbox.Field-status span.doc
+{
+    display: inline;
+}
+
+div#hbox.Field-status span.doc span.type
+{
+//    display: inline;
+    font-size:70%;
+}
+
+div#hbox.Field-status .comp-space {
+    font-weight: 900;
+    padding: 0px;
+    padding-bottom:4px;
+    display:inline;
+}
+
+dialog.Field-modal ol li span.stars,
+dialog.Field-modal-positioned ol li span.stars
+{
+    float: right;
+    position: absolute;
+    right: 30px;
+    padding-top:4px;
+    font-size: 70%;
+    opacity:0.5;
+}
 

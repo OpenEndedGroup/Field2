@@ -14,17 +14,21 @@ import java.util.function.Function;
  */
 public class ObjectToHTML {
 
-	static public ThreadLocal<Stack<String>> contextStack = new ThreadLocal<Stack<String>>(){
+	public interface MasqueradesAs {
+		public Object masqueradesAs();
+	}
+
+	static public ThreadLocal<Stack<String>> contextStack = new ThreadLocal<Stack<String>>() {
 		@Override
 		protected Stack<String> initialValue() {
 			return new Stack<>();
 		}
 	};
 
-	public IdempotencyMap<Function<Object, Object>> map = new IdempotencyMap<Function<Object, Object>>(Function.class){
+	public IdempotencyMap<Function<Object, Object>> map = new IdempotencyMap<Function<Object, Object>>(Function.class) {
 		@Override
 		protected String massageKey(String k) {
-			return k==null ? null : k.toLowerCase();
+			return k == null ? null : k.toLowerCase();
 		}
 	};
 	Function<Object, Object> nullHandler = null;
@@ -72,19 +76,16 @@ public class ObjectToHTML {
 
 	public String convert(Object o, String context) {
 		contextStack.get().push(context);
-		try{
+		try {
 			return convert(o);
-		}
-		finally
-		{
+		} finally {
 			contextStack.get().pop();
 		}
 	}
 
-	public String joinContext()
-	{
+	public String joinContext() {
 		if (contextStack.get().empty()) return "";
-		return contextStack.get().stream().reduce((a,b) -> a+"_"+b).get();
+		return contextStack.get().stream().reduce((a, b) -> a + "_" + b).get();
 	}
 
 	public String convert(Object o) {
@@ -92,12 +93,16 @@ public class ObjectToHTML {
 		if (o == null) return "[null]";
 
 		Set<Function<Object, Object>> found = new LinkedHashSet<>();
+		if (o instanceof MasqueradesAs)
+			o = ((MasqueradesAs)o).masqueradesAs();
 
 		Function<Object, Object> f = lookup(o.getClass(), found);
 
 		int chances = 0;
 		while (f != null && chances < 2) {
+
 			Object o2 = f.apply(o);
+
 			if (o2 instanceof String) return clean((String) o2);
 			if (o2 == null) return clean("" + o);
 			if (o2.equals(o)) {

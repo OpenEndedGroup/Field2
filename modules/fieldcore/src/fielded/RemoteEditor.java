@@ -11,9 +11,11 @@ import field.utility.*;
 import fieldbox.FieldBox;
 import fieldbox.boxes.*;
 import fieldbox.execution.Completion;
+import fieldbox.execution.CompletionStats;
 import fieldbox.execution.Execution;
 import fieldbox.io.IO;
 import fieldbox.ui.FieldBoxWindow;
+import fieldcef.plugins.TextEditor;
 import fielded.boxbrowser.TransientCommands;
 import fielded.webserver.RateLimitingQueue;
 import fielded.webserver.Server;
@@ -24,6 +26,8 @@ import org.json.JSONStringer;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -138,12 +142,17 @@ public class RemoteEditor extends Box {
 	Box currentSelection;
 	boolean selectionHasChanged = false;
 
+	AtomicInteger current_ln = new AtomicInteger();
+	AtomicReference<String> completionHelp = new AtomicReference<>("");
+
+
 	public RemoteEditor(Server server, String socketName, Watches watches, MessageQueue<Quad<Dict.Prop, Box, Object, Object>, String> queue) {
 		this.server = server;
 		this.socketName = socketName;
 		this.queue = queue;
 		this.watches = watches;
 		this.properties.put(editor, this);
+		this.properties.put(Boxes.dontSave, true);
 
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__watch_service__", this::update);
 		this.properties.put(editorUtils, new EditorUtils(this));
@@ -245,8 +254,8 @@ public class RemoteEditor extends Box {
 		});
 
 		server.addHandlerLast((s, socket, address, payload) -> {
-			System.out.println("? " + address);
-			TransientCommands.transientCommands.handle(address, (JSONObject) payload, null);
+			if (payload instanceof JSONObject)
+				TransientCommands.transientCommands.handle(address, (JSONObject) payload, null);
 			return payload;
 		});
 
@@ -276,6 +285,46 @@ public class RemoteEditor extends Box {
 
 			box.get().properties.put(new Dict.Prop<List<Pair<Integer, Integer>>>("_" + prop + "_disabled"), parseDisabledRanges(disabledRanges));
 
+			int c = p.getInt("ch");
+			int ln = p.getInt("line");
+
+			int v = current_ln.incrementAndGet();
+
+			RunLoop.main.workerPool.submit(() -> {
+				if (current_ln.get() != v) return;
+				Execution.ExecutionSupport support = getExecution(box.get(), new Dict.Prop<String>(prop)).support(box.get(), new Dict.Prop<String>(prop));
+
+				support.completion(text, ln, c, cc -> {
+					if (cc.size() > 0) {
+
+						CompletionStats.stats.autosuggest(cc);
+
+						// Tern just loves decodeURIComponent
+						if (cc.size() > 20 && cc.get(0).replacewith.equals("decodeURIComponent"))
+							return;
+
+						String also = "";
+						if (cc.size() < 20 && cc.size() > 1) {
+							for (int i = 1; i < cc.size(); i++) {
+								also += "<b>" + cc.get(i).replacewith + "</b>, ";
+								if (also.length() > 60) {
+									also = also.substring(0, also.length() - 2) + "...";
+									break;
+								}
+							}
+							if (also.length() <= 60)
+								also = also.substring(0, also.length() - 2);
+							also = "<br><i>also</i>  " + also;
+							also = "<div style='font-size:80%'>" + also + "</div>";
+						}
+
+						completionHelp.set("<div class='comp-space'>" + cc.get(0).replacewith + "</div> <span class=doc>" + cc.get(0).info.replace("&mdash;", "<br>") +"</span>"+also);
+
+
+					}
+				});
+			});
+
 			return payload;
 		});
 
@@ -284,8 +333,7 @@ public class RemoteEditor extends Box {
 			JSONObject p = (JSONObject) payload;
 			String returnAddress = p.getString("returnAddress");
 
-			FieldBoxWindow w = this.first(Boxes.window, both())
-				.get();
+			FieldBoxWindow w = this.first(Boxes.window, both()).get();
 
 			String current = w.getCurrentClipboard();
 			final String finalCurrent = current;
@@ -379,8 +427,6 @@ public class RemoteEditor extends Box {
 			Log.log("remote.debug", () -> "lineoffset ;" + lineoffset + " " + p.has("lineoffset"));
 
 			String suffix = address.length() < "execution.fragment.".length() ? "" : address.substring("execution.fragment.".length());
-
-			System.out.println(" SUFFIX IS :" + suffix);
 
 			Execution.ExecutionSupport support = getExecution(box.get(), new Dict.Prop<String>(prop)).support(box.get(), new Dict.Prop<String>(prop));
 			support.setLineOffsetForFragment(lineoffset, new Dict.Prop<String>(prop));
@@ -557,6 +603,12 @@ public class RemoteEditor extends Box {
 			return payload;
 		});
 
+		server.addHandlerLast(Predicate.isEqual("notify.completion"), () -> socketName, (s, socket, address, payload) -> {
+			JSONObject p = (JSONObject) payload;
+			CompletionStats.stats.notify(p.getString("uuid"));
+			return payload;
+		});
+
 		server.addHandlerLast(Predicate.isEqual("request.completions"), () -> socketName, (s, socket, address, payload) -> {
 
 			Log.log("remote.trace", () -> " inside request completions ");
@@ -583,9 +635,9 @@ public class RemoteEditor extends Box {
 
 			Execution.ExecutionSupport support = getExecution(box.get(), new Dict.Prop<String>(prop)).support(box.get(), new Dict.Prop<String>(prop));
 
-			System.out.println(" go for completion on :" + support);
-
 			support.completion(text, line, ch, newOutput(box.get(), returnAddress, (responses) -> {
+
+				CompletionStats.stats.autosuggest(responses);
 
 				JSONStringer stringer = new JSONStringer();
 				stringer.array();
@@ -597,6 +649,8 @@ public class RemoteEditor extends Box {
 						.value(res.end);
 					stringer.key("replaceWith")
 						.value(res.replacewith);
+					stringer.key("uuid")
+						.value(res.uuid);
 					stringer.key("info")
 						.value(res.info);
 					stringer.endObject();
@@ -683,6 +737,8 @@ public class RemoteEditor extends Box {
 			JSONObject p = (JSONObject) payload;
 			String command = p.getString("command");
 
+			CompletionStats.stats.notify(command);
+
 			find(Commands.commands, both()).flatMap(m -> m.get()
 				.entrySet()
 				.stream())
@@ -707,6 +763,9 @@ public class RemoteEditor extends Box {
 			String command = p.getString("command");
 
 			Runnable r = commandHelper.callTable.get(command);
+
+			String name = commandHelper.callTableName.get(command);
+			CompletionStats.stats.notify(name);
 
 			if (r != null) {
 				if (r instanceof ExtendedCommand)
@@ -814,6 +873,7 @@ public class RemoteEditor extends Box {
 	}
 
 	static public void boxFeedback(Optional<Box> box, Vec4 color, String name, int index, int duration) {
+
 		if (box.get().properties.get(frameDrawing) != null) // we only decorate things that are drawn
 			box.get().properties.putToMap(frameDrawing, name, expires(boxOrigin((bx) -> {
 
@@ -822,10 +882,11 @@ public class RemoteEditor extends Box {
 				f.attributes.put(filled, true);
 				f.attributes.put(stroked, false);
 				f.attributes.put(StandardFLineDrawing.color, color);
+				f.attributes.put(FLineDrawing.layer, "glass2");
 				return f;
 
 			}, new Vec2(1, 1)), duration));
-		Drawing.dirty(box.get());
+		Drawing.dirty(box.get(), "glass2");
 	}
 
 	static public void removeBoxFeedback(Optional<Box> box, String name) {
@@ -974,7 +1035,7 @@ public class RemoteEditor extends Box {
 	}
 
 	protected Optional<Box> findBoxByID(String uid) {
-		return breadthFirst(downwards()).filter(x -> Util.safeEq(x.properties.get(IO.id), uid))
+		return breadthFirst(both()).filter(x -> Util.safeEq(x.properties.get(IO.id), uid))
 			.findFirst();
 	}
 
@@ -993,7 +1054,7 @@ public class RemoteEditor extends Box {
 		return currentSelection;
 	}
 
-	private void changeSelection(Box currentSelection, Dict.Prop<String> editingProperty) {
+	public void changeSelection(Box currentSelection, Dict.Prop<String> editingProperty) {
 
 		Log.log("remote.trace", () -> " publishing selection changed :" + currentSelection + " " + editingProperty);
 
@@ -1037,7 +1098,9 @@ public class RemoteEditor extends Box {
 			} else {
 				// this can happen when we're editing something that isn't 'code'
 				String cmln = FieldBox.fieldBox.io.getLanguageForProperty(editingProperty);
-				Log.log("remote.general", () -> "langage :" + cmln);
+				String finalCmln = cmln;
+				Log.log("remote.general", () -> "langage :" + finalCmln);
+				if (cmln == null || cmln.trim().equals("")) cmln = "javascript";
 				buildMessage.put("languageName", cmln);
 
 			}
@@ -1061,12 +1124,21 @@ public class RemoteEditor extends Box {
 		this.currentSelection = currentSelection;
 	}
 
+	String lastCh = "";
+	boolean pinned = false;
+
 	protected boolean update() {
-		if (selectionHasChanged) {
+
+		if (selectionHasChanged && !pinned) {
+
 			selectionHasChanged = false;
-			Set<Box> selection = this.breadthFirst(downwards())
+			lastCh = completionHelp.get();
+
+			Set<Box> selection = this.breadthFirst(both())
 				.filter(x -> x.properties.isTrue(Mouse.isSelected, false))
+				.filter(x -> !(x instanceof TextEditor))
 				.collect(Collectors.toSet());
+
 			if (selection.size() != 1) {
 				changeSelection(null, currentlyEditing);
 			} else {
@@ -1090,12 +1162,22 @@ public class RemoteEditor extends Box {
 					changeSelection(target, objectProp);
 			}
 		}
+
+		String ch = completionHelp.get();
+		if (!ch.equals(lastCh)) {
+			JSONStringer h = new JSONStringer();
+			h.object().key("message").value(ch).endObject();
+			server.send(socketName, "_messageBus.publish('extra.help', " + h + ")");
+			lastCh = ch;
+		}
+
+
 		return true;
 	}
 
 	static public Execution getExecution(Box box, Dict.Prop<String> prop) {
 
-		return box.breadthFirst(box.upwards())
+		return box.breadthFirst(box.both())
 			.filter(x -> x.properties.has(Execution.execution))
 			.map(x -> x.properties.get(Execution.execution))
 			.filter(x -> x != null)
@@ -1160,6 +1242,14 @@ public class RemoteEditor extends Box {
 
 	public interface SupportsPrompt {
 		void prompt(String prompt, Map<Pair<String, String>, Runnable> options, ExtendedCommand alternative);
+	}
+
+	public void pin() {
+		pinned = true;
+	}
+
+	public void unpin() {
+		pinned = false;
 	}
 
 	static {

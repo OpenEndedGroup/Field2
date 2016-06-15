@@ -29,10 +29,10 @@ public class Out extends Box {
 	ObjectToHTML output = new ObjectToHTML();
 	static public final Dict.Prop<Function<Object, Object>> out = new Dict.Prop<Function<Object, Object>>("out").toCannon()
 		.type()
-		.doc("write an object to the editor window. This will attempt to map the object into a useful (HTML) view of it using routines in `_.outMap`. `_.out(...)` clears any previous output from any previous output area.");
-	static public final Dict.Prop<Function<Object, Object>> outCollect = new Dict.Prop<Function<Object, Object>>("outCollect").toCannon()
+		.doc("write an object to the editor window. This will attempt to map the object into a useful (HTML) view of it using routines in `_.outMap`. `_.out(...)` clears any previous output from any previous update cycle.");
+	static public final Dict.Prop<Function<Object, Object>> outClear = new Dict.Prop<Function<Object, Object>>("outClear").toCannon()
 		.type()
-		.doc("write an object to the editor window. This will attempt to map the object into a useful (HTML) view of it using routines in `_.outMap`. `_.outCollect(...)` clears any previous output from any previous update cycle.");
+		.doc("write an object to the editor window. This will attempt to map the object into a useful (HTML) view of it using routines in `_.outMap`. `_.outClear(...)` clears any previous output.");
 	static public final Dict.Prop<Function<Object, Object>> outAppend = new Dict.Prop<Function<Object, Object>>("outAppend").toCannon()
 		.type()
 		.doc("write an object to the editor window. This will attempt to map the object into a useful (HTML) view of it using routines in `_.outMap`. `_.outAppend(...)` appends to any previous output.");
@@ -53,15 +53,15 @@ public class Out extends Box {
 		this.properties.put(__out, this);
 
 		this.properties.put(out, x -> {
-			return doOutput(x, false);
-		});
-		this.properties.put(outCollect, x -> {
 			if (t == RunLoop.tick)
 				return doOutput(x, true);
 			else {
 				t = RunLoop.tick;
 				return doOutput(x, false);
 			}
+		});
+		this.properties.put(outClear, x -> {
+			return doOutput(x, false);
 		});
 		this.properties.put(outAppend, x -> {
 			return doOutput(x, true);
@@ -118,8 +118,6 @@ public class Out extends Box {
 			}
 			s += "</div>";
 
-			System.out.println("S ||" + s);
-
 			return s;
 		});
 
@@ -147,8 +145,6 @@ public class Out extends Box {
 
 			}
 			s += "</div>";
-
-			System.out.println("S ||" + s);
 
 			return s;
 		});

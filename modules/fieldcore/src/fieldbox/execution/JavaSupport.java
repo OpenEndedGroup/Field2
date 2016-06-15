@@ -154,8 +154,6 @@ public class JavaSupport {
 
 	static public String compress(String name, String signature) {
 
-		System.out.println(" compress :"+name+" = "+signature);
-
 		signature = " " + signature;
 
 		Pattern p = Pattern.compile("([A-Za-z]*?)\\.([A-Za-z]*?)");
@@ -174,7 +172,7 @@ public class JavaSupport {
 		signature = signature.trim();
 		String[] leader = signature.split(" ");
 		if (signature.contains(name)) {
-			signature = signature.replaceFirst(leader[0], "") + " &rarr; " + leader[0];
+			signature = signature.replaceFirst(leader[0], "") + " -> " + leader[0];
 			signature = signature.replaceFirst(name, "");
 		}
 
@@ -412,13 +410,17 @@ public class JavaSupport {
 
 								m.getParameters().forEach(x -> System.out.println(x.getName()));
 
+								String classComment = m.getDeclaringClass().getComment();
+								String constructorComment = m.getComment();
+								String comment = ((classComment==null ? "" : classComment)+" "+(constructorComment==null ? "" : constructorComment)).trim();
+
 								Completion cc = new Completion(-1, -1, m.getName(), val + "<span class=type>" + compress(m.getName(), "(" + m.getParameters()
 																					     .stream()
 																					     .map(x -> x.getType() + " " + x.getName())
 																					     .reduce("",
 																						     (a, b) -> a + ", " + b)
 																					     .substring(m.getParameters()
-																							 .size() > 0 ? 2 : 0)) + ")</span>" + (m.getComment() != null ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + m.getComment() + "</span>" : ""));
+																							 .size() > 0 ? 2 : 0)) + ")</span>" + ( comment.length()>0 ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + comment + "</span>" : ""));
 								add(val.length() > 0, r, cc);
 								cc.rank += tostring ? 100 : 0;
 								cc.rank+= m.getComment()!=null ? 10 : 0;
@@ -543,7 +545,7 @@ public class JavaSupport {
 				if (c.getName()
 				     .contains(left) && !seen.contains(c.getFullyQualifiedName())) {
 					seen.add(c.getFullyQualifiedName());
-					rr.add(new Pair<>(c.getFullyQualifiedName(), c.getComment()));
+					rr.add(new Pair<>(c.getFullyQualifiedName(), "<br><span class=doc>"+c.getComment()+"</span>"));
 				}
 			}
 
@@ -552,7 +554,7 @@ public class JavaSupport {
 					if (e.getKey()
 					     .contains(left) && !seen.contains(e.getKey())) {
 						seen.add(e.getKey());
-						rr.add(new Pair<>(e.getKey(), "from " + e.getValue()));
+						rr.add(new Pair<>(e.getKey(), "<br><span class=doc>from " + e.getValue()+"</span>"));
 					}
 				}
 			}

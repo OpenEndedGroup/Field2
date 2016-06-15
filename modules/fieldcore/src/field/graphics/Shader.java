@@ -31,7 +31,7 @@ import static org.lwjgl.opengl.GL20.*;
  * Assuming that all goes well shaders take three principle kinds of inputs: vertex attributes (make and set these with aux and nextVertex calls in MeshBuilders), uniforms (make and set these with
  * calls to Uniform and UniformBundle classes here) and input from earlier shaders.
  */
-public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Linker.AsMap, HandlesCompletion, BoxBrowser.HasHTMLInformation {
+public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Linker.AsMap, HandlesCompletion, BoxBrowser.HasMarkdownInformation {
 
 	private ShaderIntrospection introspection;
 	private int modCount;
@@ -313,7 +313,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 			GraphicsContext.getContext().stateTracker.shader.set(name.name);
 			GraphicsContext.getContext().uniformCache.changeShader(this, name.name);
 		} else {
-			System.out.println(" shader is invalid, not being used ");
+			System.err.println("WARNING: shader is invalid, not being used ");
 			Log.log("graphics.trace", ()->"WARNING: program not valid, not being used");
 			if (introspection!=null)
 				introspection.errorIsInvalid = "Shader failed GL validation, it is not being used\n";

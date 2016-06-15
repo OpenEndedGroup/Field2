@@ -33,16 +33,16 @@ import java.util.stream.Stream;
 public class GlassBrowser extends Box implements IO.Loaded {
 
 	static public final Dict.Prop<GlassBrowser> glassBrowser = new Dict.Prop<>("glassBrowser").toCannon()
-												  .type()
-												  .doc("The Browser that is stuck in front of the window, in window coordinates");
+		.type()
+		.doc("The Browser that is stuck in front of the window, in window coordinates");
 	private final Box root;
 
 	List<String> playlist = Arrays.asList("preamble.js", "jquery-2.1.0.min.js", "jquery.autosize.input.js", "modal.js");
 	String styleSheet = "field-codemirror.css";
 
 	// we'll need to make sure that this is centered on larger screens
-	int maxw = 1920 * 2;
-	int maxh = 1080 * 2;
+	int maxw = 650;
+	int maxh = 800;
 	public Browser browser;
 	public String styles;
 
@@ -63,34 +63,36 @@ public class GlassBrowser extends Box implements IO.Loaded {
 //		browser.properties.put(Drawing.windowSpace, new Vec2(0,0));
 		browser.properties.put(Boxes.dontSave, true);
 		browser.properties.put(Box.hidden, true);
+		browser.properties.put(Mouse.isSticky, true);
+		browser.properties.put(FrameManipulation.lockHeight, true);
+		browser.properties.put(FrameManipulation.lockY, true);
 		browser.connect(root);
 		browser.loaded();
 		this.properties.put(Boxes.dontSave, true);
 		styles = findAndLoad(styleSheet, false);
 		browser.properties.put(Box.name, "GLASS");
 
-
 //		boot();
 		// we've been having an incredibly hard time tracking down a problem on OS X where sometimes the CefSystem will fail to initialize the browser.
-
 		long[] t = {0};
 		RunLoop.main.getLoop()
-			    .attach(x -> {
-				    if (t[0] == 0) t[0] = System.currentTimeMillis();
-				    if (System.currentTimeMillis() - t[0] > 5000) {
-					    boot();
+			.attach(x -> {
+				if (t[0] == 0) t[0] = System.currentTimeMillis();
+				if (System.currentTimeMillis() - t[0] > 1000) {
+					boot();
 
-					    return false;
-				    }
-				    return true;
-			    });
+					return false;
+				}
+				return true;
+			});
 
 
 		// I've been looking forward to this for a while
 		this.properties.putToMap(Keyboard.onKeyDown, "__glassbrowser__", (e, k) -> {
 			if (!e.properties.isTrue(Window.consumed, false)) {
 				if (e.after.keysDown.contains(GLFW_KEY_SPACE) && e.after.isControlDown() && !e.before.keysDown.contains(GLFW_KEY_SPACE)) {
-					if (!visible) {
+//					if (!visible)
+					{
 						center();
 						runCommands();
 					}
@@ -103,30 +105,37 @@ public class GlassBrowser extends Box implements IO.Loaded {
 
 	public void boot() {
 		Server s = this.find(ServerSupport.server, both())
-			       .findFirst()
-			       .orElseThrow(() -> new IllegalArgumentException(" Server not found "));
+			.findFirst()
+			.orElseThrow(() -> new IllegalArgumentException(" Server not found "));
 
 
 		String bootstrap = "<html style='background:rgba(0,0,0,0.02);'><head><style>" + styles + "</style></head><body class='CodeMirror' style='background:rgba(0,0,0,0.02);'></body></html>";
 		String res = UUID.randomUUID()
-				 .toString();
+			.toString();
 		s.setFixedResource("/" + res, bootstrap);
 		browser.properties.put(Browser.url, "http://localhost:" + s.port + "/" + res);
 
 
 		tick = 0;
 		RunLoop.main.getLoop()
-			    .attach(x -> {
-				    tick++;
-				    if (browser.browser.getURL()
-						       .equals("http://localhost:" + s.port + "/" + res)) {
-					    inject2();
-					    return false;
-				    }
-				    Log.log("glassBrowser.boot", () -> "WAITING url:" + browser.browser.getURL());
-				    Drawing.dirty(this);
-				    return tick < 100;
-			    });
+			.attach(x -> {
+				tick++;
+				if (browser.browser.getURL()
+					.equals("http://localhost:" + s.port + "/" + res)) {
+					inject2();
+					return false;
+				}
+				Log.log("glassBrowser.boot", () -> "WAITING url:" + browser.browser.getURL());
+				Drawing.dirty(this);
+
+				if (tick%200==0)
+				{
+					Log.log("glassBrowser.boot", () -> "trying to dislodge");
+					browser.properties.put(Browser.url, "http://localhost:" + s.port + "/" + res+"?t="+tick);
+				}
+
+				return true;
+			});
 
 		Drawing.dirty(this);
 	}
@@ -142,7 +151,6 @@ public class GlassBrowser extends Box implements IO.Loaded {
 		hide();
 
 		browser.addHandler(x -> x.equals("focus"), (address, payload, ret) -> {
-
 			if (ignoreHide > 0) ignoreHide--;
 			else hide();
 			ret.accept("OK");
@@ -150,7 +158,7 @@ public class GlassBrowser extends Box implements IO.Loaded {
 
 		browser.addHandler(x -> x.equals("request.commands"), (address, paylod, ret) -> {
 			commandHelper.requestCommands(Optional.of(selection().findFirst()
-									     .orElse(this)), null, null, ret, -1, -1);
+				.orElse(this)), null, null, ret, -1, -1);
 		});
 
 		browser.addHandler(x -> x.equals("call.command"), (address, payload, ret) -> {
@@ -185,6 +193,7 @@ public class GlassBrowser extends Box implements IO.Loaded {
 			ret.accept("OK");
 		});
 
+		browser.finishBooting();
 	}
 
 	boolean visible = false;
@@ -197,10 +206,18 @@ public class GlassBrowser extends Box implements IO.Loaded {
 
 		Rect viewBounds = d.getCurrentViewBounds(this);
 
+		Rect vb = new Rect(viewBounds.x+viewBounds.w/2-maxw/2, viewBounds.y+viewBounds.h/2-maxh/2, maxw, maxh);
 //		Rect vb = new Rect(viewBounds.x+viewBounds.w/2-maxw/2, viewBounds.y+viewBounds.h/2-maxh/2, maxw, maxh);
-//		Rect vb = new Rect(viewBounds.x+viewBounds.w/2-maxw/2, viewBounds.y+viewBounds.h/2-maxh/2, maxw, maxh);
-		browser.properties.put(Box.frame, viewBounds);
-//		center();
+
+//		viewBounds.x+=100;
+//		viewBounds.y+=100;
+//		viewBounds.w-=200;
+//		viewBounds.h-=200;
+
+		System.out.println(" show glass browser");
+
+		browser.properties.put(Box.frame, vb);
+		center();
 
 		visible = true;
 		browser.properties.put(Box.hidden, false);
@@ -214,17 +231,17 @@ public class GlassBrowser extends Box implements IO.Loaded {
 		visible = false;
 		tick = 0;
 		RunLoop.main.getLoop()
-			    .attach(x -> {
-				    if (tick == 5) {
-					    browser.setFocus(false);
-					    browser.properties.put(Box.hidden, true);
-					    browser.properties.put(Mouse.isSelected, false);
-					    Log.log("selection", () -> "hidding now, again");
-					    Drawing.dirty(this);
-				    }
-				    tick++;
-				    return tick != 5;
-			    });
+			.attach(x -> {
+				if (tick == 5) {
+					browser.setFocus(false);
+					browser.properties.put(Box.hidden, true);
+					browser.properties.put(Mouse.isSelected, false);
+					Log.log("selection", () -> "hidding now, again");
+					Drawing.dirty(this);
+				}
+				tick++;
+				return tick != 5;
+			});
 		browser.setFocus(false);
 		browser.properties.put(Mouse.isSelected, false);
 		browser.properties.put(Box.hidden, true);
@@ -232,29 +249,23 @@ public class GlassBrowser extends Box implements IO.Loaded {
 	}
 
 	public void runCommands() {
-		browser.executeJavaScript("goCommands()");
+		browser.executeJavaScript_queued("goCommands()");
 		show();
 	}
 
 	public void center() {
 		FieldBoxWindow window = this.find(Boxes.window, both())
-					    .findFirst()
-					    .get();
-		Rect f = browser.properties.get(Box.frame)
-					   .duplicate();
-		f.y = (int) ((window.getHeight() - f.h) / 2);
-//		f.x = 0;
-//		f.y = 0;
-//		f.w = window.getWidth();
-//		f.h = window.getHeight();
-		f.x = (int) ((window.getWidth() - f.w) / 2);
+			.findFirst()
+			.get();
 
-		browser.properties.put(Box.frame, f);
+//		browser.executeJavaScript("$(\".CodeMirror\").height(" + (window.getHeight()) + ")");
+//		browser.executeJavaScript("$(\".CodeMirror\").width(" + window.getWidth() + ")");
 
-		browser.executeJavaScript("$(\".CodeMirror\").css(\"height\", " + (window.getHeight()) + ")");
-		browser.executeJavaScript("$(\".CodeMirror\").css(\"width\", " + window.getWidth() + ")");
-		browser.executeJavaScript("$(\"body\").css(\"height\", " + (window.getHeight()) + ")");
-		browser.executeJavaScript("$(\"body\").css(\"width\", " + window.getWidth() + ")");
+//		browser.executeJavaScript("$(\"body\").height(" + (window.getHeight()) + ")");
+//		browser.executeJavaScript("$(\"body\").width(" + window.getWidth() + ")");
+//
+//		browser.executeJavaScript("console.log('width of glass now '+$(\"body\").width())");
+
 
 		if (!browser.properties.isTrue(Box.hidden, false)) Drawing.dirty(this);
 	}
@@ -279,7 +290,7 @@ public class GlassBrowser extends Box implements IO.Loaded {
 
 	private String findAndLoad(String f, boolean append) {
 
-		String[] roots = {Main.app + "/modules/fieldcore/resources/", Main.app + "/modules/fieldcef_win/resources/"};
+		String[] roots = {Main.app + "/modules/fieldcore/resources/", Main.app + "/modules/fieldcef_macosx/resources/"};
 		for (String s : roots) {
 			if (new File(s + "/" + f).exists()) return readFile(s + "/" + f, append);
 		}

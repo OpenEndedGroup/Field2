@@ -40,8 +40,10 @@ public class CefSystem {
 
 	protected CefSystem()
 	{
-		cefApp = CefApp.getInstance(new String[]{"--overlay-scrollbars", "--single-process", "--off-screen-rendering-mode-enabled", "--enable-gpu", "--enable-experimental-web-platform-features"});
+		cefApp = CefApp.getInstance(new String[]{"--overlay-scrollbars",/* "--single-process", */
+			"--off-screen-rendering-mode-enabled", "--enable-gpu", "--enable-experimental-web-platform-features"});
 
+		if (false) // not needed in windows
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			System.out.println(" -- sleeping for 2 seconds, then killing");
 			try {
@@ -49,10 +51,10 @@ public class CefSystem {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			Integer pid = new GetOwnPid().getPid();
+			long pid = new GetOwnPid().getPid();
 			System.err.println(" pid is :"+pid);
 			try {
-				SimpleCommand.go(new File("."), "/bin/kill", "-9", ""+pid.intValue());
+				SimpleCommand.go(new File("."), "/bin/kill", "-9", ""+pid);
 			} catch (IOException e) {
 				e.printStackTrace();
 			} catch (InterruptedException e) {
@@ -107,12 +109,13 @@ public class CefSystem {
 			@Override
 			public void onStatusMessage(CefBrowser browser, String value) {
 //				Log.log("cef.debug", "Status change :" + browser + " -> " + value);
-
+				System.out.println("cef.debug :"+browser+" "+value);
 			}
 
 			@Override
 			public boolean onConsoleMessage(CefBrowser browser, String message, String source, int line) {
-//				Log.log("cef.console", " CONSOLE :" + browser + " " + message + " " + source + " " + line);
+				System.out.println("cef.console :"+browser+" "+message+" "+source+" "+line);
+				Log.log("cef.console", () -> " CONSOLE :" + browser + " " + message + " " + source + " " + line);
 				return false;
 			}
 		});
@@ -179,11 +182,6 @@ public class CefSystem {
 			}
 		}, true);
 
-//		try {
-//			Thread.sleep(5000);
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
-//		}
 	}
 
 	public interface PaintCallback
@@ -226,42 +224,10 @@ public class CefSystem {
 
 	public class GetOwnPid {
 
-
-		public void run() {
-			System.out.println(getPid(this.getClass()));
+		public long getPid() {
+			return ProcessHandle.current().getPid();
 		}
 
-		public Integer getPid() {
-			return getPid(Trampoline.class);
-		}
-		public Integer getPid(Class<?> mainClass) {
-			MonitoredHost monitoredHost;
-			Set<Integer> activeVmPids;
-			try {
-				monitoredHost = MonitoredHost.getMonitoredHost(new HostIdentifier((String) null));
-				activeVmPids = monitoredHost.activeVms();
-				MonitoredVm mvm = null;
-				for (Integer vmPid : activeVmPids) {
-					try {
-						mvm = monitoredHost.getMonitoredVm(new VmIdentifier(vmPid.toString()));
-						String mvmMainClass = MonitoredVmUtil.mainClass(mvm, true);
-						if (mainClass.getName().equals(mvmMainClass)) {
-							return vmPid;
-						}
-					} finally {
-						if (mvm != null) {
-							mvm.detach();
-						}
-					}
-				}
-			} catch (java.net.URISyntaxException e) {
-				throw new InternalError(e.getMessage());
-			} catch (MonitorException e) {
-				throw new InternalError(e.getMessage());
-			}
-			return null;
-		}
 	}
-
 
 }

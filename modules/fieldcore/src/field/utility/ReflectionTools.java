@@ -41,7 +41,6 @@ public class ReflectionTools {
 		} catch (NoSuchMethodException e) {
 		}
 
-		System.out.println(" ? ");
 		Method[] m = c.getDeclaredMethods();
 		for (Method mm : m) {
 //			System.out.println(" check :" + c + " / "+mm+" for " + name);

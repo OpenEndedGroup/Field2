@@ -6,6 +6,7 @@ import fieldbox.boxes.Boxes;
 import fieldbox.boxes.Callbacks;
 import fieldbox.boxes.Mouse;
 import fieldbox.boxes.annotations.PublishAsCommand;
+import fieldbox.execution.CompletionStats;
 import org.json.JSONStringer;
 
 import java.lang.reflect.InvocationTargetException;
@@ -104,6 +105,8 @@ public class Commands extends Box {
 	}
 
 	public LinkedHashMap<String, Runnable> callTable = new LinkedHashMap<>();
+	public LinkedHashMap<String, String> callTableName = new LinkedHashMap<>();
+
 	public RemoteEditor.ExtendedCommand callTable_alternative = null;
 
 	public void requestCommands(Optional<Box> box, String property, String text, Consumer<String> ret, int line, int ch) {
@@ -113,15 +116,20 @@ public class Commands extends Box {
 		//todo: handle no box case
 		List<Triple<String, String, Runnable>> commands = getCommandsAndDocs(box.get());
 
+		CompletionStats.stats.autosuggestCommands(commands);
+
 		Log.log("remote.trace", ()->" commands are :" + commands);
 
 		JSONStringer stringer = new JSONStringer();
 		stringer.array();
 		callTable.clear();
+		callTableName.clear();
+
 		for (Triple<String, String, Runnable> r : commands) {
 			String u = UUID.randomUUID()
 				       .toString();
 			callTable.put(u, r.third);
+			callTableName.put(u, r.first);
 			stringer.object();
 			stringer.key("name")
 				.value(r.first);

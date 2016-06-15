@@ -252,11 +252,11 @@ public class Browser extends Box implements IO.Loaded {
 			"{\n" +
 //			"\tvec4 current = texelFetch(te, ivec2(vtc.xy*textureSize(te,0)), 0);\n" +
 			"\tvec4 current = texture(te, vtc.xy, -1);\n" +
-			"\t current += texture(te, vtc.xy+vec2(0.5,0.5)/textureSize(te, 0), -1);\n" +
-			"\t current += texture(te, vtc.xy+vec2(-0.5,0.5)/textureSize(te, 0), -1);\n" +
-			"\t current += texture(te, vtc.xy+vec2(0.5,-0.5)/textureSize(te, 0), -1);\n" +
-			"\t current += texture(te, vtc.xy+vec2(-0.5,-0.5)/textureSize(te, 0), -1);\n" +
-			"\t_output  = vec4(current.zyx,current.w*vtc.z)/5;\n" +
+//			"\t current += texture(te, vtc.xy+vec2(0.5,0.5)/textureSize(te, 0), -1);\n" +
+//			"\t current += texture(te, vtc.xy+vec2(-0.5,0.5)/textureSize(te, 0), -1);\n" +
+//			"\t current += texture(te, vtc.xy+vec2(0.5,-0.5)/textureSize(te, 0), -1);\n" +
+//			"\t current += texture(te, vtc.xy+vec2(-0.5,-0.5)/textureSize(te, 0), -1);\n" +
+			"\t_output  = vec4(current.zyx,current.w*vtc.z)*1;\n" +
 			"\t if (vtc.x==0 || vtc.x==1 || vtc.y==0 || vtc.y==1) _output.w=0;\n" +
 			"}");
 

@@ -784,7 +784,7 @@ public class FLinesAndJavaShapes {
 			Vec2 t2 = t==null ? null : new Vec2(t.y, -t.x);
 
 			if (t2==null)
-				System.out.println("NORMAL2 failed :"+this.on.nodes+" / "+this.alpha);
+				System.err.println("NORMAL2 failed :"+this.on.nodes+" / "+this.alpha);
 
 			return t2;
 		}

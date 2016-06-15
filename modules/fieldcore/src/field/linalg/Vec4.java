@@ -827,6 +827,7 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 	 *
 	 * @return the length squared
 	 */
+	@SafeToToString
 	public double lengthSquared() {
 		return x * x + y * y + z * z + w * w;
 	}

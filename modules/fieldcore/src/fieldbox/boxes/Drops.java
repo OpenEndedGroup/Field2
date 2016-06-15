@@ -20,8 +20,6 @@ public class Drops {
 
 		Box startAt = Intersects.startAt(drop.after.mouseState, root);
 
-		System.out.println(" drop start at is :"+startAt);
-
 		startAt.find(onDrop, startAt.upwards()).flatMap(x -> x.values()
 								      .stream())
 		       .forEach(x -> x.onDrop(drop));

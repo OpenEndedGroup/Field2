@@ -75,8 +75,6 @@ public class Mouse {
 			if (startAt == lastStartAt && System.currentTimeMillis() - lastStartAtTime < 300) {
 				event.properties.put(clickNumber, ++click);
 
-				System.out.println(" ?? double click :"+click);
-
 			} else {
 				event.properties.put(clickNumber, click=1);
 				lastStartAt = startAt;
@@ -105,6 +103,7 @@ public class Mouse {
 				} catch (Throwable t) {
 					System.err.println(" Exception thrown in dragger update :" + t);
 					System.err.println(" dragger will not be called again");
+					t.printStackTrace();
 					cont = false;
 				}
 				if (!cont) dd.remove();

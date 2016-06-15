@@ -2,12 +2,15 @@ package fieldbox.boxes;
 
 import field.graphics.FLine;
 import field.graphics.FLinesAndJavaShapes;
+import field.graphics.StandardFLineDrawing;
 import field.graphics.Window;
+import field.graphics.csg.Plane;
 import field.linalg.Vec2;
 import field.linalg.Vec4;
 import field.utility.Dict;
 import field.utility.IdempotencyMap;
 import field.utility.SimpleVoronoi;
+import fieldbox.boxes.plugins.Planes;
 
 import java.awt.*;
 import java.awt.geom.Area;
@@ -37,13 +40,14 @@ public class MarkingMenus extends Box {
 
 	// easy interface
 	static public Dict.Prop<IdempotencyMap<FunctionOfBox>> menu = new Dict.Prop<>("menu").toCannon()
-											.autoConstructs(() -> new IdempotencyMap<>(FunctionOfBox.class)).doc("Adds a menu item to a box at a particular direction. For example `_.menu.show_something_n = function(_) { ... }` will place a menu item 'show something' at the 'N(orth)' position. Note this position can get 'bumped' by other items.");
+		.autoConstructs(() -> new IdempotencyMap<>(FunctionOfBox.class)).doc("Adds a menu item to a box at a particular direction. For example `_.menu.show_something_n = function(_) { ... }` will place a menu item 'show something' at the 'N(orth)' position. Note this position can get 'bumped' by other items.");
 
 
 	public MarkingMenus(Box root) {
 
 		this.properties.put(markingMenus, this);
 		this.properties.put(FLineDrawing.layer, "glass2");
+		this.properties.put(Planes.plane, "__always__");
 
 		this.properties.putToMap(Mouse.onMouseDown, "__markingmenus__", (event, button) -> {
 			if (button != 1) return null;
@@ -53,74 +57,73 @@ public class MarkingMenus extends Box {
 			Box startAt = Intersects.startAt(event.after, root);
 
 			MenuSpecification m = startAt.find(menuSpecs, upwardsOrDownwards())
-						     .filter(x -> x != null)
-				    		     .map(x -> x.apply(event))
-						     .filter(x -> x != null)
-						     .reduce(new MenuSpecification(), (a, b) -> {
+				.filter(x -> x != null)
+				.map(x -> x.apply(event))
+				.filter(x -> x != null)
+				.reduce(new MenuSpecification(), (a, b) -> {
 
-							     a = a.copy();
-							     for (Map.Entry<Position, MenuItem> e : b.items.entrySet()) {
-								     Position k = e.getKey();
-								     int tries = 0;
-								     while (a.items.containsKey(k) && tries < Position.values().length) {
-									     k = Position.values()[(k.ordinal() + 1) % Position.values().length];
-									     tries++;
-								     }
-								     if (tries < Position.values().length) a.items.put(k, e.getValue());
-							     }
+					a = a.copy();
+					for (Map.Entry<Position, MenuItem> e : b.items.entrySet()) {
+						Position k = e.getKey();
+						int tries = 0;
+						while (a.items.containsKey(k) && tries < Position.values().length) {
+							k = Position.values()[(k.ordinal() + 1) % Position.values().length];
+							tries++;
+						}
+						if (tries < Position.values().length) a.items.put(k, e.getValue());
+					}
 
-							     return a;
-						     });
+					return a;
+				});
 
 			startAt.find(menu, upwardsOrDownwards())
-			       .flatMap(x -> x.entrySet()
-					      .stream())
-			       .forEach(x -> {
-				       String key = x.getKey();
-				       String label = key;
-				       FunctionOfBox v = x.getValue();
+				.flatMap(x -> x.entrySet()
+					.stream())
+				.forEach(x -> {
+					String key = x.getKey();
+					String label = key;
+					FunctionOfBox v = x.getValue();
 
-				       Position p = null;
+					Position p = null;
 
-				       if (key.contains("_")) {
-					       String[] q = key.split("_");
-					       label = Arrays.asList(q).subList(0, q.length-1).stream().reduce((a,b) -> a+" "+b).get();
+					if (key.contains("_")) {
+						String[] q = key.split("_");
+						label = Arrays.asList(q).subList(0, q.length - 1).stream().reduce((a, b) -> a + " " + b).get();
 
-					       try {
-						       p = Position.valueOf(q[q.length - 1].toUpperCase());
-						       if (p==null) p = Position.N;
-					       } catch (IllegalArgumentException e) {
-					       }
-				       } else {
-					       p = Position.N;
-				       }
-				       int tries = 0;
-				       while (m.items.containsKey(p) && tries < Position.values().length) {
-					       p = Position.values()[(p.ordinal() + 1) % Position.values().length];
-					       tries++;
-				       }
-				       if (tries < Position.values().length)
-					       m.items.put(p, new MenuItem(label, () -> v.apply(startAt)));
-			       });
+						try {
+							p = Position.valueOf(q[q.length - 1].toUpperCase());
+							if (p == null) p = Position.N;
+						} catch (IllegalArgumentException e) {
+						}
+					} else {
+						p = Position.N;
+					}
+					int tries = 0;
+					while (m.items.containsKey(p) && tries < Position.values().length) {
+						p = Position.values()[(p.ordinal() + 1) % Position.values().length];
+						tries++;
+					}
+					if (tries < Position.values().length)
+						m.items.put(p, new MenuItem(label, () -> v.apply(startAt)));
+				});
 
 
-			log("debug.markingmenus", ()->"merged spec and got :" + m.items.keySet());
+			log("debug.markingmenus", () -> "merged spec and got :" + m.items.keySet());
 
 			if (m.items.size() > 0) {
 				event.properties.put(Window.consumed, true);
 
 				List<Box> sel = breadthFirst(both()).filter(q -> (q.properties.isTrue(Mouse.isSelected, false) && !q.properties.isTrue(Mouse.isSticky, false)))
-									.collect(Collectors.toList());
+					.collect(Collectors.toList());
 
-				if (sel.size()==0 && startAt!=root)
-				{
+				if (sel.size() == 0 && startAt != root) {
 					startAt.properties.put(Mouse.isSelected, true);
 					Drawing.dirty(startAt);
 				}
 
 				return runMenu(this, new Vec2(event.after.mx, event.after.my), m);
 			} else {
-				log("debug.markingmenus", ()->" no menuSpecs for event ");
+				log("debug.markingmenus", () -> " no menuSpecs for event ");
 				return null;
 			}
 		});
@@ -128,10 +131,9 @@ public class MarkingMenus extends Box {
 	}
 
 
-
 	static public Mouse.Dragger runMenu(Box origin, Vec2 center, MenuSpecification m) {
 		MarkingMenus menus = origin.first(markingMenus, origin.both())
-					   .orElseThrow(() -> new IllegalArgumentException(" can't show marking menus if we can't find MarkingMenus"));
+			.orElseThrow(() -> new IllegalArgumentException(" can't show marking menus if we can't find MarkingMenus"));
 		List<Position> hover = menus.show(center, m);
 		Mouse.Dragger[] replaceWith = {null};
 		return (event, term) -> {
@@ -159,7 +161,7 @@ public class MarkingMenus extends Box {
 					MenuSpecification sub = sp.submenu;
 					if (sub != null) {
 						menus.hide();
-						log("marking", ()->"going submenu");
+						log("marking", () -> "going submenu");
 						replaceWith[0] = runMenu(origin, new Vec2(event.after.mx, event.after.my), sub);
 					}
 				}
@@ -176,15 +178,42 @@ public class MarkingMenus extends Box {
 		List<Position> over = new ArrayList<Position>();
 
 		TextDrawing t = this.find(TextDrawing.textDrawing, both())
-				    .findFirst()
-				    .orElseThrow(() -> new IllegalArgumentException(" got to be able to draw text to draw a menuSpecs"));
+			.findFirst()
+			.orElseThrow(() -> new IllegalArgumentException(" got to be able to draw text to draw a menuSpecs"));
 		TextDrawing.FontSupport defaultFont = t.getDefaultFont();
 
-		float scale = 65;
+		float scale = 75;
 
 		FLine textLine = new FLine();
 		textLine.attributes.put(hasText, true);
 		double maxHeight = 0;
+
+		SimpleVoronoi v = new SimpleVoronoi();
+		Map<Position, SimpleVoronoi.Pnt> sites = new HashMap<>();
+		for (Map.Entry<Position, MenuItem> e : m.items.entrySet()) {
+			sites.put(e.getKey(), v.add(new Vec2(center.x + e.getKey().pos.x * scale, center.y + e.getKey().pos.y * scale)));
+		}
+		sites.put(null, v.add(center));
+
+		float outset = 10;
+
+		List<Area> areas = new ArrayList<>();
+		FLine centerLine = new FLine();
+		float cr = 5;
+		centerLine.rect(center.x - cr, center.y - cr, cr * 2, cr * 2);
+		this.properties.putToMap(frameDrawing, "center", box -> centerLine);
+		centerLine.attributes.put(filled, true);
+		centerLine.attributes.put(fillColor, new Vec4(1, 1, 1, 0.9f));
+		centerLine.attributes.put(strokeColor, new Vec4(0, 0, 0, 0.1f));
+
+		centerLine.attributes.put(filled, true);
+
+		centerLine.attributes.put(layer, "glass2");
+
+		areas.add(new Area(FLinesAndJavaShapes.flineToJavaShape(centerLine)));
+
+		Map<FLine, FLine> toLabels = new LinkedHashMap<>();
+		Map<FLine, FLine> toBoxes = new LinkedHashMap<>();
 
 		for (Map.Entry<Position, MenuItem> e : m.items.entrySet()) {
 			textLine.moveTo(center.x + e.getKey().pos.x * scale, center.y + e.getKey().pos.y * scale);
@@ -194,40 +223,169 @@ public class MarkingMenus extends Box {
 			textLine.node().attributes.put(text, e.getValue().label);
 			textLine.attributes.put(layer, "glass2");
 			textLine.attributes.put(color, new Vec4(0, 0, 0, 0.75f));
+
+			textLine.attributes.put(color, new Vec4(1, 1, 1, 0.9f));
+			textLine.node().attributes.put(textScale, 1.2f);
+
 			maxHeight = Math.max(maxHeight, defaultFont.font.dimensions(e.getValue().label, 0.2f).y);
+
+
+
+
+			{
+				double w = defaultFont.font.dimensions(e.getValue().label, 0.2f).x;
+				FLine label = new FLine();
+				label.rect(center.x + e.getKey().pos.x * scale - w / 2 - outset, center.y + e.getKey().pos.y * scale - maxHeight - outset, w + outset * 2, maxHeight + outset * 2);
+				//this.properties.putToMap(FrameDrawer.frameDrawing, "label" + e.getKey(), box -> label);
+
+				areas.add(new Area(FLinesAndJavaShapes.flineToJavaShape(label)));
+			}
+
+			FLine f = v.makeFLine(v.getContourForSite(sites.get(e.getKey())));
+
+			this.properties.putToMap(frameDrawing, "contour" + e.getKey(), box -> f);
+			this.properties.putToMap(FLineInteraction.interactiveDrawing, "contour" + e.getKey(), box -> f);
+
+			f.attributes.put(strokeColor, new Vec4(0.05f, 0.05f, 0.05f, 0.05f));
+			f.attributes.put(fillColor, new Vec4(0.40f, 0.40f, 0.40f, 0.55f));
+			f.attributes.put(filled, true);
+			f.attributes.put(stroked, false);
+			f.attributes.put(layer, "glass2");
+//			f.attributes.put(thicken, new BasicStroke(2.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+
+
+			toLabels.put(f, textLine);
+
+			f.attributes.putToMap(Mouse.onMouseEnter, "__markingmenu__", (event) -> {
+//				FLine fm = v.makeFLine(v.getContourForSite(sites.get(e.getKey())));
+//
+////				fm = FLinesAndJavaShapes.insetShape(fm, 16);
+//
+//				f.nodes.clear();
+//				f.nodes.addAll(fm.nodes);
+
+//				f.attributes.put(fillColor, new Vec4(0.14f, 0.195f, 0.145f, 0.85f));
+//				f.attributes.put(thicken, new BasicStroke(16, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+//				f.attributes.put(strokeColor, new Vec4(0, 0.5f, 0, -0.15f));
+
+				f.attributes.put(filled, true);
+				f.attributes.put(stroked, false);
+
+				toBoxes.entrySet().forEach(x -> {
+					if (x.getKey()!=f)
+					{
+						x.getValue().attributes.put(StandardFLineDrawing.opacity, 0.0f);
+						x.getValue().modify();
+//						x.getKey().attributes.put(StandardFLineDrawing.opacity, 0.5f);
+//						x.getKey().modify();
+					}
+					else
+					{
+						x.getValue().attributes.put(fillColor, new Vec4(0.0f, 0.0f, 0.0f, 0.7f));
+						x.getValue().attributes.put(strokeColor, new Vec4(1.0f, 1.0f, 1.0f, 0.5f));
+						x.getValue().attributes.put(stroked, true);
+						x.getValue().modify();
+					}
+				});
+
+				toLabels.entrySet().forEach(x -> {
+					if (x.getKey()!=f)
+					{
+//						x.getValue().attributes.put(StandardFLineDrawing.opacity, 0.5f);
+//						x.getValue().modify();
+					}
+				});
+
+				f.modify();
+				over.remove(e.getKey());
+				over.add(e.getKey());
+				Drawing.dirty(this);
+				return null;
+			});
+			f.attributes.putToMap(Mouse.onMouseExit, "__markingmenu__", (event) -> {
+//				FLine fm = v.makeFLine(v.getContourForSite(sites.get(e.getKey())));
+//				f.nodes.clear();
+//				f.nodes.addAll(fm.nodes);
+
+				f.attributes.put(strokeColor, new Vec4(0.05f, 0.05f, 0.05f, 0.05f));
+				f.attributes.put(fillColor, new Vec4(0.40f, 0.40f, 0.40f, 0.55f));
+				f.attributes.put(filled, true);
+				f.attributes.put(stroked, false);
+
+				toBoxes.entrySet().forEach(x -> {
+					if (x.getKey()!=f)
+					{
+						x.getValue().attributes.put(StandardFLineDrawing.opacity, 0.5f);
+						x.getValue().modify();
+					}
+					else
+					{
+						x.getValue().attributes.put(fillColor, new Vec4(0.16f, 0.16f, 0.16f, 0.7f));
+						x.getValue().modify();
+						x.getValue().attributes.put(strokeColor, new Vec4(1.0f, 1.0f, 1.0f, 0.3f));
+						x.getValue().attributes.put(stroked, false);
+					}
+				});
+
+				toLabels.entrySet().forEach(x -> {
+					if (x.getKey()!=f)
+					{
+						x.getValue().attributes.remove(StandardFLineDrawing.opacity);
+						x.getValue().modify();
+					}
+				});
+
+				over.remove(e.getKey());
+				f.modify();
+				Drawing.dirty(this);
+			});
+
+			{
+				double w = defaultFont.font.dimensions(e.getValue().label, 0.2f).x;
+				FLine label = new FLine();
+				label.roundedRect(center.x + e.getKey().pos.x * scale - w / 2 - outset, center.y + e.getKey().pos.y * scale - maxHeight - outset, w + outset * 2, maxHeight + outset * 2, 7);
+				toBoxes.put(f, label);
+
+				this.properties.putToMap(frameDrawing, "label" + e.getKey(), box -> label);
+
+				areas.add(new Area(FLinesAndJavaShapes.flineToJavaShape(label)));
+
+				label.attributes.put(filled, true);
+
+				label.attributes.put(fillColor, new Vec4(0.16f, 0.16f, 0.16f, 0.7f));
+//			label.attributes.put(fillColor, new Vec4(0.16f, 0.16f, 0.16f, 0.88f));
+//			label.attributes.put(strokeColor, new Vec4(1, 1, 1, 0.1f));
+
+				label.attributes.put(filled, true);
+				label.attributes.put(stroked, false);
+
+				label.attributes.put(layer, "glass2");
+				if (e.getValue().submenu != null) {
+					FLine label2 = new FLine();
+					label2.rect(center.x + e.getKey().pos.x * scale - w / 2 - outset, center.y + e.getKey().pos.y * scale - maxHeight - outset, w + outset * 2, maxHeight + outset * 2);
+//				this.properties.putToMap(frameDrawing, "labelShade" + e.getKey(), box -> label2);
+
+					areas.add(new Area(FLinesAndJavaShapes.flineToJavaShape(label2)));
+
+					label2.attributes.put(filled, true);
+//				label2.attributes.put(color, new Vec4(0.8f, 0.8f, 0.8f, -0.3f));
+
+					label2.attributes.put(filled, false);
+					label2.attributes.put(stroked, false);
+
+//				label2.attributes.put(thicken, new BasicStroke(16));
+					label2.attributes.put(stroked, false);
+					label2.attributes.put(layer, "glass2");
+
+				}
+			}
 		}
-
-		float outset = 8;
-
-		List<Area> areas = new ArrayList<>();
-
-		for (Map.Entry<Position, MenuItem> e : m.items.entrySet()) {
-			double w = defaultFont.font.dimensions(e.getValue().label, 0.2f).x;
-
-			FLine label = new FLine();
-			label.rect(center.x + e.getKey().pos.x * scale - w / 2 - outset, center.y + e.getKey().pos.y * scale - maxHeight - outset, w + outset * 2, maxHeight + outset * 2);
-			//this.properties.putToMap(FrameDrawer.frameDrawing, "label" + e.getKey(), box -> label);
-
-			areas.add(new Area(FLinesAndJavaShapes.flineToJavaShape(label)));
-
-		}
-
-		FLine centerLine = new FLine();
-		float cr = 5;
-		centerLine.rect(center.x - cr, center.y - cr, cr * 2, cr * 2);
-		this.properties.putToMap(frameDrawing, "center", box -> centerLine);
-		centerLine.attributes.put(filled, true);
-		centerLine.attributes.put(fillColor, new Vec4(1, 1, 1, 0.4f));
-		centerLine.attributes.put(strokeColor, new Vec4(0, 0, 0, 0.1f));
-		centerLine.attributes.put(layer, "glass2");
-
-		areas.add(new Area(FLinesAndJavaShapes.flineToJavaShape(centerLine)));
 
 		for (Map.Entry<Position, MenuItem> e : m.items.entrySet()) {
 			FLine connective = new FLine();
 			connective.moveTo(center.x, center.y);
 			connective.lineTo(center.x + e.getKey().pos.x * scale, center.y + e.getKey().pos.y * scale);
-			Shape s = new BasicStroke(4).createStrokedShape(FLinesAndJavaShapes.flineToJavaShape(connective));
+			Shape s = new BasicStroke(1.5f).createStrokedShape(FLinesAndJavaShapes.flineToJavaShape(connective));
 			Area as = new Area(s);
 			for (Area aa : areas) {
 				as.subtract(aa);
@@ -237,94 +395,10 @@ public class MarkingMenus extends Box {
 
 			connective2.attributes.put(stroked, false);
 			connective2.attributes.put(filled, true);
-			connective2.attributes.put(fillColor, new Vec4(0, 0, 0, 0.7f));
+			connective2.attributes.put(fillColor, new Vec4(0.07f, 0.07f, 0.07f, 0.95f));
 			connective2.attributes.put(layer, "glass2");
 
 		}
-
-		SimpleVoronoi v = new SimpleVoronoi();
-		Map<Position, SimpleVoronoi.Pnt> sites = new HashMap<>();
-		for (Map.Entry<Position, MenuItem> e : m.items.entrySet()) {
-			sites.put(e.getKey(), v.add(new Vec2(center.x + e.getKey().pos.x * scale, center.y + e.getKey().pos.y * scale)));
-		}
-		sites.put(null, v.add(center));
-
-		for (Map.Entry<Position, MenuItem> e : m.items.entrySet()) {
-			FLine f = v.makeFLine(v.getContourForSite(sites.get(e.getKey())));
-			this.properties.putToMap(frameDrawing, "contour" + e.getKey(), box -> f);
-			this.properties.putToMap(FLineInteraction.interactiveDrawing, "contour" + e.getKey(), box -> f);
-			f.attributes.put(strokeColor, new Vec4(0.15f, 0.15f, 0.15f, 0.25f));
-			f.attributes.put(filled, true);
-			f.attributes.put(fillColor, new Vec4(0, 0.0f, 0, 0.15f));
-			f.attributes.put(layer, "glass2");
-			f.attributes.put(thicken, new BasicStroke(2.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-			f.attributes.putToMap(Mouse.onMouseEnter, "__markingmenu__", (event) -> {
-				FLine fm = v.makeFLine(v.getContourForSite(sites.get(e.getKey())));
-
-//				fm = FLinesAndJavaShapes.insetShape(fm, 16);
-
-				f.nodes.clear();
-				f.nodes.addAll(fm.nodes);
-
-				f.attributes.put(fillColor, new Vec4(0, 0.5f, 0, 0.25f));
-				f.attributes.put(thicken, new BasicStroke(16, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-				f.attributes.put(strokeColor, new Vec4(0, 0.5f, 0, -0.15f));
-				f.modify();
-				over.remove(e.getKey());
-				over.add(e.getKey());
-				Drawing.dirty(this);
-				return null;
-			});
-			f.attributes.putToMap(Mouse.onMouseExit, "__markingmenu__", (event) -> {
-				FLine fm = v.makeFLine(v.getContourForSite(sites.get(e.getKey())));
-				f.nodes.clear();
-				f.nodes.addAll(fm.nodes);
-
-				f.attributes.put(fillColor, new Vec4(0, 0.0f, 0, 0.15f));
-				f.attributes.put(thicken, new BasicStroke(2.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-				f.attributes.put(strokeColor, new Vec4(0.15f, 0.15f, 0.15f, 0.5f));
-				over.remove(e.getKey());
-				f.modify();
-				Drawing.dirty(this);
-			});
-		}
-
-		FLine f = v.makeFLine(v.getContourForSite(sites.get(null)));
-		this.properties.putToMap(frameDrawing, "contour" + null, box -> f);
-		f.attributes.put(strokeColor, new Vec4(0, 0, 0, 0.1f));
-		f.attributes.put(filled, false);
-		f.attributes.put(layer, "glass2");
-
-		for (Map.Entry<Position, MenuItem> e : m.items.entrySet()) {
-			double w = defaultFont.font.dimensions(e.getValue().label, 0.2f).x;
-
-			FLine label = new FLine();
-			label.rect(center.x + e.getKey().pos.x * scale - w / 2 - outset, center.y + e.getKey().pos.y * scale - maxHeight - outset, w + outset * 2, maxHeight + outset * 2);
-			this.properties.putToMap(frameDrawing, "label" + e.getKey(), box -> label);
-
-			areas.add(new Area(FLinesAndJavaShapes.flineToJavaShape(label)));
-
-			label.attributes.put(filled, true);
-			label.attributes.put(fillColor, new Vec4(0.7f, 0.7f, 0.7f, 0.8f));
-			label.attributes.put(strokeColor, new Vec4(0, 0, 0, 0.9f));
-			label.attributes.put(layer, "glass2");
-
-			if (e.getValue().submenu != null) {
-				FLine label2 = new FLine();
-				label2.rect(center.x + e.getKey().pos.x * scale - w / 2 - outset, center.y + e.getKey().pos.y * scale - maxHeight - outset, w + outset * 2, maxHeight + outset * 2);
-				this.properties.putToMap(frameDrawing, "labelShade" + e.getKey(), box -> label2);
-
-				areas.add(new Area(FLinesAndJavaShapes.flineToJavaShape(label2)));
-
-				label2.attributes.put(filled, true);
-				label2.attributes.put(color, new Vec4(0.8f, 0.8f, 0.8f, -0.3f));
-				label2.attributes.put(thicken, new BasicStroke(16));
-				label2.attributes.put(stroked, false);
-				label2.attributes.put(layer, "glass2");
-
-			}
-		}
-
 		this.properties.putToMap(frameDrawing, "menuSpecs", box -> textLine);
 		Drawing.dirty(this);
 
@@ -347,7 +421,7 @@ public class MarkingMenus extends Box {
 
 		Position(float x, float y, float length) {
 			this.pos = new Vec2(x, y).normalize()
-						 .mul(length);
+				.mul(length);
 			this.pos.x *= 1.5f;
 		}
 	}

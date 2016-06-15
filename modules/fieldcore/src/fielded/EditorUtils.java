@@ -33,7 +33,6 @@ public class EditorUtils {
 
 			      if (!a.startsWith(prefix)) return p;
 
-			      System.out.println(" message table is :" + messageTable);
 			      Consumer<JSONObject> c = messageTable.remove(a);
 			      if (c == null) Log.log("editorUtils.error", ()->"no handler for message :" + a);
 			      else {
@@ -51,15 +50,12 @@ public class EditorUtils {
 		CompletableFuture<JSONObject> c = new CompletableFuture<>();
 
 		messageTable.put(prefix + suffix, s -> c.complete(s));
-		System.out.println(" message table is :" + messageTable+" sending message"+message);
 		editor.sendJavaScriptNow(message);
 
 		if (ThreadSync.get().mainThread==Thread.currentThread())
 		{
 			try {
-				System.out.println(" main thread is waiting for a response");
 				JSONObject r = c.get();
-				System.out.println(" response is :"+r);
 				return r;
 			} catch (InterruptedException e) {
 				e.printStackTrace();

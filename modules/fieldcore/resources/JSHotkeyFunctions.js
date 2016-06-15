@@ -20,6 +20,7 @@ function Autocomplete() {
                             text: matched + " " + completions[i].info,
                             callback: function () {
                                 cm.replaceRange(completions[this.i].replaceWith, cm.posFromIndex(completions[this.i].start), cm.posFromIndex(completions[this.i].end))
+                                _field.send("notify.completion", {uuid:completions[this.i].uuid})
                             }.bind({
                                 "i": i
                             }),

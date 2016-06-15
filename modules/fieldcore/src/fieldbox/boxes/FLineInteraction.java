@@ -163,12 +163,12 @@ public class FLineInteraction extends Box implements Drawing.Drawer, Mouse.OnMou
 			    .flatMap(f -> f.attributes.getOr(Mouse.onMouseMove, Collections::emptyMap).values().stream()).map(omd -> omd.onMouseMove(eMarked))
 			    .filter(x -> x != null).collect(Collectors.toList());
 
-		draggers.addAll(enter.stream().flatMap(f -> f.attributes.getOr(Mouse.onMouseEnter, Collections::emptyMap).values().stream())
-			    .map(omd -> omd.onMouseEnter(eMarked)).filter(x -> x != null).collect(Collectors.toList()));
 
 		exit.stream().flatMap(f -> f.attributes.getOr(Mouse.onMouseExit, Collections::emptyMap).values().stream())
 			    .forEach(omd -> omd.onMouseExit(eMarked));
 
+		draggers.addAll(enter.stream().flatMap(f -> f.attributes.getOr(Mouse.onMouseEnter, Collections::emptyMap).values().stream())
+			.map(omd -> omd.onMouseEnter(eMarked)).filter(x -> x != null).collect(Collectors.toList()));
 
 		if (draggers.size() > 0) {
 			return (event, termination) -> {

@@ -3,6 +3,7 @@ package fieldbox.boxes;
 import field.app.RunLoop;
 import field.graphics.Scene;
 import field.utility.Dict;
+import fieldbox.boxes.plugins.Planes;
 import fieldbox.execution.InverseDebugMapping;
 import fieldbox.io.IO;
 import fieldbox.ui.FieldBoxWindow;
@@ -42,6 +43,10 @@ public class Boxes {
 		origin = new Box();
 		origin.properties.put(root, origin);
 		origin.properties.put(Box.name, "<<root>>");
+
+		origin.properties.put(Planes.plane, "__root__");
+
+
 		InverseDebugMapping.defaultRoot = origin;
 
 		// set these up so that they will appear in autocomplete

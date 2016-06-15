@@ -93,12 +93,8 @@ public class BoxGroup extends Box implements IO.Loaded {
 
 		this.properties.putToMap(Callbacks.onFrameChanged, "__drageverything__", (on, next) -> {
 
-			System.out.println(" on frame change :" + on + " / " + this);
-
 			if (on == this) {
 				Rect from = on.properties.get(Box.frame);
-
-				System.out.println("   on :" + from + " -> " + next);
 
 				if (from.w != next.w && collapsed) return next;
 

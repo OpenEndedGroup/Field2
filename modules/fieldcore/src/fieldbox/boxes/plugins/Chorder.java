@@ -176,12 +176,7 @@ public class Chorder extends Box {
 				List<Triple<Vec2, Float, Box>> intersections = intersectionsFor(
 					    frames, start, point);
 
-
-
 				intersections = intersections.stream().filter(x -> x!=null).filter(x -> x.third!=null).sorted((a,b) -> Double.compare(a.second, b.second)).collect(Collectors.toList());
-
-
-				System.out.println(" going to start :"+intersections);
 
 				once[0] = true;
 				for (int i = 0; i < intersections.size(); i++) {

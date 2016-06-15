@@ -74,9 +74,9 @@ public class Conversions {
 				if (typeInformation.size() == 0) break;
 				inside += _fold(typeInformation, cleaner);
 			}
-			return "() &rarr; " + optionalBracket(inside) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
-
+			return "() -> " + optionalBracket(inside) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
 		}
+
 		if (cleaner.apply(c.getName())
 			.equals("IdempotencyMap")) {
 			String inside = "";
@@ -93,7 +93,7 @@ public class Conversions {
 				if (typeInformation.size() == 0) break;
 				inside += _fold(typeInformation, cleaner);
 			}
-			return "() &rarr; " + optionalBracket(inside) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
+			return "() -> " + optionalBracket(inside) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
 
 		} else if (cleaner.apply(c.getName())
 			.equals("Predicate")) {
@@ -102,7 +102,7 @@ public class Conversions {
 				if (typeInformation.size() == 0) break;
 				inside += _fold(typeInformation, cleaner);
 			}
-			return "(" + inside + ") &rarr; Boolean " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
+			return "(" + inside + ") -> Boolean " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
 
 		} else if (cleaner.apply(c.getName())
 			.equals("FunctionOfBoxValued")) {
@@ -120,7 +120,7 @@ public class Conversions {
 			if (typeInformation.size() == 0) b = "?";
 			else b = _fold(typeInformation, cleaner, false);
 
-			return optionalBracket(a) + " &rarr; " + optionalBracket(b) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
+			return optionalBracket(a) + " -> " + optionalBracket(b) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
 		} else if (cleaner.apply(c.getName())
 			.equals("BiFunctionOfBoxAnd") && tp.length >= 2) {
 			String a = _fold(typeInformation, cleaner, false);
@@ -128,7 +128,7 @@ public class Conversions {
 			if (typeInformation.size() == 0) b = "?";
 			else b = _fold(typeInformation, cleaner, false);
 
-			return "&#9178; " + optionalBracket(a) + " &rarr; " + optionalBracket(b) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
+			return "&#9178; " + optionalBracket(a) + " -> " + optionalBracket(b) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
 		} else if (cleaner.apply(c.getName())
 			.equals("BiFunction") && tp.length >= 2) {
 			String a = _fold(typeInformation, cleaner, false);
@@ -139,7 +139,7 @@ public class Conversions {
 			if (typeInformation.size() == 0) d = "?";
 			else d = _fold(typeInformation, cleaner, false);
 
-			return "(" + a + ", " + b + ") &rarr; " + optionalBracket(d) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
+			return "(" + a + ", " + b + ") -> " + optionalBracket(d) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
 		} else if (cleaner.apply(c.getName())
 			.equals("TriFunctionOfBoxAnd") && tp.length >= 2) {
 			String a = _fold(typeInformation, cleaner, false);
@@ -150,7 +150,7 @@ public class Conversions {
 			if (typeInformation.size() == 0) d = "?";
 			else d = _fold(typeInformation, cleaner, false);
 
-			return "&#9178; (" + a + ", " + b + ") &rarr; " + optionalBracket(d) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
+			return "&#9178; (" + a + ", " + b + ") -> " + optionalBracket(d) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
 		} else if (cleaner.apply(c.getName())
 			.equals("Collection")) {
 			String a = _fold(typeInformation, cleaner);
@@ -430,8 +430,6 @@ public class Conversions {
 				String functionName = (String) ReflectionTools.get(value, "data/functionName");
 				Integer lineNumber = (Integer) ReflectionTools.get(value, "data/lineNumber");
 				String url = (String) ReflectionTools.get(value, "data/source/explicitURL");
-
-				System.out.println(" extra secret information about this function is :" + functionName + " " + lineNumber + " " + url);
 
 				extraInfo.accept("LN<"+lineNumber + "@" + url + "> function is called [" + functionName + "]");
 

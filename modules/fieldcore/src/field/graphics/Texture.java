@@ -38,7 +38,7 @@ import static org.lwjgl.opengl.GL30.*;
  * <p>
  * Follows the same pattern as FBO --- create a texture by picking one of the growing number of static helpers in TextureSpecification that mask the complexity of OpenGL enums
  */
-public class Texture extends BaseScene<Texture.State> implements Scene.Perform, OffersUniform<Integer>, BoxBrowser.HasHTMLInformation {
+public class Texture extends BaseScene<Texture.State> implements Scene.Perform, OffersUniform<Integer>, BoxBrowser.HasMarkdownInformation {
 
 	// global statistics on how much we're sending to OpennGL
 	static public int bytesUploaded = 0;
@@ -355,7 +355,6 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
 		if (bindless) {
 			s.textureHandle = NVBindlessTexture.glGetTextureHandleNV(s.name);
-			System.out.println(" bind handle " + s.textureHandle);
 			NVBindlessTexture.glMakeTextureHandleResidentNV(s.textureHandle);
 			glBindTexture(specification.target, 0);
 		}
@@ -433,7 +432,6 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 			throw new IllegalArgumentException("can't reliably get the pbo source of a double buffered texture");
 		//mod++;
 
-		System.out.println(" marking texture PBO as needing uploading ");
 		s.mod++;
 
 		s.x0 = 0;

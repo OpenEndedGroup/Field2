@@ -30,7 +30,7 @@ import static fieldbox.boxes.FLineDrawing.*;
  * This class also maintains the current relationships between window coordinates (aka mouse coordinates, aka pixels) and OpenGL coordinates (aka Box's frames aka drawing coordinates). The
  * transformation between for geometry happens entirely in the OpenGL shaders here and the math is duplicated in convenience functions.
  * <p>
- * This class is the low level drawing plumbing FieldBox (Boxes) to talk to the Field graphics system (MeshBuilder). For drawing that you can use from Boxes, see FrameDrawer
+ * This class is the low level drawing plumbing FieldBox (Boxes) to talk to the Field graphics system (MeshBuilder). For drawing that you can use from Boxes, see FLineDrawing
  */
 public class Drawing extends Box implements DrawingInterface {
 
@@ -40,9 +40,6 @@ public class Drawing extends Box implements DrawingInterface {
 	static public final Dict.Prop<Collection<Drawer>> lateDrawers = new Dict.Prop<>("lateDrawers").type()
 		.toCannon()
 		.doc("a collection of things that will draw inside the OpenGL paint context, after everything else has drawn. Viewport plugs in at this level.");
-	static public final Dict.Prop<Collection<Drawer>> glassDrawers = new Dict.Prop<>("glassDrawers").type()
-		.toCannon()
-		.doc("a collection of things that will draw inside the OpenGL paint context. Currently FrameDrawer & FLineInteraction plug into the window at this low level");
 	static public final Dict.Prop<Drawing> drawing = new Dict.Prop<>("drawing").type()
 		.toCannon()
 		.doc("the Drawing plugin");
@@ -107,17 +104,21 @@ public class Drawing extends Box implements DrawingInterface {
 		dirty(b, layerName);
 	}
 
-	static protected void dirty(Box b, String explicitLayerName) {
+	static public void dirty(Box b, String explicitLayerName) {
 		b.find(Boxes.root, b.both())
 			.findFirst()
 			.map(x -> x.properties.put(needRepaint, true));
 
+		if (explicitLayerName.endsWith(".fast"))
+			explicitLayerName = explicitLayerName.substring(0, explicitLayerName.length() - ".fast".length());
+
+		String finalExplicitLayerName = explicitLayerName;
 		b.find(Boxes.window, b.both())
 			.findFirst()
 			.ifPresent(x -> {
 				x.requestRepaint();
 				x.getCompositor()
-					.getLayer(explicitLayerName).dirty();
+					.getLayer(finalExplicitLayerName).dirty();
 			});
 
 	}
@@ -297,10 +298,10 @@ public class Drawing extends Box implements DrawingInterface {
 			.getScene()
 			.attach(layer.pointShader);
 
-		BaseMesh line = BaseMesh.lineList(1, 1);
-		layer.shader.attach(line);
 		BaseMesh mesh = BaseMesh.triangleList(1, 1);
 		layer.shader.attach(mesh);
+		BaseMesh line = BaseMesh.lineList(1, 1);
+		layer.shader.attach(line);
 		BaseMesh point = BaseMesh.pointList(1);
 		layer.pointShader.attach(point);
 
@@ -311,6 +312,21 @@ public class Drawing extends Box implements DrawingInterface {
 		bracketableList.add(layer._mesh);
 		bracketableList.add(layer._line);
 		bracketableList.add(layer._point);
+
+		BaseMesh fastMesh = BaseMesh.triangleList(1, 1);
+		layer.shader.attach(fastMesh);
+		BaseMesh fastLine = BaseMesh.lineList(1, 1);
+		layer.shader.attach(fastLine);
+		BaseMesh fastPoint = BaseMesh.pointList(1);
+		layer.pointShader.attach(fastPoint);
+
+		layer._fastMesh = new MeshBuilder(fastMesh);
+		layer._fastLine = new MeshBuilder(fastLine);
+		layer._fastPoint = new MeshBuilder(fastPoint);
+
+		bracketableList.add(layer._fastMesh);
+		bracketableList.add(layer._fastLine);
+		bracketableList.add(layer._fastPoint);
 
 		this.properties.put(drawing, this);
 
@@ -338,17 +354,43 @@ public class Drawing extends Box implements DrawingInterface {
 	}
 
 	public MeshBuilder getLine(String layerName) {
-		if (layerLocal.get(layerName)._line.isOpen()) return layerLocal.get(layerName)._line;
+
+		boolean fast = false;
+		if (layerName.endsWith(".fast")) {
+			layerName = layerName.substring(0, layerName.length() - ".fast".length());
+			fast = true;
+		}
+
+		PerLayer l = layerLocal.get(layerName);
+		MeshBuilder ll = fast ? l._fastLine : l._line;
+		if (ll.isOpen()) return ll;
 		throw new IllegalArgumentException(" graphics resource (line) isn't open, are you trying to draw outside of your drawing method?");
 	}
 
 	public MeshBuilder getMesh(String layerName) {
-		if (layerLocal.get(layerName)._mesh.isOpen()) return layerLocal.get(layerName)._mesh;
+		boolean fast = false;
+		if (layerName.endsWith(".fast")) {
+			layerName = layerName.substring(0, layerName.length() - ".fast".length());
+			fast = true;
+		}
+
+		PerLayer l = layerLocal.get(layerName);
+		MeshBuilder ll = fast ? l._fastMesh : l._mesh;
+		if (ll.isOpen()) return ll;
 		throw new IllegalArgumentException(" graphics resource (mesh) isn't open, are you trying to draw outside of your drawing method?");
 	}
 
 	public MeshBuilder getPoints(String layerName) {
-		if (layerLocal.get(layerName)._point.isOpen()) return layerLocal.get(layerName)._point;
+
+		boolean fast = false;
+		if (layerName.endsWith(".fast")) {
+			layerName = layerName.substring(0, layerName.length() - ".fast".length());
+			fast = true;
+		}
+
+		PerLayer l = layerLocal.get(layerName);
+		MeshBuilder ll = fast ? l._fastPoint : l._point;
+		if (ll.isOpen()) return ll;
 		throw new IllegalArgumentException(" graphics resource (point) isn't open, are you trying to draw outside of your drawing method?");
 	}
 
@@ -406,14 +448,14 @@ public class Drawing extends Box implements DrawingInterface {
 	/**
 	 * to convert between OpenGL / Box / Drawing coordinates and event / mouse / pixel coordinates.
 	 */
-	protected  Vec2 drawingSystemToWindowSystemNext(Vec2 window) {
+	protected Vec2 drawingSystemToWindowSystemNext(Vec2 window) {
 		double y = window.y;
 		double x = window.x;
 
-		x = x * (scaleNext==null ? scale  : scaleNext).x * boxScale.x;
-		y = y * (scaleNext==null ? scale  : scaleNext).y * boxScale.y;
-		x += (translationNext==null ? translation  :translationNext).x;
-		y += (translationNext==null ? translation  :translationNext).y;
+		x = x * (scaleNext == null ? scale : scaleNext).x * boxScale.x;
+		y = y * (scaleNext == null ? scale : scaleNext).y * boxScale.y;
+		x += (translationNext == null ? translation : translationNext).x;
+		y += (translationNext == null ? translation : translationNext).y;
 
 		return new Vec2(x, y);
 	}
@@ -438,8 +480,8 @@ public class Drawing extends Box implements DrawingInterface {
 		double y = /*-*/windowDelta.y;
 		double x = windowDelta.x;
 
-		x = x / ((scaleNext==null ? scale  : scaleNext).x * boxScale.x);
-		y = y / ((scaleNext==null ? scale  : scaleNext).y * boxScale.y);
+		x = x / ((scaleNext == null ? scale : scaleNext).x * boxScale.x);
+		y = y / ((scaleNext == null ? scale : scaleNext).y * boxScale.y);
 
 		return new Vec2(x, y);
 	}
@@ -527,8 +569,8 @@ public class Drawing extends Box implements DrawingInterface {
 				Rect f = box.properties.get(Box.frame);
 				f = new Rect(f.x, f.y, f.w, f.h);
 
-				float bx = f.x+f.w;
-				float by = f.y+f.h;
+				float bx = f.x + f.w;
+				float by = f.y + f.h;
 
 				Vec2 at = new Vec2(f.x, f.y);
 				Vec2 delta = deltaToStabalize(dimensions, dimensionsNext, v, at);
@@ -536,10 +578,9 @@ public class Drawing extends Box implements DrawingInterface {
 				f.y -= delta.y;
 
 				Vec2 v2 = box.properties.get(windowScale);
-				if (v2!=null)
-				{
+				if (v2 != null) {
 
-					at = new Vec2(bx,by);
+					at = new Vec2(bx, by);
 					delta = deltaToStabalize(dimensions, dimensionsNext, v2, at);
 
 					bx -= delta.x;
@@ -550,7 +591,6 @@ public class Drawing extends Box implements DrawingInterface {
 				}
 
 
-
 				box.properties.put(Box.frame, f);
 			});
 	}
@@ -558,7 +598,7 @@ public class Drawing extends Box implements DrawingInterface {
 	private Vec2 deltaToStabalize(Vec2 dimensions, Vec2 dimensionsNext, Vec2 v, Vec2 at) {
 		Vec2 tl_win = drawingSystemToWindowSystem(at);
 		Vec2 tl_winN = drawingSystemToWindowSystemNext(at);
-		Vec2 delta = new Vec2(tl_winN).sub(tl_win).sub(new Vec2(dimensionsNext.x*v.x-dimensions.x*v.x, dimensionsNext.y*v.y-dimensions.y*v.y));
+		Vec2 delta = new Vec2(tl_winN).sub(tl_win).sub(new Vec2(dimensionsNext.x * v.x - dimensions.x * v.x, dimensionsNext.y * v.y - dimensions.y * v.y));
 		delta = windowSystemToDrawingSystemDeltaNext(delta);
 		return delta;
 	}
@@ -643,6 +683,11 @@ public class Drawing extends Box implements DrawingInterface {
 		private MeshBuilder _mesh;
 		private MeshBuilder _line;
 		private MeshBuilder _point;
+
+		private MeshBuilder _fastMesh;
+		private MeshBuilder _fastLine;
+		private MeshBuilder _fastPoint;
+
 		private Shader shader;
 		private Shader pointShader;
 	}

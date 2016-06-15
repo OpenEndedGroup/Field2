@@ -6,18 +6,15 @@ import field.utility.Conversions;
 import field.utility.Dict;
 import field.utility.IdempotencyMap;
 import fieldbox.boxes.Box;
+import fieldbox.execution.Completion;
+import fieldbox.execution.HandlesCompletion;
 import fieldbox.io.IO;
 import fieldbox.boxes.Boxes;
-import fieldbox.io.IO;
 import fieldlinker.Linker.AsMap;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Optional;
-import java.util.concurrent.ExecutionException;
+import java.util.*;
 import java.util.concurrent.Callable;
-import java.util.function.Function;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -167,7 +164,7 @@ public class Pseudo extends Box {
 		this.properties.put(sync, Sync::new);
 	}
 
-	static public class Namer implements AsMap {
+	static public class Namer implements AsMap, HandlesCompletion {
 
 		protected final Box on;
 
@@ -229,6 +226,21 @@ public class Pseudo extends Box {
 		public boolean asMap_delete(Object o) {
 			return false;
 		}
+
+		public List<Completion> getCompletionsFor(String prefix) {
+			Set<String> q = on.breadthFirst(on.downwards())
+				.filter(x -> x.properties.has(Box.name))
+				.map(x -> x.properties.get(Box.name)).filter(x -> x.startsWith(prefix)).collect(Collectors.toSet());
+
+			List<Completion> c = new ArrayList<>();
+
+			q.forEach(x -> {
+				c.add(new Completion(-1, -1, x, ""));
+			});
+			return c;
+
+		}
+
 	}
 
 	static public class MainThreader extends Namer {
@@ -236,7 +248,6 @@ public class Pseudo extends Box {
 		public MainThreader(Box on) {
 			super(on);
 		}
-
 
 
 		@Override
@@ -864,7 +875,6 @@ public class Pseudo extends Box {
 				.filter(x -> x.properties.has(p))
 				.findAny();
 
-			System.out.println(" SIGNAL :" + p + " -> " + q);
 
 			if (!q.isPresent()) return null;
 

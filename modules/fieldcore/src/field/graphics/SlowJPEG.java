@@ -34,8 +34,6 @@ public class SlowJPEG implements JPEGLoader{
 		try {
 			BufferedImage originalImage = ImageIO.read(new File(filename));
 
-			System.out.println(" loaded :"+filename+" to "+originalImage);
-
 			byte[] pixels = ((DataBufferByte) originalImage.getRaster().getDataBuffer()).getData();
 
 			return pixels;
@@ -65,13 +63,8 @@ public class SlowJPEG implements JPEGLoader{
 
 	@Override
 	public int[] dimensions(String filename) {
-
-		System.out.println(" finding dimensions for file :"+filename);
 		try {
 			BufferedImage originalImage = ImageIO.read(new File(filename));
-
-			System.out.println(" dimensions are :"+originalImage.getWidth()+" "+originalImage.getHeight());
-
 			return new int[]{originalImage.getWidth(), originalImage.getHeight()};
 		} catch (IOException e) {
 			e.printStackTrace();

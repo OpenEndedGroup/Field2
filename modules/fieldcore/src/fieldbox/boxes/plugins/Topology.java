@@ -8,6 +8,7 @@ import field.linalg.Vec4;
 import field.utility.Dict;
 import field.utility.Rect;
 import fieldbox.boxes.Box;
+import fieldbox.boxes.BoxChildHelper;
 import fieldbox.boxes.Drawing;
 import fieldbox.boxes.Mouse;
 
@@ -29,10 +30,10 @@ import static field.graphics.StandardFLineDrawing.*;
  */
 public class Topology extends Box implements Mouse.OnMouseDown {
 
-	static public final Dict.Prop<FunctionOfBox<Collection<Box>>> outward = new Dict.Prop<FunctionOfBox<Collection<Box>>>("outward").doc("a collection of boxes that are the outward connections to this box")
+	static public final Dict.Prop<FunctionOfBoxValued<BoxChildHelper>> outward = new Dict.Prop<FunctionOfBoxValued<BoxChildHelper>>("outward").doc("a collection of boxes that are the outward connections to this box")
 																	.toCannon()
 																	.type();
-	static public final Dict.Prop<FunctionOfBox<Collection<Box>>> inward = new Dict.Prop<FunctionOfBox<Collection<Box>>>("inward").doc("a collection of boxes that are the inward connections to this box")
+	static public final Dict.Prop<FunctionOfBoxValued<BoxChildHelper>> inward = new Dict.Prop<FunctionOfBoxValued<BoxChildHelper>>("inward").doc("a collection of boxes that are the inward connections to this box")
 																      .toCannon()
 																      .type();
 
@@ -41,10 +42,11 @@ public class Topology extends Box implements Mouse.OnMouseDown {
 
 	public Topology(Box root) {
 		this.root = root;
+		this.properties.put(Planes.plane, "__always__");
 		this.properties.putToMap(Mouse.onMouseDown, "__topology__", this);
 
 		root.properties.put(outward, (box) -> {
-			return new ArrayList<>(box.children()
+			return new BoxChildHelper(box.children()
 						  .stream()
 						  .filter(x -> x.properties.has(TopologyBox.head))
 						  .filter(x -> x.properties.get(TopologyBox.head)
@@ -54,7 +56,7 @@ public class Topology extends Box implements Mouse.OnMouseDown {
 						  .collect(Collectors.toCollection(() -> new LinkedHashSet<>())));
 		});
 		root.properties.put(inward, (box) -> {
-			return new ArrayList<>(box.children()
+			return new BoxChildHelper(box.children()
 						  .stream()
 						  .filter(x -> x.properties.has(TopologyBox.tail))
 						  .filter(x -> x.properties.get(TopologyBox.tail)
@@ -175,8 +177,8 @@ public class Topology extends Box implements Mouse.OnMouseDown {
 
 			float o = -0.5f;
 
-			m.attributes.put(fillColor, selected ? new Vec4(1, 1, 1, 1.0f * o) : new Vec4(1, 1, 1, 0.5f * o));
-			m.attributes.put(strokeColor, selected ? new Vec4(1, 1, 1, 0.25f * o) : new Vec4(1, 1, 1, 0.1f * o));
+			m.attributes.put(fillColor, selected ? new Vec4(1, 1, 1, 1.0f * o) : new Vec4(1, 1, 1, 0.75f * o));
+			m.attributes.put(strokeColor, selected ? new Vec4(1, 1, 1, 0.5f * o) : new Vec4(1, 1, 1, 0.25f * o));
 			m.attributes.put(thicken, new BasicStroke(selected ? 3 : 0.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
 
 			m.attributes.put(filled, true);

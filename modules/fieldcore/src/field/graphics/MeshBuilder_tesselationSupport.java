@@ -147,12 +147,8 @@ class MeshBuilder_tesselationSupport implements MeshAcceptor{
 	}
 
 	private Vec3 retrieveVertex(int abs) {
-
-
 		FloatBuffer t = target.getTarget()
 				      .vertex(true);
-
-		System.out.println(" looking for vertex :"+abs+" in "+t);
 
 		return new Vec3(3*(abs-1), t);
 	}

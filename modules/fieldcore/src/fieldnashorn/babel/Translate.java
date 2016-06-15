@@ -108,9 +108,6 @@ public class Translate implements SourceTransformer {
 					e.printStackTrace();
 				}
 
-
-				System.out.println(" code is :"+(first ? preamble : "")+code);
-
 				return new Pair<>((first ? preamble : "")+code, fn);
 			} else {
 				String code = new String(Files.readAllBytes(error.toPath()));

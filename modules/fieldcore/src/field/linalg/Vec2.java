@@ -24,6 +24,7 @@ package field.linalg;
 
 import field.utility.Mutable;
 import field.utility.Serializable_safe;
+import fieldnashorn.annotations.SafeToToString;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -526,6 +527,7 @@ public class Vec2 implements Externalizable, Supplier<Vec2>, Mutable, Serializab
 	 *
 	 * @return the length
 	 */
+	@SafeToToString
 	public double length() {
 		return Math.sqrt((x * x) + (y * y));
 	}
@@ -535,6 +537,7 @@ public class Vec2 implements Externalizable, Supplier<Vec2>, Mutable, Serializab
 	 *
 	 * @return the length squared
 	 */
+	@SafeToToString
 	public double lengthSquared() {
 		return ((x * x) + (y * y));
 	}
@@ -1386,7 +1389,7 @@ public class Vec2 implements Externalizable, Supplier<Vec2>, Mutable, Serializab
 		}
 	}
 
-	/** adds a uniformly distributed random number from -amount to amount to each dimension */
+	/** adds a uniformly distributed random number from `-amount` to `amount` to each dimension */
 	public Vec2 noise(float amount)
 	{
 		x+= 2*amount*(Math.random()-0.5f);
