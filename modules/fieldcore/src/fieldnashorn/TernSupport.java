@@ -142,6 +142,8 @@ public class TernSupport {
 
 				String s = allText.substring(ret[0], ret[1]);
 
+
+
 				if (s.trim()
 					.startsWith("\"")) {
 					// we have quote completion, do that instead
@@ -164,9 +166,9 @@ public class TernSupport {
 						Log.log("completion.debug", () -> "PREVIOUS e is :" + e + " " + e.getClass() + " computed prefix from <" + s + "> <" + s.lastIndexOf('.') + ">");
 
 
-						r.clear();
 
 						if (e instanceof HandlesQuoteCompletion) {
+							r.clear();
 							List<Completion> completions = ((HandlesQuoteCompletion) e).getQuoteCompletionsFor(quoteSoFar);
 							for (Completion x : completions) {
 								if (x.start == -1) x.start = c - quoteSoFar.length();
@@ -177,7 +179,7 @@ public class TernSupport {
 								if (a.rank != b.rank)
 									return Double.compare(a.rank, b.rank);
 								if (a.replacewith.length() != b.replacewith.length())
-									return -Double.compare(a.replacewith.length(), b.replacewith.length() );
+									return Double.compare(a.replacewith.length(), b.replacewith.length() );
 								return String.CASE_INSENSITIVE_ORDER.compare(a.replacewith, b.replacewith);
 							});
 							customCompleted = true;
@@ -198,7 +200,7 @@ public class TernSupport {
 						Collections.sort(r, (a, b) -> {
 							if (a.rank != b.rank) return Double.compare(a.rank, b.rank);
 							if (a.replacewith.length() != b.replacewith.length())
-								return -Double.compare(a.replacewith.length(), b.replacewith.length() );
+								return Double.compare(a.replacewith.length(), b.replacewith.length() );
 							return String.CASE_INSENSITIVE_ORDER.compare(a.replacewith, b.replacewith);
 						});
 					}
@@ -213,6 +215,14 @@ public class TernSupport {
 					right = s.substring(s.lastIndexOf('.') + 1);
 				}
 
+				Object directlyBound = engine.get(left);
+				if (directlyBound!=null)
+				{
+					Completion direct = new Completion(-1, -1, left+" = " + directlyBound, "<span class=type>"+(directlyBound.getClass().getName()) + "</span><span class=doc> value from this box</span>");
+					direct.rank = -1000;
+					r.add(direct);
+				}
+
 				Object e = engine.eval("_e=eval('" + left.replace("'", "\\'") + "')");
 				final Object finalE = e;
 				Log.log("completion.debug", () -> " e is :" + finalE + " " + finalE.getClass() + " computed prefix from <" + s + "> <" + s.lastIndexOf('.') + ">");
@@ -220,7 +230,8 @@ public class TernSupport {
 				if (right.trim()
 					.length() != right.length()) right = "";
 
-				// downweight Tern in favor of Java
+				// down-weight Tern in favor of Java if right has a prefix
+				if (s.lastIndexOf('.') != -1)
 				r.forEach(x -> x.rank += 1);
 
 				// now if e is an actual java object --- i.e. it's got nothing to do with nashorn, then we could use a more general Field java completion service
@@ -256,6 +267,7 @@ public class TernSupport {
 					Log.log("completion.debug", () -> " asking java for completions for " + finalE2);
 					List<Completion> fromJava = javaSupport.getCompletionsFor(e, right);
 					Log.log("completion.debug", () -> " got completions :" + fromJava);
+
 					for (Completion x : fromJava) {
 						if (x.start == -1) x.start = c - right.length();
 						if (x.end == -1) x.end = c;
@@ -299,7 +311,7 @@ public class TernSupport {
 		Collections.sort(r, (a, b) -> {
 			if (a.rank != b.rank) return Double.compare(a.rank, b.rank);
 			if (a.replacewith.length() != b.replacewith.length())
-				return -Double.compare(a.replacewith.length(), b.replacewith.length() );
+				return Double.compare(a.replacewith.length(), b.replacewith.length() );
 			return String.CASE_INSENSITIVE_ORDER.compare(a.replacewith, b.replacewith);
 		});
 

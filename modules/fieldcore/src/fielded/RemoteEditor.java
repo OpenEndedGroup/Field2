@@ -293,6 +293,7 @@ public class RemoteEditor extends Box {
 			RunLoop.main.workerPool.submit(() -> {
 				if (current_ln.get() != v) return;
 				Execution.ExecutionSupport support = getExecution(box.get(), new Dict.Prop<String>(prop)).support(box.get(), new Dict.Prop<String>(prop));
+
 				support.completion(text, ln, c, cc -> {
 					if (cc.size() > 0) {
 
