@@ -127,7 +127,7 @@ public class GlassBrowser extends Box implements IO.Loaded {
 				    }
 				    Log.log("glassBrowser.boot", () -> "WAITING url:" + browser.browser.getURL());
 				    Drawing.dirty(this);
-				    return tick < 100;
+				    return true;
 			    });
 
 		Drawing.dirty(this);
@@ -242,7 +242,8 @@ public class GlassBrowser extends Box implements IO.Loaded {
 	}
 
 	public void runCommands() {
-		browser.executeJavaScript("goCommands()");
+		System.out.println(" -- running commands -- ");
+		browser.executeJavaScript("goddCommands()");
 		show();
 	}
 
