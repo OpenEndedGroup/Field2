@@ -298,10 +298,10 @@ public class Drawing extends Box {
 			.getScene()
 			.attach(layer.pointShader);
 
-		BaseMesh line = BaseMesh.lineList(1, 1);
-		layer.shader.attach(line);
 		BaseMesh mesh = BaseMesh.triangleList(1, 1);
 		layer.shader.attach(mesh);
+		BaseMesh line = BaseMesh.lineList(1, 1);
+		layer.shader.attach(line);
 		BaseMesh point = BaseMesh.pointList(1);
 		layer.pointShader.attach(point);
 
@@ -313,10 +313,10 @@ public class Drawing extends Box {
 		bracketableList.add(layer._line);
 		bracketableList.add(layer._point);
 
-		BaseMesh fastLine = BaseMesh.lineList(1, 1);
-		layer.shader.attach(fastLine);
 		BaseMesh fastMesh = BaseMesh.triangleList(1, 1);
 		layer.shader.attach(fastMesh);
+		BaseMesh fastLine = BaseMesh.lineList(1, 1);
+		layer.shader.attach(fastLine);
 		BaseMesh fastPoint = BaseMesh.pointList(1);
 		layer.pointShader.attach(fastPoint);
 

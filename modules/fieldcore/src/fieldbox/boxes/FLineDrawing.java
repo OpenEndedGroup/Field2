@@ -313,30 +313,6 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 	protected Map<String, Function<Box, FLine>> defaultdrawsLines(Dict.Prop<Map<String, Function<Box, FLine>>> k) {
 		Map<String, Function<Box, FLine>> r = new IdempotencyMap<>(Function.class);
 
-		r.put("__outline__", new Cached<Box, Object, FLine>((box, previously) -> {
-
-			Rect rect = box.properties.get(frame);
-			if (rect == null) return new FLine();
-
-			boolean selected = box.properties.isTrue(Mouse.isSelected, false);
-
-			FLine f = new FLine();
-
-			if (selected) rect = rect.inset(8f);
-			else rect = rect.inset(-0.5f);
-
-			//f.rect(rect);
-			FLinesAndJavaShapes.drawRoundedRectInto(f, rect.x, rect.y, rect.w, rect.h, 19 + (selected ? -8 : 1.0f));
-
-			f.attributes.put(strokeColor, selected ? Colors.boxStrokeSelected : Colors.boxStroke);
-
-
-			f.attributes.put(thicken, new BasicStroke(selected ? 16 : 1.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
-
-			f.attributes.put(stroked, true);
-
-			return f;
-		}, (box) -> new Pair(box.properties.get(frame), box.properties.get(Mouse.isSelected))));
 
 		r.put("__outlineFill__", new Cached<Box, Object, FLine>((box, previously) -> {
 			Rect rect = box.properties.get(frame);
@@ -370,6 +346,32 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 			Map<Integer, String> customFill = new LinkedHashMap<Integer, String>();
 			customFill.put(1, "fillColor");
 			f.setAuxProperties(customFill);
+
+			return f;
+		}, (box) -> new Pair(box.properties.get(frame), box.properties.get(Mouse.isSelected))));
+
+		r.put("__outline__", new Cached<Box, Object, FLine>((box, previously) -> {
+
+			Rect rect = box.properties.get(frame);
+			if (rect == null) return new FLine();
+
+			boolean selected = box.properties.isTrue(Mouse.isSelected, false);
+
+			FLine f = new FLine();
+
+			if (selected) rect = rect.inset(3.5f);
+			else rect = rect.inset(-0.5f);
+
+//			rect = rect.inset(5);
+
+			//f.rect(rect);
+			FLinesAndJavaShapes.drawRoundedRectInto(f, rect.x, rect.y, rect.w, rect.h, 19 + (selected ? -8 : 1.0f));
+
+			f.attributes.put(strokeColor, selected ? Colors.boxStrokeSelected : Colors.boxStroke);
+
+			f.attributes.put(thicken, new BasicStroke(selected ? 16 : 0.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
+
+			f.attributes.put(stroked, true);
 
 			return f;
 		}, (box) -> new Pair(box.properties.get(frame), box.properties.get(Mouse.isSelected))));
