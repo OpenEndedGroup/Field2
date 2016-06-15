@@ -368,10 +368,12 @@ public class Open {
 			new GlassBrowser(boxes.root()).connect(boxes.root());
 			new OutputBox(boxes.root()).connect(boxes.root());
 
-			new NotificationBox(boxes.root()).connect(boxes.root());
-			new BoxBrowser(boxes.root()).connect(boxes.root());
-			new TextEditor_boxBrowser(boxes.root()).connect(boxes.root());
+			if (Main.os!=Main.OS.windows) {
 
+				new NotificationBox(boxes.root()).connect(boxes.root());
+				new BoxBrowser(boxes.root()).connect(boxes.root());
+				new TextEditor_boxBrowser(boxes.root()).connect(boxes.root());
+			}
 
 			// call loaded on everything above root
 			Log.log("startup", () -> "calling .loaded on plugins");
