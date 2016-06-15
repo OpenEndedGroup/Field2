@@ -100,7 +100,7 @@ public class CompletionStats {
 			if (cA == cB) {
 				if (a.rank != b.rank) return Double.compare(a.rank, b.rank);
 				if (a.replacewith.length() != b.replacewith.length())
-					return -Double.compare(a.replacewith.length(), b.replacewith.length());
+					return Double.compare(a.replacewith.length(), b.replacewith.length());
 				return String.CASE_INSENSITIVE_ORDER.compare(a.replacewith, b.replacewith);
 			} else {
 				return -Double.compare(cA, cB);
