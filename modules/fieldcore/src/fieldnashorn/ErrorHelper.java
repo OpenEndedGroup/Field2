@@ -88,10 +88,16 @@ public class ErrorHelper {
 			if (bindings != null) {
 				List<String> q = editsOfString(missing.toLowerCase());
 				for (String qq : q) {
-					Object foundval = bindings.getBindings(100).get(qq);
-					if (foundval != null) {
-						possibleNames.add(new Pair<>(qq, foundval));
+					if (qq == null) continue;
+					try {
+						Object foundval = bindings.getBindings(100).get(qq);
+						if (foundval != null) {
+							possibleNames.add(new Pair<>(qq, foundval));
+						}
 					}
+					// Nashorn has started throwing this for some .get(qq)'s
+					catch(IllegalArgumentException e)
+					{}
 				}
 			}
 
