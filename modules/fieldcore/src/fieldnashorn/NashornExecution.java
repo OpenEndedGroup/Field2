@@ -392,6 +392,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	}
 
 	private Supplier<Boolean> interpretAnimation(Object r) {
+		if (r instanceof Supplier && r instanceof Consumer) return (Supplier<Boolean>) r;
 		Animatable.AnimationElement res = Animatable.interpret(r, null);
 		if (res == null) return null;
 		Animatable.Shim s = new Animatable.Shim(res);
