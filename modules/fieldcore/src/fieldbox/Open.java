@@ -351,7 +351,6 @@ public class Open {
 		// actually open the document that's stored on disk
 		doOpen(boxes.root(), filename);
 
-
 		Log.log("startup", () -> " -- FieldBox finished initializing, loading plugins ... -- ");
 
 		// initialize the plugins
@@ -360,7 +359,6 @@ public class Open {
 
 		Log.log("startup", () -> " -- FieldBox plugins finished, entering animation loop -- ");
 
-
 		RunLoop.main.once(() -> {
 
 			System.err.println(" booting up text editor ");
@@ -368,10 +366,10 @@ public class Open {
 			new TextEditor(boxes.root()).connect(boxes.root());
 			new GlassBrowser(boxes.root()).connect(boxes.root());
 			new OutputBox(boxes.root()).connect(boxes.root());
+			new NotificationBox(boxes.root()).connect(boxes.root());
 
 			if (Main.os!=Main.OS.windows) {
 
-				new NotificationBox(boxes.root()).connect(boxes.root());
 				new BoxBrowser(boxes.root()).connect(boxes.root());
 				new TextEditor_boxBrowser(boxes.root()).connect(boxes.root());
 			}
