@@ -48,6 +48,8 @@ public class Chorder extends Box {
 
 	public Chorder(Box root_unused) {
 
+		properties.put(Planes.plane, "__always__");
+
 		properties.putToMap(Mouse.onMouseDown, "__chorder__", (e, button) -> {
 			if (button != 0) return null;
 			if (!e.after.keyboardState.isAltDown()) return null;
