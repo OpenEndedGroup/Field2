@@ -172,8 +172,8 @@ public class JavaSupport {
 		signature = signature.trim();
 		String[] leader = signature.split(" ");
 		if (signature.contains(name)) {
-			signature = signature.replaceFirst(leader[0], "") + " -> " + leader[0];
-			signature = signature.replaceFirst(name, "");
+			signature = signature.replace(leader[0], "") + " -> " + leader[0];
+			signature = signature.replace(name, "");
 		}
 
 //		p = Pattern.compile(" " + name + "[ \\(]");

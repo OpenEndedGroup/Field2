@@ -94,13 +94,17 @@ public class TernSupport {
 		try {
 			engine.put("__someFile", allText);
 			engine.eval("__completions = new java.util.ArrayList()");
-			engine.eval("__fieldglobal.self.ternServer.request({query:{type:\"completions\", types:true, docs:true, file:\"#0\", end:{line:" + line + ",ch:" + ch + "}}, \n" +
-				"files:[{type:\"full\",name:\"" + boxName + ".js\",text:__someFile}]},\n" +
-				"	function (e,r){\n" +
-				"		for(var i=0;i<r.completions.length;i++)" +
-				"			__completions.add(new __fieldglobal.fieldbox.execution.Completion(r.start, r.end, r.completions[i].name, '<span class=type>'+r.completions[i].type+'&nbsp;&mdash;&nbsp;</span><span class=doc>'+(r.completions[i].doc==null ? '' : r.completions[i].doc)+'</span>'))" +
-				"	})");
-			r.addAll((ArrayList<Completion>) engine.get("__completions"));
+			try {
+				engine.eval("__fieldglobal.self.ternServer.request({query:{type:\"completions\", types:true, docs:true, file:\"#0\", end:{line:" + line + ",ch:" + ch + "}}, \n" +
+					"files:[{type:\"full\",name:\"" + boxName + ".js\",text:__someFile}]},\n" +
+					"	function (e,r){\n" +
+					"		for(var i=0;i<r.completions.length;i++)" +
+					"			__completions.add(new __fieldglobal.fieldbox.execution.Completion(r.start, r.end, r.completions[i].name, '<span class=type>'+r.completions[i].type+'&nbsp;&mdash;&nbsp;</span><span class=doc>'+(r.completions[i].doc==null ? '' : r.completions[i].doc)+'</span>'))" +
+					"	})");
+				r.addAll((ArrayList<Completion>) engine.get("__completions"));
+			} catch (ScriptException e) {
+				e.printStackTrace();
+			}
 
 			Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
 			Log.log("completion.debug", () -> {
@@ -143,7 +147,6 @@ public class TernSupport {
 				String s = allText.substring(ret[0], ret[1]);
 
 
-
 				if (s.trim()
 					.startsWith("\"")) {
 					// we have quote completion, do that instead
@@ -166,7 +169,6 @@ public class TernSupport {
 						Log.log("completion.debug", () -> "PREVIOUS e is :" + e + " " + e.getClass() + " computed prefix from <" + s + "> <" + s.lastIndexOf('.') + ">");
 
 
-
 						if (e instanceof HandlesQuoteCompletion) {
 							r.clear();
 							List<Completion> completions = ((HandlesQuoteCompletion) e).getQuoteCompletionsFor(quoteSoFar);
@@ -179,7 +181,7 @@ public class TernSupport {
 								if (a.rank != b.rank)
 									return Double.compare(a.rank, b.rank);
 								if (a.replacewith.length() != b.replacewith.length())
-									return Double.compare(a.replacewith.length(), b.replacewith.length() );
+									return Double.compare(a.replacewith.length(), b.replacewith.length());
 								return String.CASE_INSENSITIVE_ORDER.compare(a.replacewith, b.replacewith);
 							});
 							customCompleted = true;
@@ -200,7 +202,7 @@ public class TernSupport {
 						Collections.sort(r, (a, b) -> {
 							if (a.rank != b.rank) return Double.compare(a.rank, b.rank);
 							if (a.replacewith.length() != b.replacewith.length())
-								return Double.compare(a.replacewith.length(), b.replacewith.length() );
+								return Double.compare(a.replacewith.length(), b.replacewith.length());
 							return String.CASE_INSENSITIVE_ORDER.compare(a.replacewith, b.replacewith);
 						});
 					}
@@ -214,68 +216,73 @@ public class TernSupport {
 					left = s.substring(0, s.lastIndexOf('.'));
 					right = s.substring(s.lastIndexOf('.') + 1);
 				}
-
-				Object directlyBound = engine.get(left);
-				if (directlyBound!=null)
+				else {
+					Object directlyBound = engine.get(left);
+					if (directlyBound != null && !directlyBound.getClass().getName().toLowerCase().endsWith("staticclass")) {
+						Completion direct = new Completion(-1, -1, left + " = " + directlyBound, "<span class=type>" + (directlyBound.getClass().getName()) + "</span><span class=doc> value from this box</span>");
+						direct.rank = -1000;
+						r.add(direct);
+					}
+				}
+				if (right.trim().length()==0 && !s.trim().endsWith("."))
 				{
-					Completion direct = new Completion(-1, -1, left+" = " + directlyBound, "<span class=type>"+(directlyBound.getClass().getName()) + "</span><span class=doc> value from this box</span>");
-					direct.rank = -1000;
-					r.add(direct);
+					// don't execute something just becuase it's a complete expression
 				}
+				else {
 
-				Object e = engine.eval("_e=eval('" + left.replace("'", "\\'") + "')");
-				final Object finalE = e;
-				Log.log("completion.debug", () -> " e is :" + finalE + " " + finalE.getClass() + " computed prefix from <" + s + "> <" + s.lastIndexOf('.') + ">");
+					Object e = engine.eval("_e=eval('" + left.replace("'", "\\'") + "')");
+					final Object finalE = e;
+					Log.log("completion.debug", () -> " e is :" + finalE + " " + finalE.getClass() + " computed prefix from <" + s + "> <" + s.lastIndexOf('.') + ">");
 
-				if (right.trim()
-					.length() != right.length()) right = "";
+					if (right.trim()
+						.length() != right.length()) right = "";
 
-				// down-weight Tern in favor of Java if right has a prefix
-				if (s.lastIndexOf('.') != -1)
-				r.forEach(x -> x.rank += 1);
+					// down-weight Tern in favor of Java if right has a prefix
+					if (s.lastIndexOf('.') != -1)
+						r.forEach(x -> x.rank += 1);
 
-				// now if e is an actual java object --- i.e. it's got nothing to do with nashorn, then we could use a more general Field java completion service
-				// and just add the dot back in
-				if (e instanceof ScriptObjectMirror) {
+					// now if e is an actual java object --- i.e. it's got nothing to do with nashorn, then we could use a more general Field java completion service
+					// and just add the dot back in
+					if (e instanceof ScriptObjectMirror) {
 
-					Object[] retae = (Object[]) engine.eval("_v=[]; _p = {}; Object.bindProperties(_p, _e); for(var _k in _p) _v.push(_k); Java.to(_v)");
-					Log.log("completion.debug", () -> " auto eval completion got :" + Arrays.asList(retae));
-				} else if (e instanceof Box) {
+						Object[] retae = (Object[]) engine.eval("_v=[]; _p = {}; Object.bindProperties(_p, _e); for(var _k in _p) _v.push(_k); Java.to(_v)");
+						Log.log("completion.debug", () -> " auto eval completion got :" + Arrays.asList(retae));
+					} else if (e instanceof Box) {
 //					e = new UnderscoreBox((Box) e);
-					List<Completion> fromJava = javaSupport.getCompletionsFor(e, right);
-					for (Completion x : fromJava) {
-						if (x.start == -1) x.start = c - right.length();
-						if (x.end == -1) x.end = c;
+						List<Completion> fromJava = javaSupport.getCompletionsFor(e, right);
+						for (Completion x : fromJava) {
+							if (x.start == -1) x.start = c - right.length();
+							if (x.end == -1) x.end = c;
+						}
+
+						r.addAll(fromJava);
+					} else if (e instanceof StaticClass) {
+						e = ((StaticClass) e).getRepresentedClass();
+
+						final Object finalE1 = e;
+						Log.log("completion.debug", () -> " asking java for completions for CLASS " + finalE1);
+						List<Completion> fromJava = javaSupport.getCompletionsFor(e, right, s.lastIndexOf('.') == -1);
+						Log.log("completion.debug", () -> " got completions :" + fromJava);
+						for (Completion x : fromJava) {
+							if (x.start == -1) x.start = c - right.length();
+							if (x.end == -1) x.end = c;
+						}
+
+						r.addAll(fromJava);
+					} else {
+						final Object finalE2 = e;
+						Log.log("completion.debug", () -> " asking java for completions for " + finalE2);
+						List<Completion> fromJava = javaSupport.getCompletionsFor(e, right);
+						Log.log("completion.debug", () -> " got completions :" + fromJava);
+
+						for (Completion x : fromJava) {
+							if (x.start == -1) x.start = c - right.length();
+							if (x.end == -1) x.end = c;
+						}
+
+						r.addAll(fromJava);
 					}
-
-					r.addAll(fromJava);
-				} else if (e instanceof StaticClass) {
-					e = ((StaticClass) e).getRepresentedClass();
-
-					final Object finalE1 = e;
-					Log.log("completion.debug", () -> " asking java for completions for CLASS " + finalE1);
-					List<Completion> fromJava = javaSupport.getCompletionsFor(e, right, s.lastIndexOf('.') == -1);
-					Log.log("completion.debug", () -> " got completions :" + fromJava);
-					for (Completion x : fromJava) {
-						if (x.start == -1) x.start = c - right.length();
-						if (x.end == -1) x.end = c;
-					}
-
-					r.addAll(fromJava);
-				} else {
-					final Object finalE2 = e;
-					Log.log("completion.debug", () -> " asking java for completions for " + finalE2);
-					List<Completion> fromJava = javaSupport.getCompletionsFor(e, right);
-					Log.log("completion.debug", () -> " got completions :" + fromJava);
-
-					for (Completion x : fromJava) {
-						if (x.start == -1) x.start = c - right.length();
-						if (x.end == -1) x.end = c;
-					}
-
-					r.addAll(fromJava);
 				}
-
 
 			} catch (Throwable t) {
 				Log.log("completion.error", () -> " suppressed exception in autoevaluating completion <" + t + ">");
@@ -293,7 +300,7 @@ public class TernSupport {
 			Completion b = r.get(i);
 			if (a.replacewith.equals(b.replacewith)) {
 				if (a.rank > b.rank) {
-					r.remove(i-1);
+					r.remove(i - 1);
 					i--;
 				} else if (a.rank < b.rank) {
 					r.remove(i);
@@ -311,7 +318,7 @@ public class TernSupport {
 		Collections.sort(r, (a, b) -> {
 			if (a.rank != b.rank) return Double.compare(a.rank, b.rank);
 			if (a.replacewith.length() != b.replacewith.length())
-				return Double.compare(a.replacewith.length(), b.replacewith.length() );
+				return Double.compare(a.replacewith.length(), b.replacewith.length());
 			return String.CASE_INSENSITIVE_ORDER.compare(a.replacewith, b.replacewith);
 		});
 
@@ -438,17 +445,22 @@ public class TernSupport {
 
 	private int[] expressionRangeForPosition(ScriptEngine engine, int c) throws ScriptException {
 		engine.eval("__c=new __fieldglobal.self.tern.Context()");
-		Object[] o = (Object[]) engine.eval("__fieldglobal.self.tern.withContext(__c, function(){\n" +
-			"\tvar a = __fieldglobal.self.tern.parse(__someFile)\n" +
-			"\t__fieldglobal.self.tern.analyze(a)\n" +
-			"\tvar n = __fieldglobal.self.tern.findExpressionAround(a, " + c + ", " + c + ")\n" +
-			"\tif (n!=null)\n" +
-			"\treturn Java.to([n.node.start, n.node.end]);\n" + "\treturn null;}) ");
+		try {
+			Object[] o = (Object[]) engine.eval("__fieldglobal.self.tern.withContext(__c, function(){\n" +
+				"\tvar a = __fieldglobal.self.tern.parse(__someFile)\n" +
+				"\t__fieldglobal.self.tern.analyze(a)\n" +
+				"\tvar n = __fieldglobal.self.tern.findExpressionAround(a, " + c + ", " + c + ")\n" +
+				"\tif (n!=null)\n" +
+				"\treturn Java.to([n.node.start, n.node.end]);\n" + "\treturn null;}) ");
 
-		if (o == null) return null;
-		if (o.length == 0) return null;
+			if (o == null) return null;
+			if (o.length == 0) return null;
 
-		return new int[]{((Number) o[0]).intValue(), ((Number) o[1]).intValue()};
+			return new int[]{((Number) o[0]).intValue(), ((Number) o[1]).intValue()};
+		} catch (ScriptException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	public List<Completion> imports(ScriptEngine engine, String boxName, String allText, int line, int ch) {

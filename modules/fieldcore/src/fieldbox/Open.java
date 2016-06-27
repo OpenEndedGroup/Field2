@@ -156,6 +156,8 @@ public class Open {
 
 		boxes.root().properties.put(fieldFilename, filename);
 
+		new DefaultMenus(boxes.root(), filename).connect(boxes.root());
+
 		// MarkingMenus must come before FrameManipulation, so FrameManipulation can handle selection state modification before MarkingMenus run
 		markingMenus = (MarkingMenus) new MarkingMenus(boxes.root()).connect(boxes.root());
 
@@ -173,7 +175,6 @@ public class Open {
 
 		new Chorder(boxes.root()).connect(boxes.root());
 
-		new DefaultMenus(boxes.root(), filename).connect(boxes.root());
 
 		new Meshes(boxes.root()).connect(boxes.root());
 
