@@ -88,9 +88,11 @@ public class ErrorHelper {
 			if (bindings != null) {
 				List<String> q = editsOfString(missing.toLowerCase());
 				for (String qq : q) {
-					Object foundval = bindings.getBindings(100).get(qq);
-					if (foundval != null) {
-						possibleNames.add(new Pair<>(qq, foundval));
+					if (qq!=null) {
+						Object foundval = bindings.getBindings(100).get(qq);
+						if (foundval != null) {
+							possibleNames.add(new Pair<>(qq, foundval));
+						}
 					}
 				}
 			}
