@@ -349,16 +349,18 @@ public class Conversions {
 
 		// set error consumer on conversion
 
-		if (o instanceof Errors.SavesErrorConsumer) {
-			if (value instanceof Errors.SavesErrorConsumer) {
-				((Errors.SavesErrorConsumer) o).setErrorConsumer(wrap(ei[0], ((Errors.SavesErrorConsumer) value).getErrorConsumer()));
-			} else if (value instanceof Errors.ErrorConsumer) {
-				((Errors.SavesErrorConsumer) o).setErrorConsumer(wrap(ei[0], ((Errors.
-					ErrorConsumer) value)));
-			} else {
-				((Errors.SavesErrorConsumer) o).setErrorConsumer(wrap(ei[0], Errors.errors.get()));
-			}
-		}
+		// commented out while we debug JDK9's modified-yet-again creation of SAM from functions
+
+//		if (o instanceof Errors.SavesErrorConsumer) {
+//			if (value instanceof Errors.SavesErrorConsumer) {
+//				((Errors.SavesErrorConsumer) o).setErrorConsumer(wrap(ei[0], ((Errors.SavesErrorConsumer) value).getErrorConsumer()));
+//			} else if (value instanceof Errors.ErrorConsumer) {
+//				((Errors.SavesErrorConsumer) o).setErrorConsumer(wrap(ei[0], ((Errors.
+//					ErrorConsumer) value)));
+//			} else {
+//				((Errors.SavesErrorConsumer) o).setErrorConsumer(wrap(ei[0], Errors.errors.get()));
+//			}
+//		}
 		return o;
 	}
 
