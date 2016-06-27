@@ -56,14 +56,7 @@ public class Threading extends Box {
 		this.properties.put(yield, new AbstractJSObject() {
 			@Override
 			public Object call(Object o, Object... objects) {
-
-				try {
 					return ThreadSync.yield(objects);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-
-				return null;
 			}
 		});
 	}
