@@ -708,11 +708,7 @@ public class Pseudo extends Box {
 						.orElse(null);
 
 					if (q == null || (q instanceof Boolean && ((Boolean) q).booleanValue() == false)) {
-						try {
 							ThreadSync.yield(1);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
 					} else {
 
 						return q;
@@ -720,11 +716,7 @@ public class Pseudo extends Box {
 				}
 			} finally {
 				for (int i = 0; i < extra; i++) {
-					try {
 						ThreadSync.yield(1);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
 				}
 			}
 		}
@@ -736,19 +728,11 @@ public class Pseudo extends Box {
 					Object q = asMap_get(s);
 					if (o == null && q == null) return o;
 					if (o != null && q != null && o.equals(q)) return o;
-					try {
 						ThreadSync.yield(1);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
 				}
 			} finally {
 				for (int i = 0; i < extra; i++) {
-					try {
 						ThreadSync.yield(1);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
 				}
 			}
 		}
