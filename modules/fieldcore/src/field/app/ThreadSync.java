@@ -4,11 +4,13 @@ import com.google.common.collect.MapMaker;
 import field.utility.Dict;
 import field.utility.Options;
 import field.utility.Util;
+import fieldbox.execution.Execution;
 //import jdk.nashorn.internal.runtime.Undefined;
 
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -18,6 +20,9 @@ import java.util.stream.Stream;
  * <p>
  * We used to use a wonderful homemade byte-code rewriting based trick to implement 'yield' for annotated methods. This trick takes a very different path, it's less space and time efficient (the
  * context switch into the method is much slower (across threads)), but it's _completely_ language independent and it's easy to pause and resume from arbitrarily nested functions.
+ *
+ * TODO: make Fiber finalizable and send a stop() externally to it when it's done.
+ * TODO: finish making _r = wrap( () => {}) work
  */
 public class ThreadSync {
 	static public final boolean enabled = Options.dict()
@@ -28,7 +33,7 @@ public class ThreadSync {
 	static ThreadLocal<ThreadSync> threadingModel = new ThreadLocal<>();
 	static private Map<Thread, ThreadSync> models = new MapMaker().weakKeys()
 		.makeMap();
-	public Thread mainThread;
+	static public Thread mainThread;
 	Set<Fiber> live = new LinkedHashSet<Fiber>();
 
 	// this should be getThreadingModelForCurrentThread();
@@ -95,22 +100,39 @@ public class ThreadSync {
 		return (v) -> to.add(v);
 	}
 
-	static public Object yield(Object o) throws InterruptedException, Stop {
-
-		if (fiber.get() == null) throw new IllegalArgumentException(" yield called from non-fiber thread");
+	static public Object yield(Object o) throws Stop {
+		if (fiber.get() == null)
+			throw new IllegalArgumentException(" yield called from non-fiber thread");
 
 		fiber.get().debugStatus = "yield from " + Arrays.asList(new Exception().getStackTrace());
 
 		if (fiber.get().stopped) throw new Stop();
 		if (o == null) o = NULL;
 
-		fiber.get().output.put(o);
+		try {
+			fiber.get().output.put(o);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 
 		if (fiber.get().stopped) throw new Stop();
-		Object t = fiber.get().input.take();
+
+		Object t = null;
+		try {
+			t = fiber.get().input.take();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+			try {
+				t = fiber.get().input.take();
+				System.out.println(" recovered with :" + t);
+			} catch (InterruptedException e1) {
+				e1.printStackTrace();
+				System.err.println(" -- giving up --");
+			}
+		}
 
 		if (fiber.get().stopped) throw new Stop();
-		return t==NULL ? null : t;
+		return t == NULL ? null : t;
 	}
 
 	static public Object wait(int n) throws InterruptedException, Stop {
@@ -122,7 +144,7 @@ public class ThreadSync {
 	}
 
 	static public Object pause(Supplier<Object> during) throws InterruptedException, Stop {
-		if (fiber.get() == null) throw new IllegalArgumentException(" yield called from non-fiber thread");
+		if (fiber.get() == null) throw new IllegalArgumentException(" pause called from non-fiber thread");
 		if (fiber.get().stopped) throw new Stop();
 
 		fiber.get().paused = () -> isFalse(during.get());
@@ -259,11 +281,16 @@ public class ThreadSync {
 	public boolean serviceAndCull() throws InterruptedException {
 		threadingModel.set(this);
 
+		if (live.size() > 0)
+			System.err.println(" -- serviceAndCull, status of " + live.size() + " fibers");
+
+
 		Iterator<Fiber> i = live.iterator();
 		Set<Fiber> repost = new LinkedHashSet<>();
 		while (i.hasNext()) {
 			Fiber f = i.next();
 
+			System.err.println("         " + f + " runner done ? " + f.runner.isDone() + " / " + f.runner.isCancelled() + " paused ? " + f.paused);
 			if (f.runner.isDone()) {
 				f.wasPaused = false;
 				if (f.exception != null) {
@@ -272,15 +299,21 @@ public class ThreadSync {
 					else throw new IllegalStateException(f.exception);
 				} else {
 
+					System.err.println("                        done, polling one more time");
 					Object o = f.output.poll();
+					System.out.println(" got :" + o);
 					if (o != null) {
 						f.out.accept(o);
 						f.lastReturn = o;
 					}
+					System.out.println("                         that's it for this fiber");
 					i.remove();
 				}
 			} else {
 				Object p = f.paused.get();
+
+				System.out.println("                     pause status is :" + p);
+
 				f.wasPaused = true;
 
 				if (p == null) continue;
@@ -304,13 +337,17 @@ public class ThreadSync {
 
 				f.wasPaused = false;
 
+				System.out.println("                     in...");
 
 				Object o = f.in.get();
 				if (o == null) o = NULL;
+				System.out.println("                     =" + o);
 				f.input.put(o);
 				o = debugTake(f);
 				if (o == NULL) o = null;
+				System.out.println("                     take=" + o);
 				f.out.accept(o);
+				System.out.println("                     exception?" + f.exception);
 				if (f.exception != null) {
 					i.remove();
 					if (f.handler != null) f.handler.accept(f.exception);
@@ -319,8 +356,13 @@ public class ThreadSync {
 			}
 		}
 
+		if (live.size() > 0)
+			System.out.println(" live was :" + live.size());
+
 		live.removeAll(repost);
 		live.addAll(repost);
+		if (live.size() > 0)
+			System.out.println(" now " + live.size() + " / " + repost.size());
 		return live.size() > 0;
 	}
 
@@ -379,6 +421,61 @@ public class ThreadSync {
 		public String toString() {
 			return "fiber:" + debugDescription;
 		}
+	}
+
+	static public <T> Callable<T> wrap(Callable<T> h) {
+		return wrap(h, (a, b) -> a, () -> {
+		});
+	}
+
+	static public Callable<Boolean> wrapBoolean(Callable h) {
+		return wrap(h, (a, b) -> !b && (a!=null && ((Boolean)a).booleanValue()), () -> {
+		});
+	}
+
+	static public <T> Callable<T> wrap(Callable<T> h, BiFunction<T, Boolean, T> process, Runnable notifyEnded) {
+		return new Callable<T>() {
+			boolean first = true;
+			boolean ended = false;
+			Fiber fiber;
+
+			@Override
+			public T call() throws Exception {
+
+				if (first && !ended) {
+					first = false;
+					fiber = models.get(mainThread).run("" + h, h);
+
+					if (Execution.context.get().size()>0)
+						fiber.tag = Execution.context.get().peek();
+					fiber.paused = () -> true;
+
+					return (T) process.apply((T) fiber.lastReturn, fiber.runner.isDone());
+				}
+
+				fiber.paused = () -> {
+					fiber.paused = () -> true;
+					return false;
+				};
+
+				if (!ended && fiber.runner.isDone()) {
+					ended = true;
+					notifyEnded.run();
+				}
+
+				return (T) process.apply((T) fiber.lastReturn, fiber.runner.isDone());
+			}
+
+//			public void accept(Boolean willContinue) {
+//				if (!willContinue) {
+//					ended = true;
+//					if (fiber != null) {
+//						fiber.stopped = true;
+//					}
+//				}
+//			}
+		};
+
 	}
 
 }
