@@ -46,10 +46,12 @@ function appendRemoteOutputToLine(line, text, checkClass, lineClass, append) {
 		}, 0);
 
 		$(d).css({
-			opacity: 1
-		});
+			opacity: 1,
+			"background-color":  "#666"
+	});
 		$(d).stop().animate({
-			opacity: 0.75
+			opacity: 0.75,
+			"background-color": "#333"
 		}, 500);
 		found.changed();
 
