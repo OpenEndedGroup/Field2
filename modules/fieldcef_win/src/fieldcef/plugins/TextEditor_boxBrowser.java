@@ -1,13 +1,10 @@
 package fieldcef.plugins;
 
-import static org.lwjgl.glfw.GLFW.*;
 import field.app.RunLoop;
-import field.graphics.Window;
 import field.linalg.Vec2;
 import field.utility.Dict;
 import field.utility.Log;
 import field.utility.Rect;
-import fieldagent.Main;
 import fieldbox.boxes.*;
 import fieldbox.boxes.plugins.PresentationMode;
 import fieldbox.io.IO;
@@ -23,7 +20,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Stream;
 
 /**
@@ -32,8 +28,8 @@ import java.util.stream.Stream;
 public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 
 	static public final Dict.Prop<TextEditor_boxBrowser> textEditor_boxBrowser = new Dict.Prop<>("textEditor_boxBrowser").toCannon()
-															     .type()
-															     .doc("The TextEditor browser variant  that is stuck in front of the window, in window coordinates");
+		.type()
+		.doc("The TextEditor browser variant  that is stuck in front of the window, in window coordinates");
 	private final Box root;
 	@HiddenInAutocomplete
 	public Browser browser;
@@ -83,16 +79,16 @@ public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 		Log.log("texteditor.debug", ()->"initializing browser");
 
 		textEditor = this.find(TextEditor.textEditor, this.both())
-				 .findFirst()
-				 .orElseThrow(() -> new IllegalArgumentException("can't find embedded text editor"));
+			.findFirst()
+			.orElseThrow(() -> new IllegalArgumentException("can't find embedded text editor"));
 
 
 		FieldBoxWindow window = this.find(Boxes.window, this.both())
-					    .findFirst()
-					    .get();
+			.findFirst()
+			.get();
 
 		Drawing drawing = root.first(Drawing.drawing)
-				      .orElseThrow(() -> new IllegalArgumentException(" can't install text-drawing into something without drawing support"));
+			.orElseThrow(() -> new IllegalArgumentException(" can't install text-drawing into something without drawing support"));
 
 
 		maxh = window.getHeight() - 25 - 10 - 10 - 2;
@@ -136,62 +132,62 @@ public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 		find(Watches.watches, both()).forEach(w -> {
 
 			w.getQueue()
-			 .register(x -> x.equals("selection.changed"), c -> {
-				 Log.log("shy", () -> "selection is now" + selection().count());
+				.register(x -> x.equals("selection.changed"), c -> {
+					Log.log("shy", () -> "selection is now" + selection().count());
 
 
-				 if (selection().count() != 1) {
-					 browser.properties.put(Box.hidden, true);
-					 Drawing.dirty(this);
-					 prevSelection = null;
+					if (selection().count() != 1) {
+						browser.properties.put(Box.hidden, true);
+						Drawing.dirty(this);
+						prevSelection = null;
 
-				 } else {
-					 if (prevSelection != selection().findFirst()
-									 .get()) {
+					} else {
+						if (prevSelection != selection().findFirst()
+							.get()) {
 
-						 prevSelection = selection().findFirst()
-									    .get();
+							prevSelection = selection().findFirst()
+								.get();
 
-						 if (enabled) {
-							 String u = "http://localhost:" + ServerSupport.webserverPort + "/id/" + prevSelection.properties.get(IO.id);
-							 setURL(u, () -> {
-								 System.out.println(" presentation mode second callback happened");
+							if (enabled) {
+								String u = "http://localhost:" + find(ServerSupport.server, both()).findFirst().get().port + "/id/" + prevSelection.properties.get(IO.id);
+								setURL(u, () -> {
+									System.out.println(" presentation mode second callback happened");
 
-								 browser.properties.put(Box.hidden, false);
-								 Drawing.dirty(this);
-								 browser.executeJavaScript("$(\"body\").height( " + Math.min(maxh, maxhOnCreation - 40) + ")");
-								 browser.executeJavaScript("$(\"body\").width(" + Math.min(maxw-28, (int)(lastWidth-28)) + ")");
-							 });
-						 } else {
-							 browser.properties.put(Box.hidden, true);
-						 }
-					 }
-				 }
+									browser.properties.put(Box.hidden, false);
+									Drawing.dirty(this);
+									browser.executeJavaScript("$(\"body\").height( " + Math.min(maxh, maxhOnCreation - 40) + ")");
+									browser.executeJavaScript("$(\"body\").width(" + Math.min(maxw-28, (int)(lastWidth-28)) + ")");
+								});
+							} else {
+								browser.properties.put(Box.hidden, true);
+							}
+						}
+					}
 
-			 });
+				});
 		});
 
 		RunLoop.main.getLoop()
-			    .attach(x -> {
+			.attach(x -> {
 
-				    int maxh = window.getHeight() - 25 - 10 - 10 - 2;
-				    Rect f = browser.properties.get(Box.frame);
+				int maxh = window.getHeight() - 25 - 10 - 10 - 2;
+				Rect f = browser.properties.get(Box.frame);
 
 
-				    if ((int)maxh != heightLast) {
-					    f = f.duplicate();
-					    heightLast = (int) maxh;
-					    browser.executeJavaScript("$(\"body\").height( " + Math.min(maxh, maxhOnCreation - 40) + ")");
-				    }
+				if ((int)maxh != heightLast) {
+					f = f.duplicate();
+					heightLast = (int) maxh;
+					browser.executeJavaScript("$(\"body\").height( " + Math.min(maxh, maxhOnCreation - 40) + ")");
+				}
 
-				    if ((int)f.w != lastWidth)
-				    {
-					    browser.executeJavaScript("$(\"body\").width(" + Math.min(maxw-28, (int)(f.w-28))+ ")");
-					    lastWidth =  (int)f.w;
-				    }
+				if ((int)f.w != lastWidth)
+				{
+					browser.executeJavaScript("$(\"body\").width(" + Math.min(maxw-28, (int)(f.w-28))+ ")");
+					lastWidth =  (int)f.w;
+				}
 
-				    return true;
-			    });
+				return true;
+			});
 
 		this.properties.putToMap(PresentationMode.onEnterPresentationMode, "__enableTextEditor_browser", this::enable);
 		this.properties.putToMap(PresentationMode.onExitPresentationMode, "__disableTextEditor_browser", this::disable);
@@ -203,7 +199,7 @@ public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 	public void enable() {
 		enabled = true;
 		if (prevSelection != null) {
-			String u = "http://localhost:" + ServerSupport.webserverPort + "/id/" + prevSelection.properties.get(IO.id);
+			String u = "http://localhost:" + find(ServerSupport.server, both()).findFirst().get().port+ "/id/" + prevSelection.properties.get(IO.id);
 			System.out.println("presentation mode setting url to be :" + u);
 			setURL(u, () -> {
 				System.out.println(" presentation mode callback happened");
@@ -245,14 +241,14 @@ public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 		tick = 0;
 		browser.properties.put(Box.hidden, true);
 		RunLoop.main.getLoop()
-			    .attach(x -> {
-				    if (tick == 5) {
-					    browser.properties.put(Box.hidden, true);
-					    Drawing.dirty(this);
-				    }
-				    tick++;
-				    return tick != 5;
-			    });
+			.attach(x -> {
+				if (tick == 5) {
+					browser.properties.put(Box.hidden, true);
+					Drawing.dirty(this);
+				}
+				tick++;
+				return tick != 5;
+			});
 		browser.setFocus(false);
 		Drawing.dirty(browser);
 		textEditor.show();

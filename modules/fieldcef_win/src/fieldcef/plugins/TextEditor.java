@@ -1,6 +1,7 @@
 package fieldcef.plugins;
 
 import static org.lwjgl.glfw.GLFW.*;
+
 import field.app.RunLoop;
 import field.graphics.Window;
 import field.linalg.Vec2;
@@ -93,20 +94,13 @@ public class TextEditor extends Box implements IO.Loaded {
 
 			browser = new Browser();
 
-
-			System.err.println(" at the point where we set the maximum width of the browser the window is " + window.getWidth() + " " + maxw + " " + maxh);
-
-
 			Vec2 v = drawing.windowSystemToDrawingSystem(new Vec2(window.getWidth() - maxw - 10, 10));
 			Vec2 vd = drawing.windowSystemToDrawingSystemDelta(new Vec2(maxw, 1080 * 1));
 
 			frameLast = (int) vd.x;
 			browser.properties.put(Box.frame, new Rect(v.x, v.y, vd.x, vd.y));
 
-			System.err.println(" final frame is :" + v + " / " + vd);
-
-
-			maxhOnCreation = 1080 * 2;
+			maxhOnCreation = 1080 * 1;
 
 			browser.pauseForBoot();
 
@@ -114,25 +108,21 @@ public class TextEditor extends Box implements IO.Loaded {
 			browser.properties.put(FLineDrawing.layer, "glass");
 
 			browser.properties.put(Drawing.windowSpace, new Vec2(1, 0));
+			browser.properties.put(Drawing.windowScale, new Vec2(1, 1));
+
 			browser.properties.put(Boxes.dontSave, true);
 			browser.properties.put(Box.hidden, true);
 			browser.properties.put(Mouse.isSticky, true);
 
-			browser.properties.put(FrameManipulation.lockHeight, true);
-//			browser.properties.put(FrameManipulation.lockWidth, false);
-//			browser.properties.put(FrameManipulation.lockX, false);
-			browser.properties.put(FrameManipulation.lockY, true);
-
 			browser.properties.put(Box.undeletable, true);
-
 
 			browser.connect(root);
 			browser.loaded();
 
-			browser.properties.put(Box.name, "texteditor");
+			browser.properties.put(Box.name, "__texteditor__");
 
 			executeJavaScript("$(\".CodeMirror\").height(" + (maxh - 10) + ")");
-			executeJavaScript("$(\".CodeMirror\").width(" + (maxw-28*2) + ")");
+			executeJavaScript("$(\".CodeMirror\").width(" + (maxw - 28 * 2) + ")");
 
 			this.properties.put(Boxes.dontSave, true);
 			styles = findAndLoad(styleSheet, false);
@@ -155,24 +145,23 @@ public class TextEditor extends Box implements IO.Loaded {
 
 				w.getQueue()
 					.register(x -> x.equals("selection.changed"), c -> {
+
 						Log.log("shy", () -> "selection is now" + selection().count());
 
-						browser.executeJavaScript("_messageBus.publish('defocus', {})");
-						browser.setFocus(false);
+						if (!pinned) {
+							browser.executeJavaScript("_messageBus.publish('defocus', {})");
+							browser.setFocus(false);
+						}
 
-						System.out.println(" SELECTION is currently " + selection().collect(Collectors.toList()));
-						if (selection().count() != 1) {
-							System.out.println(" SELECTION COUNT IS NOT 1 " + selection().collect(Collectors.toList()));
+						if (selection().count() != 1 && !pinned) {
 							browser.properties.put(Box.hidden, true);
 							Drawing.dirty(this);
 						} else {
-							System.out.println(" SELECTION COUNT IS 1 " + selection().collect(Collectors.toList()) + " showing");
 
 							executeJavaScript(setHeightCode);
 							executeJavaScript(setWidthCode);
 
 							browser.properties.put(Box.hidden, false);
-//						 browser.setFocus(true);
 							Drawing.dirty(this);
 						}
 
@@ -184,9 +173,7 @@ public class TextEditor extends Box implements IO.Loaded {
 				Set<Integer> kpressed = Window.KeyboardState.keysPressed(event.before, event.after);
 				if ((kpressed.contains(GLFW_KEY_LEFT_SHIFT) || kpressed.contains(GLFW_KEY_RIGHT_SHIFT)) && event.after.keysDown.size() == 1) {
 					trigger();
-				}
-				else if (event.after.keysDown.size() == 1)
-				{
+				} else if (event.after.keysDown.size() == 1) {
 					lastTriggerAt = 0;
 				}
 
@@ -195,27 +182,41 @@ public class TextEditor extends Box implements IO.Loaded {
 
 			RunLoop.main.getLoop()
 				.attach(x -> {
+
 					int maxh = window.getHeight();// - 25 - 10 - 10 - 2;
 					Rect f = browser.properties.get(Box.frame);
 
-//					    System.out.println(" window height is :"+window.getHeight()+" -> "+maxh+" -> "+(maxh/(float)window.getHeight()));
+					f = f.duplicate();
 
-					if ((int)maxh!=  heightLast &&  selection().count()>0) {
-						heightLast = (int) maxh;
+					Vec2 d1 = drawing.drawingSystemToWindowSystem(new Vec2(f.x, f.y));
+					Vec2 d2 = drawing.drawingSystemToWindowSystem(new Vec2(f.x + f.w, f.y + f.h));
+
+					f.x = (float) d1.x;
+					f.y = (float) d1.y;
+					f.w = (float) (d2.x - d1.x);
+					f.h = (float) (d2.y - d1.y);
+
+
+
+					if ((int) f.h != heightLast) {
+						heightLast = (int) f.h;
 						f = f.duplicate();
-						System.out.println("\n\n -- set height to be :"+Math.min(maxh, maxhOnCreation - 40)+"\n\n");
 
-						setHeightCode = "$(\".CodeMirror\").height("+Math.min(maxh, maxhOnCreation - 40) + ")";
+						setHeightCode = "$(\"body\").height(" + Math.min(f.h-20, maxhOnCreation - 40) + ");cm.refresh();";
+						setHeightCode += "$(\".CodeMirror\").height(" + Math.min(f.h-20, maxhOnCreation - 40) + ");cm.refresh();";
 						executeJavaScript(setHeightCode);
 					}
-					if ((int)f.w != frameLast)
-					{
-						frameLast = (int)f.w;
+
+
+					if ((int) f.w != frameLast) {
+						frameLast = (int) f.w;
 						f = f.duplicate();
-						System.out.println("\n\n -- set width to be :"+Math.min(maxw-28*2, (int)(f.w-28))+"\n\n");
-						setWidthCode = "$(\".CodeMirror\").width("+ Math.min(maxw-28*2, (int)(f.w-28)) + ")";
+
+						setWidthCode = "$(\"body\").width(" + Math.min(maxw - 28 * 2, (int) (f.w - 28)) + ");cm.refresh();";
 						executeJavaScript(setWidthCode);
+
 					}
+
 
 					return true;
 				});
@@ -228,7 +229,6 @@ public class TextEditor extends Box implements IO.Loaded {
 		long now = System.currentTimeMillis();
 		if (now - lastTriggerAt < 500) {
 			if (!browser.getFocus()) browser.executeJavaScript_queued("_messageBus.publish('focus', {})");
-//			else browser.executeJavaScript_queued("_messageBus.publish('defocus', {})");
 			browser.setFocus(!browser.getFocus());
 		}
 		lastTriggerAt = now;
@@ -236,7 +236,7 @@ public class TextEditor extends Box implements IO.Loaded {
 
 	@HiddenInAutocomplete
 	public void boot() {
-		browser.properties.put(Browser.url, "http://localhost:" + ServerSupport.webserverPort + "/init");
+		browser.properties.put(Browser.url, "http://localhost:" + find(ServerSupport.server, both()).findFirst().get().port + "/init");
 		Drawing.dirty(this);
 		browser.finishBooting();
 	}
@@ -255,7 +255,6 @@ public class TextEditor extends Box implements IO.Loaded {
 		RunLoop.main.getLoop()
 			.attach(x -> {
 				if (tick == 5) {
-//					    System.out.println(" hiding because hide() called ");
 					browser.properties.put(Box.hidden, true);
 					Drawing.dirty(this);
 				}
@@ -286,12 +285,8 @@ public class TextEditor extends Box implements IO.Loaded {
 	@HiddenInAutocomplete
 	private String findAndLoad(String f, boolean append) {
 
-		String[] roots = {Main.app + "/modules/fieldcore/resources/", Main.app + "/modules/fieldcef_win/resources/"};
+		String[] roots = {Main.app + "/modules/fieldcore/resources/", Main.app + "/modules/fieldcef_macosx/resources/"};
 		for (String s : roots) {
-
-			System.out.println(" checking file :'"+s + "/" + f+"'");
-			System.out.println(" -> "+new File(s + "/" + f).exists());
-
 			if (new File(s + "/" + f).exists()) return readFile(s + "/" + f, append);
 		}
 		Log.log("glassbrowser.error", () -> "Couldnt' find file in playlist :" + f);
@@ -300,7 +295,7 @@ public class TextEditor extends Box implements IO.Loaded {
 
 	@HiddenInAutocomplete
 	private Stream<Box> selection() {
-		return breadthFirst(both()).filter(x -> x.properties.isTrue(Mouse.isSelected, false)).filter(x -> x!=browser).filter(x ->x!=this);
+		return breadthFirst(both()).filter(x -> x.properties.isTrue(Mouse.isSelected, false)).filter(x -> x != browser).filter(x -> x.properties.has(Box.name)).filter(x -> !x.properties.get(Box.name).equals("__texteditor__")).filter(x -> x != this);
 	}
 
 
@@ -328,6 +323,20 @@ public class TextEditor extends Box implements IO.Loaded {
 
 	public void setURL(String url) {
 		browser.properties.put(Browser.url, url);
+	}
+
+	boolean pinned = false;
+
+	public void pin() {
+		pinned = true;
+	}
+
+	public void unpin() {
+		pinned = false;
+	}
+
+	public boolean isPinned() {
+		return pinned;
 	}
 }
 
