@@ -258,6 +258,8 @@ public class Pseudo extends Box {
         @Override
         public Object asMap_set(String p, Object val) {
 
+            System.out.println(" in main thread :"+p+" -> "+val);
+
             Supplier q = (Supplier) Conversions.convert(val, Supplier.class);
             if (q == null)
                 throw new IllegalArgumentException(" can't convert " + val + " to something I can call");
@@ -792,7 +794,10 @@ public class Pseudo extends Box {
                             .orElse(null);
 
                     if (q == null || (q instanceof Boolean && ((Boolean) q).booleanValue() == false)) {
-                        ThreadSync.yield(1);
+                        try {
+                            ThreadSync.yield(1);
+                        } catch (InterruptedException e) {
+                        }
                     } else {
 
                         return q;
@@ -800,7 +805,10 @@ public class Pseudo extends Box {
                 }
             } finally {
                 for (int i = 0; i < extra; i++) {
-                    ThreadSync.yield(1);
+                    try {
+                        ThreadSync.yield(1);
+                    } catch (InterruptedException e) {
+                    }
                 }
             }
         }
@@ -813,10 +821,17 @@ public class Pseudo extends Box {
                 try {
                     if (o != null && q != null && o.equals(q))
                         return o;
-                    ThreadSync.yield(1);
+                    try {
+                        ThreadSync.yield(1);
+                    } catch (InterruptedException e) {
+                    }
+
                 } finally {
                     for (int i = 0; i < extra; i++) {
-                        ThreadSync.yield(1);
+                        try {
+                            ThreadSync.yield(1);
+                        } catch (InterruptedException e) {
+                        }
                     }
                 }
             }
