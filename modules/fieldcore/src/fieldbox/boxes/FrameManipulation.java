@@ -231,14 +231,6 @@ public class FrameManipulation extends Box {
 
 		return hit.map(hitBox -> {
 
-//			if (hitBox.properties.isTrue(Mouse.isSticky, false))
-//			{
-//				Log.log("selection", ()->"hitbox is sticky, selecting and finishing");
-//				Callbacks.transition(hitBox, Mouse.isSelected, true, false, Callbacks.onSelect, Callbacks.onDeselect);
-//				Drawing.dirty(hitBox);
-//				return null;
-//			}
-
 			Log.log("selection", () -> "hit box is really hidden ? " + hitBox.properties.get(Box.hidden));
 
 			Drawing.dirty(hitBox);
@@ -275,6 +267,7 @@ public class FrameManipulation extends Box {
 				Log.log("selection", () -> "working set is :" + workingSet);
 
 
+				System.err.println("RUN: setSelectionTo:"+workingSet);
 				setSelectionTo(this, workingSet);
 			} else {
 				workingSet.add(hitBox);
@@ -525,7 +518,6 @@ public class FrameManipulation extends Box {
 				List<String> text = new ArrayList<String>();
 				List<Vec4> color = new ArrayList<Vec4>();
 
-
 				text.add(String.format("%.0f", r.x));
 				color.add(r.x == r0.x ? new Vec4(1, 1, 1, 0.5f) : new Vec4(1, 1, 1, 1));
 				text.add(",");
@@ -540,7 +532,6 @@ public class FrameManipulation extends Box {
 				color.add(new Vec4(1, 1, 1, 0.5f));
 				text.add(String.format("%.0f", r.h));
 				color.add(r.h == r0.h ? new Vec4(1, 1, 1, 0.5f) : new Vec4(1, 1, 1, 1));
-
 
 				f.nodes.get(f.nodes.size() - 1).attributes.put(StandardFLineDrawing.textSpans, text);
 				f.nodes.get(f.nodes.size() - 1).attributes.put(StandardFLineDrawing.textColorSpans, color);
