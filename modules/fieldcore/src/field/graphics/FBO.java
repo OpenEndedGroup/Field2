@@ -68,7 +68,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 			pre += "This is a floating-point resolution buffer; ";
 		if (specification.layers != 1)
 			pre += "This is a multi-layer (<b>" + specification.layers + "</b> layers) buffer; ";
-		pre += "It has drawn its scene <b>" + warnIfZero(
+		pre += "It has drawn its internalScene <b>" + warnIfZero(
 			drawCount) + "</b> time" + (drawCount == 1 ? "" : "s") + (drawCount == 0 ? "</b>(are you sure .draw() is being called)" : "") + " and it has been bound as a texture <b>" + warnIfZero(
 			boundCount) + "</b> time" + (boundCount == 1 ? "" : "s") + "<br>";
 
@@ -172,6 +172,10 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 
 		static public FBOSpecification layeredFloatMS(int unit, int width, int height, int layers) {
 			return new FBOSpecification(unit, GL_RGBA32F, width, height, GL_RGBA, GL_FLOAT, 32, false, 1, false, true, layers);
+		}
+
+		static public FBOSpecification layeredFloatMSa(int unit, int width, int height, int layers) {
+			return new FBOSpecification(unit, GL_RGBA32F, width, height, GL_RGBA, GL_FLOAT, 32, false, 1, true, false, layers);
 		}
 
 		static public FBOSpecification rgba(int unit, int width, int height) {
@@ -410,7 +414,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 			}
 
 			scene.updateAll();
-			GraphicsContext.checkError(() -> "after scene update");
+			GraphicsContext.checkError(() -> "after internalScene update");
 
 //                      GL11.glClearColor(1, 0, 1, 1);
 //                      GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
@@ -589,7 +593,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 
 	/**
 	 * this operates asynchronously if we are not currently inside the draw loop (that is, if there is no valid context for our thread). only one debug download can be pending at a time. You can
-	 * pass in null to this routine and you'll get a correctly sized ByteByffer back that you can reuse for subsequent calls. Regardless of the original format of the FBO this always returns
+	 * pass in null to this routine and you'll get a correctly sized ByteBuffer back that you can reuse for subsequent calls. Regardless of the original format of the FBO this always returns
 	 * something that's RGBA / float,.
 	 */
 	public Future<FloatBuffer> asyncDebugDownloadRGBAFloat(FloatBuffer to) {
@@ -627,6 +631,13 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 		}
 
 		return c;
+	}
+
+
+
+	public Scene getS()
+	{
+		return scene;
 	}
 
 }
