@@ -15,6 +15,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.file.Files;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -200,6 +201,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 	 */
 	public void upload(ByteBuffer upload, boolean stream, int x0, int y0, int x1, int y1) {
 		pendingUploads.incrementAndGet();
+		String uid = UUID.randomUUID().toString();
 		attach(new Transient(() -> {
 			pendingUploads.decrementAndGet();
 			State s = GraphicsContext.get(this, null);
@@ -237,7 +239,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 			GL15.glBindBuffer(GL21.GL_PIXEL_UNPACK_BUFFER, 0);
 			Log.log("graphics.trace", () -> "uploaded part 1");
 			s.mod++;
-		}, -2).setOnceOnly().setAllContextsFor(this));
+		}, -2).setAllContextsFor(this));
 	}
 
 	public int getPendingUploads() {
