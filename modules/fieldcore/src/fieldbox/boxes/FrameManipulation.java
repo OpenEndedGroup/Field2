@@ -12,6 +12,7 @@ import field.utility.Dict;
 import field.utility.Log;
 import field.utility.Rect;
 import fieldbox.boxes.plugins.Planes;
+import fieldbox.boxes.plugins.Scrolling;
 import fieldbox.ui.Cursors;
 
 import java.awt.*;
@@ -185,21 +186,22 @@ public class FrameManipulation extends Box {
 				if (drawing.isPresent()) {
 
 					if (drag.after.keyboardState.isShiftDown()) {
-						Vec2 t = new Vec2(originalScale);
+						Window.MouseState q = e.after.withScroll((drag.after.x - drag.before.x) / 6, (drag.after.y - drag.before.y) / 6);
 
-						if (deltaNow.y < 0) {
-							t.x = t.y = t.y * Math.pow(2, -deltaNow.y / 50f);
-						} else {
-							t.x = t.y = t.y / Math.pow(2, deltaNow.y / 50f);
-						}
+						q.mx = drag.after.mx;
+						q.my = drag.after.my;
+						q.mdx = drag.after.mdx;
+						q.mdy = drag.after.mdy;
 
-
-						d.setScale(FrameManipulation.this, t);
+						Window.Event<Window.MouseState> e2 = new Window.Event<>(drag.before, q);
+						e2.after.keyboardState = drag.after.keyboardState;
+						Scrolling.scrollForMouseEvent(this, e2, drawing.get());
 					} else {
+
 						Vec2 t = new Vec2(originalT).add(deltaNow.x, deltaNow.y);
 						d.setTranslation(FrameManipulation.this, t);
+						continueTranslationFeedback(FrameManipulation.this, termination);
 					}
-					continueTranslationFeedback(FrameManipulation.this, termination);
 				}
 				return !termination;
 			};
@@ -267,7 +269,7 @@ public class FrameManipulation extends Box {
 				Log.log("selection", () -> "working set is :" + workingSet);
 
 
-				System.err.println("RUN: setSelectionTo:"+workingSet);
+				System.err.println("RUN: setSelectionTo:" + workingSet);
 				setSelectionTo(this, workingSet);
 			} else {
 				workingSet.add(hitBox);
@@ -292,7 +294,6 @@ public class FrameManipulation extends Box {
 				feedback(hitBox, originalFrame, originalFrame, -1);
 
 				hitBox.properties.put(Mouse.isManipulated, true);
-
 
 
 				Set<Box> dependands = workingSet.stream()
@@ -361,6 +362,7 @@ public class FrameManipulation extends Box {
 		})
 			.orElseGet(() -> {
 
+				<<<<<<<HEAD
 				if (!e.after.buttonsDown.contains(0)) return null;
 				if (e.after.keyboardState.isAltDown()) return null;
 
@@ -545,5 +547,4 @@ public class FrameManipulation extends Box {
 	public enum DragTarget {
 		translate, left, top, right, bottom
 	}
-
 }

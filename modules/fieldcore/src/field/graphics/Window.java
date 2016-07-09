@@ -9,15 +9,17 @@ import field.graphics.util.KeyEventMapping;
 import field.linalg.Vec2;
 import field.utility.*;
 import fieldagent.Main;
+import fieldbox.boxes.Keyboard;
 import fieldbox.boxes.Mouse;
 import fieldlinker.Linker;
+import fieldnashorn.annotations.HiddenInAutocomplete;
 import org.lwjgl.glfw.GLFW;
 
 import static org.lwjgl.glfw.GLFW.*;
 
 import org.lwjgl.opengl.*;
+import org.lwjgl.system.Callback;
 import org.lwjgl.system.Configuration;
-import org.lwjgl.system.libffi.Closure;
 
 import java.awt.*;
 import java.nio.ByteBuffer;
@@ -30,6 +32,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
 import static org.lwjgl.glfw.GLFW.glfwWindowHint;
 
 
@@ -63,13 +66,16 @@ public class Window implements ProvidesGraphicsContext {
 	private CanonicalModifierKeys modifiers;
 	private GLCapabilities glcontext;
 	private final Consumer<Integer> perform = (i) -> loop();
-	private Closure c;
+	private final Thread createdInThread;
+	private Callback c;
+
 	volatile boolean isThreaded = false;
 	protected GraphicsContext graphicsContext;
 	protected long window;
 
 	protected int w, x;
 	protected int h, y;
+
 
 	protected MouseState mouseState = new MouseState();
 	protected KeyboardState keyboardState = new KeyboardState();
@@ -87,6 +93,8 @@ public class Window implements ProvidesGraphicsContext {
 
 	static public boolean doubleBuffered = Options.dict()
 		.isTrue(new Dict.Prop("doubleBuffered"), Main.os == Main.OS.mac);
+	static public boolean dontShare = Options.dict()
+		.isTrue(new Dict.Prop("dontShare"), false);
 
 	static public Window shareContext = null;
 	protected final Window shareContextAtConstruction;
@@ -99,13 +107,17 @@ public class Window implements ProvidesGraphicsContext {
 
 	public Window(int x, int y, int w, int h, String title, boolean permitRetina) {
 
+		System.out.println(" -- A ");
+
+		new Exception().printStackTrace();
+
 		Configuration.GLFW_CHECK_THREAD0.set(false);
 
 		Windows.windows.init();
 		currentBounds = new Rect(x, y, w, h);
 
 		shareContextAtConstruction = shareContext;
-		if (shareContext == null) {
+		if (shareContext == null || ThreadSync.enabled || dontShare) {
 			shareContext = this;
 			graphicsContext = GraphicsContext.newContext();
 		} else
@@ -131,6 +143,9 @@ public class Window implements ProvidesGraphicsContext {
 		glfwWindowHint(GLFW_DOUBLEBUFFER, doubleBuffered ? 1 : 0);
 
 		glfwWindowHint(GLFW_DECORATED, title == null ? 0 : 1);
+		System.out.println(" -- B ");
+
+//		glfwWindowHint(GLFW_CONTEXT_RELEASE_BEHAVIOR, GLFW_RELEASE_BEHAVIOR_NONE);
 
 		this.w = w;
 		this.h = h;
@@ -138,16 +153,22 @@ public class Window implements ProvidesGraphicsContext {
 		this.y = y;
 
 
-		try {
-			ThreadSync.callInMainThreadAndWait(() -> {
+//	try {
+//			ThreadSync.callInMainThreadAndWait(() -> {
+				System.out.println(" -- C");
 				window = glfwCreateWindow(w, h, title, 0, shareContext == this ? 0 : shareContext.window);
+				if (window == 0) {
+					System.err.println(" FAILED TO CREATE WINDOW :" + shareContext);
+				}
 				glfwSetWindowPos(window, x, y);
 				Windows.windows.register(window, makeCallback());
 
 				glfwShowWindow(window);
 
 				glfwMakeContextCurrent(window);
-				glfwSwapInterval(1);
+//				glfwSwapInterval(1);
+
+				glfwSwapInterval(0);
 
 				glfwWindowShouldClose(window);
 
@@ -179,14 +200,14 @@ public class Window implements ProvidesGraphicsContext {
 
 				windowOpenedAt = RunLoop.tick;
 
-
 				modifiers = new CanonicalModifierKeys(window);
+				System.out.println(" -- D");
 
-				return window;
-			});
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+//				return window;
+//			});
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
 
 
 		new Thread() {
@@ -212,6 +233,10 @@ public class Window implements ProvidesGraphicsContext {
 				}
 			}
 		}.start();
+
+		glfwMakeContextCurrent(0);
+
+		createdInThread = Thread.currentThread();
 
 
 	}
@@ -258,7 +283,8 @@ public class Window implements ProvidesGraphicsContext {
 		if (kpressed.size() > 0) System.out.print("down<" + kpressed + ">");
 		if (released.size() > 0) System.out.print("up<" + released + ">");
 		if (kreleased.size() > 0) System.out.print("up<" + kreleased + ">");
-		if (event.after.keysDown.size() > 0) System.out.println(" now<" + event.after.keysDown + ">");
+		if (event.after.keysDown.size() > 0)
+			System.out.println(" now<" + event.after.keysDown + ">");
 		return true;
 	}
 
@@ -271,12 +297,14 @@ public class Window implements ProvidesGraphicsContext {
 	}
 
 	static public int getCurrentWidth() {
-		if (currentWindow.get() == null) throw new IllegalArgumentException(" no window mouseState ");
+		if (currentWindow.get() == null)
+			throw new IllegalArgumentException(" no window mouseState ");
 		return currentWindow.get().w;
 	}
 
 	static public int getCurrentHeight() {
-		if (currentWindow.get() == null) throw new IllegalArgumentException(" no window mouseState ");
+		if (currentWindow.get() == null)
+			throw new IllegalArgumentException(" no window mouseState ");
 		return currentWindow.get().h;
 	}
 
@@ -295,13 +323,14 @@ public class Window implements ProvidesGraphicsContext {
 
 	public RenderControl renderControl = () -> false;
 
+
 	public void loop() {
 
 		currentWindow.set(this);
 		try {
-			if (onlyThread != null && Thread.currentThread() != onlyThread) throw new Error();
+			if (onlyThread != null && Thread.currentThread() != onlyThread)
+				throw new Error();
 
-			if (frame == 10) glfwSetWindowPos(window, x, y);
 
 			if (Main.os == Main.OS.mac && false) {
 
@@ -334,42 +363,37 @@ public class Window implements ProvidesGraphicsContext {
 			}
 
 
-//			String name = glfwGetJoystickName(GLFW_JOYSTICK_2);
-//			float[] axes = new float[10];
-//			int num = glfwGetJoystickAxes(GLFW_JOYSTICK_2, axes);
-//			System.out.println(" axes :"+num+" "+axes[0]+" "+axes[1]+" "+axes[2]+" "+axes[3]);
-//			byte[] buttons = new byte[20];
-//			 num = glfwGetJoystickButtons(GLFW_JOYSTICK_2, buttons);
-//			System.out.println(" buttons :"+num+" "+buttons[0]+" "+buttons[1]+" "+buttons[2]+" "+buttons[3]);
-
 			needsRepainting = false;
-
 			glfwMakeContextCurrent(window);
-			glfwSwapInterval(1);
+			try {
+				glfwSwapInterval(0);
 
-			// makes linux all go to hell
-			GL.setCapabilities(glcontext);
+				GL.setCapabilities(glcontext);
 
-			int w = glfwGetWindowWidth(window);
-			int h = glfwGetWindowHeight(window);
+				int w = glfwGetWindowWidth(window);
+				int h = glfwGetWindowHeight(window);
 
-			if (w != this.w || h != this.h) {
-				GraphicsContext.isResizing = true;
-				this.w = w;
-				this.h = h;
-			} else {
-				GraphicsContext.isResizing = false;
+				if (w != this.w || h != this.h) {
+					GraphicsContext.isResizing = true;
+					this.w = w;
+					this.h = h;
+				} else {
+					GraphicsContext.isResizing = false;
+				}
+
+
+				updateScene();
+
+				frame++;
+				if (!dontSwap) {
+					swapControl.swap(window);
+				}
+
+				if (!isThreaded && !(createdInThread != Thread.currentThread()))
+					glfwPollEvents();
+			} finally {
+				glfwMakeContextCurrent(0);
 			}
-
-
-			updateScene();
-
-			frame++;
-			if (!dontSwap) {
-				swapControl.swap(window);
-			}
-
-			if (!isThreaded) glfwPollEvents();
 		} finally {
 			currentWindow.set(null);
 		}
@@ -455,7 +479,7 @@ public class Window implements ProvidesGraphicsContext {
 			GraphicsContext.getContext().stateTracker.shader.set(0);
 			GraphicsContext.getContext().stateTracker.blendState.set(new int[]{GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA});
 
-			Log.log("graphics.trace", () -> "scene is ...\n" + scene.debugPrintScene());
+			Log.log("graphics.trace", () -> "internalScene is ...\n" + scene.debugPrintScene());
 
 			scene.updateAll();
 		} finally {
@@ -498,6 +522,29 @@ public class Window implements ProvidesGraphicsContext {
 	}
 
 	/**
+	 * returns the last seen key state
+	 */
+	public KeyboardState getCurrentKeyboardState() {
+		return keyboardState;
+	}
+
+	/**
+	 * sets the last seen mouse state
+	 */
+	@HiddenInAutocomplete
+	public void setCurrentMouseState(MouseState state) {
+		mouseState = state;
+	}
+
+	/**
+	 * sets the last seen mouse state
+	 */
+	@HiddenInAutocomplete
+	public void setCurrentKeyboardState(KeyboardState state) {
+		keyboardState = state;
+	}
+
+	/**
 	 * A keyboard handler is a Function<Event<KeyboardState>, Boolean>>, that is a function that takes a transition between two KeyboardStates and returns a boolean, whether or not it ever wants
 	 * to be called again
 	 */
@@ -526,7 +573,13 @@ public class Window implements ProvidesGraphicsContext {
 		return this;
 	}
 
-	private void fireMouseTransition(MouseState before, MouseState after) {
+	/**
+	 * post an event to this window
+	 * @param before
+	 * @param after
+	 */
+	@HiddenInAutocomplete
+	public void fireMouseTransition(MouseState before, MouseState after) {
 		after.keyboardState = keyboardState;
 
 		if ((after.mods & GLFW_MOD_SHIFT) != 0)
@@ -623,7 +676,13 @@ public class Window implements ProvidesGraphicsContext {
 		}
 	}
 
-	private void fireKeyboardTransition(KeyboardState before, KeyboardState after) {
+	/**
+	 * post an event to this window
+	 * @param before
+	 * @param after
+	 */
+	@HiddenInAutocomplete
+	public void fireKeyboardTransition(KeyboardState before, KeyboardState after) {
 		after.mouseState = mouseState;
 		Iterator<Function<Event<KeyboardState>, Boolean>> i = keyboardHandlers.iterator();
 		Event<KeyboardState> event = new Event<>(before, after);

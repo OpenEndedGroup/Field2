@@ -252,6 +252,8 @@ public class Open {
 
 		new WebApps(boxes.root()).connect(boxes.root());
 
+		new Exec(boxes.root()).connect(boxes.root());
+
 		if (ThreadSync.enabled) new ThreadSyncFeedback(boxes.root()).connect(boxes.root());
 
 		FileBrowser fb = new FileBrowser(boxes.root());
@@ -352,7 +354,6 @@ public class Open {
 		// actually open the document that's stored on disk
 		doOpen(boxes.root(), filename);
 
-
 		Log.log("startup", () -> " -- FieldBox finished initializing, loading plugins ... -- ");
 
 		// initialize the plugins
@@ -361,7 +362,6 @@ public class Open {
 
 		Log.log("startup", () -> " -- FieldBox plugins finished, entering animation loop -- ");
 
-
 		RunLoop.main.once(() -> {
 
 			System.err.println(" booting up text editor ");
@@ -369,11 +369,13 @@ public class Open {
 			new TextEditor(boxes.root()).connect(boxes.root());
 			new GlassBrowser(boxes.root()).connect(boxes.root());
 			new OutputBox(boxes.root()).connect(boxes.root());
-
 			new NotificationBox(boxes.root()).connect(boxes.root());
-			new BoxBrowser(boxes.root()).connect(boxes.root());
-			new TextEditor_boxBrowser(boxes.root()).connect(boxes.root());
 
+			if (Main.os!=Main.OS.windows) {
+
+				new BoxBrowser(boxes.root()).connect(boxes.root());
+				new TextEditor_boxBrowser(boxes.root()).connect(boxes.root());
+			}
 
 			// call loaded on everything above root
 			Log.log("startup", () -> "calling .loaded on plugins");
@@ -453,8 +455,7 @@ public class Open {
 		glEnable(GL11.GL_BLEND);
 		glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		glDisable(GL11.GL_DEPTH_TEST);
-
-		if (Main.os == Main.OS.linux) glEnable(GL13.GL_MULTISAMPLE);
+		if (Main.os != Main.OS.mac) glEnable(GL13.GL_MULTISAMPLE);
 
 		return true;
 	}
@@ -467,7 +468,7 @@ public class Open {
 		glEnable(GL11.GL_BLEND);
 		glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		glDisable(GL11.GL_DEPTH_TEST);
-		if (Main.os == Main.OS.linux) glEnable(GL13.GL_MULTISAMPLE);
+		if (Main.os != Main.OS.mac) glEnable(GL13.GL_MULTISAMPLE);
 
 		return true;
 	}
@@ -481,7 +482,7 @@ public class Open {
 		glEnable(GL11.GL_BLEND);
 		glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		glDisable(GL11.GL_DEPTH_TEST);
-		if (Main.os == Main.OS.linux) glEnable(GL13.GL_MULTISAMPLE);
+		if (Main.os != Main.OS.mac) glEnable(GL13.GL_MULTISAMPLE);
 
 		return true;
 	}

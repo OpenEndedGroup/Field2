@@ -172,6 +172,8 @@ a {
     font-family: "Fira Code", "Source Code Pro" !important;
     font-size:15px;
 
+    -webkit-font-variant-ligatures: common-ligatures;
+    font-variant-ligatures: common-ligatures;
     -webkit-font-feature-settings: "kern";
     font-feature-settings: "kern";
     font-kerning: normal;

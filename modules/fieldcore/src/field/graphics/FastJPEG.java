@@ -6,7 +6,7 @@ import java.nio.ByteBuffer;
 /**
  * This is a fast native jpeg loader. Well battle tested, thread-safe. We have versions for linux and os x.
  */
-public class FastJPEG implements JPEGLoader{
+public class FastJPEG implements JPEGLoader {
 
 	static public boolean available;
 
@@ -16,8 +16,15 @@ public class FastJPEG implements JPEGLoader{
 			System.loadLibrary("fieldjpegturb");
 			available = true;
 		} catch (Throwable t) {
-			System.out.println(" Fast jpeg loading is not available. This isn't typically going to be a problem.");
 		}
+		if (!available) try {
+			System.loadLibrary("turbojpegF");
+			available = true;
+		} catch (Throwable t) {
+		}
+		if (!available) System.out.println(" Fast jpeg loading is not available. This isn't typically going to be a problem.");
+		else
+			System.out.println(" Fast jpeg loading is available");
 	}
 
 	static public final JPEGLoader j;

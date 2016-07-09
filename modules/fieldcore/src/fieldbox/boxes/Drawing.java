@@ -9,9 +9,9 @@ import field.utility.Rect;
 import field.utility.Util;
 import fieldbox.io.IO;
 import fieldbox.ui.FieldBoxWindow;
+import fieldnashorn.annotations.HiddenInAutocomplete;
 
 import java.util.*;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static field.graphics.StandardFLineDrawing.*;
@@ -25,14 +25,14 @@ import static fieldbox.boxes.FLineDrawing.*;
  * MeshBuilders.
  * <p>
  * Drawing for the FieldBoxWindow is done lazily --- unless somebody requests it through calling Drawing.dirty(box), or occasionally the windowing system asks for it (on damage or resize), repainting
- * will not happen during the animation. cycle.
+ * will not happen during the RunLoop.
  * <p>
  * This class also maintains the current relationships between window coordinates (aka mouse coordinates, aka pixels) and OpenGL coordinates (aka Box's frames aka drawing coordinates). The
  * transformation between for geometry happens entirely in the OpenGL shaders here and the math is duplicated in convenience functions.
  * <p>
  * This class is the low level drawing plumbing FieldBox (Boxes) to talk to the Field graphics system (MeshBuilder). For drawing that you can use from Boxes, see FLineDrawing
  */
-public class Drawing extends Box {
+public class Drawing extends Box implements DrawingInterface {
 
 	static public final Dict.Prop<Collection<Drawer>> drawers = new Dict.Prop<>("drawers").type()
 		.toCannon()
@@ -394,7 +394,7 @@ public class Drawing extends Box {
 		throw new IllegalArgumentException(" graphics resource (point) isn't open, are you trying to draw outside of your drawing method?");
 	}
 
-	public Drawing addBracketable(Bracketable bracketable) {
+	public DrawingInterface addBracketable(Bracketable bracketable) {
 		bracketableList.add(bracketable);
 		if (isInsideDrawing()) bracketable.open();
 		return this;
@@ -486,9 +486,19 @@ public class Drawing extends Box {
 		return new Vec2(x, y);
 	}
 
+	long drawCount = 0;
+
+	@HiddenInAutocomplete
+	public long getDrawCount()
+	{
+		return drawCount;
+	}
+
 	public void drawNow(Box root) {
 		Boolean q = root.properties.remove(needRepaint);
 		if (q == null || !q) return;
+
+		drawCount++;
 
 		find(Boxes.window, both()).findFirst()
 			.ifPresent(x -> {
@@ -666,7 +676,7 @@ public class Drawing extends Box {
 	}
 
 	public interface Drawer {
-		void draw(Drawing context);
+		void draw(DrawingInterface context);
 	}
 
 	public class PerLayer {

@@ -6,9 +6,6 @@ import fieldnashorn.annotations.SafeToToString;
 import jdk.dynalink.beans.StaticClass;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import jdk.nashorn.api.scripting.ScriptUtils;
-import jdk.nashorn.internal.runtime.ScriptFunction;
-import jdk.nashorn.internal.runtime.ScriptObject;
-import jdk.nashorn.internal.runtime.linker.JavaAdapterFactory;
 import fieldlinker.Linker;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -56,6 +53,8 @@ public class IdempotencyMap<T> extends LinkedHashMapAndArrayList<T> implements M
 		if (value == null) return null;
 		if (t.isAssignableFrom(value.getClass())) return (T) value;
 
+		Object ovalue = value;
+
 		if (value instanceof ScriptObjectMirror)
 			value = ScriptUtils.unwrap(value);
 
@@ -63,22 +62,13 @@ public class IdempotencyMap<T> extends LinkedHashMapAndArrayList<T> implements M
 
 		if (value != null && t.isAssignableFrom(value.getClass())) return (T) value;
 
-//		if (value instanceof ScriptFunction) {
-//			StaticClass adapterClassFor = JavaAdapterFactory.getAdapterClassFor(new Class[]{t}, (ScriptObject) value, MethodHandles.lookup());
-//			try {
-//				return (T) adapterClassFor.getRepresentedClass()
-//							  .newInstance();
-//			} catch (InstantiationException e) {
-//				Object fv = value;
-//				Log.log("processing.error", ()->" problem instantiating adaptor class to take us from " + fv + " ->" + t+ e);
-//			} catch (IllegalAccessException e) {
-//				Object fv = value;
-//				Log.log("processing.error", ()->" problem instantiating adaptor class to take us from " + fv + " ->" + t+e);
-//			}
-//		}
+		if (value == null) {
+			throw new ClassCastException(" couldn't convert " + ovalue + " of class " + ovalue.getClass() + " to " + t);
+		}
+		if (!t.isAssignableFrom(value.getClass()))
+			throw new ClassCastException(" expected " + t + ", got " + value + " / " + value.getClass());
 
-
-		throw new ClassCastException(" expected " + t + ", got " + value + " / " + value.getClass());
+		return (T) value;
 	}
 
 	@Override

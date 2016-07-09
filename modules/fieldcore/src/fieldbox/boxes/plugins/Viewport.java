@@ -240,7 +240,7 @@ public class Viewport extends Box implements IO.Loaded, ProvidesGraphicsContext 
 
 	}
 
-	protected void drawNow(Drawing context) {
+	protected void drawNow(DrawingInterface context) {
 
 		Camera c = this.properties.get(Viewport.camera);
 		if (c != null) {
@@ -258,68 +258,67 @@ public class Viewport extends Box implements IO.Loaded, ProvidesGraphicsContext 
 			boolean clips = this.properties.isTrue(Viewport.clips, true);
 			Optional<Drawing> od = this.first(Drawing.drawing);
 
-			if (clips && od.isPresent()) {
+			// TODO, blast radius of change to DrawingInterface? Viewports cannot clip properly on non-window renderers
 
-				Vec2 tl = od.get().drawingSystemToWindowSystem(new Vec2(f.x, f.y));
-				Vec2 bl = od.get().drawingSystemToWindowSystem(new Vec2(f.x + f.w, f.y + f.h));
+			Vec2 tl = od.get().drawingSystemToWindowSystem(new Vec2(f.x, f.y));
+			Vec2 bl = od.get().drawingSystemToWindowSystem(new Vec2(f.x + f.w, f.y + f.h));
 
-				FieldBoxWindow window = this.first(Boxes.window)
-					.get();
-				int h = window.getHeight();
-				int w = window.getWidth();
+			FieldBoxWindow window = this.first(Boxes.window)
+				.get();
+			int h = window.getHeight();
+			int w = window.getWidth();
 
-				float rs = window.getRetinaScaleFactor();
-				int[] v = new int[]{(int) ((int) tl.x * rs), (int) ((int) (h - bl.y) * rs), (int) ((int) (bl.x - tl.x + 2) * rs), (int) ((int) (bl.y - tl.y + 2) * rs)};
+			float rs = window.getRetinaScaleFactor();
+			int[] v = new int[]{(int) ((int) tl.x * rs), (int) ((int) (h - bl.y) * rs), (int) ((int) (bl.x - tl.x + 2) * rs), (int) ((int) (bl.y - tl.y + 2) * rs)};
 
-				GraphicsContext.getContext().stateTracker.scissor.set(v);
-				GraphicsContext.getContext().stateTracker.viewport.set(v);
-			}
-
-			try (Util.ExceptionlessAutoCloasable s2 = GraphicsContext.getContext().stateTracker.save()) {
-
-				Map<String, Supplier<FLine>> q = breadthFirst(downwards()).filter(x -> x.properties.has(lines3))
-					.flatMap(x -> x.properties.get(lines3)
-						.entrySet()
-						.stream())
-					.collect(Collectors.toMap(x -> x.getKey(), x -> x.getValue(), (old, n) -> old));
-				Map<String, Supplier<Collection<Supplier<FLine>>>> q2 = breadthFirst(downwards()).filter(x -> x.properties.has(bulkLines3))
-					.flatMap(x -> x.properties.get(bulkLines3)
-						.entrySet()
-						.stream())
-					.collect(Collectors.toMap(x -> x.getKey(), x -> x.getValue(), (old, n) -> old));
-
-				standard.lines_builder.open();
-				standard.triangles_builder.open();
-				standard.points_builder.open();
-
-				try {
-					q.values()
-						.stream()
-						.map(x -> x.get())
-						.filter(x -> x != null)
-						.forEach(x -> StandardFLineDrawing.dispatchLine(x, standard.triangles_builder, standard.lines_builder, standard.points_builder, Optional.empty(), ""));
-					q2.values()
-						.stream()
-						.map(x -> x.get())
-						.filter(x -> x != null)
-						.flatMap(x -> x.stream())
-						.filter(x -> x != null)
-						.map(x -> x.get())
-						.filter(x -> x != null)
-						.forEach(x -> StandardFLineDrawing.dispatchLine(x, standard.triangles_builder, standard.lines_builder, standard.points_builder, Optional.empty(), ""));
-				} finally {
-					standard.points_builder.close();
-					standard.triangles_builder.close();
-					standard.lines_builder.close();
-				}
-			}
-			Scene scene = this.properties.get(Viewport.scene);
-
-			scene.updateAll();
-
+			GraphicsContext.getContext().stateTracker.scissor.set(v);
+			GraphicsContext.getContext().stateTracker.viewport.set(v);
 		}
 
+		try (Util.ExceptionlessAutoCloasable s2 = GraphicsContext.getContext().stateTracker.save()) {
+
+			Map<String, Supplier<FLine>> q = breadthFirst(downwards()).filter(x -> x.properties.has(lines3))
+				.flatMap(x -> x.properties.get(lines3)
+					.entrySet()
+					.stream())
+				.collect(Collectors.toMap(x -> x.getKey(), x -> x.getValue(), (old, n) -> old));
+			Map<String, Supplier<Collection<Supplier<FLine>>>> q2 = breadthFirst(downwards()).filter(x -> x.properties.has(bulkLines3))
+				.flatMap(x -> x.properties.get(bulkLines3)
+					.entrySet()
+					.stream())
+				.collect(Collectors.toMap(x -> x.getKey(), x -> x.getValue(), (old, n) -> old));
+
+			standard.lines_builder.open();
+			standard.triangles_builder.open();
+			standard.points_builder.open();
+
+			try {
+				q.values()
+					.stream()
+					.map(x -> x.get())
+					.filter(x -> x != null)
+					.forEach(x -> StandardFLineDrawing.dispatchLine(x, standard.triangles_builder, standard.lines_builder, standard.points_builder, Optional.empty(), ""));
+				q2.values()
+					.stream()
+					.map(x -> x.get())
+					.filter(x -> x != null)
+					.flatMap(x -> x.stream())
+					.filter(x -> x != null)
+					.map(x -> x.get())
+					.filter(x -> x != null)
+					.forEach(x -> StandardFLineDrawing.dispatchLine(x, standard.triangles_builder, standard.lines_builder, standard.points_builder, Optional.empty(), ""));
+			} finally {
+				standard.points_builder.close();
+				standard.triangles_builder.close();
+				standard.lines_builder.close();
+			}
+		}
+		Scene scene = this.properties.get(Viewport.scene);
+
+		scene.updateAll();
+
 	}
+
 
 	@Override
 	public String toString() {

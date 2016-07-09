@@ -33,7 +33,7 @@ public class Meshes extends Box implements Drawing.Drawer {
 	}
 
 	@Override
-	public void draw(Drawing context) {
+	public void draw(DrawingInterface context) {
 		context.getShader().attach(new Scene.Transient(this::traverseAndDraw, 1).setOnceOnly());
 	}
 

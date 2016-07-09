@@ -34,6 +34,7 @@ import static org.lwjgl.opengl.GL20.*;
 public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Linker.AsMap, HandlesCompletion, BoxBrowser.HasMarkdownInformation {
 
 	private ShaderIntrospection introspection;
+	private int modCount;
 
 	@Override
 	public String generateMarkdown(Box inside, Dict.Prop property) {
@@ -223,6 +224,8 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 	protected boolean perform0() {
 		boolean work = false;
 
+		GraphicsContext.checkError(() -> "on shader entry");
+
 		Log.log("graphics.trace", () -> " checking :" + source.keySet());
 
 		for (Map.Entry<Type, Source> s : source.entrySet()) {
@@ -299,6 +302,8 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 				}
 
 				introspection.introspectNow();
+
+				modCount ++;
 			}
 		}
 
@@ -306,13 +311,15 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 //			System.out.println(" setting shader to be :"+name.name);
 			Log.log("graphics.trace", () -> " using program " + name.name);
 			GraphicsContext.getContext().stateTracker.shader.set(name.name);
-			GraphicsContext.getContext().uniformCache.changeShader(name.name);
+			GraphicsContext.getContext().uniformCache.changeShader(this, name.name);
 		} else {
 			System.err.println("WARNING: shader is invalid, not being used ");
 			Log.log("graphics.trace", ()->"WARNING: program not valid, not being used");
 			if (introspection!=null)
 				introspection.errorIsInvalid = "Shader failed GL validation, it is not being used\n";
 		}
+
+		GraphicsContext.checkError(() -> "on shader exit");
 
 		return true;
 	}
@@ -427,5 +434,9 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 	@HiddenInAutocomplete
 	public Object asMap_new(Object a, Object b) {
 		throw new NotImplementedException();
+	}
+
+	public int getModCount() {
+		return modCount;
 	}
 }

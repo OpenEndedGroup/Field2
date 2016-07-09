@@ -9,6 +9,7 @@ import field.linalg.Vec2;
 import field.linalg.Vec4;
 import field.utility.Dict;
 import field.utility.IdempotencyMap;
+import field.utility.Rect;
 import field.utility.SimpleVoronoi;
 import fieldbox.boxes.plugins.Planes;
 
@@ -220,7 +221,11 @@ public class MarkingMenus extends Box {
 
 			log("debug.markingmenus", () -> e.getKey() + " " + e.getKey().pos);
 
-			textLine.node().attributes.put(text, e.getValue().label);
+			String lab = e.getValue().label;
+
+			if (e.getValue().submenu!=null && !lab.endsWith("...")) lab = lab+"...";
+
+			textLine.node().attributes.put(text, lab);
 			textLine.attributes.put(layer, "glass2");
 			textLine.attributes.put(color, new Vec4(0, 0, 0, 0.75f));
 
@@ -241,7 +246,8 @@ public class MarkingMenus extends Box {
 				areas.add(new Area(FLinesAndJavaShapes.flineToJavaShape(label)));
 			}
 
-			FLine f = v.makeFLine(v.getContourForSite(sites.get(e.getKey())));
+			FLine fo = v.makeFLine(v.getContourForSite(sites.get(e.getKey())));
+			FLine f = bound(center, fo);
 
 			this.properties.putToMap(frameDrawing, "contour" + e.getKey(), box -> f);
 			this.properties.putToMap(FLineInteraction.interactiveDrawing, "contour" + e.getKey(), box -> f);
@@ -251,7 +257,7 @@ public class MarkingMenus extends Box {
 			f.attributes.put(filled, true);
 			f.attributes.put(stroked, false);
 			f.attributes.put(layer, "glass2");
-//			f.attributes.put(thicken, new BasicStroke(2.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+			f.attributes.put(thicken, new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 
 
 			toLabels.put(f, textLine);
@@ -264,12 +270,15 @@ public class MarkingMenus extends Box {
 //				f.nodes.clear();
 //				f.nodes.addAll(fm.nodes);
 
-//				f.attributes.put(fillColor, new Vec4(0.14f, 0.195f, 0.145f, 0.85f));
+//				f.attributes.put(fillColor, new Vec4(1.14f, 0.195f, 0.145f, 0.85f));
 //				f.attributes.put(thicken, new BasicStroke(16, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 //				f.attributes.put(strokeColor, new Vec4(0, 0.5f, 0, -0.15f));
 
 				f.attributes.put(filled, true);
 				f.attributes.put(stroked, false);
+
+                f.attributes.put(fillColor, new Vec4(Colors.executionColor, 0.15f));
+                f.attributes.put(strokeColor, new Vec4(Colors.executionColor, 0.15f));
 
 				toBoxes.entrySet().forEach(x -> {
 					if (x.getKey()!=f)
@@ -281,7 +290,7 @@ public class MarkingMenus extends Box {
 					}
 					else
 					{
-						x.getValue().attributes.put(fillColor, new Vec4(0.0f, 0.0f, 0.0f, 0.7f));
+						x.getValue().attributes.put(fillColor, new Vec4(Colors.executionColor, 0.45f));
 						x.getValue().attributes.put(strokeColor, new Vec4(1.0f, 1.0f, 1.0f, 0.5f));
 						x.getValue().attributes.put(stroked, true);
 						x.getValue().modify();
@@ -294,6 +303,10 @@ public class MarkingMenus extends Box {
 //						x.getValue().attributes.put(StandardFLineDrawing.opacity, 0.5f);
 //						x.getValue().modify();
 					}
+                    else
+                    {
+
+                    }
 				});
 
 				f.modify();
@@ -355,12 +368,18 @@ public class MarkingMenus extends Box {
 				label.attributes.put(fillColor, new Vec4(0.16f, 0.16f, 0.16f, 0.7f));
 //			label.attributes.put(fillColor, new Vec4(0.16f, 0.16f, 0.16f, 0.88f));
 //			label.attributes.put(strokeColor, new Vec4(1, 1, 1, 0.1f));
+                label.attributes.put(layer, "glass2");
+                label.attributes.put(stroked, false);
 
-				label.attributes.put(filled, true);
-				label.attributes.put(stroked, false);
+//                FLine labelo = label.duplicate();
+//
+//                labelo.attributes.put(thicken, new BasicStroke(2));
+//                labelo.attributes.put(filled, false);
+//                labelo.attributes.put(stroked, true);
+//
+//                this.properties.putToMap(frameDrawing, "label2" + e.getKey(), box -> labelo);
 
-				label.attributes.put(layer, "glass2");
-				if (e.getValue().submenu != null) {
+                if (e.getValue().submenu != null) {
 					FLine label2 = new FLine();
 					label2.rect(center.x + e.getKey().pos.x * scale - w / 2 - outset, center.y + e.getKey().pos.y * scale - maxHeight - outset, w + outset * 2, maxHeight + outset * 2);
 //				this.properties.putToMap(frameDrawing, "labelShade" + e.getKey(), box -> label2);
@@ -385,7 +404,7 @@ public class MarkingMenus extends Box {
 			FLine connective = new FLine();
 			connective.moveTo(center.x, center.y);
 			connective.lineTo(center.x + e.getKey().pos.x * scale, center.y + e.getKey().pos.y * scale);
-			Shape s = new BasicStroke(1.5f).createStrokedShape(FLinesAndJavaShapes.flineToJavaShape(connective));
+			Shape s = new BasicStroke(2.5f).createStrokedShape(FLinesAndJavaShapes.flineToJavaShape(connective));
 			Area as = new Area(s);
 			for (Area aa : areas) {
 				as.subtract(aa);
@@ -404,6 +423,22 @@ public class MarkingMenus extends Box {
 
 		return over;
 	}
+
+	private FLine bound(Vec2 center, FLine fo) {
+
+        Drawing d = find(Drawing.drawing, both()).findFirst().get();
+        Rect b = d.getCurrentViewBounds(this).inset(10);
+
+        Shape s1 = FLinesAndJavaShapes.flineToJavaShape(fo);
+        Shape s2 = FLinesAndJavaShapes.flineToJavaShape(new FLine().circle(center.x, center.y, Math.min(b.w, b.h)/2));
+
+        Area a1 = new Area(s1);
+        Area a2 = new Area(s2);
+
+        a1.intersect(a2);
+
+        return FLinesAndJavaShapes.javaShapeToFLine(a1);
+    }
 
 	public void hide() {
 		this.properties.remove(frameDrawing);

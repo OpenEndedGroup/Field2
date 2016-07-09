@@ -10,6 +10,8 @@ import java.util.*;
  */
 public class UniformCache {
 
+	private Shader currentShader;
+
 	static public class Cache {
 		final String name;
 		final List<Object> value = new ArrayList<>();
@@ -61,9 +63,13 @@ public class UniformCache {
 		return cache.computeIfAbsent(name, (k) -> new Cache(name)).pop();
 	}
 
-	public void changeShader(int newName)
+	public void changeShader(Shader shader, int newName)
 	{
+		currentShader = shader;
 		cache.values().forEach(x -> x.refresh());
 	}
 
+	public Shader getCurrentShader() {
+		return currentShader;
+	}
 }

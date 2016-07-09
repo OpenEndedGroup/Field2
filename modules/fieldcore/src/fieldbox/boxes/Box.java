@@ -9,6 +9,7 @@ import fieldbox.boxes.plugins.Missing;
 import fieldbox.execution.*;
 import fieldbox.io.IO;
 import fieldlinker.Linker;
+//import jdk.nashorn.internal.runtime.ConsString;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
@@ -477,7 +478,8 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	public Object asMap_set(String name, Object value) {
 
 		// workaround bug in Nashorn
-//		if (value instanceof ConsString) value = value.toString();
+//		if (value instanceof ConsString) value = value.toString(); //jdk9 module security breaks this
+		if (value!=null && value.getClass().getName().endsWith("ConsString")) value = ""+value;
 
 
 //		Log.log("underscore.debug", " underscore box set :" + name + " to " + value.getClass() + " <" + Function.class.getName() + ">");

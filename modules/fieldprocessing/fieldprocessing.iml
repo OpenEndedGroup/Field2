@@ -11,7 +11,7 @@
     <orderEntry type="module" module-name="fieldcore" />
     <orderEntry type="module" module-name="fieldlinker" />
     <orderEntry type="library" name="processing_core" level="project" />
-    <orderEntry type="library" name="rt" level="application" />
     <orderEntry type="library" name="fieldlinker" level="project" />
+    <orderEntry type="library" name="rt" level="project" />
   </component>
 </module>

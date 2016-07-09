@@ -34,7 +34,7 @@ public class OutputBox extends Box implements IO.Loaded {
 
 
 	static public final Dict.Prop<FunctionOfBoxValued<TemplateMap<Browser>>> output = new Dict.Prop<>("output").type().doc("`_.output.blah.print('something')` will print to (and, if necessary, create) an html output box")
-														   .toCannon();
+		.toCannon();
 
 	private final Box root;
 
@@ -58,8 +58,8 @@ public class OutputBox extends Box implements IO.Loaded {
 	}
 
 	private String toHTML(Object param) {
-		if (out==null)
-			return ""+param;
+		if (out == null)
+			return "" + param;
 		else
 			return out.convert(param);
 	}
@@ -73,11 +73,11 @@ public class OutputBox extends Box implements IO.Loaded {
 
 
 	protected Browser make(int w, int h, Box b) {
-		Log.log("OutputBox.debug", ()->"initializing browser");
+		Log.log("OutputBox.debug", () -> "initializing browser");
 
-		Browser browser = (Browser)find(Templates.templateChild, both()).findFirst()
-								       .map(x -> x.apply(b, "html output"))
-								       .orElseGet(() -> new Browser());
+		Browser browser = (Browser) find(Templates.templateChild, both()).findFirst()
+			.map(x -> x.apply(b, "html output"))
+			.orElseGet(() -> new Browser());
 
 		Rect f = b.properties.get(frame);
 
@@ -109,26 +109,26 @@ public class OutputBox extends Box implements IO.Loaded {
 
 	public void boot(Browser browser) {
 		Server s = this.find(ServerSupport.server, both())
-			       .findFirst()
-			       .orElseThrow(() -> new IllegalArgumentException(" Server not found "));
+			.findFirst()
+			.orElseThrow(() -> new IllegalArgumentException(" Server not found "));
 
 
 		String bootstrap
-			    = "<html class='outputbox' style='background:rgba(0,0,0,0.2);padding:8px;'><head><style>" + styles + "</style></head><body class='outputbox' style='background:rgba(0,0,0,0.02);'>" + postamble;
+			= "<html class='outputbox' style='background:rgba(0,0,0,0.2);padding:8px;'><head><style>" + styles + "</style></head><body class='outputbox' style='background:rgba(0,0,0,0.02);'>" + postamble;
 		String res = UUID.randomUUID()
-				 .toString();
+			.toString();
 		s.setFixedResource("/" + res, bootstrap);
-		browser.properties.put(Browser.url, "http://localhost:"+s.port+"/" + res);
+		browser.properties.put(Browser.url, "http://localhost:" + s.port + "/" + res);
 
 
 		tick = 0;
 		RunLoop.main.getLoop()
-			    .attach(x -> {
-				    tick++;
-				    if (browser.browser.getURL()
-						       .equals("http://localhost:"+s.port+"/" + res)) {
+			.attach(x -> {
+				tick++;
+				if (browser.browser.getURL()
+					.equals("http://localhost:" + s.port + "/" + res)) {
 
-					    inject2(browser);
+					inject2(browser);
 //					    try {
 //						    Callbacks.call(browser, Callbacks.main, null);
 //					    }
@@ -136,15 +136,14 @@ public class OutputBox extends Box implements IO.Loaded {
 //					    {
 //						    e.printStackTrace();
 //					    };
-					    return false;
-				    }
-				    Log.log("glassBrowser.boot", ()->"WAITING url:" + browser.browser.getURL());
-				    Drawing.dirty(this);
+					return false;
+				}
+				Log.log("glassBrowser.boot", () -> "WAITING url:" + browser.browser.getURL());
+				Drawing.dirty(this);
 
 
-
-				    return tick < 100;
-			    });
+				return tick < 100;
+			});
 
 		Drawing.dirty(this);
 	}
@@ -152,9 +151,9 @@ public class OutputBox extends Box implements IO.Loaded {
 	int ignoreHide = 0;
 
 	public void inject2(Browser browser) {
-		Log.log("glassbrowser.debug", ()->"inject 2 is happening");
+		Log.log("glassbrowser.debug", () -> "inject 2 is happening");
 		for (String s : playlist) {
-			Log.log("glassbrowser.debug", ()->"executing :" + s);
+			Log.log("glassbrowser.debug", () -> "executing :" + s);
 			browser.executeJavaScript(findAndLoad(s, true));
 		}
 		//		 hide();
@@ -185,9 +184,10 @@ public class OutputBox extends Box implements IO.Loaded {
 
 		String[] roots = {Main.app + "/modules/fieldcore/resources/"};
 		for (String s : roots) {
-			if (new File(s + "/" + f).exists()) return readFile(s + "/" + f, append);
+			if (new File(s + "/" + f).exists())
+				return readFile(s + "/" + f, append);
 		}
-		Log.log("glassbrowser.error", ()->"Couldnt' find file in playlist :" + f);
+		Log.log("glassbrowser.error", () -> "Couldnt' find file in playlist :" + f);
 		return null;
 	}
 
@@ -205,7 +205,7 @@ public class OutputBox extends Box implements IO.Loaded {
 			super(null);
 
 			this.properties.put(Boxes.dontSave, true);
-			this.delegate= delegate;
+			this.delegate = delegate;
 
 		}
 

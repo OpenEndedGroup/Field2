@@ -54,6 +54,7 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 		this.properties.put(Chorder.nox, true);
 
 		loaded();
+		this.properties.put(Boxes.dontSave, true);
 	}
 
 
@@ -61,6 +62,7 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 	 * custom constructor, call init after you are done
 	 */
 	protected DispatchBox() {
+		this.properties.put(Boxes.dontSave, true);
 	}
 
 	static public Pair<FLine, Vec2> arc(Rect from, Rect to, boolean selected) {

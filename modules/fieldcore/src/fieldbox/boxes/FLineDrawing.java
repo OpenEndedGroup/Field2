@@ -197,10 +197,10 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 
 	// we need to be able to assign blame and propagate exceptions into callbacks
 	@Override
-	public void draw(Drawing context) {
+	public void draw(DrawingInterface context) {
 
 		Util.Errors error = new Util.Errors();
-		Optional<TextDrawing> text = first(TextDrawing.textDrawing, both());
+		Optional<TextDrawing> text = context.getTextDrawing(this);
 
 		this.breadthFirst(this.both())
 			.forEach(Util.wrap(x -> {
@@ -296,11 +296,11 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 		}
 	}
 
-	protected void dispatchLine(FLine fline, Drawing context, Optional<TextDrawing> text) {
+	protected void dispatchLine(FLine fline, DrawingInterface context, Optional<TextDrawing> text) {
 		dispatchLine(fline, context, text, "__main__");
 	}
 
-	protected void dispatchLine(FLine fline, Drawing context, Optional<TextDrawing> text, String defaultLayer) {
+	protected void dispatchLine(FLine fline, DrawingInterface context, Optional<TextDrawing> text, String defaultLayer) {
 		String layerName = fline.attributes.getOr(layer, () -> defaultLayer);
 
 		MeshBuilder line = context.getLine(layerName);

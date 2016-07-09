@@ -36,10 +36,10 @@ public class KeyboardFocus extends Box {
 
 			if (f == null) return new FLine();
 
-
-			FLine fr = new FLine().rect(f.x, f.y, f.w, f.h);
+			FLine fr = new FLine().rect(f.x, f.y, f.w , f.h );
 			fr.attributes.put(StandardFLineDrawing.thicken, new BasicStroke(10));
 			fr.attributes.put(StandardFLineDrawing.color, Colors.focusRing1);
+			fr.attributes.put(FLineDrawing.layer, focused.get(focused.size() - 1).properties.getOr(FLineDrawing.layer, ()->"__main__"));
 
 			return fr;
 		});
@@ -57,6 +57,7 @@ public class KeyboardFocus extends Box {
 			FLine fr = new FLine().rect(f.x - 5, f.y - 5, f.w + 10, f.h + 10);
 			fr.attributes.put(StandardFLineDrawing.thicken, new BasicStroke(1));
 			fr.attributes.put(StandardFLineDrawing.color, Colors.focusRing2);
+			fr.attributes.put(FLineDrawing.layer, focused.get(focused.size() - 1).properties.getOr(FLineDrawing.layer, ()->"__main__"));
 
 			return fr;
 		});
@@ -88,6 +89,12 @@ public class KeyboardFocus extends Box {
 		return focused.get(focused.size() - 1) == b;
 	}
 
+	public Optional<Box> getFocus()
+	{
+		if (focused.size()>0) return Optional.of(focused.get(focused.size()-1));
+		return Optional.empty();
+	}
+
 	public void claimFocus(Box b) {
 		List<Box> prev = new ArrayList<>(focused);
 
@@ -104,8 +111,4 @@ public class KeyboardFocus extends Box {
 		focused.remove(b);
 	}
 
-	public Optional<Box> getFocus() {
-		if (focused.size() == 0) return Optional.empty();
-		return Optional.of(focused.get(focused.size() - 1));
-	}
 }

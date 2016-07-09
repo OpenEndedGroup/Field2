@@ -319,7 +319,7 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 		if (arrowA != null) r1.add(arrowA);
 
 
-		f = FLinesAndJavaShapes.javaShapeToFLine(r1);
+		f = FLinesAndJavaShapes.javaShapeToFLineFlat(r1, 0.1f, 3);
 
 		f.attributes.put(fillColor, selected ? new Vec4(1, 1, 1, 0.5) : new Vec4(0.0, 0.0, 0.0, 0.05f));
 		f.attributes.put(strokeColor, selected ? new Vec4(1, 1, 1, 0.5) : new Vec4(0.0, 0.0, 0.0, 0.05f));

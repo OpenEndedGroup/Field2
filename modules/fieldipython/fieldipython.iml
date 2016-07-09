@@ -22,7 +22,7 @@
     </orderEntry>
     <orderEntry type="library" name="zmq" level="project" />
     <orderEntry type="library" name="jpy-0.8-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="rt" level="application" />
     <orderEntry type="library" name="fieldlinker" level="project" />
+    <orderEntry type="library" name="rt" level="project" />
   </component>
 </module>

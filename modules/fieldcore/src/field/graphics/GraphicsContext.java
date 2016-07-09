@@ -22,8 +22,8 @@ import java.util.function.Supplier;
 /**
  * Our main representation for an OpenGL graphics context.
  * <p>
- * The key complexity in doing graphics is that we wish to defer execution of drawing code to a particular time and place in the scene graph and that this scene graph drawing can only take place
- * inside an OpenGL graphics context. Additionally we want to be able to share pieces of the scene graph between multiple OpenGL graphics context while scene graphs have all kinds of state (OpenGL
+ * The key complexity in doing graphics is that we wish to defer execution of drawing code to a particular time and place in the internalScene graph and that this internalScene graph drawing can only take place
+ * inside an OpenGL graphics context. Additionally we want to be able to share pieces of the internalScene graph between multiple OpenGL graphics context while internalScene graphs have all kinds of state (OpenGL
  * names and configuration state back from OpenGL) that's per Graphics Context. This class contains all of the utilities to help.
  * <p>
  * Let's take a concrete example. Say you want to delete a mesh, because you are done with it. what could mesh.delete() do? Well, it could remove mesh from the scenegraph. But that's not enough. It
@@ -131,8 +131,7 @@ public class GraphicsContext {
 		return (T) currentGraphicsContext.get().context.remove(key);
 	}
 
-	static public final boolean noChecks = Options.dict()
-						      .isTrue(new Dict.Prop("noChecks"), false);
+	static public final boolean noChecks = Options.dict().isTrue(new Dict.Prop("noChecks"), false);
 
 	public static void checkError() {
 		if (noChecks) return;
@@ -168,8 +167,9 @@ public class GraphicsContext {
 //		}
 
 		if (e != 0) {
-			throw new IllegalStateException(
+			System.err.println(
 				    "GLERROR:" + /*GLUtil.getErrorString(*/e/*)*/ + " -- " + message.get() + "\nState tracker is:" + GraphicsContext.getContext().stateTracker.dumpOutput());
+//			System.exit(0);
 		}
 	}
 

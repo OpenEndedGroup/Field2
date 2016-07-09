@@ -15,6 +15,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -33,7 +36,7 @@ public class Scene extends Box implements Linker.AsMap {
 
 	static public Dict.Prop<LinkedHashMapAndArrayList<Perform>> passes = new Dict.Prop<LinkedHashMapAndArrayList<Perform>>("passes").toCannon();
 	protected Set<String> knownNonProperties;
-	TreeMap<Integer, Set<Consumer<Integer>>> scene = new TreeMap<>();
+	public TreeMap<Integer, Set<Consumer<Integer>>> internalScene = new TreeMap<>();
 	BiMap<String, Consumer<Integer>> tagged = HashBiMap.create();
 	List<Throwable> exceptions = new ArrayList<Throwable>();
 
@@ -56,8 +59,8 @@ public class Scene extends Box implements Linker.AsMap {
 	 * A (int pass, Consumer<Integer>) tuple can be effectively cast as a Perform. The int says what pass the consumer should be run for, and the consumer is called for that pass
 	 */
 	public boolean attach(int pass, Consumer<Integer> p) {
-		Set<Consumer<Integer>> c = scene.get(pass);
-		if (c == null) scene.put(pass, c = new LinkedHashSet<Consumer<Integer>>());
+		Set<Consumer<Integer>> c = internalScene.get(pass);
+		if (c == null) internalScene.put(pass, c = new LinkedHashSet<Consumer<Integer>>());
 		return c.add(p);
 	}
 
@@ -65,7 +68,7 @@ public class Scene extends Box implements Linker.AsMap {
 	 * A (int pass, String tag, Consumer<Integer>) tuple can be effectively cast as a Perform. The int says what pass the consumer should be run for, and the consumer is called for that pass.
 	 * <p>
 	 * The additional "tag" gives this consumer a name, so that it can be referred to later. Note that at any given time there can only be one Perform or Consumer with any particular tag
-	 * associated with a Scene, anything previously tagged with this scene is automatically disconnected. This allows you write code in "idempotent" style: specifically you can have connect(...)
+	 * associated with a Scene, anything previously tagged with this internalScene is automatically disconnected. This allows you write code in "idempotent" style: specifically you can have connect(...)
 	 * calls that can be safely (although not particularlly efficiently) called over and over again. This is good for rapidly iterating on a problem without having to worry about tearing down
 	 * resources that you constructed.
 	 */
@@ -73,7 +76,7 @@ public class Scene extends Box implements Linker.AsMap {
 		Consumer<Integer> was = tagged.remove(tag);
 		if (was != null) detach(was);
 
-		Set<Consumer<Integer>> c = scene.computeIfAbsent(pass, k -> new LinkedHashSet<>());
+		Set<Consumer<Integer>> c = internalScene.computeIfAbsent(pass, k -> new LinkedHashSet<>());
 
 		tagged.put(tag, p);
 
@@ -82,7 +85,7 @@ public class Scene extends Box implements Linker.AsMap {
 
 	/**
 	 * The additional "tag" gives this consumer a name, so that it can be referred to later. Note that at any given time there can only be one Perform or Consumer with any particular tag
-	 * associated with a Scene, anything previously tagged with this scene is automatically disconnected. This allows you write code in "idempotent" style: specifically you can have connect(...)
+	 * associated with a Scene, anything previously tagged with this internalScene is automatically disconnected. This allows you write code in "idempotent" style: specifically you can have connect(...)
 	 * calls that can be safely (although not particularlly efficiently) called over and over again. This is good for rapidly iterating on a problem without having to worry about tearing down
 	 * resources that you constructed.
 	 */
@@ -92,7 +95,7 @@ public class Scene extends Box implements Linker.AsMap {
 
 		boolean pp = false;
 		for (int pass : p.getPasses()) {
-			Set<Consumer<Integer>> c = scene.computeIfAbsent(pass, k -> new LinkedHashSet<>());
+			Set<Consumer<Integer>> c = internalScene.computeIfAbsent(pass, k -> new LinkedHashSet<>());
 			pp |= c.add(p);
 		}
 
@@ -102,11 +105,11 @@ public class Scene extends Box implements Linker.AsMap {
 	}
 
 	/**
-	 * Disconnects a Perform from this Scene. Care has been taken to ensure you can do this while the scene is being traversed.
+	 * Disconnects a Perform from this Scene. Care has been taken to ensure you can do this while the internalScene is being traversed.
 	 */
 	public void detach(Consumer<Integer> p) {
 
-		List<Boolean> removed = scene.values()
+		List<Boolean> removed = internalScene.values()
 					     .stream()
 					     .map(x -> x.remove(p))
 					     .filter(x -> x)
@@ -117,7 +120,7 @@ public class Scene extends Box implements Linker.AsMap {
 	}
 
 	/**
-	 * Disconnects a Perform from this Scene. Care has been taken to ensure you can do this while the scene is being traversed.
+	 * Disconnects a Perform from this Scene. Care has been taken to ensure you can do this while the internalScene is being traversed.
 	 * <p>
 	 * returns true if there was something tagged "tag";
 	 */
@@ -128,7 +131,7 @@ public class Scene extends Box implements Linker.AsMap {
 	}
 
 	/**
-	 * connects a Perform to this Scene. Care has been taken to ensure you can do this while the scene is being traversed.
+	 * connects a Perform to this Scene. Care has been taken to ensure you can do this while the internalScene is being traversed.
 	 */
 	public boolean attach(Perform p) {
 		boolean m = false;
@@ -145,7 +148,6 @@ public class Scene extends Box implements Linker.AsMap {
 		Box p = super.connect(b);
 		return p;
 	}
-
 
 	protected TreeMap<Integer, Set<Consumer<Integer>>> collectChildrenPasses() {
 
@@ -171,7 +173,7 @@ public class Scene extends Box implements Linker.AsMap {
 
 
 	/**
-	 * updates everything in the scene. This is the main entry point for performing a complete update cycle.
+	 * updates everything in the internalScene. This is the main entry point for performing a complete update cycle.
 	 */
 	public void updateAll() {
 		update(new ArrayDeque<Pair<Integer, Callable<Boolean>>>());
@@ -186,7 +188,7 @@ public class Scene extends Box implements Linker.AsMap {
 	}
 
 	protected boolean update(Queue<Pair<Integer, Callable<Boolean>>> a) {
-		GraphicsContext.checkError(() -> "on entry ");
+		GraphicsContext.checkError(() -> "on internalScene entry for "+this);
 		exceptions.clear();
 
 		boolean ret = true;
@@ -196,7 +198,7 @@ public class Scene extends Box implements Linker.AsMap {
 			TreeMap<Integer, Set<Consumer<Integer>>> c1 = collectChildrenPasses();
 			if (c1 == null) c1 = new TreeMap<>();
 
-			for (Map.Entry<Integer, Set<Consumer<Integer>>> c2 : scene.entrySet()) {
+			for (Map.Entry<Integer, Set<Consumer<Integer>>> c2 : internalScene.entrySet()) {
 				if (c1.get(c2.getKey()) == null) c1.put(c2.getKey(), c2.getValue());
 				else c1.get(c2.getKey())
 				       .addAll(c2.getValue());
@@ -225,8 +227,8 @@ public class Scene extends Box implements Linker.AsMap {
 			while (!a.isEmpty()) ret = wrappedCall(a.poll().second);
 
 			if (exceptions.size() > 0) {
-				System.err.println(" Exceptions thrown in scene update ");
-				System.err.println(" (Performs responsible have been removed from the scene, if they were directly attached) ");
+				System.err.println(" Exceptions thrown in internalScene update ");
+				System.err.println(" (Performs responsible have been removed from the internalScene, if they were directly attached) ");
 				System.err.println(" Details: ");
 				for (Throwable t : exceptions) {
 					t.printStackTrace();
@@ -284,7 +286,7 @@ public class Scene extends Box implements Linker.AsMap {
 	}
 
 	/**
-	 * returns a toString for everything in the scene.
+	 * returns a toString for everything in the internalScene.
 	 */
 
 	public String debugPrintScene() {
@@ -299,7 +301,7 @@ public class Scene extends Box implements Linker.AsMap {
 		String prefix = indent;
 		if (seen.contains(this)) return ret;
 
-		for (Map.Entry<Integer, Set<Consumer<Integer>>> c : scene.entrySet()) {
+		for (Map.Entry<Integer, Set<Consumer<Integer>>> c : internalScene.entrySet()) {
 			String tag = tagged.inverse()
 					   .get(c.getValue());
 			ret = ret + prefix + "" + c.getKey() + ":" + (tag == null ? "" : tag) + "\n<p>";
@@ -328,7 +330,7 @@ public class Scene extends Box implements Linker.AsMap {
 		if (seen.contains(cc)) return ret;
 		seen.add(cc);
 		if (cc instanceof Scene) {
-			for (Map.Entry<Integer, Set<Consumer<Integer>>> c : ((Scene) cc).scene.entrySet()) {
+			for (Map.Entry<Integer, Set<Consumer<Integer>>> c : ((Scene) cc).internalScene.entrySet()) {
 				String tag = tagged.inverse()
 						   .get(c.getValue());
 				ret = ret + prefix + "" + c.getKey() + ":" + (tag == null ? "" : tag) + "\n<p>";
@@ -470,7 +472,7 @@ public class Scene extends Box implements Linker.AsMap {
 
 	@Override
 	public Object asMap_setElement(int element, Object v) {
-		throw new IllegalArgumentException("Can't set ["+element+"] on a scene. Add it as a name instead (e.g scene["+element+"].something = ...");
+		throw new IllegalArgumentException("Can't set ["+element+"] on a internalScene. Add it as a name instead (e.g internalScene["+element+"].something = ...");
 	}
 
 

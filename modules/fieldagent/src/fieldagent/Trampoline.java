@@ -123,7 +123,8 @@ public class Trampoline {
 							.getLocation()
 							.getFile(), name.replace(".", "/") + ".class");
 
-						if (f.exists()) {
+						if (f.exists())
+						{
 							Record rec = new Record(f.getAbsolutePath(), f.lastModified());
 							if (rec.modification != 0) {
 								loadMap.put(c, rec);

@@ -3,8 +3,9 @@ package field.utility;
 import com.google.common.collect.MapMaker;
 import fieldlinker.Linker;
 import fieldbox.execution.Execution;
-import sun.reflect.CallerSensitive;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import org.apache.commons.lang.NotImplementedException;
+//import sun.reflect.CallerSensitive;
+//import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -161,7 +162,7 @@ public class Dict implements Serializable, Linker.AsMap {
 			return documentation;
 		}
 
-		@CallerSensitive
+//		@CallerSensitive
 		public <T> Prop<T> type() {
 
 			Prop on = this;

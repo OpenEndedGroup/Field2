@@ -16,17 +16,17 @@
     <orderEntry type="library" name="poly2tri-core-0.1.1-SNAPSHOT" level="project" />
     <orderEntry type="library" name="quickhull3d" level="project" />
     <orderEntry type="library" exported="" name="json-20160212" level="project" />
-    <orderEntry type="library" name="java_websocket" level="project" />
+    <orderEntry type="library" exported="" name="java_websocket" level="project" />
     <orderEntry type="library" name="edn-java-0.4.4" level="project" />
     <orderEntry type="library" name="protobuf-java-2.6.1" level="project" />
     <orderEntry type="library" name="qdox-2.0-M1" level="project" />
     <orderEntry type="library" name="cassowary" level="project" />
     <orderEntry type="library" name="orient" level="project" />
-    <orderEntry type="library" name="rt" level="application" />
     <orderEntry type="module" module-name="fieldlinker" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="fieldlinker" level="project" />
     <orderEntry type="module" module-name="fieldcef_macosx" />
     <orderEntry type="library" name="txtmark-0.14-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="rt" level="project" />
   </component>
 </module>

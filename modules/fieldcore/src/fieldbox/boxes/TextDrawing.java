@@ -21,11 +21,14 @@ import java.util.Map;
  * You wouldn't want to look at pages of small text rendered this way (i.e, don't go building a text editor with this), but for larger text or labels
  * this is very fast, smooth, stably anti-aliased and comes with no runtime native dependencies (either on native libraries directly or indirectly
  * via Java windowing toolkits).
- *
+ * <p>
  * Todo: more fonts, sub-pixel hinting?
  * Todo: if we were really good, we'd autogenerate .fnt files on demand
  */
 public class TextDrawing extends Box {
+
+
+	private DrawingInterface fixedInterface;
 
 	public class PerLayer {
 		protected Shader mainShader;
@@ -43,13 +46,16 @@ public class TextDrawing extends Box {
 			BaseMesh mesh = BaseMesh.triangleList(4, 4);
 			this.mesh = new MeshBuilder(mesh);
 			font = new DrawBitmapFont(Thread.currentThread().getContextClassLoader().getResource("fonts/" + name)
-				    .getFile(), this.mesh, 0, 5000);
+				.getFile(), this.mesh, 0, 5000);
 			mesh.attach(font.getTexture());
 
 			layerLocal.get(layer).mainShader.attach(new Guard(mesh, (p) -> mesh.getVertexLimit() > 0));
 
-			Drawing drawing = first(Drawing.drawing, both()).orElseThrow(() -> new IllegalArgumentException(" where has Drawing gone ?"));
-			drawing.addBracketable(this.mesh);
+			if (fixedInterface != null)
+				fixedInterface.addBracketable(this.mesh);
+			else
+				first(Drawing.drawing, both()).map(drawing ->
+					drawing.addBracketable(this.mesh));
 		}
 	}
 
@@ -68,9 +74,9 @@ public class TextDrawing extends Box {
 
 	public Box install(Box root, String layerName) {
 		FieldBoxWindow window = root.first(Boxes.window)
-			    .orElseThrow(() -> new IllegalArgumentException(" can't draw a box hierarchy with no window to draw it in !"));
+			.orElseThrow(() -> new IllegalArgumentException(" can't draw a box hierarchy with no window to draw it in !"));
 		Drawing drawing = root.first(Drawing.drawing)
-			    .orElseThrow(() -> new IllegalArgumentException(" can't install textdrawing into something without drawing support"));
+			.orElseThrow(() -> new IllegalArgumentException(" can't install textdrawing into something without drawing support"));
 
 		properties.put(textDrawing, this);
 
@@ -79,49 +85,48 @@ public class TextDrawing extends Box {
 		layer.mainShader = new Shader();
 
 		layer.mainShader.addSource(Shader.Type.vertex, "#version 410\n" +
-			    "layout(location=0) in vec3 position;\n" +
-			    "layout(location=1) in vec4 color;\n" +
-			    "layout(location=3) in vec4 tc;\n" +
-			    "out vec4 vertexColor;\n" +
-			    "out vec4 vtc;\n" +
+			"layout(location=0) in vec3 position;\n" +
+			"layout(location=1) in vec4 color;\n" +
+			"layout(location=3) in vec4 tc;\n" +
+			"out vec4 vertexColor;\n" +
+			"out vec4 vtc;\n" +
 
-			    "uniform vec2 translation;\n" +
-			    "uniform vec2 scale;\n" +
-			    "uniform vec2 bounds;\n" +
-			    "uniform float smoothing;\n" +
+			"uniform vec2 translation;\n" +
+			"uniform vec2 scale;\n" +
+			"uniform vec2 bounds;\n" +
+			"uniform float smoothing;\n" +
 
-			    "void main()\n" +
-			    "{\n" +
-			    "	vec2 at = (scale.xy*position.xy+translation.xy)/bounds.xy;\n" +
-			    "   gl_Position =  vec4(-1+at.x*2, 1-at.y*2, 0.5, 1.0);\n" +
-			    "   vertexColor = color;\n" +
-			    "   vtc =tc;\n" +
-			    "   vtc.z =tc.z;\n" +
-			    "}");
-
+			"void main()\n" +
+			"{\n" +
+			"	vec2 at = (scale.xy*position.xy+translation.xy)/bounds.xy;\n" +
+			"   gl_Position =  vec4(-1+at.x*2, 1-at.y*2, 0.5, 1.0);\n" +
+			"   vertexColor = color;\n" +
+			"   vtc =tc;\n" +
+			"   vtc.z =tc.z;\n" +
+			"}");
 
 
 		// smoothing needs to be around 1 for font scales of 4 and 0.02 for font scales of 0.2
 
 		layer.mainShader.addSource(Shader.Type.fragment, "#version 410\n" +
-			    "layout(location=0) out vec4 _output;\n" +
-			    "in vec4 vertexColor;\n" +
-			    "in vec4 vtc;\n" +
-			    "uniform sampler2D te;\n" +
-			    "\n" +
-			    "uniform float gamma;\n" +
-			    "uniform float opacity;\n" +
-			    "\n" +
-			    "void main()\n" +
-			    "{\n" +
-			    "\tfloat w = min(0.4, 0.1/vtc.z);\n" +
-			    "\n" +
-			    "\tvec4 current = texture(te, vtc.xy*(1/1024.0),0);\n" +
-			    "\tfloat currenta = smoothstep(0.5-w, 0.5+w, current.r);\n" +
-			    "\tcurrenta = pow(currenta, 1/gamma);\n" +
-			    "\t_output  = vec4(1,1,1,currenta*opacity)*vertexColor;\n" +
-			    "\n" +
-			    "}");
+			"layout(location=0) out vec4 _output;\n" +
+			"in vec4 vertexColor;\n" +
+			"in vec4 vtc;\n" +
+			"uniform sampler2D te;\n" +
+			"\n" +
+			"uniform float gamma;\n" +
+			"uniform float opacity;\n" +
+			"\n" +
+			"void main()\n" +
+			"{\n" +
+			"\tfloat w = min(0.4, 0.1/vtc.z);\n" +
+			"\n" +
+			"\tvec4 current = texture(te, vtc.xy*(1/1024.0),0);\n" +
+			"\tfloat currenta = smoothstep(0.5-w, 0.5+w, current.r);\n" +
+			"\tcurrenta = pow(currenta, 1/gamma);\n" +
+			"\t_output  = vec4(1,1,1,currenta*opacity)*vertexColor;\n" +
+			"\n" +
+			"}");
 
 		layer.mainShader.attach(new Uniform<Vec2>("translation", () -> drawing.getTranslationRounded()));
 		layer.mainShader.attach(new Uniform<Vec2>("scale", () -> drawing.getScale()));
@@ -131,6 +136,28 @@ public class TextDrawing extends Box {
 		layer.mainShader.attach(new Uniform<Float>("opacity", () -> 1.0f));
 
 		window.getCompositor().getLayer(layerName).getScene().attach(layer.mainShader);
+
+		return this;
+	}
+
+	public Box install(String layerName, Shader customShader, DrawingInterface fixedInterface) {
+		this.fixedInterface = fixedInterface;
+
+		properties.put(textDrawing, this);
+
+		PerLayer layer = layerLocal.computeIfAbsent(layerName, (k) -> new PerLayer());
+
+		layer.mainShader = customShader;
+
+
+//		layer.mainShader.attach(new Uniform<Vec2>("translation", () -> drawing.getTranslationRounded()));
+//		layer.mainShader.attach(new Uniform<Vec2>("scale", () -> drawing.getScale()));
+//		layer.mainShader.attach(new Uniform<Vec2>("bounds", () -> new Vec2(Window.getCurrentWidth(), Window.getCurrentHeight())));
+		layer.mainShader.attach(new Uniform<Float>("smoothing", () -> smoothing));
+		layer.mainShader.attach(new Uniform<Float>("gamma", () -> gamma));
+		layer.mainShader.attach(new Uniform<Float>("opacity", () -> 1.0f));
+
+//		window.getCompositor().getLayer(layerName).getScene().attach(layer.mainShader);
 
 		return this;
 	}
