@@ -29,7 +29,8 @@ import static fieldbox.boxes.FLineDrawing.frameDrawing;
  */
 public class TimeSlider extends Box {
 
-	static public final Dict.Prop<TimeSlider> time = new Dict.Prop<>("time").toCannon().doc("the defualt red-line time slider. Set `_.time.frame.x` = something to move it around.");
+	static public final Dict.Prop<TimeSlider> time = new Dict.Prop<>("time").toCannon().doc("the default red-line time slider. Set `_.time.frame.x` = something to move it around.");
+	static public final Dict.Prop<Double> velocity = new Dict.Prop<>("velocity").toCannon().doc("the rate at which this time slider is moving (that is, delta-frame.x per update).");
 
 	Rect was = null;
 
@@ -47,17 +48,20 @@ public class TimeSlider extends Box {
 		this.properties.put(Box.name, "TimeSlider");
 
 		this.properties.computeIfAbsent(frameDrawing, this::defaultdrawsLines);
+		this.properties.put(velocity, 0d);
 	}
 
 	protected boolean swiper() {
 
 		if (was == null) {
+			this.properties.put(velocity, 0d);
 			was = this.properties.get(frame).duplicate();
 		} else {
 			Rect now = this.properties.get(frame);
 			if (now.x == was.x) {
-
+				this.properties.put(velocity, 0d);
 			} else {
+				this.properties.put(velocity, (double)(now.x-was.x));
 				perform(was, now);
 			}
 			was = now.duplicate();
@@ -131,6 +135,10 @@ public class TimeSlider extends Box {
 		});
 	}
 
+	/**
+	 * returns the list of boxes that this Time Slider currently intersects (and thus interacts) with
+	 * @return
+     */
 	public List<Box> intersectsWith()
 	{
 		Rect now = properties.get(frame);
@@ -146,10 +154,18 @@ public class TimeSlider extends Box {
 	 * builds the initiator object for this "begin" call. This can be used to get at the object that caused this "animation" to begin.
 	 * @param b
 	 */
-	protected Map<String, Object> initiator(Box b) {
+	public Map<String, Object> initiator(Box b) {
 		Linker.AsMap init = Initiators.get(b, () -> this.properties.get(Box.frame).x, () -> this.properties.get(Box.frame).y);
 		init.asMap_set("slider", this);
 		return Collections.singletonMap("_t", init);
+	}
+
+	/**
+	 * begins a box, given this slider. This is a lot like `_.begin()` except this slider is passed in as the reason that this box is running. In particular `_t()` works as expected and is tied to the position of this slider.
+	 */
+	public void beginBox(Box b)
+	{
+		b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).begin(b, initiator(b)));
 	}
 
 	/**
