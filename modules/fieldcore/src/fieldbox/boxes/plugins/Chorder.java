@@ -43,7 +43,6 @@ public class Chorder extends Box {
 	static public final Dict.Prop<Boolean> nox = new Dict.Prop<>("_nox").type()
 									    .toCannon()
 									    .doc("'NO eXecution. Set to prevent option-clicking from running this box");
-	private Map<String, Object> initiator;
 
 
 	public Chorder(Box root_unused) {
@@ -150,7 +149,6 @@ public class Chorder extends Box {
 						   box.first(Execution.execution)
 						      .ifPresent(x -> x.support(box, Execution.code)
 								       .end(box));
-						   Drawing.dirty(this);
 						   Drawing.dirty(this, 3);
 					   }));
 			return MarkingMenus.runMenu(box, point, menuSpec);
