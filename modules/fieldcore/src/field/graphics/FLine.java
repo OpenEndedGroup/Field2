@@ -1092,7 +1092,8 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 	public Object asMap_set(String name, Object value) {
 
 		// workaround bug in Nashorn
-//		if (value instanceof ConsString) value = value.toString();
+//		if (value instanceof ConsString) value = value.toString(); //jdk9 module security breaks this
+		if (value!=null && value.getClass().getName().endsWith("ConsString")) value = ""+value;
 
 
 		Dict.Prop cannon = new Dict.Prop(name).toCannon();
