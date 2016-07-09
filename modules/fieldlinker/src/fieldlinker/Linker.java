@@ -31,7 +31,7 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 	boolean debug = System.getProperty("debugLinker") != null;
 
 	{
-		debug = false;
+		debug = true;
 	}
 
 	public interface CustomDelete {
@@ -70,7 +70,7 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 
 
 	public Linker() {
-		System.err.println(" linker has been instantiated " + disabled + " " + debug);
+		System.err.println(" linker! has been instantiated " + disabled + " " + debug);
 	}
 
 

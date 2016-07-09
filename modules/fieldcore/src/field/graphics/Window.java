@@ -107,6 +107,10 @@ public class Window implements ProvidesGraphicsContext {
 
 	public Window(int x, int y, int w, int h, String title, boolean permitRetina) {
 
+		System.out.println(" -- A ");
+
+		new Exception().printStackTrace();
+
 		Configuration.GLFW_CHECK_THREAD0.set(false);
 
 		Windows.windows.init();
@@ -139,6 +143,7 @@ public class Window implements ProvidesGraphicsContext {
 		glfwWindowHint(GLFW_DOUBLEBUFFER, doubleBuffered ? 1 : 0);
 
 		glfwWindowHint(GLFW_DECORATED, title == null ? 0 : 1);
+		System.out.println(" -- B ");
 
 //		glfwWindowHint(GLFW_CONTEXT_RELEASE_BEHAVIOR, GLFW_RELEASE_BEHAVIOR_NONE);
 
@@ -148,8 +153,9 @@ public class Window implements ProvidesGraphicsContext {
 		this.y = y;
 
 
-	try {
-			ThreadSync.callInMainThreadAndWait(() -> {
+//	try {
+//			ThreadSync.callInMainThreadAndWait(() -> {
+				System.out.println(" -- C");
 				window = glfwCreateWindow(w, h, title, 0, shareContext == this ? 0 : shareContext.window);
 				if (window == 0) {
 					System.err.println(" FAILED TO CREATE WINDOW :" + shareContext);
@@ -160,7 +166,9 @@ public class Window implements ProvidesGraphicsContext {
 				glfwShowWindow(window);
 
 				glfwMakeContextCurrent(window);
-				glfwSwapInterval(1);
+//				glfwSwapInterval(1);
+
+				glfwSwapInterval(0);
 
 				glfwWindowShouldClose(window);
 
@@ -193,12 +201,13 @@ public class Window implements ProvidesGraphicsContext {
 				windowOpenedAt = RunLoop.tick;
 
 				modifiers = new CanonicalModifierKeys(window);
+				System.out.println(" -- D");
 
-				return window;
-			});
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+//				return window;
+//			});
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
 
 
 		new Thread() {
@@ -357,7 +366,7 @@ public class Window implements ProvidesGraphicsContext {
 			needsRepainting = false;
 			glfwMakeContextCurrent(window);
 			try {
-				glfwSwapInterval(1);
+				glfwSwapInterval(0);
 
 				GL.setCapabilities(glcontext);
 
@@ -470,7 +479,7 @@ public class Window implements ProvidesGraphicsContext {
 			GraphicsContext.getContext().stateTracker.shader.set(0);
 			GraphicsContext.getContext().stateTracker.blendState.set(new int[]{GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA});
 
-			Log.log("graphics.trace", () -> "scene is ...\n" + scene.debugPrintScene());
+			Log.log("graphics.trace", () -> "internalScene is ...\n" + scene.debugPrintScene());
 
 			scene.updateAll();
 		} finally {
