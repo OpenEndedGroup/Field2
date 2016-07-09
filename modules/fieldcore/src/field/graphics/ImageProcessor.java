@@ -85,7 +85,7 @@ public class ImageProcessor {
 	public boolean disabledPlane = false;
 
 	/**
-	 * returns a Perform that will draw this when inserted into the scene graph (as in canvas.scene.updateMyProcessor = proc.getDraw(4) )
+	 * returns a Perform that will draw this when inserted into the internalScene graph (as in canvas.internalScene.updateMyProcessor = proc.getDraw(4) )
 	 */
 	public Perform getDraw() {
 		return new Perform() {

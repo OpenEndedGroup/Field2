@@ -13,7 +13,7 @@ import java.util.function.Supplier;
 import static org.lwjgl.opengl.GL20.*;
 
 /**
- * A Scene.Perform that allows you to set a uniform value on a shader at an element in the scene graph.
+ * A Scene.Perform that allows you to set a uniform value on a shader at an element in the internalScene graph.
  * <p>
  * Obviously you can .connect these to Shader's to set the value of uniform variables inside shaders, but it's often more useful to .connect these to, say, BaseMeshes to set these values per-mesh
  * rather than per shader. More likely yet is that you have a bunch of uniforms to set at a single point in the graph. See UniformBundle.
@@ -128,7 +128,7 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 	}
 
 	/**
-	 * gets the value of this uniform most recently sent to the graphics system. Note: if this uniform is attached to the scene, but no shader cares about this uniform, this will always return
+	 * gets the value of this uniform most recently sent to the graphics system. Note: if this uniform is attached to the internalScene, but no shader cares about this uniform, this will always return
 	 * null
 	 */
 	public T get() {
