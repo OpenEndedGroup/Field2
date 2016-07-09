@@ -252,6 +252,8 @@ public class Open {
 
 		new WebApps(boxes.root()).connect(boxes.root());
 
+		new Exec(boxes.root()).connect(boxes.root());
+
 		if (ThreadSync.enabled) new ThreadSyncFeedback(boxes.root()).connect(boxes.root());
 
 		FileBrowser fb = new FileBrowser(boxes.root());
