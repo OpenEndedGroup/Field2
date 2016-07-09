@@ -362,7 +362,6 @@ public class FrameManipulation extends Box {
 		})
 			.orElseGet(() -> {
 
-				<<<<<<<HEAD
 				if (!e.after.buttonsDown.contains(0)) return null;
 				if (e.after.keyboardState.isAltDown()) return null;
 
