@@ -9,10 +9,7 @@ import field.utility.Dict;
 import field.utility.Pair;
 import field.utility.Rect;
 import field.utility.Triple;
-import fieldbox.boxes.Box;
-import fieldbox.boxes.Drawing;
-import fieldbox.boxes.MarkingMenus;
-import fieldbox.boxes.Mouse;
+import fieldbox.boxes.*;
 import fieldbox.execution.Execution;
 import fieldlinker.Linker;
 
@@ -26,6 +23,7 @@ import java.util.stream.Stream;
 import static field.graphics.StandardFLineDrawing.*;
 import static fieldbox.boxes.FLineDrawing.expires;
 import static fieldbox.boxes.FLineDrawing.frameDrawing;
+import static fieldbox.boxes.FLineDrawing.layer;
 
 /**
  * Created by marc on 4/16/14.
@@ -111,6 +109,7 @@ public class Chorder extends Box {
 
 				f.attributes.put(strokeColor, new Vec4(0.5f, 0.75f, 0.5f, -0.5f));
 				f.attributes.put(thicken, new BasicStroke(10.5f));
+				f.attributes.put(layer, "__main__.fast");
 
 				return f;
 
@@ -227,6 +226,7 @@ public class Chorder extends Box {
 			f.lineTo(end.x, end.y, 0);
 			f.attributes.put(color, new Vec4(0.5f, 0.95f, 0.6f, 0.15f));
 			f.attributes.put(thicken, new BasicStroke(3.5f));
+			f.attributes.put(layer, "__main__.fast");
 
 			return f;
 		}, termination ? 50 : -1));
@@ -236,6 +236,7 @@ public class Chorder extends Box {
 			f.lineTo(end.x, end.y, 0);
 			f.attributes.put(color, new Vec4(0.5f, 0.95f, 0.6f, 0.5f));
 			f.attributes.put(thicken, new BasicStroke(1.5f));
+			f.attributes.put(layer, "__main__.fast");
 
 			return f;
 		}, termination ? 50 : -1));
@@ -267,6 +268,7 @@ public class Chorder extends Box {
 
 			f.attributes.put(strokeColor, new Vec4(0.5f, 0.75f, 0.5f, -0.5f));
 			f.attributes.put(thicken, new BasicStroke(10.5f));
+			f.attributes.put(layer, "__main__.fast");
 
 			return f;
 
@@ -289,6 +291,7 @@ public class Chorder extends Box {
 			f.attributes.put(color, new Vec4(0.5f, 0.75f, 0.5f, -0.75f));
 			f.attributes.put(filled, true);
 			f.attributes.put(stroked, false);
+			f.attributes.put(layer, "__main__.fast");
 			return f;
 
 		}, termination ? 50 : -1));
@@ -312,6 +315,7 @@ public class Chorder extends Box {
 
 			f.attributes.put(color, new Vec4(0.1f, 0.25f, 0.1f, 0.75f));
 			f.attributes.put(hasText, true);
+			f.attributes.put(layer, "__main__.fast");
 			return f;
 
 		}, termination ? 50 : -1));
