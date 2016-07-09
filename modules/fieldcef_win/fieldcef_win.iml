@@ -10,5 +10,6 @@
     <orderEntry type="module" module-name="fieldagent" />
     <orderEntry type="module" module-name="fieldcore" />
     <orderEntry type="module" module-name="fieldlinker" />
+    <orderEntry type="library" name="rt" level="project" />
   </component>
 </module>
