@@ -13,10 +13,7 @@ import org.apache.commons.math3.optim.univariate.UnivariateObjectiveFunction;
 import org.apache.commons.math3.optim.univariate.UnivariatePointValuePair;
 
 import java.awt.*;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Area;
-import java.awt.geom.GeneralPath;
-import java.awt.geom.PathIterator;
+import java.awt.geom.*;
 import java.util.*;
 import java.util.List;
 import java.util.function.Predicate;
@@ -251,6 +248,63 @@ public class FLinesAndJavaShapes {
 
 	static public FLine javaShapeToFLine(Shape f) {
 		return javaShapeToFLine(f, AffineTransform.getTranslateInstance(0,0));
+	}
+
+	static public FLine javaShapeToFLineFlat(Shape f, double tol, int levels) {
+		PathIterator pi = f.getPathIterator(AffineTransform.getTranslateInstance(0,0));
+		pi = new FlatteningPathIterator(pi, tol, levels);
+		float[] cc = new float[6];
+		Vec2 lastAt = null;
+		Vec2 lastMoveTo = null;
+
+		FLine in = new FLine();
+		while (!pi.isDone()) {
+			int ty = pi.currentSegment(cc);
+			if (ty == PathIterator.SEG_CLOSE) {
+				if (lastMoveTo != null && lastAt.distance(lastMoveTo) > 1e-6) in.lineTo(lastMoveTo.x, lastMoveTo.y);
+				lastAt = null;
+			} else if (ty == PathIterator.SEG_CUBICTO) {
+				if (lastAt == null || (Math.abs(lastAt.x - cc[4]) + Math.abs(lastAt.y - cc[5]) > 1e-15)) in.cubicTo(cc[0], cc[1], cc[2], cc[3], cc[4], cc[5]);
+				if (lastAt == null) lastAt = new Vec2(cc[4], cc[5]);
+				else {
+					lastAt.x = cc[4];
+					lastAt.y = cc[5];
+				}
+			} else if (ty == PathIterator.SEG_LINETO) {
+				if (lastAt == null || (Math.abs(lastAt.x - cc[0]) + Math.abs(lastAt.y - cc[1]) > 1e-15)) in.lineTo(cc[0], cc[1]);
+				if (lastAt == null) lastAt = new Vec2(cc[0], cc[1]);
+				else {
+					lastAt.x = cc[0];
+					lastAt.y = cc[1];
+				}
+			} else if (ty == PathIterator.SEG_MOVETO) {
+				if (lastAt == null || (Math.abs(lastAt.x - cc[0]) + Math.abs(lastAt.y - cc[1]) > 1e-15)) in.moveTo(cc[0], cc[1]);
+
+				lastMoveTo = new Vec2(cc[0], cc[1]);
+
+				if (lastAt == null) lastAt = new Vec2(cc[0], cc[1]);
+				else {
+					lastAt.x = cc[0];
+					lastAt.y = cc[1];
+				}
+			} else if (ty == PathIterator.SEG_QUADTO) {
+				if (lastAt == null || (Math.abs(lastAt.x - cc[2]) + Math.abs(lastAt.y - cc[3]) > 1e-15))
+					in.cubicTo((cc[0] - lastAt.x) * (2 / 3f) + lastAt.x, (cc[1] - lastAt.y) * (2 / 3f) + lastAt.y, (cc[0] - cc[2]) * (2 / 3f) + cc[2],
+							(cc[1] - cc[3]) * (2 / 3f) + cc[3], cc[2], cc[3]);
+
+				if (lastAt == null) lastAt = new Vec2(cc[2], cc[3]);
+				else {
+					lastAt.x = cc[2];
+					lastAt.y = cc[3];
+				}
+
+			}
+
+			pi.next();
+
+		}
+
+		return in;
 	}
 
 	static public FLine javaShapeToFLine(Shape f, AffineTransform at) {
