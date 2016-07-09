@@ -22,6 +22,7 @@ public class Numbers {
 
 		for (int i = cursor + 1; i < code.length(); i++) {
 			if (Character.isWhitespace(code.charAt(i))) break;
+			if (!Character.isDigit(code.charAt(i)) && code.charAt(i)!='.') break;
 
 			try {
 				double z = Double.parseDouble(a + code.charAt(i));
@@ -35,6 +36,7 @@ public class Numbers {
 		}
 		for (int i = cursor - 1; i >= 1; i--) {
 			if (Character.isWhitespace(code.charAt(i))) break;
+			if (!Character.isDigit(code.charAt(i)) && code.charAt(i)!='.' && code.charAt(i)!='-') break;
 			first = i;
 			try {
 				double z = Double.parseDouble(code.charAt(i) + a);
@@ -52,8 +54,11 @@ public class Numbers {
 			int indexOfPoint = a.contains(".") ? a.lastIndexOf(".") : a.length()-1;
 			int indexOfCursor = cursor-first;
 
+			double exp = (double)(indexOfPoint-indexOfCursor);
 
-			return new Quad<>(first, first+a.length(), a, (double)(indexOfPoint-indexOfCursor));
+			if (code.charAt(cursor+1)=='.') exp=0;
+
+			return new Quad<>(first, first+a.length(), a, exp);
 		} catch (NumberFormatException e) {
 			return null;
 		}
