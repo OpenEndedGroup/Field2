@@ -15,7 +15,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
+import java.util.stream.*;
 
 /**
  * Created by marc on 11/24/15.
@@ -189,7 +189,7 @@ public class ShaderIntrospection {
 									.values());
 
 		s.children().stream().filter(x -> x instanceof field.graphics.Uniform).forEach(x -> up.add((field.graphics.Uniform)x));
-		s.scene.values().stream().flatMap(x -> x.stream()).filter(x -> x instanceof field.graphics.Uniform).forEach(x -> up.add((field.graphics.Uniform)x));
+		s.internalScene.values().stream().flatMap(x -> x.stream()).filter(x -> x instanceof field.graphics.Uniform).forEach(x -> up.add((field.graphics.Uniform)x));
 
 		String e = checkUniforms("", up, up, convert);
 		directAttachmentErrors = e;
@@ -332,7 +332,7 @@ public class ShaderIntrospection {
 		Set<field.graphics.Uniform> up = new LinkedHashSet<>(ubp.getUniforms()
 									.values());
 		s.children().stream().filter(x -> x instanceof field.graphics.Uniform).forEach(x -> up.add((field.graphics.Uniform)x));
-		s.scene.values().stream().flatMap(x -> x.stream()).filter(x -> x instanceof field.graphics.Uniform).forEach(x -> up.add((field.graphics.Uniform)x));
+		s.internalScene.values().stream().flatMap(x -> x.stream()).filter(x -> x instanceof field.graphics.Uniform).forEach(x -> up.add((field.graphics.Uniform)x));
 
 
 		String e2 = checkUniforms("mesh", up, u, convert);
@@ -501,7 +501,7 @@ public class ShaderIntrospection {
 	protected <T extends Scene.Perform> Collection<T> collect(Scene s, Predicate<Scene.Perform> p) {
 		Set<T> r = new LinkedHashSet<>();
 
-		s.scene.values()
+		s.internalScene.values()
 		       .stream()
 		       .flatMap(x -> x.stream())
 //		       .map(x -> {
