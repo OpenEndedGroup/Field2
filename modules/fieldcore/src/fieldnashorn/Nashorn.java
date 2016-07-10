@@ -216,7 +216,7 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 
 	void setupInitialBindings(ScriptContext context, Box first) {
 		context.setAttribute("_", first, ScriptContext.ENGINE_SCOPE);
-		context.setAttribute("__", first.find(Boxes.root, first.both()), ScriptContext.ENGINE_SCOPE);
+		first.find(Boxes.root, first.both()).findFirst().ifPresent(x -> context.setAttribute("__", x, ScriptContext.ENGINE_SCOPE));
 
 		first.properties.put(boxBindings, context);
 	}
