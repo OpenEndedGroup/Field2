@@ -1,5 +1,4 @@
-<html>
-<!--
+/***
  * ASM: a very small and fast Java bytecode manipulation framework
  * Copyright (c) 2000-2011 INRIA, France Telecom
  * All rights reserved.
@@ -27,23 +26,55 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
--->
-<body>
-Provides an implementation for optional class, field and method attributes.
+ */
 
-<p>
+package fieldagent.asm.commons;
 
-    By default ASM strips optional attributes, in order to keep them in
-    the bytecode that is being readed you should pass an array of required attribute
-    instances to {@link fieldagent.asm.ClassReader#accept(fieldagent.asm.ClassVisitor, fieldagent.asm.Attribute[],
-    boolean) ClassReader.accept()} method.
-    In order to add custom attributes to the manually constructed bytecode concrete
-    subclasses of the {@link fieldagent.asm.Attribute Attribute} can be passed to
-    the visitAttribute methods of the
-    {@link fieldagent.asm.ClassVisitor ClassVisitor},
-    {@link fieldagent.asm.FieldVisitor FieldVisitor} and
-    {@link fieldagent.asm.MethodVisitor MethodVisitor} interfaces.
+import fieldagent.asm.ModuleVisitor;
+import fieldagent.asm.Opcodes;
 
-    @since ASM 1.4.1
-</body>
-</html>
+/**
+ * A {@link ModuleVisitor} adapter for type remapping.
+ * 
+ * @author Remi Forax
+ */
+public class ModuleRemapper extends ModuleVisitor {
+    private final Remapper remapper;
+
+    public ModuleRemapper(final ModuleVisitor mv, final Remapper remapper) {
+        this(Opcodes.ASM6, mv, remapper);
+    }
+
+    protected ModuleRemapper(final int api, final ModuleVisitor mv,
+            final Remapper remapper) {
+        super(api, mv);
+        this.remapper = remapper;
+    }
+
+    @Override
+    public void visitRequire(String module, int access) {
+        super.visitRequire(remapper.mapModuleName(module), access);
+    }
+    
+    @Override
+    public void visitExport(String packaze, String... modules) {
+        String[] newTos = null;
+        if (modules != null) {
+            newTos = new String[modules.length];
+            for(int i = 0 ; i < modules.length; i++) {
+                newTos[i] = remapper.mapModuleName(modules[i]);
+            }
+        }
+        super.visitExport(remapper.mapPackageName(packaze), newTos);
+    }
+    
+    @Override
+    public void visitUse(String service) {
+        super.visitUse(remapper.mapType(service));
+    }
+    
+    @Override
+    public void visitProvide(String service, String impl) {
+        super.visitProvide(remapper.mapType(service), remapper.mapType(impl));
+    }
+}

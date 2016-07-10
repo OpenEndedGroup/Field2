@@ -102,6 +102,7 @@ public class Analyzer<V extends Value> implements Opcodes {
      * @throws AnalyzerException
      *             if a problem occurs during the analysis.
      */
+    @SuppressWarnings("unchecked")
     public Frame<V>[] analyze(final String owner, final MethodNode m)
             throws AnalyzerException {
         if ((m.access & (ACC_ABSTRACT | ACC_NATIVE)) != 0) {
@@ -157,9 +158,6 @@ public class Analyzer<V extends Value> implements Opcodes {
         // initializes the data structures for the control flow analysis
         Frame<V> current = newFrame(m.maxLocals, m.maxStack);
         Frame<V> handler = newFrame(m.maxLocals, m.maxStack);
-
-	    System.out.println(" max locals are "+m.maxLocals+" "+m.maxStack);
-
         current.setReturn(interpreter.newValue(Type.getReturnType(m.desc)));
         Type[] args = Type.getArgumentTypes(m.desc);
         int local = 0;

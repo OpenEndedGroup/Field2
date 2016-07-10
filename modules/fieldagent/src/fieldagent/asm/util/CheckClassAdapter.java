@@ -44,6 +44,7 @@ import fieldagent.asm.ClassVisitor;
 import fieldagent.asm.FieldVisitor;
 import fieldagent.asm.Label;
 import fieldagent.asm.MethodVisitor;
+import fieldagent.asm.ModuleVisitor;
 import fieldagent.asm.Opcodes;
 import fieldagent.asm.Type;
 import fieldagent.asm.TypePath;
@@ -269,26 +270,26 @@ public class CheckClassAdapter extends ClassVisitor {
         for (int j = 0; j < method.instructions.size(); ++j) {
             method.instructions.get(j).accept(mv);
 
-            StringBuffer s = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             Frame<BasicValue> f = frames[j];
             if (f == null) {
-                s.append('?');
+                sb.append('?');
             } else {
                 for (int k = 0; k < f.getLocals(); ++k) {
-                    s.append(getShortName(f.getLocal(k).toString()))
+                    sb.append(getShortName(f.getLocal(k).toString()))
                             .append(' ');
                 }
-                s.append(" : ");
+                sb.append(" : ");
                 for (int k = 0; k < f.getStackSize(); ++k) {
-                    s.append(getShortName(f.getStack(k).toString()))
+                    sb.append(getShortName(f.getStack(k).toString()))
                             .append(' ');
                 }
             }
-            while (s.length() < method.maxStack + method.maxLocals + 1) {
-                s.append(' ');
+            while (sb.length() < method.maxStack + method.maxLocals + 1) {
+                sb.append(' ');
             }
             pw.print(Integer.toString(j + 100000).substring(1));
-            pw.print(" " + s + " : " + t.text.get(t.text.size() - 1));
+            pw.print(" " + sb + " : " + t.text.get(t.text.size() - 1));
         }
         for (int j = 0; j < method.tryCatchBlocks.size(); ++j) {
             method.tryCatchBlocks.get(j).accept(mv);
@@ -330,9 +331,14 @@ public class CheckClassAdapter extends ClassVisitor {
      *            <tt>false</tt> to not perform any data flow check (see
      *            {@link CheckMethodAdapter}). This option requires valid
      *            maxLocals and maxStack values.
+     * @throws IllegalStateException
+     *             If a subclass calls this constructor.
      */
     public CheckClassAdapter(final ClassVisitor cv, final boolean checkDataFlow) {
-        this(Opcodes.ASM5, cv, checkDataFlow);
+        this(Opcodes.ASM6, cv, checkDataFlow);
+        if (getClass() != CheckClassAdapter.class) {
+            throw new IllegalStateException();
+        }
     }
 
     /**
@@ -340,7 +346,7 @@ public class CheckClassAdapter extends ClassVisitor {
      * 
      * @param api
      *            the ASM API version implemented by this visitor. Must be one
-     *            of {@link Opcodes#ASM4} or {@link Opcodes#ASM5}.
+     *            of {@link Opcodes#ASM4}, {@link Opcodes#ASM5} or {@link Opcodes#ASM6}.
      * @param cv
      *            the class visitor to which this adapter must delegate calls.
      * @param checkDataFlow
@@ -373,7 +379,8 @@ public class CheckClassAdapter extends ClassVisitor {
                 + Opcodes.ACC_SUPER + Opcodes.ACC_INTERFACE
                 + Opcodes.ACC_ABSTRACT + Opcodes.ACC_SYNTHETIC
                 + Opcodes.ACC_ANNOTATION + Opcodes.ACC_ENUM
-                + Opcodes.ACC_DEPRECATED + 0x40000); // ClassWriter.ACC_SYNTHETIC_ATTRIBUTE
+                + Opcodes.ACC_DEPRECATED + Opcodes.ACC_MODULE
+                + 0x40000); // ClassWriter.ACC_SYNTHETIC_ATTRIBUTE
         if (name == null || !name.endsWith("package-info")) {
             CheckMethodAdapter.checkInternalName(name, "class name");
         }
@@ -415,6 +422,11 @@ public class CheckClassAdapter extends ClassVisitor {
         super.visitSource(file, debug);
     }
 
+    @Override
+    public ModuleVisitor visitModule() {
+        return new CheckModuleAdapter(super.visitModule());
+    }
+    
     @Override
     public void visitOuterClass(final String owner, final String name,
             final String desc) {

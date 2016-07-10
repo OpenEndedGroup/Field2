@@ -392,10 +392,15 @@ public class CheckMethodAdapter extends MethodVisitor {
      *            the method visitor to which this adapter must delegate calls.
      * @param labels
      *            a map of already visited labels (in other methods).
+     * @throws IllegalStateException
+     *             If a subclass calls this constructor.
      */
     public CheckMethodAdapter(final MethodVisitor mv,
             final Map<Label, Integer> labels) {
-        this(Opcodes.ASM5, mv, labels);
+        this(Opcodes.ASM6, mv, labels);
+        if (getClass() != CheckMethodAdapter.class) {
+            throw new IllegalStateException();
+        }
     }
 
     /**
@@ -403,6 +408,10 @@ public class CheckMethodAdapter extends MethodVisitor {
      * will not perform any data flow check (see
      * {@link #CheckMethodAdapter(int,String,String,MethodVisitor,Map)}).
      * 
+     * @param api
+     *            the ASM API version implemented by this CheckMethodAdapter.
+     *            Must be one of {@link Opcodes#ASM4}, {@link Opcodes#ASM5}
+     *            or {@link Opcodes#ASM6}.
      * @param mv
      *            the method visitor to which this adapter must delegate calls.
      * @param labels
@@ -436,7 +445,7 @@ public class CheckMethodAdapter extends MethodVisitor {
     public CheckMethodAdapter(final int access, final String name,
             final String desc, final MethodVisitor cmv,
             final Map<Label, Integer> labels) {
-        this(new MethodNode(access, name, desc, null, null) {
+        this(new MethodNode(Opcodes.ASM5, access, name, desc, null, null) {
             @Override
             public void visitEnd() {
                 Analyzer<BasicValue> a = new Analyzer<BasicValue>(
@@ -679,9 +688,30 @@ public class CheckMethodAdapter extends MethodVisitor {
         ++insnCount;
     }
 
+    @Deprecated
     @Override
-    public void visitMethodInsn(final int opcode, final String owner,
-            final String name, final String desc) {
+    public void visitMethodInsn(int opcode, String owner, String name,
+            String desc) {
+        if (api >= Opcodes.ASM5) {
+            super.visitMethodInsn(opcode, owner, name, desc);
+            return;
+        }
+        doVisitMethodInsn(opcode, owner, name, desc,
+                opcode == Opcodes.INVOKEINTERFACE);
+    }
+
+    @Override
+    public void visitMethodInsn(int opcode, String owner, String name,
+            String desc, boolean itf) {
+        if (api < Opcodes.ASM5) {
+            super.visitMethodInsn(opcode, owner, name, desc, itf);
+            return;
+        }
+        doVisitMethodInsn(opcode, owner, name, desc, itf);
+    }
+
+    private void doVisitMethodInsn(int opcode, final String owner,
+            final String name, final String desc, final boolean itf) {
         checkStartCode();
         checkEndCode();
         checkOpcode(opcode, 5);
@@ -690,7 +720,21 @@ public class CheckMethodAdapter extends MethodVisitor {
         }
         checkInternalName(owner, "owner");
         checkMethodDesc(desc);
-        super.visitMethodInsn(opcode, owner, name, desc);
+        if (opcode == Opcodes.INVOKEVIRTUAL && itf) {
+            throw new IllegalArgumentException(
+                    "INVOKEVIRTUAL can't be used with interfaces");
+        }
+        if (opcode == Opcodes.INVOKEINTERFACE && !itf) {
+            throw new IllegalArgumentException(
+                    "INVOKEINTERFACE can't be used with classes");
+        }
+        // Calling super.visitMethodInsn requires to call the correct version
+        // depending on this.api (otherwise infinite loops can occur). To
+        // simplify and to make it easier to automatically remove the backward
+        // compatibility code, we inline the code of the overridden method here.
+        if (mv != null) {
+            mv.visitMethodInsn(opcode, owner, name, desc, itf);
+        }
         ++insnCount;
     }
 
@@ -733,7 +777,7 @@ public class CheckMethodAdapter extends MethodVisitor {
         if (labels.get(label) != null) {
             throw new IllegalArgumentException("Already visited label");
         }
-        labels.put(label, new Integer(insnCount));
+        labels.put(label, insnCount);
         super.visitLabel(label);
     }
 

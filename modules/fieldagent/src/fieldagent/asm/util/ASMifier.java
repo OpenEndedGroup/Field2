@@ -44,7 +44,7 @@ import fieldagent.asm.TypePath;
 
 /**
  * A {@link Printer} that prints the ASM code to generate the classes if visits.
- *
+ * 
  * @author Eric Bruneton
  */
 public class ASMifier extends Printer {
@@ -84,17 +84,23 @@ public class ASMifier extends Printer {
      * Constructs a new {@link ASMifier}. <i>Subclasses must not use this
      * constructor</i>. Instead, they must use the
      * {@link #ASMifier(int, String, int)} version.
+     * 
+     * @throws IllegalStateException
+     *             If a subclass calls this constructor.
      */
     public ASMifier() {
-        this(Opcodes.ASM5, "cw", 0);
+        this(Opcodes.ASM6, "cw", 0);
+        if (getClass() != ASMifier.class) {
+            throw new IllegalStateException();
+        }
     }
 
     /**
      * Constructs a new {@link ASMifier}.
-     *
+     * 
      * @param api
      *            the ASM API version implemented by this class. Must be one of
-     *            {@link Opcodes#ASM4} or {@link Opcodes#ASM5}.
+     *            {@link Opcodes#ASM4}, {@link Opcodes#ASM5} or {@link Opcodes#ASM6}.
      * @param name
      *            the name of the visitor variable in the produced code.
      * @param id
@@ -112,10 +118,10 @@ public class ASMifier extends Printer {
      * output.
      * <p>
      * Usage: ASMifier [-debug] &lt;binary class name or class file name&gt;
-     *
+     * 
      * @param args
      *            the command line arguments.
-     *
+     * 
      * @throws Exception
      *             if the class cannot be found, or if an IO exception occurs.
      */
@@ -167,11 +173,10 @@ public class ASMifier extends Printer {
         } else {
             text.add("package asm." + name.substring(0, n).replace('/', '.')
                     + ";\n");
-            simpleName = name.substring(n + 1);
+            simpleName = name.substring(n + 1).replace('-', '_');
         }
         text.add("import java.util.*;\n");
         text.add("import fieldagent.asm.*;\n");
-        text.add("import fieldagent.asm.attrs.*;\n");
         text.add("public class " + simpleName + "Dump implements Opcodes {\n\n");
         text.add("public static byte[] dump () throws Exception {\n\n");
         text.add("ClassWriter cw = new ClassWriter(0);\n");
@@ -202,6 +207,12 @@ public class ASMifier extends Printer {
             break;
         case Opcodes.V1_7:
             buf.append("V1_7");
+            break;
+        case Opcodes.V1_8:
+            buf.append("V1_8");
+            break;
+        case Opcodes.V1_9:
+            buf.append("V1_9");
             break;
         default:
             buf.append(version);
@@ -239,6 +250,14 @@ public class ASMifier extends Printer {
         appendConstant(debug);
         buf.append(");\n\n");
         text.add(buf.toString());
+    }
+    
+    @Override
+    public Printer visitModule() {
+        ASMifier a = createASMifier("mdv", 0);
+        text.add("ModuleVisitor mdv = cw.visitModule();\n");
+        text.add(a.getText());
+        return a;
     }
 
     @Override
@@ -352,6 +371,64 @@ public class ASMifier extends Printer {
     }
 
     // ------------------------------------------------------------------------
+    // Module
+    // ------------------------------------------------------------------------
+    
+    @Override
+    public void visitRequire(String module, int access) {
+        buf.setLength(0);
+        buf.append("mdv.visitRequire(");
+        appendConstant(buf, module);
+        buf.append(", ");
+        appendAccess(access);
+        buf.append(");\n");
+        text.add(buf.toString());
+    }
+    
+    @Override
+    public void visitExport(String packaze, String... modules) {
+        buf.setLength(0);
+        buf.append("mdv.visitExport(");
+        appendConstant(buf, packaze);
+        if (modules != null && modules.length > 0) {
+            buf.append(", new String[] {");
+            for (int i = 0; i < modules.length; ++i) {
+                buf.append(i == 0 ? " " : ", ");
+                appendConstant(modules[i]);
+            }
+            buf.append(" }");
+        }
+        buf.append(");\n");
+        text.add(buf.toString());
+    }
+    
+    @Override
+    public void visitUse(String service) {
+        buf.setLength(0);
+        buf.append("mdv.visitUse(");
+        appendConstant(buf, service);
+        buf.append(");\n");
+        text.add(buf.toString());
+    }
+    
+    @Override
+    public void visitProvide(String service, String impl) {
+        buf.setLength(0);
+        buf.append("mdv.visitProvide(");
+        appendConstant(buf, service);
+        buf.append(", ");
+        appendConstant(buf, impl);
+        buf.append(");\n");
+        text.add(buf.toString());
+    }
+    
+    @Override
+    public void visitModuleEnd() {
+        text.add("mdv.visitEnd();\n");
+    }
+    
+    
+    // ------------------------------------------------------------------------
     // Annotations
     // ------------------------------------------------------------------------
 
@@ -450,7 +527,7 @@ public class ASMifier extends Printer {
     // ------------------------------------------------------------------------
     // Methods
     // ------------------------------------------------------------------------
-
+    
     @Override
     public void visitParameter(String parameterName, int access) {
         buf.setLength(0);
@@ -611,9 +688,30 @@ public class ASMifier extends Printer {
         text.add(buf.toString());
     }
 
+    @Deprecated
     @Override
     public void visitMethodInsn(final int opcode, final String owner,
             final String name, final String desc) {
+        if (api >= Opcodes.ASM5) {
+            super.visitMethodInsn(opcode, owner, name, desc);
+            return;
+        }
+        doVisitMethodInsn(opcode, owner, name, desc,
+                opcode == Opcodes.INVOKEINTERFACE);
+    }
+
+    @Override
+    public void visitMethodInsn(final int opcode, final String owner,
+            final String name, final String desc, final boolean itf) {
+        if (api < Opcodes.ASM5) {
+            super.visitMethodInsn(opcode, owner, name, desc, itf);
+            return;
+        }
+        doVisitMethodInsn(opcode, owner, name, desc, itf);
+    }
+
+    private void doVisitMethodInsn(final int opcode, final String owner,
+            final String name, final String desc, final boolean itf) {
         buf.setLength(0);
         buf.append(this.name).append(".visitMethodInsn(")
                 .append(OPCODES[opcode]).append(", ");
@@ -622,6 +720,8 @@ public class ASMifier extends Printer {
         appendConstant(name);
         buf.append(", ");
         appendConstant(desc);
+        buf.append(", ");
+        buf.append(itf ? "true" : "false");
         buf.append(");\n");
         text.add(buf.toString());
     }
@@ -799,7 +899,11 @@ public class ASMifier extends Printer {
         buf.append("{\n").append("av0 = ").append(name)
                 .append(".visitLocalVariableAnnotation(");
         buf.append(typeRef);
-        buf.append(", TypePath.fromString(\"").append(typePath).append("\"), ");
+        if (typePath == null) {
+            buf.append(", null, ");
+        } else {
+            buf.append(", TypePath.fromString(\"").append(typePath).append("\"), ");
+        }
         buf.append("new Label[] {");
         for (int i = 0; i < start.length; ++i) {
             buf.append(i == 0 ? " " : ", ");
@@ -877,7 +981,11 @@ public class ASMifier extends Printer {
         buf.append("{\n").append("av0 = ").append(name).append(".")
                 .append(method).append("(");
         buf.append(typeRef);
-        buf.append(", TypePath.fromString(\"").append(typePath).append("\"), ");
+        if (typePath == null) {
+            buf.append(", null, ");
+        } else {
+            buf.append(", TypePath.fromString(\"").append(typePath).append("\"), ");
+        }
         appendConstant(desc);
         buf.append(", ").append(visible).append(");\n");
         text.add(buf.toString());
@@ -907,13 +1015,13 @@ public class ASMifier extends Printer {
     // ------------------------------------------------------------------------
 
     protected ASMifier createASMifier(final String name, final int id) {
-        return new ASMifier(Opcodes.ASM5, name, id);
+        return new ASMifier(Opcodes.ASM6, name, id);
     }
 
     /**
      * Appends a string representation of the given access modifiers to
      * {@link #buf buf}.
-     *
+     * 
      * @param access
      *            some access modifiers.
      */
@@ -1048,11 +1156,15 @@ public class ASMifier extends Printer {
             buf.append("ACC_DEPRECATED");
             first = false;
         }
-        if ((access & Opcodes.ACC_MANDATED) != 0) {
+        if ((access & (Opcodes.ACC_MANDATED|Opcodes.ACC_MODULE)) != 0) {
             if (!first) {
                 buf.append(" + ");
             }
-            buf.append("ACC_MANDATED");
+            if ((access & ACCESS_CLASS) == 0) {
+                buf.append("ACC_MANDATED");   
+            } else {
+                buf.append("ACC_MODULE");
+            }
             first = false;
         }
         if (first) {
@@ -1063,7 +1175,7 @@ public class ASMifier extends Printer {
     /**
      * Appends a string representation of the given constant to the given
      * buffer.
-     *
+     * 
      * @param cst
      *            an {@link Integer}, {@link Float}, {@link Long},
      *            {@link Double} or {@link String} object. May be <tt>null</tt>.
@@ -1075,7 +1187,7 @@ public class ASMifier extends Printer {
     /**
      * Appends a string representation of the given constant to the given
      * buffer.
-     *
+     * 
      * @param buf
      *            a string buffer.
      * @param cst
@@ -1226,7 +1338,7 @@ public class ASMifier extends Printer {
      * Appends a declaration of the given label to {@link #buf buf}. This
      * declaration is of the form "Label lXXX = new Label();". Does nothing if
      * the given label has already been declared.
-     *
+     * 
      * @param l
      *            a label.
      */
@@ -1246,7 +1358,7 @@ public class ASMifier extends Printer {
      * Appends the name of the given label to {@link #buf buf}. The given label
      * <i>must</i> already have a name. One way to ensure this is to always call
      * {@link #declareLabel declared} before calling this method.
-     *
+     * 
      * @param l
      *            a label.
      */

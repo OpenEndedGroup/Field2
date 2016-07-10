@@ -69,7 +69,7 @@ public final class SAXCodeAdapter extends MethodVisitor {
      *            content handler that will be used to send SAX 2.0 events.
      */
     public SAXCodeAdapter(final SAXAdapter sa, final int access) {
-        super(Opcodes.ASM5);
+        super(Opcodes.ASM6);
         this.sa = sa;
         this.access = access;
         this.labelNames = new HashMap<Label, String>();
@@ -81,7 +81,7 @@ public final class SAXCodeAdapter extends MethodVisitor {
         if (name != null) {
             attrs.addAttribute("", "name", "name", "", name);
         }
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         SAXClassAdapter.appendAccess(access, sb);
         attrs.addAttribute("", "access", "access", "", sb.toString());
         sa.addElement("parameter", attrs);
@@ -191,11 +191,12 @@ public final class SAXCodeAdapter extends MethodVisitor {
 
     @Override
     public final void visitMethodInsn(final int opcode, final String owner,
-            final String name, final String desc) {
+            final String name, final String desc, final boolean itf) {
         AttributesImpl attrs = new AttributesImpl();
         attrs.addAttribute("", "owner", "owner", "", owner);
         attrs.addAttribute("", "name", "name", "", name);
         attrs.addAttribute("", "desc", "desc", "", desc);
+        attrs.addAttribute("", "itf", "itf", "", itf ? "true" : "false");
         sa.addElement(Printer.OPCODES[opcode], attrs);
     }
 

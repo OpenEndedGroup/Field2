@@ -33,15 +33,16 @@ package fieldagent.asm;
  * A visitor to visit a Java method. The methods of this class must be called in
  * the following order: ( <tt>visitParameter</tt> )* [
  * <tt>visitAnnotationDefault</tt> ] ( <tt>visitAnnotation</tt> |
- * <tt>visitTypeAnnotation</tt> | <tt>visitAttribute</tt> )* [
- * <tt>visitCode</tt> ( <tt>visitFrame</tt> | <tt>visit<i>X</i>Insn</tt> |
- * <tt>visitLabel</tt> | <tt>visitInsnAnnotation</tt> |
- * <tt>visitTryCatchBlock</tt> | <tt>visitTryCatchBlockAnnotation</tt> |
- * <tt>visitLocalVariable</tt> | <tt>visitLocalVariableAnnotation</tt> |
- * <tt>visitLineNumber</tt> )* <tt>visitMaxs</tt> ] <tt>visitEnd</tt>. In
- * addition, the <tt>visit<i>X</i>Insn</tt> and <tt>visitLabel</tt> methods must
- * be called in the sequential order of the bytecode instructions of the visited
- * code, <tt>visitInsnAnnotation</tt> must be called <i>after</i> the annotated
+ * <tt>visitParameterAnnotation</tt> <tt>visitTypeAnnotation</tt> |
+ * <tt>visitAttribute</tt> )* [ <tt>visitCode</tt> ( <tt>visitFrame</tt> |
+ * <tt>visit<i>X</i>Insn</tt> | <tt>visitLabel</tt> |
+ * <tt>visitInsnAnnotation</tt> | <tt>visitTryCatchBlock</tt> |
+ * <tt>visitTryCatchAnnotation</tt> | <tt>visitLocalVariable</tt> |
+ * <tt>visitLocalVariableAnnotation</tt> | <tt>visitLineNumber</tt> )*
+ * <tt>visitMaxs</tt> ] <tt>visitEnd</tt>. In addition, the
+ * <tt>visit<i>X</i>Insn</tt> and <tt>visitLabel</tt> methods must be called in
+ * the sequential order of the bytecode instructions of the visited code,
+ * <tt>visitInsnAnnotation</tt> must be called <i>after</i> the annotated
  * instruction, <tt>visitTryCatchBlock</tt> must be called <i>before</i> the
  * labels passed as arguments have been visited,
  * <tt>visitTryCatchBlockAnnotation</tt> must be called <i>after</i> the
@@ -56,7 +57,7 @@ public abstract class MethodVisitor {
 
     /**
      * The ASM API version implemented by this visitor. The value of this field
-     * must be one of {@link Opcodes#ASM4} or {@link Opcodes#ASM5}.
+     * must be one of {@link Opcodes#ASM4}, {@link Opcodes#ASM5} or {@link Opcodes#ASM6}.
      */
     protected final int api;
 
@@ -71,7 +72,7 @@ public abstract class MethodVisitor {
      * 
      * @param api
      *            the ASM API version implemented by this visitor. Must be one
-     *            of {@link Opcodes#ASM4} or {@link Opcodes#ASM5}.
+     *            of {@link Opcodes#ASM4}, {@link Opcodes#ASM5} or {@link Opcodes#ASM6}.
      */
     public MethodVisitor(final int api) {
         this(api, null);
@@ -82,13 +83,13 @@ public abstract class MethodVisitor {
      * 
      * @param api
      *            the ASM API version implemented by this visitor. Must be one
-     *            of {@link Opcodes#ASM4} or {@link Opcodes#ASM5}.
+     *            of {@link Opcodes#ASM4}, {@link Opcodes#ASM5} or {@link Opcodes#ASM6}.
      * @param mv
      *            the method visitor to which this visitor must delegate method
      *            calls. May be null.
      */
     public MethodVisitor(final int api, final MethodVisitor mv) {
-        if (api != Opcodes.ASM4 && api != Opcodes.ASM5) {
+        if (api < Opcodes.ASM4 || api > Opcodes.ASM6) {
             throw new IllegalArgumentException();
         }
         this.api = api;
@@ -439,10 +440,49 @@ public abstract class MethodVisitor {
      * @param desc
      *            the method's descriptor (see {@link Type Type}).
      */
+    @Deprecated
     public void visitMethodInsn(int opcode, String owner, String name,
             String desc) {
+        if (api >= Opcodes.ASM5) {
+            boolean itf = opcode == Opcodes.INVOKEINTERFACE;
+            visitMethodInsn(opcode, owner, name, desc, itf);
+            return;
+        }
         if (mv != null) {
             mv.visitMethodInsn(opcode, owner, name, desc);
+        }
+    }
+
+    /**
+     * Visits a method instruction. A method instruction is an instruction that
+     * invokes a method.
+     * 
+     * @param opcode
+     *            the opcode of the type instruction to be visited. This opcode
+     *            is either INVOKEVIRTUAL, INVOKESPECIAL, INVOKESTATIC or
+     *            INVOKEINTERFACE.
+     * @param owner
+     *            the internal name of the method's owner class (see
+     *            {@link Type#getInternalName() getInternalName}).
+     * @param name
+     *            the method's name.
+     * @param desc
+     *            the method's descriptor (see {@link Type Type}).
+     * @param itf
+     *            if the method's owner class is an interface.
+     */
+    public void visitMethodInsn(int opcode, String owner, String name,
+            String desc, boolean itf) {
+        if (api < Opcodes.ASM5) {
+            if (itf != (opcode == Opcodes.INVOKEINTERFACE)) {
+                throw new IllegalArgumentException(
+                        "INVOKESPECIAL/STATIC on interfaces require ASM 5");
+            }
+            visitMethodInsn(opcode, owner, name, desc);
+            return;
+        }
+        if (mv != null) {
+            mv.visitMethodInsn(opcode, owner, name, desc, itf);
         }
     }
 

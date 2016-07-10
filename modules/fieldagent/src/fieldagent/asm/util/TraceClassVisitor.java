@@ -36,6 +36,7 @@ import fieldagent.asm.Attribute;
 import fieldagent.asm.ClassVisitor;
 import fieldagent.asm.FieldVisitor;
 import fieldagent.asm.MethodVisitor;
+import fieldagent.asm.ModuleVisitor;
 import fieldagent.asm.Opcodes;
 import fieldagent.asm.TypePath;
 
@@ -131,7 +132,7 @@ public final class TraceClassVisitor extends ClassVisitor {
      */
     public TraceClassVisitor(final ClassVisitor cv, final Printer p,
             final PrintWriter pw) {
-        super(Opcodes.ASM5, cv);
+        super(Opcodes.ASM6, cv);
         this.pw = pw;
         this.p = p;
     }
@@ -148,6 +149,13 @@ public final class TraceClassVisitor extends ClassVisitor {
     public void visitSource(final String file, final String debug) {
         p.visitSource(file, debug);
         super.visitSource(file, debug);
+    }
+    
+    @Override
+    public ModuleVisitor visitModule() {
+        Printer p = this.p.visitModule();
+        ModuleVisitor mv =  super.visitModule();
+        return new TraceModuleVisitor(mv, p);
     }
 
     @Override

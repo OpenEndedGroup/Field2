@@ -46,7 +46,7 @@ import fieldagent.asm.signature.SignatureReader;
 
 /**
  * A {@link Printer} that prints a disassembled view of the classes it visits.
- * 
+ *
  * @author Eric Bruneton
  */
 public class Textifier extends Printer {
@@ -137,23 +137,34 @@ public class Textifier extends Printer {
      */
     protected Map<Label, String> labelNames;
 
+    /**
+     * Class access flags
+     */
+    private int access;
+
     private int valueNumber = 0;
 
     /**
      * Constructs a new {@link Textifier}. <i>Subclasses must not use this
      * constructor</i>. Instead, they must use the {@link #Textifier(int)}
      * version.
+     *
+     * @throws IllegalStateException
+     *             If a subclass calls this constructor.
      */
     public Textifier() {
-        this(Opcodes.ASM5);
+        this(Opcodes.ASM6);
+        if (getClass() != Textifier.class) {
+            throw new IllegalStateException();
+        }
     }
 
     /**
      * Constructs a new {@link Textifier}.
-     * 
+     *
      * @param api
      *            the ASM API version implemented by this visitor. Must be one
-     *            of {@link Opcodes#ASM4} or {@link Opcodes#ASM5}.
+     *            of {@link Opcodes#ASM4}, {@link Opcodes#ASM5} or {@link Opcodes#ASM6}.
      */
     protected Textifier(final int api) {
         super(api);
@@ -163,10 +174,10 @@ public class Textifier extends Printer {
      * Prints a disassembled view of the given class to the standard output.
      * <p>
      * Usage: Textifier [-debug] &lt;binary class name or class file name &gt;
-     * 
+     *
      * @param args
      *            the command line arguments.
-     * 
+     *
      * @throws Exception
      *             if the class cannot be found, or if an IO exception occurs.
      */
@@ -210,6 +221,7 @@ public class Textifier extends Printer {
     public void visit(final int version, final int access, final String name,
             final String signature, final String superName,
             final String[] interfaces) {
+        this.access = access;
         int major = version & 0xFFFF;
         int minor = version >>> 16;
         buf.setLength(0);
@@ -230,15 +242,19 @@ public class Textifier extends Printer {
                     .append(sv.getDeclaration()).append('\n');
         }
 
-        appendAccess(access & ~Opcodes.ACC_SUPER);
+        String internalName = name;
+        appendAccess(access & ~(Opcodes.ACC_SUPER|Opcodes.ACC_MODULE));
         if ((access & Opcodes.ACC_ANNOTATION) != 0) {
             buf.append("@interface ");
         } else if ((access & Opcodes.ACC_INTERFACE) != 0) {
             buf.append("interface ");
+        } else if ((access & Opcodes.ACC_MODULE) != 0) {
+            buf.append("module ");
+            internalName = name.substring(0, name.length() - "/module-info".length());
         } else if ((access & Opcodes.ACC_ENUM) == 0) {
             buf.append("class ");
         }
-        appendDescriptor(INTERNAL_NAME, name);
+        appendDescriptor(INTERNAL_NAME, internalName);
 
         if (superName != null && !"java/lang/Object".equals(superName)) {
             buf.append(" extends ");
@@ -272,6 +288,13 @@ public class Textifier extends Printer {
             text.add(buf.toString());
         }
     }
+    
+    @Override
+    public Printer visitModule() {
+        Textifier t = createTextifier();
+        text.add(t.getText());
+        return t;
+    }
 
     @Override
     public void visitOuterClass(final String owner, final String name,
@@ -296,7 +319,7 @@ public class Textifier extends Printer {
     }
 
     @Override
-    public Printer visitClassTypeAnnotation(int typeRef, TypePath typePath,
+    public Textifier visitClassTypeAnnotation(int typeRef, TypePath typePath,
             String desc, boolean visible) {
         text.add("\n");
         return visitTypeAnnotation(typeRef, typePath, desc, visible);
@@ -402,7 +425,7 @@ public class Textifier extends Printer {
         }
 
         buf.append(tab);
-        appendAccess(access);
+        appendAccess(access & ~Opcodes.ACC_VOLATILE);
         if ((access & Opcodes.ACC_NATIVE) != 0) {
             buf.append("native ");
         }
@@ -411,6 +434,11 @@ public class Textifier extends Printer {
         }
         if ((access & Opcodes.ACC_BRIDGE) != 0) {
             buf.append("bridge ");
+        }
+        if ((this.access & Opcodes.ACC_INTERFACE) != 0
+                && (access & Opcodes.ACC_ABSTRACT) == 0
+                && (access & Opcodes.ACC_STATIC) == 0) {
+            buf.append("default ");
         }
 
         buf.append(name);
@@ -436,6 +464,64 @@ public class Textifier extends Printer {
         text.add("}\n");
     }
 
+    // ------------------------------------------------------------------------
+    // Module
+    // ------------------------------------------------------------------------
+    
+    @Override
+    public void visitRequire(String require, int access) {
+        buf.setLength(0);
+        buf.append(tab).append("requires ");
+        if ((access & Opcodes.ACC_PUBLIC) != 0) {
+            buf.append("public ");
+        }
+        buf.append(require)
+           .append(";  // access flags 0x")
+           .append(Integer.toHexString(access).toUpperCase())
+           .append('\n');
+        text.add(buf.toString());
+    }
+    
+    @Override
+    public void visitExport(String export, String... tos) {
+        buf.setLength(0);
+        buf.append(tab).append("exports ").append(export);
+        if (tos != null && tos.length > 0) {
+            buf.append(" to\n");
+            for (int i = 0; i < tos.length; ++i) {
+                buf.append(tab2).append(tos[i]);
+                buf.append(i != tos.length - 1 ? ",\n": "");
+            }
+        }
+        buf.append(";\n");
+        text.add(buf.toString());
+    }
+    
+    @Override
+    public void visitUse(String use) {
+        buf.setLength(0);
+        buf.append(tab).append("uses ");
+        appendDescriptor(INTERNAL_NAME, use);
+        buf.append(";\n");
+        text.add(buf.toString());
+    }
+    
+    @Override
+    public void visitProvide(String provide, String with) {
+        buf.setLength(0);
+        buf.append(tab).append("provides ");
+        appendDescriptor(INTERNAL_NAME, provide);
+        buf.append(" with\n").append(tab2);
+        appendDescriptor(INTERNAL_NAME, with);
+        buf.append(";\n");
+        text.add(buf.toString());
+    }
+    
+    @Override
+    public void visitModuleEnd() {
+        // empty
+    }
+    
     // ------------------------------------------------------------------------
     // Annotations
     // ------------------------------------------------------------------------
@@ -626,7 +712,7 @@ public class Textifier extends Printer {
     }
 
     @Override
-    public Printer visitFieldTypeAnnotation(int typeRef, TypePath typePath,
+    public Textifier visitFieldTypeAnnotation(int typeRef, TypePath typePath,
             String desc, boolean visible) {
         return visitTypeAnnotation(typeRef, typePath, desc, visible);
     }
@@ -670,7 +756,7 @@ public class Textifier extends Printer {
     }
 
     @Override
-    public Printer visitMethodTypeAnnotation(int typeRef, TypePath typePath,
+    public Textifier visitMethodTypeAnnotation(int typeRef, TypePath typePath,
             String desc, boolean visible) {
         return visitTypeAnnotation(typeRef, typePath, desc, visible);
     }
@@ -686,7 +772,7 @@ public class Textifier extends Printer {
         Textifier t = createTextifier();
         text.add(t.getText());
         text.add(visible ? ") // parameter " : ") // invisible, parameter ");
-        text.add(new Integer(parameter));
+        text.add(parameter);
         text.add("\n");
         return t;
     }
@@ -792,9 +878,30 @@ public class Textifier extends Printer {
         text.add(buf.toString());
     }
 
+    @Deprecated
     @Override
     public void visitMethodInsn(final int opcode, final String owner,
             final String name, final String desc) {
+        if (api >= Opcodes.ASM5) {
+            super.visitMethodInsn(opcode, owner, name, desc);
+            return;
+        }
+        doVisitMethodInsn(opcode, owner, name, desc,
+                opcode == Opcodes.INVOKEINTERFACE);
+    }
+
+    @Override
+    public void visitMethodInsn(final int opcode, final String owner,
+            final String name, final String desc, final boolean itf) {
+        if (api < Opcodes.ASM5) {
+            super.visitMethodInsn(opcode, owner, name, desc, itf);
+            return;
+        }
+        doVisitMethodInsn(opcode, owner, name, desc, itf);
+    }
+
+    private void doVisitMethodInsn(final int opcode, final String owner,
+            final String name, final String desc, final boolean itf) {
         buf.setLength(0);
         buf.append(tab2).append(OPCODES[opcode]).append(' ');
         appendDescriptor(INTERNAL_NAME, owner);
@@ -812,26 +919,35 @@ public class Textifier extends Printer {
         buf.append(name);
         appendDescriptor(METHOD_DESCRIPTOR, desc);
         buf.append(" [");
+        buf.append('\n');
+        buf.append(tab3);
         appendHandle(bsm);
+        buf.append('\n');
         buf.append(tab3).append("// arguments:");
         if (bsmArgs.length == 0) {
             buf.append(" none");
         } else {
-            buf.append('\n').append(tab3);
+            buf.append('\n');
             for (int i = 0; i < bsmArgs.length; i++) {
+                buf.append(tab3);
                 Object cst = bsmArgs[i];
                 if (cst instanceof String) {
                     Printer.appendString(buf, (String) cst);
                 } else if (cst instanceof Type) {
-                    buf.append(((Type) cst).getDescriptor()).append(".class");
+                    Type type = (Type) cst;
+                    if(type.getSort() == Type.METHOD){
+                        appendDescriptor(METHOD_DESCRIPTOR, type.getDescriptor());
+                    } else {
+                        buf.append(type.getDescriptor()).append(".class");
+                    }
                 } else if (cst instanceof Handle) {
                     appendHandle((Handle) cst);
                 } else {
                     buf.append(cst);
                 }
-                buf.append(", ");
+                buf.append(", \n");
             }
-            buf.setLength(buf.length() - 2);
+            buf.setLength(buf.length() - 3);
         }
         buf.append('\n');
         buf.append(tab2).append("]\n");
@@ -921,7 +1037,7 @@ public class Textifier extends Printer {
     }
 
     @Override
-    public Printer visitInsnAnnotation(int typeRef, TypePath typePath,
+    public Textifier visitInsnAnnotation(int typeRef, TypePath typePath,
             String desc, boolean visible) {
         return visitTypeAnnotation(typeRef, typePath, desc, visible);
     }
@@ -943,7 +1059,7 @@ public class Textifier extends Printer {
     }
 
     @Override
-    public Printer visitTryCatchAnnotation(int typeRef, TypePath typePath,
+    public Textifier visitTryCatchAnnotation(int typeRef, TypePath typePath,
             String desc, boolean visible) {
         buf.setLength(0);
         buf.append(tab2).append("TRYCATCHBLOCK @");
@@ -988,7 +1104,7 @@ public class Textifier extends Printer {
     }
 
     @Override
-    public Printer visitLocalVariableAnnotation(int typeRef, TypePath typePath,
+    public Textifier visitLocalVariableAnnotation(int typeRef, TypePath typePath,
             Label[] start, Label[] end, int[] index, String desc,
             boolean visible) {
         buf.setLength(0);
@@ -1044,7 +1160,7 @@ public class Textifier extends Printer {
 
     /**
      * Prints a disassembled view of the given annotation.
-     * 
+     *
      * @param desc
      *            the class descriptor of the annotation class.
      * @param visible
@@ -1065,7 +1181,7 @@ public class Textifier extends Printer {
 
     /**
      * Prints a disassembled view of the given type annotation.
-     * 
+     *
      * @param typeRef
      *            a reference to the annotated type. See {@link TypeReference}.
      * @param typePath
@@ -1098,7 +1214,7 @@ public class Textifier extends Printer {
 
     /**
      * Prints a disassembled view of the given attribute.
-     * 
+     *
      * @param attr
      *            an attribute.
      */
@@ -1122,7 +1238,7 @@ public class Textifier extends Printer {
 
     /**
      * Creates a new TraceVisitor instance.
-     * 
+     *
      * @return a new TraceVisitor.
      */
     protected Textifier createTextifier() {
@@ -1132,7 +1248,7 @@ public class Textifier extends Printer {
     /**
      * Appends an internal name, a type descriptor or a type signature to
      * {@link #buf buf}.
-     * 
+     *
      * @param type
      *            indicates if desc is an internal name, a field descriptor, a
      *            method descriptor, a class signature, ...
@@ -1154,7 +1270,7 @@ public class Textifier extends Printer {
     /**
      * Appends the name of the given label to {@link #buf buf}. Creates a new
      * label name if the given label does not yet have one.
-     * 
+     *
      * @param l
      *            a label.
      */
@@ -1172,15 +1288,15 @@ public class Textifier extends Printer {
 
     /**
      * Appends the information about the given handle to {@link #buf buf}.
-     * 
+     *
      * @param h
      *            a handle, non null.
      */
     protected void appendHandle(final Handle h) {
-        buf.append('\n').append(tab3);
         int tag = h.getTag();
         buf.append("// handle kind 0x").append(Integer.toHexString(tag))
                 .append(" : ");
+        boolean isMethodHandle = false;
         switch (tag) {
         case Opcodes.H_GETFIELD:
             buf.append("GETFIELD");
@@ -1196,18 +1312,23 @@ public class Textifier extends Printer {
             break;
         case Opcodes.H_INVOKEINTERFACE:
             buf.append("INVOKEINTERFACE");
+            isMethodHandle = true;
             break;
         case Opcodes.H_INVOKESPECIAL:
             buf.append("INVOKESPECIAL");
+            isMethodHandle = true;
             break;
         case Opcodes.H_INVOKESTATIC:
             buf.append("INVOKESTATIC");
+            isMethodHandle = true;
             break;
         case Opcodes.H_INVOKEVIRTUAL:
             buf.append("INVOKEVIRTUAL");
+            isMethodHandle = true;
             break;
         case Opcodes.H_NEWINVOKESPECIAL:
             buf.append("NEWINVOKESPECIAL");
+            isMethodHandle = true;
             break;
         }
         buf.append('\n');
@@ -1215,15 +1336,19 @@ public class Textifier extends Printer {
         appendDescriptor(INTERNAL_NAME, h.getOwner());
         buf.append('.');
         buf.append(h.getName());
-        buf.append('(');
+        if(!isMethodHandle){
+            buf.append('(');
+        }
         appendDescriptor(HANDLE_DESCRIPTOR, h.getDesc());
-        buf.append(')').append('\n');
+        if(!isMethodHandle){
+            buf.append(')');
+        }
     }
 
     /**
      * Appends a string representation of the given access modifiers to
      * {@link #buf buf}.
-     * 
+     *
      * @param access
      *            some access modifiers.
      */

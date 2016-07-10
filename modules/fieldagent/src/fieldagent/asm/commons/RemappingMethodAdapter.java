@@ -40,15 +40,17 @@ import fieldagent.asm.TypePath;
 /**
  * A {@link LocalVariablesSorter} for type mapping.
  * 
+ * @deprecated use {@link MethodRemapper} instead.
  * @author Eugene Kuleshov
  */
+@Deprecated
 public class RemappingMethodAdapter extends LocalVariablesSorter {
 
     protected final Remapper remapper;
 
     public RemappingMethodAdapter(final int access, final String desc,
             final MethodVisitor mv, final Remapper remapper) {
-        this(Opcodes.ASM5, access, desc, mv, remapper);
+        this(Opcodes.ASM6, access, desc, mv, remapper);
     }
 
     protected RemappingMethodAdapter(final int api, final int access,
@@ -119,12 +121,41 @@ public class RemappingMethodAdapter extends LocalVariablesSorter {
                 remapper.mapDesc(desc));
     }
 
+    @Deprecated
     @Override
-    public void visitMethodInsn(int opcode, String owner, String name,
-            String desc) {
-        super.visitMethodInsn(opcode, remapper.mapType(owner),
-                remapper.mapMethodName(owner, name, desc),
-                remapper.mapMethodDesc(desc));
+    public void visitMethodInsn(final int opcode, final String owner,
+            final String name, final String desc) {
+        if (api >= Opcodes.ASM5) {
+            super.visitMethodInsn(opcode, owner, name, desc);
+            return;
+        }
+        doVisitMethodInsn(opcode, owner, name, desc,
+                opcode == Opcodes.INVOKEINTERFACE);
+    }
+
+    @Override
+    public void visitMethodInsn(final int opcode, final String owner,
+            final String name, final String desc, final boolean itf) {
+        if (api < Opcodes.ASM5) {
+            super.visitMethodInsn(opcode, owner, name, desc, itf);
+            return;
+        }
+        doVisitMethodInsn(opcode, owner, name, desc, itf);
+    }
+
+    private void doVisitMethodInsn(int opcode, String owner, String name,
+            String desc, boolean itf) {
+        // Calling super.visitMethodInsn requires to call the correct version
+        // depending on this.api (otherwise infinite loops can occur). To
+        // simplify and to make it easier to automatically remove the backward
+        // compatibility code, we inline the code of the overridden method here.
+        // IMPORTANT: THIS ASSUMES THAT visitMethodInsn IS NOT OVERRIDDEN IN
+        // LocalVariableSorter.
+        if (mv != null) {
+            mv.visitMethodInsn(opcode, remapper.mapType(owner),
+                    remapper.mapMethodName(owner, name, desc),
+                    remapper.mapMethodDesc(desc), itf);
+        }
     }
 
     @Override

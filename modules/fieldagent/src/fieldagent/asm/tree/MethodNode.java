@@ -215,9 +215,15 @@ public class MethodNode extends MethodVisitor {
      * Constructs an uninitialized {@link MethodNode}. <i>Subclasses must not
      * use this constructor</i>. Instead, they must use the
      * {@link #MethodNode(int)} version.
+     * 
+     * @throws IllegalStateException
+     *             If a subclass calls this constructor.
      */
     public MethodNode() {
-        this(Opcodes.ASM5);
+        this(Opcodes.ASM6);
+        if (getClass() != MethodNode.class) {
+            throw new IllegalStateException();
+        }
     }
 
     /**
@@ -225,7 +231,7 @@ public class MethodNode extends MethodVisitor {
      * 
      * @param api
      *            the ASM API version implemented by this visitor. Must be one
-     *            of {@link Opcodes#ASM4} or {@link Opcodes#ASM5}.
+     *            of {@link Opcodes#ASM4}, {@link Opcodes#ASM5} or {@link Opcodes#ASM6}.
      */
     public MethodNode(final int api) {
         super(api);
@@ -251,10 +257,15 @@ public class MethodNode extends MethodVisitor {
      *            the internal names of the method's exception classes (see
      *            {@link Type#getInternalName() getInternalName}). May be
      *            <tt>null</tt>.
+     * @throws IllegalStateException
+     *             If a subclass calls this constructor.
      */
     public MethodNode(final int access, final String name, final String desc,
             final String signature, final String[] exceptions) {
-        this(Opcodes.ASM5, access, name, desc, signature, exceptions);
+        this(Opcodes.ASM6, access, name, desc, signature, exceptions);
+        if (getClass() != MethodNode.class) {
+            throw new IllegalStateException();
+        }
     }
 
     /**
@@ -262,7 +273,7 @@ public class MethodNode extends MethodVisitor {
      * 
      * @param api
      *            the ASM API version implemented by this visitor. Must be one
-     *            of {@link Opcodes#ASM4} or {@link Opcodes#ASM5}.
+     *            of {@link Opcodes#ASM4}, {@link Opcodes#ASM5} or {@link Opcodes#ASM6}.
      * @param access
      *            the method's access flags (see {@link Opcodes}). This
      *            parameter also indicates if the method is synthetic and/or
@@ -311,6 +322,7 @@ public class MethodNode extends MethodVisitor {
     }
 
     @Override
+    @SuppressWarnings("serial")
     public AnnotationVisitor visitAnnotationDefault() {
         return new AnnotationNode(new ArrayList<Object>(0) {
             @Override
@@ -358,6 +370,7 @@ public class MethodNode extends MethodVisitor {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public AnnotationVisitor visitParameterAnnotation(final int parameter,
             final String desc, final boolean visible) {
         AnnotationNode an = new AnnotationNode(desc);
@@ -431,10 +444,25 @@ public class MethodNode extends MethodVisitor {
         instructions.add(new FieldInsnNode(opcode, owner, name, desc));
     }
 
+    @Deprecated
     @Override
-    public void visitMethodInsn(final int opcode, final String owner,
-            final String name, final String desc) {
+    public void visitMethodInsn(int opcode, String owner, String name,
+            String desc) {
+        if (api >= Opcodes.ASM5) {
+            super.visitMethodInsn(opcode, owner, name, desc);
+            return;
+        }
         instructions.add(new MethodInsnNode(opcode, owner, name, desc));
+    }
+
+    @Override
+    public void visitMethodInsn(int opcode, String owner, String name,
+            String desc, boolean itf) {
+        if (api < Opcodes.ASM5) {
+            super.visitMethodInsn(opcode, owner, name, desc, itf);
+            return;
+        }
+        instructions.add(new MethodInsnNode(opcode, owner, name, desc, itf));
     }
 
     @Override
@@ -631,8 +659,8 @@ public class MethodNode extends MethodVisitor {
      * versions of the ASM API than the given version.
      * 
      * @param api
-     *            an ASM API version. Must be one of {@link Opcodes#ASM4} or
-     *            {@link Opcodes#ASM5}.
+     *            an ASM API version. Must be one of {@link Opcodes#ASM4},
+     *            {@link Opcodes#ASM5} or {@link Opcodes#ASM6}.
      */
     public void check(final int api) {
         if (api == Opcodes.ASM4) {
@@ -666,6 +694,12 @@ public class MethodNode extends MethodVisitor {
                         && insn.invisibleTypeAnnotations.size() > 0) {
                     throw new RuntimeException();
                 }
+                if (insn instanceof MethodInsnNode) {
+                    boolean itf = ((MethodInsnNode) insn).itf;
+                    if (itf != (insn.opcode == Opcodes.INVOKEINTERFACE)) {
+                        throw new RuntimeException();
+                    }
+                }
             }
             if (visibleLocalVariableAnnotations != null
                     && visibleLocalVariableAnnotations.size() > 0) {
@@ -675,7 +709,6 @@ public class MethodNode extends MethodVisitor {
                     && invisibleLocalVariableAnnotations.size() > 0) {
                 throw new RuntimeException();
             }
-
         }
     }
 

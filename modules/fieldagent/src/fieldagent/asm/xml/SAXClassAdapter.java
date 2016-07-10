@@ -33,6 +33,7 @@ import fieldagent.asm.AnnotationVisitor;
 import fieldagent.asm.ClassVisitor;
 import fieldagent.asm.FieldVisitor;
 import fieldagent.asm.MethodVisitor;
+import fieldagent.asm.ModuleVisitor;
 import fieldagent.asm.Opcodes;
 import fieldagent.asm.TypePath;
 import org.xml.sax.ContentHandler;
@@ -81,7 +82,7 @@ public final class SAXClassAdapter extends ClassVisitor {
      *            {@link ContentHandler#endDocument() endDocument()} events.
      */
     public SAXClassAdapter(final ContentHandler h, boolean singleDocument) {
-        super(Opcodes.ASM5);
+        super(Opcodes.ASM6);
         this.sa = new SAXAdapter(h);
         this.singleDocument = singleDocument;
         if (!singleDocument) {
@@ -100,6 +101,13 @@ public final class SAXClassAdapter extends ClassVisitor {
         }
 
         sa.addElement("source", att);
+    }
+    
+    @Override
+    public ModuleVisitor visitModule() {
+        AttributesImpl att = new AttributesImpl();
+        sa.addStart("module", att);
+        return new SAXModuleAdapter(sa);
     }
 
     @Override
@@ -135,7 +143,7 @@ public final class SAXClassAdapter extends ClassVisitor {
     public void visit(final int version, final int access, final String name,
             final String signature, final String superName,
             final String[] interfaces) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         appendAccess(access | ACCESS_CLASS, sb);
 
         AttributesImpl att = new AttributesImpl();
@@ -170,7 +178,7 @@ public final class SAXClassAdapter extends ClassVisitor {
     @Override
     public FieldVisitor visitField(final int access, final String name,
             final String desc, final String signature, final Object value) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         appendAccess(access | ACCESS_FIELD, sb);
 
         AttributesImpl att = new AttributesImpl();
@@ -191,7 +199,7 @@ public final class SAXClassAdapter extends ClassVisitor {
     @Override
     public MethodVisitor visitMethod(final int access, final String name,
             final String desc, final String signature, final String[] exceptions) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         appendAccess(access, sb);
 
         AttributesImpl att = new AttributesImpl();
@@ -219,7 +227,7 @@ public final class SAXClassAdapter extends ClassVisitor {
     @Override
     public final void visitInnerClass(final String name,
             final String outerName, final String innerName, final int access) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         appendAccess(access | ACCESS_INNER, sb);
 
         AttributesImpl att = new AttributesImpl();
@@ -245,7 +253,7 @@ public final class SAXClassAdapter extends ClassVisitor {
     }
 
     static final String encode(final String s) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
             if (c == '\\') {
@@ -267,7 +275,7 @@ public final class SAXClassAdapter extends ClassVisitor {
         return sb.toString();
     }
 
-    static void appendAccess(final int access, final StringBuffer sb) {
+    static void appendAccess(final int access, final StringBuilder sb) {
         if ((access & Opcodes.ACC_PUBLIC) != 0) {
             sb.append("public ");
         }
@@ -328,8 +336,12 @@ public final class SAXClassAdapter extends ClassVisitor {
         if ((access & Opcodes.ACC_DEPRECATED) != 0) {
             sb.append("deprecated ");
         }
-        if ((access & Opcodes.ACC_MANDATED) != 0) {
-            sb.append("mandated ");
+        if ((access & (Opcodes.ACC_MANDATED|Opcodes.ACC_MODULE)) != 0) {
+            if ((access & ACCESS_CLASS) == 0) {
+                sb.append("module ");
+            } else {
+                sb.append("mandated ");
+            }
         }
     }
 }

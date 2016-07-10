@@ -65,10 +65,15 @@ public class TypeAnnotationNode extends AnnotationNode {
      *            <tt>null</tt> if the annotation targets 'typeRef' as a whole.
      * @param desc
      *            the class descriptor of the annotation class.
+     * @throws IllegalStateException
+     *             If a subclass calls this constructor.
      */
     public TypeAnnotationNode(final int typeRef, final TypePath typePath,
             final String desc) {
-        this(Opcodes.ASM5, typeRef, typePath, desc);
+        this(Opcodes.ASM6, typeRef, typePath, desc);
+        if (getClass() != TypeAnnotationNode.class) {
+            throw new IllegalStateException();
+        }
     }
 
     /**
@@ -76,7 +81,7 @@ public class TypeAnnotationNode extends AnnotationNode {
      * 
      * @param api
      *            the ASM API version implemented by this visitor. Must be one
-     *            of {@link Opcodes#ASM4} or {@link Opcodes#ASM5}.
+     *            of {@link Opcodes#ASM4}, {@link Opcodes#ASM5} or {@link Opcodes#ASM6}.
      * @param typeRef
      *            a reference to the annotated type. See {@link TypeReference}.
      * @param typePath

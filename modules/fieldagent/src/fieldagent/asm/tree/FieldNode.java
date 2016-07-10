@@ -139,16 +139,20 @@ public class FieldNode extends FieldVisitor {
      *            <tt>null</tt> if the field does not have an initial value,
      *            must be an {@link Integer}, a {@link Float}, a {@link Long}, a
      *            {@link Double} or a {@link String}.
+     * @throws IllegalStateException
+     *             If a subclass calls this constructor.
      */
     public FieldNode(final int access, final String name, final String desc,
             final String signature, final Object value) {
-        this(Opcodes.ASM5, access, name, desc, signature, value);
+        this(Opcodes.ASM6, access, name, desc, signature, value);
+        if (getClass() != FieldNode.class) {
+            throw new IllegalStateException();
+        }
     }
 
     /**
      * Constructs a new {@link FieldNode}. <i>Subclasses must not use this
-     * constructor</i>. Instead, they must use the
-     * {@link #FieldNode(int, int, String, String, String, Object)} version.
+     * constructor</i>.
      * 
      * @param api
      *            the ASM API version implemented by this visitor. Must be one
@@ -243,8 +247,8 @@ public class FieldNode extends FieldVisitor {
      * API than the given version.
      * 
      * @param api
-     *            an ASM API version. Must be one of {@link Opcodes#ASM4} or
-     *            {@link Opcodes#ASM5}.
+     *            an ASM API version. Must be one of {@link Opcodes#ASM4},
+     *            {@link Opcodes#ASM5} or {@link Opcodes#ASM6}.
      */
     public void check(final int api) {
         if (api == Opcodes.ASM4) {

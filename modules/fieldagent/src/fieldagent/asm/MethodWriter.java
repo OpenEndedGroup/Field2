@@ -43,7 +43,7 @@ class MethodWriter extends MethodVisitor {
      * Pseudo access flag used to denote constructors.
      */
     static final int ACC_CONSTRUCTOR = 0x80000;
-    
+
     /**
      * Frame has exactly the same locals as the previous stack map frame and
      * number of stack items is zero.
@@ -453,7 +453,7 @@ class MethodWriter extends MethodVisitor {
             final String desc, final String signature,
             final String[] exceptions, final boolean computeMaxs,
             final boolean computeFrames) {
-        super(Opcodes.ASM5);
+        super(Opcodes.ASM6);
         if (cw.firstMethod == null) {
             cw.firstMethod = this;
         } else {
@@ -883,9 +883,8 @@ class MethodWriter extends MethodVisitor {
 
     @Override
     public void visitMethodInsn(final int opcode, final String owner,
-            final String name, final String desc) {
+            final String name, final String desc, final boolean itf) {
         lastCodeOffset = code.length;
-        boolean itf = opcode == Opcodes.INVOKEINTERFACE;
         Item i = cw.newMethodItem(owner, name, desc, itf);
         int argSize = i.intVal;
         // Label currentBlock = this.currentBlock;
@@ -923,7 +922,7 @@ class MethodWriter extends MethodVisitor {
             }
         }
         // adds the instruction to the bytecode of the method
-        if (itf) {
+        if (opcode == Opcodes.INVOKEINTERFACE) {
             if (argSize == 0) {
                 argSize = Type.getArgumentsAndReturnSizes(desc);
                 i.intVal = argSize;
@@ -1402,6 +1401,14 @@ class MethodWriter extends MethodVisitor {
 
     @Override
     public void visitMaxs(final int maxStack, final int maxLocals) {
+        if (resize) {
+            // replaces the temporary jump opcodes introduced by Label.resolve.
+            if (ClassReader.RESIZE) {
+                resizeInstructions();
+            } else {
+                throw new RuntimeException("Method code too large!");
+            }
+        }
         if (ClassReader.FRAMES && compute == FRAMES) {
             // completes the control flow graph with exception handler blocks
             Handler handler = firstHandler;
@@ -1959,43 +1966,43 @@ class MethodWriter extends MethodVisitor {
                     stackMap.putByte(v);
                 }
             } else {
-                StringBuffer buf = new StringBuffer();
+                StringBuilder sb = new StringBuilder();
                 d >>= 28;
                 while (d-- > 0) {
-                    buf.append('[');
+                    sb.append('[');
                 }
                 if ((t & Frame.BASE_KIND) == Frame.OBJECT) {
-                    buf.append('L');
-                    buf.append(cw.typeTable[t & Frame.BASE_VALUE].strVal1);
-                    buf.append(';');
+                    sb.append('L');
+                    sb.append(cw.typeTable[t & Frame.BASE_VALUE].strVal1);
+                    sb.append(';');
                 } else {
                     switch (t & 0xF) {
                     case 1:
-                        buf.append('I');
+                        sb.append('I');
                         break;
                     case 2:
-                        buf.append('F');
+                        sb.append('F');
                         break;
                     case 3:
-                        buf.append('D');
+                        sb.append('D');
                         break;
                     case 9:
-                        buf.append('Z');
+                        sb.append('Z');
                         break;
                     case 10:
-                        buf.append('B');
+                        sb.append('B');
                         break;
                     case 11:
-                        buf.append('C');
+                        sb.append('C');
                         break;
                     case 12:
-                        buf.append('S');
+                        sb.append('S');
                         break;
                     default:
-                        buf.append('J');
+                        sb.append('J');
                     }
                 }
-                stackMap.putByte(7).putShort(cw.newClass(buf.toString()));
+                stackMap.putByte(7).putShort(cw.newClass(sb.toString()));
             }
         }
     }
@@ -2023,17 +2030,9 @@ class MethodWriter extends MethodVisitor {
         if (classReaderOffset != 0) {
             return 6 + classReaderLength;
         }
-        if (resize) {
-            // replaces the temporary jump opcodes introduced by Label.resolve.
-            if (ClassReader.RESIZE) {
-                resizeInstructions();
-            } else {
-                throw new RuntimeException("Method code too large!");
-            }
-        }
         int size = 8;
         if (code.length > 0) {
-            if (code.length > 65536) {
+            if (code.length > 65535) {
                 throw new RuntimeException("Method code too large!");
             }
             cw.newUTF8("Code");
@@ -2687,49 +2686,52 @@ class MethodWriter extends MethodVisitor {
             }
         }
 
-        // recomputes the stack map frames
-        if (frameCount > 0) {
-            if (compute == FRAMES) {
-                frameCount = 0;
-                stackMap = null;
-                previousFrame = null;
-                frame = null;
-                Frame f = new Frame();
-                f.owner = labels;
-                Type[] args = Type.getArgumentTypes(descriptor);
-                f.initInputFrame(cw, access, args, maxLocals);
-                visitFrame(f);
-                Label l = labels;
-                while (l != null) {
-                    /*
-                     * here we need the original label position. getNewOffset
-                     * must therefore never have been called for this label.
-                     */
-                    u = l.position - 3;
-                    if ((l.status & Label.STORE) != 0 || (u >= 0 && resize[u])) {
-                        getNewOffset(allIndexes, allSizes, l);
-                        // TODO update offsets in UNINITIALIZED values
-                        visitFrame(l.frame);
-                    }
-                    l = l.successor;
-                }
-            } else {
+        // updates the stack map frame labels
+        if (compute == FRAMES) {
+            Label l = labels;
+            while (l != null) {
                 /*
-                 * Resizing an existing stack map frame table is really hard.
-                 * Not only the table must be parsed to update the offets, but
-                 * new frames may be needed for jump instructions that were
-                 * inserted by this method. And updating the offsets or
-                 * inserting frames can change the format of the following
-                 * frames, in case of packed frames. In practice the whole table
-                 * must be recomputed. For this the frames are marked as
-                 * potentially invalid. This will cause the whole class to be
-                 * reread and rewritten with the COMPUTE_FRAMES option (see the
-                 * ClassWriter.toByteArray method). This is not very efficient
-                 * but is much easier and requires much less code than any other
-                 * method I can think of.
+                 * Detects the labels that are just after an IF instruction that
+                 * has been resized with the IFNOT GOTO_W pattern. These labels
+                 * are now the target of a jump instruction (the IFNOT
+                 * instruction). Note that we need the original label position
+                 * here. getNewOffset must therefore never have been called for
+                 * this label.
                  */
-                cw.invalidFrames = true;
+                u = l.position - 3;
+                if (u >= 0 && resize[u]) {
+                    l.status |= Label.TARGET;
+                }
+                getNewOffset(allIndexes, allSizes, l);
+                l = l.successor;
             }
+            // Update the offsets in the uninitialized types
+            if (cw.typeTable != null) {
+                for (i = 0; i < cw.typeTable.length; ++i) {
+                    Item item = cw.typeTable[i];
+                    if (item != null && item.type == ClassWriter.TYPE_UNINIT) {
+                        item.intVal = getNewOffset(allIndexes, allSizes, 0,
+                                item.intVal);
+                    }
+                }
+            }
+            // The stack map frames are not serialized yet, so we don't need
+            // to update them. They will be serialized in visitMaxs.
+        } else if (frameCount > 0) {
+            /*
+             * Resizing an existing stack map frame table is really hard. Not
+             * only the table must be parsed to update the offets, but new
+             * frames may be needed for jump instructions that were inserted by
+             * this method. And updating the offsets or inserting frames can
+             * change the format of the following frames, in case of packed
+             * frames. In practice the whole table must be recomputed. For this
+             * the frames are marked as potentially invalid. This will cause the
+             * whole class to be reread and rewritten with the COMPUTE_FRAMES
+             * option (see the ClassWriter.toByteArray method). This is not very
+             * efficient but is much easier and requires much less code than any
+             * other method I can think of.
+             */
+            cw.invalidFrames = true;
         }
         // updates the exception handler block labels
         Handler h = firstHandler;
