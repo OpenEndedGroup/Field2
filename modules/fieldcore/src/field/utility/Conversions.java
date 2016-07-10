@@ -11,9 +11,9 @@ import jdk.dynalink.beans.StaticClass;
 import jdk.nashorn.api.scripting.NashornScriptEngine;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import jdk.nashorn.api.scripting.ScriptUtils;
-import jdk.nashorn.internal.runtime.ScriptFunction;
-import jdk.nashorn.internal.runtime.ScriptObject;
-import jdk.nashorn.internal.runtime.linker.JavaAdapterFactory;
+//import jdk.nashorn.internal.runtime.ScriptFunction;
+//import jdk.nashorn.internal.runtime.ScriptObject;
+//import jdk.nashorn.internal.runtime.linker.JavaAdapterFactory;
 import fieldbox.execution.Errors;
 import fieldbox.execution.InverseDebugMapping;
 

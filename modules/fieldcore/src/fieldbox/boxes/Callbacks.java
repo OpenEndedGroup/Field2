@@ -3,7 +3,7 @@ package fieldbox.boxes;
 import field.utility.*;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import jdk.nashorn.api.scripting.ScriptUtils;
-import jdk.nashorn.internal.runtime.ScriptObject;
+//import jdk.nashorn.internal.runtime.ScriptObject;
 import fieldbox.execution.Execution;
 import fielded.DisabledRangeHelper;
 

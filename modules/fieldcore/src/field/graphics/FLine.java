@@ -8,9 +8,11 @@ import fieldlinker.Linker;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 import jdk.nashorn.api.scripting.ScriptUtils;
 //import jdk.nashorn.internal.runtime.ConsString;
-import jdk.nashorn.internal.runtime.ScriptFunction;
-import jdk.nashorn.internal.runtime.ScriptObject;
-import jdk.nashorn.internal.runtime.linker.JavaAdapterFactory;
+
+//import jdk.nashorn.internal.runtime.ScriptFunction;
+//import jdk.nashorn.internal.runtime.ScriptObject;
+//import jdk.nashorn.internal.runtime.linker.JavaAdapterFactory;
+
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.awt.*;
@@ -1095,7 +1097,6 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 //		if (value instanceof ConsString) value = value.toString(); //jdk9 module security breaks this
 		if (value!=null && value.getClass().getName().endsWith("ConsString")) value = ""+value;
 
-
 		Dict.Prop cannon = new Dict.Prop(name).toCannon();
 
 		Object converted = convert(value, cannon.getTypeInformation());
@@ -1117,47 +1118,49 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 
 	@HiddenInAutocomplete
 	public Object convert(Object value, List<Class> fit) {
-		if (fit == null) return value;
-		if (fit.get(0)
-		       .isInstance(value)) return value;
+		return Conversions.convert(value, fit);
 
-		// promote non-arrays to arrays
-		if (List.class.isAssignableFrom(fit.get(0))) {
-			if (!(value instanceof List)) {
-				return Collections.singletonList(convert(value, fit.subList(1, fit.size())));
-			} else {
-				return value;
-			}
-		} else if (Map.class.isAssignableFrom(fit.get(0)) && String.class.isAssignableFrom(fit.get(1))) {
-			// promote non-Map<String, V> to Map<String, V>
-			if (!(value instanceof Map)) {
-				return Collections.singletonMap("" + value + ":" + System.identityHashCode(value), convert(value, fit.subList(2, fit.size())));
-			} else {
-				return value;
-			}
-
-		} else if (Collection.class.isAssignableFrom(fit.get(0))) {
-			if (!(value instanceof Collection)) {
-				return Collections.singletonList(convert(value, fit.subList(1, fit.size())));
-			} else {
-				return value;
-			}
-
-		}
-
-		if (value instanceof ScriptFunction) {
-			StaticClass adapterClassFor = JavaAdapterFactory.getAdapterClassFor(new Class[]{fit.get(0)}, (ScriptObject) value, MethodHandles.lookup());
-			try {
-				return adapterClassFor.getRepresentedClass()
-						      .newInstance();
-			} catch (InstantiationException e) {
-				Log.log("underscore.error", ()->" problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0)+e);
-			} catch (IllegalAccessException e) {
-				Log.log("underscore.error", ()->" problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0)+e);
-			}
-		}
-
-		return value;
+//		if (fit == null) return value;
+//		if (fit.get(0)
+//		       .isInstance(value)) return value;
+//
+//		// promote non-arrays to arrays
+//		if (List.class.isAssignableFrom(fit.get(0))) {
+//			if (!(value instanceof List)) {
+//				return Collections.singletonList(convert(value, fit.subList(1, fit.size())));
+//			} else {
+//				return value;
+//			}
+//		} else if (Map.class.isAssignableFrom(fit.get(0)) && String.class.isAssignableFrom(fit.get(1))) {
+//			// promote non-Map<String, V> to Map<String, V>
+//			if (!(value instanceof Map)) {
+//				return Collections.singletonMap("" + value + ":" + System.identityHashCode(value), convert(value, fit.subList(2, fit.size())));
+//			} else {
+//				return value;
+//			}
+//
+//		} else if (Collection.class.isAssignableFrom(fit.get(0))) {
+//			if (!(value instanceof Collection)) {
+//				return Collections.singletonList(convert(value, fit.subList(1, fit.size())));
+//			} else {
+//				return value;
+//			}
+//
+//		}
+//
+////		if (value instanceof ScriptFunction) {
+////			StaticClass adapterClassFor = JavaAdapterFactory.getAdapterClassFor(new Class[]{fit.get(0)}, (ScriptObject) value, MethodHandles.lookup());
+////			try {
+////				return adapterClassFor.getRepresentedClass()
+////						      .newInstance();
+////			} catch (InstantiationException e) {
+////				Log.log("underscore.error", ()->" problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0)+e);
+////			} catch (IllegalAccessException e) {
+////				Log.log("underscore.error", ()->" problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0)+e);
+////			}
+////		}
+//
+//		return value;
 	}
 
 	@Override
@@ -1307,47 +1310,49 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 
 		@HiddenInAutocomplete
 		public Object convert(Object value, List<Class> fit) {
-			if (fit == null) return value;
-			if (fit.get(0)
-			       .isInstance(value)) return value;
+			return Conversions.convert(value, fit);
 
-			// promote non-arrays to arrays
-			if (List.class.isAssignableFrom(fit.get(0))) {
-				if (!(value instanceof List)) {
-					return Collections.singletonList(convert(value, fit.subList(1, fit.size())));
-				} else {
-					return value;
-				}
-			} else if (Map.class.isAssignableFrom(fit.get(0)) && String.class.isAssignableFrom(fit.get(1))) {
-				// promote non-Map<String, V> to Map<String, V>
-				if (!(value instanceof Map)) {
-					return Collections.singletonMap("" + value + ":" + System.identityHashCode(value), convert(value, fit.subList(2, fit.size())));
-				} else {
-					return value;
-				}
-
-			} else if (Collection.class.isAssignableFrom(fit.get(0))) {
-				if (!(value instanceof Collection)) {
-					return Collections.singletonList(convert(value, fit.subList(1, fit.size())));
-				} else {
-					return value;
-				}
-
-			}
-
-			if (value instanceof ScriptFunction) {
-				StaticClass adapterClassFor = JavaAdapterFactory.getAdapterClassFor(new Class[]{fit.get(0)}, (ScriptObject) value, MethodHandles.lookup());
-				try {
-					return adapterClassFor.getRepresentedClass()
-							      .newInstance();
-				} catch (InstantiationException e) {
-					Log.log("underscore.error", ()->" problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0)+e);
-				} catch (IllegalAccessException e) {
-					Log.log("underscore.error", ()->" problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0)+e);
-				}
-			}
-
-			return value;
+//			if (fit == null) return value;
+//			if (fit.get(0)
+//			       .isInstance(value)) return value;
+//
+//			// promote non-arrays to arrays
+//			if (List.class.isAssignableFrom(fit.get(0))) {
+//				if (!(value instanceof List)) {
+//					return Collections.singletonList(convert(value, fit.subList(1, fit.size())));
+//				} else {
+//					return value;
+//				}
+//			} else if (Map.class.isAssignableFrom(fit.get(0)) && String.class.isAssignableFrom(fit.get(1))) {
+//				// promote non-Map<String, V> to Map<String, V>
+//				if (!(value instanceof Map)) {
+//					return Collections.singletonMap("" + value + ":" + System.identityHashCode(value), convert(value, fit.subList(2, fit.size())));
+//				} else {
+//					return value;
+//				}
+//
+//			} else if (Collection.class.isAssignableFrom(fit.get(0))) {
+//				if (!(value instanceof Collection)) {
+//					return Collections.singletonList(convert(value, fit.subList(1, fit.size())));
+//				} else {
+//					return value;
+//				}
+//
+//			}
+//
+//			if (value instanceof ScriptFunction) {
+//				StaticClass adapterClassFor = JavaAdapterFactory.getAdapterClassFor(new Class[]{fit.get(0)}, (ScriptObject) value, MethodHandles.lookup());
+//				try {
+//					return adapterClassFor.getRepresentedClass()
+//							      .newInstance();
+//				} catch (InstantiationException e) {
+//					Log.log("underscore.error", ()->" problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0)+e);
+//				} catch (IllegalAccessException e) {
+//					Log.log("underscore.error", ()->" problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0)+e);
+//				}
+//			}
+//
+//			return value;
 		}
 
 		@Override

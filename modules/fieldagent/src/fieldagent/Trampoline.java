@@ -4,7 +4,6 @@ import com.google.common.collect.MapMaker;
 import com.google.common.io.ByteStreams;
 import fieldagent.asm.ClassReader;
 import fieldagent.asm.tree.ClassNode;
-import jdk.internal.module.Modules;
 
 import java.io.BufferedInputStream;
 import java.io.File;
