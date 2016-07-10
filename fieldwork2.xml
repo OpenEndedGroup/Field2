@@ -1,0 +1,1274 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="fieldwork2" default="all">
+  
+  
+  <property file="fieldwork2.properties"/>
+  <!-- Uncomment the following property if no tests compilation is needed -->
+  <!-- 
+  <property name="skip.tests" value="true"/>
+   -->
+  
+  <!-- Compiler options -->
+  
+  <property name="compiler.debug" value="on"/>
+  <property name="compiler.generate.no.warnings" value="off"/>
+  <property name="compiler.args" value=""/>
+  <property name="compiler.max.memory" value="700m"/>
+  <patternset id="ignored.files">
+    <exclude name="**/*.hprof/**"/>
+    <exclude name="**/*.pyc/**"/>
+    <exclude name="**/*.pyo/**"/>
+    <exclude name="**/*.rbc/**"/>
+    <exclude name="**/*~/**"/>
+    <exclude name="**/.DS_Store/**"/>
+    <exclude name="**/.git/**"/>
+    <exclude name="**/.hg/**"/>
+    <exclude name="**/.svn/**"/>
+    <exclude name="**/CVS/**"/>
+    <exclude name="**/RCS/**"/>
+    <exclude name="**/SCCS/**"/>
+    <exclude name="**/__pycache__/**"/>
+    <exclude name="**/_svn/**"/>
+    <exclude name="**/rcs/**"/>
+    <exclude name="**/vssver.scc/**"/>
+    <exclude name="**/vssver2.scc/**"/>
+  </patternset>
+  <patternset id="library.patterns">
+    <include name="*.war"/>
+    <include name="*.swc"/>
+    <include name="*.apk"/>
+    <include name="*.zip"/>
+    <include name="*.egg"/>
+    <include name="*.ane"/>
+    <include name="*.jar"/>
+    <include name="*.ear"/>
+  </patternset>
+  <patternset id="compiler.resources">
+    <exclude name="**/?*.java"/>
+    <exclude name="**/?*.form"/>
+    <exclude name="**/?*.class"/>
+    <exclude name="**/?*.groovy"/>
+    <exclude name="**/?*.scala"/>
+    <exclude name="**/?*.flex"/>
+    <exclude name="**/?*.kt"/>
+    <exclude name="**/?*.clj"/>
+    <exclude name="**/?*.aj"/>
+  </patternset>
+  
+  <!-- JDK definitions -->
+  
+  <property name="jdk.bin.9-ea" value="${jdk.home.9-ea}/bin"/>
+  <path id="jdk.classpath.9-ea">
+    <fileset dir="${jdk.home.9-ea}">
+      <include name="."/>
+      <include name="lib/ant-javafx.jar"/>
+      <include name="lib/deploy.jar"/>
+      <include name="lib/javafx-swt.jar"/>
+      <include name="lib/javaws.jar"/>
+      <include name="lib/plugin-legacy.jar"/>
+      <include name="lib/plugin.jar"/>
+    </fileset>
+  </path>
+  
+  <property name="project.jdk.home" value="${jdk.home.9-ea}"/>
+  <property name="project.jdk.bin" value="${jdk.bin.9-ea}"/>
+  <property name="project.jdk.classpath" value="jdk.classpath.9-ea"/>
+  
+  
+  <!-- Project Libraries -->
+  
+  <path id="library.cassowary.classpath">
+    <pathelement location="${basedir}/modules/fieldcore/resources/cassowary.jar"/>
+  </path>
+  
+  <path id="library.clojure-1.7.0-alpha4.classpath">
+    <pathelement location="${basedir}/modules/fieldclojure/resources/clojure-1.7.0-alpha4.jar"/>
+  </path>
+  
+  <path id="library.commons-math3-3.2.classpath">
+    <pathelement location="${basedir}/modules/fieldcore/resources/commons-math3-3.2.jar"/>
+  </path>
+  
+  <path id="library.edn-java-0.4.4.classpath">
+    <pathelement location="${basedir}/modules/fieldcore/resources/edn-java-0.4.4.jar"/>
+  </path>
+  
+  <path id="library.fieldlinker.classpath">
+    <pathelement location="${basedir}/out/artifacts/fieldlinker_jar/fieldlinker.jar"/>
+  </path>
+  
+  <path id="library.guava-16.0.1.classpath">
+    <pathelement location="${basedir}/modules/fieldcore/resources/guava-16.0.1.jar"/>
+  </path>
+  
+  <path id="library.guava-16.0.1_(2).classpath">
+    <pathelement location="${basedir}/modules/fieldagent/resources/guava-16.0.1.jar"/>
+  </path>
+  
+  <path id="library.java_websocket.classpath">
+    <pathelement location="${basedir}/modules/fieldcore/resources/java_websocket.jar"/>
+  </path>
+  
+  <path id="library.javacl-1.0-20141231.011028-81-shaded.classpath">
+    <pathelement location="${basedir}/modules/fieldopencl/resources/javacl-1.0-20141231.011028-81-shaded.jar"/>
+    <pathelement location="${basedir}/modules/fieldopencl/resources/javacl-generator-1.0-20140629.155539-82.jar"/>
+  </path>
+  
+  <path id="library.jpy-0.8-snapshot.classpath">
+    <pathelement location="${basedir}/modules/fieldipython/resources/jpy-0.8-SNAPSHOT.jar"/>
+  </path>
+  
+  <path id="library.json-20160212.classpath">
+    <pathelement location="${basedir}/modules/fieldcore/resources/json-20160212.jar"/>
+  </path>
+  
+  <path id="library.jython-standalone-2.7-b3.classpath">
+    <pathelement location="${basedir}/modules/fieldjython/resources/jython-standalone-2.7-b3.jar"/>
+  </path>
+  
+  <path id="library.lwjgl.classpath">
+    <pathelement location="${basedir}/modules/fieldcore/resources/lwjgl.jar"/>
+  </path>
+  
+  <path id="library.lwjgl_util.classpath">
+    <pathelement location="${basedir}/modules/fieldcore/resources/lwjgl_util.jar"/>
+  </path>
+  
+  <path id="library.orient.classpath">
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/activation-1.1.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/antlr-2.7.7.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/asm-3.2.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/asm-analysis-3.2.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/asm-commons-3.2.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/asm-tree-3.2.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/asm-util-3.2.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/blueprints-core-2.6.0.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/commons-beanutils-1.7.0.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/commons-beanutils-core-1.8.0.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/commons-collections-3.2.2.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/commons-configuration-1.6.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/commons-csv-1.2.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/commons-digester-1.8.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/commons-lang-2.4.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/commons-logging-1.1.1.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/concurrentlinkedhashmap-lru-1.4.1.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/gremlin-groovy-2.6.0.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/gremlin-java-2.6.0.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/groovy-1.8.9.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/hazelcast-all-3.5.3.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/hibernate-jpa-2.0-api-1.0.0.Final.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/hppc-0.6.0.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/jackson-annotations-2.2.3.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/jackson-core-2.2.3.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/jackson-databind-2.2.3.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/jansi-1.5.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/javassist-3.16.1-GA.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/jettison-1.3.3.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/jline-0.9.94.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/jna-4.0.0.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/jna-platform-4.0.0.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/lucene-analyzers-common-4.7.0.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/lucene-core-4.7.0.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/lucene-facet-4.7.0.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/lucene-memory-4.7.0.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/lucene-misc-4.7.0.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/lucene-queries-4.7.0.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/lucene-queryparser-4.7.0.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/lucene-sandbox-4.7.0.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/lucene-spatial-4.7.0.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/mail-1.4.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/orientdb-client-2.1.12.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/orientdb-core-2.1.12.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/orientdb-distributed-2.1.12.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/orientdb-enterprise-2.1.12.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/orientdb-etl-2.1.12.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/orientdb-graphdb-2.1.12.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/orientdb-jdbc-2.1.12.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/orientdb-lucene-2.1.12.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/orientdb-object-2.1.12.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/orientdb-server-2.1.12.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/orientdb-tools-2.1.12.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/pipes-2.6.0.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/snappy-java-1.1.0.1.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/spatial4j-0.4.1.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/orientdb/stax-api-1.0.1.jar"/>
+  </path>
+  
+  <path id="library.poly2tri-core-0.1.1-snapshot.classpath">
+    <pathelement location="${basedir}/modules/fieldcore/resources/poly2tri-core-0.1.1-SNAPSHOT.jar"/>
+  </path>
+  
+  <path id="library.processing_core.classpath">
+    <pathelement location="${basedir}/modules/fieldprocessing/resources/core.jar"/>
+  </path>
+  
+  <path id="library.protobuf-java-2.6.1.classpath">
+    <pathelement location="${basedir}/modules/fieldcore/resources/protobuf-java-2.6.1.jar"/>
+  </path>
+  
+  <path id="library.qdox-2.0-m1.classpath">
+    <pathelement location="${basedir}/modules/fieldcore/resources/qdox-2.0-M1.jar"/>
+  </path>
+  
+  <path id="library.quickhull3d.classpath">
+    <pathelement location="${basedir}/modules/fieldcore/resources/quickhull3d.jar"/>
+  </path>
+  
+  <path id="library.rt.classpath">
+    <pathelement location="${basedir}/../../../Library/Java/JavaVirtualMachines/jdk1.9.0_40.jdk/Contents/Home/jre/lib/rt.jar"/>
+  </path>
+  
+  <path id="library.txtmark-0.14-snapshot.classpath">
+    <pathelement location="${basedir}/modules/fieldcore/resources/txtmark-0.14-SNAPSHOT.jar"/>
+  </path>
+  
+  <path id="library.zmq.classpath">
+    <pathelement location="${basedir}/modules/fieldipython/resources/zmq.jar"/>
+  </path>
+  
+  
+  <!-- Global Libraries -->
+  
+  <path id="library.rt.classpath">
+    <pathelement location="/Library/Java/JavaVirtualMachines/jdk1.8.0_74.jdk/Contents/Home/jre/lib/rt.jar"/>
+  </path>
+  
+  <!-- Modules -->
+  
+  
+  <!-- Module fieldagent -->
+  
+  <dirname property="module.fieldagent.basedir" file="${ant.file}"/>
+  
+  
+  <property name="module.jdk.home.fieldagent" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.fieldagent" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.fieldagent" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.fieldagent" value="-encoding UTF-8 -source 8 -target 1.8 ${compiler.args}"/>
+  
+  <property name="fieldagent.output.dir" value="${module.fieldagent.basedir}/out/production/fieldagent"/>
+  <property name="fieldagent.testoutput.dir" value="${module.fieldagent.basedir}/out/test/fieldagent"/>
+  
+  <path id="fieldagent.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="fieldagent.module.production.classpath">
+    <path refid="${module.jdk.classpath.fieldagent}"/>
+    <path refid="library.guava-16.0.1_(2).classpath"/>
+    <path refid="library.rt.classpath"/>
+  </path>
+  
+  <path id="fieldagent.runtime.production.module.classpath">
+    <pathelement location="${fieldagent.output.dir}"/>
+    <path refid="library.guava-16.0.1_(2).classpath"/>
+    <path refid="library.rt.classpath"/>
+  </path>
+  
+  <path id="fieldagent.module.classpath">
+    <path refid="${module.jdk.classpath.fieldagent}"/>
+    <pathelement location="${fieldagent.output.dir}"/>
+    <path refid="library.guava-16.0.1_(2).classpath"/>
+    <path refid="library.rt.classpath"/>
+  </path>
+  
+  <path id="fieldagent.runtime.module.classpath">
+    <pathelement location="${fieldagent.testoutput.dir}"/>
+    <pathelement location="${fieldagent.output.dir}"/>
+    <path refid="library.guava-16.0.1_(2).classpath"/>
+    <path refid="library.rt.classpath"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.fieldagent">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.fieldagent">
+    <patternset refid="excluded.from.module.fieldagent"/>
+  </patternset>
+  
+  <path id="fieldagent.module.sourcepath">
+    <dirset dir="${module.fieldagent.basedir}/modules/fieldagent">
+      <include name="src"/>
+      <include name="resources"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.fieldagent" depends="compile.module.fieldagent.production,compile.module.fieldagent.tests" description="Compile module fieldagent"/>
+  
+  <target name="compile.module.fieldagent.production" description="Compile module fieldagent; production classes">
+    <mkdir dir="${fieldagent.output.dir}"/>
+    <javac destdir="${fieldagent.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.fieldagent}/javac">
+      <compilerarg line="${compiler.args.fieldagent}"/>
+      <bootclasspath refid="fieldagent.module.bootclasspath"/>
+      <classpath refid="fieldagent.module.production.classpath"/>
+      <src refid="fieldagent.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.fieldagent"/>
+    </javac>
+    
+    <copy todir="${fieldagent.output.dir}">
+      <fileset dir="${module.fieldagent.basedir}/modules/fieldagent/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.fieldagent.basedir}/modules/fieldagent/resources">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.fieldagent.tests" depends="compile.module.fieldagent.production" description="compile module fieldagent; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.fieldagent" description="cleanup module">
+    <delete dir="${fieldagent.output.dir}"/>
+    <delete dir="${fieldagent.testoutput.dir}"/>
+  </target>
+  
+  
+  <!-- Module fieldlinker -->
+  
+  <dirname property="module.fieldlinker.basedir" file="${ant.file}"/>
+  
+  
+  <property name="module.jdk.home.fieldlinker" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.fieldlinker" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.fieldlinker" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.fieldlinker" value="-encoding UTF-8 -source 8 -target 1.8 ${compiler.args}"/>
+  
+  <property name="fieldlinker.output.dir" value="${module.fieldlinker.basedir}/out/production/fieldlinker"/>
+  <property name="fieldlinker.testoutput.dir" value="${module.fieldlinker.basedir}/out/test/fieldlinker"/>
+  
+  <path id="fieldlinker.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="fieldlinker.module.production.classpath">
+    <path refid="${module.jdk.classpath.fieldlinker}"/>
+    <pathelement location="${fieldagent.output.dir}"/>
+    <path refid="library.guava-16.0.1_(2).classpath"/>
+    <path refid="library.fieldlinker.classpath"/>
+    <path refid="library.rt.classpath"/>
+    <path refid="library.guava-16.0.1.classpath"/>
+    <path refid="library.lwjgl.classpath"/>
+    <path refid="library.commons-math3-3.2.classpath"/>
+    <path refid="library.lwjgl_util.classpath"/>
+    <path refid="library.poly2tri-core-0.1.1-snapshot.classpath"/>
+    <path refid="library.quickhull3d.classpath"/>
+    <path refid="library.json-20160212.classpath"/>
+    <path refid="library.java_websocket.classpath"/>
+    <path refid="library.edn-java-0.4.4.classpath"/>
+    <path refid="library.protobuf-java-2.6.1.classpath"/>
+    <path refid="library.qdox-2.0-m1.classpath"/>
+    <path refid="library.cassowary.classpath"/>
+    <path refid="library.orient.classpath"/>
+    <path refid="library.txtmark-0.14-snapshot.classpath"/>
+  </path>
+  
+  <path id="fieldlinker.runtime.production.module.classpath">
+    <pathelement location="${fieldlinker.output.dir}"/>
+    <path refid="fieldagent.runtime.production.module.classpath"/>
+    <path refid="library.fieldlinker.classpath"/>
+    <path refid="library.rt.classpath"/>
+    <path refid="library.guava-16.0.1.classpath"/>
+    <path refid="library.lwjgl.classpath"/>
+    <path refid="library.commons-math3-3.2.classpath"/>
+    <path refid="library.lwjgl_util.classpath"/>
+    <path refid="library.poly2tri-core-0.1.1-snapshot.classpath"/>
+    <path refid="library.quickhull3d.classpath"/>
+    <path refid="library.json-20160212.classpath"/>
+    <path refid="library.java_websocket.classpath"/>
+    <path refid="library.edn-java-0.4.4.classpath"/>
+    <path refid="library.protobuf-java-2.6.1.classpath"/>
+    <path refid="library.qdox-2.0-m1.classpath"/>
+    <path refid="library.cassowary.classpath"/>
+    <path refid="library.orient.classpath"/>
+    <path refid="library.txtmark-0.14-snapshot.classpath"/>
+  </path>
+  
+  <path id="fieldlinker.module.classpath">
+    <path refid="${module.jdk.classpath.fieldlinker}"/>
+    <pathelement location="${fieldlinker.output.dir}"/>
+    <pathelement location="${fieldagent.testoutput.dir}"/>
+    <pathelement location="${fieldagent.output.dir}"/>
+    <path refid="library.guava-16.0.1_(2).classpath"/>
+    <path refid="library.fieldlinker.classpath"/>
+    <path refid="library.rt.classpath"/>
+    <path refid="library.guava-16.0.1.classpath"/>
+    <path refid="library.lwjgl.classpath"/>
+    <path refid="library.commons-math3-3.2.classpath"/>
+    <path refid="library.lwjgl_util.classpath"/>
+    <path refid="library.poly2tri-core-0.1.1-snapshot.classpath"/>
+    <path refid="library.quickhull3d.classpath"/>
+    <path refid="library.json-20160212.classpath"/>
+    <path refid="library.java_websocket.classpath"/>
+    <path refid="library.edn-java-0.4.4.classpath"/>
+    <path refid="library.protobuf-java-2.6.1.classpath"/>
+    <path refid="library.qdox-2.0-m1.classpath"/>
+    <path refid="library.cassowary.classpath"/>
+    <path refid="library.orient.classpath"/>
+    <path refid="library.txtmark-0.14-snapshot.classpath"/>
+  </path>
+  
+  <path id="fieldlinker.runtime.module.classpath">
+    <pathelement location="${fieldlinker.testoutput.dir}"/>
+    <pathelement location="${fieldlinker.output.dir}"/>
+    <path refid="fieldagent.runtime.module.classpath"/>
+    <path refid="library.fieldlinker.classpath"/>
+    <path refid="library.rt.classpath"/>
+    <path refid="library.guava-16.0.1.classpath"/>
+    <path refid="library.lwjgl.classpath"/>
+    <path refid="library.commons-math3-3.2.classpath"/>
+    <path refid="library.lwjgl_util.classpath"/>
+    <path refid="library.poly2tri-core-0.1.1-snapshot.classpath"/>
+    <path refid="library.quickhull3d.classpath"/>
+    <path refid="library.json-20160212.classpath"/>
+    <path refid="library.java_websocket.classpath"/>
+    <path refid="library.edn-java-0.4.4.classpath"/>
+    <path refid="library.protobuf-java-2.6.1.classpath"/>
+    <path refid="library.qdox-2.0-m1.classpath"/>
+    <path refid="library.cassowary.classpath"/>
+    <path refid="library.orient.classpath"/>
+    <path refid="library.txtmark-0.14-snapshot.classpath"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.fieldcef_macosx">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  <patternset id="excluded.from.module.fieldcore">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  <patternset id="excluded.from.module.fieldlinker">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.fieldlinker">
+    <patternset refid="excluded.from.module.fieldcef_macosx"/>
+    <patternset refid="excluded.from.module.fieldcore"/>
+    <patternset refid="excluded.from.module.fieldlinker"/>
+  </patternset>
+  
+  <path id="fieldlinker.module.sourcepath">
+    <dirset dir="${module.fieldlinker.basedir}/modules/fieldcef_macosx">
+      <include name="src"/>
+      <include name="resources"/>
+    </dirset>
+    <dirset dir="${module.fieldlinker.basedir}/modules/fieldcore">
+      <include name="src"/>
+      <include name="resources"/>
+    </dirset>
+    <dirset dir="${module.fieldlinker.basedir}/modules/fieldlinker">
+      <include name="src"/>
+      <include name="resources"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.fieldlinker" depends="compile.module.fieldlinker.production,compile.module.fieldlinker.tests" description="Compile modules fieldlinker"/>
+  
+  <target name="compile.module.fieldlinker.production" depends="compile.module.fieldagent" description="Compile modules fieldlinker; production classes">
+    <mkdir dir="${fieldlinker.output.dir}"/>
+    <javac destdir="${fieldlinker.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.fieldlinker}/javac">
+      <compilerarg line="${compiler.args.fieldlinker}"/>
+      <bootclasspath refid="fieldlinker.module.bootclasspath"/>
+      <classpath refid="fieldlinker.module.production.classpath"/>
+      <src refid="fieldlinker.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.fieldlinker"/>
+    </javac>
+    
+    <copy todir="${fieldlinker.output.dir}">
+      <fileset dir="${module.fieldlinker.basedir}/modules/fieldcef_macosx/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.fieldlinker.basedir}/modules/fieldcef_macosx/resources">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.fieldlinker.basedir}/modules/fieldcore/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.fieldlinker.basedir}/modules/fieldcore/resources">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.fieldlinker.basedir}/modules/fieldlinker/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.fieldlinker.basedir}/modules/fieldlinker/resources">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.fieldlinker.tests" depends="compile.module.fieldlinker.production" description="compile modules fieldlinker; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.fieldlinker" description="cleanup module">
+    <delete dir="${fieldlinker.output.dir}"/>
+    <delete dir="${fieldlinker.testoutput.dir}"/>
+  </target>
+  
+  
+  <!-- Module fieldcef_win -->
+  
+  <dirname property="module.fieldcef_win.basedir" file="${ant.file}"/>
+  
+  
+  <property name="module.jdk.home.fieldcef_win" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.fieldcef_win" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.fieldcef_win" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.fieldcef_win" value="-encoding UTF-8 -source 8 -target 1.8 ${compiler.args}"/>
+  
+  <property name="fieldcef_win.output.dir" value="${module.fieldcef_win.basedir}/out/production/fieldcef_win"/>
+  <property name="fieldcef_win.testoutput.dir" value="${module.fieldcef_win.basedir}/out/test/fieldcef_win"/>
+  
+  <path id="fieldcef_win.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="fieldcef_win.module.production.classpath">
+    <path refid="${module.jdk.classpath.fieldcef_win}"/>
+    <pathelement location="${fieldagent.output.dir}"/>
+    <path refid="library.guava-16.0.1_(2).classpath"/>
+    <path refid="library.guava-16.0.1.classpath"/>
+    <path refid="library.lwjgl.classpath"/>
+    <path refid="library.commons-math3-3.2.classpath"/>
+    <path refid="library.json-20160212.classpath"/>
+    <path refid="library.java_websocket.classpath"/>
+    <pathelement location="${fieldlinker.output.dir}"/>
+    <path refid="library.rt.classpath"/>
+  </path>
+  
+  <path id="fieldcef_win.runtime.production.module.classpath">
+    <pathelement location="${fieldcef_win.output.dir}"/>
+    <path refid="fieldagent.runtime.production.module.classpath"/>
+    <path refid="fieldlinker.runtime.production.module.classpath"/>
+    <path refid="library.rt.classpath"/>
+  </path>
+  
+  <path id="fieldcef_win.module.classpath">
+    <path refid="${module.jdk.classpath.fieldcef_win}"/>
+    <pathelement location="${fieldcef_win.output.dir}"/>
+    <pathelement location="${fieldagent.testoutput.dir}"/>
+    <pathelement location="${fieldagent.output.dir}"/>
+    <path refid="library.guava-16.0.1_(2).classpath"/>
+    <path refid="library.guava-16.0.1.classpath"/>
+    <path refid="library.lwjgl.classpath"/>
+    <path refid="library.commons-math3-3.2.classpath"/>
+    <path refid="library.json-20160212.classpath"/>
+    <path refid="library.java_websocket.classpath"/>
+    <pathelement location="${fieldlinker.testoutput.dir}"/>
+    <pathelement location="${fieldlinker.output.dir}"/>
+    <path refid="library.rt.classpath"/>
+  </path>
+  
+  <path id="fieldcef_win.runtime.module.classpath">
+    <pathelement location="${fieldcef_win.testoutput.dir}"/>
+    <pathelement location="${fieldcef_win.output.dir}"/>
+    <path refid="fieldagent.runtime.module.classpath"/>
+    <path refid="fieldlinker.runtime.module.classpath"/>
+    <path refid="library.rt.classpath"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.fieldcef_win">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.fieldcef_win">
+    <patternset refid="excluded.from.module.fieldcef_win"/>
+  </patternset>
+  
+  <path id="fieldcef_win.module.sourcepath">
+    <dirset dir="${module.fieldcef_win.basedir}/modules/fieldcef_win">
+      <include name="src"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.fieldcef_win" depends="compile.module.fieldcef_win.production,compile.module.fieldcef_win.tests" description="Compile module fieldcef_win"/>
+  
+  <target name="compile.module.fieldcef_win.production" depends="compile.module.fieldagent,compile.module.fieldlinker" description="Compile module fieldcef_win; production classes">
+    <mkdir dir="${fieldcef_win.output.dir}"/>
+    <javac destdir="${fieldcef_win.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.fieldcef_win}/javac">
+      <compilerarg line="${compiler.args.fieldcef_win}"/>
+      <bootclasspath refid="fieldcef_win.module.bootclasspath"/>
+      <classpath refid="fieldcef_win.module.production.classpath"/>
+      <src refid="fieldcef_win.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.fieldcef_win"/>
+    </javac>
+    
+    <copy todir="${fieldcef_win.output.dir}">
+      <fileset dir="${module.fieldcef_win.basedir}/modules/fieldcef_win/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.fieldcef_win.tests" depends="compile.module.fieldcef_win.production" description="compile module fieldcef_win; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.fieldcef_win" description="cleanup module">
+    <delete dir="${fieldcef_win.output.dir}"/>
+    <delete dir="${fieldcef_win.testoutput.dir}"/>
+  </target>
+  
+  
+  <!-- Module fieldclojure -->
+  
+  <dirname property="module.fieldclojure.basedir" file="${ant.file}"/>
+  
+  
+  <property name="module.jdk.home.fieldclojure" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.fieldclojure" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.fieldclojure" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.fieldclojure" value="-encoding UTF-8 -source 8 -target 1.8 ${compiler.args}"/>
+  
+  <property name="fieldclojure.output.dir" value="${module.fieldclojure.basedir}/out/production/fieldclojure"/>
+  <property name="fieldclojure.testoutput.dir" value="${module.fieldclojure.basedir}/out/test/fieldclojure"/>
+  
+  <path id="fieldclojure.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="fieldclojure.module.production.classpath">
+    <path refid="${module.jdk.classpath.fieldclojure}"/>
+    <pathelement location="${fieldagent.output.dir}"/>
+    <path refid="library.guava-16.0.1_(2).classpath"/>
+    <path refid="library.guava-16.0.1.classpath"/>
+    <path refid="library.lwjgl.classpath"/>
+    <path refid="library.commons-math3-3.2.classpath"/>
+    <path refid="library.json-20160212.classpath"/>
+    <path refid="library.java_websocket.classpath"/>
+    <pathelement location="${fieldlinker.output.dir}"/>
+    <path refid="library.clojure-1.7.0-alpha4.classpath"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/nashorn-local.jar"/>
+    <path refid="library.fieldlinker.classpath"/>
+    <path refid="library.rt.classpath"/>
+  </path>
+  
+  <path id="fieldclojure.runtime.production.module.classpath">
+    <pathelement location="${fieldclojure.output.dir}"/>
+    <path refid="fieldagent.runtime.production.module.classpath"/>
+    <path refid="fieldlinker.runtime.production.module.classpath"/>
+    <path refid="library.clojure-1.7.0-alpha4.classpath"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/nashorn-local.jar"/>
+    <path refid="library.fieldlinker.classpath"/>
+    <path refid="library.rt.classpath"/>
+  </path>
+  
+  <path id="fieldclojure.module.classpath">
+    <path refid="${module.jdk.classpath.fieldclojure}"/>
+    <pathelement location="${fieldclojure.output.dir}"/>
+    <pathelement location="${fieldagent.testoutput.dir}"/>
+    <pathelement location="${fieldagent.output.dir}"/>
+    <path refid="library.guava-16.0.1_(2).classpath"/>
+    <path refid="library.guava-16.0.1.classpath"/>
+    <path refid="library.lwjgl.classpath"/>
+    <path refid="library.commons-math3-3.2.classpath"/>
+    <path refid="library.json-20160212.classpath"/>
+    <path refid="library.java_websocket.classpath"/>
+    <pathelement location="${fieldlinker.testoutput.dir}"/>
+    <pathelement location="${fieldlinker.output.dir}"/>
+    <path refid="library.clojure-1.7.0-alpha4.classpath"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/nashorn-local.jar"/>
+    <path refid="library.fieldlinker.classpath"/>
+    <path refid="library.rt.classpath"/>
+  </path>
+  
+  <path id="fieldclojure.runtime.module.classpath">
+    <pathelement location="${fieldclojure.testoutput.dir}"/>
+    <pathelement location="${fieldclojure.output.dir}"/>
+    <path refid="fieldagent.runtime.module.classpath"/>
+    <path refid="fieldlinker.runtime.module.classpath"/>
+    <path refid="library.clojure-1.7.0-alpha4.classpath"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/nashorn-local.jar"/>
+    <path refid="library.fieldlinker.classpath"/>
+    <path refid="library.rt.classpath"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.fieldclojure">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.fieldclojure">
+    <patternset refid="excluded.from.module.fieldclojure"/>
+  </patternset>
+  
+  <path id="fieldclojure.module.sourcepath">
+    <dirset dir="${module.fieldclojure.basedir}/modules/fieldclojure">
+      <include name="src"/>
+      <include name="resources"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.fieldclojure" depends="compile.module.fieldclojure.production,compile.module.fieldclojure.tests" description="Compile module fieldclojure"/>
+  
+  <target name="compile.module.fieldclojure.production" depends="compile.module.fieldagent,compile.module.fieldlinker" description="Compile module fieldclojure; production classes">
+    <mkdir dir="${fieldclojure.output.dir}"/>
+    <javac destdir="${fieldclojure.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.fieldclojure}/javac">
+      <compilerarg line="${compiler.args.fieldclojure}"/>
+      <bootclasspath refid="fieldclojure.module.bootclasspath"/>
+      <classpath refid="fieldclojure.module.production.classpath"/>
+      <src refid="fieldclojure.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.fieldclojure"/>
+    </javac>
+    
+    <copy todir="${fieldclojure.output.dir}">
+      <fileset dir="${module.fieldclojure.basedir}/modules/fieldclojure/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.fieldclojure.basedir}/modules/fieldclojure/resources">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.fieldclojure.tests" depends="compile.module.fieldclojure.production" description="compile module fieldclojure; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.fieldclojure" description="cleanup module">
+    <delete dir="${fieldclojure.output.dir}"/>
+    <delete dir="${fieldclojure.testoutput.dir}"/>
+  </target>
+  
+  
+  <!-- Module fieldipython -->
+  
+  <dirname property="module.fieldipython.basedir" file="${ant.file}"/>
+  
+  
+  <property name="module.jdk.home.fieldipython" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.fieldipython" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.fieldipython" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.fieldipython" value="-encoding UTF-8 -source 8 -target 1.8 ${compiler.args}"/>
+  
+  <property name="fieldipython.output.dir" value="${module.fieldipython.basedir}/out/production/fieldipython"/>
+  <property name="fieldipython.testoutput.dir" value="${module.fieldipython.basedir}/out/test/fieldipython"/>
+  
+  <path id="fieldipython.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="fieldipython.module.production.classpath">
+    <path refid="${module.jdk.classpath.fieldipython}"/>
+    <pathelement location="${fieldagent.output.dir}"/>
+    <path refid="library.guava-16.0.1_(2).classpath"/>
+    <path refid="library.guava-16.0.1.classpath"/>
+    <path refid="library.lwjgl.classpath"/>
+    <path refid="library.commons-math3-3.2.classpath"/>
+    <path refid="library.json-20160212.classpath"/>
+    <path refid="library.java_websocket.classpath"/>
+    <pathelement location="${fieldlinker.output.dir}"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/json-20160212.jar"/>
+    <path refid="library.zmq.classpath"/>
+    <path refid="library.jpy-0.8-snapshot.classpath"/>
+    <path refid="library.fieldlinker.classpath"/>
+    <path refid="library.rt.classpath"/>
+  </path>
+  
+  <path id="fieldipython.runtime.production.module.classpath">
+    <pathelement location="${fieldipython.output.dir}"/>
+    <path refid="fieldagent.runtime.production.module.classpath"/>
+    <path refid="fieldlinker.runtime.production.module.classpath"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/json-20160212.jar"/>
+    <path refid="library.zmq.classpath"/>
+    <path refid="library.jpy-0.8-snapshot.classpath"/>
+    <path refid="library.fieldlinker.classpath"/>
+    <path refid="library.rt.classpath"/>
+  </path>
+  
+  <path id="fieldipython.module.classpath">
+    <path refid="${module.jdk.classpath.fieldipython}"/>
+    <pathelement location="${fieldipython.output.dir}"/>
+    <pathelement location="${fieldagent.testoutput.dir}"/>
+    <pathelement location="${fieldagent.output.dir}"/>
+    <path refid="library.guava-16.0.1_(2).classpath"/>
+    <path refid="library.guava-16.0.1.classpath"/>
+    <path refid="library.lwjgl.classpath"/>
+    <path refid="library.commons-math3-3.2.classpath"/>
+    <path refid="library.json-20160212.classpath"/>
+    <path refid="library.java_websocket.classpath"/>
+    <pathelement location="${fieldlinker.testoutput.dir}"/>
+    <pathelement location="${fieldlinker.output.dir}"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/json-20160212.jar"/>
+    <path refid="library.zmq.classpath"/>
+    <path refid="library.jpy-0.8-snapshot.classpath"/>
+    <path refid="library.fieldlinker.classpath"/>
+    <path refid="library.rt.classpath"/>
+  </path>
+  
+  <path id="fieldipython.runtime.module.classpath">
+    <pathelement location="${fieldipython.testoutput.dir}"/>
+    <pathelement location="${fieldipython.output.dir}"/>
+    <path refid="fieldagent.runtime.module.classpath"/>
+    <path refid="fieldlinker.runtime.module.classpath"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/json-20160212.jar"/>
+    <path refid="library.zmq.classpath"/>
+    <path refid="library.jpy-0.8-snapshot.classpath"/>
+    <path refid="library.fieldlinker.classpath"/>
+    <path refid="library.rt.classpath"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.fieldipython">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.fieldipython">
+    <patternset refid="excluded.from.module.fieldipython"/>
+  </patternset>
+  
+  <path id="fieldipython.module.sourcepath">
+    <dirset dir="${module.fieldipython.basedir}/modules/fieldipython">
+      <include name="src"/>
+      <include name="resources"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.fieldipython" depends="compile.module.fieldipython.production,compile.module.fieldipython.tests" description="Compile module fieldipython"/>
+  
+  <target name="compile.module.fieldipython.production" depends="compile.module.fieldagent,compile.module.fieldlinker" description="Compile module fieldipython; production classes">
+    <mkdir dir="${fieldipython.output.dir}"/>
+    <javac destdir="${fieldipython.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.fieldipython}/javac">
+      <compilerarg line="${compiler.args.fieldipython}"/>
+      <bootclasspath refid="fieldipython.module.bootclasspath"/>
+      <classpath refid="fieldipython.module.production.classpath"/>
+      <src refid="fieldipython.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.fieldipython"/>
+    </javac>
+    
+    <copy todir="${fieldipython.output.dir}">
+      <fileset dir="${module.fieldipython.basedir}/modules/fieldipython/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.fieldipython.basedir}/modules/fieldipython/resources">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.fieldipython.tests" depends="compile.module.fieldipython.production" description="compile module fieldipython; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.fieldipython" description="cleanup module">
+    <delete dir="${fieldipython.output.dir}"/>
+    <delete dir="${fieldipython.testoutput.dir}"/>
+  </target>
+  
+  
+  <!-- Module fieldjython -->
+  
+  <dirname property="module.fieldjython.basedir" file="${ant.file}"/>
+  
+  
+  <property name="module.jdk.home.fieldjython" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.fieldjython" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.fieldjython" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.fieldjython" value="-encoding UTF-8 -source 8 -target 1.8 ${compiler.args}"/>
+  
+  <property name="fieldjython.output.dir" value="${module.fieldjython.basedir}/out/production/fieldjython"/>
+  <property name="fieldjython.testoutput.dir" value="${module.fieldjython.basedir}/out/test/fieldjython"/>
+  
+  <path id="fieldjython.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="fieldjython.module.production.classpath">
+    <path refid="${module.jdk.classpath.fieldjython}"/>
+    <pathelement location="${fieldagent.output.dir}"/>
+    <path refid="library.guava-16.0.1_(2).classpath"/>
+    <path refid="library.guava-16.0.1.classpath"/>
+    <path refid="library.lwjgl.classpath"/>
+    <path refid="library.commons-math3-3.2.classpath"/>
+    <path refid="library.json-20160212.classpath"/>
+    <path refid="library.java_websocket.classpath"/>
+    <pathelement location="${fieldlinker.output.dir}"/>
+    <path refid="library.jython-standalone-2.7-b3.classpath"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/nashorn-local.jar"/>
+    <path refid="library.fieldlinker.classpath"/>
+    <path refid="library.rt.classpath"/>
+  </path>
+  
+  <path id="fieldjython.runtime.production.module.classpath">
+    <pathelement location="${fieldjython.output.dir}"/>
+    <path refid="fieldagent.runtime.production.module.classpath"/>
+    <path refid="fieldlinker.runtime.production.module.classpath"/>
+    <path refid="library.jython-standalone-2.7-b3.classpath"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/nashorn-local.jar"/>
+    <path refid="library.fieldlinker.classpath"/>
+    <path refid="library.rt.classpath"/>
+  </path>
+  
+  <path id="fieldjython.module.classpath">
+    <path refid="${module.jdk.classpath.fieldjython}"/>
+    <pathelement location="${fieldjython.output.dir}"/>
+    <pathelement location="${fieldagent.testoutput.dir}"/>
+    <pathelement location="${fieldagent.output.dir}"/>
+    <path refid="library.guava-16.0.1_(2).classpath"/>
+    <path refid="library.guava-16.0.1.classpath"/>
+    <path refid="library.lwjgl.classpath"/>
+    <path refid="library.commons-math3-3.2.classpath"/>
+    <path refid="library.json-20160212.classpath"/>
+    <path refid="library.java_websocket.classpath"/>
+    <pathelement location="${fieldlinker.testoutput.dir}"/>
+    <pathelement location="${fieldlinker.output.dir}"/>
+    <path refid="library.jython-standalone-2.7-b3.classpath"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/nashorn-local.jar"/>
+    <path refid="library.fieldlinker.classpath"/>
+    <path refid="library.rt.classpath"/>
+  </path>
+  
+  <path id="fieldjython.runtime.module.classpath">
+    <pathelement location="${fieldjython.testoutput.dir}"/>
+    <pathelement location="${fieldjython.output.dir}"/>
+    <path refid="fieldagent.runtime.module.classpath"/>
+    <path refid="fieldlinker.runtime.module.classpath"/>
+    <path refid="library.jython-standalone-2.7-b3.classpath"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/nashorn-local.jar"/>
+    <path refid="library.fieldlinker.classpath"/>
+    <path refid="library.rt.classpath"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.fieldjython">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.fieldjython">
+    <patternset refid="excluded.from.module.fieldjython"/>
+  </patternset>
+  
+  <path id="fieldjython.module.sourcepath">
+    <dirset dir="${module.fieldjython.basedir}/modules/fieldjython">
+      <include name="src"/>
+      <include name="resources"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.fieldjython" depends="compile.module.fieldjython.production,compile.module.fieldjython.tests" description="Compile module fieldjython"/>
+  
+  <target name="compile.module.fieldjython.production" depends="compile.module.fieldagent,compile.module.fieldlinker" description="Compile module fieldjython; production classes">
+    <mkdir dir="${fieldjython.output.dir}"/>
+    <javac destdir="${fieldjython.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.fieldjython}/javac">
+      <compilerarg line="${compiler.args.fieldjython}"/>
+      <bootclasspath refid="fieldjython.module.bootclasspath"/>
+      <classpath refid="fieldjython.module.production.classpath"/>
+      <src refid="fieldjython.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.fieldjython"/>
+    </javac>
+    
+    <copy todir="${fieldjython.output.dir}">
+      <fileset dir="${module.fieldjython.basedir}/modules/fieldjython/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.fieldjython.basedir}/modules/fieldjython/resources">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.fieldjython.tests" depends="compile.module.fieldjython.production" description="compile module fieldjython; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.fieldjython" description="cleanup module">
+    <delete dir="${fieldjython.output.dir}"/>
+    <delete dir="${fieldjython.testoutput.dir}"/>
+  </target>
+  
+  
+  <!-- Module fieldopencl -->
+  
+  <dirname property="module.fieldopencl.basedir" file="${ant.file}"/>
+  
+  
+  <property name="module.jdk.home.fieldopencl" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.fieldopencl" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.fieldopencl" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.fieldopencl" value="-encoding UTF-8 -source 8 -target 1.8 ${compiler.args}"/>
+  
+  <property name="fieldopencl.output.dir" value="${module.fieldopencl.basedir}/out/production/fieldopencl"/>
+  <property name="fieldopencl.testoutput.dir" value="${module.fieldopencl.basedir}/out/test/fieldopencl"/>
+  
+  <path id="fieldopencl.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="fieldopencl.module.production.classpath">
+    <path refid="${module.jdk.classpath.fieldopencl}"/>
+    <path refid="library.guava-16.0.1.classpath"/>
+    <path refid="library.lwjgl.classpath"/>
+    <path refid="library.commons-math3-3.2.classpath"/>
+    <path refid="library.json-20160212.classpath"/>
+    <path refid="library.java_websocket.classpath"/>
+    <pathelement location="${fieldlinker.output.dir}"/>
+    <path refid="library.javacl-1.0-20141231.011028-81-shaded.classpath"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/nashorn-local.jar"/>
+    <path refid="library.fieldlinker.classpath"/>
+    <path refid="library.rt.classpath"/>
+  </path>
+  
+  <path id="fieldopencl.runtime.production.module.classpath">
+    <pathelement location="${fieldopencl.output.dir}"/>
+    <path refid="fieldlinker.runtime.production.module.classpath"/>
+    <path refid="library.javacl-1.0-20141231.011028-81-shaded.classpath"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/nashorn-local.jar"/>
+    <path refid="library.fieldlinker.classpath"/>
+    <path refid="library.rt.classpath"/>
+  </path>
+  
+  <path id="fieldopencl.module.classpath">
+    <path refid="${module.jdk.classpath.fieldopencl}"/>
+    <pathelement location="${fieldopencl.output.dir}"/>
+    <path refid="library.guava-16.0.1.classpath"/>
+    <path refid="library.lwjgl.classpath"/>
+    <path refid="library.commons-math3-3.2.classpath"/>
+    <path refid="library.json-20160212.classpath"/>
+    <path refid="library.java_websocket.classpath"/>
+    <pathelement location="${fieldlinker.testoutput.dir}"/>
+    <pathelement location="${fieldlinker.output.dir}"/>
+    <path refid="library.javacl-1.0-20141231.011028-81-shaded.classpath"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/nashorn-local.jar"/>
+    <path refid="library.fieldlinker.classpath"/>
+    <path refid="library.rt.classpath"/>
+  </path>
+  
+  <path id="fieldopencl.runtime.module.classpath">
+    <pathelement location="${fieldopencl.testoutput.dir}"/>
+    <pathelement location="${fieldopencl.output.dir}"/>
+    <path refid="fieldlinker.runtime.module.classpath"/>
+    <path refid="library.javacl-1.0-20141231.011028-81-shaded.classpath"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/nashorn-local.jar"/>
+    <path refid="library.fieldlinker.classpath"/>
+    <path refid="library.rt.classpath"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.fieldopencl">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.fieldopencl">
+    <patternset refid="excluded.from.module.fieldopencl"/>
+  </patternset>
+  
+  <path id="fieldopencl.module.sourcepath">
+    <dirset dir="${module.fieldopencl.basedir}/modules/fieldopencl">
+      <include name="src"/>
+      <include name="resources"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.fieldopencl" depends="compile.module.fieldopencl.production,compile.module.fieldopencl.tests" description="Compile module fieldopencl"/>
+  
+  <target name="compile.module.fieldopencl.production" depends="compile.module.fieldlinker" description="Compile module fieldopencl; production classes">
+    <mkdir dir="${fieldopencl.output.dir}"/>
+    <javac destdir="${fieldopencl.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.fieldopencl}/javac">
+      <compilerarg line="${compiler.args.fieldopencl}"/>
+      <bootclasspath refid="fieldopencl.module.bootclasspath"/>
+      <classpath refid="fieldopencl.module.production.classpath"/>
+      <src refid="fieldopencl.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.fieldopencl"/>
+    </javac>
+    
+    <copy todir="${fieldopencl.output.dir}">
+      <fileset dir="${module.fieldopencl.basedir}/modules/fieldopencl/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.fieldopencl.basedir}/modules/fieldopencl/resources">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.fieldopencl.tests" depends="compile.module.fieldopencl.production" description="compile module fieldopencl; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.fieldopencl" description="cleanup module">
+    <delete dir="${fieldopencl.output.dir}"/>
+    <delete dir="${fieldopencl.testoutput.dir}"/>
+  </target>
+  
+  
+  <!-- Module fieldprocessing -->
+  
+  <dirname property="module.fieldprocessing.basedir" file="${ant.file}"/>
+  
+  
+  <property name="module.jdk.home.fieldprocessing" value="${jdk.home.9-ea}"/>
+  <property name="module.jdk.bin.fieldprocessing" value="${jdk.bin.9-ea}"/>
+  <property name="module.jdk.classpath.fieldprocessing" value="jdk.classpath.9-ea"/>
+  
+  <property name="compiler.args.fieldprocessing" value="-encoding UTF-8 -source 8 -target 1.8 ${compiler.args}"/>
+  
+  <property name="fieldprocessing.output.dir" value="${module.fieldprocessing.basedir}/out/production/fieldprocessing"/>
+  <property name="fieldprocessing.testoutput.dir" value="${module.fieldprocessing.basedir}/out/test/fieldprocessing"/>
+  
+  <path id="fieldprocessing.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="fieldprocessing.module.production.classpath">
+    <path refid="${module.jdk.classpath.fieldprocessing}"/>
+    <path refid="library.guava-16.0.1.classpath"/>
+    <path refid="library.lwjgl.classpath"/>
+    <path refid="library.commons-math3-3.2.classpath"/>
+    <path refid="library.json-20160212.classpath"/>
+    <path refid="library.java_websocket.classpath"/>
+    <pathelement location="${fieldlinker.output.dir}"/>
+    <path refid="library.processing_core.classpath"/>
+    <path refid="library.fieldlinker.classpath"/>
+    <path refid="library.rt.classpath"/>
+  </path>
+  
+  <path id="fieldprocessing.runtime.production.module.classpath">
+    <pathelement location="${fieldprocessing.output.dir}"/>
+    <path refid="fieldlinker.runtime.production.module.classpath"/>
+    <path refid="library.processing_core.classpath"/>
+    <path refid="library.fieldlinker.classpath"/>
+    <path refid="library.rt.classpath"/>
+  </path>
+  
+  <path id="fieldprocessing.module.classpath">
+    <path refid="${module.jdk.classpath.fieldprocessing}"/>
+    <pathelement location="${fieldprocessing.output.dir}"/>
+    <path refid="library.guava-16.0.1.classpath"/>
+    <path refid="library.lwjgl.classpath"/>
+    <path refid="library.commons-math3-3.2.classpath"/>
+    <path refid="library.json-20160212.classpath"/>
+    <path refid="library.java_websocket.classpath"/>
+    <pathelement location="${fieldlinker.testoutput.dir}"/>
+    <pathelement location="${fieldlinker.output.dir}"/>
+    <path refid="library.processing_core.classpath"/>
+    <path refid="library.fieldlinker.classpath"/>
+    <path refid="library.rt.classpath"/>
+  </path>
+  
+  <path id="fieldprocessing.runtime.module.classpath">
+    <pathelement location="${fieldprocessing.testoutput.dir}"/>
+    <pathelement location="${fieldprocessing.output.dir}"/>
+    <path refid="fieldlinker.runtime.module.classpath"/>
+    <path refid="library.processing_core.classpath"/>
+    <path refid="library.fieldlinker.classpath"/>
+    <path refid="library.rt.classpath"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.fieldprocessing">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.fieldprocessing">
+    <patternset refid="excluded.from.module.fieldprocessing"/>
+  </patternset>
+  
+  <path id="fieldprocessing.module.sourcepath">
+    <dirset dir="${module.fieldprocessing.basedir}/modules/fieldprocessing">
+      <include name="src"/>
+      <include name="resources"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.fieldprocessing" depends="compile.module.fieldprocessing.production,compile.module.fieldprocessing.tests" description="Compile module fieldprocessing"/>
+  
+  <target name="compile.module.fieldprocessing.production" depends="compile.module.fieldlinker" description="Compile module fieldprocessing; production classes">
+    <mkdir dir="${fieldprocessing.output.dir}"/>
+    <javac destdir="${fieldprocessing.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.fieldprocessing}/javac">
+      <compilerarg line="${compiler.args.fieldprocessing}"/>
+      <bootclasspath refid="fieldprocessing.module.bootclasspath"/>
+      <classpath refid="fieldprocessing.module.production.classpath"/>
+      <src refid="fieldprocessing.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.fieldprocessing"/>
+    </javac>
+    
+    <copy todir="${fieldprocessing.output.dir}">
+      <fileset dir="${module.fieldprocessing.basedir}/modules/fieldprocessing/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.fieldprocessing.basedir}/modules/fieldprocessing/resources">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.fieldprocessing.tests" depends="compile.module.fieldprocessing.production" description="compile module fieldprocessing; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.fieldprocessing" description="cleanup module">
+    <delete dir="${fieldprocessing.output.dir}"/>
+    <delete dir="${fieldprocessing.testoutput.dir}"/>
+  </target>
+  
+  <target name="init" description="Build initialization">
+    <!-- Perform any build initialization in this target -->
+  </target>
+  
+  <target name="clean" depends="clean.module.fieldagent, clean.module.fieldlinker, clean.module.fieldcef_win, clean.module.fieldclojure, clean.module.fieldipython, clean.module.fieldjython, clean.module.fieldopencl, clean.module.fieldprocessing, clean.artifact.fieldagent:jar, clean.artifact.fieldlinker:jar" description="cleanup all"/>
+  
+  <target name="build.modules" depends="init, clean, compile.module.fieldagent, compile.module.fieldlinker, compile.module.fieldcef_win, compile.module.fieldclojure, compile.module.fieldipython, compile.module.fieldjython, compile.module.fieldopencl, compile.module.fieldprocessing" description="build all modules"/>
+  
+  <target name="init.artifacts">
+    <property name="artifacts.temp.dir" value="${basedir}/__artifacts_temp"/>
+    <property name="artifact.output.fieldagent:jar" value="${basedir}/out/artifacts/fieldagent_jar"/>
+    <property name="artifact.output.fieldlinker:jar" value="${basedir}/out/artifacts/fieldlinker_jar"/>
+    <mkdir dir="${artifacts.temp.dir}"/>
+    <property name="temp.jar.path.fieldagent.jar" value="${artifacts.temp.dir}/fieldagent.jar"/>
+    <property name="temp.jar.path.fieldlinker.jar" value="${artifacts.temp.dir}/fieldlinker.jar"/>
+  </target>
+  
+  <target name="clean.artifact.fieldagent:jar" description="clean fieldagent:jar artifact output">
+    <delete dir="${artifact.output.fieldagent:jar}"/>
+  </target>
+  
+  <target name="clean.artifact.fieldlinker:jar" description="clean fieldlinker:jar artifact output">
+    <delete dir="${artifact.output.fieldlinker:jar}"/>
+  </target>
+  
+  <target name="artifact.fieldagent:jar" depends="init.artifacts, compile.module.fieldagent" description="Build &#39;fieldagent:jar&#39; artifact">
+    <mkdir dir="${artifact.output.fieldagent:jar}"/>
+    <jar destfile="${temp.jar.path.fieldagent.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
+      <zipfileset dir="${fieldagent.output.dir}"/>
+    </jar>
+    <copy file="${temp.jar.path.fieldagent.jar}" tofile="${artifact.output.fieldagent:jar}/fieldagent.jar"/>
+  </target>
+  
+  <target name="artifact.fieldlinker:jar" depends="init.artifacts, compile.module.fieldlinker" description="Build &#39;fieldlinker:jar&#39; artifact">
+    <mkdir dir="${artifact.output.fieldlinker:jar}"/>
+    <jar destfile="${temp.jar.path.fieldlinker.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
+      <zipfileset dir="${fieldlinker.output.dir}"/>
+    </jar>
+    <copy file="${temp.jar.path.fieldlinker.jar}" tofile="${artifact.output.fieldlinker:jar}/fieldlinker.jar"/>
+  </target>
+  
+  <target name="build.all.artifacts" depends="artifact.fieldagent:jar, artifact.fieldlinker:jar" description="Build all artifacts">
+    
+    <!-- Delete temporary files -->
+    <delete dir="${artifacts.temp.dir}"/>
+  </target>
+  
+  <target name="all" depends="build.modules, build.all.artifacts" description="build all"/>
+</project>
