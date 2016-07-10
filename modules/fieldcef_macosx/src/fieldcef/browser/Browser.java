@@ -200,7 +200,7 @@ public class Browser extends Box implements IO.Loaded {
 			.orElseThrow(() -> new IllegalArgumentException(" can't install text-drawing into something without drawing support"));
 
 
-		float rsf = 1.5f;//window.getRetinaScaleFactor();
+		float rsf = window.getRetinaScaleFactor();
 
 		System.out.println("MAKING CefSystem :" + w + " " + h + " " + rsf);
 
