@@ -31,6 +31,8 @@ public class BoxGroup extends Box implements IO.Loaded {
 
 	public BoxGroup() {
 
+		this.properties.put(Planes.plane, "__always__");
+
 		this.properties.putToMap(Mouse.onDoubleClick, "doubleClickMe", (e) -> {
 			if (properties.get(Box.frame).intersects(new Vec2(e.after.mx, e.after.my)))
 				properties.put(_collapsed, !properties.isTrue(_collapsed, false));
@@ -95,6 +97,7 @@ public class BoxGroup extends Box implements IO.Loaded {
 
 			if (on == this) {
 				Rect from = on.properties.get(Box.frame);
+				if (from==null) return next;
 
 				if (from.w != next.w && collapsed) return next;
 
@@ -157,6 +160,10 @@ public class BoxGroup extends Box implements IO.Loaded {
 	private Rect computeFrame() {
 		if (isCollapsed()) {
 			Rect r = this.properties.get(Box.frame);
+			if (r==null)
+			{
+				r = new Rect(50, 50, 40, 40);
+			}
 			Rect rr = new Rect(r.x, r.y, 50, 50);
 			if (!rr.equals(r)) {
 				rr = Callbacks.frameChange(this, rr);
