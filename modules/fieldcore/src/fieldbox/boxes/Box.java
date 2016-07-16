@@ -16,10 +16,7 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.function.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -54,6 +51,12 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	static public final Dict.Prop<Boolean> undeletable = new Dict.Prop<>("undeletable").type()
 		.toCannon()
 		.doc("set this to true to make this box not deletable by conventional means");
+
+	static public final Dict.Prop<Predicate<Box>> availableForCompletion = new Dict.Prop<>("availableForCompletion").type()
+		.toCannon()
+		.doc("provides a `Predicate<Box>` to help decide if a Property should be shown as available for completion").set(Dict.domain, "attributes");
+
+
 
 	public final Dict properties = new Dict();
 	public Set<Box> parents = new LinkedHashSet<>();
@@ -573,6 +576,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 				.map(x -> x.properties.getMap()
 					.keySet())
 				.flatMap(x -> x.stream())
+				.filter(x -> x.getAttributes().get(availableForCompletion)==null || x.getAttributes().get(availableForCompletion).test(this))
 				.map(x -> x.getName())
 				.filter(x -> !x.startsWith("_"))
 				.collect(Collectors.toSet());
