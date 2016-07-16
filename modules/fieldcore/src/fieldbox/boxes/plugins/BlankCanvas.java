@@ -1,10 +1,12 @@
 package fieldbox.boxes.plugins;
 
+import field.app.RunLoop;
 import field.graphics.FLine;
 import field.linalg.Vec4;
 import field.utility.Cached;
 import field.utility.Pair;
 import field.utility.Rect;
+import field.utility.Triple;
 import fieldagent.Main;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Drawing;
@@ -21,11 +23,17 @@ public class BlankCanvas extends Box {
 
 	public BlankCanvas(Box root) {
 
+		this.properties.put(Planes.plane, "__always__");
+
 		this.properties.putToMap(frameDrawing, "__textprompt__", new Cached<Box, Object, FLine>((box, previously) -> {
 
-			// 1 is that timeslider
+			// 1 is that timeslider, 2 is the notification box
 
-			if (root.children().stream().filter(x -> x.properties.has(Box.frame)).count()>1) return new FLine();
+			System.err.println(" count :"+root.children().stream().filter(x -> x.properties.has(Box.frame)).count());
+
+			if (RunLoop.tick<1) return new FLine();
+
+			if (root.children().stream().filter(x -> x.properties.has(Box.frame)).count()>2) return new FLine();
 
 
 			Rect m = this.find(Drawing.drawing, this.both()).findFirst().map(x -> x.getCurrentViewBounds(this)).orElseGet(() -> new Rect(0,0,100,100));
@@ -43,12 +51,15 @@ public class BlankCanvas extends Box {
 
 			return f;
 
-		}, box -> new Pair<>(root.children().size(), this.find(Drawing.drawing, this.both()).findFirst().map(x -> x.getCurrentViewBounds(this)).orElseGet(() -> new Rect(0,0,100,100)))));
+		}, box -> new Triple<>(RunLoop.tick<1, root.children().size(), this.find(Drawing.drawing, this.both()).findFirst().map(x -> x.getCurrentViewBounds(this)).orElseGet(() -> new Rect(0,0,100,100)))));
 
 		this.properties.putToMap(frameDrawing, "__textprompt2__", new Cached<Box, Object, FLine>((box, previously) -> {
 
-			// 1 is that timeslider
-			if (root.children().stream().filter(x -> x.properties.has(Box.frame)).count()>1) return new FLine();
+			// 1 is that timeslider, 2 is the notification box
+
+			if (RunLoop.tick<1) return new FLine();
+
+			if (root.children().stream().filter(x -> x.properties.has(Box.frame)).count()>2) return new FLine();
 
 			Rect m = this.find(Drawing.drawing, this.both()).findFirst().map(x -> x.getCurrentViewBounds(this)).orElseGet(() -> new Rect(0,0,100,100));
 
@@ -65,7 +76,7 @@ public class BlankCanvas extends Box {
 
 			return f;
 
-		}, box -> new Pair<>(root.children().size(), this.find(Drawing.drawing, this.both()).findFirst().map(x -> x.getCurrentViewBounds(this)).orElseGet(() -> new Rect(0,0,100,100)))));
+		}, box -> new Triple<>(RunLoop.tick<1,root.children().size(), this.find(Drawing.drawing, this.both()).findFirst().map(x -> x.getCurrentViewBounds(this)).orElseGet(() -> new Rect(0,0,100,100)))));
 
 
 	}
