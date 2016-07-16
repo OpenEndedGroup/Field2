@@ -48,8 +48,11 @@ public class Options {
 		});
 	}
 
+	static public String[] remainingArgs;
 
 	static public void parseCommandLine(String[] arg) {
+
+		int lastArg = 0;
 
 		for (int i = 0; i < arg.length; i++) {
 			if (arg[i].startsWith("-")) {
@@ -65,9 +68,21 @@ public class Options {
 						options.o.put(new Dict.Prop<Number>(q), n);
 					else
 						options.o.put(new Dict.Prop<String>(q), v);
+					i+=1;
 				}
+				lastArg = i+1;
 			}
 		}
+
+		if (lastArg<arg.length) {
+			remainingArgs = new String[arg.length - lastArg];
+			System.arraycopy(arg, lastArg, remainingArgs, 0, remainingArgs.length);
+		}
+		else
+		{
+			remainingArgs = new String[0];
+		}
+
 	}
 
 	static public Dict dict() {
