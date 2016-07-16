@@ -107,10 +107,6 @@ public class Window implements ProvidesGraphicsContext {
 
 	public Window(int x, int y, int w, int h, String title, boolean permitRetina) {
 
-		System.out.println(" -- A ");
-
-		new Exception().printStackTrace();
-
 		Configuration.GLFW_CHECK_THREAD0.set(false);
 
 		Windows.windows.init();
@@ -155,8 +151,10 @@ public class Window implements ProvidesGraphicsContext {
 
 //	try {
 //			ThreadSync.callInMainThreadAndWait(() -> {
-				System.out.println(" -- C");
+
+				System.out.println(" -- C1 :"+w+" "+h+" "+title+" "+0+" "+(shareContext==this)+" "+Thread.currentThread());
 				window = glfwCreateWindow(w, h, title, 0, shareContext == this ? 0 : shareContext.window);
+			System.out.println(" -- C2");
 				if (window == 0) {
 					System.err.println(" FAILED TO CREATE WINDOW :" + shareContext);
 				}
