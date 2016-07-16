@@ -252,7 +252,7 @@ public class MarkingMenus extends Box {
 			this.properties.putToMap(frameDrawing, "contour" + e.getKey(), box -> f);
 			this.properties.putToMap(FLineInteraction.interactiveDrawing, "contour" + e.getKey(), box -> f);
 
-			f.attributes.put(strokeColor, new Vec4(0.05f, 0.05f, 0.05f, 0.05f));
+			f.attributes.put(strokeColor, new Vec4(0.45f, 0.45f, 0.45f, 0.1f));
 			f.attributes.put(fillColor, new Vec4(0.40f, 0.40f, 0.40f, 0.55f));
 			f.attributes.put(filled, true);
 			f.attributes.put(stroked, false);
