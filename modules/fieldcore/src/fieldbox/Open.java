@@ -2,6 +2,7 @@ package fieldbox;
 
 import field.app.RunLoop;
 import field.app.ThreadSync;
+import fieldbox.io.io2.IO2Interface;
 import fieldcef.plugins.*;
 import field.graphics.*;
 import field.utility.AutoPersist;
@@ -32,6 +33,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.*;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -182,6 +184,8 @@ public class Open {
 
 		new Rename(boxes.root()).connect(boxes.root());
 
+		new DoubleClickToRename(boxes.root()).connect(boxes.root());
+
 		new Scrolling(boxes.root()).connect(boxes.root());
 
 		new GraphicsSupport(boxes.root()).connect(boxes.root());
@@ -197,6 +201,8 @@ public class Open {
 		new FrameConstraints(boxes.root()).connect(boxes.root());
 
 		new Alignment(boxes.root()).connect(boxes.root());
+
+		new BoxPair(boxes.root()).connect(boxes.root());
 
 //		new StatusBar(boxes.root()).connect(boxes.root());
 
@@ -253,6 +259,12 @@ public class Open {
 		new WebApps(boxes.root()).connect(boxes.root());
 
 		new Exec(boxes.root()).connect(boxes.root());
+
+		if (FieldBox.fieldBox.io2!=null)
+		{
+			new IO2Interface(boxes.root()).connect(boxes.root());
+		}
+
 
 		if (ThreadSync.enabled) new ThreadSyncFeedback(boxes.root()).connect(boxes.root());
 
