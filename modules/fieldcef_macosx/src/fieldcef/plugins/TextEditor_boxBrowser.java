@@ -20,6 +20,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
@@ -227,6 +228,10 @@ public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 
 	@HiddenInAutocomplete
 	public void show() {
+
+		Optional<PresentationMode> o = find(PresentationMode._presentationMode, both()).findFirst();
+		if (o.isPresent() && !o.get().isPresent()) return;
+
 		if (!enabled) hide();
 		else {
 			browser.properties.put(Box.hidden, false);

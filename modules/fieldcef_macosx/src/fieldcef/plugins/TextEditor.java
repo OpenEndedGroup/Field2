@@ -10,6 +10,7 @@ import field.utility.Log;
 import field.utility.Rect;
 import fieldagent.Main;
 import fieldbox.boxes.*;
+import fieldbox.boxes.plugins.PresentationMode;
 import fieldbox.io.IO;
 import fieldbox.ui.FieldBoxWindow;
 import fieldcef.browser.Browser;
@@ -21,6 +22,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -124,6 +126,9 @@ public class TextEditor extends Box implements IO.Loaded {
 			executeJavaScript("$(\".CodeMirror\").height(" + (maxh - 10) + ")");
 			executeJavaScript("$(\".CodeMirror\").width(" + (maxw - 28 * 2) + ")");
 
+
+			this.properties.putToMap(PresentationMode.onEnterPresentationMode, "__hideOnEnter__", () -> hide());
+
 			this.properties.put(Boxes.dontSave, true);
 			styles = findAndLoad(styleSheet, false);
 
@@ -153,10 +158,14 @@ public class TextEditor extends Box implements IO.Loaded {
 							browser.setFocus(false);
 						}
 
+
 						if (selection().count() != 1 && !pinned) {
 							browser.properties.put(Box.hidden, true);
 							Drawing.dirty(this);
 						} else {
+
+							Optional<PresentationMode> o = find(PresentationMode._presentationMode, both()).findFirst();
+							if (o.isPresent() && o.get().isPresent()) return;
 
 							executeJavaScript(setHeightCode);
 							executeJavaScript(setWidthCode);
@@ -244,6 +253,10 @@ public class TextEditor extends Box implements IO.Loaded {
 	@HiddenInAutocomplete
 	public void show() {
 //		System.out.println(" showing because show() called ");
+
+		Optional<PresentationMode> o = find(PresentationMode._presentationMode, both()).findFirst();
+		if (o.isPresent() && o.get().isPresent()) return;
+
 		browser.properties.put(Box.hidden, false);
 		browser.setFocus(true);
 		Drawing.dirty(browser);
@@ -251,6 +264,8 @@ public class TextEditor extends Box implements IO.Loaded {
 
 	@HiddenInAutocomplete
 	public void hide() {
+
+
 		tick = 0;
 		RunLoop.main.getLoop()
 			.attach(x -> {
