@@ -356,7 +356,7 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 
 
 //		if (!selected)
-			f.attributes.put(thicken, new BasicStroke(selected ? 6.5f : 1.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
+			f.attributes.put(thicken, new BasicStroke(selected ? 3.5f : 1.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
 //		if (selected) f.attributes.put(filled, true);
 
 		return new Pair<>(f, midpoint);
