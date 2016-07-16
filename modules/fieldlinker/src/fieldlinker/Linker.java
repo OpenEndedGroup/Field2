@@ -1,7 +1,7 @@
 package fieldlinker;
 
 
-import jdk.dynalink.CallSiteDescriptor;
+//import jdk.dynalink.CallSiteDescriptor;
 import jdk.dynalink.linker.*;
 //import jdk.dynalink.support.Guards;
 //import jdk.nashorn.api.scripting.extensions.CustomDelete;
@@ -70,7 +70,6 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 
 
 	public Linker() {
-		System.err.println(" linker! has been instantiated " + disabled + " " + debug);
 	}
 
 
