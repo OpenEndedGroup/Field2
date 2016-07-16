@@ -16,6 +16,7 @@ import fieldbox.boxes.Boxes;
 import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -69,8 +70,8 @@ public class IO2 {
 		Object hooks = field.get(null);
 
 		Map map = (Map) hooks;
-		System.out.println("class = " + hooks.getClass().getName());
-		System.out.println(hooks); //hooks is a Map<Thread, Thread>
+//		System.out.println("class = " + hooks.getClass().getName());
+//		System.out.println(hooks); //hooks is a Map<Thread, Thread>
 
 		Set<Object> toRemove = new LinkedHashSet<>();
 		for (Object o : map.entrySet()) {
@@ -78,7 +79,7 @@ public class IO2 {
 			java.lang.Object key = e.getKey();
 			java.lang.Object value = e.getValue();
 
-			System.out.println(e + " =========== " + key.getClass().getName() + " -- " + value.getClass().getName());
+//			System.out.println(e + " =========== " + key.getClass().getName() + " -- " + value.getClass().getName());
 
 			if (e.getKey().getClass().getName().contains("OrientShutdownHook")) {
 				toRemove.add(e.getKey());
@@ -86,9 +87,9 @@ public class IO2 {
 
 		}
 
-		System.out.println(" removing :" + toRemove);
+//		System.out.println(" removing :" + toRemove);
 		boolean q = map.keySet().removeAll(toRemove);
-		System.out.println(" removed :" + q + " -> " + map.keySet());
+//		System.out.println(" removed :" + q + " -> " + map.keySet());
 
 	}
 
@@ -122,7 +123,7 @@ public class IO2 {
 			String a = aalias.apply(x);
 			if (a == null && save.test(x) && !x.properties.isTrue(Boxes.dontSave, false)) {
 
-				System.out.println(" -------------- check for dontsave at :" + x + " " + x.properties.isTrue(Boxes.dontSave, false));
+//				System.out.println(" -------------- check for dontsave at :" + x + " " + x.properties.isTrue(Boxes.dontSave, false));
 
 				try {
 					all.add(_saveBox(x, aalias, t -> save.test(t) && complete.contains(t), q -> {
@@ -225,6 +226,9 @@ public class IO2 {
 			topology = next;
 
 		}
+
+		topology.setProperty("lastModified", Date.from(Instant.now()));
+
 		return topology;
 	}
 
@@ -561,6 +565,8 @@ public class IO2 {
 			}
 		}
 
+		at.setProperty("lastModified", Date.from(Instant.now()));
+
 		x.properties.put(_dbvertex, at);
 
 		if (x.properties.get(IO.desiredBoxClass) != null)
@@ -650,7 +656,7 @@ public class IO2 {
 	}
 
 
-	private <T> Collection<T> allOf(Iterable<T> vert) {
+	static public <T> Collection<T> allOf(Iterable<T> vert) {
 
 		List<T> tt = new ArrayList<>();
 		for (T t : vert)
@@ -679,6 +685,7 @@ public class IO2 {
 			graph.begin();
 
 			System.out.println(" moving forward from :" + x + " to " + next);
+			next.setProperty("lastModified", Date.from(Instant.now()));
 			return next;
 		});
 

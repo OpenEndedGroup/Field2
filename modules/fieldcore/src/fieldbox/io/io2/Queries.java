@@ -99,6 +99,29 @@ public class Queries {
 		return vv;
 	}
 
+	public LinkedHashMap<String, Integer> extractAllTags() {
+		Collection<Vertex> allWithTags = known("__tagged__", "tags");
+		allWithTags = currentOnly(allWithTags);
+
+		LinkedHashMap<String, Integer> tags = new LinkedHashMap<String, Integer>();
+		for (Vertex v : allWithTags) {
+			try {
+				String prop = (String) propertyFor("tags", v);
+				if (prop.contains(",") || prop.contains(" ")) {
+					String[] pieces = prop.split("[, ]+");
+					for (String p : pieces) {
+						if (p.trim().length() > 0)
+							tags.compute(p.trim(), (k, val) -> (val == null ? 1 : (val + 1)));
+					}
+				} else if (prop.trim().length() > 0)
+					tags.compute(prop.trim(), (k, val) -> (val == null ? 1 : (val + 1)));
+
+			} catch (ClassCastException e) {
+			}
+		}
+		return tags;
+	}
+
 	public List<Vertex> getVertices(String classname, String name) {
 		Iterable<Vertex> v = on.graph.getVertices(classname, name);
 		if (v == null) return Collections.emptyList();
@@ -163,5 +186,6 @@ public class Queries {
 		}
 
 	}
+
 
 }

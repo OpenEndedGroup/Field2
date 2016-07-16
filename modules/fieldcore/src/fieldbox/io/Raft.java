@@ -44,7 +44,7 @@ public class Raft {
         }
     }
 
-    public Serializable saveTopology(String name, Box root, Predicate<Box> save, Function<Box, String> alias) {
+    public Serializable saveTopology(Box root, Predicate<Box> save, Function<Box, String> alias) {
 
         List<Node> all = new ArrayList<>();
         Set<Box> complete = root.breadthFirstAll(root.allDownwardsFrom()).collect(Collectors.toSet());
@@ -191,6 +191,11 @@ public class Raft {
         // do we mark this UID as external somehow?
         // or perhaps we mark it as null?
 //        b.properties.put(IO.id, (String)vertex.values.get("uid"));
+
+        b.properties.remove(IO.id);
+        b.properties.remove(new Dict.Prop("uid"));
+
+        System.out.println(" making raft with uid? "+b.properties);
 
         return b;
     }
