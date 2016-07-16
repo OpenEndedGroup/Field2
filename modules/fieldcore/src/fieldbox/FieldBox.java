@@ -15,6 +15,7 @@ import java.awt.*;
 public class FieldBox {
 
 	static public final FieldBox fieldBox = new FieldBox();
+	static public String[] args;
 
 	public IO io;
 	public IO2 io2;
@@ -26,11 +27,13 @@ public class FieldBox {
 
 
 	static public void main(String[] s) {
+		args = s;
+
 		System.err.println(" lauching toolkit");
 		if (Main.os == Main.OS.mac)
 			Toolkit.getDefaultToolkit();
 
-		// experimenting with moving this initialization first. Does this remove the occasional crash on startup?
+		// experimenting with moving this initialization first. Seems to remove the occasional crash on startup?
 		System.err.println(" building the CefSystem");
 		CefSystem sys = CefSystem.cefSystem;
 		System.err.println(" finished building the CefSystem");
@@ -43,13 +46,11 @@ public class FieldBox {
 		fieldBox.io = new IO(Options.getDirectory("workspace", () -> System.getProperty("user.home") + "/Documents/FirstNewFieldWorkspace/"));
 		fieldBox.io.addFilespec("code", IO.EXECUTION, IO.EXECUTION);
 
-
 		fieldBox.io2 = new IO2();
 
-		Open open = new Open(Options.getString("file", () -> "testIB.field2"));
+		new Open(Options.getString("file", () -> "testIB.field2"));
 
 		fieldBox.go();
-
 	}
 
 
