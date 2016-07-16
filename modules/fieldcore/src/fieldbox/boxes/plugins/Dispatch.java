@@ -236,6 +236,23 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 
 	static protected Pair<FLine, Vec2> arc(Rect f1, Rect f2, boolean selected) {
 
+		if (false)
+		{
+			FLine f = new FLine();
+			f.moveTo(f1.x+f1.w/2, f1.y+f1.h/2);
+			f.lineTo(f2.x+f2.w/2, f2.y+f2.h/2);
+
+			f.attributes.put(fillColor, selected ? new Vec4(1, 1, 1, 0.5) : new Vec4(0.0, 0.0, 0.0, 0.05f));
+			f.attributes.put(strokeColor, selected ? new Vec4(1, 1, 1, 0.5) : new Vec4(0.0, 0.0, 0.0, 0.05f));
+			f.attributes.put(color, selected ? new Vec4(1, 1, 0, 0.5) : new Vec4(0.0, 0.0, 0.0, 0.05f));
+
+			if (!selected)
+				f.attributes.put(thicken, new BasicStroke(selected ? 13.25f : 5.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
+			if (selected) f.attributes.put(filled, true);
+
+			return new Pair<>(f, new Vec2(f1.x+f1.w/2+f2.x+f2.w/2, f1.y+f1.h/2+f2.y+f2.h/2).mul(0.5));
+		}
+
 		float inset = 0;
 		Vec2[] a = new Vec2[]{new Vec2(f1.x + inset, f1.y + inset), new Vec2(f1.x + f1.w - inset, f1.y + f1.h - inset), new Vec2(f1.x + f1.w - inset, f1.y + inset), new Vec2(f1.x + inset, f1.y + f1.h - inset)};
 		inset = 15;
@@ -298,36 +315,49 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 			Vec3 norm = new Vec3(-tang.y, tang.x, tang.z);
 
 
-			FLine arrow = new FLine();
+//			FLine arrow = new FLine();
+			FLine arrow = f;
 			float sz = 5;
 			float sz2 = -5;
+
 			arrow.moveTo(at.x + norm.x * sz + tang.x * sz2, at.y + norm.y * sz + tang.y * sz2);
 			arrow.lineTo(at.x, at.y);
 			arrow.lineTo(at.x - norm.x * sz + tang.x * sz2, at.y - norm.y * sz + tang.y * sz2);
-			arrowA = new Area(new BasicStroke(5f).createStrokedShape(FLinesAndJavaShapes.flineToJavaShape(arrow)));
+
+
+//			arrowA = new Area(new BasicStroke(5f).createStrokedShape(FLinesAndJavaShapes.flineToJavaShape(arrow)));
 		}
-		float o = 0.5f;
-		Shape shape = FLinesAndJavaShapes.flineToJavaShape(f);
-		Area r1 = new Area(new BasicStroke(1.5f).createStrokedShape(shape));
+//		Shape shape = FLinesAndJavaShapes.flineToJavaShape(f);
+//		Area r1 = new Area(new BasicStroke(1.5f).createStrokedShape(shape));
+//		{
+//			FLine m = new FLine();
+//			m.circle(a[da[0]].x, a[da[0]].y, 5);
+//			Area r2 = new Area(FLinesAndJavaShapes.flineToJavaShape(m));
+//
+//			r1.add(r2);
+//		}
+//		{
+//			FLine m = new FLine();
+//			m.circle(b[da[1]].x, b[da[1]].y, 5);
+//			Area r2 = new Area(FLinesAndJavaShapes.flineToJavaShape(m));
+//
+//			r1.add(r2);
+//		}
+//
+//		if (arrowA != null) r1.add(arrowA);
+//		f = FLinesAndJavaShapes.javaShapeToFLineFlat(r1, 0.1f, 3);
 
-		FLine m = new FLine();
-		m.circle(a[da[0]].x, a[da[0]].y, 5);
-		m.circle(b[da[1]].x, b[da[1]].y, 5);
-		Area r2 = new Area(FLinesAndJavaShapes.flineToJavaShape(m));
+		f.attributes.put(fillColor, selected ? new Vec4(1, 1, 1, 0.5) : new Vec4(1, 0.5, 0.0, 0.5f));
+		f.attributes.put(strokeColor, selected ? new Vec4(1, 1, 1, 0.5) : new Vec4(1.0, 0.5, 0.0, 0.5f));
+		f.attributes.put(color, selected ? new Vec4(1, 1, 1, 0.5) : new Vec4(1.0, 0.5, 0.0, 0.5f));
 
-		r1.add(r2);
-		if (arrowA != null) r1.add(arrowA);
+		f.circle(a[da[0]].x, a[da[0]].y, 5);
+		f.circle(b[da[1]].x, b[da[1]].y, 5);
 
 
-		f = FLinesAndJavaShapes.javaShapeToFLineFlat(r1, 0.1f, 3);
-
-		f.attributes.put(fillColor, selected ? new Vec4(1, 1, 1, 0.5) : new Vec4(0.0, 0.0, 0.0, 0.05f));
-		f.attributes.put(strokeColor, selected ? new Vec4(1, 1, 1, 0.5) : new Vec4(0.0, 0.0, 0.0, 0.05f));
-		f.attributes.put(color, selected ? new Vec4(1, 1, 0, 0.5) : new Vec4(0.0, 0.0, 0.0, 0.05f));
-
-		if (!selected)
-			f.attributes.put(thicken, new BasicStroke(selected ? 3.25f : 1.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
-		if (selected) f.attributes.put(filled, true);
+//		if (!selected)
+			f.attributes.put(thicken, new BasicStroke(selected ? 6.5f : 1.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
+//		if (selected) f.attributes.put(filled, true);
 
 		return new Pair<>(f, midpoint);
 	}
