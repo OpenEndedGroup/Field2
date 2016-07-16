@@ -120,7 +120,7 @@ public class BoxBrowser extends Box implements IO.Loaded {
 
 	private boolean hasInfo(Box x, Dict.Prop p, Object value) {
 
-		if (p.equals(Execution.code)) return true;
+		if (p.equals(Execution.code) && x.properties.has(p)) return true;
 
 		return p.getAttributes()
 			.has(toMarkdown);

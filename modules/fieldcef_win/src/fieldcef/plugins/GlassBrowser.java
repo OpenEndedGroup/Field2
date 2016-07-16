@@ -158,7 +158,7 @@ public class GlassBrowser extends Box implements IO.Loaded {
 
 		browser.addHandler(x -> x.equals("request.commands"), (address, paylod, ret) -> {
 			commandHelper.requestCommands(Optional.of(selection().findFirst()
-				.orElse(this)), null, null, ret, -1, -1);
+				.orElse(root)), null, null, ret, -1, -1);
 		});
 
 		browser.addHandler(x -> x.equals("call.command"), (address, payload, ret) -> {
