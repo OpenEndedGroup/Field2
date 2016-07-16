@@ -24,10 +24,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
@@ -161,6 +158,7 @@ public class GlassBrowser extends Box implements IO.Loaded {
 
 		browser.addHandler(x -> x.equals("call.command"), (address, payload, ret) -> {
 			String command = payload.getString("command");
+
 			Runnable r = commandHelper.callTable.get(command);
 			String name = commandHelper.callTableName.get(command);
 
@@ -248,9 +246,50 @@ public class GlassBrowser extends Box implements IO.Loaded {
 
 	public void runCommands() {
 		System.out.println(" -- running commands -- ");
-		browser.executeJavaScript("goddCommands()");
+		browser.executeJavaScript("goCommands()");
 		show();
 	}
+
+	public boolean joinCommands(String rename) {
+
+		List<String> ret = new ArrayList<>();
+		commandHelper.requestCommands(Optional.of(selection().findFirst()
+			.orElse(this)), null, null, x -> ret.add(x), -1, -1);
+
+		Runnable found = null;
+		Set<Map.Entry<String, String>> e = commandHelper.callTableName.entrySet();
+		for (Map.Entry<String, String> ee : e) {
+			if (ee.getValue().toLowerCase().equals(rename.toLowerCase()))
+			{
+				found = commandHelper.callTable.get(ee.getKey());
+				break;
+			}
+		}
+		if (found==null)
+		{
+			return false;
+		}
+
+		if (!(found instanceof RemoteEditor.ExtendedCommand))
+		{
+			found.run();
+			return false;
+		}
+
+		show();
+
+		((RemoteEditor.ExtendedCommand) found).begin(commandHelper.supportsPrompt(x -> {
+			Log.log("glassbrowser.debug", () -> "continue commands " + x + "");
+			browser.executeJavaScript("continueCommands(JSON.parse('" + x + "'))");
+//			ignoreHide = 4;
+			show();
+		}), null);
+
+		found.run();
+		return true;
+
+	}
+
 
 	public void center() {
 		FieldBoxWindow window = this.find(Boxes.window, both())
