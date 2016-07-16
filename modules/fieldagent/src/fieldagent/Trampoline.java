@@ -242,16 +242,10 @@ public class Trampoline {
 		}
 	}
 
+	static public String[] originalArguments;
+
 	static public void main(String[] a) {
-
-//		if (Main.os == Main.OS.mac || Main.os == Main.OS.linux)
-//			try {
-//				Thread.sleep(4000);
-//			} catch (InterruptedException e) {
-//				e.printStackTrace();
-//			}
-		System.err.println(" app dir is :" + System.getProperty("appDir"));
-
+		originalArguments = a;
 
 		Set<File> jarsToAdd = new LinkedHashSet<>();
 		Set<File> roots = new LinkedHashSet<>();
@@ -302,12 +296,6 @@ public class Trampoline {
 			e.printStackTrace();
 		}
 
-//		try {
-//			Thread.sleep(4000);
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
-//		}
-
 		if (a.length == 0) {
 			System.err.println(" No main.class specified. Add one to the command line");
 			System.exit(1);
@@ -321,20 +309,16 @@ public class Trampoline {
 
 		for (File j : jarsToAdd)
 			try {
-				System.out.println("add jar :" + j);
 				classloader.addURL(j.toURI().toURL());
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
 			}
 		for (File j : roots)
 			try {
-
 				if (Main.os == Main.OS.windows && j.getAbsolutePath().contains("_macosx"))
 					continue;
 				if (Main.os != Main.OS.windows && j.getAbsolutePath().contains("_win"))
 					continue;
-
-				System.out.println("add root :" + j);
 				classloader.addURL(j.toURI().toURL());
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
@@ -345,7 +329,6 @@ public class Trampoline {
 		try {
 			Class clazz = classloader.loadClass(mainClass);
 			Method m = clazz.getMethod("main", String[].class);
-			System.err.println(" -- m -- " + m);
 			m.invoke(null, new Object[]{a2});
 		} catch (Throwable t) {
 			System.err.println(" Exception thrown in main of " + mainClass);
