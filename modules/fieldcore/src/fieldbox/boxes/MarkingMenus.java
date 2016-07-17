@@ -57,6 +57,12 @@ public class MarkingMenus extends Box {
 
 			Box startAt = Intersects.startAt(event.after, root);
 
+
+			if (startAt!=null && !startAt.properties.isTrue(Mouse.isSelected, false))
+			{
+				FrameManipulation.setSelectionTo(root, Collections.singleton(startAt));
+			}
+
 			MenuSpecification m = startAt.find(menuSpecs, upwardsOrDownwards())
 				.filter(x -> x != null)
 				.map(x -> x.apply(event))
@@ -114,15 +120,7 @@ public class MarkingMenus extends Box {
 			if (m.items.size() > 0) {
 				event.properties.put(Window.consumed, true);
 
-				List<Box> sel = breadthFirst(both()).filter(q -> (q.properties.isTrue(Mouse.isSelected, false) && !q.properties.isTrue(Mouse.isSticky, false)))
-					.collect(Collectors.toList());
-
-				if (sel.size() == 0 && startAt != root) {
-					startAt.properties.put(Mouse.isSelected, true);
-					Drawing.dirty(startAt);
-				}
-
-				return runMenu(this, new Vec2(event.after.mx, event.after.my), m);
+				return runMenu(startAt==null ? this : startAt, new Vec2(event.after.mx, event.after.my), m);
 			} else {
 				log("debug.markingmenus", () -> " no menuSpecs for event ");
 				return null;
@@ -133,6 +131,7 @@ public class MarkingMenus extends Box {
 
 
 	static public Mouse.Dragger runMenu(Box origin, Vec2 center, MenuSpecification m) {
+
 		MarkingMenus menus = origin.first(markingMenus, origin.both())
 			.orElseThrow(() -> new IllegalArgumentException(" can't show marking menus if we can't find MarkingMenus"));
 		List<Position> hover = menus.show(center, m);
@@ -223,7 +222,7 @@ public class MarkingMenus extends Box {
 
 			String lab = e.getValue().label;
 
-			if (e.getValue().submenu!=null && !lab.endsWith("...")) lab = lab+"...";
+			if (e.getValue().submenu != null && !lab.endsWith("...")) lab = lab + "...";
 
 			textLine.node().attributes.put(text, lab);
 			textLine.attributes.put(layer, "glass2");
@@ -233,8 +232,6 @@ public class MarkingMenus extends Box {
 			textLine.node().attributes.put(textScale, 1.2f);
 
 			maxHeight = Math.max(maxHeight, defaultFont.font.dimensions(e.getValue().label, 0.2f).y);
-
-
 
 
 			{
@@ -277,19 +274,16 @@ public class MarkingMenus extends Box {
 				f.attributes.put(filled, true);
 				f.attributes.put(stroked, false);
 
-                f.attributes.put(fillColor, new Vec4(Colors.executionColor, 0.15f));
-                f.attributes.put(strokeColor, new Vec4(Colors.executionColor, 0.15f));
+				f.attributes.put(fillColor, new Vec4(Colors.executionColor, 0.15f));
+				f.attributes.put(strokeColor, new Vec4(Colors.executionColor, 0.15f));
 
 				toBoxes.entrySet().forEach(x -> {
-					if (x.getKey()!=f)
-					{
+					if (x.getKey() != f) {
 						x.getValue().attributes.put(StandardFLineDrawing.opacity, 0.0f);
 						x.getValue().modify();
 //						x.getKey().attributes.put(StandardFLineDrawing.opacity, 0.5f);
 //						x.getKey().modify();
-					}
-					else
-					{
+					} else {
 						x.getValue().attributes.put(fillColor, new Vec4(Colors.executionColor, 0.45f));
 						x.getValue().attributes.put(strokeColor, new Vec4(1.0f, 1.0f, 1.0f, 0.5f));
 						x.getValue().attributes.put(stroked, true);
@@ -298,15 +292,12 @@ public class MarkingMenus extends Box {
 				});
 
 				toLabels.entrySet().forEach(x -> {
-					if (x.getKey()!=f)
-					{
+					if (x.getKey() != f) {
 //						x.getValue().attributes.put(StandardFLineDrawing.opacity, 0.5f);
 //						x.getValue().modify();
-					}
-                    else
-                    {
+					} else {
 
-                    }
+					}
 				});
 
 				f.modify();
@@ -326,13 +317,10 @@ public class MarkingMenus extends Box {
 				f.attributes.put(stroked, false);
 
 				toBoxes.entrySet().forEach(x -> {
-					if (x.getKey()!=f)
-					{
+					if (x.getKey() != f) {
 						x.getValue().attributes.put(StandardFLineDrawing.opacity, 0.5f);
 						x.getValue().modify();
-					}
-					else
-					{
+					} else {
 						x.getValue().attributes.put(fillColor, new Vec4(0.16f, 0.16f, 0.16f, 0.7f));
 						x.getValue().modify();
 						x.getValue().attributes.put(strokeColor, new Vec4(1.0f, 1.0f, 1.0f, 0.3f));
@@ -341,8 +329,7 @@ public class MarkingMenus extends Box {
 				});
 
 				toLabels.entrySet().forEach(x -> {
-					if (x.getKey()!=f)
-					{
+					if (x.getKey() != f) {
 						x.getValue().attributes.remove(StandardFLineDrawing.opacity);
 						x.getValue().modify();
 					}
@@ -368,8 +355,8 @@ public class MarkingMenus extends Box {
 				label.attributes.put(fillColor, new Vec4(0.16f, 0.16f, 0.16f, 0.7f));
 //			label.attributes.put(fillColor, new Vec4(0.16f, 0.16f, 0.16f, 0.88f));
 //			label.attributes.put(strokeColor, new Vec4(1, 1, 1, 0.1f));
-                label.attributes.put(layer, "glass2");
-                label.attributes.put(stroked, false);
+				label.attributes.put(layer, "glass2");
+				label.attributes.put(stroked, false);
 
 //                FLine labelo = label.duplicate();
 //
@@ -379,7 +366,7 @@ public class MarkingMenus extends Box {
 //
 //                this.properties.putToMap(frameDrawing, "label2" + e.getKey(), box -> labelo);
 
-                if (e.getValue().submenu != null) {
+				if (e.getValue().submenu != null) {
 					FLine label2 = new FLine();
 					label2.rect(center.x + e.getKey().pos.x * scale - w / 2 - outset, center.y + e.getKey().pos.y * scale - maxHeight - outset, w + outset * 2, maxHeight + outset * 2);
 //				this.properties.putToMap(frameDrawing, "labelShade" + e.getKey(), box -> label2);
@@ -426,19 +413,19 @@ public class MarkingMenus extends Box {
 
 	private FLine bound(Vec2 center, FLine fo) {
 
-        Drawing d = find(Drawing.drawing, both()).findFirst().get();
-        Rect b = d.getCurrentViewBounds(this).inset(10);
+		Drawing d = find(Drawing.drawing, both()).findFirst().get();
+		Rect b = d.getCurrentViewBounds(this).inset(10);
 
-        Shape s1 = FLinesAndJavaShapes.flineToJavaShape(fo);
-        Shape s2 = FLinesAndJavaShapes.flineToJavaShape(new FLine().circle(center.x, center.y, Math.min(b.w, b.h)/2));
+		Shape s1 = FLinesAndJavaShapes.flineToJavaShape(fo);
+		Shape s2 = FLinesAndJavaShapes.flineToJavaShape(new FLine().circle(center.x, center.y, Math.min(b.w, b.h) / 2));
 
-        Area a1 = new Area(s1);
-        Area a2 = new Area(s2);
+		Area a1 = new Area(s1);
+		Area a2 = new Area(s2);
 
-        a1.intersect(a2);
+		a1.intersect(a2);
 
-        return FLinesAndJavaShapes.javaShapeToFLine(a1);
-    }
+		return FLinesAndJavaShapes.javaShapeToFLine(a1);
+	}
 
 	public void hide() {
 		this.properties.remove(frameDrawing);

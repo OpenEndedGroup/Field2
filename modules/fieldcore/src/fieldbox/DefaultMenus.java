@@ -49,6 +49,9 @@ public class DefaultMenus extends Box {
 		this.filename = filename;
 		properties.put(MarkingMenus.menuSpecs, (event) -> {
 			if (isNothingSelected()) {
+
+				System.out.println(" decided that nothing is selected ");
+
 				MarkingMenus.MenuSpecification spec = new MarkingMenus.MenuSpecification();
 
 				MarkingMenus.MenuSpecification saveMenu = new MarkingMenus.MenuSpecification();
@@ -187,7 +190,6 @@ public class DefaultMenus extends Box {
 	}
 
 	private void save() {
-
 		if (filename.endsWith(".field2")) {
 
 			Log.println("io.debug", " saving .... ");
@@ -234,6 +236,7 @@ public class DefaultMenus extends Box {
 	}
 
 	private boolean isNothingSelected() {
+
 		return !find(Mouse.isSelected, both()).filter(x -> x.booleanValue())
 			.findFirst()
 			.isPresent();
