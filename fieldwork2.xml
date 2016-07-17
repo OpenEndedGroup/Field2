@@ -198,6 +198,10 @@
     <pathelement location="${basedir}/modules/fieldcore/resources/poly2tri-core-0.1.1-SNAPSHOT.jar"/>
   </path>
   
+  <path id="library.prettytime-4.0.1.final.classpath">
+    <pathelement location="${basedir}/modules/fieldcore/resources/prettytime-4.0.1.Final.jar"/>
+  </path>
+  
   <path id="library.processing_core.classpath">
     <pathelement location="${basedir}/modules/fieldprocessing/resources/core.jar"/>
   </path>
@@ -245,7 +249,7 @@
   <property name="module.jdk.bin.fieldagent" value="${project.jdk.bin}"/>
   <property name="module.jdk.classpath.fieldagent" value="${project.jdk.classpath}"/>
   
-  <property name="compiler.args.fieldagent" value="-encoding UTF-8 -source 8 -target 1.8 ${compiler.args}"/>
+  <property name="compiler.args.fieldagent" value="-encoding UTF-8 -source 9 -target 1.9 ${compiler.args}"/>
   
   <property name="fieldagent.output.dir" value="${module.fieldagent.basedir}/out/production/fieldagent"/>
   <property name="fieldagent.testoutput.dir" value="${module.fieldagent.basedir}/out/test/fieldagent"/>
@@ -338,7 +342,7 @@
   <property name="module.jdk.bin.fieldlinker" value="${project.jdk.bin}"/>
   <property name="module.jdk.classpath.fieldlinker" value="${project.jdk.classpath}"/>
   
-  <property name="compiler.args.fieldlinker" value="-encoding UTF-8 -source 8 -target 1.8 ${compiler.args}"/>
+  <property name="compiler.args.fieldlinker" value="-encoding UTF-8 -source 9 -target 1.9 ${compiler.args}"/>
   
   <property name="fieldlinker.output.dir" value="${module.fieldlinker.basedir}/out/production/fieldlinker"/>
   <property name="fieldlinker.testoutput.dir" value="${module.fieldlinker.basedir}/out/test/fieldlinker"/>
@@ -367,6 +371,7 @@
     <path refid="library.cassowary.classpath"/>
     <path refid="library.orient.classpath"/>
     <path refid="library.txtmark-0.14-snapshot.classpath"/>
+    <path refid="library.prettytime-4.0.1.final.classpath"/>
   </path>
   
   <path id="fieldlinker.runtime.production.module.classpath">
@@ -388,6 +393,7 @@
     <path refid="library.cassowary.classpath"/>
     <path refid="library.orient.classpath"/>
     <path refid="library.txtmark-0.14-snapshot.classpath"/>
+    <path refid="library.prettytime-4.0.1.final.classpath"/>
   </path>
   
   <path id="fieldlinker.module.classpath">
@@ -412,6 +418,7 @@
     <path refid="library.cassowary.classpath"/>
     <path refid="library.orient.classpath"/>
     <path refid="library.txtmark-0.14-snapshot.classpath"/>
+    <path refid="library.prettytime-4.0.1.final.classpath"/>
   </path>
   
   <path id="fieldlinker.runtime.module.classpath">
@@ -434,6 +441,7 @@
     <path refid="library.cassowary.classpath"/>
     <path refid="library.orient.classpath"/>
     <path refid="library.txtmark-0.14-snapshot.classpath"/>
+    <path refid="library.prettytime-4.0.1.final.classpath"/>
   </path>
   
   
@@ -526,7 +534,7 @@
   <property name="module.jdk.bin.fieldcef_win" value="${project.jdk.bin}"/>
   <property name="module.jdk.classpath.fieldcef_win" value="${project.jdk.classpath}"/>
   
-  <property name="compiler.args.fieldcef_win" value="-encoding UTF-8 -source 8 -target 1.8 ${compiler.args}"/>
+  <property name="compiler.args.fieldcef_win" value="-encoding UTF-8 -source 9 -target 1.9 ${compiler.args}"/>
   
   <property name="fieldcef_win.output.dir" value="${module.fieldcef_win.basedir}/out/production/fieldcef_win"/>
   <property name="fieldcef_win.testoutput.dir" value="${module.fieldcef_win.basedir}/out/test/fieldcef_win"/>
@@ -632,7 +640,7 @@
   <property name="module.jdk.bin.fieldclojure" value="${project.jdk.bin}"/>
   <property name="module.jdk.classpath.fieldclojure" value="${project.jdk.classpath}"/>
   
-  <property name="compiler.args.fieldclojure" value="-encoding UTF-8 -source 8 -target 1.8 ${compiler.args}"/>
+  <property name="compiler.args.fieldclojure" value="-encoding UTF-8 -source 9 -target 1.9 ${compiler.args}"/>
   
   <property name="fieldclojure.output.dir" value="${module.fieldclojure.basedir}/out/production/fieldclojure"/>
   <property name="fieldclojure.testoutput.dir" value="${module.fieldclojure.basedir}/out/test/fieldclojure"/>
@@ -755,7 +763,7 @@
   <property name="module.jdk.bin.fieldipython" value="${project.jdk.bin}"/>
   <property name="module.jdk.classpath.fieldipython" value="${project.jdk.classpath}"/>
   
-  <property name="compiler.args.fieldipython" value="-encoding UTF-8 -source 8 -target 1.8 ${compiler.args}"/>
+  <property name="compiler.args.fieldipython" value="-encoding UTF-8 -source 9 -target 1.9 ${compiler.args}"/>
   
   <property name="fieldipython.output.dir" value="${module.fieldipython.basedir}/out/production/fieldipython"/>
   <property name="fieldipython.testoutput.dir" value="${module.fieldipython.basedir}/out/test/fieldipython"/>
@@ -882,7 +890,7 @@
   <property name="module.jdk.bin.fieldjython" value="${project.jdk.bin}"/>
   <property name="module.jdk.classpath.fieldjython" value="${project.jdk.classpath}"/>
   
-  <property name="compiler.args.fieldjython" value="-encoding UTF-8 -source 8 -target 1.8 ${compiler.args}"/>
+  <property name="compiler.args.fieldjython" value="-encoding UTF-8 -source 9 -target 1.9 ${compiler.args}"/>
   
   <property name="fieldjython.output.dir" value="${module.fieldjython.basedir}/out/production/fieldjython"/>
   <property name="fieldjython.testoutput.dir" value="${module.fieldjython.basedir}/out/test/fieldjython"/>
@@ -1005,7 +1013,7 @@
   <property name="module.jdk.bin.fieldopencl" value="${project.jdk.bin}"/>
   <property name="module.jdk.classpath.fieldopencl" value="${project.jdk.classpath}"/>
   
-  <property name="compiler.args.fieldopencl" value="-encoding UTF-8 -source 8 -target 1.8 ${compiler.args}"/>
+  <property name="compiler.args.fieldopencl" value="-encoding UTF-8 -source 9 -target 1.9 ${compiler.args}"/>
   
   <property name="fieldopencl.output.dir" value="${module.fieldopencl.basedir}/out/production/fieldopencl"/>
   <property name="fieldopencl.testoutput.dir" value="${module.fieldopencl.basedir}/out/test/fieldopencl"/>
@@ -1121,7 +1129,7 @@
   <property name="module.jdk.bin.fieldprocessing" value="${jdk.bin.9-ea}"/>
   <property name="module.jdk.classpath.fieldprocessing" value="jdk.classpath.9-ea"/>
   
-  <property name="compiler.args.fieldprocessing" value="-encoding UTF-8 -source 8 -target 1.8 ${compiler.args}"/>
+  <property name="compiler.args.fieldprocessing" value="-encoding UTF-8 -source 9 -target 1.9 ${compiler.args}"/>
   
   <property name="fieldprocessing.output.dir" value="${module.fieldprocessing.basedir}/out/production/fieldprocessing"/>
   <property name="fieldprocessing.testoutput.dir" value="${module.fieldprocessing.basedir}/out/test/fieldprocessing"/>
