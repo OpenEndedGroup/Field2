@@ -66,7 +66,7 @@ public class Delete extends Box {
 
 				// disconnected for now
 				{
-					List cc = selected().flatMap(x -> x.breadthFirst(x.downwards())
+					List cc = selectedNoGroups().flatMap(x -> x.breadthFirst(x.downwards())
 						.filter(y -> x != y))
 						.filter(x -> !x.properties.isTrue(Box.hidden, false))
 						.filter(x -> !x.properties.isTrue(Box.decorative, false))
@@ -81,7 +81,7 @@ public class Delete extends Box {
 					}
 				}
 				{
-					List cc = selected().flatMap(x -> x.breadthFirstAll(x.allDownwardsFrom())
+					List cc = selectedNoGroups().flatMap(x -> x.breadthFirstAll(x.allDownwardsFrom())
 						.filter(y -> x != y))
 						.filter(x -> x.disconnected)
 						.filter(x -> !x.properties.isTrue(Box.decorative, false))
@@ -120,6 +120,12 @@ public class Delete extends Box {
 		return root.breadthFirst(root.allDownwardsFrom())
 			.filter(x -> x.properties.isTrue(Mouse.isSelected, false))
 			.filter(x -> !x.properties.isTrue(Box.undeletable, false));
+	}
+
+	private Stream<Box> selectedNoGroups() {
+		return root.breadthFirst(root.allDownwardsFrom())
+			.filter(x -> x.properties.isTrue(Mouse.isSelected, false))
+			.filter(x -> !x.properties.isTrue(Box.undeletable, false)).filter(x -> !(x instanceof BoxGroup));
 	}
 
 }
