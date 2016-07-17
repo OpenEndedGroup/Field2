@@ -23,7 +23,10 @@ public class PresentationMode extends Box {
 	static public Dict.Prop<Runnable> enterPresentationMode = new Dict.Prop<>("enterPresentationMode").toCannon()
 													  .type();
 	static public Dict.Prop<Runnable> exitPresentationMode = new Dict.Prop<>("exitPresentationMode").toCannon()
-													.type();
+		.type();
+
+	static public Dict.Prop<PresentationMode> _presentationMode = new Dict.Prop<>("_presentationMode").toCannon()
+		.type();
 
 	boolean present = false;
 
@@ -34,6 +37,7 @@ public class PresentationMode extends Box {
 		Commands.exportAsCommand(this, this::enterPresentationMode, (x) -> !present, "Enter Presentation Mode", "");
 		Commands.exportAsCommand(this, this::exitPresentationMode, (x) -> present, "Exit Presentation Mode", "");
 
+		this.properties.put(_presentationMode, this);
 	}
 
 	private void enterPresentationMode() {
@@ -74,4 +78,7 @@ public class PresentationMode extends Box {
 		present = false;
 	}
 
+	public boolean isPresent() {
+		return present;
+	}
 }
