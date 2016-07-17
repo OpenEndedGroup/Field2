@@ -134,7 +134,7 @@ public class Commands extends Box {
 			stringer.key("name")
 				.value(r.first);
 			stringer.key("info")
-				.value(r.second);
+				.value(format(r.second));
 			stringer.key("call")
 				.value(u);
 			stringer.endObject();
