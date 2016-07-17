@@ -34,8 +34,8 @@ public class PresentationMode extends Box {
 		this.properties.put(enterPresentationMode, this::enterPresentationMode);
 		this.properties.put(exitPresentationMode, this::exitPresentationMode);
 
-		Commands.exportAsCommand(this, this::enterPresentationMode, (x) -> !present, "Enter Presentation Mode", "");
-		Commands.exportAsCommand(this, this::exitPresentationMode, (x) -> present, "Exit Presentation Mode", "");
+		Commands.exportAsCommand(this, this::enterPresentationMode, (x) -> !present, "Enter Presentation Mode", "Switches the text editor to the box browser. Use `_.onEnterPresentationMode.foo = ...` to set callbacks.");
+		Commands.exportAsCommand(this, this::exitPresentationMode, (x) -> present, "Exit Presentation Mode", "Switches the box browser to the normal text editor.");
 
 		this.properties.put(_presentationMode, this);
 	}
