@@ -12,6 +12,7 @@ import field.utility.IdempotencyMap;
 import field.utility.Rect;
 import field.utility.SimpleVoronoi;
 import fieldbox.boxes.plugins.Planes;
+import org.lwjgl.glfw.GLFW;
 
 import java.awt.*;
 import java.awt.geom.Area;
@@ -42,6 +43,11 @@ public class MarkingMenus extends Box {
 	// easy interface
 	static public Dict.Prop<IdempotencyMap<FunctionOfBox>> menu = new Dict.Prop<>("menu").toCannon()
 		.autoConstructs(() -> new IdempotencyMap<>(FunctionOfBox.class)).doc("Adds a menu item to a box at a particular direction. For example `_.menu.show_something_n = function(_) { ... }` will place a menu item 'show something' at the 'N(orth)' position. Note this position can get 'bumped' by other items.");
+
+
+	// easy interface
+	static public Dict.Prop<IdempotencyMap<FunctionOfBox>> spaceMenu = new Dict.Prop<>("spaceMenu").toCannon()
+		.autoConstructs(() -> new IdempotencyMap<>(FunctionOfBox.class)).doc("Adds a menu item to a box at a particular direction. For example `_.spaceMenu.show_something_n = function(_) { ... }` will place a menu item 'show something' at the 'N(orth)' position. Note this position can get 'bumped' by other items.");
 
 
 	public MarkingMenus(Box root) {
@@ -127,6 +133,71 @@ public class MarkingMenus extends Box {
 			}
 		});
 
+		this.properties.putToMap(Keyboard.onKeyDown, "__markingmenus__", (event, key) -> {
+
+			if (event.properties.isTrue(Window.consumed, false)) return null;
+
+			if (!event.after.keysDown.contains(GLFW.GLFW_KEY_SPACE)) return null;
+			if (event.before.keysDown.contains(GLFW.GLFW_KEY_SPACE)) return null;
+			if (event.after.keysDown.size()!=1) return null;
+			if (event.before.keysDown.size()!=0) return null;
+
+			System.out.println("SPACE !");
+
+			Box startAt = Intersects.startAt(event.after.mouseState, root);
+
+
+			if (startAt!=null && !startAt.properties.isTrue(Mouse.isSelected, false))
+			{
+				FrameManipulation.setSelectionTo(root, Collections.singleton(startAt));
+			}
+
+			MenuSpecification m = new MenuSpecification();
+
+			startAt.find(spaceMenu, upwardsOrDownwards())
+				.flatMap(x -> x.entrySet()
+					.stream())
+				.forEach(x -> {
+					String K = x.getKey();
+					String label = K;
+					FunctionOfBox v = x.getValue();
+
+					Position p = null;
+
+					if (K.contains("_")) {
+						String[] q = K.split("_");
+						label = Arrays.asList(q).subList(0, q.length - 1).stream().reduce((a, b) -> a + " " + b).get();
+
+						try {
+							p = Position.valueOf(q[q.length - 1].toUpperCase());
+							if (p == null) p = Position.N;
+						} catch (IllegalArgumentException e) {
+						}
+					} else {
+						p = Position.N;
+					}
+					int tries = 0;
+					while (m.items.containsKey(p) && tries < Position.values().length) {
+						p = Position.values()[(p.ordinal() + 1) % Position.values().length];
+						tries++;
+					}
+					if (tries < Position.values().length)
+						m.items.put(p, new MenuItem(label, () -> v.apply(startAt)));
+				});
+
+
+			log("debug.markingmenus", () -> "merged spec and got :" + m.items.keySet());
+
+			if (m.items.size() > 0) {
+				event.properties.put(Window.consumed, true);
+
+				return runMenuHold(startAt==null ? this : startAt, new Vec2(event.after.mouseState.mx, event.after.mouseState.my), m);
+			} else {
+				log("debug.markingmenus", () -> " no menuSpecs for event ");
+				return null;
+			}
+		});
+
 	}
 
 
@@ -163,6 +234,51 @@ public class MarkingMenus extends Box {
 						menus.hide();
 						log("marking", () -> "going submenu");
 						replaceWith[0] = runMenu(origin, new Vec2(event.after.mx, event.after.my), sub);
+					}
+				}
+			}
+
+
+			return true;
+		};
+	}
+
+	static public Keyboard.Hold runMenuHold(Box origin, Vec2 center, MenuSpecification m) {
+
+		MarkingMenus menus = origin.first(markingMenus, origin.both())
+			.orElseThrow(() -> new IllegalArgumentException(" can't show marking menus if we can't find MarkingMenus"));
+		List<Position> hover = menus.show(center, m);
+		Keyboard.Hold[] replaceWith = {null};
+		return (event, term) -> {
+
+			System.out.println(" hold hold hold ");
+
+			if (replaceWith[0] != null) {
+				return replaceWith[0].update(event, term);
+			}
+
+			if (term) {
+				menus.hide();
+				try {
+					if (hover.size() > 0) {
+						m.items.get(hover.get(hover.size() - 1)).callback.run();
+					} else {
+						if (m.nothing != null) m.nothing.run();
+					}
+				} finally {
+					if (m.onExit != null) {
+						m.onExit.run();
+					}
+				}
+			} else {
+				if (hover.size() > 0) {
+					Position h = hover.get(0);
+					MenuItem sp = m.items.get(h);
+					MenuSpecification sub = sp.submenu;
+					if (sub != null) {
+						menus.hide();
+						log("marking", () -> "going submenu");
+						replaceWith[0] = runMenuHold(origin, new Vec2(event.after.mouseState.mx, event.after.mouseState.my), sub);
 					}
 				}
 			}
