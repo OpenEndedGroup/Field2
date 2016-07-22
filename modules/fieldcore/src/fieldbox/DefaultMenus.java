@@ -221,10 +221,14 @@ public class DefaultMenus extends Box {
 				Log.println("io.debug", " ... notified ");
 			}
 		}
-		else
+
+
+		System.err.println(" importing to database ");
+
+		if (FieldBox.fieldBox.io2!=null)
 		{
 			try {
-				FieldBox.fieldBox.io2.saveTopology(filename, root, (x) -> true, (x) -> null);
+				FieldBox.fieldBox.io2.saveTopology(filename.replace(".field2", "").replace(".field", ""), root, (x) -> true, (x) -> null);
 				Drawing.notify("Saved to " + filename, this, 200);
 			} catch (IOException e) {
 				e.printStackTrace();
