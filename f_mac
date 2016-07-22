@@ -5,7 +5,7 @@ out=$fieldhome/out/production/
 java=/Library/Java/JavaVirtualMachines/jdk-9.jdk/Contents/Home/bin/java
 
 
-(echo '$fieldhome/f_server "$java -addmods java.xml.bind" )' | at now)&
+(echo '$fieldhome/f_server $java )' | at now)&
 
 $java \
     -Xdebug \
@@ -19,6 +19,6 @@ $java \
     -Xmx8g \
     -Xms8g \
     -javaagent:$fieldhome/out/artifacts/fieldagent_jar/fieldagent.jar \
-    -cp $fieldhome/lib/macosx/:$fieldhome/out/artifacts/fieldlinker_jar/fieldlinker.jar:/Library/Java/JavaVirtualMachines/jdk1.9.0_40.jdk/Contents/Home/lib/tools.jar:$fieldhome/lib/*:$fieldhome/out/artifacts/fieldagent_jar/fieldagent.jar:$out/fieldcore/orientdb/*:$out/fieldcore/guava-16.0.1.jar:$out/fieldcef_macosx/ \
+    -cp $fieldhome/lib/macosx/:$fieldhome/out/artifacts/fieldlinker_jar/fieldlinker.jar:/Library/Java/JavaVirtualMachines/jdk1.9.0_40.jdk/Contents/Home/lib/tools.jar:$fieldhome/lib/*:$fieldhome/out/artifacts/fieldagent_jar/fieldagent.jar:$out/fieldcore/orientdb/*:$out/fieldlinker/orientdb/*:$out/fieldcore/guava-16.0.1.jar:$out/fieldlinker/guava-16.0.1.jar:$out/fieldcef_macosx/ \
     -Djava.library.path=$fieldhome:$out/fieldcore/macosx/:$out/fieldcore/helperapp.app/Contents/Java/:/usr/local/lib/ \
     fieldagent.Trampoline ${*}
