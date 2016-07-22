@@ -8,8 +8,6 @@ import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import jdk.nashorn.api.scripting.ScriptUtils;
 import fieldlinker.Linker;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -104,7 +102,7 @@ public class IdempotencyMap<T> extends LinkedHashMapAndArrayList<T> implements M
 
 	@Override
 	public Object asMap_call(Object o, Object o1) {
-		throw new NotImplementedException();
+		throw new Error();
 	}
 
 	@Override
@@ -122,22 +120,22 @@ public class IdempotencyMap<T> extends LinkedHashMapAndArrayList<T> implements M
 
 	@Override
 	public Object asMap_new(Object o) {
-		return new NotImplementedException();
+		return new Error();
 	}
 
 	@Override
 	public Object asMap_new(Object o, Object o1) {
-		return new NotImplementedException();
+		return new Error();
 	}
 
 	@Override
 	public Object asMap_getElement(int i) {
-		return new NotImplementedException();
+		return new Error();
 	}
 
 	@Override
 	public Object asMap_setElement(int i, Object o) {
-		return new NotImplementedException();
+		return new Error();
 	}
 
 	@Override

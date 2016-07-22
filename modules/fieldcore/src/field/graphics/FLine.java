@@ -13,7 +13,7 @@ import jdk.nashorn.api.scripting.ScriptUtils;
 //import jdk.nashorn.internal.runtime.ScriptObject;
 //import jdk.nashorn.internal.runtime.linker.JavaAdapterFactory;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+;
 
 import java.awt.*;
 import java.lang.invoke.MethodHandles;
@@ -482,7 +482,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 			this.last().attributes.putAll(node.attributes.duplicate());
 			return this;
 		}
-		throw new NotImplementedException();
+		throw new Error();
 	}
 
 	/**
@@ -502,7 +502,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 			this.last().attributes.putAll(node.attributes.duplicate());
 			return this;
 		}
-		throw new NotImplementedException();
+		throw new Error();
 	}
 
 	/**
@@ -1217,7 +1217,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 
 	@Override
 	public Object asMap_setElement(int element, Object v) {
-		throw new NotImplementedException();
+		throw new Error();
 	}
 
 
@@ -1242,7 +1242,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 		}
 
 		public Node duplicate() {
-			throw new NotImplementedException();
+			throw new Error();
 		}
 
 		@Override
@@ -1396,12 +1396,12 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 
 		@Override
 		public Object asMap_getElement(int element) {
-			throw new NotImplementedException();
+			throw new Error();
 		}
 
 		@Override
 		public Object asMap_setElement(int element, Object v) {
-			throw new NotImplementedException();
+			throw new Error();
 		}
 
 		@Override

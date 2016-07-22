@@ -9,7 +9,7 @@ import fieldbox.execution.Errors;
 import fieldbox.execution.InverseDebugMapping;
 import fieldlinker.Linker;
 import fieldnashorn.annotations.HiddenInAutocomplete;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
@@ -373,7 +373,7 @@ public class Scene extends Box implements Linker.AsMap {
 	@Override
 	@HiddenInAutocomplete
 	public Object asMap_call(Object a, Object b) {
-		throw new NotImplementedException();
+		throw new Error();
 	}
 
 	@Override
@@ -450,13 +450,13 @@ public class Scene extends Box implements Linker.AsMap {
 	@Override
 	@HiddenInAutocomplete
 	public Object asMap_new(Object a) {
-		throw new NotImplementedException();
+		throw new Error();
 	}
 
 	@Override
 	@HiddenInAutocomplete
 	public Object asMap_new(Object a, Object b) {
-		throw new NotImplementedException();
+		throw new Error();
 	}
 
 	@Override
@@ -627,22 +627,22 @@ public class Scene extends Box implements Linker.AsMap {
 
 		@Override
 		public Object asMap_new(Object a) {
-			throw new NotImplementedException();
+			throw new Error();
 		}
 
 		@Override
 		public Object asMap_new(Object a, Object b) {
-			throw new NotImplementedException();
+			throw new Error();
 		}
 
 		@Override
 		public Object asMap_getElement(int element) {
-			throw new NotImplementedException();
+			throw new Error();
 		}
 
 		@Override
 		public Object asMap_setElement(int element, Object o) {
-			throw new NotImplementedException();
+			throw new Error();
 		}
 	}
 

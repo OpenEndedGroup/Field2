@@ -5,7 +5,7 @@ import fieldlinker.Linker;
 import fieldbox.execution.Execution;
 import org.apache.commons.lang.NotImplementedException;
 //import sun.reflect.CallerSensitive;
-//import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+//;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -630,7 +630,7 @@ public class Dict implements Serializable, Linker.AsMap {
 
 	@Override
 	public Object asMap_call(Object a, Object b) {
-		throw new NotImplementedException();
+		throw new Error();
 	}
 
 	@Override
@@ -649,21 +649,21 @@ public class Dict implements Serializable, Linker.AsMap {
 
 	@Override
 	public Object asMap_new(Object a) {
-		throw new NotImplementedException();
+		throw new Error();
 	}
 
 	@Override
 	public Object asMap_new(Object a, Object b) {
-		throw new NotImplementedException();
+		throw new Error();
 	}
 	@Override
 	public Object asMap_getElement(int element) {
-		throw new NotImplementedException();
+		throw new Error();
 	}
 
 	@Override
 	public Object asMap_setElement(int element, Object v) {
-		throw new NotImplementedException();
+		throw new Error();
 	}
 
 }

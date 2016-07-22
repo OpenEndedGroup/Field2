@@ -26,7 +26,7 @@ public class Rename extends Box {
 		properties.put(Commands.commands, () -> {
 
 			Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
-			m.put(new Pair<>("Rename box", "Sets name of box"), new RemoteEditor.ExtendedCommand() {
+			m.put(new Pair<>("Rename box", "Sets name of box _Command-double-click_"), new RemoteEditor.ExtendedCommand() {
 
 				public RemoteEditor.SupportsPrompt p;
 

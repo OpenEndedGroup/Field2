@@ -6,7 +6,7 @@ import jdk.dynalink.linker.*;
 //import jdk.dynalink.support.Guards;
 //import jdk.nashorn.api.scripting.extensions.CustomDelete;
 import jdk.dynalink.linker.support.Guards;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -54,7 +54,7 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 		Object asMap_getElement(int element);
 
 		default Object asMap_getElement(Object element) {
-			throw new NotImplementedException();
+			throw new Error();
 		}
 
 		Object asMap_setElement(int element, Object o);

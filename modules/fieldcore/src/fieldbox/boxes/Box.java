@@ -11,7 +11,6 @@ import fieldbox.io.IO;
 import fieldlinker.Linker;
 //import jdk.nashorn.internal.runtime.ConsString;
 import fieldnashorn.annotations.HiddenInAutocomplete;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -545,7 +544,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	@Override
 	@HiddenInAutocomplete
 	public Object asMap_getElement(int element) {
-		throw new NotImplementedException();
+		throw new Error();
 	}
 
 	@Override
@@ -559,7 +558,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	@Override
 	@HiddenInAutocomplete
 	public Object asMap_setElement(int element, Object v) {
-		throw new NotImplementedException();
+		throw new Error();
 	}
 
 
@@ -755,12 +754,12 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 
 		@Override
 		public Object asMap_getElement(int element) {
-			throw new NotImplementedException();
+			throw new Error();
 		}
 
 		@Override
 		public Object asMap_setElement(int element, Object o) {
-			throw new NotImplementedException();
+			throw new Error();
 		}
 	}
 
@@ -784,13 +783,13 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 
 		@Override
 		public Object asMap_call(Object a, Object b) {
-			if (calling == null) throw new NotImplementedException();
+			if (calling == null) throw new Error();
 			return calling.apply(this, b);
 		}
 
 		@Override
 		public Object asMap_call(Object a) {
-			if (calling == null) throw new NotImplementedException();
+			if (calling == null) throw new Error();
 			return calling.apply(this, a);
 		}
 
@@ -834,12 +833,12 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 
 		@Override
 		public Object asMap_getElement(int element) {
-			throw new NotImplementedException();
+			throw new Error();
 		}
 
 		@Override
 		public Object asMap_setElement(int element, Object o) {
-			throw new NotImplementedException();
+			throw new Error();
 		}
 
 		public CollectedMap<T> makeCallable(BiFunction<CollectedMap<T>, Object, Object> calling) {
@@ -873,13 +872,13 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 
 		@Override
 		public Object asMap_call(Object a, Object b) {
-			if (calling == null) throw new NotImplementedException();
+			if (calling == null) throw new Error();
 			return calling.apply(this, b);
 		}
 
 		@Override
 		public Object asMap_call(Object a) {
-			if (calling == null) throw new NotImplementedException();
+			if (calling == null) throw new Error();
 			return calling.apply(this, a);
 		}
 

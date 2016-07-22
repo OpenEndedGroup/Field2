@@ -9,7 +9,7 @@ import fielded.boxbrowser.BoxBrowser;
 import fieldlinker.Linker;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 import org.lwjgl.opengl.*;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
@@ -374,7 +374,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 	@Override
 	@HiddenInAutocomplete
 	public Object asMap_call(Object a, Object b) {
-		throw new NotImplementedException();
+		throw new Error();
 	}
 
 	@Override
@@ -427,13 +427,13 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 	@Override
 	@HiddenInAutocomplete
 	public Object asMap_new(Object a) {
-		throw new NotImplementedException();
+		throw new Error();
 	}
 
 	@Override
 	@HiddenInAutocomplete
 	public Object asMap_new(Object a, Object b) {
-		throw new NotImplementedException();
+		throw new Error();
 	}
 
 	public int getModCount() {
