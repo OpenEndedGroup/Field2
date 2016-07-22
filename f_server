@@ -17,7 +17,7 @@ then
 
     echo out is $out
 
-    "$java" -XaddExports:jdk.management/com.sun.management.internal=ALL-UNNAMED -addmods java.xml.bind -Dfield.db.server=1 -DappDir=$fieldhome -Xmx1g -Xms1g -cp $out/fieldcore/orientdb/*:$out/fieldcore fieldbox.io.Server&
+    "$java" -XaddExports:jdk.management/com.sun.management.internal=ALL-UNNAMED -addmods java.xml.bind -Dfield.db.server=1 -DappDir=$fieldhome -Xmx1g -Xms1g -cp $out/fieldcore/orientdb/*:$out/fieldcore:$out/fieldlinker:$out/fieldlinker/orientdb/* fieldbox.io.Server&
 else
     echo "server already running"
 
