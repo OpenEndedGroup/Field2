@@ -2,7 +2,6 @@ package field.app;
 
 import field.graphics.Scene;
 import fieldbox.execution.Errors;
-import org.omg.SendingContext.RunTime;
 
 import java.util.*;
 import java.util.concurrent.*;
