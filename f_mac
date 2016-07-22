@@ -20,5 +20,5 @@ $java \
     -Xms8g \
     -javaagent:$fieldhome/out/artifacts/fieldagent_jar/fieldagent.jar \
     -cp $fieldhome/lib/macosx/:$fieldhome/out/artifacts/fieldlinker_jar/fieldlinker.jar:/Library/Java/JavaVirtualMachines/jdk1.9.0_40.jdk/Contents/Home/lib/tools.jar:$fieldhome/lib/*:$fieldhome/out/artifacts/fieldagent_jar/fieldagent.jar:$out/fieldcore/orientdb/*:$out/fieldlinker/orientdb/*:$out/fieldcore/guava-16.0.1.jar:$out/fieldlinker/guava-16.0.1.jar:$out/fieldcef_macosx/ \
-    -Djava.library.path=$fieldhome:$out/fieldcore/macosx/:$out/fieldlinker/:$out/fieldlinker/macosx/:$out/fieldlinker/helperapp.app/Contents/Java/:$out/fieldcore/helperapp.app/Contents/Java/:/usr/local/lib/ \
+    -Djava.library.path=$fieldhome:$out/fieldcore/macosx/:$out/fieldlinker/:$out/fieldlinker/macosx/:$out/fieldlinker/helperapp.app/Contents/Java/:$out/fieldcore/helperapp.app/Contents/Java/:/usr/local/lib/:$out/fieldipython/ \
     fieldagent.Trampoline ${*}
