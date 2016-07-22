@@ -1,6 +1,5 @@
 package field.graphics;
 
-import com.sun.awt.AWTUtilities;
 
 import field.CanonicalModifierKeys;
 import field.app.RunLoop;
@@ -21,7 +20,6 @@ import org.lwjgl.opengl.*;
 import org.lwjgl.system.Callback;
 import org.lwjgl.system.Configuration;
 
-import java.awt.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
