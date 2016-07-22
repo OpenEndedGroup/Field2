@@ -7,6 +7,7 @@ import field.utility.Triple;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Boxes;
 import fieldbox.boxes.Mouse;
+import fieldbox.boxes.plugins.Planes;
 import fieldbox.execution.Completion;
 import fieldbox.execution.Execution;
 import fieldipython.zmq.IPythonInterface;
@@ -33,6 +34,8 @@ public class FieldIPythonJPY extends Execution {
 
 	public FieldIPythonJPY(Box root) {
 		super(null);
+
+		this.properties.put(Planes.plane, "__always__");
 
 		try {
 			// todo, make this global on root
@@ -171,6 +174,9 @@ public class FieldIPythonJPY extends Execution {
 
 			@Override
 			public void completion(String allText, int line, int ch, Consumer<List<Completion>> results) {
+
+				System.err.println(" skipping autocomplete while we sort out threading issues ");
+				if (true) return;
 
 				if (allText.trim()
 					   .length() == 0) return;
