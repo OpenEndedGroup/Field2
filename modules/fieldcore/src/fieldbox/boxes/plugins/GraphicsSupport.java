@@ -3,10 +3,12 @@ package fieldbox.boxes.plugins;
 import field.graphics.Shader;
 import field.utility.Dict;
 import field.utility.Pair;
+import field.utility.ShaderPreprocessor;
 import fieldbox.FieldBox;
 import fieldbox.boxes.Box;
 import fieldbox.execution.Execution;
 import fieldbox.execution.InverseDebugMapping;
+import fieldbox.io.IO;
 import fielded.Commands;
 import fielded.RemoteEditor;
 
@@ -23,9 +25,9 @@ import java.util.Map;
  */
 public class GraphicsSupport extends Box {
 
-	static public Dict.Prop<String> fragment = new Dict.Prop<>("fragment").doc("fragment shader text").type().toCannon();
-	static public Dict.Prop<String> geometry = new Dict.Prop<>("geometry").doc("geometry shader text").type().toCannon();
-	static public Dict.Prop<String> vertex = new Dict.Prop<>("vertex").doc("vertex shader text").type().toCannon();
+	static public Dict.Prop<String> fragment = new Dict.Prop<>("fragment").doc("fragment shader text").type().toCannon().set(IO.persistent, true);
+	static public Dict.Prop<String> geometry = new Dict.Prop<>("geometry").doc("geometry shader text").type().toCannon().set(IO.persistent, true);
+	static public Dict.Prop<String> vertex = new Dict.Prop<>("vertex").doc("vertex shader text").type().toCannon().set(IO.persistent, true);
 
 	static public Dict.Prop<FunctionOfBox> newShader = new Dict.Prop<>("newShader")
 		    .doc("creates a shader from a box, populating the _vertex_,  _geometry_ and _fragment_ properties with defaults").type().toCannon();
@@ -36,6 +38,7 @@ public class GraphicsSupport extends Box {
 		FieldBox.fieldBox.io.addFilespec("fragment", ".glslf", "glsl");
 		FieldBox.fieldBox.io.addFilespec("vertex", ".glslv", "glsl");
 		FieldBox.fieldBox.io.addFilespec("geometry", ".glslg", "glsl");
+
 	}
 
 	public GraphicsSupport(Box root_unused) {
@@ -83,26 +86,29 @@ public class GraphicsSupport extends Box {
 	}
 
 	private void reload(Box b, List<Shader> s) {
+
+		ShaderPreprocessor pre = new ShaderPreprocessor();
+
 		for (Shader ss : s) {
 			Map<Shader.Type, Shader.Source> sources = ss.getSources();
 
 			{
 				String v = b.properties.get(vertex);
 				Shader.Source source = sources.get(Shader.Type.vertex);
-				if (source == null && v != null && v.trim().length() > 0) ss.addSource(Shader.Type.vertex, v);
-				else if (source != null && v != null) source.source = v;
+				if (source == null && v != null && v.trim().length() > 0) ss.addSource(Shader.Type.vertex, pre.preprocess(b,v));
+				else if (source != null && v != null) source.source = pre.preprocess(b,v);
 			}
 			{
 				String v = b.properties.get(fragment);
 				Shader.Source source = sources.get(Shader.Type.fragment);
-				if (source == null && v != null && v.trim().length() > 0) ss.addSource(Shader.Type.fragment, v);
-				else if (source != null && v != null) source.source = v;
+				if (source == null && v != null && v.trim().length() > 0) ss.addSource(Shader.Type.fragment, pre.preprocess(b,v));
+				else if (source != null && v != null) source.source = pre.preprocess(b,v);
 			}
 			{
 				String v = b.properties.get(geometry);
 				Shader.Source source = sources.get(Shader.Type.geometry);
-				if (source == null && v != null && v.trim().length() > 0) ss.addSource(Shader.Type.geometry, v);
-				else if (source != null && v != null) source.source = v;
+				if (source == null && v != null && v.trim().length() > 0) ss.addSource(Shader.Type.geometry, pre.preprocess(b,v));
+				else if (source != null && v != null) source.source = pre.preprocess(b,v);
 			}
 
 		}
