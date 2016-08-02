@@ -124,7 +124,8 @@ public class Vec3 implements Externalizable, Supplier<Vec3>, Mutable, Serializab
 	 * @see #Vec3(int, ByteBuffer)
 	 */
 	public Vec3(ByteBuffer buffer) {
-		this(buffer.position(), buffer);		buffer.position(buffer.position()+3*8);
+		this(buffer.position(), buffer);
+		buffer.position(buffer.position() + 3 * 8);
 
 	}
 
@@ -153,7 +154,8 @@ public class Vec3 implements Externalizable, Supplier<Vec3>, Mutable, Serializab
 	 * @see #Vec3(int, DoubleBuffer)
 	 */
 	public Vec3(DoubleBuffer buffer) {
-		this(buffer.position(), buffer);		buffer.position(buffer.position()+3);
+		this(buffer.position(), buffer);
+		buffer.position(buffer.position() + 3);
 
 	}
 
@@ -184,7 +186,7 @@ public class Vec3 implements Externalizable, Supplier<Vec3>, Mutable, Serializab
 	 */
 	public Vec3(FloatBuffer buffer) {
 		this(buffer.position(), buffer);
-		buffer.position(buffer.position()+3);
+		buffer.position(buffer.position() + 3);
 	}
 
 	/**
@@ -781,7 +783,7 @@ public class Vec3 implements Externalizable, Supplier<Vec3>, Mutable, Serializab
 			dest.z = (mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32) / w;
 		} else {
 			dest.set((mat.m00 * x + mat.m10 * y + mat.m20 * z + mat.m30) / w, (mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31) / w,
-				 (mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32) / w);
+				(mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32) / w);
 		}
 		return this;
 	}
@@ -1182,16 +1184,9 @@ public class Vec3 implements Externalizable, Supplier<Vec3>, Mutable, Serializab
 		return this;
 	}
 
-	/**
-	 * Return a string representation of this vector.
-	 * <p>
-	 * This method creates a new {@link DecimalFormat} on every invocation with the format string "<tt> 0.000E0;-</tt>".
-	 *
-	 * @return the string representation
-	 */
+
 	public String toString() {
-		DecimalFormat formatter = new DecimalFormat("0.000E0;-"); //$NON-NLS-1$
-		return toString(formatter).replaceAll("E(\\d+)", "E+$1"); //$NON-NLS-1$ //$NON-NLS-2$
+		return "[" + x + ", " + y + ", " + z + "]";
 	}
 
 	/**
@@ -1334,7 +1329,7 @@ public class Vec3 implements Externalizable, Supplier<Vec3>, Mutable, Serializab
 	 */
 	public Vec3 half(Vec3 other) {
 		return this.add(other)
-			   .normalize();
+			.normalize();
 	}
 
 	/**
@@ -1347,7 +1342,7 @@ public class Vec3 implements Externalizable, Supplier<Vec3>, Mutable, Serializab
 	 */
 	public Vec3 half(double x, double y, double z) {
 		return this.add(x, y, z)
-			   .normalize();
+			.normalize();
 	}
 
 	/**
@@ -1359,8 +1354,8 @@ public class Vec3 implements Externalizable, Supplier<Vec3>, Mutable, Serializab
 	 */
 	public Vec3 half(Vec3 other, Vec3 dest) {
 		dest.set(this)
-		    .add(other)
-		    .normalize();
+			.add(other)
+			.normalize();
 		return this;
 	}
 
@@ -1375,8 +1370,8 @@ public class Vec3 implements Externalizable, Supplier<Vec3>, Mutable, Serializab
 	 */
 	public Vec3 half(double x, double y, double z, Vec3 dest) {
 		dest.set(this)
-		    .add(x, y, z)
-		    .normalize();
+			.add(x, y, z)
+			.normalize();
 		return this;
 	}
 
@@ -1433,7 +1428,7 @@ public class Vec3 implements Externalizable, Supplier<Vec3>, Mutable, Serializab
 	 *
 	 * @param a the first vector
 	 * @param b the second vector
-	 * @param t     the interpolation factor between 0.0 and 1.0
+	 * @param t the interpolation factor between 0.0 and 1.0
 	 * @return this
 	 */
 	public Vec3 lerp(Vec3 a, Vec3 b, double t) {
@@ -1672,12 +1667,13 @@ public class Vec3 implements Externalizable, Supplier<Vec3>, Mutable, Serializab
 		return this;
 	}
 
-	/** adds a uniformly distributed random number from -amount to amount to each dimension */
-	public Vec3 noise(float amount)
-	{
-		x+= 2*amount*(Math.random()-0.5f);
-		y+= 2*amount*(Math.random()-0.5f);
-		z+= 2*amount*(Math.random()-0.5f);
+	/**
+	 * adds a uniformly distributed random number from -amount to amount to each dimension
+	 */
+	public Vec3 noise(float amount) {
+		x += 2 * amount * (Math.random() - 0.5f);
+		y += 2 * amount * (Math.random() - 0.5f);
+		z += 2 * amount * (Math.random() - 0.5f);
 
 		return this;
 	}
@@ -1692,7 +1688,6 @@ public class Vec3 implements Externalizable, Supplier<Vec3>, Mutable, Serializab
 			return new Vec3(0, 0, 1);
 		}
 	}
-
 
 
 }

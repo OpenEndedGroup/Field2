@@ -24,6 +24,7 @@ package field.linalg;
 
 import field.utility.Mutable;
 import field.utility.Serializable_safe;
+import fieldlinker.Linker;
 import fieldnashorn.annotations.SafeToToString;
 
 import java.io.Externalizable;
@@ -36,6 +37,9 @@ import java.nio.FloatBuffer;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -44,7 +48,7 @@ import java.util.function.Supplier;
  * @author RGreenlees
  * @author Kai Burjack
  */
-public class Vec2 implements Externalizable, Supplier<Vec2>, Mutable, Serializable_safe {
+public class Vec2 implements Externalizable, Supplier<Vec2>, Mutable, Serializable_safe, Linker.AsMap_callable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -63,14 +67,12 @@ public class Vec2 implements Externalizable, Supplier<Vec2>, Mutable, Serializab
 	public Vec2() {
 	}
 
-	public Vec2(List<Number> from)
-	{
+	public Vec2(List<Number> from) {
 		this(from.get(0).doubleValue(), from.get(1).doubleValue());
 	}
 
-	public Vec2(List<Number> from, int offset)
-	{
-		this(from.get(offset).doubleValue(), from.get(offset+1).doubleValue());
+	public Vec2(List<Number> from, int offset) {
+		this(from.get(offset).doubleValue(), from.get(offset + 1).doubleValue());
 	}
 
 	/**
@@ -142,7 +144,8 @@ public class Vec2 implements Externalizable, Supplier<Vec2>, Mutable, Serializab
 	 * @see #Vec2(int, DoubleBuffer)
 	 */
 	public Vec2(DoubleBuffer buffer) {
-		this(buffer.position(), buffer);		buffer.position(buffer.position()+2);
+		this(buffer.position(), buffer);
+		buffer.position(buffer.position() + 2);
 
 	}
 
@@ -171,7 +174,8 @@ public class Vec2 implements Externalizable, Supplier<Vec2>, Mutable, Serializab
 	 * @see #Vec2(int, DoubleBuffer)
 	 */
 	public Vec2(FloatBuffer buffer) {
-		this(buffer.position(), buffer);		buffer.position(buffer.position()+2);
+		this(buffer.position(), buffer);
+		buffer.position(buffer.position() + 2);
 
 	}
 
@@ -1104,7 +1108,7 @@ public class Vec2 implements Externalizable, Supplier<Vec2>, Mutable, Serializab
 	 *
 	 * @param a the first vector
 	 * @param b the second vector
-	 * @param t     the interpolation factor between 0.0 and 1.0
+	 * @param t the interpolation factor between 0.0 and 1.0
 	 * @return this
 	 */
 	public Vec2 lerp(Vec2 a, Vec2 b, double t) {
@@ -1217,7 +1221,7 @@ public class Vec2 implements Externalizable, Supplier<Vec2>, Mutable, Serializab
 	 */
 	public Vec2 half(Vec2 other) {
 		return this.add(other)
-			   .normalize();
+			.normalize();
 	}
 
 	/**
@@ -1229,7 +1233,7 @@ public class Vec2 implements Externalizable, Supplier<Vec2>, Mutable, Serializab
 	 */
 	public Vec2 half(double x, double y) {
 		return this.add(x, y)
-			   .normalize();
+			.normalize();
 	}
 
 	/**
@@ -1241,8 +1245,8 @@ public class Vec2 implements Externalizable, Supplier<Vec2>, Mutable, Serializab
 	 */
 	public Vec2 half(Vec2 other, Vec2 dest) {
 		dest.set(this)
-		    .add(other)
-		    .normalize();
+			.add(other)
+			.normalize();
 		return this;
 	}
 
@@ -1257,11 +1261,11 @@ public class Vec2 implements Externalizable, Supplier<Vec2>, Mutable, Serializab
 	 */
 	public Vec2 half(double x, double y, double z, Vec2 dest) {
 		dest.set(this)
-		    .add(x, y)
-		    .normalize();
+			.add(x, y)
+			.normalize();
 		return this;
 	}
-	
+
 	/**
 	 * Return a string representation of this vector.
 	 * <p>
@@ -1270,7 +1274,7 @@ public class Vec2 implements Externalizable, Supplier<Vec2>, Mutable, Serializab
 	 * @return the string representation
 	 */
 	public String toString() {
-		return "["+x+", "+y+"]";
+		return "[" + x + ", " + y + "]";
 //		DecimalFormat formatter = new DecimalFormat(" 0.000E0;-"); //$NON-NLS-1$
 //		return toString(formatter).replaceAll("E(\\d+)", "E+$1"); //$NON-NLS-1$ //$NON-NLS-2$
 	}
@@ -1389,12 +1393,18 @@ public class Vec2 implements Externalizable, Supplier<Vec2>, Mutable, Serializab
 		}
 	}
 
-	/** adds a uniformly distributed random number from `-amount` to `amount` to each dimension */
-	public Vec2 noise(float amount)
-	{
-		x+= 2*amount*(Math.random()-0.5f);
-		y+= 2*amount*(Math.random()-0.5f);
+	/**
+	 * adds a uniformly distributed random number from `-amount` to `amount` to each dimension
+	 */
+	public Vec2 noise(float amount) {
+		x += 2 * amount * (Math.random() - 0.5f);
+		y += 2 * amount * (Math.random() - 0.5f);
 		return this;
 	}
 
+	@Override
+	public Object asMap_call(Object a, Object b) {
+		System.out.println(" arguments " + a+" "+b);
+		return this;
+	}
 }

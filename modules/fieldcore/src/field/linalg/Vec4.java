@@ -1017,16 +1017,8 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 		return this;
 	}
 
-	/**
-	 * Return a string representation of this vector.
-	 * <p>
-	 * This method creates a new {@link DecimalFormat} on every invocation with the format string "<tt> 0.000E0;-</tt>".
-	 *
-	 * @return the string representation
-	 */
 	public String toString() {
-		DecimalFormat formatter = new DecimalFormat(" 0.000E0;-"); //$NON-NLS-1$
-		return toString(formatter).replaceAll("E(\\d+)", "E+$1"); //$NON-NLS-1$ //$NON-NLS-2$
+		return "["+x+", "+y+", "+z+", "+w+"]";
 	}
 
 	/**
