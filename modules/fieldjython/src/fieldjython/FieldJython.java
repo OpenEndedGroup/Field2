@@ -98,7 +98,7 @@ public class FieldJython extends Execution {
 			long uniq;
 
 			@Override
-			public void executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors) {
+			public Object executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors) {
 
 				if (suffix.equals("print")) textFragment = "print(" + textFragment + ")";
 
@@ -128,12 +128,14 @@ public class FieldJython extends Execution {
 					if (written[0] == 0) w.write("" + (result.equals(Py.None) ? " &#10003; " : ("" + result)));
 
 					log("jython.debug", ()->" result string is " + result);
+					return result;
 				} catch (IOException e) {
 					e.printStackTrace();
 				} finally {
 					Execution.context.get()
 							 .pop();
 				}
+				return null;
 			}
 
 

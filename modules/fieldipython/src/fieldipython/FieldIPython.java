@@ -90,7 +90,7 @@ public class FieldIPython extends Execution {
 			Set term = new LinkedHashSet<Character>(Arrays.asList('(', ')', ' ', '[', ']', '{', '}'));
 
 			@Override
-			public void executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors) {
+			public Object executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors) {
 
 				try {
 					Execution.context.get()
@@ -105,6 +105,7 @@ public class FieldIPython extends Execution {
 					Object result = eval(textFragment, lineErrors, success);
 
 					success.accept(result != null ? ("" + result) : "");
+					return result;
 
 				} finally {
 					Execution.context.get()

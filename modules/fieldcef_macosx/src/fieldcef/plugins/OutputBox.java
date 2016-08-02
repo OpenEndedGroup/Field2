@@ -228,9 +228,10 @@ public class OutputBox extends Box implements IO.Loaded {
 				}
 
 				@Override
-				public void executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors) {
+				public Object executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors) {
 
 					delegate.executeJavaScript(textFragment);
+					return null;
 				}
 
 

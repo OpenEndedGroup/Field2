@@ -658,6 +658,9 @@ public class RemoteEditor extends Box {
 					stringer.endObject();
 				}
 				stringer.endArray();
+
+
+
 				return stringer.toString();
 			}));
 

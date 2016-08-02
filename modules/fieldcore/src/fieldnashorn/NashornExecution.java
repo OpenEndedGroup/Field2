@@ -68,15 +68,15 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	}
 
 	@Override
-	public void executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors) {
+	public Object executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors) {
 		if (suffix.equals("print")) {
-			executeAndReturn("print(" + textFragment + ")", lineErrors, success, false);
-		} else executeAndReturn(textFragment, lineErrors, success, !suffix.equals("noprint"));
+			return executeAndReturn("print(" + textFragment + ")", lineErrors, success, false);
+		} else return executeAndReturn(textFragment, lineErrors, success, !suffix.equals("noprint"));
 	}
 
 	Function<Integer, Integer> lineTransform;
 
-	protected void executeAndReturn(String textFragment, Consumer<Pair<Integer, String>> lineErrors, final Consumer<String> success, boolean printResult) {
+	protected Object executeAndReturn(String textFragment, Consumer<Pair<Integer, String>> lineErrors, final Consumer<String> success, boolean printResult) {
 
 		lineErrors = new ErrorHelper().errorHelper(lineErrors, box);
 		Callbacks.call(box, Callbacks.onExecute);
@@ -156,7 +156,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 					lineTransform = transformation.second;
 				} catch (SourceTransformer.TranslationFailedException t) {
 					lineErrors.accept(new Pair<>(-1, t.getMessage() + "<br>"));
-					return;
+					return null;
 				}
 			} else {
 				lineTransform = x -> x;
@@ -188,6 +188,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 			RemoteEditor.boxFeedback(Optional.of(box), new Vec4(0.3f, 0.7f, 0.3f, 0.5f));
 
+			return ret;
 		} catch (ScriptException e) {
 			handleScriptException(e, lineErrors, lineTransform);
 		} catch (Throwable t) {
@@ -197,6 +198,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 			lineOffset = 0;
 
 		}
+		return null;
 	}
 
 	private void setCurrentLineNumberForPrinting(Triple<Box, Integer, Boolean> boxLine) {

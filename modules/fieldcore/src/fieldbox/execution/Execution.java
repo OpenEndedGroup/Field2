@@ -53,7 +53,7 @@ public class Execution extends Box {
 	 */
 	public interface ExecutionSupport {
 
-		void executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors);
+		Object executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors);
 
 		void executeAll(String allText, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success);
 

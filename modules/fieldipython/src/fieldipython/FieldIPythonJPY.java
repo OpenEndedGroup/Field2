@@ -1,5 +1,6 @@
 package fieldipython;
 
+import field.app.RunLoop;
 import field.utility.Dict;
 import field.utility.Log;
 import field.utility.Pair;
@@ -123,7 +124,7 @@ public class FieldIPythonJPY extends Execution {
 			Set term = new LinkedHashSet<Character>(Arrays.asList('(', ')', ' ', '[', ']', '{', '}'));
 
 			@Override
-			public void executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors) {
+			public Object executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors) {
 
 				try {
 					Execution.context.get()
@@ -139,6 +140,7 @@ public class FieldIPythonJPY extends Execution {
 
 					success.accept(result != null ? ("" + result) : "");
 
+					return result;
 				} finally {
 					Execution.context.get()
 							 .pop();
@@ -175,8 +177,11 @@ public class FieldIPythonJPY extends Execution {
 			@Override
 			public void completion(String allText, int line, int ch, Consumer<List<Completion>> results) {
 
-				System.err.println(" skipping autocomplete while we sort out threading issues ");
-				if (true) return;
+				if (!RunLoop.main.isMainThread()) {
+					System.err.println(" skipping autocomplete while we sort out threading issues ");
+					return;
+				}
+
 
 				if (allText.trim()
 					   .length() == 0) return;

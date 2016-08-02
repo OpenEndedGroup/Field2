@@ -107,7 +107,7 @@ public class Processing extends Execution {
 		return new Execution.ExecutionSupport() {
 
 			@Override
-			public void executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors) {
+			public Object executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors) {
 				queue.add(() -> {
 					Execution delegateTo = box.find(Execution.execution, box.upwards())
 								  .findFirst()
@@ -116,6 +116,7 @@ public class Processing extends Execution {
 
 					s.executeTextFragment(textFragment, "", success, lineErrors);
 				});
+				return null;
 			}
 
 			@Override

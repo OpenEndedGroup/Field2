@@ -16,6 +16,7 @@ import fieldcef.browser.Browser;
 import fielded.Commands;
 import fielded.ServerSupport;
 import fieldnashorn.annotations.HiddenInAutocomplete;
+import org.lwjgl.glfw.GLFW;
 
 import java.io.BufferedReader;
 import java.io.File;
