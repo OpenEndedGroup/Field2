@@ -13,6 +13,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 
 /**
@@ -664,6 +665,12 @@ public class Dict implements Serializable, Linker.AsMap {
 	@Override
 	public Object asMap_setElement(int element, Object v) {
 		throw new Error();
+	}
+
+
+	static public Stream<Prop> cannonicalProperties()
+	{
+		return Canonical.cannon.values().stream();
 	}
 
 }
