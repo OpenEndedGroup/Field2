@@ -99,6 +99,7 @@ public class TernSupport {
 					"files:[{type:\"full\",name:\"" + boxName + ".js\",text:__someFile}]},\n" +
 					"	function (e,r){\n" +
 					"		for(var i=0;i<r.completions.length;i++)" +
+					"			if (r && r.end)" +
 					"			__completions.add(new __fieldglobal.fieldbox.execution.Completion(r.start, r.end, r.completions[i].name, '<span class=type>'+r.completions[i].type+'&nbsp;&mdash;&nbsp;</span><span class=doc>'+(r.completions[i].doc==null ? '' : r.completions[i].doc)+'</span>'))" +
 					"	})");
 				r.addAll((ArrayList<Completion>) engine.get("__completions"));
@@ -450,7 +451,7 @@ public class TernSupport {
 				"\tvar a = __fieldglobal.self.tern.parse(__someFile)\n" +
 				"\t__fieldglobal.self.tern.analyze(a)\n" +
 				"\tvar n = __fieldglobal.self.tern.findExpressionAround(a, " + c + ", " + c + ")\n" +
-				"\tif (n!=null)\n" +
+				"\tif (n && n.node)\n" +
 				"\treturn Java.to([n.node.start, n.node.end]);\n" + "\treturn null;}) ");
 
 			if (o == null) return null;
