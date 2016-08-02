@@ -1,5 +1,8 @@
 package field.graphics;
 
+import fieldbox.execution.Completion;
+import fieldbox.execution.HandlesCompletion;
+import fieldbox.execution.JavaSupport;
 import jdk.dynalink.beans.StaticClass;
 import field.linalg.*;
 import field.utility.*;
@@ -23,9 +26,13 @@ import java.util.*;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static field.graphics.FLinesAndJavaShapes.flineToJavaShape;
 import static field.graphics.FLinesAndJavaShapes.javaShapeToFLine;
+import static fieldbox.boxes.Box.compress;
+import static fieldbox.boxes.Box.format;
 
 /**
  * FLine is our main high level geometry container for lines, meshes and lists of points.
@@ -48,7 +55,7 @@ import static field.graphics.FLinesAndJavaShapes.javaShapeToFLine;
  * For the code where properties inside attributes are given semantics look at FieldBox / FrameDrawer
  * <p>
  */
-public class FLine implements Supplier<FLine>, Linker.AsMap {
+public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 
 	public List<Node> nodes = new ArrayList<>();
 	public Dict attributes = new Dict();
@@ -199,11 +206,11 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 		Vec2 c2 = new Vec2(d).mul(-r2 / 3);
 
 		c1 = new Quat().setAngleAxis(theta1, new Vec3(0, 0, 1))
-			       .transform(c1.toVec3())
-			       .toVec2();
+			.transform(c1.toVec3())
+			.toVec2();
 		c2 = new Quat().setAngleAxis(theta2, new Vec3(0, 0, 1))
-			       .transform(c2.toVec3())
-			       .toVec2();
+			.transform(c2.toVec3())
+			.toVec2();
 
 		Vec2.add(c1, a, c1);
 		Vec2.add(c2, destination, c2);
@@ -372,7 +379,8 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 				i = 0;
 				looping = true;
 			}
-			if (c == 't') c = f.get(q) instanceof TaggedVec3 ? ((TaggedVec3) f.get(q)).tag : (i == 0 ? 'm' : 'l');
+			if (c == 't')
+				c = f.get(q) instanceof TaggedVec3 ? ((TaggedVec3) f.get(q)).tag : (i == 0 ? 'm' : 'l');
 
 			try {
 				switch (c) {
@@ -656,8 +664,20 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 	}
 
 	public FLine transform(Function<Vec3, Vec3> by) {
+
+		// we are going to give this function (and Nashorn) a little help here
+
+		Function<Vec3, Vec3> q = x -> {
+
+			Vec3 xx = new Vec3(x);
+			Object r = by.apply(xx);
+			if (!(r instanceof Vec3)) // assume mutated it in place
+				return xx;
+			return (Vec3) r;
+		};
+
 		for (Node n : nodes) {
-			n.transform(by);
+			n.transform(q);
 		}
 		modify();
 		return this;
@@ -729,7 +749,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 
 		BookmarkCache c = cache.computeIfAbsent(m, (k) -> new BookmarkCache(m));
 
-		Log.log("drawing.trace",()-> "should skip ? " + mod);
+		Log.log("drawing.trace", () -> "should skip ? " + mod);
 
 		return m.skipTo(c.start, c.end, mod, () -> {
 
@@ -739,7 +759,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 				MeshBuilder.Bookmark start = null;
 				// todo: AUX!
 
-				Log.log("drawing.trace", ()->"ACTUALLY DRAWING");
+				Log.log("drawing.trace", () -> "ACTUALLY DRAWING");
 
 				Node a = null;
 				for (int i = 0; i < nodes.size(); i++) {
@@ -770,7 +790,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 	}
 
 	public boolean renderToLine(MeshBuilder m, int fixedSizeForCubic) {
-		Log.log("drawing.trace", ()->"renderToLine");
+		Log.log("drawing.trace", () -> "renderToLine");
 		return renderToLine(m, this::renderMoveTo, this::renderLineTo, renderCubicTo(fixedSizeForCubic));
 	}
 
@@ -864,12 +884,12 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 			Object k = ii.getKey();
 			Integer kv = null;
 			if (k instanceof Number)
-				kv = ((Number)k).intValue();
+				kv = ((Number) k).intValue();
 			else
-				kv= Integer.parseInt(""+k);
+				kv = Integer.parseInt("" + k);
 
 			flatAux[n] = kv;
-			flatAuxNames[n++] = new Dict.Prop(""+ii.getValue());
+			flatAuxNames[n++] = new Dict.Prop("" + ii.getValue());
 		}
 
 		for (Node node : nodes) {
@@ -933,7 +953,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 			float[] value = to.flatAuxData[i];
 			if (value != null && channel > 0) m.aux(channel, value);
 		}
-		Log.log("drawing.trace",()-> "moveTo " + to.to);
+		Log.log("drawing.trace", () -> "moveTo " + to.to);
 		m.nextVertex(to.to.x, to.to.y, to.to.z);
 		return to;
 	}
@@ -946,7 +966,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 			if (value != null && channel > 0) m.aux(channel, value);
 		}
 
-		Log.log("drawing.trace", ()->"lineTo " + to.to);
+		Log.log("drawing.trace", () -> "lineTo " + to.to);
 
 		m.nextVertex(to.to.x, to.to.y, to.to.z);
 		return to;
@@ -988,7 +1008,8 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 		for (Node n : nodes) {
 			if (n instanceof MoveTo) f.add(new MoveTo(spaceTransform.apply(n.to)));
 			else if (n instanceof LineTo) f.add(new LineTo(spaceTransform.apply(n.to)));
-			else if (n instanceof CubicTo) f.add(new CubicTo(spaceTransform.apply(((CubicTo) n).c1), spaceTransform.apply(((CubicTo) n).c2), spaceTransform.apply(n.to)));
+			else if (n instanceof CubicTo)
+				f.add(new CubicTo(spaceTransform.apply(((CubicTo) n).c1), spaceTransform.apply(((CubicTo) n).c2), spaceTransform.apply(n.to)));
 			f.nodes.get(f.nodes.size() - 1).attributes = n.attributes.duplicate();
 		}
 
@@ -1010,7 +1031,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 		Vec3 t = new Vec3(center2).sub(center);
 
 		Vec3 cD = new Vec3(cEnd).sub(cStart)
-					.normalize();
+			.normalize();
 		Vec3 d = new Vec3(end).sub(start);
 
 		Quat q = cD.isNaN() || d.isNaN() ? new Quat() : new Quat().rotateTo(d, cD);
@@ -1022,9 +1043,9 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 		double fs = s;
 
 		return byTransforming(x -> q.transform(new Vec3(x).sub(center))
-					    .mul(fs)
-					    .add(center)
-					    .add(t));
+			.mul(fs)
+			.add(center)
+			.add(t));
 
 	}
 
@@ -1061,11 +1082,11 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 	protected Set<String> computeKnownNonProperties() {
 		Set<String> r = new LinkedHashSet<>();
 		Method[] m = this.getClass()
-				 .getMethods();
+			.getMethods();
 		for (Method mm : m)
 			r.add(mm.getName());
 		Field[] f = this.getClass()
-				.getFields();
+			.getFields();
 		for (Field ff : f)
 			r.add(ff.getName());
 		return r;
@@ -1095,7 +1116,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 
 		// workaround bug in Nashorn
 //		if (value instanceof ConsString) value = value.toString(); //jdk9 module security breaks this
-		if (value!=null && value.getClass().getName().endsWith("ConsString")) value = ""+value;
+		if (value != null && value.getClass().getName().endsWith("ConsString")) value = "" + value;
 
 		Dict.Prop cannon = new Dict.Prop(name).toCannon();
 
@@ -1167,8 +1188,8 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 	@HiddenInAutocomplete
 	public Object asMap_call(Object a, Object b) {
 		System.err.println(" call called :" + a + " " + b + " " + (b instanceof Map ? ((Map) b).keySet() : b.getClass()
-														    .getSuperclass() + " " + Arrays.asList(b.getClass()
-																			    .getInterfaces())));
+			.getSuperclass() + " " + Arrays.asList(b.getClass()
+			.getInterfaces())));
 		boolean success = false;
 		try {
 			Map<?, ?> m = (Map<?, ?>) ScriptUtils.convert(b, Map.class);
@@ -1218,6 +1239,59 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 	@Override
 	public Object asMap_setElement(int element, Object v) {
 		throw new Error();
+	}
+
+	@Override
+	public List<Completion> getCompletionsFor(String prefix) {
+
+		List<Completion> l1 = Dict.cannonicalProperties().filter(x -> x.getAttributes().has(Dict.domain))
+			.filter(x -> x.getAttributes().get(Dict.domain).contains("fline"))
+			.filter(x -> x.getName().startsWith(prefix))
+			.map(q -> new Completion(-1, -1, q.getName(), " = <span class='type'>" + Conversions.fold(q.getTypeInformation(), t -> compress(
+			t)) + "</span> " + possibleToString(q) + " &mdash; <span class='doc'>" + format(q.getDocumentation()) + "</span>")).collect(Collectors.toList());
+
+
+		l1.forEach(x -> {
+//			x.rank+=200;
+			if (!x.info.contains("(unset)"))
+				x.rank-=200;
+		});
+
+
+		List<Completion> l2 = JavaSupport.javaSupport.getOptionCompletionsFor(this, prefix);
+
+		l1.addAll(l2.stream()
+			.filter(x -> {
+				for (Completion c : l1)
+					if (c.replacewith.equals(x.replacewith)) return false;
+				return true;
+			})
+			.collect(Collectors.toList()));
+
+		return l1;
+
+	}
+
+	private String possibleToString(Dict.Prop q) {
+//		if (!box.properties.has(q)) return "";
+
+		Object v = this.attributes.get(q);
+
+		if (v == null)
+			return "(unset)";
+
+		try {
+			if (v.getClass().getMethod("toString").getDeclaringClass() != Object.class) {
+				String r = " = " + v;
+				if (r.length() < 140)
+					return r;
+				else return r.substring(0, 100)+"...";
+			}
+
+		} catch (NoSuchMethodException e) {
+			e.printStackTrace();
+		}
+		return "";
 	}
 
 
@@ -1358,8 +1432,8 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 		@Override
 		public Object asMap_call(Object a, Object b) {
 			System.err.println(" call called :" + a + " " + b + " " + (b instanceof Map ? ((Map) b).keySet() : b.getClass()
-															    .getSuperclass() + " " + Arrays.asList(b.getClass()
-																				    .getInterfaces())));
+				.getSuperclass() + " " + Arrays.asList(b.getClass()
+				.getInterfaces())));
 			boolean success = false;
 			try {
 				Map<?, ?> m = (Map<?, ?>) ScriptUtils.convert(b, Map.class);
@@ -1418,11 +1492,11 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 		protected Set<String> computeKnownNonProperties() {
 			Set<String> r = new LinkedHashSet<>();
 			Method[] m = this.getClass()
-					 .getMethods();
+				.getMethods();
 			for (Method mm : m)
 				r.add(mm.getName());
 			Field[] f = this.getClass()
-					.getFields();
+				.getFields();
 			for (Field ff : f)
 				r.add(ff.getName());
 			return r;
@@ -1548,6 +1622,6 @@ public class FLine implements Supplier<FLine>, Linker.AsMap {
 
 	@Override
 	public String toString() {
-		return "FLine (with "+nodes.size()+" node"+(nodes.size()==1 ? "" : "s")+")";
+		return "FLine (with " + nodes.size() + " node" + (nodes.size() == 1 ? "" : "s") + ")";
 	}
 }
