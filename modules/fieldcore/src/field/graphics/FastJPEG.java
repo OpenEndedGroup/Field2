@@ -36,6 +36,8 @@ public class FastJPEG implements JPEGLoader {
 
 	public native void decompress(String filename, Buffer dest, int width, int height);
 
+	public native void decompress4(String filename, Buffer dest, int width, int height);
+
 	public native void decompressFlipped(String filename, Buffer dest, int width, int height);
 
 	public native void decompressGrey(String filename, Buffer dest, int width, int height);
