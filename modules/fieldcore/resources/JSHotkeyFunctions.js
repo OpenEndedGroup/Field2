@@ -46,9 +46,9 @@ function Autocomplete() {
                     }
                 }
 
-                m.sort(function (a, b) {
-                    a.ratio < b.ratio ? 1 : -1
-                });
+                // m.sort(function (a, b) {
+                //     return (a.ratio==b.ratio) ? 0 : (a.ratio < b.ratio ? 1 : -1)
+                // });
 
                 return m
             };
@@ -129,13 +129,9 @@ function Import() {
                     }
                 }
 
-//								console.log("
-// before sorting "+JSON.stringify(m));
-                m.sort(function (a, b) {
-                    return a.ratio < b.ratio ? 1 : -1
-                });
-//								console.log(" after
-// sorting "+JSON.stringify(m));
+                // m.sort(function (a, b) {
+                //     return (a.ratio==b.ratio) ? 0 : (a.ratio < b.ratio ? 1 : -1);
+                // });
 
                 return m
             };
