@@ -226,7 +226,7 @@ public class FieldClojure extends Execution {
 			public int lineOffset = 0;
 
 			@Override
-			public void executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors) {
+			public Object executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors) {
 
 				try{
 					Execution.context.get().push(box);
@@ -270,6 +270,7 @@ public class FieldClojure extends Execution {
 												     .getName());
 					}
 
+					return result;
 				}
 				finally
 				{
