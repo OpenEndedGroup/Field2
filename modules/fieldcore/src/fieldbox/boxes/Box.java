@@ -643,7 +643,8 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 		return "";
 	}
 
-	protected String format(String documentation) {
+	@HiddenInAutocomplete
+	static public String format(String documentation) {
 		String doc = MarkdownToHTML.convert(documentation);
 		doc = doc.trim();
 		if (doc.startsWith("<p>") && doc.endsWith("</p>")) {
