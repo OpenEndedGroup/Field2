@@ -2,6 +2,7 @@ package fieldlinker;
 
 
 //import jdk.dynalink.CallSiteDescriptor;
+
 import jdk.dynalink.linker.*;
 //import jdk.dynalink.support.Guards;
 //import jdk.nashorn.api.scripting.extensions.CustomDelete;
@@ -36,6 +37,10 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 
 	public interface CustomDelete {
 		boolean asMap_delete(Object p);
+	}
+
+	public interface AsMap_callable {
+		Object asMap_call(Object a, Object b);
 	}
 
 	public interface AsMap extends CustomDelete {
@@ -78,7 +83,7 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 		if (disabled) return null;
 		if (debug) {
 			System.err.println("LINKER getGuardedInvocation :" + linkRequest + " " + linkerServices);
-			System.err.println(" " + Arrays.asList(linkRequest.getArguments()));
+			System.err.println(" " + Arrays.asList(linkRequest.getArguments()) + " .length =" + linkRequest.getArguments().length);
 			System.err.println(" " + linkRequest.getCallSiteDescriptor());
 			System.err.println(" " + linkRequest.getCallSiteDescriptor().getOperation());
 			System.err.println(" " + linkRequest.getReceiver());
@@ -114,10 +119,17 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 			if (rec instanceof AsMap) {
 
 				if (debug)
-				System.err.println(" linking AsMap/call " + rec);
+					System.err.println(" linking AsMap/call " + rec);
 				MethodHandle get = MethodHandles.lookup()
 					.findVirtual(rec.getClass(), "asMap_call", MethodType.methodType(Object.class, Object.class, Object.class));
 				return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
+			} else if (rec instanceof AsMap_callable) {
+				if (debug)
+					System.err.println(" linking AsMap_callable/call " + rec);
+				MethodHandle get = MethodHandles.lookup()
+					.findVirtual(rec.getClass(), "asMap_call", MethodType.methodType(Object.class, Object.class, Object.class));
+				return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
+
 			}
 		} else if (linkRequest.getCallSiteDescriptor()
 			.getOperation().toString().startsWith("CALL") && linkRequest.getArguments().length == 2) {
@@ -127,11 +139,13 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 			if (rec instanceof AsMap) {
 
 				if (debug)
-				System.err.println(" linking AsMap/call " + rec);
+					System.err.println(" linking AsMap/call " + rec);
 				MethodHandle get = MethodHandles.lookup()
 					.findVirtual(rec.getClass(), "asMap_call", MethodType.methodType(Object.class, Object.class));
 				return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
 			}
+
+
 		} else if (linkRequest.getCallSiteDescriptor()
 			.getOperation().toString().startsWith("NEW") && linkRequest.getArguments().length == 2) {
 
@@ -140,7 +154,7 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 			if (rec instanceof AsMap) {
 
 				if (debug)
-				System.err.println(" linking AsMap/new " + rec);
+					System.err.println(" linking AsMap/new " + rec);
 				MethodHandle get = MethodHandles.lookup()
 					.findVirtual(rec.getClass(), "asMap_new", MethodType.methodType(Object.class, Object.class));
 				return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
@@ -153,10 +167,17 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 			if (rec instanceof AsMap) {
 
 				if (debug)
-				System.err.println(" linking AsMap/new " + rec);
+					System.err.println(" linking AsMap/new " + rec);
 				MethodHandle get = MethodHandles.lookup()
 					.findVirtual(rec.getClass(), "asMap_new", MethodType.methodType(Object.class, Object.class, Object.class));
 				return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
+			} else if (rec instanceof AsMap_callable) {
+				if (debug)
+					System.err.println(" linking AsMap_callable/call " + rec);
+				MethodHandle get = MethodHandles.lookup()
+					.findVirtual(rec.getClass(), "asMap_call", MethodType.methodType(Object.class, Object.class, Object.class));
+				return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
+
 			}
 		} else if (linkRequest.getCallSiteDescriptor()
 			.getOperation().toString().startsWith("GET_METHOD|GET_PROPERTY|GET_ELEMENT:")) {
