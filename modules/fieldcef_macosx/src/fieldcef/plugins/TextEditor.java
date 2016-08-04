@@ -139,6 +139,11 @@ public class TextEditor extends Box implements IO.Loaded {
 					if (System.currentTimeMillis() - t[0] > 1000) {
 						boot();
 
+						// set correct size
+						int h = window.getHeight();
+
+						browser.properties.get(Box.frame).h=h-40;
+
 						return false;
 					}
 
@@ -248,6 +253,8 @@ public class TextEditor extends Box implements IO.Loaded {
 		browser.properties.put(Browser.url, "http://localhost:" + find(ServerSupport.server, both()).findFirst().get().port + "/init");
 		Drawing.dirty(this);
 		browser.finishBooting();
+
+
 	}
 
 	@HiddenInAutocomplete
