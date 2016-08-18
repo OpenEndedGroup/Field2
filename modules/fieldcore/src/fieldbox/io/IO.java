@@ -118,7 +118,7 @@ public class IO {
 	}
 
 	public static boolean isPeristant(Dict.Prop prop) {
-		return knownFiles.containsKey(prop.getName()) && knownProperties.contains(prop.getName()) || (prop.findCannon() != null && prop.findCannon()
+		return knownFiles.containsKey(prop.getName()) || knownProperties.contains(prop.getName()) || (prop.findCannon() != null && prop.findCannon()
 												     .getAttributes()
 												     .isTrue(persistent, false));
 	}
