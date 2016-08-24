@@ -128,10 +128,17 @@
   
   <path id="library.lwjgl.classpath">
     <pathelement location="${basedir}/modules/fieldcore/resources/lwjgl.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/lwjgl-glfw.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/lwjgl-opengl.jar"/>
   </path>
   
   <path id="library.lwjgl_util.classpath">
     <pathelement location="${basedir}/modules/fieldcore/resources/lwjgl_util.jar"/>
+  </path>
+
+  <path id="library.lwjgl_glfw.classpath">
+    <pathelement location="${basedir}/modules/fieldcore/resources/lwjgl-glfw.jar"/>
+    <pathelement location="${basedir}/modules/fieldcore/resources/lwjgl-opengl.jar"/>
   </path>
   
   <path id="library.orient.classpath">
@@ -356,6 +363,7 @@
     <pathelement location="${fieldagent.output.dir}"/>
     <path refid="library.guava-16.0.1_(2).classpath"/>
     <path refid="library.fieldlinker.classpath"/>
+    <path refid="library.lwjgl_glfw.classpath"/>
     <path refid="library.rt.classpath"/>
     <path refid="library.guava-16.0.1.classpath"/>
     <path refid="library.lwjgl.classpath"/>
