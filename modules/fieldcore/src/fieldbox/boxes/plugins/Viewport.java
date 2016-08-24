@@ -273,9 +273,6 @@ public class Viewport extends Box implements IO.Loaded, ProvidesGraphicsContext 
 
 			GraphicsContext.getContext().stateTracker.scissor.set(v);
 			GraphicsContext.getContext().stateTracker.viewport.set(v);
-		}
-
-		try (Util.ExceptionlessAutoCloasable s2 = GraphicsContext.getContext().stateTracker.save()) {
 
 			Map<String, Supplier<FLine>> q = breadthFirst(downwards()).filter(x -> x.properties.has(lines3))
 				.flatMap(x -> x.properties.get(lines3)
@@ -312,10 +309,10 @@ public class Viewport extends Box implements IO.Loaded, ProvidesGraphicsContext 
 				standard.triangles_builder.close();
 				standard.lines_builder.close();
 			}
-		}
-		Scene scene = this.properties.get(Viewport.scene);
+			Scene scene = this.properties.get(Viewport.scene);
 
-		scene.updateAll();
+			scene.updateAll();
+		}
 
 	}
 
