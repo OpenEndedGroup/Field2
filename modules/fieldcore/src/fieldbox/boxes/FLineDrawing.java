@@ -66,9 +66,15 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 		.doc("which layer to draw to? Defaults to `__main__`, the other alternative right now is `__glass__` to draw on the blur layer above Field");
 	private final Box root;
 
+	static public final Dict.Prop<FunctionOfBox<Boolean>> redraw = new Dict.Prop<>("redraw").type().toCannon().doc("call `_.redraw()` to cause the window to be redrawn");
+
 	public FLineDrawing(Box root) {
 		this.root = root;
 		this.properties.putToList(Drawing.drawers, this);
+		this.properties.put(redraw, x -> {
+			Drawing.dirty(x);
+			return true;
+		});
 	}
 
 	static public Function<Box, FLine> boxOrigin(Function<Box, FLine> wrap, Vec2 origin) {
@@ -204,7 +210,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 
 		this.breadthFirst(this.both())
 			.forEach(Util.wrap(x -> {
-				if (Planes.on(root, x)<=0) {
+				if (Planes.on(root, x) <= 0) {
 					return;
 				}
 
