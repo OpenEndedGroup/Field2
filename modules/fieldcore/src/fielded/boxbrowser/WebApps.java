@@ -15,6 +15,8 @@ import fielded.RemoteEditor;
 import fielded.plugins.Out;
 import fielded.webserver.NanoHTTPD;
 import fielded.webserver.Server;
+import org.json.JSONStringer;
+import org.json.JSONWriter;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -34,30 +36,30 @@ public class WebApps extends Box implements IO.Loaded {
 	static public final String FILESYSTEM = "/filesystem/";
 
 	static public Dict.Prop<BiFunctionOfBoxAnd<String, String>> newStaticHTML = new Dict.Prop<>("newStaticHTML").type()
-														    .toCannon()
-														    .doc("`_.newStaticHTML(\"mypage\")` adds an `_.html` property to this box that is served up by the WebApps plugin at http://localhost:8082/mypage");
+		.toCannon()
+		.doc("`_.newStaticHTML(\"mypage\")` adds an `_.html` property to this box that is served up by the WebApps plugin at http://localhost:8082/mypage");
 
 	static public Dict.Prop<BiConsumer<String, String>> newStaticFile = new Dict.Prop<>("newStaticFile").type()
-													    .toCannon()
-													    .doc("`_.newStaticFile(\"myjpeg.jpg\", \"/path/to/a/jpeg\")` adds a file to the webserver resolvable at  http://localhost:8082/myjpeg.jpg");
+		.toCannon()
+		.doc("`_.newStaticFile(\"myjpeg.jpg\", \"/path/to/a/jpeg\")` adds a file to the webserver resolvable at  http://localhost:8082/myjpeg.jpg");
 
 	static public Dict.Prop<String> html = new Dict.Prop<>("html").type()
-								      .toCannon()
-								      .doc(" a static html resource served by the WebApps plugin, creatable using `_.newStaticHTML(...)`");
+		.toCannon()
+		.doc(" a static html resource served by the WebApps plugin, creatable using `_.newStaticHTML(...)`");
 
 	static {
 		FieldBox.fieldBox.io.addFilespec("html", ".html", "htmlmixed");
 	}
 
 	static public final String preambleA = "<html xmlns='http://www.w3.org/1999/xhtml'> <meta charset='UTF-8'><head>" +
-		    "<script src='/field/filesystem/codemirror-5.12/lib/codemirror.js'></script>" +
-		    "<link rel='stylesheet' href='/field/filesystem/codemirror-5.12/lib/codemirror.css'>" +
-		    "<link rel='stylesheet' href='/field/filesystem/codemirror-5.12/theme/default.css'>" +
-		    "<link rel='stylesheet' href='/field/filesystem/field-boxbrowser.css' type='text/css'>" +
-		    "<script src='/field/filesystem/codemirror-5.12/mode/javascript/javascript.js'></script>" +
-		    "<script src='/field/filesystem/jquery-2.1.0.min.js'></script>" +
-		    "<script src='/field/filesystem/field-boxbrowser.js'></script>" +
-		    "</head><body><div class='all'>";
+		"<script src='/field/filesystem/codemirror-5.12/lib/codemirror.js'></script>" +
+		"<link rel='stylesheet' href='/field/filesystem/codemirror-5.12/lib/codemirror.css'>" +
+		"<link rel='stylesheet' href='/field/filesystem/codemirror-5.12/theme/default.css'>" +
+		"<link rel='stylesheet' href='/field/filesystem/field-boxbrowser.css' type='text/css'>" +
+		"<script src='/field/filesystem/codemirror-5.12/mode/javascript/javascript.js'></script>" +
+		"<script src='/field/filesystem/jquery-2.1.0.min.js'></script>" +
+		"<script src='/field/filesystem/field-boxbrowser.js'></script>" +
+		"</head><body><div class='all'>";
 	static public final String postambleA = "</div></body>";
 
 	static public String preambleB;
@@ -85,8 +87,8 @@ public class WebApps extends Box implements IO.Loaded {
 		properties.put(Commands.commands, () -> {
 			Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
 			RemoteEditor ed = this.find(RemoteEditor.editor, both())
-					      .findFirst()
-					      .get();
+				.findFirst()
+				.get();
 
 			Box box = ed.getCurrentlyEditing();
 			Dict.Prop<String> cep = ed.getCurrentlyEditingProperty();
@@ -95,12 +97,12 @@ public class WebApps extends Box implements IO.Loaded {
 
 			String s = box.properties.get(WebApps.html);
 			if (!cep.equals(html) && (box.first(html, box.upwards())
-						     .isPresent() || s != null)) m.put(new Pair<>("Edit <i>HTML</i>",
-												  "Switch to editing html associated with this box, served at http://localhost:8082/" + lookup.inverse()
-																							      .get(box)),
-										       () -> {
-											       ed.setCurrentlyEditingProperty(html);
-										       });
+				.isPresent() || s != null)) m.put(new Pair<>("Edit <i>HTML</i>",
+					"Switch to editing html associated with this box, served at http://localhost:8082/" + lookup.inverse()
+						.get(box)),
+				() -> {
+					ed.setCurrentlyEditingProperty(html);
+				});
 
 			return m;
 		});
@@ -137,6 +139,7 @@ public class WebApps extends Box implements IO.Loaded {
 
 		s.addDocumentRoot(fieldagent.Main.app + "/modules/fieldbox/resources/");
 		s.addDocumentRoot(fieldagent.Main.app + "/modules/fielded/resources/");
+		s.addDocumentRoot(fieldagent.Main.app + "/modules/fieldcore/resources/");
 
 
 		s.addURIHandler((uri, method, headers, params, files) -> {
@@ -145,9 +148,9 @@ public class WebApps extends Box implements IO.Loaded {
 				String[] pieces = uri.split("/");
 
 				Optional<Box> first = root.breadthFirst(root.both())
-							  .filter(x -> x.properties.has(Box.name) && x.properties.get(Box.name)
-														 .equals(pieces[0]))
-							  .findFirst();
+					.filter(x -> x.properties.has(Box.name) && x.properties.get(Box.name)
+						.equals(pieces[0]))
+					.findFirst();
 
 				if (!first.isPresent()) return null;
 
@@ -165,9 +168,9 @@ public class WebApps extends Box implements IO.Loaded {
 				String[] pieces = uri.split("/");
 
 				Optional<Box> first = root.breadthFirst(root.both())
-							  .filter(x -> x.properties.has(Box.name) && x.properties.get(Box.name)
-														 .equals(pieces[0]))
-							  .findFirst();
+					.filter(x -> x.properties.has(Box.name) && x.properties.get(Box.name)
+						.equals(pieces[0]))
+					.findFirst();
 
 				if (!first.isPresent()) return null;
 
@@ -176,8 +179,8 @@ public class WebApps extends Box implements IO.Loaded {
 
 				String uid = "" + (WebApps.uid.incrementAndGet());
 				String pre = preambleB.replaceAll("///WSPORT///", "" + s.getWebsocketPort())
-						      .replaceAll("///ID///", uid)
-						      .replaceAll("///PORT///", "" + s.getPort());
+					.replaceAll("///ID///", uid)
+					.replaceAll("///PORT///", "" + s.getPort());
 
 				// now we wait for it to open a websocket with id 'uid' and grab that socket.
 
@@ -191,9 +194,17 @@ public class WebApps extends Box implements IO.Loaded {
 								socket.send(s);
 							};
 
-						Consumer<String> append = s -> {
-							executeJS.accept("$('.all').append('" + s.replace("'", "\"") + "');");
-						};
+							Consumer<String> append = s -> {
+
+								JSONStringer w = new JSONStringer();
+								w.object();
+								w.key("q");
+								w.value(s);
+								w.endObject();
+
+
+								executeJS.accept("$('.all').append("+w.toString()+".q)");
+							};
 
 							LinkedHashMap<String, Object> p2 = new LinkedHashMap<String, Object>();
 							p2.putAll(params);
@@ -205,10 +216,10 @@ public class WebApps extends Box implements IO.Loaded {
 
 							if (res != null) {
 								Optional<Out> o = root.find(Out.__out, root.both())
-										      .findAny();
+									.findAny();
 								if (o.isPresent()) {
 									append.accept(o.get()
-										       .convert(res));
+										.convert(res));
 								} else {
 									append.accept("" + res);
 								}
