@@ -3,6 +3,9 @@ package fieldbox.io;
 import com.orientechnologies.orient.client.remote.OServerAdmin;
 import com.orientechnologies.orient.server.OServer;
 import com.orientechnologies.orient.server.OServerMain;
+import fieldagent.Main;
+
+import java.io.File;
 
 /**
  * Created by marc on 3/10/16.
@@ -18,7 +21,9 @@ public class Server implements Runnable {
 
 		System.setProperty("ORIENTDB_ROOT_PASSWORD", "admin");
 
-		String root = "/Users/marc/Downloads/orientdb-community-2.1.12";
+		String root = System.getProperty("appDir")+"/modules/fieldcore/resources/orientdb";
+
+		System.out.println(" root is :"+root+" "+new File(root).exists());
 
 		OServer server = null;
 		try {
