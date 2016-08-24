@@ -12,6 +12,8 @@
     <script src='/field/filesystem/jquery-2.1.0.min.js'></script>
     <script src='/field/filesystem/field-boxbrowser.js'></script>
 
+    <script src="/field/filesystem/d3.js"></script>
+
     <script language="javascript">
         var _field = {};
 
