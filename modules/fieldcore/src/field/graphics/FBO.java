@@ -633,6 +633,50 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 		return c;
 	}
 
+	/**
+	 * this operates asynchronously if we are not currently inside the draw loop (that is, if there is no valid context for our thread). only one debug download can be pending at a time. You can
+	 * pass in null to this routine and you'll get a correctly sized ByteBuffer back that you can reuse for subsequent calls. Regardless of the original format of the FBO this always returns
+	 * something that's RGBA / float.
+	 */
+	public Future<FloatBuffer> asyncDebugDownloadRGBAFloat(FloatBuffer to, int attachment) {
+		FloatBuffer ato;
+
+		int sz = specification.width * specification.height * 4 * 4;
+		if (to == null || !to.isDirect() || to.limit() < sz) {
+			ato = ByteBuffer.allocateDirect(sz)
+				.order(ByteOrder.nativeOrder())
+				.asFloatBuffer();
+		} else ato = to;
+
+		// we hack this so that people don't hang the main thread (requiring a restart of Field) by blindly calling 'get' when isDone is false
+		CompletableFuture<FloatBuffer> c = new CompletableFuture<FloatBuffer>() {
+			@Override
+			public FloatBuffer get() throws InterruptedException, ExecutionException {
+				if (!isDone()) return ato;
+				return super.get();
+			}
+		};
+
+		Runnable r = () -> {
+			int[] a = {0};
+			a[0] = glGetInteger(GL_FRAMEBUFFER_BINDING);
+			glBindFramebuffer(GL_FRAMEBUFFER, getOpenGLFrameBufferNameInCurrentContext());
+			glReadBuffer(GL_COLOR_ATTACHMENT0+attachment);
+			glReadPixels(0, 0, specification.width, specification.height, GL11.GL_RGBA, GL_FLOAT, ato);
+			glBindFramebuffer(GL_FRAMEBUFFER, a[0]);
+			c.complete(ato);
+			glReadBuffer(GL_COLOR_ATTACHMENT0);
+		};
+
+		if (GraphicsContext.getContext() == null) {
+			postDrawQueue.set(r);
+		} else {
+			r.run();
+		}
+
+		return c;
+	}
+
 
 
 	public Scene getS()
