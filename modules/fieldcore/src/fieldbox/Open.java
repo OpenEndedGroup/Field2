@@ -2,6 +2,7 @@ package fieldbox;
 
 import field.app.RunLoop;
 import field.app.ThreadSync;
+import field.utility.Rect;
 import fieldbox.io.io2.IO2Interface;
 import fieldcef.plugins.*;
 import field.graphics.*;
@@ -427,6 +428,12 @@ public class Open {
 
 				Set<Box> toRemove = new LinkedHashSet<>();
 				for (Box qq : created) {
+
+					if (!qq.properties.has(Box.frame))
+						qq.properties.put(Box.frame, new Rect(0,0,50,50));
+					if (!qq.properties.has(Box.name))
+						qq.properties.put(Box.name, "--missing name--");
+
 					if (qq instanceof IO.Loaded) {
 						try {
 							((IO.Loaded) qq).loaded();
@@ -435,10 +442,15 @@ public class Open {
 							toRemove.add(qq);
 						}
 					}
+
+
 				}
 				for (Box b : toRemove) {
 					b.disconnectFromAll();
 				}
+
+
+				System.out.println("IO2 has loaded :"+created);
 
 
 			} catch (ClassNotFoundException e) {
