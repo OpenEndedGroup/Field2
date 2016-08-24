@@ -233,9 +233,36 @@ public class IO2 {
 	}
 
 	public Set<Box> loadTopology(String name, Box root, Function<String, Box> alias, Predicate<Vertex> load) throws ClassNotFoundException, IOException, InstantiationException, IllegalAccessException {
+
 		Collection<Vertex> c = allOf(graph.getVertices("topology", name));
-		if (c.size() == 0)
+		if (c.size() == 0) {
+
+			System.out.println(" could not find topology of name "+name+" searching for previous versions");
+			Date mostRecent = null;
+			Vertex use = null;
+			for (Vertex v : graph.query().has("topology").vertices()) {
+				Object q = v.getProperty("topology");
+				if (q.toString().startsWith(name + "@")) {
+
+					Date m = v.getProperty("lastModified");
+
+					System.out.println("version "+v+" from "+m);
+
+					if (mostRecent == null || mostRecent.compareTo(m) < 0) {
+						mostRecent = m;
+						use = v;
+					}
+				}
+			}
+
+			if (use!=null)
+			{
+				System.out.println(" using version "+use+" from "+mostRecent);
+				return loadTopology(use, root, alias, load);
+			}
+
 			return null;
+		}
 
 		Vertex topology = c.iterator().next();
 		return loadTopology(topology, root, alias, load);
@@ -335,7 +362,7 @@ public class IO2 {
 			try {
 				Object c = fromValue(null, vertex.getProperty("__class"), alias, load);
 				System.err.println(" trying to load :'" + c + "'");
-				boxClass = (Class<? extends Box>) Thread.currentThread().getContextClassLoader().loadClass(""+c);
+				boxClass = (Class<? extends Box>) Thread.currentThread().getContextClassLoader().loadClass("" + c);
 				System.err.println(" succeeded ");
 			} catch (ClassNotFoundException e) {
 				Log.log("error", () -> "can't find class to instantiate " + vertex.getProperty("__class") + " of type " + (vertex.getProperty("__class") == null ? null : vertex.getProperty("__class").getClass()) + " box, continuing on anyway");
