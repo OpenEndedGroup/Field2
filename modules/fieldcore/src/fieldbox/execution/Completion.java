@@ -25,6 +25,6 @@ public class Completion {
 
 	@Override
 	public String toString() {
-		return "comp<" + replacewith + " | " + info + ">";
+		return "comp<" + replacewith + " | " + info + "> @ "+rank;
 	}
 }
