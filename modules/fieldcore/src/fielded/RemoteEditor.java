@@ -290,6 +290,11 @@ public class RemoteEditor extends Box {
 
 			int v = current_ln.incrementAndGet();
 			RunLoop.main.workerPool.submit(() -> {
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 				if (current_ln.get() != v) return;
 
 //				if (true) return;
