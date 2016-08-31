@@ -37,7 +37,8 @@ public class TernSupport {
 	public void inject(ScriptEngine engine) {
 
 		this.engine = engine;
-		List<String> s = Arrays.asList("acorn.js", "acorn_loose.js", "walk.js", "defs.js", "signal.js", "infer.js", "tern.js", "comment.js", "condense.js");
+		List<String> s = Arrays.asList("acorn.js", "acorn_loose.js", "walk.js", "signal.js", "tern.js", "def.js", "comment.js", "infer.js" /*"condense.js"*/);
+//		List<String> s = Arrays.asList("all-tern.js");
 
 		Collection<File> f = s.stream()
 			.map(x -> new File(fieldagent.Main.app + "/modules/fieldcore/resources/tern/" + x))
@@ -54,6 +55,7 @@ public class TernSupport {
 			engine.eval("__fieldglobal.self = {}");
 			engine.eval("__fieldglobal.self.tern = {}");
 			engine.eval("__fieldglobal.self.acorn= {}");
+			engine.eval("__fieldglobal.self.infer= {}");
 			engine.eval("__fieldglobal.tern = {}");
 			engine.eval("self = __fieldglobal.self");
 			engine.eval("tern = __fieldglobal.tern");
@@ -77,7 +79,7 @@ public class TernSupport {
 			}
 
 			try {
-				engine.put("__ecma5json", readFile(fieldagent.Main.app + "/modules/fieldcore/resources/tern/ecma5.json"));
+				engine.put("__ecma5json", readFile(fieldagent.Main.app + "/modules/fieldcore/resources/tern/ecmascript.json"));
 				engine.eval("self.ternServer=new self.tern.Server({defs: [JSON.parse(__ecma5json)]})");
 				engine.eval("delete __ecma5json");
 			} catch (ScriptException e) {
