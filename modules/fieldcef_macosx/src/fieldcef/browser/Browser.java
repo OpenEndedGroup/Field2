@@ -617,15 +617,14 @@ public class Browser extends Box implements IO.Loaded {
 		int y1 = 0;
 
 		for (Rectangle r : dirty) {
-			for (int y = r.y; y < r.y + r.height; y++) {
-				buffer.limit(r.x * 4 + y * 4 * w + r.width * 4);
-				buffer.position(r.x * 4 + y * 4 * w);
-				sourceView.limit(r.x * 4 + y * 4 * w + r.width * 4);
-				sourceView.position(r.x * 4 + y * 4 * w);
-				sourceView.put(buffer);
+			buffer.limit(r.x * 4 + (r.y+r.height-1) * 4 * w + r.width * 4);
+			buffer.position(r.x * 4 + r.y * 4 * w);
+			sourceView.limit(r.x * 4 + (r.y+r.height-1) * 4 * w + r.width * 4);
+			sourceView.position(r.x * 4 + r.y * 4 * w);
+			sourceView.put(buffer);
 
-
-			}
+//			for (int y = r.y; y < r.y + r.height; y++) {
+//			}
 			x0 = Math.min(x0, r.x);
 			x1 = Math.max(x1, r.width + r.x);
 			y0 = Math.min(y0, r.y);
