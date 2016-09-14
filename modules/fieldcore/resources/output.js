@@ -227,6 +227,13 @@ _messageBus.subscribe("box.output", function (d, e) {
 		boxOutputs[box] += "\n" + d.message
 });
 
+_messageBus.subscribe("box.output.clearAll", function (d, e) {
+	box = d.box;
+	if (cm.currentbox === box) {
+		clearOutputs(0, cm.lineCount())
+	}
+});
+
 _messageBus.subscribe("box.output.directed", function (d, e) {
 	box = d.box;
 	append = d.append
@@ -240,7 +247,14 @@ _messageBus.subscribe("box.error", function (d, e) {
 	box = d.box;
 	append = d.append
 	if (cm.currentbox === box) {
-		appendRemoteOutputToLine(cm.lineCount() - 1, d.message, "Field-remoteOutput", "Field-remoteOutput-error", append)
+		if (d.line!=undefined)
+			appendRemoteOutputToLine(d.line - 1, d.message, "Field-remoteOutput", "Field-remoteOutput-error", append)
+		else
+			appendRemoteOutputToLine(cm.lineCount() - 1, d.message, "Field-remoteOutput", "Field-remoteOutput-error", append)
+
+		if (d.clearAll)
+			clearOutputs(0, cm.lineCount())
+
 	} else {
 	}
 	if (boxOutputs[box] === undefined)

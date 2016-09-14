@@ -28,10 +28,7 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.function.*;
 import java.util.stream.Collectors;
 
 import static field.graphics.StandardFLineDrawing.filled;
@@ -54,6 +51,7 @@ public class RemoteEditor extends Box {
 		.toCannon();
 	static public final Dict.Prop<Function<Box, Consumer<String>>> outputFactory = new Dict.Prop<>("outputFactory");
 	static public final Dict.Prop<Function<Box, Consumer<Pair<Integer, String>>>> outputErrorFactory = new Dict.Prop<>("outputErrorFactory");
+	static public final Dict.Prop<Function<Box, BiConsumer<String, JSONObject>>> outputMessageFactory = new Dict.Prop<>("outputMessageFactory");
 
 	static public final Dict.Prop<String> defaultEditorProperty = new Dict.Prop<String>("defaultEditorProperty").type()
 		.doc("The property that the editor will switch to. Will default to 'code' if not set.");
@@ -214,6 +212,14 @@ public class RemoteEditor extends Box {
 			.endObject()
 			.toString()));
 
+		this.properties.put(outputMessageFactory, x -> (address, payload) -> {
+			if (x != null) payload.put("box", x.properties.get(IO.id));
+
+
+			rater.add(new Pair<>(address, payload.toString()));
+		});
+
+
 		this.properties.put(Execution.directedOutput, z -> {
 			// TODO: multiple properties?
 			if (z.first == currentSelection) {
@@ -325,7 +331,7 @@ public class RemoteEditor extends Box {
 							also = "<div style='font-size:80%'>" + also + "</div>";
 						}
 
-						completionHelp.set("<div class='comp-space'>" + cc.get(0).replacewith + "</div> <span class=doc>" + cc.get(0).info.replace("&mdash;", "<br>") +"</span>"+also);
+						completionHelp.set("<div class='comp-space'>" + cc.get(0).replacewith + "</div> <span class=doc>" + cc.get(0).info.replace("&mdash;", "<br>") + "</span>" + also);
 
 
 					}
@@ -663,7 +669,6 @@ public class RemoteEditor extends Box {
 					stringer.endObject();
 				}
 				stringer.endArray();
-
 
 
 				return stringer.toString();

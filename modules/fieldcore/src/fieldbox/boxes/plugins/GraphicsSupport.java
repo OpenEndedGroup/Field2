@@ -11,6 +11,7 @@ import fieldbox.execution.InverseDebugMapping;
 import fieldbox.io.IO;
 import fielded.Commands;
 import fielded.RemoteEditor;
+import org.json.JSONObject;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -158,7 +159,9 @@ public class GraphicsSupport extends Box {
 		return new Shader.iErrorHandler() {
 			@Override
 			public void beginError() {
-
+				b.first(RemoteEditor.outputMessageFactory).ifPresent(x -> {
+					x.apply(b).accept("box.output.clearAll", new JSONObject());
+				});
 			}
 
 			@Override
