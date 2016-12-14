@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="json-20160212">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/modules/fieldcore/resources/json-20160212.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

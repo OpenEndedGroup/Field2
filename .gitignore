@@ -1,26 +1,6 @@
-*.class
-hs_err_pid*
-*.pyc
+
+*.sh~
+*.js~
 *~
-.\#*
-\#*\#
-
-*.o
-*.ko
-*.obj
-*.elf
-
-# Libraries
-*.lib
-*.a
-
-
-# Executables
-*.exe
-*.out
-*.i*86
-*.x86_64
-*.hex
-
-workspace.xml
-out/
+*.class
+.DS_Store

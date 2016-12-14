@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="lwjgl_util">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/modules/fieldcore/resources/lwjgl_util.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="zmq">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/modules/fieldipython/resources/zmq.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

@@ -1,0 +1,19 @@
+#!/bin/bash
+pushd $(dirname `which "$0"`) >/dev/null; fieldhome="$PWD"; popd >/dev/null
+
+out=$fieldhome/build/classes
+java=/Library/Java/JavaVirtualMachines/jdk-9.jdk/Contents/Home/bin/java
+
+$java \
+    -Xdebug \
+    -XaddExports:jdk.management/com.sun.management.internal=ALL-UNNAMED \
+    -Xrunjdwp:server=y,transport=dt_socket,address=5005,suspend=n -Dorg.lwjgl.util.Debug=true \
+    -Xdock:icon=$fieldhome/f.png \
+    -DappDir=$fieldhome -Xdock:name=Field \
+    -Xmx8g \
+    -Xms8g \
+    -javaagent:$fieldhome/build/field_agent.jar \
+    -cp $out:$fieldhome/build/field_linker.jar:/Library/Java/JavaVirtualMachines/jdk1.9.0_40.jdk/Contents/Home/lib/tools.jar:$fieldhome/lib/:$fieldhome/lib/jars/*:$fieldhome/lib/jars/orientdb/*:$fieldhome/build/field_agent.jar \
+    -Djava.library.path=$fieldhome/osx/lib/:$fieldhome/osx/lib/helperapp.app/Contents/Java/:/usr/local/lib/ \
+    fieldagent.Trampoline ${*}
+

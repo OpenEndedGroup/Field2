@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="guava-16.0.1 (2)">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/modules/fieldagent/resources/guava-16.0.1.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

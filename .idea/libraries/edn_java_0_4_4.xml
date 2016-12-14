@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="edn-java-0.4.4">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/modules/fieldcore/resources/edn-java-0.4.4.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

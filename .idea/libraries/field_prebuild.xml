@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="field_prebuild">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/build/field_agent.jar!/" />
+      <root url="jar://$PROJECT_DIR$/build/field_linker.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
