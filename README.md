@@ -6,34 +6,38 @@ Welcome to the Field2 development repository. _This codebase is experimental and
 
  * ```git``` (distributed version control) installed via ```sudo apt-get install git```
 
- * ```ant``` (a java build system) installed via ```sudo apt-get install ant```
+ * ```java``` itself. Get the [https://jdk9.java.net/download/](latest JDK 9 EA). 
 
  * Not strictly a prerequisite - ```Intellij IDEA``` (a java development environment) from http://www.jetbrains.com/idea/.
 
- * ```java``` itself. Either get a JDK 8 or 9 EA. 
+To build, first take a moment to make sure that there's a working `javac` command on your system, and it points to a JDK 9 EA:
 
- * ```jzmq``` from https://github.com/zeromq/jzmq (this is for IPython support)
+```bash
+m0:~ marc$ javac -version
+javac 9-ea
+```
 
-To build, either invest the time importing the code-base into Idea (very recommended), or edit ```fieldwork2.properties``` in the repository and and build using ```build.sh``` (this calls ```ant -f fieldwork2.xml```)
+Then, on macOS and Linux, it should simply be a matter of:
 
-Statically-linked built versions of native dependencies are included in the repository (currently we have a version of GLFW 3.1, a fast jpeg loading library and LWJGL).
+```bash
+m0:~ marc$ ./build.sh
+```
 
 Then, assuming an error-free build:
 
 ```bash
-cd ((therepository))
-./f fieldbox.FieldBox -file something.field2 -threaded 1 
+./f_mac fieldbox.FieldBox -file helloField.field2
 ```
 
-on OSX subsitute ```./f_mac``` for ```./f```. Note you may need to edit your ```./f``` script to point to the location of your JDK. Additionally you'll want to add `-retina 1` to your command line on Retina displays (issue #39) .
+on Linux subsitute ```./f_linux``` for ```./f_mac```. And be prepared to edit these scripts to point directly at your JDK
 
 ```fieldbox.FieldBox``` is the Java Class that's the main entry-point into Field2. 
  
-In case of confusion, search the issues here and email marc (marc@openendedgroup.com); in case of trouble or doubt, file an issue. Finally, I'll take everybody through this (on Linux and OS X at least) during a hands-on tutorial.  
+In case of confusion, search the issues here and email marc (marc@openendedgroup.com); in case of trouble or doubt, file an issue. 
 
 ## Plugins (e.g Editor, Processing, Clojure)
 
-We've just checked in a Plugin API. Field will write an example to ```~/.field/plugins.edn``` on first run. Edit this to extend the classpath, set options and tell Field to add plugins. So, for example, to run the Processing Plugin, I have a file that reads something like this:
+We now have a skethc of a Plugin API. Field will write an example to ```~/.field/plugins.edn``` on first run. Edit this to extend the classpath, set options and tell Field to add plugins. So, for example, to run the Processing Plugin, I have a file that reads something like this:
 
 ```clojure
 {:classpath [ "/Users/marc/Downloads/Processing.app/Contents/Java/core/library/core.jar"] } ; adds the core Processing jar to Field and the place where you are building fieldprocessing
