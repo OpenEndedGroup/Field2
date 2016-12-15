@@ -6,7 +6,7 @@ Welcome to the Field2 development repository. _This codebase is experimental and
 
  * ```git``` (distributed version control) installed via ```sudo apt-get install git```
 
- * ```java``` itself. Get the [https://jdk9.java.net/download/](latest JDK 9 EA). 
+ * ```java``` itself. Field2 is tracking the almost, but not quite, bleeding edge of JDK 9 development. Ideally, you'll get a b147 JDK. [https://jdk9.java.net/download/](latest JDK 9 EA). Note b148 contains a huge breaking change that breaks everything. Just like many other projects, we're working on that.
 
  * Not strictly a prerequisite - ```Intellij IDEA``` (a java development environment) from http://www.jetbrains.com/idea/.
 
