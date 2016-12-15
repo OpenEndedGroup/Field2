@@ -1,6 +1,14 @@
 root=`dirname $0`
 cd $root
 
+echo -- using javac from : --
+which javac
+echo -- which is version : --
+javac -version
+echo --
+
+
+
 echo -- removing build directory --
 
 rm -r build
