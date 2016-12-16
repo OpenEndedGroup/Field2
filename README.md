@@ -6,7 +6,7 @@ Welcome to the Field2 development repository. _This codebase is experimental and
 
  * ```git``` (distributed version control) installed via ```sudo apt-get install git```
 
- * ```java``` itself. Field2 is tracking the almost, but not quite, bleeding edge of JDK 9 development. Ideally, you'll get a b147 JDK. Note: the [https://jdk9.java.net/download/](latest JDK 9 EA), b148 and above, contains a huge breaking change that breaks everything. Just like many other projects, we're working on that. Direct links to b147 for [http://download.java.net/java/jdk9/archive/147/binaries/jdk-9-ea+147_windows-x64_bin.exe](win_x64), [http://download.java.net/java/jdk9/archive/147/binaries/jdk-9-ea+147_linux-x64_bin.tar.gz](linux_x64) and [http://download.java.net/java/jdk9/archive/147/binaries/jdk-9-ea+147_osx-x64_bin.dmg](macOS).
+ * ```java``` itself. Field2 is tracking the almost, but not quite, bleeding edge of JDK 9 development. Ideally, you'll get a b147 JDK. Note: the [latest JDK 9 EA](https://jdk9.java.net/download/), b148 and above, contains a huge breaking change that breaks everything. Just like many other projects, we're working on that. Direct links to b147 for [win_x64](http://download.java.net/java/jdk9/archive/147/binaries/jdk-9-ea+147_windows-x64_bin.exe), [linux_x64](http://download.java.net/java/jdk9/archive/147/binaries/jdk-9-ea+147_linux-x64_bin.tar.gz) and [macOS](http://download.java.net/java/jdk9/archive/147/binaries/jdk-9-ea+147_osx-x64_bin.dmg).
 
  * Not strictly a prerequisite - ```Intellij IDEA``` (a java development environment) from http://www.jetbrains.com/idea/.
 
