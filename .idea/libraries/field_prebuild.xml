@@ -5,6 +5,8 @@
       <root url="jar://$PROJECT_DIR$/build/field_linker.jar!/" />
     </CLASSES>
     <JAVADOC />
-    <SOURCES />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/agent/src" />
+    </SOURCES>
   </library>
 </component>
