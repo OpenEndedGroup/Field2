@@ -1,7 +1,7 @@
 package fieldbox.boxes.plugins;
 
-import field.graphics.FLine;
 import field.app.RunLoop;
+import field.graphics.FLine;
 import field.graphics.Window;
 import field.linalg.Vec2;
 import field.linalg.Vec4;
@@ -9,7 +9,10 @@ import field.utility.Dict;
 import field.utility.Pair;
 import field.utility.Rect;
 import field.utility.Triple;
-import fieldbox.boxes.*;
+import fieldbox.boxes.Box;
+import fieldbox.boxes.Drawing;
+import fieldbox.boxes.MarkingMenus;
+import fieldbox.boxes.Mouse;
 import fieldbox.execution.Execution;
 import fieldlinker.Linker;
 
@@ -21,9 +24,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static field.graphics.StandardFLineDrawing.*;
-import static fieldbox.boxes.FLineDrawing.expires;
-import static fieldbox.boxes.FLineDrawing.frameDrawing;
-import static fieldbox.boxes.FLineDrawing.layer;
+import static fieldbox.boxes.FLineDrawing.*;
 
 /**
  * Created by marc on 4/16/14.

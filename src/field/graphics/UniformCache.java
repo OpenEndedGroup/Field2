@@ -2,7 +2,9 @@ package field.graphics;
 
 import field.utility.Util;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 
 /**
  * GraphicsContext global cache of uniform values. The key complexity here is that OpenGL want uniforms to be set on an active shader, whereas we want uniforms to be set anywhere -- across multiple

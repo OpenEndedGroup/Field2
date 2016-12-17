@@ -2,10 +2,11 @@ package field;
 
 import field.graphics.Window;
 import field.utility.Log;
-import static org.lwjgl.glfw.GLFW.*;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+
+import static org.lwjgl.glfw.GLFW.*;
 
 /**
  * GLFW sometimes has issues with modifier keys sticking down.

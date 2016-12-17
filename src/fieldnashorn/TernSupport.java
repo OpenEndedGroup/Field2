@@ -1,13 +1,14 @@
 package fieldnashorn;
 
-import jdk.dynalink.beans.StaticClass;
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import field.utility.Log;
+import field.utility.MarkdownToHTML;
 import field.utility.Pair;
 import fieldbox.boxes.Box;
 import fieldbox.execution.Completion;
 import fieldbox.execution.HandlesQuoteCompletion;
 import fieldbox.execution.JavaSupport;
+import jdk.dynalink.beans.StaticClass;
+import jdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import javax.script.Bindings;
 import javax.script.ScriptContext;
@@ -509,7 +510,8 @@ public class TernSupport {
 
 				List<Pair<String, String>> possibleJavaClassesFor = javaSupport.getPossibleJavaClassesFor(left);
 
-				Log.log("completion.debug", () -> " possible javaclasses :" + possibleJavaClassesFor);
+				Log.log("completion.debug", () -> " possible javaclasses :");
+				possibleJavaClassesFor.forEach(System.out::println);
 
 				for (Pair<String, String> p : possibleJavaClassesFor) {
 					int tail = p.first.lastIndexOf(".");
@@ -520,7 +522,7 @@ public class TernSupport {
 				}
 
 			} catch (Throwable t) {
-				Log.log("completion.debug", () -> " suppressed exception in autoevaluating completion <" + t + ">");
+				Log.log("completion.debug", () -> " suppressed exception in auto-evaluating completion <" + t + ">");
 			}
 		} catch (ScriptException e) {
 			e.printStackTrace();

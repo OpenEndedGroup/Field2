@@ -2,29 +2,20 @@ package field.utility;
 
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;
-import fieldbox.boxes.Box;
-import fieldbox.execution.Execution;
-import fielded.RemoteEditor;
-import fieldnashorn.Nashorn;
-import fieldnashorn.NashornExecution;
-import jdk.dynalink.beans.StaticClass;
-import jdk.nashorn.api.scripting.NashornScriptEngine;
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
-import jdk.nashorn.api.scripting.ScriptUtils;
-//import jdk.nashorn.internal.runtime.ScriptFunction;
-//import jdk.nashorn.internal.runtime.ScriptObject;
-//import jdk.nashorn.internal.runtime.linker.JavaAdapterFactory;
 import fieldbox.execution.Errors;
 import fieldbox.execution.InverseDebugMapping;
+import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import jdk.nashorn.api.scripting.ScriptUtils;
 
-import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
-import java.lang.invoke.MethodHandles;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+
+//import jdk.nashorn.internal.runtime.ScriptFunction;
+//import jdk.nashorn.internal.runtime.ScriptObject;
+//import jdk.nashorn.internal.runtime.linker.JavaAdapterFactory;
 
 public class Conversions {
 

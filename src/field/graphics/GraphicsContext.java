@@ -3,7 +3,6 @@ package field.graphics;
 import field.utility.Dict;
 import field.utility.Log;
 import field.utility.Options;
-import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 
 import java.lang.reflect.Method;

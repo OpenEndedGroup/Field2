@@ -1,6 +1,5 @@
 package fielded.windowmanager;
 
-import static org.lwjgl.glfw.GLFW.*;
 import field.app.RunLoop;
 import field.graphics.Window;
 import field.utility.Dict;
@@ -14,6 +13,9 @@ import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
+
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_SHIFT;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT;
 
 /**
  * Tracks the editor opened in the Chrome process.

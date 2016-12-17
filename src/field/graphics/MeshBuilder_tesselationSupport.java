@@ -1,15 +1,15 @@
 package field.graphics;
 
-import java.nio.FloatBuffer;
-import java.util.*;
-
+import field.linalg.Vec3;
 import org.lwjgl.util.glu.GLU;
 import org.lwjgl.util.glu.GLUtessellatorCallbackAdapter;
 import org.lwjgl.util.glu.tessellation.GLUtessellatorImpl;
 
-import field.linalg.Vec2;
-import field.linalg.Vec3;
-import field.linalg.Vec4;
+import java.nio.FloatBuffer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Package class that talks to the OpenGL tesslator

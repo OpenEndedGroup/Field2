@@ -1,6 +1,5 @@
 package fieldbox;
 
-import field.graphics.GraphicsContext;
 import field.utility.Log;
 
 /**

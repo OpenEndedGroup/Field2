@@ -1,11 +1,9 @@
 package fieldbox.boxes;
 
 import field.utility.*;
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
-import jdk.nashorn.api.scripting.ScriptUtils;
-//import jdk.nashorn.internal.runtime.ScriptObject;
 import fieldbox.execution.Execution;
 import fielded.DisabledRangeHelper;
+import jdk.nashorn.api.scripting.ScriptUtils;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -14,6 +12,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+
+//import jdk.nashorn.internal.runtime.ScriptObject;
 
 /**
  * A central spot for definitions for notifications concerning various things happening to boxs

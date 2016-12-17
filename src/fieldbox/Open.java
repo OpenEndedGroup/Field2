@@ -2,8 +2,6 @@ package fieldbox;
 
 import field.app.RunLoop;
 import field.app.ThreadSync;
-import field.utility.Rect;
-import fieldcef.plugins.*;
 import field.graphics.*;
 import field.utility.AutoPersist;
 import field.utility.Dict;
@@ -16,30 +14,28 @@ import fieldbox.execution.Execution;
 import fieldbox.io.IO;
 import fieldbox.ui.Compositor;
 import fieldbox.ui.FieldBoxWindow;
-
-//import fieldcef.plugins.GlassBrowser;
-//import fieldcef.plugins.OutputBox;
-//import fieldcef.plugins.TextEditor;
-//import fieldcef.plugins.TtapsextEditor_boxBrowser;
-
+import fieldcef.plugins.*;
 import fielded.ServerSupport;
 import fielded.boxbrowser.BoxBrowser;
 import fielded.boxbrowser.WebApps;
 import fielded.plugins.MakeNewTextEditor;
 import fielded.plugins.Out;
-import fieldlinker.Linker;
 import fieldnashorn.Nashorn;
-//import jdk.dynalink.linker.GuardingDynamicLinkerExporter;
-//import jdk.nashorn.api.linker.NashornLinkerExporter;
 import jdk.dynalink.linker.GuardingDynamicLinkerExporter;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.*;
 
 import static org.lwjgl.opengl.GL11.*;
+
+//import fieldcef.plugins.GlassBrowser;
+//import fieldcef.plugins.OutputBox;
+//import fieldcef.plugins.TextEditor;
+//import fieldcef.plugins.TtapsextEditor_boxBrowser;
+//import jdk.dynalink.linker.GuardingDynamicLinkerExporter;
+//import jdk.nashorn.api.linker.NashornLinkerExporter;
 
 /**
  * This Opens a document, loading a Window and a standard assortment of plugins into the top of a Box graph and the document into the "bottom" of the Box graph.
@@ -360,7 +356,7 @@ public class Open {
 
 		new ServerSupport(boxes.root());//.openEditor();
 
-		// add a red line time slider to the sheet (this isn't saved with the document, so we'll add it each time
+		// add a red line time slider to the sheet (this isn't saved with the document, so we'll add it each time)
 		TimeSlider ts = new TimeSlider();
 		boxes.root()
 		     .connect(ts);

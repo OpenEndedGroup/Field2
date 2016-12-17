@@ -1,6 +1,5 @@
 package field.graphics.csg;
 
-import field.graphics.csg.CSG;
 import field.linalg.Vec3;
 
 import java.util.ArrayList;

@@ -13,10 +13,8 @@ import fielded.Commands;
 import java.awt.*;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * A Box that draws itself in a particular way, and drags it's children around with them

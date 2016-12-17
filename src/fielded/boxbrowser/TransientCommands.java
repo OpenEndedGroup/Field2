@@ -4,12 +4,8 @@ import field.utility.IdempotencyMap;
 import fieldcef.browser.Browser;
 import org.json.JSONObject;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
-
-import static fielded.boxbrowser.WebApps.uid;
 
 /**
  * Short-lived registerable commands that can be executed straightforwardly by links embedded in the text editor

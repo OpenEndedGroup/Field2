@@ -1,19 +1,14 @@
 package fieldbox.boxes.plugins;
 
-import field.app.RunLoop;
-import field.graphics.FLine;
-import field.graphics.StandardFLineDrawing;
 import field.linalg.Vec2;
-import field.linalg.Vec4;
 import field.utility.Dict;
 import field.utility.Rect;
-import fieldbox.boxes.*;
+import fieldbox.boxes.Box;
 
-import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.function.*;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 
 /**
  * Plugin for rendering the stuff _above_ root visible and editable. Perhaps this replaces "disconnected" ?

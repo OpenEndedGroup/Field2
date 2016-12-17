@@ -8,7 +8,10 @@ import fieldbox.boxes.Box;
 import fieldcef.plugins.NotificationBox;
 import fielded.Commands;
 
-import java.util.*;
+import java.util.ConcurrentModificationException;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**

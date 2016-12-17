@@ -4,7 +4,10 @@ import field.graphics.FLine;
 import field.graphics.FLinesAndJavaShapes;
 import field.graphics.Window;
 import field.linalg.Vec2;
-import field.utility.*;
+import field.utility.Cached;
+import field.utility.Dict;
+import field.utility.LinkedHashMapAndArrayList;
+import field.utility.Rect;
 
 import java.awt.*;
 import java.awt.geom.Area;

@@ -3,7 +3,6 @@ package fieldbox.io;
 import field.utility.Dict;
 import field.utility.Log;
 import fieldbox.boxes.Box;
-import fieldbox.io.IO;
 
 import java.io.*;
 import java.util.*;

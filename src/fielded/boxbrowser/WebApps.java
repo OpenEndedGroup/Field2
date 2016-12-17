@@ -16,7 +16,6 @@ import fielded.plugins.Out;
 import fielded.webserver.NanoHTTPD;
 import fielded.webserver.Server;
 import org.json.JSONStringer;
-import org.json.JSONWriter;
 
 import java.io.*;
 import java.nio.charset.Charset;

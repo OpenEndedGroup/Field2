@@ -1,8 +1,5 @@
 package fieldbox.boxes;
 
-import static fieldbox.boxes.plugins.Planes.plane;
-import static org.lwjgl.glfw.GLFW.*;
-
 import field.graphics.FLine;
 import field.graphics.StandardFLineDrawing;
 import field.graphics.Window;
@@ -19,6 +16,10 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static fieldbox.boxes.plugins.Planes.plane;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_SHIFT;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT;
 
 /**
  * Plugin: Adds the ability to drag boxes around with the mouse and change their sizes with their edges. Provides textual feedback when this happens.

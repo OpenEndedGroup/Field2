@@ -2,7 +2,6 @@ package fieldbox.boxes.plugins;
 
 import field.utility.Pair;
 import fieldbox.boxes.Box;
-import fieldbox.boxes.Boxes;
 import fieldbox.boxes.Mouse;
 import fielded.Commands;
 import fielded.RemoteEditor;

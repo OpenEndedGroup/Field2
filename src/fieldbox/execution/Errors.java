@@ -1,13 +1,11 @@
 package fieldbox.execution;
 
 import com.google.common.collect.MapMaker;
-import field.utility.Dict;
 import field.utility.Log;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 /**
  * A Fundamental problem in sending code off for execution (remotely or in draw loops) is what you do when it throws an exception. This is particularly bad in the case of a draw loop --- you might

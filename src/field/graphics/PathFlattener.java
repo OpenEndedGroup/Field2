@@ -2,7 +2,10 @@ package field.graphics;
 
 import field.linalg.Vec3;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 
 public class PathFlattener {

@@ -17,8 +17,9 @@ import java.awt.geom.Rectangle2D;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
+
 import static field.graphics.StandardFLineDrawing.*;
-import static fieldbox.boxes.FLineDrawing.*;
+import static fieldbox.boxes.FLineDrawing.frameDrawing;
 
 /**
  * A Box with a custom drawer for holding onto and drawning a connection between two other boxes.

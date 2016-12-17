@@ -4,21 +4,21 @@ import field.graphics.FLine;
 import field.graphics.StandardFLineDrawing;
 import field.linalg.Vec2;
 import field.utility.Dict;
-import field.utility.LinkedHashMapAndArrayList;
 import field.utility.Pair;
 import field.utility.Util;
-import fieldbox.Open;
-import fieldbox.boxes.*;
+import fieldbox.boxes.Box;
+import fieldbox.boxes.FLineDrawing;
+import fieldbox.boxes.Mouse;
 import fieldbox.io.IO;
-import fieldbox.ui.FieldBoxWindow;
 import fielded.Commands;
 import fielded.RemoteEditor;
 import fielded.boxbrowser.BoxBrowser;
-import fielded.boxbrowser.ObjectToHTML;
-import fielded.plugins.Out;
 import fieldlinker.Linker;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 

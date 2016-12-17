@@ -2,7 +2,6 @@ package field.graphics;
 
 import field.utility.Log;
 import field.utility.Util;
-import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 

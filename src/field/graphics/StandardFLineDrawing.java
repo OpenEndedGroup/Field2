@@ -3,7 +3,6 @@ package field.graphics;
 import field.linalg.Vec2;
 import field.linalg.Vec4;
 import field.utility.Dict;
-import field.utility.Log;
 import fieldbox.boxes.TextDrawing;
 
 import java.awt.*;

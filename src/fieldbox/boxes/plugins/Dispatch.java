@@ -1,7 +1,5 @@
 package fieldbox.boxes.plugins;
 
-import static org.lwjgl.glfw.GLFW.*;
-
 import field.graphics.FLine;
 import field.graphics.FLinesAndJavaShapes;
 import field.graphics.StandardFLineDrawing;
@@ -23,6 +21,7 @@ import java.util.Optional;
 
 import static field.graphics.StandardFLineDrawing.*;
 import static fieldbox.boxes.FLineDrawing.frameDrawing;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_G;
 
 /**
  * Adds: Hold down G to change the box-graph network. Also draws the current graph topology.

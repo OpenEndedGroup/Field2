@@ -7,7 +7,6 @@ import fieldbox.boxes.Mouse;
 import fieldcef.plugins.GlassBrowser;
 
 import java.util.Collections;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 /**

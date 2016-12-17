@@ -3,10 +3,12 @@ package field.graphics.gdxtext;
 import field.graphics.MeshBuilder;
 import field.graphics.Texture;
 import field.linalg.Vec2;
-import field.linalg.Vec4;
 import field.utility.Pair;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by marc on 3/22/14.

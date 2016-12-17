@@ -10,7 +10,6 @@ import fielded.ServerSupport;
 import fielded.webserver.NanoHTTPD;
 import fielded.webserver.Server;
 
-
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;

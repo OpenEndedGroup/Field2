@@ -4,7 +4,6 @@ import field.graphics.FLine;
 import field.graphics.FLinesAndJavaShapes;
 import field.graphics.StandardFLineDrawing;
 import field.graphics.Window;
-import field.graphics.csg.Plane;
 import field.linalg.Vec2;
 import field.linalg.Vec4;
 import field.utility.Dict;
@@ -19,7 +18,6 @@ import java.awt.geom.Area;
 import java.util.*;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static field.graphics.StandardFLineDrawing.*;
 import static field.utility.Log.log;

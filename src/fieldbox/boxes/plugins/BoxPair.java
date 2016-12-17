@@ -13,12 +13,14 @@ import fieldbox.boxes.Box;
 import fieldbox.boxes.Boxes;
 import fieldbox.boxes.Callbacks;
 import fieldbox.boxes.FLineDrawing;
-import fieldbox.boxes.plugins.FrameChangedHash;
 import fieldbox.io.IO;
 import fieldbox.ui.FieldBoxWindow;
 import fielded.Commands;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**

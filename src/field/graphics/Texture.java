@@ -26,7 +26,6 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13.glActiveTexture;
-import static org.lwjgl.opengl.GL13.glCompressedTexSubImage2D;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL21.GL_PIXEL_UNPACK_BUFFER;
 import static org.lwjgl.opengl.GL30.*;

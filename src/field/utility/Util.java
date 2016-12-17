@@ -1,11 +1,12 @@
 package field.utility;
 
 import field.graphics.Bracketable;
-//import jdk.nashorn.internal.runtime.Undefined;
 
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
+
+//import jdk.nashorn.internal.runtime.Undefined;
 
 /**
  * Every project needs a Util class with statics in it. Here it is.

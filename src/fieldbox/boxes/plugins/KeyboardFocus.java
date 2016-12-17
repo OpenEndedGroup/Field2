@@ -2,7 +2,6 @@ package fieldbox.boxes.plugins;
 
 import field.graphics.FLine;
 import field.graphics.StandardFLineDrawing;
-import field.linalg.Vec4;
 import field.utility.Dict;
 import field.utility.Rect;
 import fieldbox.boxes.*;
@@ -12,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 /**
  * Draws a highlght for where keyboard focus is going to go

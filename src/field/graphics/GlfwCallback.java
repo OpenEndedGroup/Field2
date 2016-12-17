@@ -1,8 +1,5 @@
 package field.graphics;
 
-import field.app.RunLoop;
-import field.utility.Log;
-
 /**
  * Created by marc on 2/21/16.
  */

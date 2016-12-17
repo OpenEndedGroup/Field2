@@ -1,8 +1,7 @@
 package field.graphics.util;
 
-import static org.lwjgl.glfw.GLFW.*;
-import field.graphics.Camera;
 import field.app.RunLoop;
+import field.graphics.Camera;
 import field.graphics.Window;
 
 import java.util.LinkedHashMap;
@@ -11,6 +10,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static field.graphics.Window.KeyboardState;
+import static org.lwjgl.glfw.GLFW.*;
 
 /**
  * A Keyboard controlled camera. Standard First-Person camera controls with the arrow keys + orbit while holding down shift. Smooths out attack and

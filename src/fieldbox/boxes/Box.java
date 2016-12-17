@@ -1,7 +1,6 @@
 package fieldbox.boxes;
 
 import field.app.RunLoop;
-//import jdk.nashorn.internal.runtime.ConsString;
 import field.utility.*;
 import fieldbox.DefaultMenus;
 import fieldbox.boxes.plugins.BoxDefaultCode;
@@ -9,7 +8,6 @@ import fieldbox.boxes.plugins.Missing;
 import fieldbox.execution.*;
 import fieldbox.io.IO;
 import fieldlinker.Linker;
-//import jdk.nashorn.internal.runtime.ConsString;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 
 import java.lang.reflect.Field;
@@ -20,6 +18,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+//import jdk.nashorn.internal.runtime.ConsString;
+//import jdk.nashorn.internal.runtime.ConsString;
 
 /**
  * The fundemental unit in Field --- the box.

@@ -48,11 +48,11 @@ public class NotificationBox extends Box implements IO.Loaded {
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__updateOpacity__", () -> {
 
 			float next = 1f;
-			theBox.properties.put(StandardFLineDrawing.opacity, next = 0.999f * theBox.properties.getOr(StandardFLineDrawing.opacity, () -> 1f));
+			theBox.properties.put(StandardFLineDrawing.opacity, next = 0.999f * theBox.properties.getOr(StandardFLineDrawing.opacity, () -> 0f));
 			if (next < 0.9)
-				theBox.properties.put(StandardFLineDrawing.opacity, next = 0.995f * theBox.properties.getOr(StandardFLineDrawing.opacity, () -> 1f));
+				theBox.properties.put(StandardFLineDrawing.opacity, next = 0.995f * theBox.properties.getOr(StandardFLineDrawing.opacity, () -> 0f));
 			if (next < 0.5)
-				theBox.properties.put(StandardFLineDrawing.opacity, next = 0.99f * theBox.properties.getOr(StandardFLineDrawing.opacity, () -> 1f));
+				theBox.properties.put(StandardFLineDrawing.opacity, next = 0.99f * theBox.properties.getOr(StandardFLineDrawing.opacity, () -> 0f));
 
 			if (next < 0.11f) {
 				theBox.properties.put(FLineDrawing.hidden, true);
@@ -74,13 +74,14 @@ public class NotificationBox extends Box implements IO.Loaded {
 
 	static public final void notification(Box from, String html) {
 		if (!html.endsWith("<br>")) html += "<br>";
-		html = "<div class='notification'>"+html+"</div>";
+		html = "<div class='notification'>" + html + "</div>";
 		from.first(note, from.both()).orElse(x -> System.err.println(x)).accept(html);
 	}
-	public static void clearNotifications(Box from) {
-		from.first(clearNote, from.both()).orElse(() -> {}).run();
-	}
 
+	public static void clearNotifications(Box from) {
+		from.first(clearNote, from.both()).orElse(() -> {
+		}).run();
+	}
 
 
 	protected Browser make(int w, int h) {
@@ -111,8 +112,6 @@ public class NotificationBox extends Box implements IO.Loaded {
 		boot(browser);
 		browser.pauseForBoot();
 
-//		browser.printHTML("<div class='notification'>huh?</div>");
-
 		return browser;
 	}
 
@@ -121,6 +120,7 @@ public class NotificationBox extends Box implements IO.Loaded {
 		theBox.properties.put(StandardFLineDrawing.opacity, 1f);
 		theBox.printHTML(note);
 	}
+
 	public void clear() {
 		theBox.clear();
 	}
@@ -202,11 +202,11 @@ public class NotificationBox extends Box implements IO.Loaded {
 
 	private String findAndLoad(String f, boolean append) {
 
-		String[] roots = {Main.app + "/modules/fieldcore/resources/", Main.app+"/lib/web/", Main.app + "/osx/lib/web/"};
+		String[] roots = {Main.app + "/modules/fieldcore/resources/", Main.app + "/lib/web/", Main.app + "/osx/lib/web/"};
 		for (String s : roots) {
 			if (new File(s + "/" + f).exists()) return readFile(s + "/" + f, append);
 		}
-		Log.log("glassbrowser.error", () -> this.getClass()+" Couldnt' find file in playlist :" + f);
+		Log.log("glassbrowser.error", () -> this.getClass() + " Couldnt' find file in playlist :" + f);
 		return null;
 	}
 

@@ -1,10 +1,8 @@
 package field.graphics.util;
 
-import static org.lwjgl.glfw.GLFW.*;
-import org.lwjgl.glfw.GLFW;
 import field.graphics.Window;
+import org.lwjgl.glfw.GLFW;
 
-import javax.xml.crypto.dsig.keyinfo.KeyName;
 import java.lang.reflect.Field;
 
 /**

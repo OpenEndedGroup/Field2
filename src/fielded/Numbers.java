@@ -1,7 +1,6 @@
 package fielded;
 
 import field.utility.Quad;
-import field.utility.Triple;
 
 import java.math.BigDecimal;
 

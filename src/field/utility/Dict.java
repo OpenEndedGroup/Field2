@@ -1,11 +1,8 @@
 package field.utility;
 
 import com.google.common.collect.MapMaker;
-import fieldlinker.Linker;
 import fieldbox.execution.Execution;
-import org.apache.commons.lang.NotImplementedException;
-//import sun.reflect.CallerSensitive;
-//;
+import fieldlinker.Linker;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -14,6 +11,9 @@ import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+
+//import sun.reflect.CallerSensitive;
+//;
 
 
 /**
@@ -164,7 +164,6 @@ public class Dict implements Serializable, Linker.AsMap {
 			return documentation;
 		}
 
-		//		@CallerSensitive
 		public <T> Prop<T> type() {
 
 			Prop on = this;
@@ -178,7 +177,7 @@ public class Dict implements Serializable, Linker.AsMap {
 				}
 			}
 
-			Class c = sun.reflect.Reflection.getCallerClass(2);
+			Class c = _getCallerClass(2);
 
 			on.definedInClass = c;
 
@@ -212,6 +211,18 @@ public class Dict implements Serializable, Linker.AsMap {
 
 
 			return (Prop<T>) on;
+		}
+
+		private Class _getCallerClass(int i) {
+			return StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE).walk(x -> {
+
+				for (Iterator<StackWalker.StackFrame> it = x.iterator(); it.hasNext(); ) {
+					StackWalker.StackFrame f = it.next();
+					if (!f.getClassName().equals(this.getClass().getName()))
+						return f.getDeclaringClass();
+				}
+				return null;
+			});
 		}
 
 		public <T> Prop<T> autoConstructs(Supplier<T> t) {
