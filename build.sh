@@ -2,9 +2,7 @@ root=`dirname $0`
 cd $root
 
 echo -- using javac from : --
-which javac
-echo -- which is version : --
-javac -version
+echo `which javac` => `javac -fullversion`
 echo --
 
 
@@ -17,6 +15,7 @@ cd build
 mkdir agent_classes
 mkdir linker_classes
 
+echo
 
 echo -- building field agent jar --
 find ../agent/src -iname '*.java' > agent_source
@@ -28,13 +27,15 @@ echo -- 2/2 - making jar --
 jar cmf ../../agent/lib/META-INF/MANIFEST.MF ../field_agent.jar .
 cd ..
 
+echo
+
 echo -- building field linker jar --
 find ../linker/src -iname '*.java' > linker_source
 echo -- 1/2 - compiling classes --
 javac -Xlint:-deprecation -Xlint:-unchecked -classpath "../linker/lib/*"  @linker_source -d linker_classes/
 cd linker_classes
 cp -r ../../linker/lib/META-INF .
-echo -- 1/2 - making jar --
+echo -- 2/2 - making jar --
 jar cmf ../../linker/lib/META-INF/MANIFEST.MF ../field_linker.jar .
 cd ..
 
