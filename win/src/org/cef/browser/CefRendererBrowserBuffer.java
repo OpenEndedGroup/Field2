@@ -103,6 +103,7 @@ public class CefRendererBrowserBuffer extends CefBrowser_N implements CefRenderH
 	}
 
 	public final void invalidate(int x, int y, int w, int h) {
+		System.out.println(" -- invalidate -- "+x+" "+y+" "+w+" "+h);
 		super.wasResized(w,h);
 		super.invalidate(new Rectangle(x,y,w,h));
 	}

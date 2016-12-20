@@ -30,6 +30,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.io.StringWriter;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -201,7 +202,7 @@ public class Browser extends Box implements IO.Loaded {
                 .orElseThrow(() -> new IllegalArgumentException(" can't install text-drawing into something without drawing support"));
 
 
-        float rsf = 2f;//window.getRetinaScaleFactor();
+        float rsf = 1f;//window.getRetinaScaleFactor();
 
         System.out.println("MAKING CefSystem :" + w + " " + h + " " + rsf);
 
@@ -222,7 +223,7 @@ public class Browser extends Box implements IO.Loaded {
 
         keyboardHacks = new BrowserKeyboardHacks(browser);
         System.out.println("MAKING sourceTextureBuffer :" + w + " " + h + " " + rsf);
-        source = ByteBuffer.allocateDirect(((int) (w * rsf) * ((int) (h * rsf)) * 4));
+        source = ByteBuffer.allocateDirect(((int) (w * rsf) * ((int) (h * rsf)) * 4)).order(ByteOrder.nativeOrder());
         source.position(0)
                 .limit(source.capacity());
         sourceView = source.slice();
@@ -260,17 +261,17 @@ public class Browser extends Box implements IO.Loaded {
                 "void main()\n" +
                 "{\n" +
                 "\tvec4 current = texelFetch(te, ivec2(vtc.xy*textureSize(te,0)), 0);\n" +
-                "\tcurrent += 0.5*texelFetch(te, ivec2(vtc.xy*textureSize(te,0))+ivec2(1,0), 0);\n" +
-                "\tcurrent += 0.5*texelFetch(te, ivec2(vtc.xy*textureSize(te,0))+ivec2(0,1), 0);\n" +
-                "\tcurrent += 0.5*texelFetch(te, ivec2(vtc.xy*textureSize(te,0))+ivec2(-1,0), 0);\n" +
-                "\tcurrent += 0.5*texelFetch(te, ivec2(vtc.xy*textureSize(te,0))+ivec2(0,-1), 0);\n" +
-                "current = current/3;\n" +
+                "\tcurrent += 0.15*texelFetch(te, ivec2(vtc.xy*textureSize(te,0))+ivec2(1,0), 0);\n" +
+                "\tcurrent += 0.15*texelFetch(te, ivec2(vtc.xy*textureSize(te,0))+ivec2(0,1), 0);\n" +
+                "\tcurrent += 0.15*texelFetch(te, ivec2(vtc.xy*textureSize(te,0))+ivec2(-1,0), 0);\n" +
+                "\tcurrent += 0.15*texelFetch(te, ivec2(vtc.xy*textureSize(te,0))+ivec2(0,-1), 0);\n" +
+                "current = current/1.6;\n" +
                 "\tfloat m = min(current.x, min(current.y, current.z));\n" +
-                "float sat = 0.2;\n" +
+                "float sat = 0.3;\n"+
                 "\tcurrent.xyz = (current.xyz-vec3(m)*sat)/(1-sat);\n" +
                 "float d = (current.x+current.y+current.z)/3;\n" +
                 "current.xyz = pow(current.xyz, vec3(1.1));\n" +
-                "\t_output  = vec4(current.zyx,max(0.4, min(1, d*3))*current.w*vtc.z);\n" +
+                "\t_output  = vec4(current.zyx,max(0.6, min(1, d*3))*current.w*vtc.z);\n" +
                 "\t if (vtc.x==0 || vtc.x==1 || vtc.y==0 || vtc.y==1) _output.w=0;\n" +
 //			"\t _output=vec4(current.xyz,1);\n" +
                 "}");
@@ -451,11 +452,11 @@ public class Browser extends Box implements IO.Loaded {
             float dy = e.after.dwheely * 8;
             browser.sendMouseWheelEvent(new MouseWheelEvent(component, MouseWheelEvent.MOUSE_WHEEL, 0, 0, ((int) ((int) (point.x - r.x) * rsf)),
                     ((int) ((int) (point.y - r.y) * rsf)), ((int) ((int) (point.x - r.x) * rsf * 4)),
-                    ((int) ((int) (point.y - r.y) * rsf)), 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, 1, (int) dy, dy));
+                    ((int) ((int) (point.y - r.y) * rsf)), 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, 3, (int) dy, dy));
             float dx = e.after.dwheel * 8;
             browser.sendMouseWheelEvent(new MouseWheelEvent(component, MouseWheelEvent.MOUSE_WHEEL, KeyEvent.SHIFT_DOWN_MASK, 0, ((int) ((int) (point.x - r.x) * rsf)),
                     ((int) ((int) (point.y - r.y) * rsf)), ((int) ((int) (point.x - r.x) * rsf)),
-                    ((int) ((int) (point.y - r.y) * rsf)), 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, 1, (int) dx, dx));
+                    ((int) ((int) (point.y - r.y) * rsf)), 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, 3, (int) dx, dx));
         });
 
         this.properties.putToMap(Keyboard.onKeyDown, "__browser__", (e, k) -> {
@@ -648,19 +649,32 @@ public class Browser extends Box implements IO.Loaded {
         int y1 = 0;
 
         for (Rectangle r : dirty) {
-            for (int y = r.y; y < r.y + r.height; y++) {
-                buffer.limit(r.x * 4 + y * 4 * w + r.width * 4);
-                buffer.position(r.x * 4 + y * 4 * w);
-                sourceView.limit(r.x * 4 + y * 4 * w + r.width * 4);
-                sourceView.position(r.x * 4 + y * 4 * w);
+
+            if (r.x==0 && r.y==0 && r.width==w && r.height == h)
+            {
+                buffer.clear();
+                sourceView.clear();
                 sourceView.put(buffer);
-
-
+                x0=0;
+                y0=0;
+                x1 = w;
+                y1 = h;
             }
-            x0 = Math.min(x0, r.x);
-            x1 = Math.max(x1, r.width + r.x);
-            y0 = Math.min(y0, r.y);
-            y1 = Math.max(y1, r.height + r.y);
+            else {
+
+                for (int y = r.y; y < r.y + r.height; y++) {
+                    buffer.limit(r.x * 4 + y * 4 * w + r.width * 4);
+                    buffer.position(r.x * 4 + y * 4 * w);
+                    sourceView.limit(r.x * 4 + y * 4 * w + r.width * 4);
+                    sourceView.position(r.x * 4 + y * 4 * w);
+                    sourceView.put(buffer);
+                }
+//                System.out.println("r= " + r);
+                x0 = Math.min(x0, r.x);
+                x1 = Math.max(x1, r.width + r.x);
+                y0 = Math.min(y0, r.y);
+                y1 = Math.max(y1, r.height + r.y);
+            }
         }
 
 
@@ -678,6 +692,7 @@ public class Browser extends Box implements IO.Loaded {
         if (damage == null) damage = new Rect(x0, y0, x1 - x0, y1 - y0);
         else damage = damage.union(new Rect(x0, y0, x1 - x0, y1 - y0));
 
+//        System.out.println(" damage :"+damage);
 
     }
 
@@ -743,7 +758,7 @@ public class Browser extends Box implements IO.Loaded {
                 if (Main.os != Main.OS.windows)
                     browser.setZoomLevel(2 * window.getRetinaScaleFactor());
                 else
-                    browser.setZoomLevel(4);
+                    browser.setZoomLevel(1);
             }
             Log.log("cef.debug", () -> " texture was dirty, uploading ");
 

@@ -1,0 +1,22 @@
+#!/bin/bash
+pushd $(dirname `which "$0"`) >/dev/null; fieldhome="$PWD"; popd >/dev/null
+
+out=$fieldhome/build/classes
+out=`cygpath -w $out`
+fieldhome=`cygpath -w $fieldhome`
+JDK="/cygdrive/c/Program Files\Java\jdk-9\bin/"
+java="$JDK"/java
+
+echo $fieldhome
+
+"$java" \
+    -Xdebug \
+    -Xrunjdwp:server=y,transport=dt_socket,address=5005,suspend=n -Dorg.lwjgl.util.Debug=true \
+    -DappDir=$fieldhome \
+    -Xmx8g \
+    -Xms8g \
+    -javaagent:$fieldhome/build/field_agent.jar \
+    -cp "$out;$fieldhome/build/field_linker.jar;$fieldhome/lib/;$fieldhome/lib/jars/*;$fieldhome/build/field_agent.jar" \
+    -Djava.library.path=$fieldhome/win/lib/ \
+    fieldagent.Trampoline ${*}
+

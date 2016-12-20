@@ -83,7 +83,7 @@ public class BrowserKeyboardHacks {
 			if (translated != null) {
 
 				KeyEvent ke = new KeyEvent(component, KeyEvent.KEY_PRESSED, 0, mod, translated, (char) translated.intValue());
-				System.out.println(" sent to browser :"+mod+" "+translated+" "+(char)translated.intValue());
+//				System.out.println(" sent to browser :"+mod+" "+translated+" "+(char)translated.intValue());
 				e.properties.put(Window.consumed, true);
 				target.sendKeyEvent(ke);
 
@@ -147,7 +147,6 @@ public class BrowserKeyboardHacks {
 
 		for(Character cc : c) {
 			KeyEvent ke = new KeyEvent(component, KeyEvent.KEY_TYPED, 0, mod, KeyEvent.VK_UNDEFINED, cc);
-			System.out.println("fire char :"+mod+" "+cc);
 			e.properties.put(Window.consumed, true);
 
 			if (e.after.isAltDown()) continue;

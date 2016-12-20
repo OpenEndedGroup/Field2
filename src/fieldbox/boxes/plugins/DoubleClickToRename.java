@@ -28,13 +28,6 @@ public class DoubleClickToRename extends Box {
 					x.joinCommands("Rename Box");
 				});
 
-
-//				this.find(RunCommand.runCommand, both()).findFirst().ifPresent(x -> {
-//					System.out.println(" running command ");
-////					x.apply(selected, "Rename");
-//
-//
-//				});
 			}
 		});
 	}
