@@ -1,8 +1,6 @@
 package fieldbox.boxes;
 
 import field.graphics.BaseMesh;
-import field.graphics.FLine;
-import field.graphics.MeshBuilder;
 import field.graphics.Scene;
 import field.utility.Dict;
 import field.utility.IdempotencyMap;

@@ -1,7 +1,6 @@
 package fielded;
 
 import field.app.RunLoop;
-import field.graphics.Scene;
 import field.message.MessageQueue;
 import field.utility.Dict;
 import field.utility.Log;
@@ -9,10 +8,8 @@ import field.utility.Ports;
 import field.utility.Quad;
 import fieldagent.Main;
 import fieldbox.boxes.Box;
-import fieldbox.boxes.Boxes;
 import fieldbox.boxes.Watches;
 import fieldbox.execution.Execution;
-import fielded.plugins.BridgeToTextEditor;
 import fielded.webserver.Server;
 
 import java.io.BufferedReader;

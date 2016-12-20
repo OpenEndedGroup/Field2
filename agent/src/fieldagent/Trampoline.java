@@ -19,6 +19,7 @@ import java.net.URLStreamHandlerFactory;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.nio.file.NoSuchFileException;
 import java.util.function.Consumer;
 
 /**
@@ -32,7 +33,7 @@ public class Trampoline {
 	static protected Transform transform = new Transform();
 
 	static public class Record {
-		String filename;
+		public String filename;
 		long modification;
 
 		public Record(String fn, long l) {
@@ -230,8 +231,6 @@ public class Trampoline {
 			while (l != null) {
 
 				if (l instanceof URLClassLoader) {
-					System.out.println(" classloader :" + l + " has urls " + Arrays.asList(((URLClassLoader) l).getURLs()));
-
 					u.addAll(Arrays.asList(((URLClassLoader) l).getURLs()));
 				}
 				l = l.getParent();
@@ -248,10 +247,10 @@ public class Trampoline {
 
 		Set<File> jarsToAdd = new LinkedHashSet<>();
 		Set<File> roots = new LinkedHashSet<>();
-		try {
-			String[] classBuildStyles = {"/out/production", "build/classes"};
+		String[] classBuildStyles = {"/out/production", "build/classes"};
 
-			for (String c : classBuildStyles)
+		for (String c : classBuildStyles)
+			try {
 				Files.walk(new File(System.getProperty("appDir") + c).toPath()).forEach(x -> {
 
 					if (x.toFile().getName().endsWith(".jar")) {
@@ -294,9 +293,10 @@ public class Trampoline {
 					}
 
 				});
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+			} catch (NoSuchFileException e) {
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 
 		if (a.length == 0) {
 			System.err.println(" No main.class specified. Add one to the command line");

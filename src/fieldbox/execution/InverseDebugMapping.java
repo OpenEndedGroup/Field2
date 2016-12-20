@@ -2,16 +2,14 @@ package fieldbox.execution;
 
 import com.google.common.collect.MapMaker;
 import field.app.RunLoop;
-import field.graphics.Scene;
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
-import jdk.nashorn.api.scripting.ScriptUtils;
 import field.utility.Dict;
 import field.utility.Pair;
 import fieldbox.boxes.Box;
+import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import jdk.nashorn.api.scripting.ScriptUtils;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.function.Supplier;
 
 /**
  * When you want to print debug information, like say "error in Shader" or "hello, I'm executing this function", it's important to be able to print something better than "...Shader@12312f3". The best

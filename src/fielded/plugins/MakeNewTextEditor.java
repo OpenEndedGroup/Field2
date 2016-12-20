@@ -14,7 +14,6 @@ import fielded.webserver.Server;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 /**

@@ -3,11 +3,9 @@ package fieldbox.boxes.plugins;
 import field.app.RunLoop;
 import field.graphics.FLine;
 import field.graphics.StandardFLineDrawing;
-import field.linalg.Vec3;
 import field.linalg.Vec4;
 import field.utility.Rect;
 import fieldbox.boxes.*;
-import fieldnashorn.annotations.HiddenInAutocomplete;
 
 import java.awt.*;
 import java.util.*;
@@ -17,7 +15,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * A plugin to use a part of the box graph modally

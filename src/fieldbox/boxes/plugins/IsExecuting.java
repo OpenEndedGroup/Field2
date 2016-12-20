@@ -2,13 +2,20 @@ package fieldbox.boxes.plugins;
 
 import field.graphics.FLine;
 import field.linalg.Vec4;
-import field.utility.*;
-import fieldbox.boxes.*;
+import field.utility.Cached;
+import field.utility.Dict;
+import field.utility.Rect;
+import field.utility.Triple;
+import fieldbox.boxes.Box;
+import fieldbox.boxes.Boxes;
+import fieldbox.boxes.Colors;
+import fieldbox.boxes.Drawing;
 
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
+
 import static field.graphics.StandardFLineDrawing.*;
-import static fieldbox.boxes.FLineDrawing.*;
+import static fieldbox.boxes.FLineDrawing.frameDrawing;
 
 /**
  * Adds: a default decorator for setting a drawer appropriately to give feedback (currently a stripey green frame

@@ -1,6 +1,5 @@
 package fieldbox.boxes.plugins;
 
-import static org.lwjgl.glfw.GLFW.*;
 import field.graphics.Window;
 import field.linalg.Vec2;
 import field.utility.Cached;
@@ -14,6 +13,8 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static org.lwjgl.glfw.GLFW.*;
 
 /**
  * Keyboard navigation to move selection around but also refer to boxes programmatically

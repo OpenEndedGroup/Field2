@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.concurrent.*;
 
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL11.glGetInteger;
 import static org.lwjgl.opengl.GL30.*;
 
 /*

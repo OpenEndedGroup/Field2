@@ -1,6 +1,5 @@
 package fieldbox.boxes.plugins;
 
-import static org.lwjgl.glfw.GLFW.*;
 import field.graphics.FLine;
 import field.graphics.Window;
 import field.linalg.Vec2;
@@ -13,14 +12,13 @@ import fieldbox.boxes.Drawing;
 import fieldbox.boxes.Mouse;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static fieldbox.boxes.FLineDrawing.frameDrawing;
 import static field.graphics.StandardFLineDrawing.*;
+import static fieldbox.boxes.FLineDrawing.frameDrawing;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_T;
 
 /**
  * Adds: Hold down T to connect elements with other elements.

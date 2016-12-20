@@ -8,8 +8,6 @@ import fieldbox.io.IO;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * Collects data about what is executed, when. Should also do what's executed at startup. For that, we need to save properties that are persisant on at least Root.

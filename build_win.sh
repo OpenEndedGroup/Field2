@@ -45,7 +45,7 @@ cd ..
 echo -- building main classes -- 
 mkdir classes
 find ../src -iname '*.java' > source
-find ../osx/src -iname '*.java' >> source
+find ../win/src -iname '*.java' >> source
 
 # XDignore.symbol.file suppresses the otherwise unspressable warning about Unsafe, which will be there until there's a replacement for Unsafe
 "$JDK"/javac -Xlint:-deprecation -Xlint:-unchecked -XDignore.symbol.file -classpath "field_agent.jar;field_linker.jar;../lib/jars/*"  @source -d classes/

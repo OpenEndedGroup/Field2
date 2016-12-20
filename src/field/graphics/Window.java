@@ -8,14 +8,9 @@ import field.graphics.util.KeyEventMapping;
 import field.linalg.Vec2;
 import field.utility.*;
 import fieldagent.Main;
-import fieldbox.boxes.Keyboard;
 import fieldbox.boxes.Mouse;
 import fieldlinker.Linker;
 import fieldnashorn.annotations.HiddenInAutocomplete;
-import org.lwjgl.glfw.GLFW;
-
-import static org.lwjgl.glfw.GLFW.*;
-
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.Callback;
 import org.lwjgl.system.Configuration;
@@ -30,8 +25,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static org.lwjgl.glfw.GLFW.glfwMakeContextCurrent;
-import static org.lwjgl.glfw.GLFW.glfwWindowHint;
+import static org.lwjgl.glfw.GLFW.*;
 
 
 /**

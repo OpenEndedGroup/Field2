@@ -4,7 +4,6 @@ import field.app.RunLoop;
 import field.graphics.FLine;
 import field.linalg.Vec4;
 import field.utility.Cached;
-import field.utility.Pair;
 import field.utility.Rect;
 import field.utility.Triple;
 import fieldagent.Main;
@@ -13,8 +12,8 @@ import fieldbox.boxes.Drawing;
 
 import java.util.Collections;
 
-import static fieldbox.boxes.FLineDrawing.frameDrawing;
 import static field.graphics.StandardFLineDrawing.*;
+import static fieldbox.boxes.FLineDrawing.frameDrawing;
 
 /**
  * When there's nothing in the canvas, prompt users to create something

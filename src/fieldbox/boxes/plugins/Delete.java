@@ -1,14 +1,13 @@
 package fieldbox.boxes.plugins;
 
-import static org.lwjgl.glfw.GLFW.*;
-
 import field.graphics.Window;
 import fieldbox.boxes.*;
 
-import java.util.*;
-import java.util.function.Function;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_DELETE;
 
 /**
  * Adds: Press command/meta delete to delete selected boxes, swipe down to delete selection

@@ -4,7 +4,6 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL31;
 
-import java.nio.Buffer;
 import java.nio.FloatBuffer;
 
 import static org.lwjgl.opengl.GL11.glGenTextures;

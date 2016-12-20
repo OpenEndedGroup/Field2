@@ -6,7 +6,6 @@ import field.utility.Dict;
 import field.utility.Log;
 import field.utility.Options;
 import fieldagent.Main;
-import org.lwjgl.opengl.GL11;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;

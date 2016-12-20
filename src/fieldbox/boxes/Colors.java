@@ -3,8 +3,6 @@ package fieldbox.boxes;
 import field.linalg.Vec3;
 import field.linalg.Vec4;
 
-import java.util.function.Supplier;
-
 /**
  * Default colors for the "theme" of Field's canvas
  */

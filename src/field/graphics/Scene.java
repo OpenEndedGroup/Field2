@@ -9,19 +9,17 @@ import fieldbox.execution.Errors;
 import fieldbox.execution.InverseDebugMapping;
 import fieldlinker.Linker;
 import fieldnashorn.annotations.HiddenInAutocomplete;
-;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeMap;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+
+;
 
 /**
  * The principle class of the Field Graphics "Scene List" structure.

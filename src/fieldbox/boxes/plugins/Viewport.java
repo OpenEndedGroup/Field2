@@ -1,7 +1,6 @@
 package fieldbox.boxes.plugins;
 
 import field.graphics.*;
-import field.graphics.Window;
 import field.linalg.Mat4;
 import field.linalg.Vec2;
 import field.linalg.Vec4;

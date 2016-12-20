@@ -3,8 +3,6 @@ package fieldnashorn;
 import field.app.ThreadSync;
 import field.linalg.Vec4;
 import field.utility.*;
-import jdk.nashorn.api.scripting.NashornException;
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Boxes;
 import fieldbox.boxes.Callbacks;
@@ -19,6 +17,8 @@ import fielded.DisabledRangeHelper;
 import fielded.RemoteEditor;
 import fielded.plugins.Out;
 import fieldnashorn.babel.SourceTransformer;
+import jdk.nashorn.api.scripting.NashornException;
+import jdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;

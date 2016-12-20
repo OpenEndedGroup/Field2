@@ -1,6 +1,5 @@
 package fielded.windowmanager;
 
-import static org.lwjgl.glfw.GLFW.*;
 import field.app.RunLoop;
 import field.graphics.Window;
 import field.utility.Dict;
@@ -10,6 +9,9 @@ import fieldbox.boxes.Boxes;
 
 import java.io.IOException;
 import java.util.Set;
+
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_SHIFT;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT;
 
 /**
  * for OSX

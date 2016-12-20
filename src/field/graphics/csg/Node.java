@@ -33,9 +33,6 @@
  */
 package field.graphics.csg;
 
-import field.graphics.csg.Plane;
-import field.graphics.csg.Polygon;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;

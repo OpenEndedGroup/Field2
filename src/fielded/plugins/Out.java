@@ -3,7 +3,6 @@ package fielded.plugins;
 import field.app.RunLoop;
 import field.utility.Dict;
 import field.utility.IdempotencyMap;
-import field.utility.Pair;
 import field.utility.Triple;
 import fieldbox.boxes.Box;
 import fieldbox.execution.InverseDebugMapping;

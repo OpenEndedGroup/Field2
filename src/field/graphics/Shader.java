@@ -9,18 +9,22 @@ import fielded.boxbrowser.BoxBrowser;
 import fieldlinker.Linker;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 import org.lwjgl.opengl.*;
-;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.time.Instant;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.lwjgl.opengl.GL20.*;
+
+;
 
 /**
  * An OpenGL Shader written in GL Shader Language (GLSL)

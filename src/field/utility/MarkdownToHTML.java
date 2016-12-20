@@ -9,8 +9,10 @@ public class MarkdownToHTML {
 
 	static public String convert(String md)
 	{
-		System.out.println(" 'ello");
 		return md==null ? "" : Processor.process(md);
 	}
 
+	public static String unwrapFirstParagraph(String convert) {
+		return convert.replaceFirst("<p>", "").replaceFirst("</p>", "");
+	}
 }

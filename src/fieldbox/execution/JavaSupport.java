@@ -1,10 +1,14 @@
 package fieldbox.execution;
 
 import com.thoughtworks.qdox.JavaProjectBuilder;
+import com.thoughtworks.qdox.directorywalker.DirectoryScanner;
+import com.thoughtworks.qdox.directorywalker.SuffixFilter;
 import com.thoughtworks.qdox.model.*;
 import com.thoughtworks.qdox.parser.ParseException;
 import field.app.RunLoop;
+import field.graphics.FLine;
 import field.utility.Log;
+import field.utility.MarkdownToHTML;
 import field.utility.Pair;
 import fieldagent.Trampoline;
 import fieldnashorn.annotations.HiddenInAutocomplete;
@@ -53,21 +57,28 @@ public class JavaSupport {
 		Set<Path> all = new LinkedHashSet<>();
 
 		ClassLoader classLoader = Thread.currentThread()
-						.getContextClassLoader();
+			.getContextClassLoader();
 
 		// we defer this to the main loop (and _then_ punt it off to a separate thread) in order for the majority of Field internal classes to be loaded (for example, the graphics system)
 		RunLoop.main.once(() -> {
 			RunLoop.workerPool.submit(() -> {
-				Log.log("jar.indexer", ()->"has started up");
+				Log.log("jar.indexer", () -> "has started up");
 				try {
 					List<URL> paths = ((Trampoline.ExtensibleClassloader) classLoader).collectURLS();
-					Log.log("jar.indexer", ()->"will index paths:" + paths + " from classloader " + classLoader);
+
+					String appDir = System.getProperty("appDir");
+					if (new File(appDir, "src").exists() && new File(appDir, "src").isDirectory()) {
+						Log.log("jar.indexer", () -> "found a src directory in appDir");
+						if (indexSrcTree(appDir + "/src"));
+					}
+
+					Log.log("jar.indexer", () -> "will index paths:" + paths + " from classloader " + classLoader);
 					for (URL path : paths) {
-						Log.log("jar.indexer",()-> "will index path " + path);
+						Log.log("jar.indexer", () -> "will index path " + path);
 						RunLoop.workerPool.submit(() -> {
 							Map<String, String> a = indexClasses(path);
 
-							Log.log("jar.indexer",()-> "indexed path " + path + " and got " + a.size() + " classes");
+							Log.log("jar.indexer", () -> "indexed path " + path + " and got " + a.size() + " classes");
 
 							synchronized (allClassNames) {
 								allClassNames.putAll(a);
@@ -78,11 +89,12 @@ public class JavaSupport {
 								if (f.isDirectory()) {
 									if (new File(f, "src.zip").exists()) {
 										final File finalF = f;
-										Log.log("jar.indexer", ()-> "found a src.zip in classpath <" + finalF + ">");
+										Log.log("jar.indexer", () -> "found a src.zip in classpath <" + finalF + ">");
 
 										String p = new File(f, "src.zip").getAbsolutePath();
 										synchronized (srcZipsDeltWith) {
-											if (srcZipsDeltWith.contains(p)) break;
+											if (srcZipsDeltWith.contains(p))
+												break;
 											srcZipsDeltWith.add(p);
 											try {
 												indexSrcZip(p);
@@ -94,34 +106,42 @@ public class JavaSupport {
 									}
 								}
 								if (new File(f, "src").exists() && new File(f, "src").isDirectory()) {
-									String p = new File(f, "src").getAbsolutePath();
-									if (srcZipsDeltWith.contains(p)) break;
-									srcZipsDeltWith.add(p);
-									Log.log("jar.indexer",()-> " added " + p+ " to source path given classpath");
-									builder.addSourceTree(new File(p));
+									File finalF1 = f;
+									Log.log("jar.indexer", () -> "found a src directory in classpath <" + finalF1 + "/src>");
+									if (indexSrcTree(f + "/src")) break;
 								}
+
+
 								f = f.getParentFile();
 							}
 						});
 					}
 
+					System.out.println(FLine.class);
+					try {
+						Thread.sleep(2000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					System.out.println(" allClassNames\n\n" + allClassNames.keySet() + "\n\n");
+
 					allClassNames.putAll(indexJigsaw());
 
-					builder.setErrorHandler(e -> Log.log("completion.general", ()->" problem parsing Java source file for completion, will skip this file and continue on "));
+					builder.setErrorHandler(e -> Log.log("completion.general", () -> " problem parsing Java source file for completion, will skip this file and continue on "));
 					builder.addClassLoader(classLoader);
 
 					String root = fieldagent.Main.app;
 					Files.walkFileTree(FileSystems.getDefault()
-								      .getPath(root), new FileVisitor<Path>() {
+						.getPath(root), new FileVisitor<Path>() {
 						@Override
 						public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
 							if (dir.endsWith("temp")) return FileVisitResult.SKIP_SUBTREE;
 							if (dir.endsWith("src")) {
-								Log.log("jar.indexer", ()->" added " + dir + " to source path");
+								Log.log("jar.indexer", () -> " added " + dir + " to source path");
 								all.add(dir);
 								try {
 									builder.addSourceTree(dir.toFile(),
-											      f -> Log.log("jar.indexer", ()->" error parsing file " + f + ", but we'll continue on anyway..."));
+										f -> Log.log("jar.indexer", () -> " error parsing file " + f + ", but we'll continue on anyway..."));
 								} catch (ParseException e) {
 									e.printStackTrace();
 								}
@@ -144,12 +164,39 @@ public class JavaSupport {
 							return FileVisitResult.CONTINUE;
 						}
 					});
-					Log.log("completion.debug", ()->" all is :" + all);
+					Log.log("completion.debug", () -> " all is :" + all);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
 			});
 		});
+	}
+
+	private boolean indexSrcTree(String p) {
+		if (srcZipsDeltWith.contains(p)) {
+			Log.log("jar.indexer", () -> " we've already delt with path "+p);
+			return true;
+		}
+		srcZipsDeltWith.add(p);
+		Log.log("jar.indexer", () -> " added " + p + " to source path given classpath");
+//									builder.addSourceTree(new File(p));
+
+		DirectoryScanner scanner = new DirectoryScanner(new File(p));
+		scanner.addFilter(new SuffixFilter(".java"));
+
+
+		scanner.scan(new com.thoughtworks.qdox.directorywalker.FileVisitor() {
+			public void visitFile(File currentFile) {
+				try {
+					System.out.println(" adding :" + currentFile + "  (" + p + ")");
+					builder.addSource(currentFile);
+				} catch (Throwable var3) {
+					var3.printStackTrace();
+				}
+
+			}
+		});
+		return false;
 	}
 
 	static public String compress(String name, String signature) {
@@ -194,18 +241,18 @@ public class JavaSupport {
 		while (entries.hasMoreElements()) {
 			ZipEntry zipEntry = (ZipEntry) entries.nextElement();
 			String u = "jar:file://" + filename + "!/" + zipEntry.getName();
-			Log.log("jar.indexer", ()->"will index a source file from a jar:"+u);
+			Log.log("jar.indexer", () -> "will index a source file from a jar:" + u);
 			builder.addSource(new URL(u));
 		}
 	}
 
 	private Map<String, String> indexJigsaw() {
-		Log.log("jar.indexer", ()->"will index jigsaw");
+		Log.log("jar.indexer", () -> "will index jigsaw");
 		try {
 			FileSystem fs = FileSystems.getFileSystem(URI.create("jrt:/"));
 			HashMap<String, String> r = new HashMap<>();
 			for (Path p : fs.getRootDirectories()) {
-				Log.log("jar.indexer", ()->"jigsaw root is :" + p);
+				Log.log("jar.indexer", () -> "jigsaw root is :" + p);
 				Files.walkFileTree(p, new FileVisitor<Path>() {
 					@Override
 					public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
@@ -245,7 +292,7 @@ public class JavaSupport {
 					}
 				});
 			}
-			Log.log("jar.indexer", ()->"indexed " + r.size());
+			Log.log("jar.indexer", () -> "indexed " + r.size());
 
 			return r;
 		} catch (Throwable t) {
@@ -260,7 +307,7 @@ public class JavaSupport {
 		if (f.endsWith(".jar")) return indexClasses_jar(f);
 		else if (new File(f).exists()) {
 			return indexClasses_tree(f);
-		} else Log.log("indexer", ()->"path " + path + " " + f + " does not exist");
+		} else Log.log("indexer", () -> "path " + path + " " + f + " does not exist");
 		return Collections.emptyMap();
 	}
 
@@ -270,7 +317,7 @@ public class JavaSupport {
 
 		try {
 			Files.walkFileTree(FileSystems.getDefault()
-						      .getPath(f), new FileVisitor<Path>() {
+				.getPath(f), new FileVisitor<Path>() {
 				@Override
 				public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
 					return FileVisitResult.CONTINUE;
@@ -314,12 +361,12 @@ public class JavaSupport {
 		if (!new File(f).exists()) return Collections.emptyMap();
 		try {
 			return new JarFile(f).stream()
-					     .filter(e -> e.getName()
-							   .endsWith(".class"))
-					     .map(e -> e.getName()
-							.replace('/', '.')
-							.replace(".class", ""))
-					     .collect(Collectors.toMap(x -> x, x -> f));
+				.filter(e -> e.getName()
+					.endsWith(".class"))
+				.map(e -> e.getName()
+					.replace('/', '.')
+					.replace(".class", ""))
+				.collect(Collectors.toMap(x -> x, x -> f));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -333,22 +380,23 @@ public class JavaSupport {
 	public List<Completion> getCompletionsFor(Object o, String prefix) {
 		if (o instanceof HandlesCompletion) {
 
-			Log.log("completion.debug", ()->" object :" + o + " is a completion handler ");
+			Log.log("completion.debug", () -> " object :" + o + " is a completion handler ");
 
 			return ((HandlesCompletion) o).getCompletionsFor(prefix);
-		} else Log.log("completion.debug",()-> " object :" + o + " is not a completion handler ");
+		} else Log.log("completion.debug", () -> " object :" + o + " is not a completion handler ");
 
 		List<Completion> r = getOptionCompletionsFor(o, prefix, false);
 
 		return r;
 	}
+
 	public List<Completion> getCompletionsFor(Object o, String prefix, boolean includeConstructors) {
 		if (o instanceof HandlesCompletion) {
 
-			Log.log("completion.debug", ()->" object :" + o + " is a completion handler ");
+			Log.log("completion.debug", () -> " object :" + o + " is a completion handler ");
 
 			return ((HandlesCompletion) o).getCompletionsFor(prefix);
-		} else Log.log("completion.debug", ()->" object :" + o + " is not a completion handler ");
+		} else Log.log("completion.debug", () -> " object :" + o + " is not a completion handler ");
 
 		List<Completion> r = getOptionCompletionsFor(o, prefix, includeConstructors);
 
@@ -358,19 +406,19 @@ public class JavaSupport {
 	public List<Completion> getOptionCompletionsFor(Object o, String prefix, boolean includeConstructors) {
 
 
-		Log.log("completion.debug",()-> "getOptionCompletionsFor "+o+" / "+prefix);
+		Log.log("completion.debug", () -> "getOptionCompletionsFor " + o + " / " + prefix);
 
 		boolean staticsOnly = o instanceof Class;
 
 		Class c = o instanceof Class ? (Class) o : o.getClass();
 
 		boolean wasJava = c.getName()
-				   .startsWith("java");
+			.startsWith("java");
 
 		JavaClass j = builder.getClassByName(c.getName());
 
 		final JavaClass finalJ = j;
-		Log.log("completion.debug", ()->" java class (for javadoc supported completion) :" + finalJ + " prefix is <" + prefix + "> "+includeConstructors+" "+staticsOnly);
+		Log.log("completion.debug", () -> " java class (for javadoc supported completion) :" + finalJ + " prefix is <" + prefix + "> " + includeConstructors + " " + staticsOnly);
 
 		List<Completion> r = new ArrayList<>();
 		try {
@@ -381,16 +429,15 @@ public class JavaSupport {
 
 				if (c.getAnnotation(HiddenInAutocomplete.class) == null) {
 
-					if (staticsOnly && includeConstructors)
-					{
-						for(JavaConstructor m : j.getConstructors())
-						{
-							Log.log("completion.debug", ()->"looking at constructor "+m);
+					if (staticsOnly && includeConstructors) {
+						for (JavaConstructor m : j.getConstructors()) {
+							Log.log("completion.debug", () -> "looking at constructor " + m);
 
-							if (hasAnnotation(m.getAnnotations(), HiddenInAutocomplete.class)) continue;
+							if (hasAnnotation(m.getAnnotations(), HiddenInAutocomplete.class))
+								continue;
 							if (docOnly && m.getComment()
-									.trim()
-									.length() < 1) continue;
+								.trim()
+								.length() < 1) continue;
 
 							String val = "";
 							boolean tostring = false;
@@ -404,40 +451,41 @@ public class JavaSupport {
 							}
 
 							if ((prefix.equals("") || m.getName()
-										   .startsWith(prefix)) && m.getModifiers()
-													    .contains("public") ) {
+								.startsWith(prefix)) && m.getModifiers()
+								.contains("public")) {
 
 
 								m.getParameters().forEach(x -> System.out.println(x.getName()));
 
 								String classComment = m.getDeclaringClass().getComment();
 								String constructorComment = m.getComment();
-								String comment = ((classComment==null ? "" : classComment)+" "+(constructorComment==null ? "" : constructorComment)).trim();
+								String comment = ((classComment == null ? "" : classComment) + " " + (constructorComment == null ? "" : constructorComment)).trim();
 
 								Completion cc = new Completion(-1, -1, m.getName(), val + "<span class=type>" + compress(m.getName(), "(" + m.getParameters()
-																					     .stream()
-																					     .map(x -> x.getType() + " " + x.getName())
-																					     .reduce("",
-																						     (a, b) -> a + ", " + b)
-																					     .substring(m.getParameters()
-																							 .size() > 0 ? 2 : 0)) + ")</span>" + ( comment.length()>0 ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + comment + "</span>" : ""));
+									.stream()
+									.map(x -> x.getType() + " " + x.getName())
+									.reduce("",
+										(a, b) -> a + ", " + b)
+									.substring(m.getParameters()
+										.size() > 0 ? 2 : 0)) + ")</span>" + (comment.length() > 0 ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + comment + "</span>" : ""));
 								add(val.length() > 0, r, cc);
 								cc.rank += tostring ? 100 : 0;
-								cc.rank+= m.getComment()!=null ? 10 : 0;
+								cc.rank += m.getComment() != null ? 10 : 0;
 							}
 						}
 					}
 
 					for (JavaField m : j.getFields()) {
-						if (hasAnnotation(m.getAnnotations(), HiddenInAutocomplete.class)) continue;
+						if (hasAnnotation(m.getAnnotations(), HiddenInAutocomplete.class))
+							continue;
 						if (docOnly && m.getComment()
-								.trim()
-								.length() < 1) continue;
+							.trim()
+							.length() < 1) continue;
 
 						String val = "";
 						boolean tostring = false;
 						if (!staticsOnly && (hasAnnotation(m.getAnnotations(), SafeToToString.class) || m.getType()
-														.isPrimitive())) {
+							.isPrimitive())) {
 							try {
 								val = "= <b>" + access(c.getDeclaredField(m.getName())).get(o) + "</b> &nbsp;";
 								tostring = true;
@@ -447,22 +495,22 @@ public class JavaSupport {
 						}
 
 						if ((prefix.equals("") || m.getName()
-									   .startsWith(prefix)) && m.getModifiers()
-												    .contains("public") && (!staticsOnly || m.getModifiers()
-																	     .contains("static"))) {
+							.startsWith(prefix)) && m.getModifiers()
+							.contains("public") && (!staticsOnly || m.getModifiers()
+							.contains("static"))) {
 							Completion cc = new Completion(-1, -1, m.getName(), val + "<span class=type>" + compress(m.getName(), m.getDeclarationSignature(
-								    true)) + "</span>" + (m.getComment() != null ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + m.getComment() + "</span>" : ""));
+								true)) + "</span>" + (m.getComment() != null ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + m.getComment() + "</span>" : ""));
 							add(val.length() > 0, r, cc);
-							cc.rank+= tostring ? 100 : 0;
-							cc.rank+= m.getComment()!=null ? 10 : 0;
+							cc.rank += tostring ? 100 : 0;
+							cc.rank += m.getComment() != null ? 10 : 0;
 						}
 					}
 					for (JavaMethod m : j.getMethods()) {
-						if (hasAnnotation(m.getAnnotations(), HiddenInAutocomplete.class)) continue;
+						if (hasAnnotation(m.getAnnotations(), HiddenInAutocomplete.class))
+							continue;
 						if (docOnly && m.getComment()
-								.trim()
-								.length() < 1) continue;
-
+							.trim()
+							.length() < 1) continue;
 
 
 						String val = "";
@@ -477,14 +525,14 @@ public class JavaSupport {
 						}
 
 						if ((prefix.equals("") || m.getName()
-									   .startsWith(prefix)) && m.getModifiers()
-												    .contains("public") && (!staticsOnly || m.getModifiers()
-																	     .contains("static"))) {
+							.startsWith(prefix)) && m.getModifiers()
+							.contains("public") && (!staticsOnly || m.getModifiers()
+							.contains("static"))) {
 							Completion cc = new Completion(-1, -1, m.getName(), val + "<span class=type>" + compress(m.getName(), m.getDeclarationSignature(
-								    true)) + "</span>" + (m.getComment() != null ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + m.getComment() + "</span>" : ""));
+								true)) + "</span>" + (m.getComment() != null ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + m.getComment() + "</span>" : ""));
 							add(val.length() > 0, r, cc);
 							cc.rank += tostring ? 100 : 0;
-							cc.rank+= m.getComment()!=null ? 10 : 0;
+							cc.rank += m.getComment() != null ? 10 : 0;
 						}
 					}
 				}
@@ -499,8 +547,8 @@ public class JavaSupport {
 				// let's try that now.
 
 				boolean isJava = c.getName()
-						  .startsWith("java") || c.getName()
-									  .startsWith("jdk");
+					.startsWith("java") || c.getName()
+					.startsWith("jdk");
 				if (!wasJava && isJava) break;
 
 			}
@@ -526,13 +574,13 @@ public class JavaSupport {
 
 	private boolean hasAnnotation(List<JavaAnnotation> annotations, Class hiddenInAutocompleteClass) {
 		return annotations.stream()
-				  .filter(x -> x.getType()
-						.getName()
-						.equals(hiddenInAutocompleteClass.getName()
-										 .substring(1 + hiddenInAutocompleteClass.getName()
-															 .lastIndexOf('.'))))
-				  .findFirst()
-				  .isPresent();
+			.filter(x -> x.getType()
+				.getName()
+				.equals(hiddenInAutocompleteClass.getName()
+					.substring(1 + hiddenInAutocompleteClass.getName()
+						.lastIndexOf('.'))))
+			.findFirst()
+			.isPresent();
 	}
 
 	public List<Pair<String, String>> getPossibleJavaClassesFor(String left) {
@@ -541,20 +589,25 @@ public class JavaSupport {
 
 			Set<String> seen = new LinkedHashSet<>();
 
+			System.out.println(" looking for <" + left + "> ? :" + allClassNames.size());
+
 			for (JavaClass c : builder.getClasses()) {
+				System.out.println(" -- " + c.getName());
 				if (c.getName()
-				     .contains(left) && !seen.contains(c.getFullyQualifiedName())) {
+					.contains(left) && !seen.contains(c.getFullyQualifiedName())) {
 					seen.add(c.getFullyQualifiedName());
-					rr.add(new Pair<>(c.getFullyQualifiedName(), "<br><span class=doc>"+c.getComment()+"</span>"));
+					rr.add(new Pair<>(c.getFullyQualifiedName(), "<br><span class=doc>" + MarkdownToHTML.unwrapFirstParagraph(MarkdownToHTML.convert(c.getComment())) + "</span>"));
 				}
 			}
 
+			System.out.println();
 			synchronized (allClassNames) {
 				for (Map.Entry<String, String> e : allClassNames.entrySet()) {
+					System.out.println(" -- " + e.getKey());
 					if (e.getKey()
-					     .contains(left) && !seen.contains(e.getKey())) {
+						.contains(left) && !seen.contains(e.getKey())) {
 						seen.add(e.getKey());
-						rr.add(new Pair<>(e.getKey(), "<br><span class=doc>from " + e.getValue()+"</span>"));
+						rr.add(new Pair<>(e.getKey(), "<br><span class=doc>from " + e.getValue() + "</span>"));
 					}
 				}
 			}
@@ -571,9 +624,7 @@ public class JavaSupport {
 			});
 
 			return rr;
-		}
-		catch(Throwable t)
-		{
+		} catch (Throwable t) {
 			t.printStackTrace();
 			return Collections.emptyList();
 		}

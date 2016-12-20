@@ -6,7 +6,6 @@ import fieldbox.execution.Errors;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 
 import java.util.*;
-import java.util.stream.*;
 import java.util.function.Supplier;
 
 /**

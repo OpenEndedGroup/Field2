@@ -1,8 +1,5 @@
 package field.graphics;
 
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL42;
-
 import static org.lwjgl.opengl.GL15.GL_READ_WRITE;
 import static org.lwjgl.opengl.GL42.glBindImageTexture;
 

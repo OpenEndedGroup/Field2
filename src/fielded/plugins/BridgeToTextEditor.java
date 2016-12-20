@@ -1,13 +1,13 @@
 package fielded.plugins;
 
-import field.graphics.FLine;
 import field.app.RunLoop;
+import field.graphics.FLine;
 import field.linalg.Vec4;
 import field.utility.*;
 import fieldbox.boxes.*;
 import fieldbox.execution.Completion;
-import fieldbox.io.IO;
 import fieldbox.execution.Execution;
+import fieldbox.io.IO;
 import fielded.Commands;
 import fielded.RemoteEditor;
 
@@ -18,8 +18,9 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import static field.graphics.StandardFLineDrawing.*;
-import static fieldbox.boxes.FLineDrawing.*;
+import static fieldbox.boxes.FLineDrawing.frameDrawing;
 
 
 /**

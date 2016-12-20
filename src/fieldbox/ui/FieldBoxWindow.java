@@ -1,17 +1,15 @@
 package fieldbox.ui;
 
-import static org.lwjgl.glfw.GLFW.*;
-
+import field.app.RunLoop;
 import field.graphics.GlfwCallback;
 import field.graphics.GraphicsContext;
-import field.app.RunLoop;
 import field.graphics.Scene;
 import field.graphics.Window;
 import field.utility.Log;
 import fieldagent.Main;
 import org.lwjgl.opengl.GL11;
 
-import java.nio.ByteBuffer;
+import static org.lwjgl.glfw.GLFW.glfwShowWindow;
 
 
 /**

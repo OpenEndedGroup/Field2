@@ -2,11 +2,12 @@ package field.graphics.util;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import static org.lwjgl.glfw.GLFW.*;
 
 import java.awt.event.KeyEvent;
 import java.lang.reflect.Field;
 import java.util.*;
+
+import static org.lwjgl.glfw.GLFW.*;
 
 public class KeyEventMapping {
 

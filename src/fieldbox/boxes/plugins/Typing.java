@@ -1,6 +1,5 @@
 package fieldbox.boxes.plugins;
 
-import static org.lwjgl.glfw.GLFW.*;
 import field.graphics.FLine;
 import field.graphics.StandardFLineDrawing;
 import field.graphics.Window;
@@ -14,6 +13,8 @@ import fieldbox.execution.Execution;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+
+import static org.lwjgl.glfw.GLFW.*;
 
 /**
  * A port of the old typing plugin for Field. Let's you write code that is dispathced to the selected boxes

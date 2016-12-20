@@ -2,13 +2,11 @@ package field.utility;
 
 import fieldbox.execution.Completion;
 import fieldbox.execution.HandlesCompletion;
+import fieldlinker.Linker;
 import fieldnashorn.annotations.SafeToToString;
-import jdk.dynalink.beans.StaticClass;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import jdk.nashorn.api.scripting.ScriptUtils;
-import fieldlinker.Linker;
 
-import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

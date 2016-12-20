@@ -2,9 +2,7 @@ package field.graphics.util;
 
 import field.graphics.FLinesAndJavaShapes;
 import field.linalg.Vec2;
-import field.utility.Log;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class NearestPoint {

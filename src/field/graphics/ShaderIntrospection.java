@@ -15,7 +15,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by marc on 11/24/15.
