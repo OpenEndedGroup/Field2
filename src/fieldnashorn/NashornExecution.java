@@ -423,8 +423,8 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	}
 
 	@Override
-	public void completion(String allText, int line, int ch, Consumer<List<Completion>> results) {
-		List<Completion> r1 = ternSupport.completion(engine, box.properties.get(IO.id), allText, line, ch);
+	public void completion(String allText, int line, int ch, Consumer<List<Completion>> results, boolean explicitlyRequested) {
+		List<Completion> r1 = ternSupport.completion(engine, box.properties.get(IO.id), allText, line, ch, explicitlyRequested);
 
 		if (r1 != null) {
 			results.accept(r1);

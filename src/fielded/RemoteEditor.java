@@ -335,7 +335,7 @@ public class RemoteEditor extends Box {
 
 
 					}
-				});
+				}, false);
 			});
 
 			return payload;
@@ -672,7 +672,7 @@ public class RemoteEditor extends Box {
 
 
 				return stringer.toString();
-			}));
+			}), true);
 
 			return payload;
 		});

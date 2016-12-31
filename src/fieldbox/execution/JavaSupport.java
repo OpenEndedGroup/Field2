@@ -69,7 +69,7 @@ public class JavaSupport {
 					String appDir = System.getProperty("appDir");
 					if (new File(appDir, "src").exists() && new File(appDir, "src").isDirectory()) {
 						Log.log("jar.indexer", () -> "found a src directory in appDir");
-						if (indexSrcTree(appDir + "/src"));
+						if (indexSrcTree(appDir + "/src")) ;
 					}
 
 					Log.log("jar.indexer", () -> "will index paths:" + paths + " from classloader " + classLoader);
@@ -86,6 +86,11 @@ public class JavaSupport {
 
 							File f = new File(path.getFile());
 							while (f != null) {
+
+								File finalF2 = f;
+								Log.log("jar.indexer", () -> "recursing upwards to :" + finalF2.getAbsolutePath());
+
+
 								if (f.isDirectory()) {
 									if (new File(f, "src.zip").exists()) {
 										final File finalF = f;
@@ -102,6 +107,20 @@ public class JavaSupport {
 												e.printStackTrace();
 											}
 											break;
+										}
+									} else if (new File(f, "srcjars").exists()) {
+										for (File ff : new File(f, "srcjars").listFiles(x -> x.getName().endsWith(".jar"))) {
+											String p = ff.getAbsolutePath();
+											synchronized (srcZipsDeltWith) {
+												if (srcZipsDeltWith.contains(p))
+													break;
+												srcZipsDeltWith.add(p);
+												try {
+													indexSrcZip(p);
+												} catch (IOException e) {
+													e.printStackTrace();
+												}
+											}
 										}
 									}
 								}
@@ -174,7 +193,7 @@ public class JavaSupport {
 
 	private boolean indexSrcTree(String p) {
 		if (srcZipsDeltWith.contains(p)) {
-			Log.log("jar.indexer", () -> " we've already delt with path "+p);
+			Log.log("jar.indexer", () -> " we've already delt with path " + p);
 			return true;
 		}
 		srcZipsDeltWith.add(p);
@@ -240,9 +259,19 @@ public class JavaSupport {
 		Enumeration entries = zipFile.entries();
 		while (entries.hasMoreElements()) {
 			ZipEntry zipEntry = (ZipEntry) entries.nextElement();
-			String u = "jar:file://" + filename + "!/" + zipEntry.getName();
-			Log.log("jar.indexer", () -> "will index a source file from a jar:" + u);
-			builder.addSource(new URL(u));
+			try {
+				if (zipEntry.getName().endsWith(".java")) {
+					String u = "jar:file://" + filename + "!/" + zipEntry.getName();
+					Log.log("jar.indexer", () -> "will index a source file from a jar:" + u);
+					builder.addSource(new URL(u));
+				}
+			} catch (com.thoughtworks.qdox.parser.ParseException t) {
+				t.printStackTrace();
+			}
+			catch(Throwable t)
+			{
+				t.printStackTrace();
+			}
 		}
 	}
 
@@ -418,7 +447,8 @@ public class JavaSupport {
 		JavaClass j = builder.getClassByName(c.getName());
 
 		final JavaClass finalJ = j;
-		Log.log("completion.debug", () -> " java class (for javadoc supported completion) :" + finalJ + " prefix is <" + prefix + "> " + includeConstructors + " " + staticsOnly);
+		boolean finalIncludeConstructors = includeConstructors;
+		Log.log("completion.debug", () -> " java class (for javadoc supported completion) :" + finalJ + " prefix is <" + prefix + "> " + finalIncludeConstructors + " " + staticsOnly);
 
 		List<Completion> r = new ArrayList<>();
 		try {
@@ -551,6 +581,7 @@ public class JavaSupport {
 					.startsWith("jdk");
 				if (!wasJava && isJava) break;
 
+				includeConstructors = false; // only include constructors from the initial class
 			}
 		} catch (Throwable t) {
 			t.printStackTrace();

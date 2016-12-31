@@ -68,7 +68,7 @@ public class Execution extends Box {
 
 		void setConsoleOutput(Consumer<String> stdout, Consumer<String> stderr);
 
-		void completion(String allText, int line, int ch, Consumer<List<Completion>> results);
+		void completion(String allText, int line, int ch, Consumer<List<Completion>> results, boolean explicitlyRequested);
 
 		void imports(String allText, int line, int ch, Consumer<List<Completion>> results);
 

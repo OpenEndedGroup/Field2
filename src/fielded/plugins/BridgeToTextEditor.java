@@ -198,8 +198,8 @@ public class BridgeToTextEditor extends Box {
 				}
 
 				@Override
-				public void completion(String allText, int line, int ch, Consumer<List<Completion>> results) {
-					tern.completion(x -> delegateTo.sendJavaScript(x), "remoteFieldProcess", allText, line, ch);
+				public void completion(String allText, int line, int ch, Consumer<List<Completion>> results, boolean explicitlyRequested) {
+					tern.completion(x -> delegateTo.sendJavaScript(x), "remoteFieldProcess", allText, line, ch ,explicitlyRequested);
 					results.accept(Collections.emptyList());
 				}
 
