@@ -94,7 +94,7 @@ public class DragToCopy extends Box {
 
 		for(Box b : s)
 		{
-			mapping.put(b, duplicateBox(b));
+			mapping.put(b, duplicateBox(b, b.getClass()));
 		}
 
 
@@ -130,20 +130,20 @@ public class DragToCopy extends Box {
 
 	}
 
-	public Box duplicateBox(Box b)
+	static public Box duplicateBox(Box b, Class clazz)
 	{
 		try {
-			Box c = b.getClass()
-				   .getConstructor()
-				   .newInstance();
+			Box c = (Box) clazz
+				.getConstructor()
+				.newInstance();
 
 			// copy any IO.persist and Mutable attributes
 
 			Set<Map.Entry<Dict.Prop, Object>> es = b.properties.getMap()
-										.entrySet();
+				.entrySet();
 			for(Map.Entry<Dict.Prop, Object> e : es)
 			{
-				if (IO.isPeristant(e.getKey()) || e.getValue() instanceof Mutable || e.getValue() instanceof Serializable)
+				if (!e.getKey().getAttributes().isTrue(IO.dontCopy, false) && (IO.isPeristant(e.getKey()) || e.getValue() instanceof Mutable || e.getValue() instanceof Serializable))
 				{
 					Object v = e.getValue();
 					if (v instanceof Mutable) v = ((Mutable)v).duplicate();
@@ -167,7 +167,8 @@ public class DragToCopy extends Box {
 		}
 	}
 
-	private Serializable duplicateSerializable(Serializable v) {
+
+	private static Serializable duplicateSerializable(Serializable v) {
 		ByteArrayOutputStream t = new ByteArrayOutputStream();
 		try {
 			ObjectOutputStream o = new ObjectOutputStream(t);
