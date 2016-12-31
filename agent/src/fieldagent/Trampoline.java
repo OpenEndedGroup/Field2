@@ -247,12 +247,11 @@ public class Trampoline {
 
 		Set<File> jarsToAdd = new LinkedHashSet<>();
 		Set<File> roots = new LinkedHashSet<>();
-		String[] classBuildStyles = {"/out/production", "build/classes"};
+		String[] classBuildStyles = {"/out/production", "/build/classes", "/lib/jars"};
 
 		for (String c : classBuildStyles)
 			try {
 				Files.walk(new File(System.getProperty("appDir") + c).toPath()).forEach(x -> {
-
 					if (x.toFile().getName().endsWith(".jar")) {
 						jarsToAdd.add(x.toFile());
 					} else if (x.toFile().isDirectory()) {
