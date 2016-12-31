@@ -182,8 +182,16 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 			return new FBOSpecification(unit, GL_RGBA, width, height, GL_RGBA, GL_BYTE, 8, false, 1, false, false, 1);
 		}
 
+		static public FBOSpecification rgbaAndDepth(int unit, int width, int height) {
+			return new FBOSpecification(unit, GL_RGBA, width, height, GL_RGBA, GL_BYTE, 8, true, 1, false, false, 1);
+		}
+
 		static public FBOSpecification rgbaMultisample(int unit, int width, int height) {
 			return new FBOSpecification(unit, GL_RGBA, width, height, GL_RGBA, GL_BYTE, 8, false, 1, true, false, 1);
+		}
+
+		static public FBOSpecification rgbaMultisampleAndDepth(int unit, int width, int height) {
+			return new FBOSpecification(unit, GL_RGBA, width, height, GL_RGBA, GL_BYTE, 8, true, 1, true, false, 1);
 		}
 
 		static public FBOSpecification srgba(int unit, int width, int height) {
