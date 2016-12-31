@@ -9,6 +9,7 @@ import field.linalg.Vec4;
 import field.utility.*;
 import fieldbox.boxes.plugins.FileBrowser;
 import fieldbox.boxes.plugins.Planes;
+import fieldbox.io.IO;
 
 import java.awt.*;
 import java.util.*;
@@ -48,18 +49,18 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 
 	static public final Dict.Prop<Map<String, Function<Box, FLine>>> frameDrawing = new Dict.Prop<>("frameDrawing").type()
 		.toCannon()
-		.doc("Functions that compute lines to be drawn along with this box");
+		.doc("Functions that compute lines to be drawn along with this box").set(IO.dontCopy, true);
 
 	static public final Dict.Prop<IdempotencyMap<Supplier<FLine>>> lines = new Dict.Prop<>("lines").type()
 		.toCannon()
 		.doc("Geometry to be drawn along with this box")
-		.autoConstructs(() -> new IdempotencyMap<>(Supplier.class));
+		.autoConstructs(() -> new IdempotencyMap<>(Supplier.class)).set(IO.dontCopy, true);
 
 
 	static public final Dict.Prop<IdempotencyMap<Supplier<Collection<Supplier<FLine>>>>> bulkLines = new Dict.Prop<>("bulkLines").type()
 		.toCannon()
 		.doc("Geometry to be drawn along with this box")
-		.autoConstructs(() -> new IdempotencyMap<>(Supplier.class));
+		.autoConstructs(() -> new IdempotencyMap<>(Supplier.class)).set(IO.dontCopy, true);
 
 	static public final Dict.Prop<String> layer = new Dict.Prop<>("layer").type()
 		.toCannon()

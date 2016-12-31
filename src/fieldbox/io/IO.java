@@ -35,6 +35,7 @@ public class IO {
 	static public final String WORKSPACE = "{{workspace}}";
 	static public final String EXECUTION = "{{execution}}";
 	static public final String TEMPLATES = "{{templates}}";
+
 	public static final Dict.Prop<String> id = new Dict.Prop<>("__id__").autoConstructs(() -> Box.newID());
 	public static final Dict.Prop<String> desiredBoxClass = new Dict.Prop<>("__desiredBoxClass__");
 	public static final Dict.Prop<String> comment = new Dict.Prop<>("comment").toCannon()
@@ -50,9 +51,13 @@ public class IO {
 											 .doc("marks a property as being saved to disk")
 											 .set(Dict.domain, "*/attributes");
 	public static final Dict.Prop<Boolean> perDocument = new Dict.Prop<>("perDocument").toCannon()
-											   .type()
-											   .doc("marks a property as being saved, conceptually, with the document rather than with the box (which might be shared between documents).")
-											   .set(Dict.domain, "*/attributes");
+		.type()
+		.doc("marks a property as being saved, conceptually, with the document rather than with the box (which might be shared between documents).")
+		.set(Dict.domain, "*/attributes");
+	public static final Dict.Prop<Boolean> dontCopy = new Dict.Prop<>("dontCopy").toCannon()
+		.type()
+		.doc("marks a property as not being copyable between boxes.")
+		.set(Dict.domain, "*/attributes");
 
 	public static final Dict.Prop<List<String>> classpath = new Dict.Prop<>("classpath").toCannon()
 											    .type()
@@ -70,6 +75,8 @@ public class IO {
 
 	private String defaultDirectory;
 	private String templateDirectory;
+
+
 	boolean lastWasNew = false;
 	EDN edn = new EDN();
 	private PluginList pluginList;
