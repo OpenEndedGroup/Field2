@@ -375,7 +375,6 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	 */
 	public MeshBuilder nextElement(int v1, int v2, int v3) {
 
-
 		IntBuffer dest = ensureElementSize(3, elementCursor);
 		if (vertexCursor - 1 - v1 < 0)
 			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with start " + v1 + " > " + (vertexCursor - 1));
@@ -467,6 +466,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	 */
 	public MeshBuilder nextElement(List<Integer> toTesselate) {
 
+
 		ArrayList<Integer> abs = new ArrayList<Integer>(toTesselate.size());
 		for (int i = 0; i < toTesselate.size(); i++)
 			abs.add(-toTesselate.get(i) + vertexCursor);
@@ -542,6 +542,83 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 		tess.endContour();
 		tess.end();
 		return this;
+	}
+
+	public MeshBuilder nextMesh(List<Vec3> vertex, List<int[]> faces) {
+		int here = vertexCursor;
+		vertex.forEach(x -> nextVertex(x));
+
+		if (target.elements == null) {
+			return this;
+		}
+
+		if (target.elements.getDimension() == 2) {
+			int origin = vertexCursor - here;
+
+			for (int[] f : faces) {
+				for (int i = 0; i < f.length; i++) {
+					int a = f[i];
+					int b = f[(i + 1) % f.length];
+
+					b = origin - b;
+					a = origin - a;
+
+					nextElement(a, b);
+				}
+			}
+			return this;
+		}
+
+		if (target.elements.getDimension() == 4) {
+			int origin = vertexCursor - here;
+
+			for (int[] f : faces) {
+				for (int i = 0; i < f.length; i++) {
+					int a0 = f[(i-1+f.length)%f.length];
+					int a = f[i];
+					int b = f[(i + 1) % f.length];
+					int b0 = f[(i + 2) % f.length];
+
+					b0 = origin - b0;
+					a0 = origin - a0;
+					b = origin - b;
+					a = origin - a;
+
+					nextElement(a0, a, b, b0);
+				}
+			}
+			return this;
+		}
+
+		if (target.elements.getDimension() == 3) {
+
+			int origin = vertexCursor - here;
+			for (int[] f : faces) {
+
+				if (f.length==3)
+				{
+					nextElement(origin-f[0], origin-f[1], origin-f[2]);
+					continue;
+				}
+				if (f.length==4)
+				{
+					nextElement(origin-f[0], origin-f[1], origin-f[2]);
+					nextElement(origin-f[0], origin-f[2], origin-f[3]);
+					continue;
+				}
+				if (f.length<3)
+					continue;
+
+				List<Integer> ee = new ArrayList<>(f.length);
+				for(int ff : f)
+					ee.add(origin-ff);
+				nextElement(ee);
+			}
+			return this;
+		}
+
+		throw new IllegalArgumentException(" nextMesh not supported for element dimension "+target.elements.getDimension());
+
 	}
 
 	/**
