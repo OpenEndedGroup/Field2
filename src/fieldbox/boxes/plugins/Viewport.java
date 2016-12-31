@@ -258,7 +258,6 @@ public class Viewport extends Box implements IO.Loaded, ProvidesGraphicsContext 
 			Optional<Drawing> od = this.first(Drawing.drawing);
 
 			// TODO, blast radius of change to DrawingInterface? Viewports cannot clip properly on non-window renderers
-
 			Vec2 tl = od.get().drawingSystemToWindowSystem(new Vec2(f.x, f.y));
 			Vec2 bl = od.get().drawingSystemToWindowSystem(new Vec2(f.x + f.w, f.y + f.h));
 
@@ -266,9 +265,8 @@ public class Viewport extends Box implements IO.Loaded, ProvidesGraphicsContext 
 				.get();
 			int h = window.getHeight();
 			int w = window.getWidth();
-
 			float rs = window.getRetinaScaleFactor();
-			int[] v = new int[]{(int) ((int) tl.x * rs), (int) ((int) (h - bl.y) * rs), (int) ((int) (bl.x - tl.x + 2) * rs), (int) ((int) (bl.y - tl.y + 2) * rs)};
+			int[] v = new int[]{(int) ((int) tl.x * rs)+5, (int) ((int) (h - bl.y) * rs)+3, (int) ((int) (bl.x - tl.x + 2) * rs)-9, (int) ((int) (bl.y - tl.y + 2) * rs-12)};
 
 			GraphicsContext.getContext().stateTracker.scissor.set(v);
 			GraphicsContext.getContext().stateTracker.viewport.set(v);
