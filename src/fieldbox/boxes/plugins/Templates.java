@@ -24,16 +24,16 @@ import java.util.stream.Stream;
 public class Templates extends Box implements IO.Loaded {
 
 	static public final Dict.Prop<Box.BiFunctionOfBoxAnd<String, Box>> templateChild = new Dict.Prop<>("templateChild").toCannon()
-																			     .type()
-																			     .doc("`_.templateChild('template')` create a new box that's a child of this one, copied from 'template'");
+		.type()
+		.doc("`_.templateChild('template')` create a new box that's a child of this one, copied from 'template'");
 
 	static public final Dict.Prop<Box.TriFunctionOfBoxAnd<String, String, Box>> ensureChildTemplated = new Dict.Prop<>("ensureChildTemplated").toCannon()
-																						    .type()
-																						    .doc("`_.ensureChildTemplated('template', 'a')` create a new box that's a child of this one, copied from `template`, called `a`. If there's already something called `a`, just return that");
+		.type()
+		.doc("`_.ensureChildTemplated('template', 'a')` create a new box that's a child of this one, copied from `template`, called `a`. If there's already something called `a`, just return that");
 
 	static public final Dict.Prop<Box.BiFunctionOfBoxAnd<String, Box>> saveAsTemplate = new Dict.Prop<>("saveAsTemplate").type()
-															     .toCannon()
-															     .doc("`_.saveAsTemplate('name')`. Save this box as a template called `name`");
+		.toCannon()
+		.doc("`_.saveAsTemplate('name')`. Save this box as a template called `name`");
 
 	private final Box root;
 	FileBrowser fileBrowser;
@@ -42,7 +42,6 @@ public class Templates extends Box implements IO.Loaded {
 
 		this.root = root;
 
-
 		properties.put(saveAsTemplate, (box, name) -> saveAsTemplate(Collections.singleton(box), name));
 
 		properties.put(templateChild, (of, name) -> {
@@ -50,7 +49,7 @@ public class Templates extends Box implements IO.Loaded {
 			String path = fieldbox.FieldBox.fieldBox.io.findTemplateCalled(name);
 
 			Box c = loadBox(path, of.properties.get(Box.frame)
-							   .convert(0.9, 0.9));
+				.convert(0.9, 0.9));
 
 			IO.uniqifyIfNecessary(root, c);
 
@@ -72,16 +71,16 @@ public class Templates extends Box implements IO.Loaded {
 
 
 			Optional<Box> f = box.children()
-					     .stream()
-					     .filter(x -> x.properties.equals(Box.name, name))
-					     .findFirst();
+				.stream()
+				.filter(x -> x.properties.equals(Box.name, name))
+				.findFirst();
 
 			return f.orElseGet(() -> {
 
 				String path = fieldbox.FieldBox.fieldBox.io.findTemplateCalled(template);
 
 				Box c = loadBox(path, box.properties.get(Box.frame)
-								    .convert(0.9, 0.9));
+					.convert(0.9, 0.9));
 
 				c.properties.put(Box.name, name);
 
@@ -101,42 +100,43 @@ public class Templates extends Box implements IO.Loaded {
 
 			if (numSelected > 0)
 				m.put(new Pair<>("Save as template", "Makes this " + (numSelected == 1 ? "box" : "selection of " + numSelected + " boxes") + " a reusable, easily imported template"),
-				      new RemoteEditor.ExtendedCommand() {
+					new RemoteEditor.ExtendedCommand() {
 
-					      public RemoteEditor.SupportsPrompt p;
+						public RemoteEditor.SupportsPrompt p;
 
-					      @Override
-					      public void begin(RemoteEditor.SupportsPrompt prompt, String alternativeChosen/*, Consumer<String> feedback*/) {
-						      this.p = prompt;
-					      }
+						@Override
+						public void begin(RemoteEditor.SupportsPrompt prompt, String alternativeChosen/*, Consumer<String> feedback*/) {
+							this.p = prompt;
+						}
 
-					      @Override
-					      public void run() {
+						@Override
+						public void run() {
 
-						      Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
+							Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
 
-						      p.prompt("name of template...", m, new RemoteEditor.ExtendedCommand() {
-							      String altWas = null;
-							      Consumer<String> feedback;
+							p.prompt("name of template...", m, new RemoteEditor.ExtendedCommand() {
+								String altWas = null;
+								Consumer<String> feedback;
 
-							      @Override
-							      public void begin(RemoteEditor.SupportsPrompt prompt, String alternativeChosen/*, Consumer<String> feedback*/) {
-								      altWas = alternativeChosen;
-								      this.feedback = feedback;
-							      }
+								@Override
+								public void begin(RemoteEditor.SupportsPrompt prompt, String alternativeChosen/*, Consumer<String> feedback*/) {
+									altWas = alternativeChosen;
+									this.feedback = feedback;
+								}
 
-							      @Override
-							      public void run() {
+								@Override
+								public void run() {
 
-								      if (altWas != null)
-									      saveAsTemplate(selection().collect(Collectors.toSet()), altWas);
+									if (altWas != null)
+										saveAsTemplate(selection().collect(Collectors.toSet()), altWas);
 
-								      if (feedback != null) feedback.accept("Loaded \"" + altWas + "\"");
+									if (feedback != null)
+										feedback.accept("Loaded \"" + altWas + "\"");
 
-							      }
-						      });
-					      }
-				      });
+								}
+							});
+						}
+					});
 			return m;
 		});
 	}
@@ -144,8 +144,8 @@ public class Templates extends Box implements IO.Loaded {
 	@Override
 	public void loaded() {
 		fileBrowser = (FileBrowser) breadthFirst(both()).filter(x -> x instanceof FileBrowser)
-						      .findFirst()
-						      .orElseThrow(() -> new IllegalArgumentException("can't find filebrowser"));
+			.findFirst()
+			.orElseThrow(() -> new IllegalArgumentException("can't find filebrowser"));
 
 	}
 
@@ -155,37 +155,51 @@ public class Templates extends Box implements IO.Loaded {
 		Map<Box, String> special = new LinkedHashMap<>();
 
 		Box root = b.iterator()
-			    .next()
-			    .find(Boxes.root, b.iterator()
-					       .next()
-					       .upwards())
-			    .findFirst()
-			    .get();
+			.next()
+			.find(Boxes.root, b.iterator()
+				.next()
+				.upwards())
+			.findFirst()
+			.get();
 
-		String path = IO.TEMPLATES+"/"+filename+"/";
+		String path = IO.TEMPLATES + "/" + filename + "/";
 
 		special.put(root, ">>root<<");
 
-		IO.Document doc = FieldBox.fieldBox.io.compileDocument(path, root, x -> b.contains(x), special);
+		List<Runnable> undo = new LinkedList<>();
+
+		IO.Document doc = FieldBox.fieldBox.io.compileDocument(path, root, x -> {
+			undo.add(IO.uniqify(x));
+			return b.contains(x);
+		}, special);
+
+		Map<String, String> remap = new LinkedHashMap<String, String>();
 
 		doc.externalList.forEach(x -> {
-			x.id = Box.newID();
+			String nid = Box.newID();
+			remap.put(x.id, nid);
+			x.id = nid;
 		});
+
+		doc.externalList.forEach(x -> {
+			x.children = x.children.stream().map(y -> remap.getOrDefault(y, y)).filter(y -> y != null).collect(Collectors.toList());
+			x.parents = x.parents.stream().map(y -> remap.getOrDefault(y, y)).filter(y -> y != null).collect(Collectors.toList());
+		});
+
 
 		boolean error = false;
 		try {
-			FieldBox.fieldBox.io.writeOutDocument(IO.TEMPLATES + "/" + filename + "/"+filename+(filename.endsWith(".field2") ? "" : ".field2"), doc);
+			FieldBox.fieldBox.io.writeOutDocument(IO.TEMPLATES + "/" + filename + "/" + filename + (filename.endsWith(".field2") ? "" : ".field2"), doc);
 		} catch (IOException e) {
 			e.printStackTrace();
 			Drawing.notify("Error saving " + e.getMessage(), b.iterator()
-									  .next(), 200);
+				.next(), 200);
 			error = true;
 		}
 
-		b.forEach(x -> {
-			IO.uniqify(x);
-		});
-		
+		for (Runnable r : undo)
+			r.run();
+
 		return b.iterator()
 			.next();
 	}
