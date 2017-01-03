@@ -203,8 +203,10 @@ public class TextEditor extends Box implements IO.Loaded {
 						heightLast = (int) f.h;
 						f = f.duplicate();
 
-						setHeightCode = "$(\"body\").height(" + Math.min(f.h-20, maxhOnCreation - 40) + ");cm.refresh();";
-						setHeightCode += "$(\".CodeMirror\").height(" + Math.min(f.h-20, maxhOnCreation - 40) + ");cm.refresh();";
+						System.out.println(" h = "+Math.min(f.h, maxhOnCreation - 40));
+
+						setHeightCode = "$(\"body\").height(" + Math.min(f.h*0.83, maxhOnCreation - 40) + ");cm.refresh();";
+						setHeightCode += "$(\".CodeMirror\").height(" + Math.min(f.h*0.83, maxhOnCreation - 40) + ");cm.refresh();";
 						executeJavaScript(setHeightCode);
 					}
 
@@ -286,7 +288,7 @@ public class TextEditor extends Box implements IO.Loaded {
 	@HiddenInAutocomplete
 	private String findAndLoad(String f, boolean append) {
 
-		String[] roots = {Main.app + "/modules/fieldcore/resources/", Main.app + "/modules/fieldcef_macosx/resources/",Main.app + "/lib/web/"};
+		String[] roots = {Main.app + "/modules/fieldcore/resources/", Main.app + "/modules/fieldcef_macosx/resources/"};
 		for (String s : roots) {
 			if (new File(s + "/" + f).exists()) return readFile(s + "/" + f, append);
 		}

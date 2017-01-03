@@ -13,9 +13,10 @@ Welcome to the Field2 development repository. _This codebase is experimental and
 To build, first take a moment to make sure that there's a working `javac` command on your system, and it points to a JDK 9 EA:
 
 ```bash
-m0:~ marc$ javac -version
-javac 9-ea
+m0:~ marc$ javac -fullversion
+javac version "9-ea+147"
 ```
+You might have to mess around with your `$PATH` a little.
 
 Then, on macOS and Linux, it should simply be a matter of:
 
@@ -23,32 +24,16 @@ Then, on macOS and Linux, it should simply be a matter of:
 m0:~ marc$ ./build.sh
 ```
 
+On Windows / Cygwin (Babun etc.), try `./build_win.sh`.
+
 Then, assuming an error-free build:
 
 ```bash
 ./f_mac fieldbox.FieldBox -file helloField.field2
 ```
 
-on Linux subsitute ```./f_linux``` for ```./f_mac```. And be prepared to edit these scripts to point directly at your JDK
-
-```fieldbox.FieldBox``` is the Java Class that's the main entry-point into Field2. 
+on Linux subsitute ```./f_linux``` for ```./f_mac```, on Windows/Cygwin ```./f_win```. Be prepared to edit these scripts to point directly at your JDK. ```fieldbox.FieldBox``` is the Java Class that's the main entry-point into Field2. 
  
-In case of confusion, search the issues here and email marc (marc@openendedgroup.com); in case of trouble or doubt, file an issue. 
-
-## Plugins (e.g Editor, Processing, Clojure)
-
-We now have a skethc of a Plugin API. Field will write an example to ```~/.field/plugins.edn``` on first run. Edit this to extend the classpath, set options and tell Field to add plugins. So, for example, to run the Processing Plugin, I have a file that reads something like this:
-
-```clojure
-{:classpath [ "/Users/marc/Downloads/Processing.app/Contents/Java/core/library/core.jar"] } ; adds the core Processing jar to Field and the place where you are building fieldprocessing
-{:plugin fieldprocessing.Processing} ; tells Field to initialize the Processing plugin 
-
-```
-
-Edit that path to point to where you are building Field2 and where you have downloaded Processing 2 to (```.../marc/fieldwork2/...``` and ```.../marc/Downloads/Processing.app/...```).
-
-If something goes wrong initializing a plugin Field will continue to launch, but look in the terminal for the stacktrace and error message.
-
 # License
 
 GPLv3 covers the project as a whole, dependencies not included.

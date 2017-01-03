@@ -40,8 +40,8 @@ public class CefSystem {
 
 	protected CefSystem()
 	{
-		cefApp = CefApp.getInstance(new String[]{"--overlay-scrollbars",/* "--single-process", */
-			"--off-screen-rendering-mode-enabled", "--enable-gpu", "--enable-experimental-web-platform-features"});
+		cefApp = CefApp.getInstance(new String[]{"--overlay-scrollbars",/* "--enable-direct-write", "--single-process",*/
+			"--off-screen-rendering-mode-enabled", /*"--enable-gpu",*/ "--enable-experimental-web-platform-features", "--disable-gpu", "--disable-gpu-compositing", "--enable-begin-frame-scheduling", "--off-screen-frame-rate=60", "--external-message-pump", "--multi-threaded-message-loop"});
 
 		if (false) // not needed in windows
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
