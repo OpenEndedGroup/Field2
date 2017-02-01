@@ -142,7 +142,6 @@ public class JavaSupport {
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
-					System.out.println(" allClassNames\n\n" + allClassNames.keySet() + "\n\n");
 
 					allClassNames.putAll(indexJigsaw());
 
@@ -207,7 +206,6 @@ public class JavaSupport {
 		scanner.scan(new com.thoughtworks.qdox.directorywalker.FileVisitor() {
 			public void visitFile(File currentFile) {
 				try {
-					System.out.println(" adding :" + currentFile + "  (" + p + ")");
 					builder.addSource(currentFile);
 				} catch (Throwable var3) {
 					var3.printStackTrace();
@@ -619,8 +617,6 @@ public class JavaSupport {
 			List<Pair<String, String>> rr = new ArrayList<>();
 
 			Set<String> seen = new LinkedHashSet<>();
-
-			System.out.println(" looking for <" + left + "> ? :" + allClassNames.size());
 
 			for (JavaClass c : builder.getClasses()) {
 				System.out.println(" -- " + c.getName());
