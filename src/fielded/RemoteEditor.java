@@ -331,7 +331,11 @@ public class RemoteEditor extends Box {
 							also = "<div style='font-size:80%'>" + also + "</div>";
 						}
 
-						completionHelp.set("<div class='comp-space'>" + cc.get(0).replacewith + "</div> <span class=doc>" + cc.get(0).info.replace("&mdash;", "<br>") + "</span>" + also);
+						String doc = cc.get(0).info.replace("&mdash;", "<br>");
+						if (doc.length()>200)
+							doc = doc.substring(0, 200)+"...";
+
+						completionHelp.set("<div class='comp-space'>" + cc.get(0).replacewith + "</div> <span class=doc>" + doc + "</span>" + also);
 
 
 					}
