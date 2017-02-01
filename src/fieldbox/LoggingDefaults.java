@@ -47,7 +47,7 @@ public class LoggingDefaults {
 //		Log.on(".*keyboard.*", Log::green);
 //		Log.disable(".*cache.*");
 //		Log.on(".*keyboard.*", Log::green);
-		Log.on(".*jar.indexer.*", Log::green);
+//		Log.on(".*jar.indexer.*", Log::green);
 //		Log.on("finalkey", Log::green);
 		Log.disable("drawing");
 //		Log.fallthrough((a,b) -> Log.println(a, b.get()));
