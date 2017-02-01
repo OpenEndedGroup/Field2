@@ -170,26 +170,29 @@ public class TernSupport {
 						String previousS = allText.substring(previously[0], previously[1]);
 
 
-						Object e = engine.eval("_e=eval('" + previousS.replace("'", "\\'") + "')");
-						Log.log("completion.debug", () -> "PREVIOUS e is :" + e + " " + e.getClass() + " computed prefix from <" + s + "> <" + s.lastIndexOf('.') + ">");
+						if (explicitlyRequested) {
+							Object e = engine.eval("_e=eval('" + previousS.replace("'", "\\'") + "')");
+							Log.log("completion.debug", () -> "PREVIOUS e is :" + e + " " + e.getClass() + " computed prefix from <" + s + "> <" + s.lastIndexOf('.') + ">");
 
 
-						if (e instanceof HandlesQuoteCompletion) {
-							r.clear();
-							List<Completion> completions = ((HandlesQuoteCompletion) e).getQuoteCompletionsFor(quoteSoFar);
-							for (Completion x : completions) {
-								if (x.start == -1) x.start = c - quoteSoFar.length();
-								if (x.end == -1) x.end = c;
+							if (e instanceof HandlesQuoteCompletion) {
+								r.clear();
+								List<Completion> completions = ((HandlesQuoteCompletion) e).getQuoteCompletionsFor(quoteSoFar);
+								for (Completion x : completions) {
+									if (x.start == -1)
+										x.start = c - quoteSoFar.length();
+									if (x.end == -1) x.end = c;
+								}
+								r.addAll(completions);
+								Collections.sort(r, (a, b) -> {
+									if (a.rank != b.rank)
+										return Double.compare(a.rank, b.rank);
+									if (a.replacewith.length() != b.replacewith.length())
+										return Double.compare(a.replacewith.length(), b.replacewith.length());
+									return String.CASE_INSENSITIVE_ORDER.compare(a.replacewith, b.replacewith);
+								});
+								customCompleted = true;
 							}
-							r.addAll(completions);
-							Collections.sort(r, (a, b) -> {
-								if (a.rank != b.rank)
-									return Double.compare(a.rank, b.rank);
-								if (a.replacewith.length() != b.replacewith.length())
-									return Double.compare(a.replacewith.length(), b.replacewith.length());
-								return String.CASE_INSENSITIVE_ORDER.compare(a.replacewith, b.replacewith);
-							});
-							customCompleted = true;
 						}
 					} catch (Throwable t) {
 						Log.log("completion.error", () -> "quote completion threw an exception, but we'll continue on anyway");
@@ -272,8 +275,7 @@ public class TernSupport {
 							if (x.start == -1) x.start = c - right.length();
 							if (x.end == -1) x.end = c;
 
-							if (x.replacewith.toLowerCase().equals(left.toLowerCase()))
-							{
+							if (x.replacewith.toLowerCase().equals(left.toLowerCase())) {
 								x.start -= left.length();
 							}
 						}
@@ -299,7 +301,7 @@ public class TernSupport {
 				t.printStackTrace();
 			}
 		} catch (ScriptException e) {
-			e.printStackTrace();
+			Log.log("completion.errors", () -> "Completion throw an exception "+e.getMessage());
 		}
 		Collections.sort(r, (a, b) -> {
 			return String.CASE_INSENSITIVE_ORDER.compare(a.replacewith, b.replacewith);
