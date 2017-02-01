@@ -536,10 +536,11 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 			ato = ByteBuffer.allocateDirect(sz);
 		} else ato = to;
 
+		Thread t = Thread.currentThread();
 		CompletableFuture<ByteBuffer> c = new CompletableFuture<ByteBuffer>() {
 			@Override
 			public ByteBuffer get() throws InterruptedException, ExecutionException {
-				if (!isDone()) return ato;
+				if (Thread.currentThread()==t && !isDone()) return ato;
 				return super.get();
 			}
 		};

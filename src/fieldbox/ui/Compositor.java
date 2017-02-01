@@ -169,6 +169,10 @@ public class Compositor {
 			return this;
 		}
 
+		public FBO getFBO() {
+			return fbo;
+		}
+
 		public void addDependancy(Layer l) {
 			// javaC / IDEA need these casts
 			dependsOn.put(l, new Cache<Layer>(l, x -> x.mod, x -> {
