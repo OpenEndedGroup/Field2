@@ -430,10 +430,16 @@ public class FrameManipulation extends Box {
 			});
 	}
 
-	static public void setSelectionTo(Box root, Set<Box> workingSet) {
+	static public Runnable setSelectionTo(Box root, Set<Box> workingSet) {
+		Set<Box> previouslySelected = new LinkedHashSet<>();
+
 		root.breadthFirst(root.both())
 			.filter(x -> x.properties.has(Box.frame))
 			.filter(x -> x.properties.has(Box.name)).forEach(x -> {
+
+			if (x.properties.isTrue(Mouse.isSelected, false)) {
+				previouslySelected.add(x);
+			}
 
 			if (x.properties.isTrue(Mouse.isSelected, false) && !workingSet.contains(x)) {
 				Callbacks.transition(x, Mouse.isSelected, false, false, Callbacks.onSelect, Callbacks.onDeselect);
@@ -444,6 +450,8 @@ public class FrameManipulation extends Box {
 			}
 
 		});
+
+		return () -> setSelectionTo(root, previouslySelected);
 	}
 
 	private Set<Box> singleChildrenFor(Box z) {
