@@ -271,6 +271,12 @@ public class Dict implements Serializable, Linker.AsMap {
 			return (Prop<V>) this;
 		}
 
+		public <V> Prop<V> set(Prop<Boolean> m) {
+			getAttributes().put(m, true);
+			return (Prop<V>)this;
+		}
+
+
 		@Override
 		public boolean asMap_isProperty(String p) {
 			return Canonical.findCannon(p) != null;
@@ -325,6 +331,7 @@ public class Dict implements Serializable, Linker.AsMap {
 		public boolean asMap_delete(Object o) {
 			return getAttributes().asMap_delete(o);
 		}
+
 	}
 
 	Map<Prop, Object> dictionary = new MapMaker().concurrencyLevel(2)
