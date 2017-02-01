@@ -23,8 +23,9 @@ public class ArcBallCamera {
 		Mat4 fromView;
 	}
 
-	public ArcBallCamera(Camera target) {
+	public ArcBallCamera(Camera target, Box installInto) {
 		this.target = target;
+		install(installInto);
 	}
 
 	public void install(Box b) {
