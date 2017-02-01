@@ -30,9 +30,6 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 
 	boolean disabled = System.getProperty("noLinker") != null;
 	boolean debug = System.getProperty("debugLinker") != null;
-	{
-		debug = true;
-	}
 
 	public interface CustomDelete {
 		boolean asMap_delete(Object p);
