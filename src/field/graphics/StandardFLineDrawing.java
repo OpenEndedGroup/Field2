@@ -3,6 +3,7 @@ package field.graphics;
 import field.linalg.Vec2;
 import field.linalg.Vec4;
 import field.utility.Dict;
+import field.utility.IdempotencyMap;
 import fieldbox.boxes.TextDrawing;
 
 import java.awt.*;
@@ -72,12 +73,19 @@ public class StandardFLineDrawing {
 													      .doc("a list of color spans for doing multi-color, multi-font runs of text").set(Dict.domain, "fline");
 
 	static public final Dict.Prop<Number> pointSize = new Dict.Prop<>("pointSize").type()
-										      .toCannon()
-										      .doc("sets the size of the point (if this line is drawn `.pointed=true`). This can be applied per vertex or per line.").set(Dict.domain, "fline");
+		.toCannon()
+		.doc("sets the size of the point (if this line is drawn `.pointed=true`). This can be applied per vertex or per line.").set(Dict.domain, "fline");
+
+	static public final Dict.Prop<IdempotencyMap<Supplier<FLine>>> subLines = new Dict.Prop<>("subLines").type()
+		.toCannon()
+		.doc("other, additional lines that are drawn along side this one. This can be applied per vertex or per line. Useful for decorations, annotations, selection marks etc.").set(Dict.domain, "fline");
+
+	static public final Dict.Prop<Boolean> noContours = new Dict.Prop<>("noContours").type()
+		.toCannon()
+		.doc("setting `.noContours=true` turns off any smartness in the tesselator about how to fill FLines").set(Dict.domain, "fline");
 
 
 	static public void dispatchLine(FLine fline, MeshBuilder mesh, MeshBuilder line, MeshBuilder points, Optional<TextDrawing> ot, String layerName) {
-
 
 		Vec4 sc = new Vec4(fline.attributes.getOr(strokeColor, () -> fline.attributes.getOr(color, () -> new Vec4(0, 0, 0, 1))).get());
 		Vec4 fc = new Vec4(fline.attributes.getOr(fillColor, () -> fline.attributes.getOr(color, () -> new Vec4(0, 0, 0, 1))).get());
@@ -112,6 +120,11 @@ public class StandardFLineDrawing {
 			fline.renderToPoints(points, 20);
 			points.aux(2, ps);
 		}
+
+		fline.nodes.stream().map(n -> n.attributes.get(subLines)).filter(n -> n!=null).flatMap(n -> n.values().stream()).map(x -> x.get()).filter(x -> x!=null).forEach(x -> {
+			dispatchLine(x, mesh, line, points, ot, layerName);
+		});
+
 		if (fline.attributes.isTrue(hasText, false) && ot.isPresent()) {
 			fline.nodes.stream()
 				   .filter(node -> node.attributes.has(text))
