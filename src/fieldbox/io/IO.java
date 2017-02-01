@@ -113,7 +113,7 @@ public class IO {
 		return "";
 	}
 
-	static private String pad(int n) {
+	static public String pad(int n) {
 		String r = "" + n;
 		while (r.length() < 5) r = "0" + r;
 		return r;
