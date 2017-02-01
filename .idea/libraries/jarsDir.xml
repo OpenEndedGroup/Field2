@@ -22,10 +22,12 @@
       <root url="jar://$PROJECT_DIR$/lib/jars/protobuf-java-2.6.1.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/jars/qdox-2.0-M1.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/jars/txtmark-0.14-SNAPSHOT.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jars/lmdbjava-0.0.5-20161130.130219-12.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
       <root url="jar://$PROJECT_DIR$/lib/jars/cassowary.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/srcjars/lwjgl-glfw-sources.jar!/" />
     </SOURCES>
   </library>
 </component>
