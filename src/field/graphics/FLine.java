@@ -26,19 +26,18 @@ import static fieldbox.boxes.Box.format;
 
 /**
  * FLine is our main high level geometry container for lines, meshes and lists of points.
- *
+ * <p>
  * FLines consist of a list of drawing instructions, or nodes: `line.moveTo(...).lineTo(...).cubicTo(...)` .etc
- *
+ * <p>
  * This is essentially the common postscript / pdf / java2d drawing model with a few key differences and refinements.
- *
+ * <p>
  * Firstly, the drawing instructions are in 3d. 2d (the z=0 plane) is a special case; secondly, attributes can be associated with both the line itself and with individual nodes; thirdly, per-node attributes that are
  * present in some places on the line and absent in others are interpolated; finally, the structure is freely mutable, although changes to attributes are not automatically tracked (call `line.modify()` to
  * cause an explicit un-caching of this line).
- *
+ * <p>
  * The caching of the flattening of this line into MeshBuilder data (ready for OpenGL) cascades into MeshBuilder's cache structure. Thus, we have three levels of caching in total: FLine caches whether or not the geometry has changed at all, MeshBuilder caches whether or not there's any point sending anything to the OpenGL
  * underlying Buffers or whether this piece of geometry can be skipped, and finally individual ArrayBuffers can elect to skip the upload to OpenGL. This means that static geometry is extremely cheap
  * to draw
- *
  */
 public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 
@@ -263,7 +262,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 	/**
 	 * This takes a list of "things" and successively transforms them into a list of (list of...) Vec3 or Vec2. Each of the transformation rules are tried in turn (and in order) and anything that
 	 * returns non-null terminates the transformation for that "turn". Collections are understood. All exceptions are suppressed inside the .apply method of these transformations.
-	 * 
+	 * <p>
 	 * If, after all this, you have a List of Vec2 or Vec3 then you get a single line, otherwise a List of List of Vec2 or Vec3 gets you a group of lines
 	 */
 	public FLine dataLines(Collection<Object> input, Function<Object, Object>... transformation) {
@@ -339,7 +338,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 
 	/**
 	 * take 'many things' and turn them into a line based on the formatting string.
-	 * 
+	 * <p>
 	 * 'm' - moveTo, needs a Vec2 or a Vec3 'l' - lineTo, needs a Vec2 or a Vec3 'c' - cubicTo, needs 3 Vec2 or Vec3; 's' - smoothTo, needs 1 Vec2 or Vec3 '*' will loop the previous instruction;
 	 * '+' will loop the whole set of instructions 'd' will drop a Vec3; 'C' — is a cubic segment that consumes the next two instructions as well (e.g. you need to write 12C to do the same as 'c')
 	 * until you run out of Vec3 inputs; 't' — dispatches based on the tag of a TaggedVec3
@@ -359,7 +358,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 				i--;
 				looping = true;
 			}
-			if (c == '.') {
+			if (c == '+') {
 				c = cs[0];
 				i = 0;
 				looping = true;
@@ -409,7 +408,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 
 	/**
 	 * take 'many things' and turn them into a line based on the formatting string.
-	 * 
+	 * <p>
 	 * 'm' - moveTo, needs a Vec2 or a Vec3 'l' - lineTo, needs a Vec2 or a Vec3 'c' - cubicTo, needs 3 Vec2 or Vec3; 's' - smoothTo, needs 1 Vec2 or Vec3 '*' will loop the previous instruction
 	 * until you run out of Vec3 inputs
 	 */
@@ -800,19 +799,31 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 			MeshBuilder_tesselationSupport ts = m.getTessSupport();
 			flattenAuxProperties();
 
+			boolean noContours = attributes.isTrue(StandardFLineDrawing.noContours, false);
+
 			m.open();
 			try {
 				MeshBuilder.Bookmark start = null;
 
 				Node a = null;
-				ts.begin();
+				if (!noContours)
+					ts.begin();
 
 				for (int i = 0; i < nodes.size(); i++) {
 					Node b = nodes.get(i);
 
 					if (b instanceof MoveTo) {
-						if (start != null) ts.endContour();
-						ts.beginContour();
+
+						if (start != null) {
+							if (!noContours)
+								ts.endContour();
+							else ts.end();
+						}
+						if (!noContours)
+							ts.beginContour();
+						else ts.begin();
+
+
 						a = moveTo.apply(ts, a, (MoveTo) b);
 						start = m.bookmark();
 					} else {
@@ -821,7 +832,9 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 						else throw new IllegalArgumentException(" unknown subclass ");
 						if (start == null) {
 							start = m.bookmark();
-							ts.beginContour();
+							if (!noContours)
+								ts.beginContour();
+							else ts.begin();
 						}
 
 					}
@@ -830,8 +843,11 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 				MeshBuilder.Bookmark end = m.bookmark();
 
 				if (start != null && start.at() != end.at()) {
-					ts.endContour();
+					if (!noContours)
+						ts.endContour();
+					else ts.end();
 				}
+				if (!noContours)
 				ts.end();
 			} finally {
 				m.close();
@@ -864,7 +880,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 
 		for (Map.Entry ii : auxProperties.entrySet()) {
 
-			// Nashorn's map literals have string keys not integer keys
+			// Surprise! Nashorn's map literals have string keys not integer keys
 
 			Object k = ii.getKey();
 			Integer kv = null;
@@ -1055,12 +1071,12 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 	@Override
 	@HiddenInAutocomplete
 	public boolean asMap_isProperty(String p) {
-		if (Dict.Canonical.findCannon(p) != null) return true;
 
-		if (knownNonProperties == null) knownNonProperties = computeKnownNonProperties();
+		if (knownNonProperties == null)
+			knownNonProperties = computeKnownNonProperties();
 
-		return !knownNonProperties.contains(p);
-
+		if (knownNonProperties.contains(p)) return false;
+		return (Dict.Canonical.findCannon(p) != null);
 	}
 
 	@HiddenInAutocomplete
