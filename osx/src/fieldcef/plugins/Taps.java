@@ -19,7 +19,6 @@ import org.json.JSONObject;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -243,7 +242,7 @@ public class Taps extends Box implements IO.Loaded {
 				if (editorPosition == null) return new FLine(); // check current editable
 
 
-				Rect f0 = t.browser.properties.get(Box.frame)
+				Rect f0 = t.browser_.properties.get(Box.frame)
 							      .duplicate();
 				Rect f1 = target.properties.get(Box.frame);
 

@@ -88,7 +88,7 @@ public class MakeNewTextEditor extends Box {
 		te.pin();
 		RunLoop.main.when(q.getRemoteEditor(), e -> e.pin());
 
-		return te.browser;
+		return te.browser_;
 	}
 
 

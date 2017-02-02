@@ -215,14 +215,14 @@ public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 			System.out.println(" no 'prevSelection' in textEditor_boxBrowser");
 		}
 		textEditor.hide();
-		textEditor.browser.disconnected = true;
+		textEditor.browser_.disconnected = true;
 		show();
 	}
 
 	public void disable() {
 		hide();
 		enabled = false;
-		textEditor.browser.disconnected = false;
+		textEditor.browser_.disconnected = false;
 	}
 
 
