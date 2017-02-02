@@ -56,14 +56,17 @@ public class RemoteEditor extends Box {
 	static public final Dict.Prop<String> defaultEditorProperty = new Dict.Prop<String>("defaultEditorProperty").type()
 		.doc("The property that the editor will switch to. Will default to 'code' if not set.");
 	private final Server server;
-	private final String socketName;
+
+	private String socketName;
+
 	private final MessageQueue<Quad<Dict.Prop, Box, Object, Object>, String> queue;
 	private final Watches watches;
 	public List<Consumer<String>> logStack = new ArrayList<>();
 	public List<Consumer<String>> errorStack = new ArrayList<>();
 	public HashMap<String, String> previousClipboards = new LinkedHashMap<>();
 	Commands commandHelper = new Commands();
-	RateLimitingQueue<String, Pair<String, String>> rater = new RateLimitingQueue<String, Pair<String, String>>(20, 100) {
+
+	RateLimitingQueue<String, Pair<String, String>> rater = new RateLimitingQueue<>(20, 100) {
 
 		Deque<Long> overflowedAt = new LinkedList<>();
 
@@ -79,58 +82,60 @@ public class RemoteEditor extends Box {
 		@Override
 		protected void send(String key, Collection<Pair<String, String>> value) {
 
-			if (value.size() == 0) return;
+//			if (value.size() == 0) return;
+//
+//			boolean unequal = false;
+//			for (Pair<String, String> v : value)
+//
+//				if (!Util.safeEq(v.second, lastSend)) {
+//					unequal = true;
+//					break;
+//				}
+//
+//			if (!unequal && RunLoop.tick - prevTick < 2) {
+//				prevTick = RunLoop.tick;
+//
+//
+//				if (!warned) {
+////					server.send(socketName, "_messageBuss.publish(" + key + ", 'message repeats')+");
+//					warned = true;
+//					return;
+//				} else return;
+//			}
+//			prevTick = RunLoop.tick;
+//			warned = false;
+//			lastSend = value.iterator()
+//				.next().second.toString();
+//
+//			Log.log("remote.trace", () -> " >> " + key + " " + value.size());
+//
+//			if (value.size() > 1) {
+//
+//				if (value.size() > 10) {
+//					overflowedAt.addLast(RunLoop.tick);
+//					if (overflowedAt.size() > 4) overflowedAt.removeFirst();
+//				}
+//
+//				if (overflowedAt.size() > 3 && overflowedAt.getLast() - overflowedAt.getFirst() < 10) {
+//					//TODO: tell somebody we've dropped something
+//					server.send(socketName, "_messageBus.publish('" + key + "', " + value.iterator()
+//						.next().second + ")");
+//				} else {
+//					String m = "";
+//					for (Pair<String, String> v : value) {
+//						m = m.concat((m.length() > 0 ? "," : "") + v.second);
+//					}
+//					server.send(socketName, "[" + m + "].forEach(function(q){ _messageBus.publish('" + key + "', q)})");
+//				}
+//
+//			} else {
 
-			boolean unequal = false;
-			for (Pair<String, String> v : value)
 
-				if (!Util.safeEq(v.second, lastSend)) {
-					unequal = true;
-					break;
-				}
+			System.out.println(" message :"+socketName+" -> "+value);
 
-			if (!unequal && RunLoop.tick - prevTick < 2) {
-				prevTick = RunLoop.tick;
-
-
-				if (!warned) {
-//					server.send(socketName, "_messageBuss.publish(" + key + ", 'message repeats')+");
-					warned = true;
-					return;
-				} else return;
-			}
-			prevTick = RunLoop.tick;
-			warned = false;
-			lastSend = value.iterator()
-				.next().second.toString();
-
-			Log.log("remote.trace", () -> " >> " + key + " " + value.size());
-
-			if (value.size() > 1) {
-
-
-				if (value.size() > 10) {
-					overflowedAt.addLast(RunLoop.tick);
-					if (overflowedAt.size() > 4) overflowedAt.removeFirst();
-				}
-
-
-				if (overflowedAt.size() > 3 && overflowedAt.getLast() - overflowedAt.getFirst() < 10) {
-					//TODO: tell somebody we've dropped something
-					server.send(socketName, "_messageBus.publish('" + key + "', " + value.iterator()
-						.next().second + ")");
-				} else {
-					String m = "";
-					for (Pair<String, String> v : value) {
-						m = m.concat((m.length() > 0 ? "," : "") + v.second);
-					}
-					server.send(socketName, "[" + m + "].forEach(function(q){ _messageBus.publish('" + key + "', q)})");
-				}
-
-			} else {
-				server.send(socketName, "_messageBus.publish('" + key + "', " + value.iterator()
-					.next().second + ")");
-			}
+			for(Pair<String, String> v : value)
+				server.send(socketName, "_messageBus.publish('" + key + "', " + v.second + ")");
+//			}
 		}
 	};
 
@@ -144,9 +149,9 @@ public class RemoteEditor extends Box {
 	AtomicReference<String> completionHelp = new AtomicReference<>("");
 
 
-	public RemoteEditor(Server server, String socketName, Watches watches, MessageQueue<Quad<Dict.Prop, Box, Object, Object>, String> queue) {
+	public RemoteEditor(Server server, String sn, Watches watches, MessageQueue<Quad<Dict.Prop, Box, Object, Object>, String> queue) {
 		this.server = server;
-		this.socketName = socketName;
+		this.socketName = sn; // we now let this vary on request
 		this.queue = queue;
 		this.watches = watches;
 		this.properties.put(editor, this);
@@ -266,6 +271,7 @@ public class RemoteEditor extends Box {
 		});
 
 		server.addHandlerLast(Predicate.isEqual("text.updated"), () -> socketName, (s, socket, address, payload) -> {
+			this.socketName = socketName;
 
 			JSONObject p = (JSONObject) payload;
 
@@ -346,6 +352,7 @@ public class RemoteEditor extends Box {
 		});
 
 		server.addHandlerLast(Predicate.isEqual("clipboard.getNewClipboard"), () -> socketName, (s, socket, address, payload) -> {
+			this.socketName = socketName;
 			Log.log("clipboardfix", () -> "sync clipboard");
 			JSONObject p = (JSONObject) payload;
 			String returnAddress = p.getString("returnAddress");
@@ -374,6 +381,8 @@ public class RemoteEditor extends Box {
 		});
 
 		server.addHandlerLast(Predicate.isEqual("clipboard.setClipboard"), () -> socketName, (s, socket, address, payload) -> {
+
+			this.socketName = socketName;
 			Log.log("clipboardfix", () -> "set clipboard to " + payload);
 			JSONObject p = (JSONObject) payload;
 
@@ -388,6 +397,7 @@ public class RemoteEditor extends Box {
 		});
 
 		server.addHandlerLast(Predicate.isEqual("store.cookie"), () -> socketName, (s, socket, address, payload) -> {
+			this.socketName = socketName;
 
 			JSONObject p = (JSONObject) payload;
 
@@ -420,6 +430,7 @@ public class RemoteEditor extends Box {
 
 		server.addHandlerLast(x -> x.startsWith("execution.fragment"), () -> socketName, (s, socket, address, payload) -> {
 
+			this.socketName = socketName;
 			Log.log("remote.trace", () -> " inside execution fragment ");
 
 			JSONObject p = (JSONObject) payload;
@@ -479,6 +490,7 @@ public class RemoteEditor extends Box {
 
 		server.addHandlerLast(Predicate.isEqual("execution.all"), () -> socketName, (s, socket, address, payload) -> {
 
+			this.socketName = socketName;
 			Log.log("remote.trace", () -> " inside execution all ");
 
 			JSONObject p = (JSONObject) payload;
@@ -530,6 +542,7 @@ public class RemoteEditor extends Box {
 
 		server.addHandlerLast(Predicate.isEqual("execution.begin"), () -> socketName, (s, socket, address, payload) -> {
 
+			this.socketName = socketName;
 			Log.log("remote.trace", () -> " inside execution begin ");
 
 			JSONObject p = (JSONObject) payload;
@@ -621,12 +634,14 @@ public class RemoteEditor extends Box {
 		});
 
 		server.addHandlerLast(Predicate.isEqual("notify.completion"), () -> socketName, (s, socket, address, payload) -> {
+			this.socketName = socketName;
 			JSONObject p = (JSONObject) payload;
 			CompletionStats.stats.notify(p.getString("uuid"));
 			return payload;
 		});
 
 		server.addHandlerLast(Predicate.isEqual("request.completions"), () -> socketName, (s, socket, address, payload) -> {
+			this.socketName = socketName;
 
 			Log.log("remote.trace", () -> " inside request completions ");
 
@@ -735,6 +750,7 @@ public class RemoteEditor extends Box {
 
 		server.addHandlerLast(Predicate.isEqual("request.commands"), () -> socketName, (s, socket, address, payload) -> {
 
+			this.socketName = socketName;
 			Log.log("remote.trace", () -> " inside request commands ");
 
 			JSONObject p = (JSONObject) payload;
@@ -752,6 +768,7 @@ public class RemoteEditor extends Box {
 		});
 
 		server.addHandlerLast(Predicate.isEqual("call.commandByName"), () -> socketName, (s, socket, address, payload) -> {
+			this.socketName = socketName;
 
 			JSONObject p = (JSONObject) payload;
 			String command = p.getString("command");
@@ -777,6 +794,7 @@ public class RemoteEditor extends Box {
 		});
 
 		server.addHandlerLast(Predicate.isEqual("call.command"), () -> socketName, (s, socket, address, payload) -> {
+			this.socketName = socketName;
 
 			JSONObject p = (JSONObject) payload;
 			String command = p.getString("command");
@@ -796,6 +814,7 @@ public class RemoteEditor extends Box {
 		});
 
 		server.addHandlerLast(Predicate.isEqual("request.hotkeyCommands"), () -> socketName, (s, socket, address, payload) -> {
+			this.socketName = socketName;
 
 			Log.log("remote.trace", () -> " inside request commands ");
 
@@ -866,6 +885,7 @@ public class RemoteEditor extends Box {
 		});
 
 		server.addHandlerLast(Predicate.isEqual("call.alternative"), () -> socketName, (s, socket, address, payload) -> {
+			this.socketName = socketName;
 
 			JSONObject p = (JSONObject) payload;
 			String command = p.getString("command");
@@ -1075,72 +1095,83 @@ public class RemoteEditor extends Box {
 
 	public void changeSelection(Box currentSelection, Dict.Prop<String> editingProperty) {
 
-		Log.log("remote.trace", () -> " publishing selection changed :" + currentSelection + " " + editingProperty);
+		try {
+			Log.log("remote.trace", () -> " publishing selection changed :" + currentSelection + " " + editingProperty);
 
-		if (currentSelection == null || editingProperty == null) {
-			server.send(socketName, "_messageBus.publish('selection.changed', {box:null, property:null, text:''})");
-		} else {
-
-			String text = currentSelection.properties.get(editingProperty);
-			if (text == null) text = "";
-
-			final String finalText = text;
-			Log.log("remote.trace", () -> " current text is :" + finalText);
-
-
-			//todo: pass back two cookies for this box --- one persistant (saved to disk), one just for current things
-
-			JSONObject buildMessage = new JSONObject();
-			buildMessage.put("box", currentSelection.properties.get(IO.id));
-			buildMessage.put("text", currentSelection.properties.getOr(editingProperty, () -> ""));
-			buildMessage.put("property", editingProperty.getName());
-			buildMessage.put("name", currentSelection.properties.get(Box.name));
-
-
-			String cooked = currentSelection.properties.get(new Dict.Prop<String>("_" + editingProperty.getName() + "_cookie"));
-			IO.persist(new Dict.Prop<String>("_" + editingProperty.getName() + "_cookie"));
-
-			Log.log("remote.cookie", () -> "cookie ns now :" + cooked);
-			buildMessage.put("cookie", new JSONObject(cooked == null ? "{}" : cooked));
-
-
-			Execution ex = getExecution(currentSelection, editingProperty);
-			if (ex != null) {
-				Execution.ExecutionSupport support = ex.support(currentSelection, editingProperty);
-				if (support != null) {
-					String cmln = support.getCodeMirrorLanguageName();
-					Log.log("remote.general", () -> "langage :" + cmln);
-					buildMessage.put("languageName", cmln);
-					support.setFilenameForStacktraces("" + currentSelection + "/" + currentSelection.properties.getOrConstruct(IO.id));
-				} else {
-				}
+			if (currentSelection == null || editingProperty == null) {
+				server.send(socketName, "_messageBus.publish('selection.changed', {box:null, property:null, text:''})");
 			} else {
-				// this can happen when we're editing something that isn't 'code'
-				String cmln = FieldBox.fieldBox.io.getLanguageForProperty(editingProperty);
-				String finalCmln = cmln;
-				Log.log("remote.general", () -> "langage :" + finalCmln);
-				if (cmln == null || cmln.trim().equals("")) cmln = "javascript";
-				buildMessage.put("languageName", cmln);
 
+				String text = currentSelection.properties.get(editingProperty);
+				if (text == null) text = "";
+
+				final String finalText = text;
+				Log.log("remote.trace", () -> " current text is :" + finalText);
+
+
+				//todo: pass back two cookies for this box --- one persistant (saved to disk), one just for current things
+
+				JSONObject buildMessage = new JSONObject();
+				buildMessage.put("box", currentSelection.properties.get(IO.id));
+				buildMessage.put("text", currentSelection.properties.getOr(editingProperty, () -> ""));
+				buildMessage.put("property", editingProperty.getName());
+				buildMessage.put("name", currentSelection.properties.get(Box.name));
+
+
+				String cooked = currentSelection.properties.get(new Dict.Prop<String>("_" + editingProperty.getName() + "_cookie"));
+				IO.persist(new Dict.Prop<String>("_" + editingProperty.getName() + "_cookie"));
+
+				Log.log("remote.cookie", () -> "cookie ns now :" + cooked);
+				buildMessage.put("cookie", new JSONObject(cooked == null ? "{}" : cooked));
+
+
+				Execution ex = getExecution(currentSelection, editingProperty);
+				if (ex != null) {
+					Execution.ExecutionSupport support = ex.support(currentSelection, editingProperty);
+					if (support != null) {
+						String cmln = support.getCodeMirrorLanguageName();
+						Log.log("remote.general", () -> "langage :" + cmln);
+						buildMessage.put("languageName", cmln);
+						support.setFilenameForStacktraces("" + currentSelection + "/" + currentSelection.properties.getOrConstruct(IO.id));
+					} else {
+					}
+				} else {
+					// this can happen when we're editing something that isn't 'code'
+					String cmln = FieldBox.fieldBox.io.getLanguageForProperty(editingProperty);
+					String finalCmln = cmln;
+					Log.log("remote.general", () -> "langage :" + finalCmln);
+					if (cmln == null || cmln.trim().equals("")) cmln = "javascript";
+					buildMessage.put("languageName", cmln);
+
+				}
+				Log.log("remote.trace", () -> " message will be sent " + buildMessage.toString());
+
+				Log.log("remote.trace", () -> "\n " + currentSelection.properties.get(new Dict.Prop<JSONObject>("_" + editingProperty.getName() + "_cookie")) + "\n");
+
+				server.send(socketName, "_messageBus.publish('selection.changed', " + buildMessage.toString() + ")");
+
+				List<Runnable> q;
+				synchronized (whenSelected) {
+					q = whenSelected.removeAll(currentSelection.properties.getOrConstruct(IO.id));
+				}
+				if (q != null) {
+					q.forEach(x -> x.run());
+				}
+				//todo: check for other editors?
+				//watches.addWatch(editingProperty, "edited.property.changed");
 			}
-			Log.log("remote.trace", () -> " message will be sent " + buildMessage.toString());
+			currentlyEditing = editingProperty;
+			this.currentSelection = currentSelection;
 
-			Log.log("remote.trace", () -> "\n " + currentSelection.properties.get(new Dict.Prop<JSONObject>("_" + editingProperty.getName() + "_cookie")) + "\n");
-
-			server.send(socketName, "_messageBus.publish('selection.changed', " + buildMessage.toString() + ")");
-
-			List<Runnable> q;
-			synchronized (whenSelected) {
-				q = whenSelected.removeAll(currentSelection.properties.getOrConstruct(IO.id));
-			}
-			if (q != null) {
-				q.forEach(x -> x.run());
-			}
-			//todo: check for other editors?
-			//watches.addWatch(editingProperty, "edited.property.changed");
 		}
-		currentlyEditing = editingProperty;
-		this.currentSelection = currentSelection;
+		catch(Server.ConnectionLost e)
+		{
+			killRemoteEditor();
+		}
+	}
+
+	private void killRemoteEditor() {
+		this.disconnectFromAll();
 	}
 
 	String lastCh = "";
