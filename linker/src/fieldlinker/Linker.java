@@ -196,6 +196,25 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 
 				return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
 			}
+		} else if (linkRequest.getCallSiteDescriptor()
+			.getOperation().toString().startsWith("GET:METHOD:apply")) {
+
+			// this is a method lookup, it's possible we'd want to do something different here, for now, it's exactly the same
+
+			Object rec = linkRequest.getReceiver();
+			String propertyName = linkRequest.getCallSiteDescriptor().getOperation().toString().replace("GET:METHOD:apply", "");
+
+			if (rec instanceof AsMap && ((AsMap) rec).asMap_isProperty(propertyName)) {
+
+				if (debug)
+					System.err.println(" linking AsMap/get 1" + rec + " admits to property " + propertyName);
+				MethodHandle get = MethodHandles.lookup()
+					.findVirtual(rec.getClass(), "asMap_get", MethodType.methodType(Object.class, String.class));
+
+				get = MethodHandles.insertArguments(get, 1, propertyName);
+
+				return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
+			}
 		} else if (linkRequest.getCallSiteDescriptor().getOperation()
 			.toString().startsWith("SET:PROPERTY|ELEMENT")) {
 			Object rec = linkRequest.getReceiver();
@@ -292,7 +311,7 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 				}
 			}
 		} else
-			System.out.println(" don't know what to do with that :"+linkRequest.getCallSiteDescriptor().getOperation()
+			System.out.println(" don't know what to do with that :" + linkRequest.getCallSiteDescriptor().getOperation()
 				.toString());
 		return null;
 	}
