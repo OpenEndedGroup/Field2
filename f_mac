@@ -7,7 +7,7 @@ java=/Library/Java/JavaVirtualMachines/jdk-9.jdk/Contents/Home/bin/java
 $java \
     -Xdebug \
     -Xrunjdwp:server=y,transport=dt_socket,address=5005,suspend=n -Dorg.lwjgl.util.Debug=true \
-    -Xdock:icon=$fieldhome/f.png \
+    -Xdock:icon=$fieldhome/lib/images/f.png \
     -DappDir=$fieldhome -Xdock:name=Field \
     -Xmx8g \
     -Xms8g \
