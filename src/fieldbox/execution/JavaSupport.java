@@ -518,7 +518,7 @@ public class JavaSupport {
 								val = "= <b>" + access(c.getDeclaredField(m.getName())).get(o) + "</b> &nbsp;";
 								tostring = true;
 							} catch (Throwable t) {
-								t.printStackTrace();
+//								t.printStackTrace();
 							}
 						}
 
@@ -591,7 +591,13 @@ public class JavaSupport {
 	}
 
 	private <T extends AccessibleObject> T access(T object) {
-		object.setAccessible(true);
+		try {
+			object.setAccessible(true);
+		}
+		catch(java.lang.reflect.InaccessibleObjectException e)
+		{
+			// well, hello jigsaw...
+		}
 		return object;
 	}
 
