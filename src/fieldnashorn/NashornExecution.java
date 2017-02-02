@@ -31,6 +31,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * An implementation of Execution.ExecutionSupport for Nashorn/Javascript
@@ -90,8 +91,6 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 
 				writer = new Writer() {
-					StringBuilder b = new StringBuilder();
-
 					@Override
 					public void write(char[] cbuf, int off, int len) throws IOException {
 						if (len > 0) {
@@ -102,17 +101,27 @@ public class NashornExecution implements Execution.ExecutionSupport {
 								.length() == 0) return;
 							written[0] = true;
 
-							if (currentLineNumber == null || currentLineNumber.first == null || currentLineNumber.second == -1)
-								success.accept(s);
-							else {
+							if (currentLineNumber == null || currentLineNumber.first == null || currentLineNumber.second == -1) {
+//								success.accept(s);
 								final String finalS = s;
-								Optional<Consumer<Quad<Box, Integer, String, Boolean>>> o = box.find(Execution.directedOutput, box.upwards())
-									.findFirst();
+								Set<Consumer<Quad<Box, Integer, String, Boolean>>> o = box.find(Execution.directedOutput, box.upwards())
+									.collect(Collectors.toSet());
+								o.forEach(x -> x.accept(new Quad<>(box, -1, finalS, true)));
 
-								if (o.isPresent()) {
-									o.ifPresent(x -> x.accept(new Quad<>(currentLineNumber.first, currentLineNumber.second, finalS, currentLineNumber.third)));
+							}
+							else {
+
+								final String finalS = s;
+								Set<Consumer<Quad<Box, Integer, String, Boolean>>> o = box.find(Execution.directedOutput, box.upwards())
+									.collect(Collectors.toSet());
+
+								if (o.size()>0) {
+									o.forEach(x -> x.accept(new Quad<>(currentLineNumber.first, currentLineNumber.second, finalS, currentLineNumber.third)));
 								} else {
-									success.accept(finalS);
+//									success.accept(finalS);
+
+									o.forEach(x -> x.accept(new Quad<>(box, -1, finalS, true)));
+
 								}
 							}
 						}
@@ -137,7 +146,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 			Log.log("nashorn.general", () -> "applying lineOffset of :" + lineOffset);
 
 			// we prefix the code with a sufficient number of \n's so that the line number of any error message actually refers to the correct line
-			// dreadful hack, but there's no other option right now in Nashorn (sourceMaps aren't supported for example)
+			// dreadful hack, but there's no other option right now in Nashorn (perhaps with sourceMaps?)
 			StringBuffer prefix = new StringBuffer(Math.max(0, lineOffset));
 			for (int i = 0; i < lineOffset; i++)
 				prefix.append('\n');
