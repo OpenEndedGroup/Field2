@@ -27,8 +27,12 @@ public class FLineInteraction extends Box implements Drawing.Drawer, Mouse.OnMou
 	static public final Dict.Prop<FLineInteraction> interaction = new Dict.Prop<>("interaction").type().toCannon()
 		.doc("the FLineInteraction Plugin");
 	static public final Dict.Prop<Cached<FLine, Object, Area>> projectedArea = new Dict.Prop<>("_projectedArea");
+
 	static public final Dict.Prop<IdempotencyMap<Function<Box, FLine>>> interactiveDrawing = new Dict.Prop<>("interactiveDrawing").type().toCannon().autoConstructs(() -> new IdempotencyMap<>(Function.class)).set(IO.dontCopy, true)
 		.doc("add lines to this property to make them interactive. onMouseExit and onMouseEnter attributes will be called appropriately. See FLineButton for a helper class.");
+
+	static public final Dict.Prop<Float> interactionOutset = new Dict.Prop<>("interactionOutset").type().toCannon()
+		.doc("sets how much shapes are outset for the purposes of hovering, clicking and draging").set(Dict.domain, "fline");
 
 
 	static public final Dict.Prop<IdempotencyMap<Supplier<FLine>>> interactiveLines = new Dict.Prop<>("interactiveLines").type().autoConstructs(() -> new IdempotencyMap<>(Supplier.class)).set(IO.dontCopy, true)
@@ -84,8 +88,8 @@ public class FLineInteraction extends Box implements Drawing.Drawer, Mouse.OnMou
 	}
 
 	public Area projectFLineToArea(FLine fline) {
-		Shape s = FLinesAndJavaShapes.flineToJavaShape_notThickened(fline);
-		return new Area(s);
+		float outsetAmount = fline.attributes.getFloat(interactionOutset, 0);
+		return new Area(FLinesAndJavaShapes.outsetShape(fline, outsetAmount));
 	}
 
 	public Vec2 convertCoordinateSystem(Vec2 event) {
@@ -178,6 +182,7 @@ public class FLineInteraction extends Box implements Drawing.Drawer, Mouse.OnMou
 			return (event, termination) -> {
 //				event = event.copy();
 				event.properties.put(interaction, this);
+
 
 				Iterator<Mouse.Dragger> it = draggers.iterator();
 				while (it.hasNext()) {
