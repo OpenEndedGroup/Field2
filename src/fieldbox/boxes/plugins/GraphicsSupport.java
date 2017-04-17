@@ -20,9 +20,8 @@ import java.util.Map;
 /**
  * Utilities for helping you write code for the Field graphics system.
  * <p>
- * Three pieces of functionality: commands for swapping the editor into editing properties that correspond to GLSL shader sources (vertex, geometry
- * and fragment); _.newShader() function (injected into the Box graph via a FunctionOfBox implementation) and a command for compiling / reloading a
- * shader from a box.
+ * Three pieces of functionality: commands for swapping the editor into editable properties that correspond to GLSL shader sources (vertex, geometry
+ * and fragment); a _.newShader() function that associates a shader with a box; and finally a command for compiling / reloading all shaders associated with this box.
  */
 public class GraphicsSupport extends Box {
 
@@ -30,7 +29,7 @@ public class GraphicsSupport extends Box {
 	static public Dict.Prop<String> geometry = new Dict.Prop<>("geometry").doc("geometry shader text").type().toCannon().set(IO.persistent, true);
 	static public Dict.Prop<String> vertex = new Dict.Prop<>("vertex").doc("vertex shader text").type().toCannon().set(IO.persistent, true);
 
-	static public Dict.Prop<FunctionOfBox> newShader = new Dict.Prop<>("newShader")
+	static public Dict.Prop<FunctionOfBox<Shader>> newShader = new Dict.Prop<>("newShader")
 		    .doc("creates a shader from a box, populating the _vertex_,  _geometry_ and _fragment_ properties with defaults").type().toCannon();
 
 	static public Dict.Prop<List<Shader>> _shaders = new Dict.Prop<>("_shaders");
@@ -39,7 +38,6 @@ public class GraphicsSupport extends Box {
 		FieldBox.fieldBox.io.addFilespec("fragment", ".glslf", "glsl");
 		FieldBox.fieldBox.io.addFilespec("vertex", ".glslv", "glsl");
 		FieldBox.fieldBox.io.addFilespec("geometry", ".glslg", "glsl");
-
 	}
 
 	public GraphicsSupport(Box root_unused) {
