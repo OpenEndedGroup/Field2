@@ -236,6 +236,14 @@ public class TextEditor extends Box implements IO.Loaded {
 	}
 
 
+	void updateSize() {
+		Rect f = browser_.properties.get(Box.frame);
+		setHeightCode = "$(\"body\").height(" + Math.min(f.h-20, maxhOnCreation - 40) + ");cm.refresh();";
+		setHeightCode += "$(\".CodeMirror\").height(" + Math.min(f.h-20, maxhOnCreation - 40) + ");cm.refresh();";
+		executeJavaScript(setHeightCode);
+	}
+
+
 	@HiddenInAutocomplete
 	public void trigger() {
 		long now = System.currentTimeMillis();
@@ -358,5 +366,6 @@ public class TextEditor extends Box implements IO.Loaded {
 	public boolean isPinned() {
 		return pinned;
 	}
+
 }
 
