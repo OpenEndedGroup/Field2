@@ -328,7 +328,7 @@ public class TernSupport {
 		}
 
 		Collections.sort(r, (a, b) -> {
-			if (a.rank != b.rank) return Double.compare(a.rank, b.rank);
+			if (a.rank != b.rank) return -Double.compare(a.rank, b.rank);
 			if (a.replacewith.length() != b.replacewith.length())
 				return Double.compare(a.replacewith.length(), b.replacewith.length());
 			return String.CASE_INSENSITIVE_ORDER.compare(a.replacewith, b.replacewith);
@@ -340,14 +340,17 @@ public class TernSupport {
 	private List<Completion> getQuoteCompletionsForFileSystems(String name) {
 		File f;
 		File[] ff;
+		if (name.equals("")) name =".";
+
 		if (new File(name).exists()) {
 			f = new File(name);
 			ff = f.listFiles(x -> true);
 		} else {
 			f = new File(name).getParentFile();
+			String finalName = name;
 			ff = f.listFiles(x -> x.getName()
 				.toLowerCase()
-				.startsWith(new File(name).getName()
+				.startsWith(new File(finalName).getName()
 					.toString()
 					.toLowerCase()));
 		}
