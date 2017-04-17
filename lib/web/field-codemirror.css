@@ -438,7 +438,8 @@ a {
 }
 
 .Field-closeBox {
-    font-size: 13px;
+    font-size: 12px;
+    font-family: "Source Code Pro";
     position: absolute;
     border-radius: 3px;
     border-bottom-right-radius: 0px;
@@ -448,18 +449,17 @@ a {
     background: #333;
     margin-top: 2px;
     width: 14px;
-    height: 14px;
+    height: 16px;
     text-align: center;
     pointer-events: all;
     cursor: pointer;
     font-weight: 100;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    background: rgba(0, 0, 0, 0.1);
 }
 
 .Field-expandBox {
-    font-size: 13px;
+    font-size: 12px;
     position: absolute;
+    font-family: "Source Code Pro";
     border-radius: 3px;
     border-top-right-radius: 0px;
     border-top-left-radius: 0px;
@@ -468,24 +468,22 @@ a {
     margin-top: 0px;
     background: #333;
     width: 14px;
-    height: 14px;
+    height: 16px;
     text-align: center;
     pointer-events: all;
     cursor: pointer;
     font-weight: 700;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    background: rgba(0, 0, 0, 0.1);
 }
 
-.Field-expandBoxInline {
-    font-size: 13px;
+.Field-closeBoxInline {
+    font-size: 10px;
     position: absolute;
     border-radius: 3px;
     border-top-right-radius: 0px;
     border-bottom-right-radius: 0px;
 
-    top: -2px;
-    left: -16px;
+    top: -7px;
+    right: -10px;
 
     margin-top: 0px;
     background: #333;
@@ -497,7 +495,14 @@ a {
     font-weight: 700;
     z-index: 10;
     border: 1px solid rgba(0, 0, 0, 0.1);
-    background: rgba(0, 0, 0, 0.1);
+    background: rgba(0, 0, 0, 0.0);
+
+    color: rgba(255,255,255,0.3);
+}
+
+.Field-closeBoxInline:hover {
+    background: rgba(255, 0, 0, 0.2);
+    color:rgba(255,0,0,1);
 }
 
 
