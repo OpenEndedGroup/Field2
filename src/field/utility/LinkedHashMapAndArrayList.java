@@ -34,7 +34,12 @@ public class LinkedHashMapAndArrayList<V> extends LinkedHashMap<String, V> {
 	// this one is better for writing Java, because it gives you type inference on lambdas as V
 	public V _put(String key, V v)
 	{
-		return super.put(massageKey(key), v);
+		V displaced = super.put(massageKey(key), v);
+		if (displaced!=null)
+		{
+			_removed(displaced);
+		}
+		return displaced;
 	}
 
 	protected V massage(Object vraw) {
@@ -52,7 +57,10 @@ public class LinkedHashMapAndArrayList<V> extends LinkedHashMap<String, V> {
 		V q2 = super.remove(keys.remove(massageKey(""+v)));
 		Log.log("lhmaal_remove",()-> "now "+this);
 
-		_removed(v);
+		if (q!=null)
+			_removed(q);
+		if (q2!=null)
+			_removed(q2);
 
 		return q!=null ? q : q2;
 	}
