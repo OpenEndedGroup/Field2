@@ -1,6 +1,7 @@
 package fieldbox.boxes.plugins;
 
 import field.graphics.Window;
+import field.graphics.csg.Plane;
 import field.linalg.Vec2;
 import field.utility.Cached;
 import field.utility.Dict;
@@ -14,6 +15,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static fieldbox.boxes.Boxes.root;
 import static org.lwjgl.glfw.GLFW.*;
 
 /**
@@ -21,8 +23,7 @@ import static org.lwjgl.glfw.GLFW.*;
  */
 public class Directionality extends Box {
 
-	static public final Dict.Prop<Directionality> directionality = new Dict.Prop<>(
-		    "_directionality");
+	static public final Dict.Prop<Directionality> directionality = new Dict.Prop<>("_directionality");
 
 	static public final Dict.Prop<FunctionOfBox<Box>> moveLeft = new Dict.Prop<>("moveLeft");
 	static public final Dict.Prop<FunctionOfBox<Box>> moveRight = new Dict.Prop<>("moveRight");
@@ -72,13 +73,13 @@ public class Directionality extends Box {
 
 			nodes = new ArrayList<Node>();
 			n.stream()
-			 .map(unwrap::apply)
-			 .forEach(v -> {
-				 Node n = new Node();
-				 n.v = v;
-				 n.index = nodes.size();
-				 nodes.add(n);
-			 });
+				.map(unwrap::apply)
+				.forEach(v -> {
+					Node n = new Node();
+					n.v = v;
+					n.index = nodes.size();
+					nodes.add(n);
+				});
 
 			ArrayList<Node> left = new ArrayList<Node>(nodes);
 			ArrayList<Node> down = new ArrayList<Node>(nodes);
@@ -117,8 +118,7 @@ public class Directionality extends Box {
 				int bestIs = -1;
 
 				for (int i = n.indexX + 1; i < left.size(); i++) {
-					if (Math.abs(left.get(i).v.y - n.v.y) <= left.get(
-						    i).v.x - n.v.x) {
+					if (Math.abs(left.get(i).v.y - n.v.y) <= left.get(i).v.x - n.v.x) {
 
 						double d = left.get(i).v.distance(n.v);
 						if (d < best && check(n.connections, left.get(i))) {
@@ -138,8 +138,7 @@ public class Directionality extends Box {
 
 				for (int i = n.indexX - 1; i >= 0; i--) {
 
-					if (Math.abs(left.get(i).v.y - n.v.y) <= n.v.x - left.get(
-						    i).v.x) {
+					if (Math.abs(left.get(i).v.y - n.v.y) <= n.v.x - left.get(i).v.x) {
 
 						double d = left.get(i).v.distance(n.v);
 						if (d < best && check(n.connections, left.get(i))) {
@@ -158,8 +157,7 @@ public class Directionality extends Box {
 				int bestIs = -1;
 
 				for (int i = n.indexY + 1; i < down.size(); i++) {
-					if (Math.abs(down.get(i).v.x - n.v.x) <= down.get(
-						    i).v.y - n.v.y) {
+					if (Math.abs(down.get(i).v.x - n.v.x) <= down.get(i).v.y - n.v.y) {
 
 						double d = down.get(i).v.distance(n.v);
 						if (d < best && check(n.connections, down.get(i))) {
@@ -179,8 +177,7 @@ public class Directionality extends Box {
 
 				for (int i = n.indexY - 1; i >= 0; i--) {
 
-					if (Math.abs(down.get(i).v.x - n.v.x) <= n.v.y - down.get(
-						    i).v.y) {
+					if (Math.abs(down.get(i).v.x - n.v.x) <= n.v.y - down.get(i).v.y) {
 
 						double d = down.get(i).v.distance(n.v);
 						if (d < best && check(n.connections, down.get(i))) {
@@ -208,7 +205,7 @@ public class Directionality extends Box {
 	public Directionality(Box root) {
 
 		structure = FrameChangedHash.getCached(root,
-						       (BiFunction<Object, ONN2<Triple<Box, Vec2, ONN2.Dir>>, ONN2<Triple<Box, Vec2, ONN2.Dir>>>) (nothing, previous) -> computeStrctureNow());
+			(BiFunction<Object, ONN2<Triple<Box, Vec2, ONN2.Dir>>, ONN2<Triple<Box, Vec2, ONN2.Dir>>>) (nothing, previous) -> computeStrctureNow(root));
 		this.properties.put(directionality, this);
 		this.properties.put(moveUp, this::up);
 		this.properties.put(moveDown, this::down);
@@ -227,12 +224,12 @@ public class Directionality extends Box {
 				Integer kk = ff.getKey();
 
 				if (k == kk && !e.before.keysDown.contains(
-					    k) && !e.after.isAltDown() && !e.after.isControlDown() && !e.after.isShiftDown() && !e.after.isSuperDown() && selection().count() == 1) {
+					k) && !e.after.isAltDown() && !e.after.isControlDown() && !e.after.isShiftDown() && !e.after.isSuperDown() && selection().count() == 1) {
 					e.properties.put(Window.consumed, true);
 					Box s = selection().findFirst()
-							   .get();
+						.get();
 					Box s2 = ff.getValue()
-						   .apply(s);
+						.apply(s);
 					if (s2 != null) {
 						Callbacks.transition(s, Mouse.isSelected, false, false, Callbacks.onSelect, Callbacks.onDeselect);
 						Callbacks.transition(s2, Mouse.isSelected, true, false, Callbacks.onSelect, Callbacks.onDeselect);
@@ -248,56 +245,59 @@ public class Directionality extends Box {
 
 	private Stream<Box> selection() {
 		return breadthFirst(both()).filter(
-			    x -> x.properties.isTrue(Mouse.isSelected, false));
+			x -> x.properties.isTrue(Mouse.isSelected, false));
 	}
 
-	protected ONN2<Triple<Box, Vec2, ONN2.Dir>> computeStrctureNow() {
+	protected ONN2<Triple<Box, Vec2, ONN2.Dir>> computeStrctureNow(Box root) {
 		ONN2<Triple<Box, Vec2, ONN2.Dir>> structure = new ONN2<>();
+		Function<Box, Number> selector = Planes.getSelector(root);
 		List<Triple<Box, Vec2, ONN2.Dir>> p = this.breadthFirst(this.downwards())
-							  .filter(x -> x.properties.has(Box.frame))
-							  .filter(x -> x.properties.has(Box.name))
-							  .filter(x -> !(x instanceof TimeSlider))
-							  .filter(x -> x.properties.has(
-								      FLineDrawing.frameDrawing))
-							  .flatMap(x -> {
+			.filter(x -> x.properties.has(Box.frame))
+			.filter(x -> x.properties.has(Box.name))
+			.filter(x -> !(x instanceof TimeSlider))
+			.filter(x -> !(x instanceof DispatchBox))
+			.filter(x -> x.properties.has(FLineDrawing.frameDrawing))
+			.filter(x -> !x.properties.isTrue(Box.hidden, false))
+			.filter(x -> Planes.on(x, selector)>0)
+			.flatMap(x -> {
 
-									   ArrayList<Triple<Box, Vec2, ONN2.Dir>>
-										       points
-										       = new ArrayList<>();
+				ArrayList<Triple<Box, Vec2, ONN2.Dir>>
+					points
+					= new ArrayList<>();
 
-									   Rect f
-										       = x.properties.get(
-										       Box.frame);
+				Rect f
+					= x.properties.get(
+					Box.frame);
 
-									   points.add(new Triple<>(
-										       x,
-										       f.convert(0.5f,
-												 0.5f),
-										       null));
-									   points.add(new Triple<>(
-										       x,
-										       f.convert(0,
-												 0.5f),
-										       ONN2.Dir.left));
-									   points.add(new Triple<>(
-										       x,
-										       f.convert(1,
-												 0.5f),
-										       ONN2.Dir.right));
-									   points.add(new Triple<>(
-										       x,
-										       f.convert(0.5f,
-												 0),
-										       ONN2.Dir.up));
-									   points.add(new Triple<>(
-										       x,
-										       f.convert(0.5f,
-												 1),
-										       ONN2.Dir.down));
+				points.add(new Triple<>(
+					x,
+					f.convert(0.5f,
+						0.5f),
+					null));
+				points.add(new Triple<>(
+					x,
+					f.convert(0,
+						0.5f),
+					ONN2.Dir.left));
+				points.add(new Triple<>(
+					x,
+					f.convert(1,
+						0.5f),
+					ONN2.Dir.right));
+				points.add(new Triple<>(
+					x,
+					f.convert(0.5f,
+						0),
+					ONN2.Dir.up));
+				points.add(new Triple<>(
+					x,
+					f.convert(0.5f,
+						1),
+					ONN2.Dir.down));
 
-									   return points.stream();
-								   })
-							  .collect(Collectors.toList());
+				return points.stream();
+			})
+			.collect(Collectors.toList());
 
 		structure.compute(p, x -> x.second);
 		return structure;
