@@ -236,7 +236,7 @@ public class ShaderIntrospection {
 		if (okMeshes.size() > 0 && problemMeshes.size() == 0) {
 			e1 = "No problems found in " + okMeshes.size() + " mesh" + (okMeshes.size() == 1 ? "" : "es") + ". Meshes are :" + convert.apply(okMeshes);
 		} else {
-			String a = "Problems found in " + problemMeshes.size() + " mesh" + (problemMeshes.size() == 1 ? "" : "es") + " &mdash;\n";
+			String a = "Potential problems found in " + problemMeshes.size() + " mesh" + (problemMeshes.size() == 1 ? "" : "es") + " &mdash;\n";
 			for (Map.Entry<BaseMesh, String> entry : problemMeshes.entrySet()) {
 				a += "<div class='mesh-problem'>" + convert.apply(entry.getKey()) + "<br>";
 				a += entry.getValue() + "\n</div>";
