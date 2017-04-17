@@ -48,14 +48,14 @@ public class Templates extends Box implements IO.Loaded {
 
 			String path = fieldbox.FieldBox.fieldBox.io.findTemplateCalled(name);
 
-			Box c = loadBox(path, of.properties.get(Box.frame)
+			Set<Box> c = loadBox(path, of.properties.get(Box.frame)
 				.convert(0.9, 0.9));
 
-			IO.uniqifyIfNecessary(root, c);
+			c.forEach(cc -> IO.uniqifyIfNecessary(root, cc));
 
-			of.connect(c);
+			c.forEach(cc -> of.connect(cc));
 
-			return c;
+			return c.iterator().next();
 
 		});
 
@@ -69,7 +69,6 @@ public class Templates extends Box implements IO.Loaded {
 
 		properties.put(ensureChildTemplated, (box, template, name) -> {
 
-
 			Optional<Box> f = box.children()
 				.stream()
 				.filter(x -> x.properties.equals(Box.name, name))
@@ -79,16 +78,17 @@ public class Templates extends Box implements IO.Loaded {
 
 				String path = fieldbox.FieldBox.fieldBox.io.findTemplateCalled(template);
 
-				Box c = loadBox(path, box.properties.get(Box.frame)
+				Set<Box> c = loadBox(path, box.properties.get(Box.frame)
 					.convert(0.9, 0.9));
 
-				c.properties.put(Box.name, name);
+				c.iterator().next().properties.put(Box.name, name);
 
-				IO.uniqifyIfNecessary(root, c);
+				c.forEach(cc -> IO.uniqifyIfNecessary(root, cc));
 
-				box.connect(c);
+				c.forEach(cc -> box.connect(cc));
 
-				return c;
+				// todo, select a "head" element in a multi-box template
+				return c.iterator().next();
 
 			});
 		});
@@ -111,28 +111,24 @@ public class Templates extends Box implements IO.Loaded {
 
 						@Override
 						public void run() {
-
 							Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
 
 							p.prompt("name of template...", m, new RemoteEditor.ExtendedCommand() {
 								String altWas = null;
-								Consumer<String> feedback;
+								RemoteEditor.SupportsPrompt p;
+
 
 								@Override
 								public void begin(RemoteEditor.SupportsPrompt prompt, String alternativeChosen/*, Consumer<String> feedback*/) {
 									altWas = alternativeChosen;
-									this.feedback = feedback;
+									p = prompt;
 								}
 
 								@Override
 								public void run() {
-
-									if (altWas != null)
+									if (altWas != null) {
 										saveAsTemplate(selection().collect(Collectors.toSet()), altWas);
-
-									if (feedback != null)
-										feedback.accept("Loaded \"" + altWas + "\"");
-
+									}
 								}
 							});
 						}
@@ -219,24 +215,35 @@ public class Templates extends Box implements IO.Loaded {
 		return breadthFirst(both()).filter(x -> x.properties.isTrue(Mouse.isSelected, false));
 	}
 
-	private Box loadBox(String f, Vec2 position) {
+	private Set<Box> loadBox(String f, Vec2 position) {
 
-		Box b = fieldbox.FieldBox.fieldBox.io.loadSingleBox(f, root);
+		if (f==null) return Collections.EMPTY_SET;
 
-		IO.uniqify(b);
+		if (f.endsWith(".box")) {
 
-		Rect fr = b.properties.get(Box.frame);
-		fr.x = (float) (position.x - fr.w / 2);
-		fr.y = (float) (position.y - fr.h / 2);
+			Box b = fieldbox.FieldBox.fieldBox.io.loadSingleBox(f, root);
 
-		root.connect(b);
-		if (b instanceof IO.Loaded) {
-			((IO.Loaded) b).loaded();
+			IO.uniqify(b);
+
+			Rect fr = b.properties.get(Box.frame);
+			fr.x = (float) (position.x - fr.w / 2);
+			fr.y = (float) (position.y - fr.h / 2);
+
+			root.connect(b);
+			if (b instanceof IO.Loaded) {
+				((IO.Loaded) b).loaded();
+			}
+			Callbacks.load(b);
+
+			Drawing.dirty(b);
+
+			return Collections.singleton(b);
 		}
-		Callbacks.load(b);
+		else if (f.endsWith(".field2"))
+		{
+			return find(FileBrowser.copyFromFileCalled, this.both()).findFirst().map(x -> x.apply(f, position)).get();
+		}
 
-		Drawing.dirty(b);
-
-		return b;
+		throw new IllegalArgumentException("can't find this template");
 	}
 }

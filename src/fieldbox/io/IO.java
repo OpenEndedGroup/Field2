@@ -40,7 +40,7 @@ public class IO {
 	public static final Dict.Prop<String> desiredBoxClass = new Dict.Prop<>("__desiredBoxClass__");
 	public static final Dict.Prop<String> comment = new Dict.Prop<>("comment").toCannon()
 		.type()
-		.doc("A comment string that's easily searchable");
+		.doc("A comment string that's easily searchable. Set it to provide comments on boxes used in templates.");
 
 	public static final Dict.Prop<String> language = new Dict.Prop<>("language").toCannon()
 		.type()
@@ -808,9 +808,16 @@ public class IO {
 			if (n != null && n.length > 0) {
 				return n[0].listFiles(x -> x.getName().endsWith(".box"))[0].getAbsolutePath();
 			}
-
-
 		}
+		// multiple box directory case
+		{
+			File[] n = new File(dir).listFiles((x) -> x.isDirectory() && x.getName().endsWith(name) && x.listFiles(y -> y.getName().endsWith(".box")).length > 0);
+
+			if (n != null && n.length > 0) {
+				return n[0].listFiles(x -> x.getName().endsWith(".field2"))[0].getAbsolutePath();
+			}
+		}
+
 
 		return null;
 	}
