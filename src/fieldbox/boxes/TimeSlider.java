@@ -155,7 +155,7 @@ public class TimeSlider extends Box {
 	 * @param b
 	 */
 	public Map<String, Object> initiator(Box b) {
-		Linker.AsMap init = Initiators.get(b, () -> this.properties.get(Box.frame).x, () -> this.properties.get(Box.frame).y);
+		fieldlinker.AsMap init = Initiators.get(b, () -> this.properties.get(Box.frame).x, () -> this.properties.get(Box.frame).y);
 		init.asMap_set("slider", this);
 		return Collections.singletonMap("_t", init);
 	}

@@ -119,7 +119,7 @@ public class Chorder extends Box {
 
 		if (count0 < 1) {
 
-			Linker.AsMap i = Initiators.get(box, Initiators.mouseX(box, point.x), Initiators.mouseY(box, point.y));
+			fieldlinker.AsMap i = Initiators.get(box, Initiators.mouseX(box, point.x), Initiators.mouseY(box, point.y));
 
 			box.first(Execution.execution)
 					  .ifPresent(x -> x.support(box, Execution.code)
@@ -186,7 +186,7 @@ public class Chorder extends Box {
 
 					Vec2 p = intersections.get(i).first;
 
-					Linker.AsMap in = Initiators.get(b, ()->p.x, ()->p.y);
+					fieldlinker.AsMap in = Initiators.get(b, ()->p.x, ()->p.y);
 
 					b.first(Execution.execution)
 					 .ifPresent(x -> x.support(b, Execution.code)

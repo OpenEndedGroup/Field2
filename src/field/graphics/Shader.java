@@ -32,10 +32,10 @@ import static org.lwjgl.opengl.GL20.*;
  * Much of the complexity of this class stems from the fact that an OpenGL program is linked from a variety of (sometimes optional, sometimes reusable) parts. This class supports all of them. The rest
  * of the complexity comes from the fact that both the compilation and the link stage can fail.
  * <p>
- * Assuming that all goes well shaders take three principle kinds of inputs: vertex attributes (make and set these with aux and nextVertex calls in MeshBuilders), uniforms (make and set these with
+ * Assuming that all goes well shaders take three principle kinds of inputs: vertex attributes (make and set these with aux and v calls in MeshBuilders), uniforms (make and set these with
  * calls to Uniform and UniformBundle classes here) and input from earlier shaders.
  */
-public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Linker.AsMap, HandlesCompletion, BoxBrowser.HasMarkdownInformation {
+public class Shader extends BaseScene<Shader.State> implements Scene.Perform, fieldlinker.AsMap, HandlesCompletion, BoxBrowser.HasMarkdownInformation {
 
 	private ShaderIntrospection introspection;
 	private int modCount;

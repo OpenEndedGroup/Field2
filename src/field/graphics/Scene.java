@@ -30,7 +30,12 @@ import java.util.stream.Collectors;
  * run in the right order with respect to that piece of Geometry. The topology of the tree is free to encoding a grouping thats useful to the application rather than something that's vital to
  * reexpressing the semantics of OpenGL's decaying state-machine just right.
  */
-public class Scene extends Box implements Linker.AsMap {
+public class Scene extends Box implements fieldlinker.AsMap {
+
+	public interface ContainsPerform
+	{
+		Perform getPerform();
+	}
 
 	static public Dict.Prop<LinkedHashMapAndArrayList<Perform>> passes = new Dict.Prop<LinkedHashMapAndArrayList<Perform>>("passes").toCannon();
 	protected Set<String> knownNonProperties;
@@ -439,10 +444,16 @@ public class Scene extends Box implements Linker.AsMap {
 		if (Uniform.isAccepableInstance(fo))
 			return getDefaultBundle().set(p, () -> fo).setIntOnly(fo instanceof Integer);
 
+		if (o instanceof ContainsPerform)
+		{
+			o = ((ContainsPerform)o).getPerform();
+		}
+
 		o = Conversions.convert(o, Perform.class);
 		if (o instanceof Perform) {
 			return attach(p, (Perform) o);
-		} else return super.asMap_set(p, o);
+		}
+		else return super.asMap_set(p, o);
 	}
 
 	@Override
@@ -581,7 +592,7 @@ public class Scene extends Box implements Linker.AsMap {
 		}
 	}
 
-	public class PassShim implements Linker.AsMap {
+	public class PassShim implements fieldlinker.AsMap {
 		int pass;
 
 		public PassShim(int pass) {

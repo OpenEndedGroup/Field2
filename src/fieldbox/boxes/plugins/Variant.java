@@ -67,7 +67,7 @@ public class Variant extends Box implements IO.Loaded {
 		});
 	}
 
-	static public class CurrentVariant implements Linker.AsMap {
+	static public class CurrentVariant implements fieldlinker.AsMap {
 
 		private final Box from;
 		private final String variant;

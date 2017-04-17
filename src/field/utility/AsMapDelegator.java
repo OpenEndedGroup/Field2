@@ -10,13 +10,15 @@ import java.util.Set;
 /**
  * Base class for objects that delegate to another place (usually a Dict) for their property storage
  */
-public abstract class AsMapDelegator implements Linker.AsMap {
+public abstract class AsMapDelegator implements fieldlinker.AsMap {
 
 	private Set<String> knownNonProperties;
 
 	@Override
 	public boolean asMap_isProperty(String p) {
 
+		System.out.println(" is property ? "+p+" "+knownNonProperties+" "+(knownNonProperties==null? false : knownNonProperties.contains(p)));
+		System.out.println("  "+delegateTo());
 		if (knownNonProperties == null) knownNonProperties = computeKnownNonProperties();
 
 		if (knownNonProperties.contains(p)) return false;
@@ -61,11 +63,14 @@ public abstract class AsMapDelegator implements Linker.AsMap {
 
 	@Override
 	public Object asMap_get(String p) {
+		System.out.println(" get :"+p);
+
 		return delegateTo().asMap_get(p);
 	}
 
 	@Override
 	public Object asMap_set(String p, Object o) {
+		System.out.println(" set :"+p+" "+o);
 		return delegateTo().asMap_set(p, o);
 	}
 
@@ -89,7 +94,7 @@ public abstract class AsMapDelegator implements Linker.AsMap {
 		return delegateTo().asMap_setElement(element, o);
 	}
 
-	protected abstract Linker.AsMap delegateTo();
+	protected abstract fieldlinker.AsMap delegateTo();
 
 
 }

@@ -14,14 +14,14 @@ import java.util.function.Supplier;
 public class Initiators {
 
 
-	static public Linker.AsMap get(Box forBox, Supplier<Number> x) {
+	static public fieldlinker.AsMap get(Box forBox, Supplier<Number> x) {
 		double xn = x.get()
 			     .doubleValue();
 		Box b = new _tx(x, forBox, xn);
 		return b;
 	}
 
-	static public Linker.AsMap get(Box forBox, Supplier<Number> x, Supplier<Number> y) {
+	static public fieldlinker.AsMap get(Box forBox, Supplier<Number> x, Supplier<Number> y) {
 		double xn = x.get()
 			     .doubleValue();
 		double yn = x.get()

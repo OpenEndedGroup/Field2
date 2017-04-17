@@ -38,7 +38,7 @@ public class DefaultMenus extends Box {
 	static public final Dict.Prop<FunctionOfBox<Box>> delete = new Dict.Prop<FunctionOfBox<Box>>("delete").toCannon()
 		.doc("delete this box");
 
-	// this gets set if we sucessfully opened something
+	// this gets set if we successfully opened something
 	static public volatile boolean safeToSave = false;
 
 	private final Box root;
@@ -81,8 +81,6 @@ public class DefaultMenus extends Box {
 
 			if (!Box.class.isAssignableFrom(clazz))
 				throw new ClassCastException(" class '" + clazz + "' isn't a Box subclass");
-
-			System.out.println(" comparing :"+box.getClass()+" with "+clazz+" "+box.getClass().equals(clazz));
 
 			if (box.getClass().equals(clazz)) // nothing to do
 				return box;

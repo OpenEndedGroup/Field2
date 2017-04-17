@@ -15,7 +15,7 @@ import java.util.stream.Stream;
  * Class to provide more useful access to children and parent lists inside Field
  */
 @SafeToToString
-public class BoxChildHelper implements Linker.AsMap, Collection<Box>, ObjectToHTML.MasqueradesAs , HandlesCompletion{
+public class BoxChildHelper implements fieldlinker.AsMap, Collection<Box>, ObjectToHTML.MasqueradesAs , HandlesCompletion{
 
 	private final ArrayList<Box> c;
 	LinkedHashMap<String, Box> t = new LinkedHashMap<>();
@@ -51,7 +51,7 @@ public class BoxChildHelper implements Linker.AsMap, Collection<Box>, ObjectToHT
 		return t;
 	}
 
-	public class All implements Linker.AsMap, ObjectToHTML.MasqueradesAs, HandlesCompletion
+	public class All implements fieldlinker.AsMap, ObjectToHTML.MasqueradesAs, HandlesCompletion
 	{
 
 		@Override

@@ -1,7 +1,11 @@
 package field.utility;
 
 import com.google.common.collect.MapMaker;
+import com.thoughtworks.qdox.model.JavaClass;
+import com.thoughtworks.qdox.model.JavaField;
+import fieldbox.boxes.plugins.BoxDefaultCode;
 import fieldbox.execution.Execution;
+import fieldbox.execution.JavaSupport;
 import fieldlinker.Linker;
 
 import java.io.Serializable;
@@ -21,7 +25,7 @@ import java.util.stream.Stream;
  * generics. It's used throughout Field (the type information is important because it enables the Conversions class which in turn allows us to massage
  * dynamic languages well while style exploiting Java's type system)
  */
-public class Dict implements Serializable, Linker.AsMap {
+public class Dict implements Serializable, fieldlinker.AsMap {
 	private static final long serialVersionUID = 4506062700963421662L;
 
 	static public class Canonical {
@@ -61,18 +65,29 @@ public class Dict implements Serializable, Linker.AsMap {
 
 	}
 
-	static public Dict.Prop<String> domain = new Dict.Prop<>("domain").toCannon();
+	/**
+	 * this property is used to tag other properties as pertaining to a particular "domain" of use, for example FLine attributes
+	 */
+	public static Dict.Prop<String> domain = new Dict.Prop<>("domain").toCannon();
+	/**
+	 * this property tags a property as writeOnly (from the poiint of view of the scripting world, from Java there's nothing in place to prevent writing properties)
+	 */
+	public static Prop<Boolean> writeOnly = new Prop<>("writeOnly").toCannon().set(domain, "*/attributes");
+	/**
+	 * this lets you add to a property a function that massages values as they are set
+	 */
+	public static Prop<Function<Object, Object>> customCaster = new Prop<>("customCaster").toCannon().set(domain, "*/attributes");
 
 	static {
-		domain.set(domain, "attributes");
+		domain.set(domain, "*/attributes");
 	}
 
-	static public class Prop<T> implements Serializable, Linker.AsMap {
+	static public class Prop<T> implements Serializable, fieldlinker.AsMap {
 		String name;
 
 		// optional type information
 		private List<Class> typeInformation;
-		private Class definedInClass;
+		public Class definedInClass;
 		private String documentation;
 
 		public Supplier<T> autoConstructor;
@@ -162,6 +177,45 @@ public class Dict implements Serializable, Linker.AsMap {
 
 		public String getDocumentation() {
 			return documentation;
+		}
+
+		public Class getDefiningClass()
+		{
+			return definedInClass;
+		}
+
+		public String getExtendedDocumentation(){
+			Prop on = this;
+			if (!isCannon()) {
+				Prop<T> already = (Prop<T>) findCannon();
+				if (already == null) {
+					toCannon();
+					on.setCannon();
+				} else {
+					on = already;
+				}
+			}
+			if (on.definedInClass==null) return null;
+
+			String type1 = BoxDefaultCode.find(on.definedInClass, getName() + ".documentation.md");
+			if (type1!=null) return type1;
+
+			try{
+				JavaClass source = JavaSupport.javaSupport.sourceForClass(definedInClass);
+				JavaField n = source.getFieldByName(name);
+				if (n==null)
+					n = source.getFieldByName("_"+name);
+				if (n==null)
+					n = source.getFieldByName("__"+name);
+				if (n==null) return null;
+
+				return n.getComment();
+			}
+			catch(Throwable t)
+			{
+				t.printStackTrace();
+			}
+			return null;
 		}
 
 		public <T> Prop<T> type() {

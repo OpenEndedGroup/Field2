@@ -7,14 +7,11 @@ import fieldnashorn.annotations.SafeToToString;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import jdk.nashorn.api.scripting.ScriptUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class IdempotencyMap<T> extends LinkedHashMapAndArrayList<T> implements Mutable<IdempotencyMap<T>>, Linker.AsMap, HandlesCompletion {
+public class IdempotencyMap<T> extends LinkedHashMapAndArrayList<T> implements Mutable<IdempotencyMap<T>>, fieldlinker.AsMap, HandlesCompletion {
 
 	private final Class<? extends T> t;
 	private Function<String, T> autoConstructor;
@@ -76,6 +73,23 @@ public class IdempotencyMap<T> extends LinkedHashMapAndArrayList<T> implements M
 		}
 
 		return r;
+	}
+
+
+	@Override
+	public boolean containsKey(Object key) {
+		key = massageKey("" + key);
+		if (!super.containsKey(key)) {
+			if (autoConstructor != null) {
+				T t = autoConstructor.apply((String) key);
+				if (t != null) {
+					put((String) key, t);
+					return true;
+				}
+			}
+			return false;
+		}
+		return true;
 	}
 
 	@Override
@@ -153,13 +167,13 @@ public class IdempotencyMap<T> extends LinkedHashMapAndArrayList<T> implements M
 	}
 
 	private String messageFor(T value) {
-		if (value==null) return " = null";
-		if (value.getClass().isPrimitive()) return " = "+value;
-		if (value.getClass().getAnnotation(SafeToToString.class)!=null) return " = "+value;
-		return "of class "+value.getClass().getName();
+		if (value == null) return " = null";
+		if (value.getClass().isPrimitive()) return " = " + value;
+		if (value.getClass().getAnnotation(SafeToToString.class) != null) return " = " + value;
+		return "of class " + value.getClass().getName();
 	}
 
-	private class AllOf implements Linker.AsMap {
+	private class AllOf implements fieldlinker.AsMap {
 
 
 		@Override

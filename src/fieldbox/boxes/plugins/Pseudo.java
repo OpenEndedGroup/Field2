@@ -10,7 +10,7 @@ import fieldbox.boxes.Boxes;
 import fieldbox.execution.Completion;
 import fieldbox.execution.HandlesCompletion;
 import fieldbox.io.IO;
-import fieldlinker.Linker.AsMap;
+import fieldlinker.AsMap;
 
 import java.util.*;
 import java.util.concurrent.Callable;

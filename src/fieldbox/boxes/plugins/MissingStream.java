@@ -62,7 +62,7 @@ public class MissingStream extends Box {
 		}
 	}
 
-	static public class FilteredLogStreamMap implements Linker.AsMap {
+	static public class FilteredLogStreamMap implements fieldlinker.AsMap {
 
 		private final Box at;
 		private final String prefix;
