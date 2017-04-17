@@ -43,10 +43,10 @@ public class FileBrowser extends Box implements IO.Loaded {
 
 	static public final Dict.Prop<BiFunction<String, Vec2, Set<Box>>> copyFromFileCalled = new Dict.Prop<>("copyFromFileCalled").toCannon()
 		.type()
-		.doc("`_.copyFromFileCalled('banana', new Vec2(0,0))` will copy into this document any file (.field2 file or box or template) called 'banana', centering all the boxes loaded on the origin");
+		.doc("`_.copyFromFileCalled('banana', new Vec2(0,0))` will copy into this document any file (.field2 file or box or template) called 'banana', centering all the boxes loaded on the point `Vec2(0,0)`");
 	static public final Dict.Prop<BiFunction<String, Vec2, Set<Box>>> insertFromFileCalled = new Dict.Prop<>("insertFromFileCalled").toCannon()
 		.type()
-		.doc("`_.copyFromFileCalled('banana', new Vec2(0,0))` will insert a live reference into this document any file (.field2 file or box or template) called 'banana', centering all the boxes loaded on the origin");
+		.doc("`_.copyFromFileCalled('banana', new Vec2(0,0))` will insert a live reference into this document any file (.field2 file or box or template) called 'banana', centering all the boxes loaded on the point `Vec2(0,0)`");
 
 	static AtomicInteger sheetsInFlight = new AtomicInteger();
 	private final Box root;
@@ -65,7 +65,7 @@ public class FileBrowser extends Box implements IO.Loaded {
 		properties.put(Commands.commands, () -> {
 
 			Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
-			m.put(new Pair<>("Copy from Workspace", "Copies boxes or whole files from the workspace into this document"), new RemoteEditor.ExtendedCommand() {
+			m.put(new Pair<>("New", "Copies templates, individual boxes, or whole files from the workspace into this document"), new RemoteEditor.ExtendedCommand() {
 
 				public RemoteEditor.SupportsPrompt p;
 
@@ -83,10 +83,8 @@ public class FileBrowser extends Box implements IO.Loaded {
 						.stream()
 						.filter(f -> f.name != null)
 						.forEach(f -> {
-
-//						     Log.log("insertbox", "file: " + f.name);
-
-							m.put(new Pair<>(f.name + " <i>&mdash; document</i>", (f.boxes.size() + "&nbsp;box" + (f.boxes.size() == 1 ? "" : "es"))), () -> {
+							String cm = f.getComment(FileBrowser.this);
+							m.put(new Pair<>(f.name + " <i>&mdash; document</i>", (cm == null ? "" : (cm + "<br>")) + ("contains " + f.boxes.size() + " box" + (f.boxes.size() == 1 ? "" : "es")) + "    <br>"), () -> {
 
 								// doit
 
@@ -326,6 +324,10 @@ public class FileBrowser extends Box implements IO.Loaded {
 	}
 
 	public Set<Box> copyFromFileCalled(String name, Vec2 centeredOn) {
+		return copyFromFileCalled(root, name, centeredOn);
+	}
+
+	public Set<Box> copyFromFileCalled(Box root, String name, Vec2 centeredOn) {
 
 		Set<Box> m = new LinkedHashSet<>();
 
@@ -382,6 +384,11 @@ public class FileBrowser extends Box implements IO.Loaded {
 	private boolean matchNoSuffix(String n1, String n2) {
 		if (n1.contains(".")) n1 = n1.split("\\.")[0];
 		if (n2.contains(".")) n2 = n2.split("\\.")[0];
+		/*if (n1.contains(File.pathSeparator))*/
+		n1 = new File(n1).getName();
+		/*if (n2.contains(File.pathSeparator))*/
+		n2 = new File(n2).getName();
+
 		return n1.toLowerCase()
 			.matches(n2.toLowerCase());
 	}
@@ -453,6 +460,16 @@ public class FileBrowser extends Box implements IO.Loaded {
 				f.comment = s.replace("\"comment\"", "")
 					.trim();
 				f.comment = f.comment.substring(1, f.comment.length() - 1);
+
+				// well, this is fun
+				f.comment = f.comment.replaceAll("\n", "<br>");
+				f.comment = f.comment.replaceAll("\\\\n", "<br>");
+				f.comment = f.comment.replaceAll("\\n", "<br>");
+				f.comment = f.comment.replaceAll("'", "&rsquo;");
+				f.comment = f.comment.replaceAll("\"", "&rdquo;");
+
+				System.out.println("COMMENT IS <" + f.comment + ">");
+//				f.comment = "";
 			}
 			if (s.trim()
 				.startsWith("\"__id__\"")) {
@@ -690,12 +707,32 @@ public class FileBrowser extends Box implements IO.Loaded {
 			FieldFile fieldFile = (FieldFile) o;
 
 			return id.equals(fieldFile.id);
-
 		}
 
 		@Override
 		public int hashCode() {
 			return id == null ? 0 : id.hashCode();
+		}
+
+		public String getComment(FileBrowser inside) {
+//			return "";
+
+			String cm = "";
+			for (String s : boxes) {
+				FieldBox bx = inside.boxes.get(s);
+				if (bx == null)
+					System.out.println(" couldn't find content :" + s + " " + inside.boxes.keySet());
+				else
+					System.out.println(" found box "+bx.comment);
+
+				if (bx != null && bx.comment != null && bx.comment.length() > 0) {
+					System.out.println(" -- "+bx.comment);
+					cm += "\n\n" + bx.comment;
+				}
+			}
+			cm = cm.trim();
+
+			return cm.length() == 0 ? null : cm.trim();
 		}
 
 	}
