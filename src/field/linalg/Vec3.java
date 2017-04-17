@@ -42,7 +42,9 @@ import java.util.function.Supplier;
  *
  * @author Richard Greenlees
  * @author Kai Burjack
+ * with modifications and additions for Field
  */
+@SafeToToString
 public class Vec3 implements Externalizable, Supplier<Vec3>, Mutable, Serializable_safe {
 
 	private static final long serialVersionUID = 1L;
