@@ -18,24 +18,27 @@ import java.util.List;
  */
 public class BoxDefaultCode {
 
-	static public List<String> extensions = new ArrayList<>(Arrays.asList("js", "html", "css", "txt"));
+	static public List<String> extensions = new ArrayList<>(Arrays.asList("js", "html", "css", "txt", "md", ""));
 
 	static public final Dict.Prop<Boolean> _configured = new Dict.Prop<Boolean>("_configured").toCannon().set(Dict.domain, "*/attributes");
 
 	static public void configure(Box a) {
 
-		Dict.cannonicalProperties().filter(x -> x.getAttributes().isTrue(_configured, false)).forEach(x -> {
+		Dict.cannonicalProperties()
+			.filter(x -> x.getAttributes()
+			.isTrue(_configured, false))
+			.forEach(x -> {
 
-			String c = find(a, "." + x.getName());
+			String c = find(a, x.getName());
 			if (c != null)
-				a.properties.put(Execution.code, c);
+				a.properties.put(x, c);
 		});
 	}
 
 	static public String find(Box a, String propertyName) {
 		Class c = a.getClass();
 		while (c != null) {
-			String code = find(a, c, propertyName);
+			String code = findSource(c, propertyName);
 			if (code != null) {
 				return code;
 			}
@@ -44,13 +47,25 @@ public class BoxDefaultCode {
 		return null;
 	}
 
-	private static String find(Box a, Class c, String propertyName) {
+	static public String find(Class<? extends Box> a, String propertyName) {
+		Class c = a;
+		while (c != null) {
+			String code = findSource(c, propertyName);
+			if (code != null) {
+				return code;
+			}
+			c = c.getSuperclass();
+		}
+		return null;
+	}
+
+	private static String findSource(Class c, String propertyName) {
 		String n = c.getName();
 		n = n.replaceAll("\\.", "/");
-		n = n + propertyName;
+		n = n + "." +propertyName;
 
 		for (String ex : extensions) {
-			URL is = Thread.currentThread().getContextClassLoader().getResource(n + "." + ex);
+			URL is = Thread.currentThread().getContextClassLoader().getResource(n + (ex.length()>0 ? ("." + ex) : ""));
 			if (is != null) {
 				try {
 					return new String(Files.readAllBytes(Paths.get(is.toURI())));
