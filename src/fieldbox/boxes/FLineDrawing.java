@@ -21,50 +21,55 @@ import java.util.stream.Collectors;
 import static field.graphics.StandardFLineDrawing.*;
 
 /**
- * Fundamental drawing support for Boxes
- * <p>
+ * ## Fundamental drawing support for Boxes
+ *
  * This is the ingest side of FLine drawing system --- the Field vector drawing framework. FLines are receptacles for geometry, both lines, tessellated shapes and text, and when added to certain
  * properties of Boxes they will appear inside the FieldBoxWindow. By setting properties on the FLines, you can control their appearance and behavior.
- * <p>
+ *
  * Two properties are observed by this plugin. "frameDrawing" and "lines".
- * <p>
- * "lines" --- signature: this is just a Map or List containing either FLines or Supplier<FLine>. These are lines that are drawn with this box. It's handily auto-constructed to be a map where you can
+ *
+ * `_.lines` --- this is just a Map or List containing either `FLine` or `Supplier<FLine>`. These are lines that are drawn with this box. It's handily auto-constructed to be a map where you can
  * do things like:
- * <p>
- * _.lines.banana = myGreatFLine
- * <p>
- * This is more helpful than writing _.lines.add(myGreatFLine) if you end up repeatedly executing this code.
- * <p>
- * <p>
- * "frameDrawing" --- has a more complex signature: Map<String, Function<Box, FLine>>. That's a string key'd Map of functions that take Boxes and return an FLine. All Keys that start with "_" are
- * reserved by Field. This signature is often easier to write caching strategies for. For example, in the case where you want to draw the frame of a box, if the frame hasn't changed, and the box's
+ *
+ * `_.lines.banana = myGreatFLine`
+ *
+ * This is more helpful than writing `_.lines.add(myGreatFLine)` if you end up repeatedly executing this code.
+ *
+ *
+ * `frameDrawing` --- has a more complex signature: `Map<String, Function<Box, FLine>>`. That's a string key'd `Map` of functions that take `Box` and return an `FLine`. This signature is often easier to write caching strategies for. For example, in the case where you want to draw the frame of a box, if the frame hasn't changed, and the box's
  * selection status hasn't changed, there's no need to recompute the FLine, just return the old one. The graphics system can optimize FLines very aggressively. In the case where absolutely all of the
  * same FLines are added to a MeshBuilder during an animation cycle then no data ends up being uploaded to OpenGL whatsoever and the number of state changes is greatly reduced. For a helper class for
- * this kind of caching see the inner class Cached below.
- * <p>
- * If a box has a "frame" property (i.e. typically if it isn't a plugin) and it has a blank "frameDrawing" then this plugin will give it a default look. The standard Field box look --- that's a name
+ * this kind of caching see the class Cached below.
+ *
+ * If a box has a `frame` property (i.e. typically if it isn't a plugin) and it has a blank `frameDrawing` then this plugin will give it a default look. The standard Field box look --- that's a name
  * in the middle, a light grey gradient box, and a construction site selection trim.
  */
 public class FLineDrawing extends Box implements Drawing.Drawer {
 
 	static public final Dict.Prop<Map<String, Function<Box, FLine>>> frameDrawing = new Dict.Prop<>("frameDrawing").type()
 		.toCannon()
-		.doc("Functions that compute lines to be drawn along with this box").set(IO.dontCopy, true);
+		.doc("Functions that compute lines to be drawn along with this box")
+		.set(IO.dontCopy, true)
+		.set(Dict.writeOnly, true);
 
 	static public final Dict.Prop<IdempotencyMap<Supplier<FLine>>> lines = new Dict.Prop<>("lines").type()
 		.toCannon()
 		.doc("Geometry to be drawn along with this box")
-		.autoConstructs(() -> new IdempotencyMap<>(Supplier.class)).set(IO.dontCopy, true);
-
+		.autoConstructs(() -> new IdempotencyMap<>(Supplier.class))
+		.set(IO.dontCopy, true)
+		.set(Dict.writeOnly, true);
 
 	static public final Dict.Prop<IdempotencyMap<Supplier<Collection<Supplier<FLine>>>>> bulkLines = new Dict.Prop<>("bulkLines").type()
 		.toCannon()
 		.doc("Geometry to be drawn along with this box")
-		.autoConstructs(() -> new IdempotencyMap<>(Supplier.class)).set(IO.dontCopy, true);
+		.autoConstructs(() -> new IdempotencyMap<>(Supplier.class))
+		.set(IO.dontCopy, true)
+		.set(Dict.writeOnly, true);
 
 	static public final Dict.Prop<String> layer = new Dict.Prop<>("layer").type()
 		.toCannon()
 		.doc("which layer to draw to? Defaults to `__main__`, the other alternative right now is `__glass__` to draw on the blur layer above Field");
+
 	private final Box root;
 
 	static public final Dict.Prop<FunctionOfBox<Boolean>> redraw = new Dict.Prop<>("redraw").type().toCannon().doc("call `_.redraw()` to cause the window to be redrawn");
@@ -93,7 +98,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 			Vec2 o = new Vec2(frame.x + frame.w * origin.x, frame.y + frame.h * origin.y);
 			return wrap.get()
 				.byTransforming((pos) -> new Vec3(pos.x + o.x, pos.y + o.y, pos.z));
-		}, (box) -> new Pair<>(box.properties.get(frame), box.properties.isTrue(Mouse.isSelected, false))).toSupplier(() -> inside);
+		}, (box) -> new Quad<>(wrap.get(), wrap.get().getModCount(), box.properties.get(frame), box.properties.isTrue(Mouse.isSelected, false))).toSupplier(() -> inside);
 	}
 
 	static public Function<Box, FLine> boxScale(Function<Box, FLine> wrap) {
@@ -214,8 +219,6 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 				if (Planes.on(root, x) <= 0) {
 					return;
 				}
-
-//			    System.out.println(" lines for :"+x);
 
 				Log.log("drawing.trace", () -> "lines for " + x);
 
