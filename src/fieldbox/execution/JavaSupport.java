@@ -148,6 +148,7 @@ public class JavaSupport {
 					builder.setErrorHandler(e -> Log.log("completion.general", () -> " problem parsing Java source file for completion, will skip this file and continue on "));
 					builder.addClassLoader(classLoader);
 
+
 					String root = fieldagent.Main.app;
 					Files.walkFileTree(FileSystems.getDefault()
 						.getPath(root), new FileVisitor<Path>() {
@@ -183,6 +184,10 @@ public class JavaSupport {
 						}
 					});
 					Log.log("completion.debug", () -> " all is :" + all);
+					if (failedToParse.size() > 0) {
+						Log.log("completion.debug", () -> "The following source files failed to parse correctly (this is likely a problem with the parser, not the code):" + failedToParse);
+
+					}
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -207,8 +212,10 @@ public class JavaSupport {
 			public void visitFile(File currentFile) {
 				try {
 					builder.addSource(currentFile);
-				} catch (Throwable var3) {
-					var3.printStackTrace();
+				} catch (com.thoughtworks.qdox.parser.ParseException e) {
+					failedToParse.add(p);
+				} catch (Throwable t) {
+					t.printStackTrace();
 				}
 
 			}
@@ -236,8 +243,8 @@ public class JavaSupport {
 		signature = signature.trim();
 		String[] leader = signature.split(" ");
 		if (signature.contains(name)) {
-			signature = signature.replace(leader[0], "") + " -> " + leader[0];
-			signature = signature.replace(name, "");
+			signature = signature.replaceFirst(leader[0], "") + " -> " + leader[0];
+			signature = signature.replaceFirst(name, "");
 		}
 
 //		p = Pattern.compile(" " + name + "[ \\(]");
@@ -246,11 +253,12 @@ public class JavaSupport {
 //			signature = m.replaceAll("&rarr;(");
 //		}
 
-		signature = signature.replace("  ", " ");
-		signature = signature.replace("  ", " ");
+		signature = signature.replaceAll(" +", " ");
 
 		return signature.trim();
 	}
+
+	private Set<String> failedToParse = new LinkedHashSet<>();
 
 	private void indexSrcZip(String filename) throws IOException {
 		ZipFile zipFile = new ZipFile(filename);
@@ -264,10 +272,8 @@ public class JavaSupport {
 					builder.addSource(new URL(u));
 				}
 			} catch (com.thoughtworks.qdox.parser.ParseException t) {
-				t.printStackTrace();
-			}
-			catch(Throwable t)
-			{
+				failedToParse.add(zipEntry.getName());
+			} catch (Throwable t) {
 				t.printStackTrace();
 			}
 		}
@@ -506,6 +512,10 @@ public class JavaSupport {
 					for (JavaField m : j.getFields()) {
 						if (hasAnnotation(m.getAnnotations(), HiddenInAutocomplete.class))
 							continue;
+
+						if (m.isStatic() && isTypeProp(m))
+							continue;
+
 						if (docOnly && m.getComment()
 							.trim()
 							.length() < 1) continue;
@@ -536,6 +546,11 @@ public class JavaSupport {
 					for (JavaMethod m : j.getMethods()) {
 						if (hasAnnotation(m.getAnnotations(), HiddenInAutocomplete.class))
 							continue;
+
+						if (m.getName().equals("toString")) continue;
+						if (m.getName().equals("equals")) continue;
+						if (m.getName().equals("hashCode")) continue;
+
 						if (docOnly && m.getComment()
 							.trim()
 							.length() < 1) continue;
@@ -590,12 +605,21 @@ public class JavaSupport {
 		return r;
 	}
 
+	// qdox can throw an NPE during isA when, presumably, it isN't
+	private boolean isTypeProp(JavaField m) {
+		try{
+			return m.getType().isA("field.utility.Dict$Prop");
+		}
+		catch(NullPointerException e)
+		{
+			return false;
+		}
+	}
+
 	private <T extends AccessibleObject> T access(T object) {
 		try {
 			object.setAccessible(true);
-		}
-		catch(java.lang.reflect.InaccessibleObjectException e)
-		{
+		} catch (java.lang.reflect.InaccessibleObjectException e) {
 			// well, hello jigsaw...
 		}
 		return object;
@@ -625,7 +649,7 @@ public class JavaSupport {
 			Set<String> seen = new LinkedHashSet<>();
 
 			for (JavaClass c : builder.getClasses()) {
-				System.out.println(" -- " + c.getName());
+//				System.out.println(" -- " + c.getName());
 				if (c.getName()
 					.contains(left) && !seen.contains(c.getFullyQualifiedName())) {
 					seen.add(c.getFullyQualifiedName());
@@ -636,7 +660,7 @@ public class JavaSupport {
 			System.out.println();
 			synchronized (allClassNames) {
 				for (Map.Entry<String, String> e : allClassNames.entrySet()) {
-					System.out.println(" -- " + e.getKey());
+//					System.out.println(" -- " + e.getKey());
 					if (e.getKey()
 						.contains(left) && !seen.contains(e.getKey())) {
 						seen.add(e.getKey());
@@ -665,4 +689,7 @@ public class JavaSupport {
 	}
 
 
+	public JavaClass sourceForClass(Class<?> of) {
+		return builder.getClassByName(of.getName());
+	}
 }
