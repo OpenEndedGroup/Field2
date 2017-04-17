@@ -52,7 +52,9 @@ public class EditorUtils {
 		messageTable.put(prefix + suffix, s -> c.complete(s));
 		editor.sendJavaScriptNow(message);
 
-		if (ThreadSync.get().mainThread==Thread.currentThread())
+//		System.out.println(" what thread are we :"+ThreadSync.get().mainThread)
+
+//		if (ThreadSync.get().mainThread==Thread.currentThread())
 		{
 			try {
 				JSONObject r = c.get();
