@@ -12,6 +12,7 @@ import fieldnashorn.annotations.HiddenInAutocomplete;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.function.*;
 import java.util.regex.Matcher;
@@ -32,7 +33,7 @@ import java.util.stream.Stream;
  * <p>
  * Much of the time properties are looked up in the graph in breadth first fashion either "upwards" (towards parents) or less-often downwards (collecting over all children).
  */
-public class Box implements Linker.AsMap, HandlesCompletion {
+public class Box implements fieldlinker.AsMap, HandlesCompletion {
 
 	static public final Dict.Prop<String> name = new Dict.Prop<>("name").type()
 		.toCannon()
@@ -57,15 +58,22 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 		.doc("provides a `Predicate<Box>` to help decide if a Property should be shown as available for completion").set(Dict.domain, "attributes");
 
 
-
+	@HiddenInAutocomplete
 	public final Dict properties = new Dict();
+
+	@HiddenInAutocomplete
 	public Set<Box> parents = new LinkedHashSet<>();
+	@HiddenInAutocomplete
 	public Set<Box> children = new LinkedHashSet<>();
+
+	@HiddenInAutocomplete
 	public Deque<Box> all = new ArrayDeque<>();
+
 	protected Set<String> knownNonProperties;
 	private String __cachedSimpleName = null;
 	private long tick = 0;
 
+	@HiddenInAutocomplete
 	public boolean disconnected = false;
 
 
@@ -267,6 +275,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	/**
 	 * returns direction that goes upwards if it can, otherwise downwards.
 	 */
+	@HiddenInAutocomplete
 	public Function<Box, Collection<Box>> upwardsOrDownwards() {
 		return x -> {
 			if (x.parents().size() > 0) return x.parents();
@@ -277,6 +286,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	/**
 	 * returns direction that goes downwards from here, but both downwards and upwards from everywhere else. This is good for getting everything _below_ a point in the graph
 	 */
+	@HiddenInAutocomplete
 	public Function<Box, Collection<Box>> allDownwardsFrom() {
 		Function<Box, Collection<Box>> b = both();
 		return x -> {
@@ -416,7 +426,8 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 		Field[] f = this.getClass()
 			.getFields();
 		for (Field ff : f)
-			r.add(ff.getName());
+			if (!Modifier.isStatic(ff.getModifiers()))
+				r.add(ff.getName());
 
 		r.remove("children");
 		r.remove("parents");
@@ -482,13 +493,16 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 
 		// workaround bug in Nashorn
 //		if (value instanceof ConsString) value = value.toString(); //jdk9 module security breaks this
-		if (value!=null && value.getClass().getName().endsWith("ConsString")) value = ""+value;
+		if (value != null && value.getClass().getName().endsWith("ConsString")) value = "" + value;
 
-
-//		Log.log("underscore.debug", " underscore box set :" + name + " to " + value.getClass() + " <" + Function.class.getName() + ">");
 		Dict.Prop cannon = new Dict.Prop(name).toCannon();
 
-//		Log.log("underscore.debug", " cannonical type information " + cannon.getTypeInformation());
+		if (cannon.getAttributes().isTrue(Dict.writeOnly, false))
+			throw new IllegalArgumentException("can't write to property " + name);
+
+		Function<Object, Object> c = cannon.getAttributes().get(Dict.customCaster);
+		if (c!=null)
+			value = c.apply(value);
 
 		Object converted = Conversions.convert(value, cannon.getTypeInformation());
 
@@ -569,34 +583,21 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 
 		Log.log("completion.debug", () -> "inside getCompletionsFor (box) " + prefix);
 
-		Set<String> s1 = new LinkedHashSet<>();
+		Stream<Dict.Prop> propStream = this.breadthFirst(this.upwards())
+			.map(x -> x.properties.getMap()
+				.keySet()).flatMap(Collection::stream);
 
-		try {
-			s1 = this.breadthFirst(this.upwards())
-				.map(x -> x.properties.getMap()
-					.keySet())
-				.flatMap(x -> x.stream())
-				.filter(x -> x.getAttributes().get(availableForCompletion)==null || x.getAttributes().get(availableForCompletion).test(this))
-				.map(x -> x.getName())
-				.filter(x -> !x.startsWith("_"))
-				.collect(Collectors.toSet());
-		} catch (IllegalArgumentException e) {// skip error about unconnected boxes
-		}
+		List<Completion> l1 = assembleCompletions(prefix, propStream);
+		l1.forEach(x -> x.rank++);
 
-
-		List<Completion> l1 = s1.stream()
-			.filter(x -> x.startsWith(prefix))
-			.sorted()
-			.map(x -> {
-				Dict.Prop q = new Dict.Prop(x).findCannon();
-				if (q == null) {
-					return null;
-				} else
-					return new Completion(-1, -1, x, "<span class='type'>" + Conversions.fold(q.getTypeInformation(), t -> compress(
-						t)) + "</span> "+possibleToString(this,q)+" &mdash; <span class='doc'>" + format(q.getDocumentation()) + "</span>");
+		List<Completion> l1b = assembleCompletions(prefix, Dict.cannonicalProperties());
+		l1.addAll(l1b.stream()
+			.filter(x -> {
+				for (Completion c : l1)
+					if (c.replacewith.equals(x.replacewith)) return false;
+				return true;
 			})
-			.filter(x -> x != null)
-			.collect(Collectors.toList());
+			.collect(Collectors.toList()));
 
 		List<Completion> l2 = JavaSupport.javaSupport.getOptionCompletionsFor(this, prefix);
 
@@ -614,6 +615,34 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 		return l1;
 	}
 
+	private List<Completion> assembleCompletions(String prefix, Stream<Dict.Prop> propStream) {
+		Set<String> s1 = new LinkedHashSet<>();
+
+		try {
+			s1 = propStream
+				.filter(x -> x.getAttributes().get(availableForCompletion) == null || x.getAttributes().get(availableForCompletion).test(this))
+				.map(Dict.Prop::getName)
+				.filter(x -> !x.startsWith("_"))
+				.collect(Collectors.toSet());
+		} catch (IllegalArgumentException e) {// skip error about unconnected boxes
+		}
+
+
+		return s1.stream()
+			.filter(x -> x.startsWith(prefix))
+			.sorted()
+			.map(x -> {
+				Dict.Prop q = new Dict.Prop(x).findCannon();
+				if (q == null) {
+					return null;
+				} else
+					return new Completion(-1, -1, x, "<span class='type'>" + Conversions.fold(q.getTypeInformation(), t -> compress(
+						t)) + "</span> " + possibleToString(this, q) + " &mdash; <span class='doc'>" + format(q.getDocumentation()) + "</span>");
+			})
+			.filter(x -> x != null)
+			.collect(Collectors.toList());
+	}
+
 	private String possibleToString(Box box, Dict.Prop q) {
 //		if (!box.properties.has(q)) return "";
 
@@ -627,14 +656,13 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 
 		// does this v have something to say?
 
-		if (v==null)
+		if (v == null)
 			return "null";
 
 		try {
-			if (v.getClass().getMethod("toString").getDeclaringClass()!=Object.class)
-			{
-				String r = " = "+v;
-				if (r.length()<40)
+			if (v.getClass().getMethod("toString").getDeclaringClass() != Object.class) {
+				String r = " = " + v;
+				if (r.length() < 40)
 					return r;
 			}
 
@@ -649,7 +677,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 		String doc = MarkdownToHTML.convert(documentation);
 		doc = doc.trim();
 		if (doc.startsWith("<p>") && doc.endsWith("</p>")) {
-			doc = doc.replaceFirst("<p>", "").substring(0, doc.length() - 4);
+			doc = doc.substring(0, doc.length() - 4).replaceFirst("<p>", "");
 		}
 		return doc;
 	}
@@ -663,6 +691,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 				m1.add(mm.getName());
 			}
 		}
+
 		return m1;
 	}
 
@@ -696,11 +725,11 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	/**
 	 * todo: if 'prop' is persistent, so should prefix+'prop'
 	 */
-	static public class Subscope implements Linker.AsMap {
+	static public class Subscope implements fieldlinker.AsMap {
 		protected String prefix;
-		protected Linker.AsMap delegateTo;
+		protected fieldlinker.AsMap delegateTo;
 
-		public Subscope(Linker.AsMap from) {
+		public Subscope(fieldlinker.AsMap from) {
 
 			this.prefix = Execution.context.get()
 				.peek().properties.getOrConstruct(IO.id);
@@ -766,7 +795,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	}
 
 
-	static public class CollectedMap<T> implements Linker.AsMap {
+	static public class CollectedMap<T> implements fieldlinker.AsMap {
 		private final Dict.Prop<IdempotencyMap<T>> storageProperty;
 		private final Box from;
 		private Function<Box, IdempotencyMap<T>> autoconstructor;
@@ -850,7 +879,7 @@ public class Box implements Linker.AsMap, HandlesCompletion {
 	}
 
 
-	static public class TemplateMap<T extends Box> implements Linker.AsMap {
+	static public class TemplateMap<T extends Box> implements fieldlinker.AsMap {
 
 
 		private final String namePrefix;
