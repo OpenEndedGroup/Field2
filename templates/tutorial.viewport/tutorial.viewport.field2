@@ -1,0 +1,148 @@
+#field/document{
+  :externalList [
+    #field/external{
+      :textFiles {
+        "fragment" "{{templates}}/tutorial.viewport/triangles.box.glslf"
+        "geometry" "{{templates}}/tutorial.viewport/triangles.box.glslg"
+        "code" "{{templates}}/tutorial.viewport/triangles.box.js"
+        "vertex" "{{templates}}/tutorial.viewport/triangles.box.glslv"
+      }
+      :dataFile "{{templates}}/tutorial.viewport/triangles.box"
+      :id "_7c180894_05bc_4544_9894_8aec50b663c4"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+        "_c9895ec5_eed7_4bc4_b937_a4416a27224b"
+      ]
+      :children [
+        "_01dac698_2c72_4a55_b535_ef3b9367d724"
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 42.39140319824219
+          :y 535.0374755859375
+          :w 100.0
+          :h 98.9609375
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/tutorial.viewport/viewport.box.js"
+      }
+      :dataFile "{{templates}}/tutorial.viewport/viewport.box"
+      :id "_ede9b42e_edcb_4562_b30b_a5af24e8d3fb"
+      :boxClass "fieldbox.boxes.plugins.Viewport"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+        "_7c180894_05bc_4544_9894_8aec50b663c4"
+        "_57efbf8d_3861_42b2_871e_207e9f93fe30"
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 46.53515625
+          :y 18.47265625
+          :w 505.98046875
+          :h 475.69921875
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/tutorial.viewport/some geometry.box.js"
+      }
+      :dataFile "{{templates}}/tutorial.viewport/some geometry.box"
+      :id "_f5064696_d6da_45f9_b98f_255069756c42"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        "_7c180894_05bc_4544_9894_8aec50b663c4"
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 45.19609069824219
+          :y 683.9593505859375
+          :w 99.23828125
+          :h 98.52734375
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/tutorial.viewport/some fline.box.js"
+      }
+      :dataFile "{{templates}}/tutorial.viewport/some fline.box"
+      :id "_14b22d5f_d44f_4913_aa25_e47a1b8944aa"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        "_ede9b42e_edcb_4562_b30b_a5af24e8d3fb"
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 453.38751220703125
+          :y 545.8890380859375
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+  ]
+  :knownFiles {
+    "txt" #field/filespec{
+      :name "txt"
+    }
+    "fragment" #field/filespec{
+      :name "fragment"
+    }
+    "code" #field/filespec{
+      :name "code"
+    }
+    "vertex" #field/filespec{
+      :name "vertex"
+    }
+    "geometry" #field/filespec{
+      :name "geometry"
+    }
+    "html" #field/filespec{
+      :name "html"
+    }
+    "edn" #field/filespec{
+      :name "edn"
+    }
+  }
+  :knownProperties #{
+    "__id__"
+    "comment"
+    "classpath"
+    "perDocument"
+    "name"
+    "frame"
+    "lockHeight"
+    "lockWidth"
+    "tag"
+    "windowSpace"
+    "windowScale"
+    "isPaired"
+    "defaultEditorProperty"
+    "_defaultEditorProperty_cookie"
+    "auto"
+    "_code_cookie"
+    "head"
+    "tail"
+    "_theVariant"
+    "includes"
+    "excludes"
+    "__datafilename__"
+    "__filename__fragment"
+    "__filename__geometry"
+    "__filename__code"
+    "__filename__vertex"
+  }
+}
