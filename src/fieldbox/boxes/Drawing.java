@@ -42,7 +42,9 @@ public class Drawing extends Box implements DrawingInterface {
 		.doc("a collection of things that will draw inside the OpenGL paint context, after everything else has drawn. Viewport plugs in at this level.");
 	static public final Dict.Prop<Drawing> drawing = new Dict.Prop<>("drawing").type()
 		.toCannon()
-		.doc("the Drawing plugin");
+		.doc("the Drawing plugin")
+		.set(Dict.writeOnly, true);
+
 	static public final Dict.Prop<Boolean> needRepaint = new Dict.Prop<>("_needRepaint").type()
 		.toCannon();
 	static public final Dict.Prop<Vec2> windowSpace = new Dict.Prop<>("windowSpace").type()
@@ -489,8 +491,7 @@ public class Drawing extends Box implements DrawingInterface {
 	long drawCount = 0;
 
 	@HiddenInAutocomplete
-	public long getDrawCount()
-	{
+	public long getDrawCount() {
 		return drawCount;
 	}
 
