@@ -346,19 +346,28 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 //		if (arrowA != null) r1.add(arrowA);
 //		f = FLinesAndJavaShapes.javaShapeToFLineFlat(r1, 0.1f, 3);
 
-		f.attributes.put(fillColor, selected ? new Vec4(1, 1, 1, 0.5) : new Vec4(1, 0.5, 0.0, 0.5f));
-		f.attributes.put(strokeColor, selected ? new Vec4(1, 1, 1, 0.5) : new Vec4(1.0, 0.5, 0.0, 0.5f));
-		f.attributes.put(color, selected ? new Vec4(1, 1, 1, 0.5) : new Vec4(1.0, 0.5, 0.0, 0.5f));
+		f.attributes.put(fillColor, selected ? new Vec4(1, 1, 1, 0.35) : new Vec4(1, 0.5, 0.0, 0.25f));
+		f.attributes.put(strokeColor, selected ? new Vec4(1, 1, 1, 0.35) : new Vec4(1.0, 0.5, 0.0, 0.25f));
+		f.attributes.put(color, selected ? new Vec4(1, 1, 1, 0.35) : new Vec4(1.0, 0.5, 0.0, 0.25f));
 
-		f.circle(a[da[0]].x, a[da[0]].y, 5);
-		f.circle(b[da[1]].x, b[da[1]].y, 5);
 
 
 //		if (!selected)
-			f.attributes.put(thicken, new BasicStroke(selected ? 3.5f : 1.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
-//		if (selected) f.attributes.put(filled, true);
+			f.attributes.put(thicken, new BasicStroke(selected ? 1.5f : 1.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
 
-		return new Pair<>(f, midpoint);
+		FLine fFinal = FLinesAndJavaShapes.javaShapeToFLine(FLinesAndJavaShapes.flineToJavaShape(f));
+
+		fFinal.attributes.putAll(f.attributes);
+		fFinal.attributes.remove(thicken);
+
+		fFinal.circle(a[da[0]].x, a[da[0]].y, 5);
+		fFinal.circle(b[da[1]].x, b[da[1]].y, 5);
+
+		fFinal.attributes.put(filled, true);
+
+		//		if (selected) f.attributes.put(filled, true);
+
+		return new Pair<>(fFinal, midpoint);
 	}
 
 	protected Rect frame(Box hitBox) {
