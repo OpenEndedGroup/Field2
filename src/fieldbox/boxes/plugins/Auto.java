@@ -37,8 +37,6 @@ public class Auto extends Box implements IO.Loaded {
 			loaded();
 			return null;
 		});
-
-
 	}
 
 	@Override

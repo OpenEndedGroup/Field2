@@ -27,7 +27,7 @@ public class RunLoop {
 	AtomicBoolean exitStarted = new AtomicBoolean(false);
 
 	protected RunLoop() {
-		mainThread =  Thread.currentThread();
+		mainThread = Thread.currentThread();
 		Runtime.getRuntime()
 			.addShutdownHook(shutdownThread = new Thread(() -> exit()));
 	}
@@ -54,7 +54,8 @@ public class RunLoop {
 	static public boolean printTelemetry = false;
 
 	public void enterMainLoop() {
-		if (Thread.currentThread()!=mainThread) throw new IllegalArgumentException(" cannot enter main loop on non-main thread");
+		if (Thread.currentThread() != mainThread)
+			throw new IllegalArgumentException(" cannot enter main loop on non-main thread");
 
 		while (true) {
 			try {
