@@ -484,6 +484,9 @@ public class RemoteEditor extends Box {
 					.toString()));
 
 			boxFeedback(box, new Vec4(0, 0.5f, 0.3f, 0.5f));
+			Drawing.dirty(box.get());
+
+
 
 			return payload;
 		});
@@ -584,6 +587,7 @@ public class RemoteEditor extends Box {
 				Collections.singletonMap("_t", null));
 
 			boxFeedback(box, new Vec4(0, 0.5f, 0.3f, 0.5f));
+			Drawing.dirty(box.get());
 
 			return payload;
 		});
@@ -629,6 +633,7 @@ public class RemoteEditor extends Box {
 					.toString()));
 
 			boxFeedback(box, new Vec4(0, 0.5f, 0.3f, 0.5f));
+			Drawing.dirty(box.get());
 
 			return payload;
 		});
