@@ -8,7 +8,9 @@ import field.graphics.util.KeyEventMapping;
 import field.linalg.Vec2;
 import field.utility.*;
 import fieldagent.Main;
+import fieldbox.boxes.Box;
 import fieldbox.boxes.Mouse;
+import fielded.boxbrowser.BoxBrowser;
 import fieldlinker.Linker;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 import org.lwjgl.opengl.*;
@@ -31,11 +33,12 @@ import static org.lwjgl.glfw.GLFW.*;
 /**
  * An Window with an associated OpenGL draw context, and a base Field graphics Scene
  */
-public class Window implements ProvidesGraphicsContext {
+public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownInformation {
 
 	static public final Dict.Prop<Boolean> consumed = new Dict.Prop<>("consumed").type()
 		.doc("marks an event as handled elsewhere")
-		.toCannon();
+		.toCannon().set(Dict.domain, "event");
+
 	static ThreadLocal<Window> currentWindow = new ThreadLocal<Window>() {
 		@Override
 		protected Window initialValue() {
@@ -45,6 +48,7 @@ public class Window implements ProvidesGraphicsContext {
 
 	static public final boolean glDebugging = Options.dict().isTrue(new Dict.Prop<>("gldebugging"), false);
 	public final GlfwCallback callback;
+	private String title;
 
 	private int retinaScaleFactor;
 
@@ -100,6 +104,11 @@ public class Window implements ProvidesGraphicsContext {
 
 	public Window(int x, int y, int w, int h, String title, boolean permitRetina) {
 
+		// work around OS X window opening issue
+		if (Main.os == Main.OS.mac) {
+			w = w - 1;
+		}
+
 		Configuration.GLFW_CHECK_THREAD0.set(false);
 
 		Windows.windows.init();
@@ -145,54 +154,55 @@ public class Window implements ProvidesGraphicsContext {
 //	try {
 //			ThreadSync.callInMainThreadAndWait(() -> {
 
-				System.out.println(" -- C1 :"+w+" "+h+" "+title+" "+0+" "+(shareContext==this)+" "+Thread.currentThread());
-				window = glfwCreateWindow(w, h, title, 0, shareContext == this ? 0 : shareContext.window);
-			System.out.println(" -- C2");
-				if (window == 0) {
-					System.err.println(" FAILED TO CREATE WINDOW :" + shareContext);
-				}
-				glfwSetWindowPos(window, x, y);
-				Windows.windows.register(window, callback = makeCallback());
+		window = glfwCreateWindow(w, h, title, 0, shareContext == this ? 0 : shareContext.window);
 
-				glfwShowWindow(window);
+		this.title = title;
 
-				glfwMakeContextCurrent(window);
+		if (window == 0) {
+			System.err.println(" FAILED TO CREATE WINDOW :" + shareContext);
+		}
+		glfwSetWindowPos(window, x, y);
+		Windows.windows.register(window, callback = makeCallback());
+
+		glfwShowWindow(window);
+
+		glfwMakeContextCurrent(window);
 //				glfwSwapInterval(1);
 
-				glfwSwapInterval(0);
+		glfwSwapInterval(0);
 
-				glfwWindowShouldClose(window);
+		glfwWindowShouldClose(window);
 
-				if (shareContext == this) {
-					glcontext = GL.createCapabilities(true);
-				} else {
-					glcontext = shareContext.glcontext;
-					GL.setCapabilities(glcontext);
-				}
-
-
-				GL11.glClearColor(0.25f, 0.25f, 0.25f, 1);
-				GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
-				if (glDebugging) {
-					GL11.glEnable(GL43.GL_DEBUG_OUTPUT_SYNCHRONOUS);
-					c = GLUtil.setupDebugMessageCallback();
-				}
-
-				glfwSwapBuffers(window);
-
-				RunLoop.main.getLoop()
-					.attach(0, perform);
+		if (shareContext == this) {
+			glcontext = GL.createCapabilities(true);
+		} else {
+			glcontext = shareContext.glcontext;
+			GL.setCapabilities(glcontext);
+		}
 
 
-				glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS, GL11.GL_TRUE);
+		GL11.glClearColor(0.25f, 0.25f, 0.25f, 1);
+		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
+		if (glDebugging) {
+			GL11.glEnable(GL43.GL_DEBUG_OUTPUT_SYNCHRONOUS);
+			c = GLUtil.setupDebugMessageCallback();
+		}
 
-				retinaScaleFactor = permitRetina ? (int) (Options.dict()
-					.getFloat(new Dict.Prop<Number>("retina"), 0f) + 1) : 1;
+		glfwSwapBuffers(window);
 
-				windowOpenedAt = RunLoop.tick;
+		RunLoop.main.getLoop()
+			.attach(0, perform);
 
-				modifiers = new CanonicalModifierKeys(window);
-				System.out.println(" -- D");
+
+		glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS, GL11.GL_TRUE);
+
+		retinaScaleFactor = permitRetina ? (int) (Options.dict()
+			.getFloat(new Dict.Prop<Number>("retina"), 0f) + 1) : 1;
+
+		windowOpenedAt = RunLoop.tick;
+
+		modifiers = new CanonicalModifierKeys(window);
+		System.out.println(" -- D");
 
 //				return window;
 //			});
@@ -214,6 +224,8 @@ public class Window implements ProvidesGraphicsContext {
 							System.err.println(" frame rate is :" + f + " for " + Window.this);
 						lastWas = frame;
 						lastAt = System.currentTimeMillis();
+
+						frameRate = f;
 					}
 					try {
 						Thread.sleep(5000);
@@ -228,6 +240,14 @@ public class Window implements ProvidesGraphicsContext {
 		glfwMakeContextCurrent(0);
 
 		createdInThread = Thread.currentThread();
+
+
+		if (Main.os == Main.OS.mac) {
+			int finalW = w;
+//			RunLoop.main.delayTicks(() -> {
+				setBounds(x, y, finalW + 1, h);
+//			}, 2);
+		}
 
 
 	}
@@ -301,6 +321,13 @@ public class Window implements ProvidesGraphicsContext {
 
 
 	private int frameHack = 0;
+
+	@Override
+	public String generateMarkdown(Box inside, Dict.Prop property) {
+
+		return "Window <code>'"+title+"'</code> of dimensions <code>"+getBounds()+"</code> has been drawn <code>"+frame+"</code> time"+(frame==1 ? "" : "s")+". Average, recent framerate is <code>"+String.format("%.2f",frameRate)+"</code> fps";
+
+	}
 
 	public interface SwapControl {
 		public void swap(long window);
@@ -391,7 +418,19 @@ public class Window implements ProvidesGraphicsContext {
 
 	}
 
-	long frame;
+	/**
+	 * an integer that increases every time this window is drawn
+	 */
+	public long frame;
+
+	/**
+	 * a rough estimate of the current framerate of this window, in Frames-per-second
+	 */
+	public double frameRate;
+
+	/**
+	 * disables the swapping of this window to the screen (the window continues to repaint itself whenever it would repaint before, but no call to SwapBuffers happens if this is set to true)
+	 */
 	public boolean dontSwap = false;
 
 	protected boolean disabled = false;
@@ -435,8 +474,13 @@ public class Window implements ProvidesGraphicsContext {
 		return !disabled && (!lazyRepainting || needsRepainting);
 	}
 
+	/**
+	 * Change the title of this window. Note that this won't do anything to a window that was created without a title.
+	 * @param title
+	 */
 	public void setTitle(String title) {
 		glfwSetWindowTitle(window, title);
+		this.title = title;
 	}
 
 	public void setBounds(int x, int y, int w, int h) {
@@ -566,6 +610,7 @@ public class Window implements ProvidesGraphicsContext {
 
 	/**
 	 * post an event to this window
+	 *
 	 * @param before
 	 * @param after
 	 */
@@ -669,6 +714,7 @@ public class Window implements ProvidesGraphicsContext {
 
 	/**
 	 * post an event to this window
+	 *
 	 * @param before
 	 * @param after
 	 */
@@ -759,11 +805,9 @@ public class Window implements ProvidesGraphicsContext {
 			public void key(long window, int key, int scancode, int action, int mods) {
 				if (window == Window.this.window && RunLoop.tick > windowOpenedAt + 10) { // we ignore keyboard events from the first couple of updates; they can refer to key downs that we'll never recieve up fors
 
-
 					KeyboardState next = keyboardState.withKey(key, action != GLFW_RELEASE);
 
 					modifiers.event(key, scancode, action, mods, next.keysDown);
-
 
 					next = modifiers.cleanModifiers(next);
 					next = next.clean(window);
@@ -775,8 +819,7 @@ public class Window implements ProvidesGraphicsContext {
 
 			@Override
 			public void character(long window, int character) {
-				if (window == Window.this.window)
-				{
+				if (window == Window.this.window) {
 					KeyboardState next = keyboardState.withChar((char) character, true);
 
 					boolean shift = ((glfwGetKey(window, GLFW_KEY_LEFT_SHIFT)) | (glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT))) != 0;
@@ -1160,7 +1203,7 @@ public class Window implements ProvidesGraphicsContext {
 		}
 
 		@Override
-		protected Linker.AsMap delegateTo() {
+		protected fieldlinker.AsMap delegateTo() {
 			return properties;
 		}
 	}
