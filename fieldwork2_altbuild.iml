@@ -13,5 +13,6 @@
     <orderEntry type="library" name="jarsDir" level="project" />
     <orderEntry type="library" name="field_prebuild" level="project" />
     <orderEntry type="library" name="quickhull3d" level="project" />
+    <orderEntry type="library" name="jmustache-1.13" level="project" />
   </component>
 </module>
