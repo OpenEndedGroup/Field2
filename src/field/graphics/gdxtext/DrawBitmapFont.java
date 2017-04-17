@@ -96,14 +96,14 @@ public class DrawBitmapFont {
 				}
 
 				target.aux(3, g.srcX, g.srcY + g.height, smoothing);
-				target.nextVertex(at.x + g.xoffset * scale, at.y - g.yoffset * scale, 0);
+				target.v(at.x + g.xoffset * scale, at.y - g.yoffset * scale, 0);
 				target.aux(3, g.srcX + g.width, g.srcY + g.height, smoothing);
-				target.nextVertex(at.x + g.width * scale + g.xoffset * scale, at.y - g.yoffset * scale, 0);
+				target.v(at.x + g.width * scale + g.xoffset * scale, at.y - g.yoffset * scale, 0);
 				target.aux(3, g.srcX + g.width, g.srcY, smoothing);
-				target.nextVertex(at.x + g.width * scale + g.xoffset * scale, at.y - g.height * scale - g.yoffset * scale, 0);
+				target.v(at.x + g.width * scale + g.xoffset * scale, at.y - g.height * scale - g.yoffset * scale, 0);
 				target.aux(3, g.srcX, g.srcY, smoothing);
-				target.nextVertex(at.x + g.xoffset * scale, at.y - g.height * scale - g.yoffset * scale, 0);
-				target.nextElement_quad(0, 1, 2, 3);
+				target.v(at.x + g.xoffset * scale, at.y - g.height * scale - g.yoffset * scale, 0);
+				target.e_quad(0, 1, 2, 3);
 
 				if (i < ca.length - 1) {
 					at.x += (g.xadvance -32+ g.getKerning(ca[i + 1])) * scale;

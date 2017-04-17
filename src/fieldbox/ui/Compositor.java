@@ -205,11 +205,11 @@ public class Compositor {
 		public void drawInto(Scene s) {
 			BaseMesh mesh = BaseMesh.triangleList(4, 2);
 			MeshBuilder mb = new MeshBuilder(mesh);
-			mb.nextVertex(-1, -1, 0);
-			mb.nextVertex(1, -1, 0);
-			mb.nextVertex(1, 1, 0);
-			mb.nextVertex(-1, 1, 0);
-			mb.nextElement_quad(0, 1, 2, 3);
+			mb.v(-1, -1, 0);
+			mb.v(1, -1, 0);
+			mb.v(1, 1, 0);
+			mb.v(-1, 1, 0);
+			mb.e_quad(0, 1, 2, 3);
 			Shader shader = new Shader();
 
 			shader.addSource(Shader.Type.vertex, "#version 410\n" +
@@ -243,11 +243,11 @@ public class Compositor {
 		public void compositeWith(Layer underlayer, Scene s) {
 			BaseMesh mesh = BaseMesh.triangleList(4, 2);
 			MeshBuilder mb = new MeshBuilder(mesh);
-			mb.nextVertex(-1, -1, 0);
-			mb.nextVertex(1, -1, 0);
-			mb.nextVertex(1, 1, 0);
-			mb.nextVertex(-1, 1, 0);
-			mb.nextElement_quad(0, 1, 2, 3);
+			mb.v(-1, -1, 0);
+			mb.v(1, -1, 0);
+			mb.v(1, 1, 0);
+			mb.v(-1, 1, 0);
+			mb.e_quad(0, 1, 2, 3);
 			Shader shader = new Shader();
 
 			shader.addSource(Shader.Type.vertex, "#version 410\n" +
@@ -304,11 +304,11 @@ public class Compositor {
 		protected void blurInto(int taps, Scene s, String access) {
 			BaseMesh mesh = BaseMesh.triangleList(4, 2);
 			MeshBuilder mb = new MeshBuilder(mesh);
-			mb.nextVertex(-1, -1, 0);
-			mb.nextVertex(1, -1, 0);
-			mb.nextVertex(1, 1, 0);
-			mb.nextVertex(-1, 1, 0);
-			mb.nextElement_quad(0, 1, 2, 3);
+			mb.v(-1, -1, 0);
+			mb.v(1, -1, 0);
+			mb.v(1, 1, 0);
+			mb.v(-1, 1, 0);
+			mb.e_quad(0, 1, 2, 3);
 			Shader shader = new Shader();
 
 			shader.addSource(Shader.Type.vertex, "#version 410\n" +

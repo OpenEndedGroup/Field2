@@ -99,7 +99,7 @@ class MeshBuilder_tesselationSupport implements MeshAcceptor{
 
 	Vec3 first = null;
 	@Override
-	public MeshAcceptor nextVertex(float x, float y, float z) {
+	public MeshAcceptor v(float x, float y, float z) {
 		if (first==null)
 		{
 			first = new Vec3(x,y,z);
@@ -120,12 +120,12 @@ class MeshBuilder_tesselationSupport implements MeshAcceptor{
 
 		if (contourFirst) {
 			VInfo info = new VInfo(null, a, pa);
-			nextVertex(info);
+			v(info);
 			tess.gluTessVertex(new double[] { a.x, a.y, a.z }, 0, info);
 		}
 
 		VInfo info = new VInfo(null, b, pb);
-		nextVertex(info);
+		v(info);
 		tess.gluTessVertex(new double[] { b.x, b.y, b.z }, 0, info);
 
 		contourFirst = false;
@@ -135,12 +135,12 @@ class MeshBuilder_tesselationSupport implements MeshAcceptor{
 
 		if (contourFirst) {
 			VInfo info = new VInfo(null, retrieveVertex(a), pa);
-			nextVertex(info, a);
+			v(info, a);
 			tess.gluTessVertex(new double[] { info.position.x, info.position.y, info.position.z }, 0, info);
 		}
 
 		VInfo info = new VInfo(null, retrieveVertex(b), pb);
-		nextVertex(info, b);
+		v(info, b);
 		tess.gluTessVertex(new double[] { info.position.x, info.position.y, info.position.z }, 0, info);
 
 		contourFirst = false;
@@ -176,7 +176,7 @@ class MeshBuilder_tesselationSupport implements MeshAcceptor{
 	protected void nextTriangle(VInfo i) {
 
 		if (i.vertex == null) {
-			nextVertex(i);
+			v(i);
 		}
 
 		if (ongoingTriangle.size() == 2) {
@@ -187,17 +187,17 @@ class MeshBuilder_tesselationSupport implements MeshAcceptor{
 	}
 
 	protected void nextTriangle(VInfo a, VInfo b, VInfo c) {
-		target.nextElement(a.vertex.at(), b.vertex.at(), c.vertex.at());
+		target.e(a.vertex.at(), b.vertex.at(), c.vertex.at());
 	}
 
-	protected void nextVertex(VInfo info) {
+	protected void v(VInfo info) {
 		if (info.vertex == null) {
-			info.vertex = nextVertex(info.position);
+			info.vertex = v(info.position);
 			decorateVertex(info.vertex, info.properties);
 		}
 	}
 
-	protected void nextVertex(VInfo info, int absolute) {
+	protected void v(VInfo info, int absolute) {
 		if (info.vertex == null) {
 			info.vertex = target.bookmark(absolute);
 			decorateVertex(info.vertex, info.properties);
@@ -211,9 +211,9 @@ class MeshBuilder_tesselationSupport implements MeshAcceptor{
 		}
 	}
 
-	protected MeshBuilder.Bookmark nextVertex(Vec3 position)
+	protected MeshBuilder.Bookmark v(Vec3 position)
 	{
-		target.nextVertex(position.x, position.y, position.z);
+		target.v(position.x, position.y, position.z);
 		return target.bookmark();
 	}
 

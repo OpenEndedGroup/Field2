@@ -739,7 +739,7 @@ public class CSG {
 	public void toMeshBuilder(MeshBuilder builder) {
 		try (MeshBuilder b = builder.open()) {
 			this.polygons.stream()
-				     .forEach(p -> b.nextContour(p.vertices.stream()
+				     .forEach(p -> b.contour(p.vertices.stream()
 									   .map(x -> x.pos)
 									   .collect(Collectors.toList())));
 		}
