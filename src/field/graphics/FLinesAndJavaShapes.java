@@ -364,13 +364,23 @@ public class FLinesAndJavaShapes {
 	}
 
 	static public FLine insetShape(FLine f, float amount) {
-		Shape s = flineToJavaShape(f);
+		Shape s = flineToJavaShape_notThickened(f);
 		Shape ss = new BasicStroke(amount, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND).createStrokedShape(s);
 
 		Area sa = new Area(s);
 		Area ssa = new Area(ss);
 		sa.subtract(ssa);
 		return javaShapeToFLine(sa);
+	}
+
+	static public Shape outsetShape(FLine f, float amount) {
+		Shape s = flineToJavaShape_notThickened(f);
+		Shape ss = new BasicStroke(amount, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND).createStrokedShape(s);
+
+		Area sa = new Area(s);
+		Area ssa = new Area(ss);
+		sa.add(ssa);
+		return sa;
 	}
 
 	static public List<Vec3> samplePoints(FLine f, float distance)
