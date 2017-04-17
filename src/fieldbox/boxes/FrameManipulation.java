@@ -280,6 +280,12 @@ public class FrameManipulation extends Box {
 				}).filter(x -> Planes.on(root, x) >= 1).forEach(x -> workingSet.add(x));
 			}
 
+			if (hitBox.properties.isTrue(Mouse.isSticky, false))
+			{
+				workingSet.clear();;
+				workingSet.add(hitBox);
+			}
+
 
 			workingSet.forEach(x -> x.properties.put(Mouse.isManipulated, true));
 
@@ -506,9 +512,9 @@ public class FrameManipulation extends Box {
 		List<DragTarget> r = new ArrayList<>();
 
 		float inset = 10;
-		if (Math.abs(point.x - rect.x) < inset) r.add(DragTarget.left);
+		if (Math.abs(point.x - rect.x) < inset && !lockWidth) r.add(DragTarget.left);
 		if (Math.abs(point.x - rect.x - rect.w) < inset && !lockWidth) r.add(DragTarget.right);
-		if (Math.abs(point.y - rect.y) < inset) r.add(DragTarget.top);
+		if (Math.abs(point.y - rect.y) < inset && !lockHeight) r.add(DragTarget.top);
 		if (Math.abs(point.y - rect.y - rect.h) < inset && !lockHeight) r.add(DragTarget.bottom);
 		if (r.size() == 0) r.add(DragTarget.translate);
 
