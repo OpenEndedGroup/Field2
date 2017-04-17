@@ -138,7 +138,7 @@ public class ServerSupport {
 	}
 
 
-	private static String readFile(String s) {
+	public static String readFile(String s) {
 		try (BufferedReader r = new BufferedReader(new FileReader(new File(s)))) {
 //			String line = "//# sourceURL="+s+"\n";
 			String line= s.endsWith(".js") ? ("//# sourceURL="+s+"\n") : "";
