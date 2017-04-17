@@ -112,6 +112,14 @@ public class BaseMesh extends Scene implements Scene.Perform {
 	}
 
 	/**
+	 * returns a builder that lets you dynamically add geometry to this mesh
+	 */
+	public MeshBuilder builder()
+	{
+		return new MeshBuilder(this);
+	}
+
+	/**
 	 * limit the number of vertices sent to OpenGL without truncating the declared size of the storage.
 	 */
 	public int setVertexLimit(int limit) {
@@ -220,7 +228,7 @@ public class BaseMesh extends Scene implements Scene.Perform {
 	}
 
 	public Map<Integer, ArrayBuffer> buffers() {
-		Map<Integer, ArrayBuffer> m = new LinkedHashMap<Integer, ArrayBuffer>();
+		Map<Integer, ArrayBuffer> m = new LinkedHashMap<>();
 		for (int i = 0; i < buffers.length; i++)
 			if (buffers[i] != null) m.put(i, buffers[i]);
 		return m;
