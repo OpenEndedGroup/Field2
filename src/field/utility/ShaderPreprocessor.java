@@ -15,11 +15,20 @@ public class ShaderPreprocessor {
 	Pattern p = Pattern.compile("(\\$\\{(.*)\\})");
 
 	public String preprocess(Box inside, String s) {
-		Box.BiFunctionOfBoxAnd<String, Triple<Object, List<String>, List<Pair<Integer, String>>>> e = inside.find(Exec.exec, inside.upwards()).findFirst().get();
+		Box.BiFunctionOfBoxAnd<String, Triple<Object, List<String>, List<Pair<Integer, String>>>> e = inside.find(Exec.exec, inside.upwardsOrDownwards()).findFirst().get();
+
+		System.out.println(" preprocess :"+s);
+
 		Matcher q = p.matcher(s);
 		return q.replaceAll(x -> {
 			String g = q.group(2);
-			return ""+e.apply(inside, g).first;
+
+			System.out.println(" about to eval :"+g);
+
+			Triple<Object, List<String>, List<Pair<Integer, String>>> got = e.apply(inside, g);
+
+			System.out.println(" got :"+got);
+			return ""+got.first;
 		});
 
 	}

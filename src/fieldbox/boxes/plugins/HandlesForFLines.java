@@ -3,6 +3,7 @@ package fieldbox.boxes.plugins;
 import field.graphics.FLine;
 import field.graphics.StandardFLineDrawing;
 import field.linalg.Vec2;
+import field.linalg.Vec3;
 import field.linalg.Vec4;
 import field.utility.Dict;
 import field.utility.IdempotencyMap;
@@ -17,29 +18,33 @@ import java.util.stream.Collectors;
 
 import static fieldbox.boxes.plugins.Handles.draggables;
 import static fieldbox.boxes.plugins.Handles.hasDraggables;
+import static fieldbox.boxes.plugins.Handles.inside;
 
 /**
  * Useful classes for turning FLines into editable things using Handles
  */
 public class HandlesForFLines extends Box {
 
-	static public void offset(FLine.Node node, int element, Vec2 by) {
+	static public void offset(FLine.Node node, int element, Vec3 by) {
 		switch (element) {
 			case 0: {
 				node.to.x += by.x;
 				node.to.y += by.y;
+				node.to.z += by.z;
 				node.modify();
 				break;
 			}
 			case 1: {
 				((FLine.CubicTo) node).c1.x += by.x;
 				((FLine.CubicTo) node).c1.y += by.y;
+				((FLine.CubicTo) node).c1.z += by.z;
 				node.modify();
 				break;
 			}
 			case 2: {
 				((FLine.CubicTo) node).c2.x += by.x;
 				((FLine.CubicTo) node).c2.y += by.y;
+				((FLine.CubicTo) node).c2.z += by.z;
 				node.modify();
 				break;
 			}
@@ -50,6 +55,9 @@ public class HandlesForFLines extends Box {
 
 	static public Vec2 v(double x, double y) {
 		return new Vec2(x, y);
+	}
+	static public Vec3 v(double x, double y, double z) {
+		return new Vec3(x, y, z);
 	}
 
 	public String describeAll(String util, Box b, Dict.Prop<IdempotencyMap<FLine>> prop, FLine o) {
@@ -113,6 +121,7 @@ public class HandlesForFLines extends Box {
 
 		public DraggableNode(FLine source, FLine.Node on, Consumer<Handles.Draggable> description) {
 			this.description = description;
+			this.source = source;
 
 			on.attributes.putToMap(draggables, "__center", this);
 
@@ -121,12 +130,14 @@ public class HandlesForFLines extends Box {
 			if (index < source.nodes.size() - 1 && source.nodes.get(index + 1) instanceof FLine.CubicTo) {
 				FLine.CubicTo c = (FLine.CubicTo) source.nodes.get(index + 1);
 				nextCubic = new FLine();
-				nextCubic.moveTo(c.c1.x, c.c1.y);
-				nextCubic.lineTo(on.to.x, on.to.y);
+				nextCubic.moveTo(c.c1.x, c.c1.y, c.c1.z);
+				nextCubic.lineTo(on.to.x, on.to.y, on.to.z);
 				nextCubic.attributes.put(StandardFLineDrawing.color, new Vec4(0, 0, 0, 0.5));
 				nextCubicDrag = new DraggableCubicHandle(source, nextCubic.nodes.get(0), c, 0, description);
 				nextCubic.attributes.put(hasDraggables, true);
 				nextCubic.nodes.get(0).attributes.putToMap(draggables, "__cubic", nextCubicDrag);
+				if (source.attributes.has(inside))
+					nextCubic.attributes.put(inside, source.attributes.get(inside));
 			} else {
 				nextCubic = null;
 				nextCubicDrag = null;
@@ -135,33 +146,38 @@ public class HandlesForFLines extends Box {
 			if (on instanceof FLine.CubicTo) {
 				FLine.CubicTo c = (FLine.CubicTo) source.nodes.get(index);
 				prevCubic = new FLine();
-				prevCubic.moveTo(c.c2.x, c.c2.y);
-				prevCubic.lineTo(on.to.x, on.to.y);
+				prevCubic.moveTo(c.c2.x, c.c2.y, c.c2.z);
+				prevCubic.lineTo(on.to.x, on.to.y, on.to.z);
 				prevCubic.attributes.put(StandardFLineDrawing.color, new Vec4(0, 0, 0, 0.5));
 				prevCubicDrag = new DraggableCubicHandle(source, prevCubic.nodes.get(0), c, 1, description);
 				prevCubic.attributes.put(hasDraggables, true);
 				prevCubic.nodes.get(0).attributes.putToMap(draggables, "__cubic", prevCubicDrag);
+				if (source.attributes.has(inside))
+					prevCubic.attributes.put(inside, source.attributes.get(inside));
 			} else {
 				prevCubic = null;
 				prevCubicDrag = null;
 			}
 
-			this.get = () -> on.to.toVec2();
+			this.get = () -> new Vec3(on.to);
 
 			this.setAndConstrain = (next, previous, initial) -> {
 				on.to.x = next.x;
 				on.to.y = next.y;
+				on.to.z = next.z;
 				source.modify();
 
 				if (nextCubic != null) {
 					nextCubic.nodes.get(1).to.x = next.x;
 					nextCubic.nodes.get(1).to.y = next.y;
+					nextCubic.nodes.get(1).to.z = next.z;
 					nextCubic.modify();
 				}
 
 				if (prevCubic != null) {
 					prevCubic.nodes.get(1).to.x = next.x;
 					prevCubic.nodes.get(1).to.y = next.y;
+					prevCubic.nodes.get(1).to.z = next.z;
 					prevCubic.modify();
 				}
 
@@ -171,10 +187,12 @@ public class HandlesForFLines extends Box {
 			this.appearance = () -> {
 
 				FLine f = new FLine();
-				f.moveTo(on.to.x, on.to.y);
+				f.moveTo(on.to.x, on.to.y, on.to.z);
 				f.attributes.put(StandardFLineDrawing.pointSize, isSelected() ? 10f : 5f);
 				f.attributes.put(StandardFLineDrawing.pointed, true);
 				f.attributes.put(StandardFLineDrawing.color, new Vec4(0, 0, 0, isSelected() ? 0.95 : 0.5f));
+				if (source.attributes.has(inside))
+					f.attributes.put(inside, source.attributes.get(inside));
 
 				List<FLine> ret = new ArrayList<>();
 				ret.add(f);
@@ -182,8 +200,6 @@ public class HandlesForFLines extends Box {
 					if (nextCubic != null) ret.add(nextCubic);
 					if (prevCubic != null) ret.add(prevCubic);
 				}
-
-				System.out.println(" returning appearance :"+ret);
 
 				return ret;
 
@@ -208,8 +224,8 @@ public class HandlesForFLines extends Box {
 
 		@Override
 		public String describe(String utilities, String theline) {
-			Vec2 v = new Vec2(cachePosition).sub(sourcePosition);
-			return utilities + ".offset(" + theline + ".nodes[" + index + "], " + 0 + ", " + utilities + ".v(" + v.x+", "+v.y + "))";
+			Vec3 v = new Vec3(cachePosition).sub(sourcePosition);
+			return utilities + ".offset(" + theline + ".nodes[" + index + "], " + 0 + ", " + utilities + ".v(" + v.x+", "+v.y + ", "+v.z+"))";
 		}
 	}
 
@@ -222,21 +238,25 @@ public class HandlesForFLines extends Box {
 		public DraggableCubicHandle(FLine source, FLine.Node vis, FLine.CubicTo on, int c, Consumer<Handles.Draggable> description) {
 			this.c = c;
 			this.description = description;
+			this.source = source;
 
 			index = source.nodes.indexOf(on);
 
-			this.get = () -> vis.to.toVec2();
+			this.get = () -> new Vec3(vis.to);
 			this.setAndConstrain = (next, previous, inital) -> {
 
 				vis.to.x = next.x;
 				vis.to.y = next.y;
+				vis.to.z = next.z;
 
 				if (c == 0) {
 					on.c1.x = next.x;
 					on.c1.y = next.y;
+					on.c1.z = next.z;
 				} else {
 					on.c2.x = next.x;
 					on.c2.y = next.y;
+					on.c2.z = next.z;
 				}
 				source.modify();
 				on.modify();
@@ -248,11 +268,12 @@ public class HandlesForFLines extends Box {
 			this.appearance = () -> {
 
 				FLine f = new FLine();
-				f.moveTo(vis.to.x, vis.to.y);
+				f.moveTo(vis.to.x, vis.to.y, vis.to.z);
 				f.attributes.put(StandardFLineDrawing.pointSize, isSelected() ? 10f : 5f);
 				f.attributes.put(StandardFLineDrawing.pointed, true);
 				f.attributes.put(StandardFLineDrawing.color, new Vec4(0.25f, 0, 0, isSelected() ? 0.95 : 0.5f));
-
+				if (f.attributes.has(inside))
+					f.attributes.put(inside, source.attributes.get(inside));
 
 				return Collections.singletonList(f);
 
@@ -277,8 +298,8 @@ public class HandlesForFLines extends Box {
 
 		@Override
 		public String describe(String utilities, String theline) {
-			Vec2 v = new Vec2(cachePosition).sub(sourcePosition);
-			return utilities + ".offset(" + theline + ".nodes[" + index + "], " + (c + 1) + ", " + utilities + ".v(" + v.x+", "+v.y + "))";
+			Vec3 v = new Vec3(cachePosition).sub(sourcePosition);
+			return utilities + ".offset(" + theline + ".nodes[" + index + "], " + (c + 1) + ", " + utilities + ".v(" + v.x+", "+v.y + ", "+v.z+"))";
 		}
 	}
 

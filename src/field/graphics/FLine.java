@@ -10,6 +10,7 @@ import fieldnashorn.annotations.HiddenInAutocomplete;
 import jdk.nashorn.api.scripting.ScriptUtils;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -20,20 +21,22 @@ import java.util.stream.Collectors;
 
 import static field.graphics.FLinesAndJavaShapes.flineToJavaShape;
 import static field.graphics.FLinesAndJavaShapes.javaShapeToFLine;
+import static field.graphics.StandardFLineDrawing.hint_noDepth;
 import static fieldbox.boxes.Box.compress;
+import static fieldbox.boxes.Box.depth;
 import static fieldbox.boxes.Box.format;
 
 /**
  * FLine is our main high level geometry container for lines, meshes and lists of points.
- *
+ * <p>
  * FLines consist of a list of drawing instructions, or nodes: `line.moveTo(...).lineTo(...).cubicTo(...)` .etc
- *
+ * <p>
  * This is essentially the common postscript / pdf / java2d drawing model with a few key differences and refinements.
- *
+ * <p>
  * Firstly, the drawing instructions are in 3d. 2d (the z=0 plane) is a special case; secondly, attributes can be associated with both the line itself and with individual nodes; thirdly, per-node attributes that are
  * present in some places on the line and absent in others are interpolated; finally, the structure is freely mutable, although changes to attributes are not automatically tracked (call `line.modify()` to
  * cause an explicit un-caching of this line).
- *
+ * <p>
  * The caching of the flattening of this line into MeshBuilder data (ready for OpenGL) cascades into MeshBuilder's cache structure. Thus, we have three levels of caching in total: FLine caches whether or not the geometry has changed at all, MeshBuilder caches whether or not there's any point sending anything to the OpenGL
  * underlying Buffers or whether this piece of geometry can be skipped, and finally individual ArrayBuffers can elect to skip the upload to OpenGL. This means that static geometry is extremely cheap
  * to draw
@@ -205,7 +208,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	 */
 	public FLine polarCubicTo(float r1, float theta1, float r2, float theta2, Vec2 destination) {
 
-		Vec2 a= last().to.toVec2();
+		Vec2 a = last().to.toVec2();
 
 		Vec2 d = Vec2.sub(destination, a, new Vec2());
 
@@ -266,6 +269,15 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		this.cubicTo(x + r, y + k, x + k, y + r, x, y + r);
 		this.cubicTo(x - k, y + r, x - r, y + k, x - r, y);
 		return this.cubicTo(x - r, y - k, x - k, y - r, x, y - r);
+	}
+
+	public FLine circle(double x, double y, double r, double z) {
+		double k = 0.5522847498f * r;
+		this.moveTo(x, y - r, z);
+		this.cubicTo(x + k, y - r, z, x + r, y - k, z, x + r, y, z);
+		this.cubicTo(x + r, y + k, z, x + k, y + r, z, x, y + r, z);
+		this.cubicTo(x - k, y + r, z, x - r, y + k, z, x - r, y, z);
+		return this.cubicTo(x - r, y - k, z, x - k, y - r, z, x, y - r, z);
 	}
 
 	/**
@@ -810,7 +822,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 
 		return m.skipTo(c.start, c.end, mod, () -> {
 			Shape s = /*stroke.createStrokedShape*/(flineToJavaShape(this));
-			FLine drawInstead = javaShapeToFLine(s);
+			FLine drawInstead = this.attributes.isTrue(hint_noDepth, false) ? javaShapeToFLine(s) : javaShapeToFLine(s, this, new AffineTransform());
 			drawInstead.attributes.putAll(attributes);
 			drawInstead.renderToMesh(m, fixedSizeForCubic);
 		});
@@ -1077,6 +1089,16 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 
 	}
 
+	/**
+	 * handy method that sets the z coordinate of all the nodes in this FLine to be the `depth` of this box (or 0)
+	 * @param of
+	 */
+	public void depthTo(Box of)
+	{
+		float d = of.properties.getFloat(depth, 0f);
+		for(Node n : nodes)
+			n.setZ(d);
+	}
 
 	public long getModCount() {
 		return mod;
@@ -1120,6 +1142,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		return r;
 	}
 
+
 	@Override
 	@HiddenInAutocomplete
 	public Object asMap_get(String m) {
@@ -1152,7 +1175,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 			throw new IllegalArgumentException("can't write to property " + name);
 
 		Function<Object, Object> c = cannon.getAttributes().get(Dict.customCaster);
-		if (c!=null)
+		if (c != null)
 			value = c.apply(value);
 
 		Object converted = convert(value, cannon.getTypeInformation());
@@ -1561,6 +1584,9 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 			FLine.this.modify();
 		}
 
+		public void setZ(float z) {
+			this.to.z = z;
+		}
 	}
 
 	public class BookmarkCache {
@@ -1665,6 +1691,12 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		@Override
 		public String toString() {
 			return "c[" + c1.x + "," + c1.y + "," + c1.z + ";" + c2.x + "," + c2.y + "," + c2.z + ";" + to.x + "," + to.y + "," + to.z + "]";
+		}
+
+		public void setZ(float z) {
+			this.to.z = z;
+			this.c1.z = z;
+			this.c2.z = z;
 		}
 
 	}

@@ -12,8 +12,10 @@ import fieldbox.io.IO;
 import fieldbox.ui.FieldBoxWindow;
 
 import java.awt.*;
+import java.nio.IntBuffer;
 import java.util.*;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -51,6 +53,9 @@ public class Viewport extends Box implements IO.Loaded, ProvidesGraphicsContext 
 		.toCannon()
 		.doc("set to `true` to have this viewport clip its contents to its frame").set(IO.persistent, true);
 
+	private Drawing drawing;
+
+
 	/**
 	 * shaders for standard drawing of points lines and planes (with 3d camera transform)
 	 */
@@ -59,10 +64,8 @@ public class Viewport extends Box implements IO.Loaded, ProvidesGraphicsContext 
 
 		BaseMesh triangles = BaseMesh.triangleList(0, 0);
 
-
 		MeshBuilder triangles_builder = new MeshBuilder(triangles);
 		BaseMesh lines = BaseMesh.lineList(0, 0);
-
 
 		MeshBuilder lines_builder = new MeshBuilder(lines);
 		BaseMesh points = BaseMesh.pointList(0);
@@ -104,8 +107,8 @@ public class Viewport extends Box implements IO.Loaded, ProvidesGraphicsContext 
 				"}");
 
 			// camera
-			trianglesAndLinesShader.attach(new Uniform<Mat4>("_p", camera::projectionMatrix));
-			trianglesAndLinesShader.attach(new Uniform<Mat4>("_mv", camera::view));
+			trianglesAndLinesShader.attach(new Uniform<Mat4>("_p", () -> camera.projectionMatrix(drawing==null ? 0 : drawing.displayZ)));
+			trianglesAndLinesShader.attach(new Uniform<Mat4>("_mv", () ->  camera.view(drawing==null ? 0 : drawing.displayZ)));
 			trianglesAndLinesShader.attach(new Uniform<Float>("opacity", () -> 1f));
 
 
@@ -173,8 +176,8 @@ public class Viewport extends Box implements IO.Loaded, ProvidesGraphicsContext 
 				"if (_output.w<0.01) discard;\n" +
 				"}");
 
-			pointShader.attach(new Uniform<Mat4>("_p", camera::projectionMatrix));
-			pointShader.attach(new Uniform<Mat4>("_mv", camera::view));
+			pointShader.attach(new Uniform<Mat4>("_p", () -> camera.projectionMatrix(drawing==null ? 0 : drawing.displayZ)));
+			pointShader.attach(new Uniform<Mat4>("_mv", () -> camera.view(drawing==null ? 0 : drawing.displayZ)));
 			pointShader.attach(new Uniform<Float>("opacity", () -> 1f));
 			pointShader.attach(new Uniform<Vec2>("bounds", () -> new Vec2(properties.get(Box.frame).w, properties.get(Box.frame).h)));
 
@@ -301,19 +304,13 @@ public class Viewport extends Box implements IO.Loaded, ProvidesGraphicsContext 
 
 			List<FLinePointHitTest.Hit> hit = pointHitTest.hit(e, allPointLines, 10);
 
-			if (hit.size()>0)
-			{
-				if (previous==null || !previous.equals(hit))
-				{
+			if (hit.size() > 0) {
+				if (previous == null || !previous.equals(hit)) {
 					selectPoint(allPointLines, hit.get(0));
+				} else {
+					selectPoint(allPointLines, hit.get(hitIndex++ % hit.size()));
 				}
-				else
-				{
-					selectPoint(allPointLines, hit.get(hitIndex++%hit.size()));
-				}
-			}
-			else
-			{
+			} else {
 				deselectAllPoints(allPointLines);
 			}
 
@@ -335,10 +332,9 @@ public class Viewport extends Box implements IO.Loaded, ProvidesGraphicsContext 
 	List<FLinePointHitTest.Hit> previous = null;
 
 
-
 	@Override
 	public void loaded() {
-		Drawing d = this.first(Drawing.drawing)
+		drawing = this.first(Drawing.drawing)
 			.get();
 
 	}
@@ -365,12 +361,11 @@ public class Viewport extends Box implements IO.Loaded, ProvidesGraphicsContext 
 			Vec2 tl = od.get().drawingSystemToWindowSystem(new Vec2(f.x, f.y));
 			Vec2 bl = od.get().drawingSystemToWindowSystem(new Vec2(f.x + f.w, f.y + f.h));
 
-			FieldBoxWindow window = this.first(Boxes.window)
-				.get();
+			FieldBoxWindow window = this.first(Boxes.window).get();
 			int h = window.getHeight();
 			int w = window.getWidth();
 			float rs = window.getRetinaScaleFactor();
-			int[] v = new int[]{(int) ((int) tl.x * rs) + 5+10, (int) ((int) (h - bl.y) * rs) + 3+13, (int) ((int) (bl.x - tl.x + 2) * rs) - 9-20, (int) ((int) (bl.y - tl.y + 2) * rs - 12-18)};
+			int[] v = new int[]{(int) ((int) tl.x * rs) + 5 + 10, (int) ((int) (h - bl.y) * rs) + 3 + 13, (int) ((int) (bl.x - tl.x + 2) * rs) - 9 - 20, (int) ((int) (bl.y - tl.y + 2) * rs - 12 - 18)};
 
 			if (clips) {
 				GraphicsContext.getContext().stateTracker.scissor.set(v);
@@ -431,5 +426,40 @@ public class Viewport extends Box implements IO.Loaded, ProvidesGraphicsContext 
 			.findFirst()
 			.get()
 			.getGraphicsContext();
+	}
+
+//	@Override
+	public Vec3 drawingSpaceToViewport(Vec2 drawingSpace, float z) {
+		Camera c = properties.get(Viewport.camera);
+
+		Rect r = properties.get(Box.frame);
+
+
+		Vec4 oo= new Vec4();
+		Mat4.unproject((drawingSpace.x-r.x)/r.w,(r.y+r.h-drawingSpace.y)/r.h, z, c.projectionMatrix(drawing.displayZ).transpose(), c.view(drawing.displayZ).transpose(), aa, new Mat4(), oo);
+
+		System.out.println(" OUT :"+oo);
+
+		return new Vec3(oo.x, oo.y, oo.z);
+	}
+
+	IntBuffer aa = IntBuffer.allocate(4);
+	{
+		aa.put(new int[]{0, 0, 1, 1});
+		aa.rewind();
+	}
+
+	//	@Override
+	public Vec2 viewportToDrawingSpace(Vec3 space) {
+
+		Camera c = properties.get(Viewport.camera);
+
+		Rect r = properties.get(Box.frame);
+
+		Vec4 out = new Vec4();
+
+		Mat4.project(space, c.projectionMatrix(drawing.displayZ).transpose(), c.view(drawing.displayZ).transpose(), aa, out);
+
+		return new Vec2(out.x*r.w+r.x, r.y+r.h-out.y*r.h);
 	}
 }

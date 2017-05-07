@@ -3,19 +3,16 @@ package fieldbox.boxes.plugins;
 import field.graphics.FLine;
 import field.graphics.Window;
 import field.linalg.Vec2;
+import field.linalg.Vec3;
 import field.utility.Dict;
 import field.utility.IdempotencyMap;
 import field.utility.Log;
-import fieldbox.boxes.Box;
-import fieldbox.boxes.Drawing;
-import fieldbox.boxes.FLineDrawing;
-import fieldbox.boxes.Mouse;
+import fieldbox.boxes.*;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Extends FLineInteraction to include, essentially, a node editor. Unlike Field1 this is going to be much more pluggable
@@ -39,28 +36,32 @@ public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove
 		.toCannon()
 		.doc("set to mark that an FLine contains Draggables inside it, and that it should be searched for draggable Nodes");
 
+	static public final Dict.Prop<Viewport> inside = new Dict.Prop<>("inside").type().toCannon().set(Dict.domain, "flines");
+
 
 	public interface SetAndConstrain {
-		Vec2 apply(Vec2 next, Vec2 previous, Vec2 initial);
+		Vec3 apply(Vec3 next, Vec3 previous, Vec3 initial);
 	}
 
 	static public class Draggable {
-		public Vec2 cachePosition = null;
-		public Vec2 initialPosition = null;
-		public Vec2 sourcePosition = null;
+		public Vec3 cachePosition = null;
+		public Vec3 initialPosition = null;
+		public Vec3 sourcePosition = null;
 
 		public String name;
 
 		public boolean selected = false;
 
-		public Supplier<Vec2> get;
+		public Supplier<Vec3> get;
 		public SetAndConstrain setAndConstrain;
 		public Function<Boolean, Boolean> select;
 		public Supplier<Collection<FLine>> appearance;
-		public Function<Vec2, Vec2> finisher;
+		public Function<Vec3, Vec3> finisher;
 		public Runnable commit;
 
-		public Draggable(Supplier<Vec2> get, SetAndConstrain setAndConstrain, Function<Boolean, Boolean> select, Supplier<Collection<FLine>> appearance, Function<Vec2, Vec2> finisher, Runnable commit) {
+		protected FLine source;
+
+		public Draggable(Supplier<Vec3> get, SetAndConstrain setAndConstrain, Function<Boolean, Boolean> select, Supplier<Collection<FLine>> appearance, Function<Vec3, Vec3> finisher, Runnable commit) {
 			this.get = get;
 			this.setAndConstrain = setAndConstrain;
 			this.select = select;
@@ -70,11 +71,11 @@ public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove
 			init();
 		}
 
-		public Draggable(FLine.Node on, SetAndConstrain setAndConstrain, Function<Boolean, Boolean> select, Supplier<Collection<FLine>> appearance, Function<Vec2, Vec2> finisher, Runnable commit) {
-			this.get = () -> on.to.toVec2();
+		public Draggable(FLine.Node on, SetAndConstrain setAndConstrain, Function<Boolean, Boolean> select, Supplier<Collection<FLine>> appearance, Function<Vec3, Vec3> finisher, Runnable commit) {
+			this.get = () -> on.to;
 			this.setAndConstrain = (next, previous, initial) -> {
-				Vec2 v = setAndConstrain.apply(next, previous, initial);
-				on.to.set(v, 0);
+				Vec3 v = setAndConstrain.apply(next, previous, initial);
+				on.to.set(v);
 				return v;
 			};
 			this.select = select;
@@ -93,17 +94,17 @@ public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove
 		protected Draggable() {
 		}
 
-		public Vec2 getPosition() {
+		public Vec3 getPosition() {
 			if (cachePosition == null)
 				return cachePosition = setAndConstrain.apply(get.get(), get.get(), initialPosition);
 			return cachePosition;
 		}
 
-		public Vec2 getInitialPosition() {
+		public Vec3 getInitialPosition() {
 			return initialPosition;
 		}
 
-		public void set(Vec2 v) {
+		public void set(Vec3 v) {
 			cachePosition = setAndConstrain.apply(v, getPosition(), initialPosition);
 		}
 
@@ -141,16 +142,20 @@ public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove
 		properties.putToMap(FLineDrawing.bulkLines, "__handles__", this::appearence);
 	}
 
-	/**
-	 * this needs to get behind a 'cached'
-	 *
-	 * @return
-	 */
 	public List<Draggable> all() {
+		List<Draggable> a1 = all(FLineDrawing.lines);
+		List<Draggable> a2 = all(Viewport.lines3);
+
+		a1.addAll(a2);
+
+		return a1;
+	}
+
+	public List<Draggable> all(Dict.Prop<IdempotencyMap<Supplier<FLine>>> prop) {
 		Set<Draggable> l1 = breadthFirst(downwards())
 			.filter(x -> x != this)
-			.filter(x -> x.properties.has(FLineDrawing.lines))
-			.flatMap(x -> x.properties.get(FLineDrawing.lines)
+			.filter(x -> x.properties.has(prop))
+			.flatMap(x -> x.properties.get(prop)
 				.values()
 				.stream())
 			.map(x -> x.get())
@@ -172,8 +177,8 @@ public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove
 				f.appearance.get().stream()
 					.filter(x -> x.attributes.isTrue(hasDraggables, false)).map(x -> {
 
-						System.out.println(x+" -> "+x.attributes.get(draggables));
-						return x;
+					System.out.println(x + " -> " + x.attributes.get(draggables));
+					return x;
 				})
 					.flatMap(x -> x.nodes.stream())
 					.filter(x -> x.attributes.has(draggables))
@@ -197,11 +202,23 @@ public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove
 	 */
 	public List<Supplier<FLine>> appearence() {
 		List<Supplier<FLine>> a = all().stream()
-			.flatMap(x -> (x.appearance == null ? new ArrayList<FLine>() : x.appearance.get()).stream())
+			.filter(x -> x != null)
+			.flatMap(x -> x.appearance.get().stream())
+			.map(x -> {
+				if (x.attributes.has(inside)) {
+					Viewport v = x.attributes.get(inside);
+					return transform(v, x);
+				}
+				return x;
+			})
 			.collect(Collectors.toList());
 		if (a.size() > 0)
 			Log.log("handles", () -> "appearance is :" + a);
 		return a;
+	}
+
+	private FLine transform(Viewport v, FLine x) {
+		return x.byTransforming(a -> v.viewportToDrawingSpace(a).toVec3());
 	}
 
 	@Override
@@ -216,11 +233,8 @@ public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove
 
 		Log.log("handles", () -> "onMouseDown :" + pos);
 		Draggable selected = d.stream()
-			.filter(x -> x.getPosition()
-				.distance(pos) < r)
-			.sorted((a, b) -> -Double.compare(a.getPosition()
-				.distance(pos), b.getPosition()
-				.distance(pos)))
+			.filter(x -> hitTest(x, x.getPosition(), pos) < r)
+			.sorted((a, b) -> -Double.compare(hitTest(a, a.getPosition(), pos), hitTest(b, b.getPosition(), pos)))
 			.findFirst()
 			.orElse(null);
 
@@ -282,6 +296,49 @@ public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove
 
 	}
 
+	private double hitTest(Draggable x, Vec3 nodePosition, Vec2 mousePosition) {
+
+		if (x.source!=null && x.source.attributes.has(inside))
+		{
+			Viewport v = x.source.attributes.get(inside);
+			Vec2 at = v.viewportToDrawingSpace(nodePosition);
+			return at.distance(mousePosition);
+		}
+
+		return nodePosition.toVec2().distance(mousePosition);
+	}
+
+	private Vec3 applyDrag(Draggable x, Vec2 mouseWas, Vec2 mouseNow, Vec3 initialPosition) {
+		if (x.source!=null && x.source.attributes.has(inside)) {
+			System.out.println(" this is 3d");
+			Viewport v = x.source.attributes.get(inside);
+
+			Vec2 ds = v.viewportToDrawingSpace(initialPosition);
+
+			System.out.println(" old drawing space "+ds);
+
+			ds.x += mouseNow.x-mouseWas.x;
+			ds.y += mouseNow.y-mouseWas.y;
+
+			System.out.println(" new drawing space "+ds);
+
+			Vec3 v1 = v.drawingSpaceToViewport(ds, 0.1f);
+			Vec3 v2 = v.drawingSpaceToViewport(ds, 0.9f);
+
+			Vec3 n = new Vec3(v2).sub(v1).normalize();
+
+			double ll = new Vec3(initialPosition).sub(v1).dot(n);
+
+			Vec3 ret = n.scale(ll).add(v1);
+
+			System.out.println(" closest point to point "+initialPosition+" is "+ret+" ("+ll+" away)");
+
+			return ret;
+		}
+		return new Vec3(mouseNow.x - mouseWas.x + initialPosition.x, mouseNow.y - mouseWas.y + initialPosition.y, initialPosition.z);
+	}
+
+
 	private void commit() {
 		all().forEach(x -> x.commit());
 	}
@@ -292,14 +349,24 @@ public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove
 		return (drag, term) -> {
 
 			try {
-				Vec2 deltaNow = drawing.map(x -> x.windowSystemToDrawingSystemDelta(new Vec2(drag.after.x - e.after.x, drag.after.y - e.after.y)))
-					.orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
+				Vec2 mouseWas = new Vec2(e.after.mx, e.after.my);
+				Vec2 mouseNow = new Vec2(drag.after.mx, drag.after.my);
 
+				sel.forEach(
+					d -> {
+						Vec3 to = applyDrag(d, mouseWas, mouseNow, d.getInitialPosition());
+						d.set(to);
+					}
+				);
+
+//				Vec2 deltaNow = drawing.map(x -> x.windowSystemToDrawingSystemDelta(new Vec2(drag.after.x - e.after.x, drag.after.y - e.after.y)))
+//					.orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
+//
 				drag.properties.put(Window.consumed, true);
-
-				sel.forEach(d -> {
-					d.set(Vec2.add(d.getInitialPosition(), deltaNow, null));
-				});
+//
+//				sel.forEach(d -> {
+//					d.set(Vec2.add(d.getInitialPosition(), deltaNow, null));
+//				});
 
 				if (term) {
 					sel.forEach(Draggable::finish);
@@ -312,6 +379,7 @@ public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove
 			}
 		};
 	}
+
 
 	@Override
 	public Mouse.Dragger onMouseMove(Window.Event<Window.MouseState> e) {

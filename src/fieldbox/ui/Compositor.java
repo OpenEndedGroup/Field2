@@ -95,6 +95,10 @@ public class Compositor {
 		return getLayer("__main__");
 	}
 
+	public Map<String, Layer> getLayers() {
+		return layers;
+	}
+
 	public Layer newLayer(String name) {
 		return newLayer(name, 0);
 	}

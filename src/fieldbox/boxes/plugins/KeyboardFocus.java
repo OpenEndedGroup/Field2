@@ -39,9 +39,16 @@ public class KeyboardFocus extends Box {
 			fr.attributes.put(StandardFLineDrawing.color, Colors.focusRing1);
 			fr.attributes.put(FLineDrawing.layer, focused.get(focused.size() - 1).properties.getOr(FLineDrawing.layer, () -> "__main__"));
 
+			Number d = focused.get(focused.size() - 1).properties.get(depth);
+			if (d != null)
+				fr.nodes.forEach(v ->
+					v.setZ(d.floatValue()));
+
 			return fr;
 		});
-		this.properties.putToMap(FLineDrawing.frameDrawing, "__keyboardFocusRing2__", (x) -> {
+		this.properties.putToMap(FLineDrawing.frameDrawing, "__keyboardFocusRing2__", (x) ->
+
+		{
 
 			if (focused == null) return new FLine();
 			if (focused.size() == 0) return new FLine();
@@ -56,17 +63,25 @@ public class KeyboardFocus extends Box {
 			fr.attributes.put(StandardFLineDrawing.thicken, new BasicStroke(1));
 			fr.attributes.put(StandardFLineDrawing.color, Colors.focusRing2);
 			fr.attributes.put(FLineDrawing.layer, focused.get(focused.size() - 1).properties.getOr(FLineDrawing.layer, () -> "__main__"));
+			Number d = focused.get(focused.size() - 1).properties.get(depth);
+			if (d != null)
+				fr.nodes.forEach(v ->
+					v.setZ(d.floatValue()));
 
 			return fr;
 		});
 
-		this.properties.putToMap(Callbacks.onDelete, "__keyboardFocusRing__", x -> {
+		this.properties.putToMap(Callbacks.onDelete, "__keyboardFocusRing__", x ->
+
+		{
 			focused.remove(x);
 			Drawing.dirty(KeyboardFocus.this);
 			return null;
 		});
 
-		this.properties.putToMap(Boxes.insideRunLoop, "main.__checkfocusfordisconnect__", () -> {
+		this.properties.putToMap(Boxes.insideRunLoop, "main.__checkfocusfordisconnect__", () ->
+
+		{
 			Iterator<Box> i = focused.iterator();
 			boolean changed = false;
 			while (i.hasNext()) {
@@ -87,7 +102,6 @@ public class KeyboardFocus extends Box {
 		if (focused.size() == 0) return false;
 		return focused.get(focused.size() - 1) == b;
 	}
-
 
 
 	public Optional<Box> getFocus() {

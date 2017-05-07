@@ -3,6 +3,7 @@ package field.graphics.gdxtext;
 import field.graphics.MeshBuilder;
 import field.graphics.Texture;
 import field.linalg.Vec2;
+import field.linalg.Vec3;
 import field.utility.Pair;
 
 import java.util.Arrays;
@@ -73,14 +74,20 @@ public class DrawBitmapFont {
 	}
 
 	public void draw(String text, Vec2 origin, float scale, Object h) {
-		List<Object> hash = Arrays.asList(text, new Vec2(origin), scale,h);
+		draw(text, new Vec3(origin.x, origin.y, 0), scale, h);
+	}
+
+	public void draw(String text, Vec3 origin, float scale, Object h) {
+		List<Object> hash = Arrays.asList(text, new Vec2(origin.toVec2()), scale,h);
 		Pair<MeshBuilder.Bookmark, MeshBuilder.Bookmark> m = cache.computeIfAbsent(hash, (k) -> new Pair<>(target.bookmark().invalidate(), target.bookmark()));
 		
 		float smoothing = Math.min(4, Math.max(0.02f, scale));
 
+		float Z = (float)origin.z;
+
 		target.skipTo(m.first, m.second, hash, () -> {
 
-			Vec2 at = new Vec2(origin);
+			Vec2 at = new Vec2(origin.toVec2());
 			char[] ca = text.toCharArray();
 
 			float mx = data.getGlyph('M').yoffset;
@@ -96,13 +103,13 @@ public class DrawBitmapFont {
 				}
 
 				target.aux(3, g.srcX, g.srcY + g.height, smoothing);
-				target.v(at.x + g.xoffset * scale, at.y - g.yoffset * scale, 0);
+				target.v(at.x + g.xoffset * scale, at.y - g.yoffset * scale, Z);
 				target.aux(3, g.srcX + g.width, g.srcY + g.height, smoothing);
-				target.v(at.x + g.width * scale + g.xoffset * scale, at.y - g.yoffset * scale, 0);
+				target.v(at.x + g.width * scale + g.xoffset * scale, at.y - g.yoffset * scale, Z);
 				target.aux(3, g.srcX + g.width, g.srcY, smoothing);
-				target.v(at.x + g.width * scale + g.xoffset * scale, at.y - g.height * scale - g.yoffset * scale, 0);
+				target.v(at.x + g.width * scale + g.xoffset * scale, at.y - g.height * scale - g.yoffset * scale, Z);
 				target.aux(3, g.srcX, g.srcY, smoothing);
-				target.v(at.x + g.xoffset * scale, at.y - g.height * scale - g.yoffset * scale, 0);
+				target.v(at.x + g.xoffset * scale, at.y - g.height * scale - g.yoffset * scale, Z);
 				target.e_quad(0, 1, 2, 3);
 
 				if (i < ca.length - 1) {

@@ -41,6 +41,9 @@ public class Box implements fieldlinker.AsMap, HandlesCompletion {
 	static public final Dict.Prop<Rect> frame = new Dict.Prop<>("frame").type()
 		.toCannon()
 		.doc("the rectangle that this box occupies").set(IO.persistent, true).set(IO.perDocument, true);
+	static public final Dict.Prop<Number> depth= new Dict.Prop<>("depth").type()
+		.toCannon()
+		.doc("provides a completely cosmetic 'z' coordinate for this box. Visible in VR and on stereo displays.").set(IO.persistent, true).set(IO.perDocument, true);
 	static public final Dict.Prop<Boolean> hidden = new Dict.Prop<>("hidden").type()
 		.toCannon()
 		.doc("set this to true to hide this box (but be careful, for if it's hidden, how will you get it back again?)");

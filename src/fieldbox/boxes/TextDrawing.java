@@ -95,11 +95,12 @@ public class TextDrawing extends Box {
 			"uniform vec2 scale;\n" +
 			"uniform vec2 bounds;\n" +
 			"uniform float smoothing;\n" +
+			"uniform float displayZ;\n" +
 
 			"void main()\n" +
 			"{\n" +
 			"	vec2 at = (scale.xy*position.xy+translation.xy)/bounds.xy;\n" +
-			"   gl_Position =  vec4(-1+at.x*2, 1-at.y*2, 0.5, 1.0);\n" +
+			"   gl_Position =  vec4(-1+at.x*2+displayZ*position.z, 1-at.y*2, 0.5, 1.0);\n" +
 			"   vertexColor = color;\n" +
 			"   vtc =tc;\n" +
 			"   vtc.z =tc.z;\n" +
@@ -134,6 +135,7 @@ public class TextDrawing extends Box {
 		layer.mainShader.attach(new Uniform<Float>("smoothing", () -> smoothing));
 		layer.mainShader.attach(new Uniform<Float>("gamma", () -> gamma));
 		layer.mainShader.attach(new Uniform<Float>("opacity", () -> 1.0f));
+		layer.mainShader.attach(new Uniform<Float>("displayZ", () -> drawing.displayZ));
 
 		window.getCompositor().getLayer(layerName).getScene().attach(layer.mainShader);
 

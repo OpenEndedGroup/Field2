@@ -532,14 +532,14 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 	 * @param z    the z component to subtract
 	 * @param w    the w component to subtract
 	 * @param dest will hold the result
-	 * @return this
+	 * @return dest
 	 */
 	public Vec4 sub(double x, double y, double z, double w, Vec4 dest) {
 		dest.x = this.x - x;
 		dest.y = this.y - y;
 		dest.z = this.z - z;
 		dest.w = this.w - w;
-		return this;
+		return dest;
 	}
 
 	/**
@@ -627,14 +627,14 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 	 * @param a    the first multiplicand
 	 * @param b    the second multiplicand
 	 * @param dest will hold the result
-	 * @return this
+	 * @return dest
 	 */
 	public Vec4 fma(Vec4 a, Vec4 b, Vec4 dest) {
 		dest.x = x + a.x * b.x;
 		dest.y = y + a.y * b.y;
 		dest.z = z + a.z * b.z;
 		dest.w = w + a.w * b.w;
-		return this;
+		return dest;
 	}
 
 	/**
@@ -643,14 +643,14 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 	 * @param a    the first multiplicand
 	 * @param b    the second multiplicand
 	 * @param dest will hold the result
-	 * @return this
+	 * @return dest
 	 */
 	public Vec4 fma(double a, Vec4 b, Vec4 dest) {
 		dest.x = x + a * b.x;
 		dest.y = y + a * b.y;
 		dest.z = z + a * b.z;
 		dest.w = w + a * b.w;
-		return this;
+		return dest;
 	}
 
 	/**
@@ -658,14 +658,14 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 	 *
 	 * @param v    the vector to multiply this by
 	 * @param dest will hold the result
-	 * @return this
+	 * @return dest
 	 */
 	public Vec4 mul(Vec4 v, Vec4 dest) {
 		dest.x = x * v.x;
 		dest.y = y * v.y;
 		dest.z = z * v.z;
 		dest.w = w * v.w;
-		return this;
+		return dest;
 	}
 
 	/**
@@ -687,14 +687,14 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 	 *
 	 * @param v    the vector to divide this by
 	 * @param dest will hold the result
-	 * @return this
+	 * @return dest
 	 */
 	public Vec4 div(Vec4 v, Vec4 dest) {
 		dest.x = x / v.x;
 		dest.y = y / v.y;
 		dest.z = z / v.z;
 		dest.w = w / v.w;
-		return this;
+		return dest;
 	}
 
 	/**
@@ -726,7 +726,7 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 	 *
 	 * @param mat  the matrix to multiply <code>this</code> by
 	 * @param dest will hold the result
-	 * @return this
+	 * @return dest
 	 */
 	public Vec4 mul(Mat4 mat, Vec4 dest) {
 		if (this != dest) {
@@ -738,7 +738,7 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 			dest.set(mat.m00 * x + mat.m10 * y + mat.m20 * z + mat.m30 * w, mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31 * w, mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32 * w,
 				 mat.m03 * x + mat.m13 * y + mat.m23 * z + mat.m33 * w);
 		}
-		return this;
+		return dest;
 	}
 
 	/**
@@ -748,21 +748,6 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 	 * @return this
 	 */
 	public Vec4 mul(double scalar) {
-		x *= scalar;
-		y *= scalar;
-		z *= scalar;
-		w *= scalar;
-		return this;
-	}
-
-	/**
-	 * Multiply this Vec4 by the given scalar value and store the result in <code>dest</code>.
-	 *
-	 * @param scalar the factor to multiply by
-	 * @param dest   will hold the result
-	 * @return this
-	 */
-	public Vec4 mul(double scalar, Vec4 dest) {
 		x *= scalar;
 		y *= scalar;
 		z *= scalar;

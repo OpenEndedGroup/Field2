@@ -184,6 +184,11 @@ public class SimpleCanvas extends Box implements IO.Loaded {
 			m.attributes.put(StandardFLineDrawing.fillColor, new Vec4(0, 0, 0, 0.1));
 			m.attributes.put(StandardFLineDrawing.stroked, true);
 			m.attributes.put(StandardFLineDrawing.strokeColor, new Vec4(1, 1, 1, 0.3));
+			float dd = this.properties.getFloat(depth, 0f);
+			if (dd==0)
+				m.attributes.put(StandardFLineDrawing.hint_noDepth, true);
+			else
+				m.nodes.forEach(x -> x.setZ(dd));
 			return m;
 		}, () -> 0L));
 
@@ -233,6 +238,11 @@ public class SimpleCanvas extends Box implements IO.Loaded {
 			m.attributes.put(StandardFLineDrawing.fillColor, new Vec4(0, 0, 0, 0.1));
 			m.attributes.put(StandardFLineDrawing.stroked, true);
 			m.attributes.put(StandardFLineDrawing.strokeColor, new Vec4(1, 1, 1, 0.3));
+			float dd = cc.properties.getFloat(depth, 0f);
+			if (dd==0)
+				m.attributes.put(StandardFLineDrawing.hint_noDepth, true);
+			else
+				m.nodes.forEach(x -> x.setZ(dd));
 			return m;
 		}, () -> 0L));
 

@@ -688,7 +688,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 
 
 
-	public Scene getS()
+	public Scene getScene()
 	{
 		return scene;
 	}

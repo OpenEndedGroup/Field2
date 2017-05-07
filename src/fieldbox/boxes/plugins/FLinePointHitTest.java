@@ -12,7 +12,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * Since points have no area, they don't fit into FLineInteraction; they are also much easier to hittest
+ * Since points have no area, they don't fit into FLineInteraction; but they are also much easier to hittest
  */
 public class FLinePointHitTest {
 

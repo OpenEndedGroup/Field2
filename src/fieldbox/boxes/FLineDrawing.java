@@ -22,25 +22,25 @@ import static field.graphics.StandardFLineDrawing.*;
 
 /**
  * ## Fundamental drawing support for Boxes
- *
+ * <p>
  * This is the ingest side of FLine drawing system --- the Field vector drawing framework. FLines are receptacles for geometry, both lines, tessellated shapes and text, and when added to certain
  * properties of Boxes they will appear inside the FieldBoxWindow. By setting properties on the FLines, you can control their appearance and behavior.
- *
+ * <p>
  * Two properties are observed by this plugin. "frameDrawing" and "lines".
- *
+ * <p>
  * `_.lines` --- this is just a Map or List containing either `FLine` or `Supplier<FLine>`. These are lines that are drawn with this box. It's handily auto-constructed to be a map where you can
  * do things like:
- *
+ * <p>
  * `_.lines.banana = myGreatFLine`
- *
+ * <p>
  * This is more helpful than writing `_.lines.add(myGreatFLine)` if you end up repeatedly executing this code.
- *
- *
+ * <p>
+ * <p>
  * `frameDrawing` --- has a more complex signature: `Map<String, Function<Box, FLine>>`. That's a string key'd `Map` of functions that take `Box` and return an `FLine`. This signature is often easier to write caching strategies for. For example, in the case where you want to draw the frame of a box, if the frame hasn't changed, and the box's
  * selection status hasn't changed, there's no need to recompute the FLine, just return the old one. The graphics system can optimize FLines very aggressively. In the case where absolutely all of the
  * same FLines are added to a MeshBuilder during an animation cycle then no data ends up being uploaded to OpenGL whatsoever and the number of state changes is greatly reduced. For a helper class for
  * this kind of caching see the class Cached below.
- *
+ * <p>
  * If a box has a `frame` property (i.e. typically if it isn't a plugin) and it has a blank `frameDrawing` then this plugin will give it a default look. The standard Field box look --- that's a name
  * in the middle, a light grey gradient box, and a construction site selection trim.
  */
@@ -145,7 +145,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 					q.z = 0;
 					return q;
 				});
-		}, (c) -> new Pair<Camera, Camera.State>(camera, camera.getState())).toSupplier(() -> camera);
+		}, (c) -> new Pair<>(camera, camera.getState())).toSupplier(() -> camera);
 	}
 
 	static public Function<Box, FLine> expires(Function<Box, FLine> wrap, int updates) {
@@ -340,14 +340,18 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 
 			FLine f = new FLine();
 
+			float d = box.properties.getFloat(Box.depth, 0f);
+
 			if (box.getClass() != Box.class) {
 				f.rect(rect);
-			} else FLinesAndJavaShapes.drawRoundedRectInto(f, rect.x, rect.y, rect.w, rect.h, 19);
+			} else
+				FLinesAndJavaShapes.drawRoundedRectInto(f, rect.x, rect.y, rect.w, rect.h, 19);
 
 			for (int i = 0; i < f.nodes.size(); i++) {
 				float alpha = ((i + 2) % f.nodes.size()) / (f.nodes.size() - 1f);
 				alpha = alpha * (1 - alpha) * 4;
 				f.nodes.get(i).attributes.put(fillColor, new Vec4(ar * (1 - alpha) + alpha * br, ag * (1 - alpha) + alpha * bg, ab * (1 - alpha) + alpha * bb, s));
+				f.nodes.get(i).setZ(d);
 			}
 
 			f.attributes.put(filled, true);
@@ -356,6 +360,9 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 			Map<Integer, String> customFill = new LinkedHashMap<Integer, String>();
 			customFill.put(1, "fillColor");
 			f.setAuxProperties(customFill);
+
+			if (d == 0)
+				f.attributes.put(hint_noDepth, true);
 
 			return f;
 		}, (box) -> new Pair(box.properties.get(frame), box.properties.get(Mouse.isSelected))));
@@ -372,6 +379,9 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 			if (selected) rect = rect.inset(3.5f);
 			else rect = rect.inset(-0.5f);
 
+			float d = box.properties.getFloat(Box.depth, 0f);
+
+
 //			rect = rect.inset(5);
 
 			//f.rect(rect);
@@ -383,6 +393,14 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 
 			f.attributes.put(stroked, true);
 
+			if (d != 0)
+				for (int i = 0; i < f.nodes.size(); i++) {
+					f.nodes.get(i).setZ(d);
+				}
+			else
+				f.attributes.put(hint_noDepth, true);
+
+
 			return f;
 		}, (box) -> new Pair(box.properties.get(frame), box.properties.get(Mouse.isSelected))));
 
@@ -391,6 +409,8 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 			if (rect == null) return new FLine();
 
 			boolean selected = box.properties.isTrue(Mouse.isSelected, false);
+
+			float d = box.properties.getFloat(Box.depth, 0f);
 
 			FLine f = new FLine();
 			f.moveTo(rect.x + rect.w / 2, rect.y + rect.h / 2 + 36 / 5.0f);
@@ -402,6 +422,13 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 			if (box.properties.isTrue(FileBrowser.isLinked, false)) name = "{ " + name + " }";
 
 			f.nodes.get(f.nodes.size() - 1).attributes.put(text, name);
+
+			if (d != 0)
+				for (int i = 0; i < f.nodes.size(); i++) {
+					f.nodes.get(i).setZ(d);
+				}
+			else
+				f.attributes.put(hint_noDepth, true);
 
 //			f.attributes.put(layer, "glass");
 
@@ -418,6 +445,8 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 			boolean selected = box.properties.isTrue(Mouse.isSelected, false);
 
 			FLine f = new FLine();
+			float dd = box.properties.getFloat(Box.depth, 0f);
+
 
 			String name = box.properties.getOr(Box.name, () -> "");
 			if (box.properties.isTrue(FileBrowser.isLinked, false)) name = "{ " + name + " }";
@@ -435,6 +464,13 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 					Colors.boxTextBackground1.z,
 					0.5f));
 			f.attributes.put(strokeColor, new Vec4(0, 0, 0, 1f));
+
+			if (dd != 0)
+				for (int i = 0; i < f.nodes.size(); i++) {
+					f.nodes.get(i).setZ(dd);
+				}
+			else
+				f.attributes.put(hint_noDepth, true);
 
 //			f.attributes.put(layer, "glass");
 

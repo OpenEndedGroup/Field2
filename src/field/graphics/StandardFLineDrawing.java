@@ -1,6 +1,7 @@
 package field.graphics;
 
 import field.linalg.Vec2;
+import field.linalg.Vec3;
 import field.linalg.Vec4;
 import field.utility.Dict;
 import field.utility.IdempotencyMap;
@@ -28,9 +29,11 @@ public class StandardFLineDrawing {
 		.set(Dict.domain, "fline")
 		.set(Dict.customCaster, v -> {
 			if (v instanceof Number)
-				return new BasicStroke( ((Number)v).floatValue(), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+				return new BasicStroke(((Number) v).floatValue(), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
 			return v;
 		});
+
+	static public final Dict.Prop<Boolean> hint_noDepth = new Dict.Prop<>("hint_noDepth").type().toCannon().doc("set on a line to hint to the renderer that z=0 for all nodes in this line. At present this merely allows lines to be `thicken` faster.");
 	static public final Dict.Prop<Boolean> filled = new Dict.Prop<>("filled").type()
 		.toCannon()
 		.doc("should the line be filled and tessellated? defaults to false").set(Dict.domain, "fline");
@@ -108,8 +111,8 @@ public class StandardFLineDrawing {
 		float op = fline.attributes.getOr(opacity, () -> 1f);
 		float sop = fline.attributes.getOr(strokeOpacity, () -> 1f);
 		float fop = fline.attributes.getOr(fillOpacity, () -> 1f);
-		sc.w *= op*sop;
-		fc.w *= op*fop;
+		sc.w *= op * sop;
+		fc.w *= op * fop;
 		pc.w *= op;
 
 		if (line != null) line.aux(1, sc);
@@ -151,7 +154,7 @@ public class StandardFLineDrawing {
 						.ifPresent(fs -> {
 							Vec2 v = fs.font.dimensions(textToDraw, textScale);
 							fs.mesh.aux(1, fc);
-							fs.font.draw(textToDraw, new Vec2(node.to.x - align * v.x, node.to.y), textScale, fline);
+							fs.font.draw(textToDraw, new Vec3(node.to.x - align * v.x, node.to.y, node.to.z), textScale, fline);
 						});
 				});
 
@@ -186,7 +189,7 @@ public class StandardFLineDrawing {
 						ot.map(t -> t.getFontSupport(fline.attributes.getOr(font, () -> f)))
 							.ifPresent(fs -> {
 								fs.mesh.aux(1, new Vec4(fcHere).mul(op));
-								fs.font.draw(m, new Vec2(node.to.x - dim.x / 2 + o.x, node.to.y), textScale, fline);
+								fs.font.draw(m, new Vec3(node.to.x - dim.x / 2 + o.x, node.to.y, node.to.z), textScale, fline);
 								o.x += fs.font.dimensions(m, textScale).x;
 							});
 						prev = f;
