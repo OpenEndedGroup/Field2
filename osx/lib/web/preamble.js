@@ -47,9 +47,12 @@
 
  // stubs for functions that we expect to have in 'cm' -- for now we are focused on getting the commands system up and running
  var cm = {
-		 focus: function() {
-				 _field.send("focus", {});
-		 }
+     focus: function() {
+         _field.send("focus", {});
+     },
+     lostFocus: function() {
+         _field.send("lostFocus", {});
+     }
  };
 
  function fuzzy(pat) {
@@ -124,7 +127,10 @@
 								 return m
 						 };
 						 if (completions.length > 0)
-								 runModal("Commands...", completionFunction, "Field-Modal")
+								 runModal("Commands...", completionFunction, "Field-Modal", undefined, false, function(){
+								 	console.log(" BLUR: lost focus from box")
+									cm.lostFocus();
+						})
 				 }
 		 );
  };
