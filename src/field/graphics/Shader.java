@@ -385,7 +385,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, fi
 	@HiddenInAutocomplete
 	public Object asMap_get(String p) {
 		Uniform u = getDefaultBundle().get(new Dict.Prop(p));
-		if (u != null) return u.get();
+		if (u != null) return u.evaluate();
 		else {
 			return super.asMap_get(p);
 		}
