@@ -1,0 +1,317 @@
+#field/document{
+  :externalList [
+    #field/external{
+      :textFiles {
+        "fragment" "{{templates}}/tutorial.fbo/triangles.box.glslf"
+        "geometry" "{{templates}}/tutorial.fbo/triangles.box.glslg"
+        "code" "{{templates}}/tutorial.fbo/triangles.box.js"
+        "vertex" "{{templates}}/tutorial.fbo/triangles.box.glslv"
+      }
+      :dataFile "{{templates}}/tutorial.fbo/triangles.box"
+      :id "_a5531b9c_f04f_4af4_8955_64b6f9a28f3f"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+        "_e74c9940_d696_4f01_8e5c_f8ccd2e413e3"
+      ]
+      :children [
+        "_310097d2_16c9_44dd_a405_f34c97ce9b84"
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 687.5789184570312
+          :y 349.1859130859375
+          :w 100.0
+          :h 98.9609375
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/tutorial.fbo/viewport.box.js"
+      }
+      :dataFile "{{templates}}/tutorial.fbo/viewport.box"
+      :id "_99257039_add8_40b8_90b0_9eadb6a72eb8"
+      :boxClass "fieldbox.boxes.plugins.Viewport"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+        "_91e80dee_76e5_4862_9d78_010dc8855deb"
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 46.53515625
+          :y 18.47265625
+          :w 505.98046875
+          :h 475.69921875
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/tutorial.fbo/some geometry.box.js"
+      }
+      :dataFile "{{templates}}/tutorial.fbo/some geometry.box"
+      :id "_c2eedb19_7569_48e1_99e7_5efb8935a4f1"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        "_a5531b9c_f04f_4af4_8955_64b6f9a28f3f"
+        ">>root<<"
+      ]
+      :children [
+        "_690d289b_0693_451c_b77b_62f0c4365099"
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 690.0554809570312
+          :y 498.1077880859375
+          :w 99.23828125
+          :h 98.52734375
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/tutorial.fbo/fbo.box.js"
+      }
+      :dataFile "{{templates}}/tutorial.fbo/fbo.box"
+      :id "_e9c7c048_fab7_4757_b959_3720f631f5dd"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+        "_a5531b9c_f04f_4af4_8955_64b6f9a28f3f"
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 680.4968872070312
+          :y 181.24530029296875
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "fragment" "{{templates}}/tutorial.fbo/apply fbo.box.glslf"
+        "geometry" "{{templates}}/tutorial.fbo/apply fbo.box.glslg"
+        "code" "{{templates}}/tutorial.fbo/apply fbo.box.js"
+        "vertex" "{{templates}}/tutorial.fbo/apply fbo.box.glslv"
+      }
+      :dataFile "{{templates}}/tutorial.fbo/apply fbo.box"
+      :id "_ecdf3f26_f394_4509_a865_0d03b80e7a89"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        "_690d289b_0693_451c_b77b_62f0c4365099"
+        "_99257039_add8_40b8_90b0_9eadb6a72eb8"
+        ">>root<<"
+      ]
+      :children [
+        "_c845e59f_d515_4691_b22f_a031d07904d1"
+        "_48b0da7c_0d44_49d8_aa19_1afd359c1012"
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 485.6070556640625
+          :y 745.0421752929688
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/tutorial.fbo/some more geometry.box.js"
+      }
+      :dataFile "{{templates}}/tutorial.fbo/some more geometry.box"
+      :id "_c51bb487_3e36_4e27_9864_18b0ded028ea"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        "_ecdf3f26_f394_4509_a865_0d03b80e7a89"
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 315.4781494140625
+          :y 915.2515869140625
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "fragment" "{{templates}}/tutorial.fbo/triangles00000.box.glslf"
+        "geometry" "{{templates}}/tutorial.fbo/triangles00000.box.glslg"
+        "code" "{{templates}}/tutorial.fbo/triangles00000.box.js"
+        "vertex" "{{templates}}/tutorial.fbo/triangles00000.box.glslv"
+      }
+      :dataFile "{{templates}}/tutorial.fbo/triangles00000.box"
+      :id "_eed8bc51_0241_411e_8068_b21d912a5065"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+        "_4696a4ec_b0aa_4701_9a11_43aa8bb48644"
+      ]
+      :children [
+        "_dc8d727e_1017_4971_a587_011a8237b834"
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 857.6609497070312
+          :y 349.4515380859375
+          :w 100.0
+          :h 98.9609375
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/tutorial.fbo/some geometry00000.box.js"
+      }
+      :dataFile "{{templates}}/tutorial.fbo/some geometry00000.box"
+      :id "_44dfdc0b_5de6_4870_b657_d302448b2b90"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        "_eed8bc51_0241_411e_8068_b21d912a5065"
+        ">>root<<"
+      ]
+      :children [
+        "_690d289b_0693_451c_b77b_62f0c4365099"
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 860.1375122070312
+          :y 498.3734130859375
+          :w 99.23828125
+          :h 98.52734375
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/tutorial.fbo/fbo00000.box.js"
+      }
+      :dataFile "{{templates}}/tutorial.fbo/fbo00000.box"
+      :id "_476642e5_7fac_4c75_a9bb_23b85c8322b1"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+        "_eed8bc51_0241_411e_8068_b21d912a5065"
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 850.5789184570312
+          :y 181.51092529296875
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/tutorial.fbo/exports.box.js"
+      }
+      :dataFile "{{templates}}/tutorial.fbo/exports.box"
+      :id "_798bbd24_9746_47f1_a6c9_5d400869873a"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        "_44dfdc0b_5de6_4870_b657_d302448b2b90"
+        "_c2eedb19_7569_48e1_99e7_5efb8935a4f1"
+        ">>root<<"
+      ]
+      :children [
+        "_ecdf3f26_f394_4509_a865_0d03b80e7a89"
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 767.06640625
+          :y 660.609375
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/tutorial.fbo/camera spin.box.js"
+      }
+      :dataFile "{{templates}}/tutorial.fbo/camera spin.box"
+      :id "_dbde7c5a_c41c_4d2e_ba18_179b28e65f3d"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        "_ecdf3f26_f394_4509_a865_0d03b80e7a89"
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 547.9453125
+          :y 910.6375122070312
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+  ]
+  :knownFiles {
+    "txt" #field/filespec{
+      :name "txt"
+    }
+    "fragment" #field/filespec{
+      :name "fragment"
+    }
+    "code" #field/filespec{
+      :name "code"
+    }
+    "vertex" #field/filespec{
+      :name "vertex"
+    }
+    "geometry" #field/filespec{
+      :name "geometry"
+    }
+    "html" #field/filespec{
+      :name "html"
+    }
+    "edn" #field/filespec{
+      :name "edn"
+    }
+  }
+  :knownProperties #{
+    "__id__"
+    "comment"
+    "classpath"
+    "perDocument"
+    "name"
+    "frame"
+    "lockHeight"
+    "lockWidth"
+    "tag"
+    "windowSpace"
+    "windowScale"
+    "isPaired"
+    "defaultEditorProperty"
+    "_defaultEditorProperty_cookie"
+    "auto"
+    "head"
+    "tail"
+    "_code_cookie"
+    "_vertex_cookie"
+    "_fragment_cookie"
+    "_theVariant"
+    "includes"
+    "excludes"
+    "__datafilename__"
+    "__filename__fragment"
+    "__filename__geometry"
+    "__filename__code"
+    "__filename__vertex"
+  }
+}
