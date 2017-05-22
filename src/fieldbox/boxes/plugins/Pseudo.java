@@ -258,8 +258,6 @@ public class Pseudo extends Box {
         @Override
         public Object asMap_set(String p, Object val) {
 
-            System.out.println(" in main thread :"+p+" -> "+val);
-
             Supplier q = (Supplier) Conversions.convert(val, Supplier.class);
             if (q == null)
                 throw new IllegalArgumentException(" can't convert " + val + " to something I can call");

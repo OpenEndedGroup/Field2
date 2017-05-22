@@ -74,11 +74,7 @@ public class Open {
 
 		DefaultMenus.safeToSave = false;
 
-//		System.out.println("linkers are :"+ new NashornLinkerExporter().get());
-
-		System.out.println(" linkers are :");
 		ServiceLoader<GuardingDynamicLinkerExporter> ll = ServiceLoader.load(GuardingDynamicLinkerExporter.class);
-		ll.forEach(System.out::println);
 
 		this.filename = filename;
 		Log.log("startup", () -> " -- Initializing window -- ");
