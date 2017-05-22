@@ -117,14 +117,6 @@ public class JavaSupport {
 						});
 					}
 
-					System.out.println(FLine.class);
-					try {
-						Thread.sleep(2000);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-					System.out.println(" allClassNames\n\n" + allClassNames.keySet() + "\n\n");
-
 					allClassNames.putAll(indexJigsaw());
 
 					builder.setErrorHandler(e -> Log.log("completion.general", () -> " problem parsing Java source file for completion, will skip this file and continue on "));
@@ -188,7 +180,6 @@ public class JavaSupport {
 		scanner.scan(new com.thoughtworks.qdox.directorywalker.FileVisitor() {
 			public void visitFile(File currentFile) {
 				try {
-					System.out.println(" adding :" + currentFile + "  (" + p + ")");
 					builder.addSource(currentFile);
 				} catch (Throwable var3) {
 					var3.printStackTrace();
@@ -455,8 +446,6 @@ public class JavaSupport {
 								.contains("public")) {
 
 
-								m.getParameters().forEach(x -> System.out.println(x.getName()));
-
 								String classComment = m.getDeclaringClass().getComment();
 								String constructorComment = m.getComment();
 								String comment = ((classComment == null ? "" : classComment) + " " + (constructorComment == null ? "" : constructorComment)).trim();
@@ -589,10 +578,7 @@ public class JavaSupport {
 
 			Set<String> seen = new LinkedHashSet<>();
 
-			System.out.println(" looking for <" + left + "> ? :" + allClassNames.size());
-
 			for (JavaClass c : builder.getClasses()) {
-				System.out.println(" -- " + c.getName());
 				if (c.getName()
 					.contains(left) && !seen.contains(c.getFullyQualifiedName())) {
 					seen.add(c.getFullyQualifiedName());
@@ -600,10 +586,8 @@ public class JavaSupport {
 				}
 			}
 
-			System.out.println();
 			synchronized (allClassNames) {
 				for (Map.Entry<String, String> e : allClassNames.entrySet()) {
-					System.out.println(" -- " + e.getKey());
 					if (e.getKey()
 						.contains(left) && !seen.contains(e.getKey())) {
 						seen.add(e.getKey());
