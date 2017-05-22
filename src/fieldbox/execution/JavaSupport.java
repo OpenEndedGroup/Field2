@@ -522,8 +522,7 @@ public class JavaSupport {
 
 						String val = "";
 						boolean tostring = false;
-						if (!staticsOnly && (hasAnnotation(m.getAnnotations(), SafeToToString.class) || m.getType()
-							.isPrimitive())) {
+						if (!staticsOnly && (hasAnnotation(m.getAnnotations(), SafeToToString.class) || m.getType().isPrimitive())) {
 							try {
 								val = "= <b>" + access(c.getDeclaredField(m.getName())).get(o) + "</b> &nbsp;";
 								tostring = true;
@@ -541,6 +540,7 @@ public class JavaSupport {
 							add(val.length() > 0, r, cc);
 							cc.rank += tostring ? 100 : 0;
 							cc.rank += m.getComment() != null ? 10 : 0;
+							cc.type = 1; // dont' merge with methods
 						}
 					}
 					for (JavaMethod m : j.getMethods()) {
@@ -585,7 +585,7 @@ public class JavaSupport {
 				if (c == null) break;
 				j = builder.getClassByName(c.getName());
 
-				//TODO: should we stop when we get into java.* classes if we started from something that wasnt?
+				//TODO: should we stop when we get into java.* classes if we started from something that wasn't?
 				// PApplet's completion is heavily polluted by this stuff.
 				// let's try that now.
 

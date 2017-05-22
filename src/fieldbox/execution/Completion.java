@@ -14,6 +14,7 @@ public class Completion {
 	public float rank = 0;
 
 	public String uuid = UUID.randomUUID().toString();
+	public int type; // used to differentiate between field and method
 
 	public Completion(int start, int end, String replacewith, String info) {
 		this.start = start;
