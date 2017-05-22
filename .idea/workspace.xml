@@ -1,27 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="cf6c9f9d-fc3a-4d11-afe6-14ab0d96b3e5" name="Default" comment="qdox upgrade">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lib/jars/qdox-2.0-M1.jar" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/field/scratch/Base64.java" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/field/scratch/Base64VLQ.java" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/field/scratch/Hello.java" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/field/scratch/HelloVLQ.java" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/build/field_agent.jar" afterPath="$PROJECT_DIR$/build/field_agent.jar" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/build/field_linker.jar" afterPath="$PROJECT_DIR$/build/field_linker.jar" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/jars/lwjgl-glfw.jar" afterPath="$PROJECT_DIR$/lib/jars/lwjgl-glfw.jar" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/jars/lwjgl-jemalloc.jar" afterPath="$PROJECT_DIR$/lib/jars/lwjgl-jemalloc.jar" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/jars/lwjgl-openal.jar" afterPath="$PROJECT_DIR$/lib/jars/lwjgl-openal.jar" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/jars/lwjgl-opengl.jar" afterPath="$PROJECT_DIR$/lib/jars/lwjgl-opengl.jar" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/jars/lwjgl-ovr.jar" afterPath="$PROJECT_DIR$/lib/jars/lwjgl-ovr.jar" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lib/jars/lwjgl.jar" afterPath="$PROJECT_DIR$/lib/jars/lwjgl.jar" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/win/lib/OpenAL.dll" afterPath="$PROJECT_DIR$/win/lib/OpenAL.dll" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/win/lib/glfw.dll" afterPath="$PROJECT_DIR$/win/lib/glfw.dll" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/win/lib/lwjgl.dll" afterPath="$PROJECT_DIR$/win/lib/lwjgl.dll" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/win/lib/lwjgl_ovr.dll" afterPath="$PROJECT_DIR$/win/lib/lwjgl_ovr.dll" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/libraries/jarsDir.xml" afterPath="$PROJECT_DIR$/.idea/libraries/jarsDir.xml" />
+    <list default="true" id="cf6c9f9d-fc3a-4d11-afe6-14ab0d96b3e5" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/build/source" afterPath="$PROJECT_DIR$/build/source" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <ignored path=".idea/dataSources.local.xml" />
@@ -470,7 +451,8 @@
     <MESSAGE value="explicit web path" />
     <MESSAGE value="fix for OffersUniform" />
     <MESSAGE value="less debug" />
-    <option name="LAST_COMMIT_MESSAGE" value="less debug" />
+    <MESSAGE value="HTMLToTexture" />
+    <option name="LAST_COMMIT_MESSAGE" value="HTMLToTexture" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
