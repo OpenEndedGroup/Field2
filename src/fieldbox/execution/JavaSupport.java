@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.lang.reflect.AccessibleObject;
 import java.net.URI;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
@@ -254,9 +255,6 @@ public class JavaSupport {
 	private Set<String> failedToParse = new LinkedHashSet<>();
 
 	private void indexSrcZip(String filename) throws IOException {
-
-		System.out.println(" index src zip <"+filename+">");
-
 		try {
 			ZipFile zipFile = new ZipFile(filename);
 			Enumeration entries = zipFile.entries();
@@ -264,8 +262,10 @@ public class JavaSupport {
 				ZipEntry zipEntry = (ZipEntry) entries.nextElement();
 				try {
 					if (zipEntry.getName().endsWith(".java")) {
-						String u = "jar:file://" + filename + "!/" + zipEntry.getName();
+						String u = "jar:"+new File(filename).toURI().toURL()+"!/" + zipEntry.getName();
+						System.out.println(" index :"+u);
 						Log.log("jar.indexer", () -> "will index a source file from a jar:" + u);
+						builder.setEncoding(Charset.defaultCharset().name());
 						builder.addSource(new URL(u));
 					}
 				} catch (com.thoughtworks.qdox.parser.ParseException t) {
