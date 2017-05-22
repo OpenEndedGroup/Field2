@@ -452,7 +452,8 @@
     <MESSAGE value="fix for OffersUniform" />
     <MESSAGE value="less debug" />
     <MESSAGE value="HTMLToTexture" />
-    <option name="LAST_COMMIT_MESSAGE" value="HTMLToTexture" />
+    <MESSAGE value="qdox M4, crashes less" />
+    <option name="LAST_COMMIT_MESSAGE" value="qdox M4, crashes less" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
