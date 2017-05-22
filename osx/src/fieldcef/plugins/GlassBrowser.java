@@ -245,7 +245,6 @@ public class GlassBrowser extends Box implements IO.Loaded {
 	}
 
 	public void runCommands() {
-		System.out.println(" -- running commands -- ");
 		browser.executeJavaScript("goCommands()");
 		show();
 	}
