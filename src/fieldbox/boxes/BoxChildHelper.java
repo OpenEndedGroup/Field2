@@ -1,5 +1,6 @@
 package fieldbox.boxes;
 
+import field.utility.Dict;
 import fieldbox.execution.Completion;
 import fieldbox.execution.HandlesCompletion;
 import fielded.boxbrowser.ObjectToHTML;
@@ -7,15 +8,18 @@ import fieldlinker.Linker;
 import fieldnashorn.annotations.SafeToToString;
 
 import java.util.*;
+import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
  * Class to provide more useful access to children and parent lists inside Field
  */
 @SafeToToString
-public class BoxChildHelper implements fieldlinker.AsMap, Collection<Box>, ObjectToHTML.MasqueradesAs , HandlesCompletion{
+public class BoxChildHelper implements fieldlinker.AsMap, Collection<Box>, ObjectToHTML.MasqueradesAs, HandlesCompletion {
 
 	private final ArrayList<Box> c;
 	LinkedHashMap<String, Box> t = new LinkedHashMap<>();
@@ -24,12 +28,12 @@ public class BoxChildHelper implements fieldlinker.AsMap, Collection<Box>, Objec
 	public BoxChildHelper(Collection<Box> c) {
 		this.c = new ArrayList<>(c);
 		c.stream().forEach(x -> t.put(x.properties.get(Box.name), x));
-		c.stream().forEach(x -> tl.computeIfAbsent(x.properties.get(Box.name), (k)->new ArrayList<>()).add(x));
+		c.stream().forEach(x -> tl.computeIfAbsent(x.properties.get(Box.name), (k) -> new ArrayList<>()).add(x));
 	}
 
 	@Override
 	public boolean asMap_isProperty(String p) {
-		return t.containsKey(p) || p.equals("all");
+		return t.containsKey(p) || p.equals("all") || c.stream().map(x -> x.asMap_get(p)).filter(x -> x != null).findAny().isPresent();
 	}
 
 	@Override
@@ -39,11 +43,37 @@ public class BoxChildHelper implements fieldlinker.AsMap, Collection<Box>, Objec
 
 	@Override
 	public Object asMap_get(String p) {
-		if (p.equals("all"))
-		{
+		if (p.equals("all")) {
 			return new All();
 		}
-		return t.get(p);
+		if (t.containsKey(p)) return t.get(p);
+
+		Stream<Object> o = c.stream().map(x -> x.asMap_get(p)).filter(x -> x != null);
+		Optional val = null;
+
+		Dict.Prop c = new Dict.Prop(p).findCannon();
+		if (c != null) {
+			BinaryOperator sr = c.getAttributes().get(Dict.streamReducer);
+			if (sr != null)
+				val = o.reduce(sr);
+			else {
+				Function<Collection, Optional<Object>> cr = c.getAttributes().get(Dict.collectionReducer);
+				if (cr != null) {
+					List<Object> q = o.collect(Collectors.toList());
+					if (q.size() > 0)
+						val = cr.apply(q);
+				}
+			}
+		}
+
+		if (val != null && val.isPresent())
+			return val.get();
+
+		List<Object> q = o.collect(Collectors.toList());
+		if (q.size() == 0) return null;
+		if (q.size() == 1) return q.get(0);
+
+		return q;
 	}
 
 	@Override
@@ -51,12 +81,11 @@ public class BoxChildHelper implements fieldlinker.AsMap, Collection<Box>, Objec
 		return t;
 	}
 
-	public class All implements fieldlinker.AsMap, ObjectToHTML.MasqueradesAs, HandlesCompletion
-	{
+	public class All implements fieldlinker.AsMap, ObjectToHTML.MasqueradesAs, HandlesCompletion {
 
 		@Override
 		public String toString() {
-			return ""+tl;
+			return "" + tl;
 		}
 
 		@Override
@@ -120,7 +149,7 @@ public class BoxChildHelper implements fieldlinker.AsMap, Collection<Box>, Objec
 		}
 
 		private String messageFor(Box value) {
-			return ""+value;
+			return "" + value;
 		}
 
 	}
@@ -145,6 +174,7 @@ public class BoxChildHelper implements fieldlinker.AsMap, Collection<Box>, Objec
 		return c.get(element);
 	}
 
+
 	@Override
 	public Object asMap_setElement(int element, Object o) {
 		throw new IllegalArgumentException("cannot change `_.children` / `_.parents` directly, call `_.connect` instead");
@@ -158,6 +188,11 @@ public class BoxChildHelper implements fieldlinker.AsMap, Collection<Box>, Objec
 	@Override
 	public int size() {
 		return c.size();
+	}
+
+	@Override
+	public Object asMap_getElement(Object element) {
+		return asMap_get(""+element);
 	}
 
 	@Override
@@ -257,7 +292,7 @@ public class BoxChildHelper implements fieldlinker.AsMap, Collection<Box>, Objec
 
 	@Override
 	public String toString() {
-		return c+"";
+		return c + "";
 	}
 
 	public List<Completion> getCompletionsFor(String prefix) {
@@ -271,6 +306,6 @@ public class BoxChildHelper implements fieldlinker.AsMap, Collection<Box>, Objec
 	}
 
 	private String messageFor(Box value) {
-		return ""+value;
+		return "" + value;
 	}
 }

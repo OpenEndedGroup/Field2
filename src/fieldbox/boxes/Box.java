@@ -449,6 +449,39 @@ public class Box implements fieldlinker.AsMap, HandlesCompletion {
 		if (m.equals("children")) return new BoxChildHelper(children);
 		if (m.equals("parents")) return new BoxChildHelper(parents);
 
+		Object ret = asMap_get_find(m);
+
+		return asMap_get_interpret(ret);
+	}
+
+	@HiddenInAutocomplete
+	public Object asMap_get_interpret(Object ret) {
+		if (ret instanceof FunctionOfBox) {
+			final Object fret = ret;
+			return ((Supplier) (() -> ((FunctionOfBox) fret).apply(this)));
+		}
+
+		if (ret instanceof BiFunctionOfBoxAnd) {
+			final Object fret = ret;
+			return QuoteCompletionHelpers.curry((BiFunction<Box, Object, Object>) ret, () -> this);
+//			return ((Function) ((c) -> ((Box.BiFunctionOfBoxAnd) fret).apply(this, c)));
+		}
+
+		if (ret instanceof TriFunctionOfBoxAnd) {
+			final Object fret = ret;
+			return QuoteCompletionHelpers.curry((TriFunctionOfBoxAnd<Object, Object, Object>) ret, () -> this);
+//			return ((BiFunction) ((a, b) -> ((Box.TriFunctionOfBoxAnd) fret).apply(this, a, b)));
+		}
+
+		if (ret instanceof FunctionOfBoxValued) {
+			return ((FunctionOfBoxValued) ret).apply(this);
+		}
+
+		return ret;
+	}
+
+	@HiddenInAutocomplete
+	public Object asMap_get_find(String m) {
 		Dict.Prop cannon = new Dict.Prop(m).toCannon();
 
 		Object ret = null;
@@ -459,28 +492,6 @@ public class Box implements fieldlinker.AsMap, HandlesCompletion {
 
 		}
 		if (ret == null) ret = Missing.findFrom(this, cannon);
-
-		if (ret instanceof Box.FunctionOfBox) {
-			final Object fret = ret;
-			return ((Supplier) (() -> ((Box.FunctionOfBox) fret).apply(this)));
-		}
-
-		if (ret instanceof Box.BiFunctionOfBoxAnd) {
-			final Object fret = ret;
-			return QuoteCompletionHelpers.curry((BiFunction<Box, Object, Object>) ret, () -> this);
-//			return ((Function) ((c) -> ((Box.BiFunctionOfBoxAnd) fret).apply(this, c)));
-		}
-
-		if (ret instanceof Box.TriFunctionOfBoxAnd) {
-			final Object fret = ret;
-			return QuoteCompletionHelpers.curry((TriFunctionOfBoxAnd<Object, Object, Object>) ret, () -> this);
-//			return ((BiFunction) ((a, b) -> ((Box.TriFunctionOfBoxAnd) fret).apply(this, a, b)));
-		}
-
-		if (ret instanceof Box.FunctionOfBoxValued) {
-			return ((Box.FunctionOfBoxValued) ret).apply(this);
-		}
-
 		return ret;
 	}
 
