@@ -20,7 +20,7 @@ public class FieldBoxWindow extends Window {
 	private Compositor compositor;
 
 	public FieldBoxWindow(int x, int y, int w, int h, String filename) {
-		super(x, y, w - (Main.os == Main.OS.mac ? 1 : 0), h, "Field — "+filename, true);
+		super(x, y, w - (Main.os == Main.OS.mac ? 1 : 0), h, "Field: "+filename, true);
 
 		if (Main.os==Main.OS.mac)
 		{
