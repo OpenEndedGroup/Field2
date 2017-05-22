@@ -14,15 +14,15 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.time.Instant;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.lwjgl.opengl.GL20.*;
+import static org.lwjgl.opengl.GL30.GL_INTERLEAVED_ATTRIBS;
+import static org.lwjgl.opengl.GL30.glTransformFeedbackVaryings;
 
 ;
 
@@ -42,8 +42,8 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, fi
 
 	@Override
 	public String generateMarkdown(Box inside, Dict.Prop property) {
-		if (introspection==null)
-			return "Shader has not been executed by the graphics system, is it correctly attached to something?";
+		if (introspection == null)
+			return "Shader has not been executed by the graphics system, is it correctly attached to something?"+(lastAccumulatedError==null ? "" : "<br>Errors seen by the linker are:<br><pre style='font-size:75%'>"+lastAccumulatedError+"</pre>");
 
 		return introspection.getMarkdown(inside);
 	}
@@ -56,7 +56,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, fi
 
 	public enum Type {
 		vertex(GL20.GL_VERTEX_SHADER), geometry(GL32.GL_GEOMETRY_SHADER), fragment(GL20.GL_FRAGMENT_SHADER), tessControl(GL40.GL_TESS_CONTROL_SHADER), tessEval(
-			    GL40.GL_TESS_EVALUATION_SHADER), compute(GL43.GL_COMPUTE_SHADER);
+			GL40.GL_TESS_EVALUATION_SHADER), compute(GL43.GL_COMPUTE_SHADER);
 
 		public int gl;
 
@@ -127,7 +127,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, fi
 			}
 
 			final State finalS = s;
-			Log.log("graphics.trace", ()->" shader name " + finalS.name);
+			Log.log("graphics.trace", () -> " shader name " + finalS.name);
 
 			if (s.name == -1) {
 				try {
@@ -178,9 +178,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, fi
 						s.good = true;
 						return true;
 					}
-				}
-				catch(Throwable t)
-				{
+				} catch (Throwable t) {
 					t.printStackTrace();
 				}
 			}
@@ -234,7 +232,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, fi
 
 		for (Map.Entry<Type, Source> s : source.entrySet()) {
 			work |= s.getValue()
-				 .clean();
+				.clean();
 		}
 
 		State name = GraphicsContext.get(this);
@@ -261,53 +259,21 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, fi
 			for (int i = 1; i < 16; i++)
 				glBindAttribLocation(name.name, i, "attribute" + i);
 
-			glLinkProgram(name.name);
-			int linkStatus = glGetProgrami(name.name, GL20.GL_LINK_STATUS);
-			if (linkStatus == 0) {
-				String ret = GL20.glGetProgramInfoLog(name.name, 10000);
-				System.err.println(" program failed to link");
-				System.err.println(" log is <" + ret + ">");
-				if (onError != null) {
-					onError.beginError();
-					onError.errorOnLine(-1, ret);
-					onError.endError();
-				}
-				name.valid = false;
-			}
+			name.valid = linkAndValidateNow(name.name);
 
-
-			glValidateProgram(name.name);
-			int validateStatus = glGetProgrami(name.name, GL20.GL_VALIDATE_STATUS);
-			if (validateStatus == 0) {
-				String ret = GL20.glGetProgramInfoLog(name.name, 10000);
-				Log.log("graphics.warning",()-> " program failed to validate (note, this can be benign). Log is " + ret);
-				if (!ret.trim()
-					.toLowerCase()
-					.equals("Validation Failed: No vertex array object bound.".toLowerCase())) if (onError != null) {
-					onError.beginError();
-					onError.errorOnLine(-1, ret);
-					onError.endError();
-				}
-				// it didn't validate right now, but that doesn't mean that it wont in the future
-//				name.valid = false;
-			}
-
-			if (name.valid)
-			{
-				if (introspection==null) {
+			if (name.valid) {
+				if (introspection == null) {
 					introspection = new ShaderIntrospection(this);
 					introspection.reloadedAt = Instant.now();
-				}
-				else
-				{
+				} else {
 					introspection.reloadedAt = Instant.now();
 					introspection.reloadedTimes++;
-					introspection.invocationCountSinceReload=0;
+					introspection.invocationCountSinceReload = 0;
 				}
 
 				introspection.introspectNow();
 
-				modCount ++;
+				modCount++;
 			}
 		}
 
@@ -316,10 +282,12 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, fi
 			Log.log("graphics.trace", () -> " using program " + name.name);
 			GraphicsContext.getContext().stateTracker.shader.set(name.name);
 			GraphicsContext.getContext().uniformCache.changeShader(this, name.name);
+			if (introspection != null)
+				introspection.errorIsInvalid = null;
 		} else {
 			System.err.println("WARNING: shader is invalid, not being used ");
-			Log.log("graphics.trace", ()->"WARNING: program not valid, not being used");
-			if (introspection!=null)
+			Log.log("graphics.trace", () -> "WARNING: program not valid, not being used");
+			if (introspection != null)
 				introspection.errorIsInvalid = "Shader failed GL validation, it is not being used\n";
 		}
 
@@ -328,11 +296,83 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, fi
 		return true;
 	}
 
+	protected String lastAccumulatedError;
+
+	@HiddenInAutocomplete
+	boolean linkAndValidateNow(int name) {
+		lastAccumulatedError = null;
+
+		TreeMap<Integer, Set<Consumer<Integer>>> c = collectChildrenPasses();
+		if (c != null)
+			c.values().stream().flatMap(x -> x.stream()).forEach(x -> {
+				if (x instanceof TransformFeedback) {
+					glTransformFeedbackVaryings(name, ((TransformFeedback) x).target, GL_INTERLEAVED_ATTRIBS);
+				}
+
+				// warning if there are more than one of these?
+			});
+
+		internalScene.values().stream().flatMap(x -> x.stream()).forEach(x -> {
+			if (x instanceof TransformFeedback) {
+				glTransformFeedbackVaryings(name, ((TransformFeedback) x).target, GL_INTERLEAVED_ATTRIBS);
+			}
+
+			// warning if there are more than one of these?
+		});
+
+
+		glLinkProgram(name);
+		int linkStatus = glGetProgrami(name, GL20.GL_LINK_STATUS);
+		if (linkStatus == 0) {
+			String ret = GL20.glGetProgramInfoLog(name, 10000);
+			System.err.println(" program failed to link");
+			System.err.println(" log is <" + ret + ">");
+			if (onError != null) {
+				onError.beginError();
+
+				String[] pieces = ret.split("\n");
+				String filtered = "";
+				for (String p : pieces)
+					// the warnings are uninteresting
+					if (p.toLowerCase().trim().startsWith("warning")) {
+					} else
+						filtered += p + "\n";
+
+				lastAccumulatedError = filtered.trim();
+				onError.errorOnLine(1, filtered.trim());
+				onError.endError();
+			}
+			return false;
+		}
+
+
+		glValidateProgram(name);
+		int validateStatus = glGetProgrami(name, GL20.GL_VALIDATE_STATUS);
+		if (validateStatus == 0) {
+			String ret = GL20.glGetProgramInfoLog(name, 10000);
+			Log.log("graphics.warning", () -> " program failed to validate (note, this can be benign). Log is " + ret);
+			if (!ret.trim()
+				.toLowerCase()
+				.equals("Validation Failed: No vertex array object bound.".toLowerCase())) {
+				lastAccumulatedError = (lastAccumulatedError == null ? "" : lastAccumulatedError) + ret.trim();
+
+
+				if (onError != null) {
+					onError.beginError();
+					onError.errorOnLine(1, ret);
+					onError.endError();
+				}
+				// it didn't validate right now, but that doesn't mean that it wont in the future
+//				name.valid = false;
+			}
+		}
+		return true;
+	}
+
 	@Override
 	protected boolean perform1() {
 		GraphicsContext.getContext().stateTracker.shader.set(0);
-		if (introspection!=null)
-		{
+		if (introspection != null) {
 			introspection.invocationCountSinceReload++;
 			introspection.invocationCountTotal++;
 			introspection.invocationAt = Instant.now();
@@ -365,11 +405,11 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, fi
 	protected Set<String> computeKnownNonProperties() {
 		Set<String> r = new LinkedHashSet<>();
 		Method[] m = this.getClass()
-				 .getMethods();
+			.getMethods();
 		for (Method mm : m)
 			r.add(mm.getName());
 		Field[] f = this.getClass()
-				.getFields();
+			.getFields();
 		for (Field ff : f)
 			r.add(ff.getName());
 		return r;
@@ -419,11 +459,13 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, fi
 		}
 		if (Uniform.isAccepableInstance(fo)) return getDefaultBundle().set(p, () -> fo);
 
-		if (o instanceof  OffersUniform)
-		{
-			getDefaultBundle().set(p, () -> ((OffersUniform)o).getUniform());
+		if (o instanceof OffersUniform) {
+			getDefaultBundle().set(p, () -> ((OffersUniform) o).getUniform());
 			// fall through -- connect things as well as set them as uniforms
 		}
+
+		if (o instanceof TransformFeedback) // needs relinking
+			GraphicsContext.allGraphicsContexts.stream().map(x -> x.lookup(this)).filter(x -> x != null).forEach(x -> ((State) x).work = true);
 
 		return super.asMap_set(p, o);
 	}
