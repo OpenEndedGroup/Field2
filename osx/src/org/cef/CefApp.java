@@ -50,7 +50,7 @@ public class CefApp extends CefAppHandlerAdapter {
 		} else if (OS.isLinux()) {
 			System.loadLibrary("cef");
 		}
-		System.out.println(" load library jcef ");
+		System.out.println("CEF: load library jcef ");
 		System.loadLibrary("jcef");
 
 
@@ -103,7 +103,7 @@ public class CefApp extends CefAppHandlerAdapter {
 				} catch (Throwable err) {
 					err.printStackTrace();
 				} finally {
-					System.out.println("shutdown complete");
+					System.out.println("CEF: shutdown complete");
 					self = null;
 					lock.unlock();
 				}
@@ -241,11 +241,9 @@ public class CefApp extends CefAppHandlerAdapter {
 	 */
 	private final void initialize() {
 		String library_path = getJcefLibPath();
-		System.out.println("initialize on " + Thread.currentThread() +
+		System.err.println("CEF: initialize on " + Thread.currentThread() +
 					       " with library path " + library_path);
-		System.err.println(" calling N_initialize <"+appHandler_+">");
 		isInitialized_ = N_Initialize(library_path, appHandler_);
-		System.err.println(" survived call to N_initialize ");
 	}
 
 	/**
