@@ -120,7 +120,7 @@ public class ErrorHelper {
 				return new Pair<Integer, String>(line.first, text);
 			}
 
-			return new Pair<Integer, String>(line.first, text);
+			return new Pair<Integer, String>(line.first, line.second);
 
 		}
 		return line;
