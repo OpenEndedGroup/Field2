@@ -38,7 +38,7 @@ public class Execution extends Box {
 	 * this is the default "code" property for a box. Obviously we can define others, and editors can edit other properties, but there's a lot of
 	 * UI that's built around a default notion of "run"ing and "begin"ing a box.
 	 */
-	static public final Dict.Prop<String> code = new Dict.Prop<>("code").toCannon().type().set(BoxDefaultCode._configured);
+	static public final Dict.Prop<String> code = new Dict.Prop<>("code").toCannon().type().set(BoxDefaultCode._configured).set(Dict.streamReducer, (a,b) -> a+"\n"+b);
 
 	/**
 	 * pushed and popped inside all eval's and executes
