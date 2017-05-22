@@ -312,6 +312,8 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 	int cachedModCount = -1;
 
 	private int cached_glGetUniformLocation(Integer shad, String name) {
+		if (GraphicsContext.getContext()==null || GraphicsContext.getContext().uniformCache==null || GraphicsContext.getContext().uniformCache.getCurrentShader()==null) return -1;
+
 		if (cachedName == shad && GraphicsContext.getContext().uniformCache.getCurrentShader() == cachedShader && GraphicsContext.getContext().uniformCache.getCurrentShader().getModCount() == cachedModCount)
 			return cachedLocation;
 
