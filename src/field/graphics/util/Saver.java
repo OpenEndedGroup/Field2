@@ -1,12 +1,14 @@
 package field.graphics.util;
 
 import field.graphics.FastJPEG;
+import field.utility.IdempotencyMap;
 import org.lwjgl.opengl.GL11;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.function.Consumer;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL30.*;
@@ -62,6 +64,9 @@ public class Saver {
 		drip = true;
 	}
 
+	public IdempotencyMap<Consumer<ByteBuffer>> hooks = new IdempotencyMap<Consumer<ByteBuffer>>(Consumer.class);
+
+
 	public void update() {
 		if (!on) return;
 
@@ -87,12 +92,18 @@ public class Saver {
 
 		getImage(storage);
 
+		runHooks(storage);
+
 		lastFilename = prefix + pad(frameNumber++) + ".jpg";
 		FutureTask<ByteBuffer> task = new FutureTask<ByteBuffer>(makeWorker(storage, lastFilename));
 		pool.execute(task);
 		workers.add(task);
 
 		if (drip) on = false;
+	}
+
+	private void runHooks(ByteBuffer storage) {
+		hooks.values().stream().forEach(x -> x.accept(storage));
 	}
 
 	private String pad(int i) {
