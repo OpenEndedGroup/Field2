@@ -114,11 +114,11 @@ public class BoxBrowser extends Box implements IO.Loaded {
 	}
 
 	static public final String preamble = "<html xmlns='http://www.w3.org/1999/xhtml'> <meta charset='UTF-8'><head>" +
-		"<script src='/field/filesystem/codemirror-5.14.2/lib/codemirror.js'></script>" +
-		"<link rel='stylesheet' href='/field/filesystem/codemirror-5.14.2/lib/codemirror.css'>" +
-		"<link rel='stylesheet' href='/field/filesystem/codemirror-5.14.2/theme/default.css'>" +
+		"<script src='/field/filesystem/codemirror-5.25.2/lib/codemirror.js'></script>" +
+		"<link rel='stylesheet' href='/field/filesystem/codemirror-5.25.2/lib/codemirror.css'>" +
+		"<link rel='stylesheet' href='/field/filesystem/codemirror-5.25.2/theme/default.css'>" +
 		"<link rel='stylesheet' href='/field/filesystem/field-boxbrowser.css' type='text/css'>" +
-		"<script src='/field/filesystem/codemirror-5.14.2/mode/javascript/javascript.js'></script>" +
+		"<script src='/field/filesystem/codemirror-5.25.2/mode/javascript/javascript.js'></script>" +
 		"<script src='/field/filesystem/jquery-2.1.0.min.js'></script>" +
 		"<script src='/field/filesystem/field-boxbrowser.js'></script>" +
 		"</head><body><div class='all'>";
