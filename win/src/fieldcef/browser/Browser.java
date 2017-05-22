@@ -204,7 +204,7 @@ public class Browser extends Box implements IO.Loaded {
 
         float rsf = 1f;//window.getRetinaScaleFactor();
 
-        System.out.println("MAKING CefSystem :" + w + " " + h + " " + rsf);
+        System.out.println("CefSystem is making a browser: " + w + "x" + h + "x" + rsf);
 
         browser = CefSystem.cefSystem.makeBrowser((int) (w * rsf), (int) (h * rsf), this::paint, this::message, () -> {
             try {
@@ -222,12 +222,10 @@ public class Browser extends Box implements IO.Loaded {
 
 
         keyboardHacks = new BrowserKeyboardHacks(browser);
-        System.out.println("MAKING sourceTextureBuffer :" + w + " " + h + " " + rsf);
         source = ByteBuffer.allocateDirect(((int) (w * rsf) * ((int) (h * rsf)) * 4)).order(ByteOrder.nativeOrder());
         source.position(0)
                 .limit(source.capacity());
         sourceView = source.slice();
-        System.out.println("MAKING sourceTexture :" + w + " " + h + " " + rsf);
         texture = new Texture(Texture.TextureSpecification.byte4(0, (int) (w * rsf), (int) (h * rsf), source, false)).setIsDoubleBuffered(false);
 
         q = BaseMesh.triangleList(0, 0);
@@ -413,8 +411,6 @@ public class Browser extends Box implements IO.Loaded {
 
         this.properties.putToMap(Mouse.onMouseScroll, "__browser__", (e) -> {
 
-            System.out.println(" SCROLL ?!");
-
             Rect r = properties.get(Box.frame);
             if (!intersects(r, e)) return;
             if (!isSelected() && !getFocus()) return;
@@ -433,18 +429,12 @@ public class Browser extends Box implements IO.Loaded {
                         new MouseEvent(component, MouseEvent.MOUSE_PRESSED, 0, MouseEvent.getMaskForButton(1) | (e.after.keyboardState.isAltDown() ? KeyEvent.ALT_DOWN_MASK : 0),
                                 (int) ((int) (point.x - r.x) * rsf), (int) ((int) (point.y - r.y) * rsf), 1, false, 1));
                 if (e.after.dwheely > 0) {
-                    System.out.println(" inc ");
                     find(RunCommand.runCommand, this.both()).findFirst().ifPresent(x -> {
-                        System.out.println(" inc2");
                         Boolean done = x.apply(root, "Increment Number");
-                        System.out.println(" inc? "+done);
                     });
                 } else if (e.after.dwheely < 0) {
-                    System.out.println(" dec ");
                     find(RunCommand.runCommand, this.both()).findFirst().ifPresent(x -> {
-                        System.out.println(" dec2 ");
                         Boolean done = x.apply(root, "Decrement Number");
-                        System.out.println(" dec2? "+done);
                     });
                 }
             }
