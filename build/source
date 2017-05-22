@@ -45,6 +45,7 @@
 ../src/field/graphics/SlowJPEG.java
 ../src/field/graphics/StandardFLineDrawing.java
 ../src/field/graphics/StateTracker.java
+../src/field/graphics/StereoCameraInterface.java
 ../src/field/graphics/TaggedVec3.java
 ../src/field/graphics/Texture.java
 ../src/field/graphics/TextureBuffer.java
@@ -79,10 +80,6 @@
 ../src/field/linalg/Vec3.java
 ../src/field/linalg/Vec4.java
 ../src/field/message/MessageQueue.java
-../src/field/scratch/Base64.java
-../src/field/scratch/Base64VLQ.java
-../src/field/scratch/Hello.java
-../src/field/scratch/HelloVLQ.java
 ../src/field/utility/AsMapDelegator.java
 ../src/field/utility/AutoPersist.java
 ../src/field/utility/Cached.java
