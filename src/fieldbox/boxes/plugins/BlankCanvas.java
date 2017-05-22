@@ -26,10 +26,6 @@ public class BlankCanvas extends Box {
 
 		this.properties.putToMap(frameDrawing, "__textprompt__", new Cached<Box, Object, FLine>((box, previously) -> {
 
-			// 1 is that timeslider, 2 is the notification box
-
-			System.err.println(" count :"+root.children().stream().filter(x -> x.properties.has(Box.frame)).count());
-
 			if (RunLoop.tick<1) return new FLine();
 
 			if (root.children().stream().filter(x -> x.properties.has(Box.frame)).count()>2) return new FLine();
