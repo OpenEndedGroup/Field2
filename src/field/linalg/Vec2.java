@@ -1401,7 +1401,6 @@ public class Vec2 implements Externalizable, Supplier<Vec2>, Mutable, Serializab
 
 	@Override
 	public Object asMap_call(Object a, Object b) {
-		System.out.println(" arguments " + a+" "+b);
 		return this;
 	}
 }
