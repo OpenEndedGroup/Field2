@@ -34,8 +34,6 @@ public class RunCommand extends Box {
 		Pattern p = Pattern.compile(of);
 		List<Triple<String, String, Runnable>> commands = Commands.getCommandsAndDocs(box);
 
-		System.out.println(" commands ? "+commands);
-
 		Log.log("run.command", ()->"command size is " + commands.size());
 		if (commands.size() == 0) return false;
 

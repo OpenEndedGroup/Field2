@@ -157,7 +157,6 @@ public class Raft {
             if (c instanceof Node) {
                 Box c2 = _loadBox((Node)c, alias, load);
                 if (c2 != null) {
-                    System.out.println(" loaded child :" + c2 + " for parent " + b);
                     b.connect(c2);
                 }
             } else if (c instanceof String) {
@@ -172,7 +171,6 @@ public class Raft {
             if (c instanceof Node) {
                 Box c2 = _loadBox((Node)c, alias, load);
                 if (c2 != null) {
-                    System.out.println(" loaded parent :" + c2 + " for child " + b);
                     c2.connect(b);
                 }
             } else if (c instanceof String) {
@@ -268,9 +266,7 @@ public class Raft {
 
         Map<Dict.Prop, Object> q = x.properties.getMap();
         for (Map.Entry<Dict.Prop, Object> e : q.entrySet()) {
-            System.out.println(" looking at property :" + e.getKey());
             if (IO.isPeristant(e.getKey()) || e.getKey().getName().equals("code")) { // code is aliased in IO1
-                System.out.println(" this property is persistent ");
                 at.values.put(e.getKey().getName(), toValue(e.getKey(), e.getValue(), alias, save));
             }
         }
