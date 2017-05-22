@@ -75,7 +75,7 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 
 	public Linker() {
 		if (debug)
-			System.out.println(" linker has been constructed ");
+			System.err.println(" linker has been constructed ");
 	}
 
 
@@ -295,7 +295,7 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 				}
 			}
 		} else
-			System.out.println(" don't know what to do with that :"+linkRequest.getCallSiteDescriptor().getOperation()
+			System.err.println(" don't know what to do with that :"+linkRequest.getCallSiteDescriptor().getOperation()
 				.toString());
 		return null;
 	}

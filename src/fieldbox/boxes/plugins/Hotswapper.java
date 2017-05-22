@@ -130,7 +130,6 @@ public class Hotswapper {
 				Log.log("watching", () -> "found " + found);
 				if (found.size() > 0) {
 					for (int i = 0; i < found.size(); i++) {
-						System.out.println("watching.fields" + found.get(i).allFields());
 
 
 						final int finalI = i;
@@ -163,11 +162,8 @@ public class Hotswapper {
 					try {
 						while (true) {
 							try {
-								System.out.println(" waiting for event queue ");
 								EventSet e = h.vm.eventQueue()
 									.remove();
-
-								System.out.println(" event set contains :" + e.size());
 
 								e.forEach(x -> {
 									System.out.println("EVENT :" + x);

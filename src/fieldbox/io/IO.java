@@ -460,9 +460,9 @@ public class IO {
 						String p1 = readFromFile(path);
 						box.properties.put(new Dict.Prop<String>(suffix), p1);
 					} catch (Exception e) {
-						System.out.println(" exception thrown while loading a file :" + path + " for property :" + entry + " in box +" + box);
+						System.err.println(" exception thrown while loading a file :" + path + " for property :" + entry + " in box +" + box);
 						e.printStackTrace();
-						System.out.println(" continuing on");
+						System.err.println(" continuing on");
 					}
 				}
 			}
@@ -582,9 +582,9 @@ public class IO {
 			try {
 				writeToFile(filename, text);
 			} catch (Exception ex) {
-				System.out.println(" exception thrown while saving out a file :" + filename + " for property :" + e + " in box +" + external.box);
+				System.err.println(" exception thrown while saving out a file :" + filename + " for property :" + e + " in box +" + external.box);
 				ex.printStackTrace();
-				System.out.println(" continuing on");
+				System.err.println(" continuing on");
 			}
 		}
 

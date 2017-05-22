@@ -69,11 +69,7 @@ public class HTMLToTexture  {
         }
 
         this.s.addURIHandler((uri, method, headers, params, files) -> {
-
-            System.out.println(" handler ? "+uri+" "+textTable.keySet());
-
             String m = textTable.get("http://localhost:"+a+uri);
-            System.out.println(" response is :"+m);
             if (m!=null)
                 return new NanoHTTPD.Response(NanoHTTPD.Response.Status.OK, "text/html", m);
 
@@ -81,9 +77,6 @@ public class HTMLToTexture  {
         });
 
         browser = CefSystem.cefSystem.makeBrowser(w, h, this::paint, this::message, () -> {
-
-            System.out.println(" completed :" + browser.getURL());
-
             try {
                 if (callbackOnNextReload != null) {
                     callbackOnNextReload.run();
@@ -100,7 +93,6 @@ public class HTMLToTexture  {
 
         new Thread(() -> {
             while (true) {
-                System.out.println(browser.isLoading());
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
@@ -226,7 +218,7 @@ public class HTMLToTexture  {
 
 
         if (sourceView == null) {
-            System.out.println(" no backing for :" + this.browser.getURL() + " backings are available for " + this.sourceView.keySet()+" / "+this.sourceView);
+            System.err.println("ERROR?: no backing for :" + this.browser.getURL() + " backings are available for " + this.sourceView.keySet()+" / "+this.sourceView);
             return;
         }
 
@@ -244,7 +236,6 @@ public class HTMLToTexture  {
         int y1 = 0;
 
         for (Rectangle r : dirty) {
-            System.out.println(" rect :"+r);
             if (r.x == 0 && r.y == 0 && r.width == w && r.height == h) {
                 buffer.clear();
                 sourceView.clear();
