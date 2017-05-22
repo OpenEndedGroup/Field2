@@ -12,6 +12,7 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -73,10 +74,21 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 	 * this property tags a property as writeOnly (from the poiint of view of the scripting world, from Java there's nothing in place to prevent writing properties)
 	 */
 	public static Prop<Boolean> writeOnly = new Prop<>("writeOnly").toCannon().set(domain, "*/attributes");
+
 	/**
 	 * this lets you add to a property a function that massages values as they are set
 	 */
 	public static Prop<Function<Object, Object>> customCaster = new Prop<>("customCaster").toCannon().set(domain, "*/attributes");
+
+	/**
+	 * this lets you add to a property that reduces pairs of T to a single T. This might be string concatenation, or addition, or something more complex
+	 */
+	public static Prop<BinaryOperator> streamReducer = new Prop<>("streamReducer").toCannon().set(domain, "*/attributes");
+
+	/**
+	 * this lets you add to a property that reduces a collection of T to a single T. This might be averaging for example
+	 */
+	public static Prop<Function<Collection, Optional<Object>>> collectionReducer = new Prop<>("collectionReducer").toCannon().set(domain, "*/attributes");
 
 	static {
 		domain.set(domain, "*/attributes");
