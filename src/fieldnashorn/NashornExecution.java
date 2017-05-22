@@ -95,10 +95,9 @@ public class NashornExecution implements Execution.ExecutionSupport {
 					public void write(char[] cbuf, int off, int len) throws IOException {
 						if (len > 0) {
 							String s = new String(cbuf, off, len);
-							if (s.endsWith("\n"))
-								s = s.substring(0, s.length() - 1) + "<br>";
-							if (s.trim()
-								.length() == 0) return;
+//							if (s.endsWith("\n"))
+//								s = s.substring(0, s.length() - 1) + "<br>";
+							if (s.trim().length() == 0) return;
 							written[0] = true;
 
 							if (currentLineNumber == null || currentLineNumber.first == null || currentLineNumber.second == -1) {
