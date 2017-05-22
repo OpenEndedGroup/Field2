@@ -9,22 +9,18 @@ import fielded.boxbrowser.BoxBrowser;
 import fieldlinker.Linker;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 import org.lwjgl.opengl.*;
+;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.time.Instant;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.lwjgl.opengl.GL20.*;
-
-;
 
 /**
  * An OpenGL Shader written in GL Shader Language (GLSL)
@@ -56,7 +52,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 
 	public enum Type {
 		vertex(GL20.GL_VERTEX_SHADER), geometry(GL32.GL_GEOMETRY_SHADER), fragment(GL20.GL_FRAGMENT_SHADER), tessControl(GL40.GL_TESS_CONTROL_SHADER), tessEval(
-			    GL40.GL_TESS_EVALUATION_SHADER), compute(GL43.GL_COMPUTE_SHADER);
+				GL40.GL_TESS_EVALUATION_SHADER), compute(GL43.GL_COMPUTE_SHADER);
 
 		public int gl;
 
@@ -80,14 +76,14 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 	Map<Type, Source> source = new LinkedHashMap<>();
 
 	static public class Source {
-		public String source;
+		public Supplier<String> source;
 		protected final Type type;
 		protected int status;
 		public iErrorHandler onError = null;
 
 		protected Set<Integer> attachedTo = new LinkedHashSet<>();
 
-		public Source(String source, Type type) {
+		public Source(Supplier<String> source, Type type) {
 			this.type = type;
 			this.source = source;
 			this.status = 0;
@@ -111,18 +107,18 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 		protected boolean clean() {
 			State s = GraphicsContext.get(this, () -> {
 				State state = new State();
-				state.source = source;
+				state.source = source.get();
 				return state;
 			});
 
-			if (!s.source.equals(this.source)) {
+			if (!s.source.equals(this.source.get())) {
 				for (Integer ii : attachedTo)
 					GL20.glDetachShader(ii, s.name);
 				attachedTo.clear();
 				GL20.glDeleteShader(s.name);
 
 				s = new State();
-				s.source = source;
+				s.source = source.get();
 				GraphicsContext.put(this, s);
 			}
 
@@ -157,7 +153,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 								} catch (NumberFormatException e) {
 									try {
 										Matcher q = Pattern.compile(".*?\\((.*?)\\)")
-											.matcher(ll);
+												.matcher(ll);
 										q.find();
 										String g = q.group(1);
 										int ii = Integer.parseInt(g);
@@ -203,11 +199,18 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 		return s;
 	}
 
-	public Source addSource(Type type, String source) {
+	public Source addSource(Type type, Supplier<String> source) {
 		Source s = new Source(source, type);
 		this.source.put(type, s);
 		return s;
 	}
+
+	public Source addSource(Type type, String source) {
+		Source s = new Source(() -> source, type);
+		this.source.put(type, s);
+		return s;
+	}
+
 
 	public Map<Type, Source> getSources() {
 		return this.source;
@@ -234,7 +237,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 
 		for (Map.Entry<Type, Source> s : source.entrySet()) {
 			work |= s.getValue()
-				 .clean();
+					.clean();
 		}
 
 		State name = GraphicsContext.get(this);
@@ -282,8 +285,8 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 				String ret = GL20.glGetProgramInfoLog(name.name, 10000);
 				Log.log("graphics.warning",()-> " program failed to validate (note, this can be benign). Log is " + ret);
 				if (!ret.trim()
-					.toLowerCase()
-					.equals("Validation Failed: No vertex array object bound.".toLowerCase())) if (onError != null) {
+						.toLowerCase()
+						.equals("Validation Failed: No vertex array object bound.".toLowerCase())) if (onError != null) {
 					onError.beginError();
 					onError.errorOnLine(-1, ret);
 					onError.endError();
@@ -365,7 +368,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 	protected Set<String> computeKnownNonProperties() {
 		Set<String> r = new LinkedHashSet<>();
 		Method[] m = this.getClass()
-				 .getMethods();
+				.getMethods();
 		for (Method mm : m)
 			r.add(mm.getName());
 		Field[] f = this.getClass()
@@ -405,25 +408,27 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, Li
 	@Override
 	@HiddenInAutocomplete
 	public Object asMap_set(String p, Object o) {
-		Object fo = Conversions.convert(o, Supplier.class);
-		if (fo instanceof Supplier) return getDefaultBundle().set(p, (Supplier) fo);
-		if (fo instanceof InvocationHandler) {
-			return getDefaultBundle().set(p, () -> {
-				try {
-					return ((InvocationHandler) fo).invoke(fo, supplier_get, nothing);
-				} catch (Throwable throwable) {
-					throwable.printStackTrace();
-				}
-				return null;
-			});
-		}
-		if (Uniform.isAccepableInstance(fo)) return getDefaultBundle().set(p, () -> fo);
+		// this is all done in super, no?
 
-		if (o instanceof  OffersUniform)
-		{
-			getDefaultBundle().set(p, () -> ((OffersUniform)o).getUniform());
-			// fall through -- connect things as well as set them as uniforms
-		}
+//		Object fo = Conversions.convert(o, Supplier.class);
+//		if (fo instanceof Supplier) return getDefaultBundle().set(p, (Supplier) fo);
+//		if (fo instanceof InvocationHandler) {
+//			return getDefaultBundle().set(p, () -> {
+//				try {
+//					return ((InvocationHandler) fo).invoke(fo, supplier_get, nothing);
+//				} catch (Throwable throwable) {
+//					throwable.printStackTrace();
+//				}
+//				return null;
+//			});
+//		}
+//		if (Uniform.isAccepableInstance(fo)) return getDefaultBundle().set(p, () -> fo);
+//
+//		if (o instanceof  OffersUniform)
+//		{
+//			getDefaultBundle().set(p, () -> ((OffersUniform)o).getUniform());
+//			// fall through -- connect things as well as set them as uniforms
+//		}
 
 		return super.asMap_set(p, o);
 	}
