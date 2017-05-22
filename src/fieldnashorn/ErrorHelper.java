@@ -29,6 +29,7 @@ public class ErrorHelper {
 
 	Pattern boxFinder = Pattern.compile("bx\\[(.+)\\]/([_0123456789abcdef]+)");
 	Pattern refFinder = Pattern.compile("ReferenceError: \"(.+)\" is not defined");
+	Pattern staticClassIssues = Pattern.compile("StaticClass cannot be cast to java.base/java.lang.Class");
 
 	public Consumer
 		<Pair<Integer, String>> errorHelper(Consumer<Pair<Integer, String>> wrap, Box box) {
@@ -37,10 +38,19 @@ public class ErrorHelper {
 
 			line = replaceBoxReferences(box, line);
 			line = replaceMissingRefs(box, line);
-
+			line = replaceStaticClassCasts(box, line);
 
 			wrap.accept(line);
 		};
+	}
+
+	private Pair<Integer, String> replaceStaticClassCasts(Box box, Pair<Integer, String> line) {
+
+		Matcher m = staticClassIssues.matcher(line.second);
+		if (m.find()) {
+			return new Pair<>(line.first, line.second + "<br>" + "Did you omit a <code>.class</code> suffix?");
+		}
+		return line;
 	}
 
 	private Pair<Integer, String> replaceMissingRefs(Box box, Pair<Integer, String> line) {
@@ -96,8 +106,8 @@ public class ErrorHelper {
 						}
 					}
 					// Nashorn has started throwing this for some .get(qq)'s
-					catch(IllegalArgumentException e)
-					{}
+					catch (IllegalArgumentException e) {
+					}
 				}
 			}
 
@@ -110,7 +120,7 @@ public class ErrorHelper {
 				return new Pair<Integer, String>(line.first, text);
 			}
 
-			return new Pair<Integer, String>(line.first, text);
+			return new Pair<Integer, String>(line.first, line.second);
 
 		}
 		return line;

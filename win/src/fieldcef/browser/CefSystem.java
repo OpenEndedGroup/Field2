@@ -225,7 +225,7 @@ public class CefSystem {
 	public class GetOwnPid {
 
 		public long getPid() {
-			return ProcessHandle.current().getPid();
+			return ProcessHandle.current().pid();
 		}
 
 	}

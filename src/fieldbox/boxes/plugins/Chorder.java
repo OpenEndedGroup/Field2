@@ -98,8 +98,7 @@ public class Chorder extends Box {
 	private Mouse.Dragger executeNowAt(Window.Event<Window.MouseState> e, Vec2 point, Box box) {
 		e.properties.put(Window.consumed, true);
 
-		if (properties.get(
-			    frameDrawing) != null) // we only add decoration to things that are drawn
+		if (properties.get(frameDrawing) != null) // we only add decoration to things that are drawn
 			properties.putToMap(frameDrawing, "__feedback__chorderbox", expires(b -> {
 
 				FLine f = new FLine();
@@ -107,6 +106,7 @@ public class Chorder extends Box {
 				int i=0;
 				f.rect(fr.x+i, fr.y+i, fr.w-i*2, fr.h-i*2);
 
+				f.depthTo(box);
 				f.attributes.put(strokeColor, new Vec4(0.5f, 0.75f, 0.5f, -0.5f));
 				f.attributes.put(thicken, new BasicStroke(10.5f));
 				f.attributes.put(layer, "__main__.fast");
@@ -119,7 +119,7 @@ public class Chorder extends Box {
 
 		if (count0 < 1) {
 
-			Linker.AsMap i = Initiators.get(box, Initiators.mouseX(box, point.x), Initiators.mouseY(box, point.y));
+			fieldlinker.AsMap i = Initiators.get(box, Initiators.mouseX(box, point.x), Initiators.mouseY(box, point.y));
 
 			box.first(Execution.execution)
 					  .ifPresent(x -> x.support(box, Execution.code)
@@ -167,8 +167,7 @@ public class Chorder extends Box {
 
 		return (e, end) -> {
 
-			Vec2 point =
-				    new Vec2(e.after.mx, e.after.my);
+			Vec2 point =new Vec2(e.after.mx, e.after.my);
 			chordOver(frames, start, point, end);
 
 			if (end && !once[0]) {
@@ -186,7 +185,7 @@ public class Chorder extends Box {
 
 					Vec2 p = intersections.get(i).first;
 
-					Linker.AsMap in = Initiators.get(b, ()->p.x, ()->p.y);
+					fieldlinker.AsMap in = Initiators.get(b, ()->p.x, ()->p.y);
 
 					b.first(Execution.execution)
 					 .ifPresent(x -> x.support(b, Execution.code)
@@ -260,8 +259,7 @@ public class Chorder extends Box {
 
 				 Rect fr = frame(x.third);
 
-				 f.rect(fr.x, fr.y, fr.w, fr.h);
-
+				 f.rect(fr.x, fr.y, fr.w, fr.h).depthTo(x.third);
 
 			 });
 
@@ -283,7 +281,7 @@ public class Chorder extends Box {
 				 Rect fr = frame(x.third);
 
 				 float w = 8;
-				 f.rect(x.first.x - w, x.first.y - w, w * 2, w * 2);
+				 f.rect(x.first.x - w, x.first.y - w, w * 2, w * 2).depthTo(x.third);
 
 			 });
 
@@ -307,7 +305,7 @@ public class Chorder extends Box {
 			 .filter(x -> x != null)
 			 .forEach((x) -> {
 
-				 f.moveTo(x.first.x + delta.x * 12, x.first.y + delta.y * 12);
+				 f.moveTo(x.first.x + delta.x * 12, x.first.y + delta.y * 12, x.third.properties.getFloat(depth, 0f));
 				 f.nodes.get(f.nodes.size() - 1).attributes.put(text,
 										" " + (counter[0]++));
 			 });

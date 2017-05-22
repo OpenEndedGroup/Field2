@@ -85,7 +85,7 @@ public class Callbacks {
 
 	static public final Dict.Prop<IdempotencyMap<Box.BiFunctionOfBoxAnd<Rect, Rect>>> onFrameChanged = new Dict.Prop<>("onFrameChanged").type()
 		.toCannon()
-		.doc("callback that's called when aa box is moved. Signature is .onFrameChanged(oldRect, newRect) -> Rect ")
+		.doc("callback that's called when aa box is moved. Signature is .onFrameChanged(box, newRect) -> Rect ")
 		.autoConstructs(() -> new IdempotencyMap<>(
 			Box.BiFunctionOfBoxAnd.class));
 

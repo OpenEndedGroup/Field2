@@ -5,6 +5,7 @@ import field.utility.LinkedHashMapAndArrayList;
 import field.utility.Pair;
 import field.utility.Quad;
 import fieldbox.boxes.Box;
+import fieldbox.boxes.plugins.BoxDefaultCode;
 import fielded.RemoteEditor;
 
 import java.util.List;
@@ -37,7 +38,7 @@ public class Execution extends Box {
 	 * this is the default "code" property for a box. Obviously we can define others, and editors can edit other properties, but there's a lot of
 	 * UI that's built around a default notion of "run"ing and "begin"ing a box.
 	 */
-	static public final Dict.Prop<String> code = new Dict.Prop<>("code");
+	static public final Dict.Prop<String> code = new Dict.Prop<>("code").toCannon().type().set(BoxDefaultCode._configured).set(Dict.streamReducer, (a,b) -> a+"\n"+b);
 
 	/**
 	 * pushed and popped inside all eval's and executes
@@ -68,7 +69,7 @@ public class Execution extends Box {
 
 		void setConsoleOutput(Consumer<String> stdout, Consumer<String> stderr);
 
-		void completion(String allText, int line, int ch, Consumer<List<Completion>> results);
+		void completion(String allText, int line, int ch, Consumer<List<Completion>> results, boolean explicitlyRequested);
 
 		void imports(String allText, int line, int ch, Consumer<List<Completion>> results);
 

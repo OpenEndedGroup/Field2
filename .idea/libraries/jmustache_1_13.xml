@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="jmustache-1.13">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/jars/jmustache-1.13.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/lib/jars/jmustache-1.13.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jars/jmustache-1.13.jar!/com/samskivert/super" />
+    </SOURCES>
+  </library>
+</component>

@@ -1,0 +1,73 @@
+#field/document{
+  :externalList [
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/drawing.tweaks/tweaks.box.js"
+      }
+      :dataFile "{{templates}}/drawing.tweaks/tweaks.box"
+      :id "_918e9e04_5736_4d56_98e6_33b1223b179d"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 276.33203125
+          :y 215.58203125
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+  ]
+  :knownFiles {
+    "txt" #field/filespec{
+      :name "txt"
+    }
+    "fragment" #field/filespec{
+      :name "fragment"
+    }
+    "code" #field/filespec{
+      :name "code"
+    }
+    "vertex" #field/filespec{
+      :name "vertex"
+    }
+    "geometry" #field/filespec{
+      :name "geometry"
+    }
+    "html" #field/filespec{
+      :name "html"
+    }
+    "edn" #field/filespec{
+      :name "edn"
+    }
+  }
+  :knownProperties #{
+    "__id__"
+    "comment"
+    "classpath"
+    "perDocument"
+    "name"
+    "frame"
+    "lockHeight"
+    "lockWidth"
+    "tag"
+    "windowSpace"
+    "windowScale"
+    "isPaired"
+    "defaultEditorProperty"
+    "_defaultEditorProperty_cookie"
+    "auto"
+    "head"
+    "tail"
+    "_code_cookie"
+    "_theVariant"
+    "includes"
+    "excludes"
+    "__datafilename__"
+    "__filename__code"
+  }
+}

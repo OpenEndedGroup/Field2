@@ -267,7 +267,7 @@ public class OutputBox extends Box implements IO.Loaded {
 				}
 
 				@Override
-				public void completion(String allText, int line, int ch, Consumer<List<Completion>> results) {
+				public void completion(String allText, int line, int ch, Consumer<List<Completion>> results, boolean explicitlyRequested) {
 //					tern.completion(x -> delegateTo.sendJavaScript(x), "remoteFieldProcess", allText, line, ch);
 //					results.accept(Collections.emptyList());
 				}

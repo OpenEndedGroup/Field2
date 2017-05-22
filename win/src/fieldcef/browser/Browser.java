@@ -118,12 +118,12 @@ public class Browser extends Box implements IO.Loaded {
                 float ay = y / (ns - 1f);
 
                 builder.aux(5, ax * r.w / w, ay * r.h / h, op);
-                builder.nextVertex(r.x + ax * r.w, r.y + ay * r.h, 0);
+                builder.v(r.x + ax * r.w, r.y + ay * r.h, 0);
             }
         }
         for (int x = 0; x < ns - 1; x++) {
             for (int y = 0; y < ns - 1; y++) {
-                builder.nextElement_quad((x + 1) * ns + y, x * ns + y, x * ns + y + 1, (x + 1) * ns + y + 1);
+                builder.e_quad((x + 1) * ns + y, x * ns + y, x * ns + y + 1, (x + 1) * ns + y + 1);
             }
         }
 
@@ -202,7 +202,7 @@ public class Browser extends Box implements IO.Loaded {
                 .orElseThrow(() -> new IllegalArgumentException(" can't install text-drawing into something without drawing support"));
 
 
-        float rsf = 1f;//window.getRetinaScaleFactor();
+        float rsf = 2f;//window.getRetinaScaleFactor();
 
         System.out.println("CefSystem is making a browser: " + w + "x" + h + "x" + rsf);
 
@@ -226,7 +226,7 @@ public class Browser extends Box implements IO.Loaded {
         source.position(0)
                 .limit(source.capacity());
         sourceView = source.slice();
-        texture = new Texture(Texture.TextureSpecification.byte4(0, (int) (w * rsf), (int) (h * rsf), source, false)).setIsDoubleBuffered(false);
+        texture = new Texture(Texture.TextureSpecification.byte4(0, (int) (w * rsf), (int) (h * rsf), source, true)).setIsDoubleBuffered(true);
 
         q = BaseMesh.triangleList(0, 0);
         builder = new MeshBuilder(q);
@@ -258,12 +258,14 @@ public class Browser extends Box implements IO.Loaded {
                 "\n" +
                 "void main()\n" +
                 "{\n" +
-                "\tvec4 current = texelFetch(te, ivec2(vtc.xy*textureSize(te,0)), 0);\n" +
-                "\tcurrent += 0.15*texelFetch(te, ivec2(vtc.xy*textureSize(te,0))+ivec2(1,0), 0);\n" +
-                "\tcurrent += 0.15*texelFetch(te, ivec2(vtc.xy*textureSize(te,0))+ivec2(0,1), 0);\n" +
-                "\tcurrent += 0.15*texelFetch(te, ivec2(vtc.xy*textureSize(te,0))+ivec2(-1,0), 0);\n" +
-                "\tcurrent += 0.15*texelFetch(te, ivec2(vtc.xy*textureSize(te,0))+ivec2(0,-1), 0);\n" +
-                "current = current/1.6;\n" +
+                "float g = 2;\n"+
+                "\tvec4 current = pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)), 0), vec4(g,g,g,1));\n" +
+                "\tcurrent += 0.5*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0))+ivec2(1.7,0), 0), vec4(g,g,g,1));\n" +
+                "\tcurrent += 0.5*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0))+ivec2(0,1.7), 0), vec4(g,g,g,1));\n" +
+                "\tcurrent += 0.5*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0))+ivec2(-1.7,0), 0), vec4(g,g,g,1));\n" +
+                "\tcurrent += 0.5*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0))+ivec2(0,-1.7), 0), vec4(g,g,g,1));\n" +
+                "current = current/3;\n" +
+                "current = pow(current, vec4(1/g, 1/g, 1/g, 1));" +
                 "\tfloat m = min(current.x, min(current.y, current.z));\n" +
                 "float sat = 0.3;\n"+
                 "\tcurrent.xyz = (current.xyz-vec3(m)*sat)/(1-sat);\n" +
@@ -741,14 +743,13 @@ public class Browser extends Box implements IO.Loaded {
 
     protected void update(float x, float y, float scale) {
 
-//		System.out.println(" inside update for browser ");
-
         if (this.dirty.getAndSet(false) && damage != null) {
             if (check-- > 0) {
                 if (Main.os != Main.OS.windows)
                     browser.setZoomLevel(2 * window.getRetinaScaleFactor());
-                else
-                    browser.setZoomLevel(1);
+                else {
+                    browser.setZoomLevel(2);
+                }
             }
             Log.log("cef.debug", () -> " texture was dirty, uploading ");
 

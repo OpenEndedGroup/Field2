@@ -35,28 +35,33 @@ public class IO {
 	static public final String WORKSPACE = "{{workspace}}";
 	static public final String EXECUTION = "{{execution}}";
 	static public final String TEMPLATES = "{{templates}}";
+
 	public static final Dict.Prop<String> id = new Dict.Prop<>("__id__").autoConstructs(() -> Box.newID());
 	public static final Dict.Prop<String> desiredBoxClass = new Dict.Prop<>("__desiredBoxClass__");
 	public static final Dict.Prop<String> comment = new Dict.Prop<>("comment").toCannon()
-										  .type()
-										  .doc("A comment string that's easily searchable");
+		.type()
+		.doc("A comment string that's easily searchable. Set it to provide comments on boxes used in templates.");
 
 	public static final Dict.Prop<String> language = new Dict.Prop<>("language").toCannon()
-										    .type()
-										    .doc("marks a property's editable (CodeMirror) language")
-										    .set(Dict.domain, "*/attributes");
+		.type()
+		.doc("marks a property's editable (CodeMirror) language")
+		.set(Dict.domain, "*/attributes");
 	public static final Dict.Prop<Boolean> persistent = new Dict.Prop<>("persistent").toCannon()
-											 .type()
-											 .doc("marks a property as being saved to disk")
-											 .set(Dict.domain, "*/attributes");
+		.type()
+		.doc("marks a property as being saved to disk")
+		.set(Dict.domain, "*/attributes");
 	public static final Dict.Prop<Boolean> perDocument = new Dict.Prop<>("perDocument").toCannon()
-											   .type()
-											   .doc("marks a property as being saved, conceptually, with the document rather than with the box (which might be shared between documents).")
-											   .set(Dict.domain, "*/attributes");
+		.type()
+		.doc("marks a property as being saved, conceptually, with the document rather than with the box (which might be shared between documents).")
+		.set(Dict.domain, "*/attributes");
+	public static final Dict.Prop<Boolean> dontCopy = new Dict.Prop<>("dontCopy").toCannon()
+		.type()
+		.doc("marks a property as not being copyable between boxes.")
+		.set(Dict.domain, "*/attributes");
 
 	public static final Dict.Prop<List<String>> classpath = new Dict.Prop<>("classpath").toCannon()
-											    .type()
-											    .doc("This box asks the classloader to extend the classpath by this list of paths");
+		.type()
+		.doc("This box asks the classloader to extend the classpath by this list of paths");
 
 	static Set<String> knownProperties = new LinkedHashSet<String>();
 	static Map<String, Filespec> knownFiles = new HashMap<String, Filespec>();
@@ -70,6 +75,8 @@ public class IO {
 
 	private String defaultDirectory;
 	private String templateDirectory;
+
+
 	boolean lastWasNew = false;
 	EDN edn = new EDN();
 	private PluginList pluginList;
@@ -95,19 +102,18 @@ public class IO {
 	static public String readFromFile(File f) {
 		try {
 			return Files.readAllLines(sanitizeName(f).toPath())
-				    .stream()
-				    .reduce((a, b) -> a + "\n" + b).orElse("");
+				.stream()
+				.reduce((a, b) -> a + "\n" + b).orElse("");
 		} catch (IOException e) {
 			e.printStackTrace();
-		} catch(InvalidPathException e)
-		{
-			System.err.println(" illegal character in filename ? "+f+", continuing on");
+		} catch (InvalidPathException e) {
+			System.err.println(" illegal character in filename ? " + f + ", continuing on");
 		}
 
 		return "";
 	}
 
-	static private String pad(int n) {
+	static public String pad(int n) {
 		String r = "" + n;
 		while (r.length() < 5) r = "0" + r;
 		return r;
@@ -119,22 +125,39 @@ public class IO {
 
 	public static boolean isPeristant(Dict.Prop prop) {
 		return knownFiles.containsKey(prop.getName()) || knownProperties.contains(prop.getName()) || (prop.findCannon() != null && prop.findCannon()
-												     .getAttributes()
-												     .isTrue(persistent, false));
+			.getAttributes()
+			.isTrue(persistent, false));
 	}
 
-	public static void uniqify(Box x) {
+	public static Runnable uniqify(Box x) {
 		ArrayList<Dict.Prop> k = new ArrayList<>(x.properties.getMap()
 			.keySet());
+
+		List<Runnable> undo = new LinkedList<>();
+
 		for (Dict.Prop kk : k) {
 			if (kk.getName()
 				.startsWith("__filename__") || kk.getName()
 				.startsWith("__datafilename__")) {
-				x.properties.remove(kk);
+				Object was = x.properties.remove(kk);
+				undo.add(() -> {
+					x.properties.put(kk, was);
+				});
 			}
 		}
 
-		x.properties.put(IO.id, Box.newID());
+		if (x.properties.has(IO.id)) {
+			String was = x.properties.remove(IO.id);
+			undo.add(() -> {
+				x.properties.put(IO.id, was);
+			});
+			x.properties.put(IO.id, Box.newID());
+		} else
+			x.properties.put(IO.id, Box.newID());
+
+		return () -> {
+			for (Runnable u : undo) u.run();
+		};
 	}
 
 
@@ -143,20 +166,20 @@ public class IO {
 		String id = x.properties.computeIfAbsent(IO.id, k -> Box.newID());
 
 		Set<String> ids = root.breadthFirstAll(root.both())
-				      .filter(bx -> bx != x)
-				      .map(bx -> bx.properties.computeIfAbsent(IO.id, k -> Box.newID()))
-				      .collect(Collectors.toSet());
+			.filter(bx -> bx != x)
+			.map(bx -> bx.properties.computeIfAbsent(IO.id, k -> Box.newID()))
+			.collect(Collectors.toSet());
 
-		Log.log("updatebox", ()->"all ids are " + ids + " looked for " + id + " " + ids.contains(id));
+		Log.log("updatebox", () -> "all ids are " + ids + " looked for " + id + " " + ids.contains(id));
 
 
 		if (ids.contains(id)) {
 			ArrayList<Dict.Prop> k = new ArrayList<>(x.properties.getMap()
-									     .keySet());
+				.keySet());
 			for (Dict.Prop kk : k) {
 				if (kk.getName()
-				      .startsWith("__filename__") || kk.getName()
-								       .startsWith("__datafilename__")) {
+					.startsWith("__filename__") || kk.getName()
+					.startsWith("__datafilename__")) {
 					x.properties.remove(kk);
 				}
 			}
@@ -179,14 +202,16 @@ public class IO {
 		String[] pieces = filename.split("\\.");
 		if (pieces.length < 2) return null;
 		for (Filespec f : knownFiles.values()) {
-			if (f.defaultSuffix.equals(pieces[pieces.length - 1])) return new Dict.Prop<String>(f.name).findCannon();
+			if (f.defaultSuffix.equals(pieces[pieces.length - 1]))
+				return new Dict.Prop<String>(f.name).findCannon();
 			if (f.defaultSuffix.equals(EXECUTION)) {
 				Optional<Execution> e = root.find(Execution.execution, root.both())
-							    .findFirst();
+					.findFirst();
 				if (e.isPresent()) if (e.get()
-							.support(root, new Dict.Prop<String>(f.name))
-							.getDefaultFileExtension()
-							.equals(pieces[pieces.length - 1])) return new Dict.Prop<String>(f.name).findCannon();
+					.support(root, new Dict.Prop<String>(f.name))
+					.getDefaultFileExtension()
+					.equals(pieces[pieces.length - 1]))
+					return new Dict.Prop<String>(f.name).findCannon();
 			}
 		}
 
@@ -199,7 +224,7 @@ public class IO {
 		}
 
 		return editingProperty.getAttributes()
-				      .get(language);
+			.get(language);
 	}
 
 	public boolean isBoxFile(String filename) {
@@ -219,13 +244,13 @@ public class IO {
 	public Document compileDocument(String defaultSubDirectory, Box documentRoot, Predicate<Box> include, Map<Box, String> specialBoxes) {
 		Document d = new Document();
 
-		try(Variant.Memo memo = Variant.connectAll(documentRoot)) {
+		try (Variant.Memo memo = Variant.connectAll(documentRoot)) {
 
 			d.externalList = documentRoot.breadthFirstAll(documentRoot.allDownwardsFrom())
-						     .filter(include)
-						     .map(box -> toExternal(defaultSubDirectory, box, specialBoxes))
-						     .filter(x -> x != null)
-						     .collect(Collectors.toList());
+				.filter(include)
+				.map(box -> toExternal(defaultSubDirectory, box, specialBoxes))
+				.filter(x -> x != null)
+				.collect(Collectors.toList());
 			d.knownFiles = new LinkedHashMap<>(knownFiles);
 			d.knownProperties = new LinkedHashSet<>(knownProperties);
 		}
@@ -248,7 +273,7 @@ public class IO {
 	public Document readDocument(String filename, Map<String, Box> specialBoxes, Set<Box> created) {
 		File f = filenameFor(filename);
 
-		Log.log("io.general", ()->" reading document :" + f);
+		Log.log("io.general", () -> " reading document :" + f);
 
 		lastWasNew = false;
 
@@ -256,7 +281,7 @@ public class IO {
 			// new file
 			lastWasNew = true;
 
-			Log.log("io.general", ()->" document doesn't exist ");
+			Log.log("io.general", () -> " document doesn't exist ");
 
 			Document d = new Document();
 			d.externalList = new ArrayList<>();
@@ -271,7 +296,7 @@ public class IO {
 		Document d = (Document) new EDN().read(m);
 		Map<String, Box> loaded = new HashMap<String, Box>();
 
-		Log.log("io.general", ()->" document contains " + d.externalList.size() + " boxes ");
+		Log.log("io.general", () -> " document contains " + d.externalList.size() + " boxes ");
 
 
 		for (External e : d.externalList) {
@@ -287,36 +312,38 @@ public class IO {
 				Box mc = specialBoxes.getOrDefault(id, loaded.get(id));
 
 				if (mc != null) e.box.connect(mc);
-				else Log.log("io.error",()-> " lost child ? " + id + " of " + e.box + " " + specialBoxes);
+				else
+					Log.log("io.error", () -> " lost child ? " + id + " of " + e.box + " " + specialBoxes);
 			}
 			for (String id : e.parents) {
 				Box mc = specialBoxes.getOrDefault(id, loaded.get(id));
 
 				if (mc != null) mc.connect(e.box);
-				else Log.log("io.error", ()->" lost child ? " + id + " of " + e.box + " " + specialBoxes);
+				else
+					Log.log("io.error", () -> " lost child ? " + id + " of " + e.box + " " + specialBoxes);
 			}
 		}
 		created.addAll(loaded.values());
 
 		LinkedHashSet<Box> failed = new LinkedHashSet<>();
 		loaded.values()
-		      .stream()
-		      .filter(b -> b instanceof Loaded)
-		      .forEach(b -> {
-			      try {
-				      ((Loaded) b).loaded();
-			      } catch (Throwable t) {
-				      Log.log("io.error", ()->" exception thrown while finishing loading for box " + b);
-				      Log.log("io.error", ()->t);
-				      Log.log("io.error", ()->" continuing on (box will be deleted from the graph without notification)");
-				      failed.add(b);
-			      }
-		      });
+			.stream()
+			.filter(b -> b instanceof Loaded)
+			.forEach(b -> {
+				try {
+					((Loaded) b).loaded();
+				} catch (Throwable t) {
+					Log.log("io.error", () -> " exception thrown while finishing loading for box " + b);
+					Log.log("io.error", () -> t);
+					Log.log("io.error", () -> " continuing on (box will be deleted from the graph without notification)");
+					failed.add(b);
+				}
+			});
 
 		loaded.values()
-		      .removeAll(failed);
+			.removeAll(failed);
 		loaded.values()
-		      .forEach(b -> Callbacks.load(b));
+			.forEach(b -> Callbacks.load(b));
 
 		for (Box b : failed) {
 			b.disconnectFromAll();
@@ -342,8 +369,8 @@ public class IO {
 
 		try {
 			Class c = this.getClass()
-				      .getClassLoader()
-				      .loadClass(ex.boxClass);
+				.getClassLoader()
+				.loadClass(ex.boxClass);
 			try {
 				Constructor<Box> cc = c.getDeclaredConstructor();
 				cc.setAccessible(true);
@@ -355,9 +382,9 @@ public class IO {
 				ex.box = cc.newInstance(specialBoxes.get(">>root<<"));
 			}
 		} catch (Throwable e) {
-			Log.log("io.error", ()->" while looking for class <" + ex.boxClass + "> needed for <" + ex.id + " / " + ex.textFiles + "> an exception was thrown");
-			Log.log("io.error", ()->e);
-			Log.log("io.error", ()->" will proceed with just a vanilla Box class, but custom behavior will be lost ");
+			Log.log("io.error", () -> " while looking for class <" + ex.boxClass + "> needed for <" + ex.id + " / " + ex.textFiles + "> an exception was thrown");
+			Log.log("io.error", () -> e);
+			Log.log("io.error", () -> " will proceed with just a vanilla Box class, but custom behavior will be lost ");
 			ex.box = new Box();
 
 			ex.box.properties.put(desiredBoxClass, ex.boxClass);
@@ -378,7 +405,7 @@ public class IO {
 					ex.box.properties.put(new Dict.Prop((String) entry.getKey()), entry.getValue());
 				}
 			} catch (Exception e) {
-				Log.log("io.error", ()->"trouble loading external " + dataFile + ". Corrupt file?");
+				Log.log("io.error", () -> "trouble loading external " + dataFile + ". Corrupt file?");
 				e.printStackTrace();
 			}
 		}
@@ -388,11 +415,11 @@ public class IO {
 				Dict.Prop p = new Dict.Prop("" + k);
 				ex.box.properties.put(p, v);
 				p.toCannon()
-				 .getAttributes()
-				 .put(perDocument, true);
+					.getAttributes()
+					.put(perDocument, true);
 				p.toCannon()
-				 .getAttributes()
-				 .put(persistent, true);
+					.getAttributes()
+					.put(persistent, true);
 			});
 		}
 
@@ -418,8 +445,8 @@ public class IO {
 
 		try {
 			Class c = this.getClass()
-				      .getClassLoader()
-				      .loadClass(boxClass);
+				.getClassLoader()
+				.loadClass(boxClass);
 			try {
 				Constructor<Box> cc = c.getDeclaredConstructor();
 				cc.setAccessible(true);
@@ -430,9 +457,9 @@ public class IO {
 				box = cc.newInstance(root);
 			}
 		} catch (Throwable e) {
-			Log.log("io.error", ()->" while looking for class <" + boxClass + "> an exception was thrown");
-			Log.log("io.error", ()->e);
-			Log.log("io.error", ()->" will proceed with just a vanilla Box class, but custom behavior will be lost ");
+			Log.log("io.error", () -> " while looking for class <" + boxClass + "> an exception was thrown");
+			Log.log("io.error", () -> e);
+			Log.log("io.error", () -> " will proceed with just a vanilla Box class, but custom behavior will be lost ");
 			box = new Box();
 		}
 
@@ -470,9 +497,9 @@ public class IO {
 
 		for (Map.Entry<String, Filespec> e : knownFiles.entrySet()) {
 			File filename = filenameFor(f + (e.getValue()
-							  .getDefaultSuffix(root)
-							  .startsWith(".") ? "" : ".") + e.getValue()
-											  .getDefaultSuffix(root));
+				.getDefaultSuffix(root)
+				.startsWith(".") ? "" : ".") + e.getValue()
+				.getDefaultSuffix(root));
 
 			if (filename.exists()) {
 				String text = readFromFile(filename);
@@ -495,7 +522,7 @@ public class IO {
 		External ex = new External();
 
 		ex.id = box.properties.computeIfAbsent(id, (k) -> UUID.randomUUID()
-								      .toString());
+			.toString());
 		ex.box = box;
 
 		ex.dataFile = relativize(box.properties.computeIfAbsent(new Dict.Prop<String>("__datafilename__"), (k) -> relativize(makeDataFilenameFor(defaultSubDirectory, ex, box))));
@@ -506,19 +533,19 @@ public class IO {
 		knownProperties.add("__datafilename__");
 
 		for (Map.Entry<Dict.Prop, Object> e : new LinkedHashMap<>(box.properties.getMap()).entrySet()) {
-			Log.log("io.general",()-> "checking :" + e.getKey()
-							      .getName() + " against " + knownFiles.keySet());
+			Log.log("io.general", () -> "checking :" + e.getKey()
+				.getName() + " against " + knownFiles.keySet());
 			if (knownFiles.containsKey(e.getKey()
-						    .getName())) {
+				.getName())) {
 				Filespec f = knownFiles.get(e.getKey()
-							     .getName());
+					.getName());
 
 				String extantFilename = box.properties.get(new Dict.Prop<String>("__filename__" + e.getKey()
-														   .getName()));
+					.getName()));
 
 				String fextent = extantFilename;
-				Log.log("io.general", ()->"extant filename is :" + fextent + " for " + e.getKey()
-													   .getName() + " from " + box.properties);
+				Log.log("io.general", () -> "extant filename is :" + fextent + " for " + e.getKey()
+					.getName() + " from " + box.properties);
 
 				// this is wrong. Don't set a name if we are just going to use a default; otherwise, when you move the file you have to update it.
 				// key it on the datafilename
@@ -526,15 +553,15 @@ public class IO {
 				if (extantFilename == null) {
 					extantFilename = relativize(ex.dataFile + f.getDefaultSuffix(box));
 					box.properties.put(new Dict.Prop<String>("__filename__" + e.getKey()
-												   .getName()), relativize(extantFilename));
+						.getName()), relativize(extantFilename));
 					ex.textFiles.put(e.getKey()
-							  .getName(), relativize(extantFilename));
+						.getName(), relativize(extantFilename));
 				} else {
 					ex.textFiles.put(e.getKey()
-							  .getName(), relativize(extantFilename));
+						.getName(), relativize(extantFilename));
 				}
 				knownProperties.add("__filename__" + e.getKey()
-								      .getName());
+					.getName());
 			}
 		}
 
@@ -546,19 +573,19 @@ public class IO {
 		for (Box pp : p) {
 			if (specialBoxes.containsKey(pp)) ex.parents.add(specialBoxes.get(pp));
 			else ex.parents.add(pp.properties.computeIfAbsent(id, (k) -> UUID.randomUUID()
-											 .toString()));
+				.toString()));
 		}
 
 		p = box.children();
 		for (Box pp : p) {
 			if (specialBoxes.containsKey(pp)) ex.children.add(specialBoxes.get(pp));
 			else ex.children.add(pp.properties.computeIfAbsent(id, (k) -> UUID.randomUUID()
-											  .toString()));
+				.toString()));
 		}
 
 		ex.boxClass = box.getClass()
-				 .equals(Box.class) ? box.properties.getOr(desiredBoxClass, () -> Box.class.getName()) : box.getClass()
-															    .getName();
+			.equals(Box.class) ? box.properties.getOr(desiredBoxClass, () -> Box.class.getName()) : box.getClass()
+			.getName();
 
 		return ex;
 	}
@@ -594,10 +621,10 @@ public class IO {
 			Map<String, Object> data = new LinkedHashMap<String, Object>();
 
 			Set<Map.Entry<Dict.Prop, Object>> es = external.box.properties.getMap()
-										      .entrySet();
+				.entrySet();
 			for (Map.Entry<Dict.Prop, Object> e : es)
 				if (isPeristant(e.getKey())) data.put(e.getKey()
-								       .getName(), e.getValue());
+					.getName(), e.getValue());
 
 
 			data.put("__boxclass__", external.boxClass);
@@ -605,19 +632,20 @@ public class IO {
 			writeToFile(dataFile, serializeToString(data));
 		}
 
-		Log.log("io.general", ()->"sweep for persistent, perDocument properties");
+		Log.log("io.general", () -> "sweep for persistent, perDocument properties");
 		for (Map.Entry<Dict.Prop, Object> e : external.box.properties.getMap()
-									     .entrySet()) {
-			Log.log("io.general",()-> "property :" + e.getKey()
-							      .toCannon() + " attributes are " + e.getKey()
-												  .toCannon()
-												  .getAttributes());
+			.entrySet()) {
+			Log.log("io.general", () -> "property :" + e.getKey()
+				.toCannon() + " attributes are " + e.getKey()
+				.toCannon()
+				.getAttributes());
 
 			if (e.getKey()
-			     .toCannon()
-			     .getAttributes()
-			     .isTrue(perDocument, false) && isPeristant(e.getKey())) external.overriddenProperties.put(e.getKey()
-															.getName(), e.getValue());
+				.toCannon()
+				.getAttributes()
+				.isTrue(perDocument, false) && isPeristant(e.getKey()))
+				external.overriddenProperties.put(e.getKey()
+					.getName(), e.getValue());
 		}
 	}
 
@@ -635,7 +663,7 @@ public class IO {
 	private void writeToFile(File filename, String text) throws IOException {
 		filename = sanitizeName(filename);
 		final File finalFilename = filename;
-		Log.log("io.general", ()->" will write :" + text + " to " + finalFilename);
+		Log.log("io.general", () -> " will write :" + text + " to " + finalFilename);
 
 		if (!filename.getParentFile().exists()) filename.getParentFile().mkdirs();
 
@@ -651,6 +679,7 @@ public class IO {
 		f = f.replaceAll("\\?", "_");
 		return new File(f);
 	}
+
 	public File filenameFor(String value) {
 		if (value.startsWith(TEMPLATES)) {
 			return new File(templateDirectory,
@@ -713,8 +742,11 @@ public class IO {
 
 		// create it now, so that other calls to makeFilenameFor still create unique names
 		try {
-			filenameFor(WORKSPACE, defaultSubDirectory + "/" + name).createNewFile();
+			File fn = filenameFor(WORKSPACE, defaultSubDirectory + "/" + name);
+			fn.getParentFile().mkdirs();
+			fn.createNewFile();
 		} catch (IOException e) {
+			e.printStackTrace();
 		}
 
 		String q = filenameFor(WORKSPACE, defaultSubDirectory + "/" + name).getAbsolutePath();
@@ -731,7 +763,7 @@ public class IO {
 		while (q.contains("//")) q = q.replace("//", "/");
 
 		String q2 = q.replace(defaultDirectory, WORKSPACE)
-			     .replace(templateDirectory, TEMPLATES);
+			.replace(templateDirectory, TEMPLATES);
 		return q2;
 
 
@@ -755,30 +787,37 @@ public class IO {
 	protected String findTemplateCalled(String name, String dir) {
 		{
 			File[] n = new File(dir).listFiles((x) -> x.getName()
-								   .endsWith(".box"));
+				.endsWith(".box"));
 			if (n != null) {
 				for (File f : n) {
 					String[] pieces = f.getName()
-							   .split("[_\\.]");
+						.split("[_\\.]");
 
 					if (pieces[0].toLowerCase()
-						     .equals(name.toLowerCase())) return f.getAbsolutePath();
+						.equals(name.toLowerCase())) return f.getAbsolutePath();
 				}
 			}
 
-			if (new File(dir + "/" + name + ".box").exists()) return new File(dir + "/" + name + ".box").getAbsolutePath();
+			if (new File(dir + "/" + name + ".box").exists())
+				return new File(dir + "/" + name + ".box").getAbsolutePath();
 		}
 		// single box directory case
 		{
-			File[] n = new File(dir).listFiles((x) -> x.isDirectory() && x.getName().endsWith(name) && x.listFiles(y -> y.getName().endsWith(".box")).length==1);
+			File[] n = new File(dir).listFiles((x) -> x.isDirectory() && x.getName().endsWith(name) && x.listFiles(y -> y.getName().endsWith(".box")).length == 1);
 
-			if (n!=null && n.length>0)
-			{
+			if (n != null && n.length > 0) {
 				return n[0].listFiles(x -> x.getName().endsWith(".box"))[0].getAbsolutePath();
 			}
-
-
 		}
+		// multiple box directory case
+		{
+			File[] n = new File(dir).listFiles((x) -> x.isDirectory() && x.getName().endsWith(name) && x.listFiles(y -> y.getName().endsWith(".box")).length > 0);
+
+			if (n != null && n.length > 0) {
+				return n[0].listFiles(x -> x.getName().endsWith(".field2"))[0].getAbsolutePath();
+			}
+		}
+
 
 		return null;
 	}
@@ -787,14 +826,14 @@ public class IO {
 		List<String> r = new ArrayList<>();
 		{
 			File[] n = new File(dir).listFiles((x) -> x.getName()
-								   .endsWith(".box"));
+				.endsWith(".box"));
 			if (n != null) {
 				for (File f : n) {
 					String[] pieces = f.getName()
-							   .split("[_\\.]");
+						.split("[_\\.]");
 
 					if (pieces[0].toLowerCase()
-						     .startsWith(prefix.toLowerCase())) r.add(pieces[0].toLowerCase());
+						.startsWith(prefix.toLowerCase())) r.add(pieces[0].toLowerCase());
 				}
 			}
 
@@ -802,12 +841,10 @@ public class IO {
 		}
 		// single box directory case
 		{
-			File[] n = new File(dir).listFiles((x) -> x.isDirectory() && x.getName().startsWith(prefix) && x.listFiles(y -> y.getName().endsWith(".box")).length==1);
+			File[] n = new File(dir).listFiles((x) -> x.isDirectory() && x.getName().startsWith(prefix) && x.listFiles(y -> y.getName().endsWith(".box")).length == 1);
 
-			if (n!=null && n.length>0)
-			{
-				for(File nn : n)
-				{
+			if (n != null && n.length > 0) {
+				for (File nn : n) {
 					r.add(nn.getName());
 				}
 			}
@@ -819,11 +856,10 @@ public class IO {
 	}
 
 
-
 	/**
 	 * tag interface for boxes, method will be called after all boxes have been loaded (and all properties set). Boxes that throw exceptions won't be loaded after all.
 	 */
-	 public interface Loaded {
+	public interface Loaded {
 		void loaded();
 	}
 
@@ -853,7 +889,7 @@ public class IO {
 
 			if (defaultSuffix.equals(EXECUTION)) {
 				Execution e = box.first(Execution.execution)
-						 .orElseThrow(() -> new IllegalArgumentException(" no execution for box " + box));
+					.orElseThrow(() -> new IllegalArgumentException(" no execution for box " + box));
 				return e.support(e, new Dict.Prop<String>(name))
 					.getDefaultFileExtension();
 			}
@@ -865,7 +901,7 @@ public class IO {
 
 			if (defaultSuffix.equals(EXECUTION)) {
 				Execution e = box.first(Execution.execution)
-						 .orElseThrow(() -> new IllegalArgumentException(" no execution for box " + box));
+					.orElseThrow(() -> new IllegalArgumentException(" no execution for box " + box));
 				return e.support(e, new Dict.Prop<String>(name))
 					.getDefaultFileExtension();
 			}

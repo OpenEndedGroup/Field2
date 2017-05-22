@@ -24,7 +24,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -37,7 +36,7 @@ public class TextEditor extends Box implements IO.Loaded {
 		.doc("The TextEditor that is stuck in front of the window, in window coordinates");
 	private final Box root;
 	@HiddenInAutocomplete
-	public Browser browser;
+	public Browser browser_;
 	@HiddenInAutocomplete
 	public String styles;
 	String styleSheet = "field-codemirror.css";
@@ -94,34 +93,34 @@ public class TextEditor extends Box implements IO.Loaded {
 
 			maxh = window.getHeight() - 25 - 10 - 10 - 2;
 
-			browser = new Browser();
+			browser_ = new Browser();
 
 			Vec2 v = drawing.windowSystemToDrawingSystem(new Vec2(window.getWidth() - maxw - 10, 10));
 			Vec2 vd = drawing.windowSystemToDrawingSystemDelta(new Vec2(maxw, 1080 * 1));
 
 			frameLast = (int) vd.x;
-			browser.properties.put(Box.frame, new Rect(v.x, v.y, vd.x, vd.y));
+			browser_.properties.put(Box.frame, new Rect(v.x, v.y, vd.x, vd.y));
 
 			maxhOnCreation = 1080 * 1;
 
-			browser.pauseForBoot();
+			browser_.pauseForBoot();
 
 			this.properties.put(FLineDrawing.layer, "glass");
-			browser.properties.put(FLineDrawing.layer, "glass");
+			browser_.properties.put(FLineDrawing.layer, "glass");
 
-			browser.properties.put(Drawing.windowSpace, new Vec2(1, 0));
-			browser.properties.put(Drawing.windowScale, new Vec2(1, 1));
+			browser_.properties.put(Drawing.windowSpace, new Vec2(1, 0));
+			browser_.properties.put(Drawing.windowScale, new Vec2(1, 1));
 
-			browser.properties.put(Boxes.dontSave, true);
-			browser.properties.put(Box.hidden, true);
-			browser.properties.put(Mouse.isSticky, true);
+			browser_.properties.put(Boxes.dontSave, true);
+			browser_.properties.put(Box.hidden, true);
+			browser_.properties.put(Mouse.isSticky, true);
 
-			browser.properties.put(Box.undeletable, true);
+			browser_.properties.put(Box.undeletable, true);
 
-			browser.connect(root);
-			browser.loaded();
+			browser_.connect(root);
+			browser_.loaded();
 
-			browser.properties.put(Box.name, "__texteditor__");
+			browser_.properties.put(Box.name, "__texteditor__");
 
 			executeJavaScript("$(\".CodeMirror\").height(" + (maxh - 10) + ")");
 			executeJavaScript("$(\".CodeMirror\").width(" + (maxw - 28 * 2) + ")");
@@ -141,7 +140,7 @@ public class TextEditor extends Box implements IO.Loaded {
 						// set correct size
 						int h = window.getHeight();
 
-						browser.properties.get(Box.frame).h=h-40;
+						browser_.properties.get(Box.frame).h=h-40;
 
 						return false;
 					}
@@ -158,13 +157,13 @@ public class TextEditor extends Box implements IO.Loaded {
 						Log.log("shy", () -> "selection is now" + selection().count());
 
 						if (!pinned) {
-							browser.executeJavaScript("_messageBus.publish('defocus', {})");
-							browser.setFocus(false);
+							browser_.executeJavaScript("_messageBus.publish('defocus', {})");
+							browser_.setFocus(false);
 						}
 
 
 						if (selection().count() != 1 && !pinned) {
-							browser.properties.put(Box.hidden, true);
+							browser_.properties.put(Box.hidden, true);
 							Drawing.dirty(this);
 						} else {
 
@@ -174,7 +173,7 @@ public class TextEditor extends Box implements IO.Loaded {
 							executeJavaScript(setHeightCode);
 							executeJavaScript(setWidthCode);
 
-							browser.properties.put(Box.hidden, false);
+							browser_.properties.put(Box.hidden, false);
 							Drawing.dirty(this);
 						}
 
@@ -197,7 +196,7 @@ public class TextEditor extends Box implements IO.Loaded {
 				.attach(x -> {
 
 					int maxh = window.getHeight();// - 25 - 10 - 10 - 2;
-					Rect f = browser.properties.get(Box.frame);
+					Rect f = browser_.properties.get(Box.frame);
 
 					f = f.duplicate();
 
@@ -237,21 +236,29 @@ public class TextEditor extends Box implements IO.Loaded {
 	}
 
 
+	void updateSize() {
+		Rect f = browser_.properties.get(Box.frame);
+		setHeightCode = "$(\"body\").height(" + Math.min(f.h-20, maxhOnCreation - 40) + ");cm.refresh();";
+		setHeightCode += "$(\".CodeMirror\").height(" + Math.min(f.h-20, maxhOnCreation - 40) + ");cm.refresh();";
+		executeJavaScript(setHeightCode);
+	}
+
+
 	@HiddenInAutocomplete
 	public void trigger() {
 		long now = System.currentTimeMillis();
 		if (now - lastTriggerAt < 500) {
-			if (!browser.getFocus()) browser.executeJavaScript_queued("_messageBus.publish('focus', {})");
-			browser.setFocus(!browser.getFocus());
+			if (!browser_.getFocus()) browser_.executeJavaScript_queued("_messageBus.publish('focus', {})");
+			browser_.setFocus(!browser_.getFocus());
 		}
 		lastTriggerAt = now;
 	}
 
 	@HiddenInAutocomplete
 	public void boot() {
-		browser.properties.put(Browser.url, "http://localhost:" + find(ServerSupport.server, both()).findFirst().get().port + "/init");
+		browser_.properties.put(Browser.url, "http://localhost:" + find(ServerSupport.server, both()).findFirst().get().port + "/init");
 		Drawing.dirty(this);
-		browser.finishBooting();
+		browser_.finishBooting();
 
 
 	}
@@ -263,9 +270,9 @@ public class TextEditor extends Box implements IO.Loaded {
 		Optional<PresentationMode> o = find(PresentationMode._presentationMode, both()).findFirst();
 		if (o.isPresent() && o.get().isPresent()) return;
 
-		browser.properties.put(Box.hidden, false);
-		browser.setFocus(true);
-		Drawing.dirty(browser);
+		browser_.properties.put(Box.hidden, false);
+		browser_.setFocus(true);
+		Drawing.dirty(browser_);
 	}
 
 	@HiddenInAutocomplete
@@ -276,19 +283,19 @@ public class TextEditor extends Box implements IO.Loaded {
 		RunLoop.main.getLoop()
 			.attach(x -> {
 				if (tick == 5) {
-					browser.properties.put(Box.hidden, true);
+					browser_.properties.put(Box.hidden, true);
 					Drawing.dirty(this);
 				}
 				tick++;
 				return tick != 5;
 			});
-		browser.setFocus(false);
-		Drawing.dirty(browser);
+		browser_.setFocus(false);
+		Drawing.dirty(browser_);
 	}
 
 	@HiddenInAutocomplete
 	public void runCommands() {
-		browser.executeJavaScript("goCommands()");
+		browser_.executeJavaScript("goCommands()");
 		show();
 	}
 
@@ -297,10 +304,10 @@ public class TextEditor extends Box implements IO.Loaded {
 		FieldBoxWindow window = this.find(Boxes.window, both())
 			.findFirst()
 			.get();
-		Rect f = browser.properties.get(Box.frame);
+		Rect f = browser_.properties.get(Box.frame);
 		f.x = (int) ((window.getWidth() - f.w) / 2);
 		f.y = (int) ((window.getHeight() - f.h) / 2);
-		if (!browser.properties.isTrue(Box.hidden, false)) Drawing.dirty(this);
+		if (!browser_.properties.isTrue(Box.hidden, false)) Drawing.dirty(this);
 	}
 
 	@HiddenInAutocomplete
@@ -316,7 +323,7 @@ public class TextEditor extends Box implements IO.Loaded {
 
 	@HiddenInAutocomplete
 	private Stream<Box> selection() {
-		return breadthFirst(both()).filter(x -> x.properties.isTrue(Mouse.isSelected, false)).filter(x -> x != browser).filter(x -> x.properties.has(Box.name)).filter(x -> !x.properties.get(Box.name).equals("__texteditor__")).filter(x -> x != this);
+		return breadthFirst(both()).filter(x -> x.properties.isTrue(Mouse.isSelected, false)).filter(x -> x != browser_).filter(x -> x.properties.has(Box.name)).filter(x -> !x.properties.get(Box.name).equals("__texteditor__")).filter(x -> x != this);
 	}
 
 
@@ -324,26 +331,26 @@ public class TextEditor extends Box implements IO.Loaded {
 	 * Injects css into the text editor. For example '_.textEditor.injectCSS("body {font-size:20px;}"' will give you a markedly bigger font.
 	 */
 	public void injectCSS(String css) {
-		browser.injectCSS(css);
+		browser_.injectCSS(css);
 	}
 
 	/**
 	 * Executes some javascript directly in the text editor. For larger amounts of TextEditor coding, mark a box as "Bridge to Editor" with the command menu.
 	 */
 	public void executeJavaScript(String js) {
-		browser.executeJavaScript_queued(js);
+		browser_.executeJavaScript_queued(js);
 	}
 
 	/**
 	 * reloads this text editor. Useful if you are hacking on the CSS or JavaScript that backs the editor
 	 */
 	public void reload() {
-		browser.reload();
+		browser_.reload();
 	}
 
 
 	public void setURL(String url) {
-		browser.properties.put(Browser.url, url);
+		browser_.properties.put(Browser.url, url);
 	}
 
 	boolean pinned = false;
@@ -359,5 +366,6 @@ public class TextEditor extends Box implements IO.Loaded {
 	public boolean isPinned() {
 		return pinned;
 	}
+
 }
 

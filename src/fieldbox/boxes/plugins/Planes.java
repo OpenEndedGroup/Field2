@@ -29,6 +29,20 @@ public class Planes extends Box {
 		}
 	}
 
+	static public Function<Box, Number> getSelector(Box root)
+	{
+		return root.properties.getOr(selectPlane, () -> null);
+	}
+
+	static public double on(Box test, Function<Box, Number> selector) {
+		if (selector == null) {
+			String p = test.properties.get(plane);
+			return (((p == null || p.trim().length() == 0) && test.properties.has(Box.frame) && test.properties.has(Box.name)) || (p!=null && p.trim().contains("__always__"))) ? 1 : 0;
+		} else {
+			return selector.apply(test).doubleValue();
+		}
+	}
+
 	static public void clear(Box root) {
 		root.properties.remove(selectPlane);
 	}

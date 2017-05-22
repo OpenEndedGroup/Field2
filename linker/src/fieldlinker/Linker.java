@@ -20,58 +20,15 @@ import java.util.function.Supplier;
 /**
  *
  */
-public class Linker extends GuardingDynamicLinkerExporter implements GuardingDynamicLinker {
+public class Linker extends GuardingDynamicLinkerExporter implements GuardingDynamicLinker, GuardingTypeConverterFactory {
 
 	@Override
 	public List<GuardingDynamicLinker> get() {
 		return Collections.singletonList(this);
 	}
 
-
-	boolean disabled = System.getProperty("noLinker") != null;
-	boolean debug = System.getProperty("debugLinker") != null;
-	{
-		debug = true;
-	}
-
-	public interface CustomDelete {
-		boolean asMap_delete(Object p);
-	}
-
-	public interface AsMap_callable {
-		Object asMap_call(Object a, Object b);
-	}
-
-	public interface AsMap extends CustomDelete {
-		boolean asMap_isProperty(String p);
-
-		Object asMap_call(Object a, Object b);
-
-		Object asMap_get(String p);
-
-		Object asMap_set(String p, Object o);
-
-		Object asMap_new(Object a);
-
-		Object asMap_new(Object a, Object b);
-
-		Object asMap_getElement(int element);
-
-		default Object asMap_getElement(Object element) {
-			throw new Error();
-		}
-
-		Object asMap_setElement(int element, Object o);
-
-		default Object asMap_setElement(Object element, Object o) {
-			return asMap_set("" + element, o);
-		}
-
-		default Object asMap_call(Object o) {
-			return asMap_call(o, Collections.EMPTY_MAP);
-		}
-	}
-
+	private boolean disabled = System.getProperty("noLinker") != null;
+	private boolean debug = System.getProperty("debugLinker") != null;
 
 	public Linker() {
 		if (debug)
@@ -104,7 +61,7 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 			if (rec instanceof AsMap && ((AsMap) rec).asMap_isProperty(propertyName)) {
 
 				if (debug)
-					System.err.println(" linking AsMap/get 2" + rec);
+					System.err.println(" linking AsMap.java/get 2" + rec);
 				MethodHandle get = MethodHandles.lookup()
 					.findVirtual(rec.getClass(), "asMap_get", MethodType.methodType(Object.class, String.class));
 
@@ -120,7 +77,7 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 			if (rec instanceof AsMap) {
 
 				if (debug)
-					System.err.println(" linking AsMap/call " + rec);
+					System.err.println(" linking AsMap.java/call " + rec);
 				MethodHandle get = MethodHandles.lookup()
 					.findVirtual(rec.getClass(), "asMap_call", MethodType.methodType(Object.class, Object.class, Object.class));
 				return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
@@ -140,7 +97,14 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 			if (rec instanceof AsMap) {
 
 				if (debug)
-					System.err.println(" linking AsMap/call " + rec);
+					System.err.println(" linking AsMap.java/call " + rec);
+				MethodHandle get = MethodHandles.lookup()
+					.findVirtual(rec.getClass(), "asMap_call", MethodType.methodType(Object.class, Object.class));
+				return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
+			} else if (rec instanceof AsMap_callable) {
+
+				if (debug)
+					System.err.println(" linking AsMap.java/call " + rec);
 				MethodHandle get = MethodHandles.lookup()
 					.findVirtual(rec.getClass(), "asMap_call", MethodType.methodType(Object.class, Object.class));
 				return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
@@ -155,7 +119,7 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 			if (rec instanceof AsMap) {
 
 				if (debug)
-					System.err.println(" linking AsMap/new " + rec);
+					System.err.println(" linking AsMap.java/new " + rec);
 				MethodHandle get = MethodHandles.lookup()
 					.findVirtual(rec.getClass(), "asMap_new", MethodType.methodType(Object.class, Object.class));
 				return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
@@ -168,7 +132,7 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 			if (rec instanceof AsMap) {
 
 				if (debug)
-					System.err.println(" linking AsMap/new " + rec);
+					System.err.println(" linking AsMap.java/new " + rec);
 				MethodHandle get = MethodHandles.lookup()
 					.findVirtual(rec.getClass(), "asMap_new", MethodType.methodType(Object.class, Object.class, Object.class));
 				return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
@@ -191,7 +155,26 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 			if (rec instanceof AsMap && ((AsMap) rec).asMap_isProperty(propertyName)) {
 
 				if (debug)
-					System.err.println(" linking AsMap/get 1" + rec + " admits to property " + propertyName);
+					System.err.println(" linking AsMap.java/get 1" + rec + " admits to property " + propertyName);
+				MethodHandle get = MethodHandles.lookup()
+					.findVirtual(rec.getClass(), "asMap_get", MethodType.methodType(Object.class, String.class));
+
+				get = MethodHandles.insertArguments(get, 1, propertyName);
+
+				return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
+			}
+		} else if (linkRequest.getCallSiteDescriptor()
+			.getOperation().toString().startsWith("GET:METHOD:apply")) {
+
+			// this is a method lookup, it's possible we'd want to do something different here, for now, it's exactly the same
+
+			Object rec = linkRequest.getReceiver();
+			String propertyName = linkRequest.getCallSiteDescriptor().getOperation().toString().replace("GET:METHOD:apply", "");
+
+			if (rec instanceof AsMap && ((AsMap) rec).asMap_isProperty(propertyName)) {
+
+				if (debug)
+					System.err.println(" linking AsMap.java/get 1" + rec + " admits to property " + propertyName);
 				MethodHandle get = MethodHandles.lookup()
 					.findVirtual(rec.getClass(), "asMap_get", MethodType.methodType(Object.class, String.class));
 
@@ -207,7 +190,7 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 			if (rec instanceof AsMap && ((AsMap) rec).asMap_isProperty(propertyName)) {
 
 				if (debug)
-					System.err.println(" linking AsMap/set " + rec + " " + propertyName);
+					System.err.println(" linking AsMap.java/set " + rec + " " + propertyName);
 				MethodHandle get = MethodHandles.lookup()
 					.findVirtual(implementingClassFor(rec.getClass()), "asMap_set", MethodType.methodType(Object.class, String.class, Object.class));
 
@@ -225,7 +208,7 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 				if (rec instanceof AsMap) {
 
 					if (debug)
-						System.err.println(" linking AsMap/setElement " + rec);
+						System.err.println(" linking AsMap.java/setElement " + rec);
 					MethodHandle get = MethodHandles.lookup()
 						.findVirtual(implementingClassFor(rec.getClass()), "asMap_setElement", MethodType.methodType(Object.class, Object.class, Object.class));
 
@@ -239,7 +222,7 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 				if (rec instanceof AsMap) {
 
 					if (debug)
-						System.err.println(" linking AsMap/setElement " + rec);
+						System.err.println(" linking AsMap.java/setElement " + rec);
 					MethodHandle get = MethodHandles.lookup()
 						.findVirtual(implementingClassFor(rec.getClass()), "asMap_setElement", MethodType.methodType(Object.class, Object.class, Object.class));
 
@@ -258,7 +241,7 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 
 					if (rec instanceof AsMap) {
 						if (debug)
-							System.err.println(" linking AsMap/property get " + rec);
+							System.err.println(" linking AsMap.java/property get " + rec);
 						MethodHandle get = MethodHandles.lookup()
 							.findVirtual(rec.getClass(), "asMap_getElement", MethodType.methodType(Object.class, Integer.TYPE));
 
@@ -268,7 +251,7 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 				} else {
 					if (rec instanceof AsMap) {
 						if (debug)
-							System.err.println(" linking AsMap/property get " + rec);
+							System.err.println(" linking AsMap.java/property get " + rec);
 						MethodHandle get = MethodHandles.lookup()
 							.findVirtual(rec.getClass(), "asMap_getElement", MethodType.methodType(Object.class, Object.class));
 
@@ -284,7 +267,7 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 
 				if (rec instanceof AsMap) {
 					if (debug)
-						System.err.println(" linking AsMap/property get " + rec);
+						System.err.println(" linking AsMap.java/property get " + rec);
 					MethodHandle get = MethodHandles.lookup()
 						.findVirtual(rec.getClass(), "asMap_getElement", MethodType.methodType(Object.class, Object.class));
 
@@ -294,9 +277,12 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 
 				}
 			}
-		} else
-			System.err.println(" don't know what to do with that :"+linkRequest.getCallSiteDescriptor().getOperation()
-				.toString());
+		} else {
+			if (debug) {
+				System.out.println(" don't know what to do with that :" + linkRequest.getCallSiteDescriptor().getOperation()
+					.toString()+" "+linkRequest.getReceiver());
+			}
+		}
 		return null;
 	}
 
@@ -310,9 +296,10 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 		return implementingClassFor(aClass.getSuperclass());
 	}
 
-//	@Override
-//	public GuardedTypeConversion convertToType(Class<?> aClass, Class<?> aClass2) throws Exception {
-////		System.err.println("LINKER convertToType :" + aClass + " " + aClass2);
-//		return null;
-//	}
+	@Override
+	public GuardedInvocation convertToType(Class<?> sourceType, Class<?> targetType, Supplier<MethodHandles.Lookup> lookupSupplier) throws Exception {
+		if (debug) System.err.println("LINKER convertToType :" + sourceType + " " + targetType);
+		return null;
+	}
+
 }

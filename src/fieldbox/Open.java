@@ -6,6 +6,7 @@ import field.graphics.*;
 import field.utility.AutoPersist;
 import field.utility.Dict;
 import field.utility.Log;
+import field.utility.Options;
 import fieldagent.Main;
 import fieldbox.boxes.*;
 import fieldbox.boxes.plugins.*;
@@ -69,6 +70,8 @@ public class Open {
 	private int sizeY = AutoPersist.persist("window_sizeY", () -> 800, x -> Math.min(1920 * 2, Math.max(100, x)), (x) -> window == null ? x : (int) window.getBounds().h);
 	private int atX = AutoPersist.persist("window_atX", () -> 0, x -> x, (x) -> window == null ? x : (int) window.getBounds().x);
 	private int atY = AutoPersist.persist("window_atY", () -> 0, x -> x, (x) -> window == null ? x : (int) window.getBounds().y);
+
+	public boolean experimental = Options.dict().isTrue(new Dict.Prop<Boolean>("experimental"), false);
 
 	public Open(String filename) {
 
@@ -213,7 +216,8 @@ public class Open {
 
 //		new Typing(boxes.root()).connect(boxes.root());
 
-		new MakeNewTextEditor(boxes.root()).connect(boxes.root());
+		if (experimental)
+			new MakeNewTextEditor(boxes.root()).connect(boxes.root());
 
 		new RunCommand(boxes.root()).connect(boxes.root());
 
@@ -222,6 +226,7 @@ public class Open {
 		new FrameChangedHash(boxes.root()).connect(boxes.root());
 
 		new Directionality(boxes.root()).connect(boxes.root());
+
 		new Handles(boxes.root()).connect(boxes.root());
 
 		new Create(boxes.root()).connect(boxes.root());
@@ -260,6 +265,8 @@ public class Open {
 		new WebApps(boxes.root()).connect(boxes.root());
 
 		new Exec(boxes.root()).connect(boxes.root());
+
+		new AsEditable(boxes.root()).connect(boxes.root());
 
 
 		if (ThreadSync.enabled) new ThreadSyncFeedback(boxes.root()).connect(boxes.root());
@@ -382,7 +389,7 @@ public class Open {
 			if (Main.os!=Main.OS.windows) {
 
 				new BoxBrowser(boxes.root()).connect(boxes.root());
-				new TextEditor_boxBrowser(boxes.root()).connect(boxes.root());
+				new TextEditor_boxBrowser2(boxes.root()).connect(boxes.root());
 			}
 
 			// call loaded on everything above root

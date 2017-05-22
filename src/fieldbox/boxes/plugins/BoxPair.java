@@ -9,10 +9,7 @@ import field.utility.Cached;
 import field.utility.Dict;
 import field.utility.IdempotencyMap;
 import field.utility.Rect;
-import fieldbox.boxes.Box;
-import fieldbox.boxes.Boxes;
-import fieldbox.boxes.Callbacks;
-import fieldbox.boxes.FLineDrawing;
+import fieldbox.boxes.*;
 import fieldbox.io.IO;
 import fieldbox.ui.FieldBoxWindow;
 import fielded.Commands;
@@ -43,10 +40,12 @@ public class BoxPair extends Box {
 	{
 		this.root = root;
 
-		this.properties.putToMap(Commands.command, "New Box Pair", (x) -> {
+		this.properties.putToMap(Commands.command, "Create Box Pair", (x) -> {
 			this.newBoxPair();
 			return null;
 		});
+		this.properties.putToMap(Commands.commandDoc, "Create Box Pair",
+			"Create a pair of boxes that are linked together. This is useful for representing a selection of a interval of time from a longer interval. In the parlance of video editing, for example, there's a _selection_ from some _footage_. In Field these are both represented by boxes.");
 
 
 		Cached<Object, Long, Object> work = FrameChangedHash.getCached(this, (a, last) -> {
@@ -208,9 +207,7 @@ public class BoxPair extends Box {
 			r.add(FLineDrawing.boxOrigin(() -> f, new Vec2(1, 0.5), bb));
 		}
 
-		bb.properties.putToMap(FLineDrawing.bulkLines, "__framemarking__", () -> {
-			return r;
-		});
+		bb.properties.putToMap(FLineDrawing.bulkLines, "__framemarking__", () -> r);
 	}
 
 	private void installMainDecor(Box bb) {
@@ -239,13 +236,11 @@ public class BoxPair extends Box {
 			FLine q = new FLine();
 			q.rect(f1.x, f2.y-gap/2, f1.w, f2.h+gap);
 			q.attributes.put(StandardFLineDrawing.filled, true);
-			q.attributes.put(StandardFLineDrawing.color, new Vec4(0,0,0,0.9));
+			q.attributes.put(StandardFLineDrawing.color, new Vec4(0,0,0,0.2));
 			return q;
 		});
 
-		bb.properties.putToMap(FLineDrawing.bulkLines, "__framemarking__", () -> {
-			return r;
-		});
+		bb.properties.putToMap(FLineDrawing.bulkLines, "__framemarking__", () -> r);
 	}
 
 	long salt = 0;
@@ -279,5 +274,7 @@ public class BoxPair extends Box {
 
 		b1.properties.put(isPaired, true);
 		b2.properties.put(isPaired, true);
+
+		b2.properties.put(FrameManipulation.lockHeight, true);
 	}
 }

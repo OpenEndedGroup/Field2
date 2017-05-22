@@ -22,6 +22,8 @@
  */
 package field.linalg;
 
+import fieldnashorn.annotations.SafeToToString;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -35,7 +37,9 @@ import java.util.function.Supplier;
  *
  * @author Richard Greenlees
  * @author Kai Burjack
+ * with modifications and additions for Field
  */
+@SafeToToString
 public class Quat implements Externalizable, Supplier<Quat> {
 
 	private static final long serialVersionUID = 1L;

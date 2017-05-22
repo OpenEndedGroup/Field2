@@ -5,6 +5,7 @@ import field.utility.Dict;
 import field.utility.Pair;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Boxes;
+import fieldbox.boxes.Drawing;
 import fieldbox.boxes.Mouse;
 import fieldcef.plugins.TextEditor;
 import fielded.Commands;
@@ -18,6 +19,11 @@ import java.util.stream.Stream;
 
 /**
  * Exports a command for making a new, independent, text editor (with it's own server)
+ *
+ * Has problems with multiple editors on the same box (changes are never propagated)
+ *
+ * Put behind experimental plugin setting
+ *
  * Created by marc on 6/8/16.
  */
 public class MakeNewTextEditor extends Box {
@@ -79,16 +85,21 @@ public class MakeNewTextEditor extends Box {
 
 	static public Box makeNewTextEditor(Box target) {
 		ServerSupport q = new ServerSupport(target);
-		Server newServer = target.find(ServerSupport.server, target.upwards()).findFirst().get();
+//		Server oldServer = target.find(ServerSupport.server, target.upwards()).findFirst().get();
 
 		TextEditor te = new TextEditor(target);
 		te.connect(target);
 		te.loaded();
 
-		te.pin();
-		RunLoop.main.when(q.getRemoteEditor(), e -> e.pin());
+		RunLoop.main.when(q.getRemoteEditor(), e -> {
+			RunLoop.main.delay(() -> {
+				e.pin();
+				te.pin();
+				Drawing.dirty(te);
+			},1000);
+		});
 
-		return te.browser;
+		return te.browser_;
 	}
 
 

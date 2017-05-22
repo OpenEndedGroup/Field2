@@ -3,6 +3,7 @@ package fieldbox.boxes.plugins;
 import field.graphics.FLine;
 import field.graphics.FLinesAndJavaShapes;
 import field.linalg.Vec2;
+import field.linalg.Vec3;
 import field.linalg.Vec4;
 import field.utility.*;
 import fieldbox.boxes.*;
@@ -28,15 +29,15 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 {
 
 	static public final Dict.Prop<BoxRef> head = new Dict.Prop<>("head").type()
-									    .toCannon()
-									    .doc("the head of this topology arrow box");
+		.toCannon()
+		.doc("the head of this topology arrow box");
 	static public final Dict.Prop<BoxRef> tail = new Dict.Prop<>("tail").type()
-									    .toCannon()
-									    .doc("the tail of this topology arrow box");
+		.toCannon()
+		.doc("the tail of this topology arrow box");
 
 	static public final Dict.Prop<FunctionOfBoxValued<Collection<Missing.Log>>> logThrough = new Dict.Prop<>("logThrough").type()
-															      .toCannon()
-															      .doc("property transcript filtered to include only property access that's _through_ this connection");
+		.toCannon()
+		.doc("property transcript filtered to include only property access that's _through_ this connection");
 
 	static {
 		// these properties need to be saved in our document
@@ -65,9 +66,9 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 		this.properties.put(Boxes.dontSave, true);
 	}
 
-	static public Pair<FLine, Vec2> arc(Rect from, Rect to, boolean selected) {
+	static public Pair<FLine, Vec3> arc(Rect from, Rect to, float d1, float d2, boolean selected) {
 
-		return Dispatch.arc(from, to, selected);
+		return Dispatch.arc(from, to, d1, d2, selected);
 
 		/*FLine f = new FLine();
 
@@ -96,11 +97,11 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 
 		String p1 = head().properties.get(Planes.plane);
 		String p2 = tail().properties.get(Planes.plane);
-		p1 = p1==null ? "" : p1;
-		p2 = p2==null ? "" : p2;
-		String q = (p1+" "+p2).trim();
+		p1 = p1 == null ? "" : p1;
+		p2 = p2 == null ? "" : p2;
+		String q = (p1 + " " + p2).trim();
 
-		if (q.length()>0)
+		if (q.length() > 0)
 			this.properties.put(Planes.plane, q);
 
 		this.properties.put(Box.decorative, true);
@@ -108,7 +109,7 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__updateframe__", this::updateFrameToMiddle);
 		this.properties.computeIfAbsent(frameDrawing, this::defaultdrawsLines);
 		this.properties.put(frame, head().properties.get(frame)
-							    .union(tail().properties.get(frame)));
+			.union(tail().properties.get(frame)));
 		this.properties.put(FrameManipulation.lockHeight, true); // the dimensions of this box cannot be changed
 		this.properties.put(FrameManipulation.lockWidth, true);
 		this.properties.put(FrameManipulation.lockX, true); // nor can its position
@@ -124,9 +125,9 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 		this.properties.put(logThrough, x -> {
 			Predicate<Missing.Log> p = Missing.across(this.head(), this.tail());
 			return Missing.getLog()
-				      .stream()
-				      .filter(p)
-				      .collect(Collectors.toList());
+				.stream()
+				.filter(p)
+				.collect(Collectors.toList());
 		});
 
 		this.properties.put(Chorder.nox, true);
@@ -149,14 +150,17 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 				return null;
 			}
 
-			Pair<FLine, Vec2> fa = arc(r1, r2, selected);
+			float f1 = ((DispatchBox) box).head().properties.getFloat(depth, 0f);
+			float f2 = ((DispatchBox) box).tail().properties.getFloat(depth, 0f);
 
-			Vec2 at = fa.second;
+			Pair<FLine, Vec3> fa = arc(r1, r2, f1, f2, selected);
+
+			Vec3 at = fa.second;
 			FLine f = fa.first;
 
 			float w = selected ? 10 : 5;
 
-			Log.log("nub", ()->"middle is " + at);
+			Log.log("nub", () -> "middle is " + at);
 
 			f.attributes.put(strokeColor, selected ? new Vec4(1, 1, 1, -0.4f) : new Vec4(0, 0, 0, 0.1f));
 			f.attributes.put(stroked, true);
@@ -199,8 +203,7 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 			return true;
 		}
 
-		if (Planes.on(r.get(), h)<1 || Planes.on(r.get(), t)<1)
-		{
+		if (Planes.on(r.get(), h) < 1 || Planes.on(r.get(), t) < 1) {
 			Drawing.dirty(this);
 //			Callbacks.delete(this);
 			this.disconnectFromAll();
@@ -221,8 +224,7 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 		if (hp.size() == 0 || tp.size() == 0) {
 
 			// now we need to prove the connectedness of either hp or tp, this is slightly expensive
-			if (!h.breadthFirstAll(h.both()).filter(x -> x.properties.has(Boxes.root)).findAny().isPresent())
-			{
+			if (!h.breadthFirstAll(h.both()).filter(x -> x.properties.has(Boxes.root)).findAny().isPresent()) {
 				Drawing.dirty(this);
 				Callbacks.delete(this);
 				this.disconnectFromAll();
@@ -248,7 +250,10 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 
 		if (Util.safeEq(h, cache_h) && Util.safeEq(t, cache_t)) return true;
 
-		Vec2 m = arc(h, t, false).second;
+		float f1 = hb.properties.getFloat(depth, 0f);
+		float f2 = hb.properties.getFloat(depth, 0f);
+
+		Vec3 m = arc(h, t, f1, f2, false).second;
 
 		cache_h = h.duplicate();
 		cache_t = t.duplicate();
@@ -257,6 +262,8 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 		Rect frame1 = this.properties.get(frame);
 		float w = 10;
 		Rect frame2 = new Rect(m.x - w, m.y - w, w * 2, w * 2);
+
+		this.properties.put(depth, (float)m.z);
 
 		if (!frame1.equals(frame2)) {
 			this.properties.put(frame, frame2);
@@ -269,9 +276,9 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 	protected Box head() {
 
 		Box h = properties.get(head)
-				  .get(this);
+			.get(this);
 		if (h == null) {
-			Log.log("huh", ()->"failed to find head");
+			Log.log("huh", () -> "failed to find head");
 		}
 		return h;
 	}
@@ -279,10 +286,10 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 	protected Box tail() {
 
 		Box h = properties.get(tail)
-				  .get(this);
+			.get(this);
 
 		if (h == null) {
-			Log.log("huh", ()->"failed to find tail");
+			Log.log("huh", () -> "failed to find tail");
 		}
 		return h;
 	}

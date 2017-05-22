@@ -44,8 +44,10 @@ import java.util.function.Supplier;
  *
  * @author RGreenlees
  * @author Kai Burjack
+ * with modifications and additions for Field
  */
-public class Vec2 implements Externalizable, Supplier<Vec2>, Mutable, Serializable_safe, Linker.AsMap_callable {
+@SafeToToString
+public class Vec2 implements Externalizable, Supplier<Vec2>, Mutable, Serializable_safe, fieldlinker.AsMap_callable {
 
 	private static final long serialVersionUID = 1L;
 

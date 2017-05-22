@@ -280,6 +280,12 @@ public class FrameManipulation extends Box {
 				}).filter(x -> Planes.on(root, x) >= 1).forEach(x -> workingSet.add(x));
 			}
 
+			if (hitBox.properties.isTrue(Mouse.isSticky, false))
+			{
+				workingSet.clear();;
+				workingSet.add(hitBox);
+			}
+
 
 			workingSet.forEach(x -> x.properties.put(Mouse.isManipulated, true));
 
@@ -430,10 +436,16 @@ public class FrameManipulation extends Box {
 			});
 	}
 
-	static public void setSelectionTo(Box root, Set<Box> workingSet) {
+	static public Runnable setSelectionTo(Box root, Set<Box> workingSet) {
+		Set<Box> previouslySelected = new LinkedHashSet<>();
+
 		root.breadthFirst(root.both())
 			.filter(x -> x.properties.has(Box.frame))
 			.filter(x -> x.properties.has(Box.name)).forEach(x -> {
+
+			if (x.properties.isTrue(Mouse.isSelected, false)) {
+				previouslySelected.add(x);
+			}
 
 			if (x.properties.isTrue(Mouse.isSelected, false) && !workingSet.contains(x)) {
 				Callbacks.transition(x, Mouse.isSelected, false, false, Callbacks.onSelect, Callbacks.onDeselect);
@@ -444,6 +456,8 @@ public class FrameManipulation extends Box {
 			}
 
 		});
+
+		return () -> setSelectionTo(root, previouslySelected);
 	}
 
 	private Set<Box> singleChildrenFor(Box z) {
@@ -498,9 +512,9 @@ public class FrameManipulation extends Box {
 		List<DragTarget> r = new ArrayList<>();
 
 		float inset = 10;
-		if (Math.abs(point.x - rect.x) < inset) r.add(DragTarget.left);
+		if (Math.abs(point.x - rect.x) < inset && !lockWidth) r.add(DragTarget.left);
 		if (Math.abs(point.x - rect.x - rect.w) < inset && !lockWidth) r.add(DragTarget.right);
-		if (Math.abs(point.y - rect.y) < inset) r.add(DragTarget.top);
+		if (Math.abs(point.y - rect.y) < inset && !lockHeight) r.add(DragTarget.top);
 		if (Math.abs(point.y - rect.y - rect.h) < inset && !lockHeight) r.add(DragTarget.bottom);
 		if (r.size() == 0) r.add(DragTarget.translate);
 
@@ -516,7 +530,10 @@ public class FrameManipulation extends Box {
 			b.properties.putToMap(FLineDrawing.frameDrawing, "__feedback__", FLineDrawing.expires(box -> {
 				FLine f = new FLine();
 				f.attributes.put(StandardFLineDrawing.hasText, true);
-				f.moveTo(r.x + r.w / 2, r.y + r.h + 17);
+
+				float d = b.properties.getFloat(depth, 0f);
+
+				f.moveTo(r.x + r.w / 2, r.y + r.h + 17, d);
 				List<String> text = new ArrayList<String>();
 				List<Vec4> color = new ArrayList<Vec4>();
 

@@ -247,12 +247,11 @@ public class Trampoline {
 
 		Set<File> jarsToAdd = new LinkedHashSet<>();
 		Set<File> roots = new LinkedHashSet<>();
-		String[] classBuildStyles = {"/out/production", "build/classes"};
+		String[] classBuildStyles = {"/out/production", "/build/classes", "/lib/jars"};
 
 		for (String c : classBuildStyles)
 			try {
 				Files.walk(new File(System.getProperty("appDir") + c).toPath()).forEach(x -> {
-
 					if (x.toFile().getName().endsWith(".jar")) {
 						jarsToAdd.add(x.toFile());
 					} else if (x.toFile().isDirectory()) {
@@ -352,11 +351,12 @@ public class Trampoline {
 			System.setProperty("java.library.path", System.getProperty("java.library.path") + File.pathSeparator + s);
 			System.setProperty("jna.library.path", System.getProperty("jna.library.path") + File.pathSeparator + s);
 
-//		System.out.println(" library paths now "+System.getProperty("java.library.path")+" and "+System.getProperty("jna.library.path"));
+			// System.out.println(" library paths now "+System.getProperty("java.library.path")+" and "+System.getProperty("jna.library.path"));
 			// This enables the java.library.path to be modified at runtime
 			// From a Sun engineer at
 			// http://forums.sun.com/thread.jspa?threadID=707176
 
+			// this will fail on Jigsaw
 			try {
 				Field field = ClassLoader.class.getDeclaredField("usr_paths");
 				field.setAccessible(true);
@@ -370,10 +370,8 @@ public class Trampoline {
 				System.arraycopy(paths, 0, tmp, 0, paths.length);
 				tmp[paths.length] = s;
 				field.set(null, tmp);
-			} catch (IllegalAccessException e) {
-				throw new IllegalArgumentException("Failed to get permissions to set library path");
-			} catch (NoSuchFieldException e) {
-				throw new IllegalArgumentException("Failed to get field handle to set library path");
+			} catch (Throwable e) {
+				System.err.println("Warning: failed to extend java.library.path");
 			}
 		}
 	}

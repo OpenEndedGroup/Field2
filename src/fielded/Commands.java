@@ -24,22 +24,22 @@ public class Commands extends Box {
 
 
 	static public final Dict.Prop<Supplier<Map<Pair<String, String>, Runnable>>> commands = new Dict.Prop<>("commands").type()
-															   .doc("commands injected into the editor as ctrl-space menuSpecs. For a simpler, static, interface you might try `_.command`")
-															   .toCannon();
+		.doc("commands injected into the editor as ctrl-space menuSpecs. For a simpler, static, interface you might try `_.command`")
+		.toCannon();
 
 	static public final Dict.Prop<IdempotencyMap<Function<Box, Void>>> command = new Dict.Prop<>("command").type()
-													       .toCannon()
-													       .doc("commands for this box (and all boxes below). For example `_.command.foo = function(_) bar(_)`")
-													       .autoConstructs(() -> new IdempotencyMap<>(Function.class));
+		.toCannon()
+		.doc("commands for this box (and all boxes below). For example `_.command.foo = function(_) bar(_)`")
+		.autoConstructs(() -> new IdempotencyMap<>(Function.class));
 	static public final Dict.Prop<IdempotencyMap<Function<Box, Boolean>>> commandGuard = new Dict.Prop<>("commandGuard").type()
-															    .toCannon()
-															    .doc("a predicate that allows you to turn on and off a command. `_.commandGuard.foo = function(_) false` will turn off command `foo` for this box and all progengy")
-															    .autoConstructs(() -> new IdempotencyMap<>(Function.class));
+		.toCannon()
+		.doc("a predicate that allows you to turn on and off a command. `_.commandGuard.foo = function(_) false` will turn off command `foo` for this box and all progengy")
+		.autoConstructs(() -> new IdempotencyMap<>(Function.class));
 
 	static public final Dict.Prop<IdempotencyMap<String>> commandDoc = new Dict.Prop<>("commandDoc").type()
-													.toCannon()
-													.doc("documentation for commands for this box (and all boxes below). For example `_.commandDoc.foo = \"foos the bar\"`")
-													.autoConstructs(() -> new IdempotencyMap<>(String.class));
+		.toCannon()
+		.doc("documentation for commands for this box (and all boxes below). For example `_.commandDoc.foo = \"foos the bar\"`")
+		.autoConstructs(() -> new IdempotencyMap<>(String.class));
 
 	static public void registerCommands(Box on) {
 		Class<?> c = on.getClass();
@@ -52,7 +52,7 @@ public class Commands extends Box {
 					on.properties.putToMap(commandGuard, p.name(), (x) -> {
 						if (mm.getParameterCount() == 1) {
 							try {
-								return ((Boolean)mm.invoke(on, x)).booleanValue();
+								return ((Boolean) mm.invoke(on, x)).booleanValue();
 							} catch (IllegalAccessException e) {
 								e.printStackTrace();
 							} catch (InvocationTargetException e) {
@@ -60,7 +60,7 @@ public class Commands extends Box {
 							}
 						} else {
 							try {
-								return ((Boolean)mm.invoke(on)).booleanValue();
+								return ((Boolean) mm.invoke(on)).booleanValue();
 							} catch (IllegalAccessException e) {
 								e.printStackTrace();
 							} catch (InvocationTargetException e) {
@@ -82,10 +82,10 @@ public class Commands extends Box {
 							}
 						} else {
 							Box root = on.first(Boxes.root)
-								     .get();
+								.get();
 							root.breadthFirst(root.allDownwardsFrom())
-							    .filter(y -> x.properties.isTrue(Mouse.isSelected, false))
-							    .forEach(y -> Callbacks.transition(y, Mouse.isSelected, false, false, Callbacks.onSelect, Callbacks.onDeselect));
+								.filter(y -> x.properties.isTrue(Mouse.isSelected, false))
+								.forEach(y -> Callbacks.transition(y, Mouse.isSelected, false, false, Callbacks.onSelect, Callbacks.onDeselect));
 							Callbacks.transition(x, Mouse.isSelected, true, false, Callbacks.onSelect, Callbacks.onDeselect);
 							try {
 								mm.invoke(on);
@@ -118,7 +118,7 @@ public class Commands extends Box {
 
 		CompletionStats.stats.autosuggestCommands(commands);
 
-		Log.log("remote.trace", ()->" commands are :" + commands);
+		Log.log("remote.trace", () -> " commands are :" + commands);
 
 		JSONStringer stringer = new JSONStringer();
 		stringer.array();
@@ -127,7 +127,7 @@ public class Commands extends Box {
 
 		for (Triple<String, String, Runnable> r : commands) {
 			String u = UUID.randomUUID()
-				       .toString();
+				.toString();
 			callTable.put(u, r.third);
 			callTableName.put(u, r.first);
 			stringer.object();
@@ -141,7 +141,7 @@ public class Commands extends Box {
 		}
 
 
-		Log.log("remote.trace",()-> " call table looks like :" + callTable);
+		Log.log("remote.trace", () -> " call table looks like :" + callTable);
 
 		stringer.endArray();
 
@@ -151,70 +151,78 @@ public class Commands extends Box {
 
 	static public void exportAsCommand(Box inside, Runnable r, String name, String doc) {
 		inside.properties.getOrConstruct(command)
-				 .put(name, (FunctionOfBox) (x) -> {
-					 r.run();
-					 return null;
-				 });
+			.put(name, (FunctionOfBox) (x) -> {
+				r.run();
+				return null;
+			});
 		inside.properties.getOrConstruct(commandDoc)
-				 .put(name, doc);
+			.put(name, doc);
 	}
 
 	static public void exportAsCommand(Box inside, Runnable r, FunctionOfBox<Boolean> guard, String name, String doc) {
 		inside.properties.getOrConstruct(command)
-				 .put(name, (FunctionOfBox) (x) -> {
-					 r.run();
-					 return null;
-				 });
+			.put(name, (FunctionOfBox) (x) -> {
+				r.run();
+				return null;
+			});
 		inside.properties.getOrConstruct(commandDoc)
-				 .put(name, doc);
+			.put(name, doc);
 		inside.properties.getOrConstruct(commandGuard)
-				 .put(name, guard);
+			.put(name, guard);
 	}
 
 	public static List<Triple<String, String, Runnable>> getCommandsAndDocs(Box box) {
 		List<Triple<String, String, Runnable>> commands = box.find(Commands.commands, box.both())
-													      .flatMap(m -> m.get()
-															     .entrySet()
-															     .stream())
-													      .map(x -> new Triple<>(x.getKey().first, x.getKey().second, x.getValue()))
-													      .collect(Collectors.toList());
+			.flatMap(m -> {
+				try {
+					return m.get()
+						.entrySet()
+						.stream();
+				} catch (Throwable t) {
+					System.err.println(" Exception throw looking for commands, carrying on");
+					t.printStackTrace();
+				}
+				return null;
+			})
+			.map(x -> new Triple<>(x.getKey().first, x.getKey().second, x.getValue()))
+			.collect(Collectors.toList());
 
 
 		IdempotencyMap<Function<Box, Void>> map = box.find(command, box.upwards())
-							     .reduce(new IdempotencyMap<Function<Box, Void>>(Function.class), (a1, a2) -> {
-								     IdempotencyMap<Function<Box, Void>> q = new IdempotencyMap<>(Function.class);
-								     q.putAll(a1);
-								     q.putAll(a2);
-								     return q;
-							     });
+			.reduce(new IdempotencyMap<Function<Box, Void>>(Function.class), (a1, a2) -> {
+				IdempotencyMap<Function<Box, Void>> q = new IdempotencyMap<>(Function.class);
+				q.putAll(a1);
+				q.putAll(a2);
+				return q;
+			});
 		IdempotencyMap<String> mapDoc = box.find(commandDoc, box.upwards())
-						   .reduce(new IdempotencyMap<String>(String.class), (a1, a2) -> {
-							   IdempotencyMap<String> q = new IdempotencyMap<>(String.class);
-							   q.putAll(a1);
-							   q.putAll(a2);
-							   return q;
-						   });
+			.reduce(new IdempotencyMap<String>(String.class), (a1, a2) -> {
+				IdempotencyMap<String> q = new IdempotencyMap<>(String.class);
+				q.putAll(a1);
+				q.putAll(a2);
+				return q;
+			});
 
 		IdempotencyMap<Function<Box, Boolean>> guardDoc = box.find(commandGuard, box.upwards())
-								     .reduce(new IdempotencyMap<Function<Box, Boolean>>(FunctionOfBox.class), (a1, a2) -> {
-									     IdempotencyMap<Function<Box, Boolean>> q = new IdempotencyMap<>(FunctionOfBox.class);
-									     q.putAll(a1);
-									     q.putAll(a2);
-									     return q;
-								     });
+			.reduce(new IdempotencyMap<Function<Box, Boolean>>(FunctionOfBox.class), (a1, a2) -> {
+				IdempotencyMap<Function<Box, Boolean>> q = new IdempotencyMap<>(FunctionOfBox.class);
+				q.putAll(a1);
+				q.putAll(a2);
+				return q;
+			});
 
 		map.entrySet()
-		   .forEach(x -> {
-			   Function<Box, Boolean> g = guardDoc.get(x.getKey());
-			   if (g == null || g.apply(box)) {
-				   String name = rewriteCamelCase(x.getKey());
-				   String doc = mapDoc.getOrDefault(x.getKey(), "");
-				   commands.add(new Triple<String, String, Runnable>(name, doc, () -> {
-					   x.getValue()
-					    .apply(box);
-				   }));
-			   }
-		   });
+			.forEach(x -> {
+				Function<Box, Boolean> g = guardDoc.get(x.getKey());
+				if (g == null || g.apply(box)) {
+					String name = rewriteCamelCase(x.getKey());
+					String doc = mapDoc.getOrDefault(x.getKey(), "");
+					commands.add(new Triple<String, String, Runnable>(name, doc, () -> {
+						x.getValue()
+							.apply(box);
+					}));
+				}
+			});
 		return commands;
 	}
 
@@ -234,7 +242,7 @@ public class Commands extends Box {
 			callTable.clear();
 			for (Map.Entry<Pair<String, String>, Runnable> r : commands1.entrySet()) {
 				String u = UUID.randomUUID()
-					       .toString();
+					.toString();
 				callTable.put(u, r.getValue());
 				stringer.object();
 				stringer.key("name")
@@ -250,7 +258,7 @@ public class Commands extends Box {
 			if (alternative != null) {
 				stringer.key("alternative");
 				String u = UUID.randomUUID()
-					       .toString();
+					.toString();
 				callTable_alternative = alternative;
 				stringer.value(u);
 			} else {

@@ -426,14 +426,17 @@ public class Mat4 implements Externalizable, Supplier<Mat4>, Mutable, Serializab
 	 */
 	public static void project(double x, double y, double z, Mat4 projection, Mat4 view, IntBuffer viewport, Vec4 winCoordsDest) {
 		winCoordsDest.set(x, y, z, 1.0);
-		view.transform(winCoordsDest);
-		projection.transform(winCoordsDest);
+		Vec4 v = view.transform(winCoordsDest);
+		v = projection.transform(v);
 		int pos = viewport.position();
-		winCoordsDest.div(winCoordsDest.w);
-		winCoordsDest.x = (winCoordsDest.x * 0.5 + 0.5) * viewport.get(pos + 2) + viewport.get(pos);
-		winCoordsDest.y = (winCoordsDest.y * 0.5 + 0.5) * viewport.get(pos + 3) + viewport.get(pos + 1);
-		winCoordsDest.z = (1.0 + winCoordsDest.z) * 0.5;
+		v.div(v.w);
+		v.x = (v.x * 0.5 + 0.5) * viewport.get(pos + 2) + viewport.get(pos);
+		v.y = (v.y * 0.5 + 0.5) * viewport.get(pos + 3) + viewport.get(pos + 1);
+		v.z = (1.0 + v.z) * 0.5;
+		winCoordsDest.set(v);
 	}
+
+
 
 	/**
 	 * Project the given <code>position</code> via the given <code>view</code> and <code>projection</code> matrices using the specified viewport and store the resulting window coordinates in
@@ -624,7 +627,7 @@ public class Mat4 implements Externalizable, Supplier<Mat4>, Mutable, Serializab
 	 *
 	 * @param right the right operand of the multiplication
 	 * @param dest  will hold the result
-	 * @return this
+	 * @return dest
 	 */
 	public Mat4 mul(Mat4 right, Mat4 dest) {
 		if (this != dest && right != dest) {
@@ -654,7 +657,7 @@ public class Mat4 implements Externalizable, Supplier<Mat4>, Mutable, Serializab
 				 m00 * right.m30 + m10 * right.m31 + m20 * right.m32 + m30 * right.m33, m01 * right.m30 + m11 * right.m31 + m21 * right.m32 + m31 * right.m33,
 				 m02 * right.m30 + m12 * right.m31 + m22 * right.m32 + m32 * right.m33, m03 * right.m30 + m13 * right.m31 + m23 * right.m32 + m33 * right.m33);
 		}
-		return this;
+		return dest;
 	}
 
 	/**

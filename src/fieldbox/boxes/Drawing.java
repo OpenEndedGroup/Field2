@@ -42,7 +42,9 @@ public class Drawing extends Box implements DrawingInterface {
 		.doc("a collection of things that will draw inside the OpenGL paint context, after everything else has drawn. Viewport plugs in at this level.");
 	static public final Dict.Prop<Drawing> drawing = new Dict.Prop<>("drawing").type()
 		.toCannon()
-		.doc("the Drawing plugin");
+		.doc("the Drawing plugin")
+		.set(Dict.writeOnly, true);
+
 	static public final Dict.Prop<Boolean> needRepaint = new Dict.Prop<>("_needRepaint").type()
 		.toCannon();
 	static public final Dict.Prop<Vec2> windowSpace = new Dict.Prop<>("windowSpace").type()
@@ -57,6 +59,8 @@ public class Drawing extends Box implements DrawingInterface {
 		IO.persist(windowSpace);
 		IO.persist(windowScale);
 	}
+
+	public float displayZ;
 
 	Map<String, PerLayer> layerLocal = new LinkedHashMap<>();
 	List<Bracketable> bracketableList = new ArrayList<>();
@@ -191,10 +195,11 @@ public class Drawing extends Box implements DrawingInterface {
 			"uniform vec2 translation;\n" +
 			"uniform vec2 scale;\n" +
 			"uniform vec2 bounds;\n" +
+			"uniform float displayZ;\n" +
 			"void main()\n" +
 			"{\n" +
 			"	vec2 at = (scale.xy*(position.xy+vec2(0.5,0.5))+translation.xy)/bounds.xy;\n" +
-			"   gl_Position =  vec4(-1+at.x*2, 1-at.y*2, 0.5, 1.0);\n" +
+			"   gl_Position =  vec4(-1+at.x*2+displayZ*position.z, 1-at.y*2, 0.5, 1.0);\n" +
 			"   vcolor = color;\n" +
 			"}");
 
@@ -216,6 +221,7 @@ public class Drawing extends Box implements DrawingInterface {
 		layer.shader.attach(new Uniform<Vec2>("scale", () -> new Vec2(scale.x * boxScale.x, scale.y * boxScale.y)));
 		layer.shader.attach(new Uniform<Vec2>("bounds", () -> new Vec2(Window.getCurrentWidth(), Window.getCurrentHeight())));
 		layer.shader.attach(new Uniform<Float>("opacity", () -> opacity));
+		layer.shader.attach(new Uniform<Float>("displayZ", () -> displayZ));
 
 		layer.pointShader = new Shader();
 
@@ -228,10 +234,11 @@ public class Drawing extends Box implements DrawingInterface {
 			"uniform vec2 translation;\n" +
 			"uniform vec2 scale;\n" +
 			"uniform vec2 bounds;\n" +
+			"uniform float displayZ;\n" +
 			"void main()\n" +
 			"{\n" +
 			"	vec2 at = (scale.xy*(position.xy+vec2(0.5,0.5))+translation.xy)/bounds.xy;\n" +
-			"   gl_Position =  vec4(-1+at.x*2, 1-at.y*2, 0.5, 1.0);\n" +
+			"   gl_Position =  vec4(-1+at.x*2+displayZ*position.z, 1-at.y*2, 0.5, 1.0);\n" +
 			"   vcolor_q = color;\n" +
 			"   pc_q= pointControl;\n" +
 			"}");
@@ -287,6 +294,7 @@ public class Drawing extends Box implements DrawingInterface {
 		layer.pointShader.attach(new Uniform<Vec2>("scale", () -> new Vec2(scale.x * boxScale.x, scale.y * boxScale.y)));
 		layer.pointShader.attach(new Uniform<Vec2>("bounds", () -> new Vec2(Window.getCurrentWidth(), Window.getCurrentHeight())));
 		layer.pointShader.attach(new Uniform<Float>("opacity", () -> opacity));
+		layer.pointShader.attach(new Uniform<Float>("displayZ", () -> displayZ));
 
 
 		window.getCompositor()
@@ -298,6 +306,7 @@ public class Drawing extends Box implements DrawingInterface {
 			.getScene()
 			.attach(layer.pointShader);
 
+		/*
 		BaseMesh mesh = BaseMesh.triangleList(1, 1);
 		layer.shader.attach(mesh);
 		BaseMesh line = BaseMesh.lineList(1, 1);
@@ -327,6 +336,7 @@ public class Drawing extends Box implements DrawingInterface {
 		bracketableList.add(layer._fastMesh);
 		bracketableList.add(layer._fastLine);
 		bracketableList.add(layer._fastPoint);
+		*/
 
 		this.properties.put(drawing, this);
 
@@ -355,41 +365,71 @@ public class Drawing extends Box implements DrawingInterface {
 
 	public MeshBuilder getLine(String layerName) {
 
-		boolean fast = false;
-		if (layerName.endsWith(".fast")) {
-			layerName = layerName.substring(0, layerName.length() - ".fast".length());
-			fast = true;
+		String subName = "";
+		if (layerName.contains(".")) {
+			layerName = layerName.substring(0, layerName.lastIndexOf("."));
+			subName = layerName.substring(layerName.lastIndexOf(".")+1);
 		}
 
 		PerLayer l = layerLocal.get(layerName);
-		MeshBuilder ll = fast ? l._fastLine : l._line;
+		MeshBuilder ll = l._line.computeIfAbsent(subName, k -> {
+			BaseMesh line = BaseMesh.lineList(1, 1);
+			l.shader.attach(line);
+
+			MeshBuilder b = new MeshBuilder(line);
+			bracketableList.add(b);
+
+			b.open();
+
+			return b;
+		});
 		if (ll.isOpen()) return ll;
 		throw new IllegalArgumentException(" graphics resource (line) isn't open, are you trying to draw outside of your drawing method?");
 	}
 
 	public MeshBuilder getMesh(String layerName) {
-		boolean fast = false;
-		if (layerName.endsWith(".fast")) {
-			layerName = layerName.substring(0, layerName.length() - ".fast".length());
-			fast = true;
+		String subName = "";
+		if (layerName.contains(".")) {
+			layerName = layerName.substring(0, layerName.lastIndexOf("."));
+			subName = layerName.substring(layerName.lastIndexOf(".")+1);
 		}
 
 		PerLayer l = layerLocal.get(layerName);
-		MeshBuilder ll = fast ? l._fastMesh : l._mesh;
+		MeshBuilder ll = l._mesh.computeIfAbsent(subName, k -> {
+			BaseMesh line = BaseMesh.triangleList(1, 1);
+			l.shader.attach(line);
+
+			MeshBuilder b = new MeshBuilder(line);
+			bracketableList.add(b);
+
+			b.open();
+
+			return b;
+		});
 		if (ll.isOpen()) return ll;
 		throw new IllegalArgumentException(" graphics resource (mesh) isn't open, are you trying to draw outside of your drawing method?");
 	}
 
 	public MeshBuilder getPoints(String layerName) {
 
-		boolean fast = false;
-		if (layerName.endsWith(".fast")) {
-			layerName = layerName.substring(0, layerName.length() - ".fast".length());
-			fast = true;
+		String subName = "";
+		if (layerName.contains(".")) {
+			layerName = layerName.substring(0, layerName.lastIndexOf("."));
+			subName = layerName.substring(layerName.lastIndexOf(".")+1);
 		}
 
 		PerLayer l = layerLocal.get(layerName);
-		MeshBuilder ll = fast ? l._fastPoint : l._point;
+		MeshBuilder ll = l._point.computeIfAbsent(subName, k -> {
+			BaseMesh line = BaseMesh.pointList(1);
+			l.pointShader.attach(line);
+
+			MeshBuilder b = new MeshBuilder(line);
+			bracketableList.add(b);
+
+			b.open();
+
+			return b;
+		});
 		if (ll.isOpen()) return ll;
 		throw new IllegalArgumentException(" graphics resource (point) isn't open, are you trying to draw outside of your drawing method?");
 	}
@@ -489,16 +529,22 @@ public class Drawing extends Box implements DrawingInterface {
 	long drawCount = 0;
 
 	@HiddenInAutocomplete
-	public long getDrawCount()
-	{
+	public long getDrawCount() {
 		return drawCount;
 	}
+
+
+	@HiddenInAutocomplete
+	public boolean freezeDraw = false;
 
 	public void drawNow(Box root) {
 		Boolean q = root.properties.remove(needRepaint);
 		if (q == null || !q) return;
 
+		if (freezeDraw) return;
+
 		drawCount++;
+
 
 		find(Boxes.window, both()).findFirst()
 			.ifPresent(x -> {
@@ -680,13 +726,9 @@ public class Drawing extends Box implements DrawingInterface {
 	}
 
 	public class PerLayer {
-		private MeshBuilder _mesh;
-		private MeshBuilder _line;
-		private MeshBuilder _point;
-
-		private MeshBuilder _fastMesh;
-		private MeshBuilder _fastLine;
-		private MeshBuilder _fastPoint;
+		private Map<String, MeshBuilder> _mesh = new LinkedHashMap<>();
+		private Map<String, MeshBuilder> _line= new LinkedHashMap<>();
+		private Map<String, MeshBuilder> _point= new LinkedHashMap<>();
 
 		private Shader shader;
 		private Shader pointShader;

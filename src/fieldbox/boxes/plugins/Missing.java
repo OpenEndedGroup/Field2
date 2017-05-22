@@ -4,10 +4,7 @@ import field.utility.Dict;
 import field.utility.Util;
 import fieldbox.boxes.Box;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -26,21 +23,19 @@ public class Missing {
 
 	static public boolean suspended = false;
 
-	static public Util.ExceptionlessAutoCloasable pause()
-	{
+	static public Util.ExceptionlessAutoCloasable pause() {
 		suspended = true;
 		return Missing::play;
 	}
 
-	static public void play()
-	{
+	static public void play() {
 		suspended = false;
 	}
 
 	static public <T> T findFrom(Box b, Dict.Prop<T> what) {
 		Optional<Box> o = b.breadthFirst(b.upwards())
-				   .filter(x -> x.properties.has(what) && x.properties.get(what) != null)
-				   .findFirst();
+			.filter(x -> x.properties.has(what) && x.properties.get(what) != null)
+			.findFirst();
 
 
 		if (!o.isPresent()) {
@@ -57,8 +52,30 @@ public class Missing {
 		return r;
 	}
 
-	static public <T> T delete(Box b, Dict.Prop<T> what)
-	{
+	static public <T> T findFrom(Box b, Dict.Prop<T> what, Set<Box> ignore) {
+		Optional<Box> o = b.breadthFirst(x -> {
+			LinkedHashSet<Box> p = new LinkedHashSet<>(x.parents);
+			p.removeAll(ignore);
+			return p;
+		}).filter(x -> x.properties.has(what) && x.properties.get(what) != null)
+			.findFirst();
+
+
+		if (!o.isPresent()) {
+			// record missing, and do something about it?
+			return null;
+		}
+
+
+		T r = o.get().properties.get(what);
+
+
+		recordGet(b, what, o.get(), r);
+
+		return r;
+	}
+
+	static public <T> T delete(Box b, Dict.Prop<T> what) {
 		T v = b.properties.get(what);
 		recordDelete(b, what, b, v);
 		b.properties.remove(what);
@@ -137,33 +154,30 @@ public class Missing {
 
 		@Override
 		public String toString() {
-			return "["+access+" "+what+" "+from+" -> "+to+" = "+value+" ("+previous+")]";
+			return "[" + access + " " + what + " " + from + " -> " + to + " = " + value + " (" + previous + ")]";
 		}
 	}
 
-	static public Predicate<Log> incoming(Box from)
-	{
-		return x -> x.from==from;
+	static public Predicate<Log> incoming(Box from) {
+		return x -> x.from == from;
 	}
 
-	static public Predicate<Log> outgoing(Box from)
-	{
-		return x -> x.to==from;
+	static public Predicate<Log> outgoing(Box from) {
+		return x -> x.to == from;
 	}
 
-	static public Predicate<Log> across(Box head, Box tail)
-	{
+	static public Predicate<Log> across(Box head, Box tail) {
 		LinkedHashSet<Box> down = new LinkedHashSet<>();
 		downwardsFrom(tail, down, tail.downwards());
 		LinkedHashSet<Box> up = new LinkedHashSet<>();
 		downwardsFrom(head, up, head.upwards());
 
-		return x-> down.contains(x.from) && up.contains(x.to);
+		return x -> down.contains(x.from) && up.contains(x.to);
 	}
 
 	private static void downwardsFrom(Box b, LinkedHashSet<Box> down, Function<Box, Collection<Box>> direction) {
 		down.addAll(b.breadthFirst(direction)
-			     .collect(Collectors.toList()));
+			.collect(Collectors.toList()));
 	}
 
 

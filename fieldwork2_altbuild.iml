@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="JAVA_MODULE" version="4">
-  <component name="NewModuleRootManager" inherit-compiler-output="false">
+  <component name="NewModuleRootManager">
     <output url="file://$MODULE_DIR$/build/classes" />
     <output-test url="file://$MODULE_DIR$/out/test/fieldwork2_altbuild" />
     <exclude-output />
@@ -13,5 +13,6 @@
     <orderEntry type="library" name="jarsDir" level="project" />
     <orderEntry type="library" name="field_prebuild" level="project" />
     <orderEntry type="library" name="quickhull3d" level="project" />
+    <orderEntry type="library" name="jmustache-1.13" level="project" />
   </component>
 </module>

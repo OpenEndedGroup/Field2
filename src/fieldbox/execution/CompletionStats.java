@@ -65,7 +65,7 @@ public class CompletionStats {
 				Double cc = counts.get(x.first);
 				if (cc != null) {
 					double score = Math.max(1, Math.min(3, 3 * cc / (n[0] / num[0])));
-					String second = x.second + "</span><span class=\"stars\">" + num(score, "★") + " ";
+					String second = x.second + "</span><span class=\"stars\">" + num(score, "&#9733;") + " ";
 
 					Triple<String, String, Runnable> t = new Triple<>(x.first, second, x.third);
 
@@ -98,7 +98,7 @@ public class CompletionStats {
 			double cA = counts.getOrDefault(a.replacewith, 0d);
 			double cB = counts.getOrDefault(b.replacewith, 0d);
 			if (cA == cB) {
-				if (a.rank != b.rank) return Double.compare(a.rank, b.rank);
+				if (a.rank != b.rank) return -Double.compare(a.rank, b.rank);
 				if (a.replacewith.length() != b.replacewith.length())
 					return Double.compare(a.replacewith.length(), b.replacewith.length());
 				return String.CASE_INSENSITIVE_ORDER.compare(a.replacewith, b.replacewith);

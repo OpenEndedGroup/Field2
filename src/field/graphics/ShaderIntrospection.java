@@ -210,8 +210,10 @@ public class ShaderIntrospection {
 		String e0 = null;
 
 		Instant now = Instant.now();
-		if (invocationAt == null) {
+		if (invocationAt == null && s.lastAccumulatedError==null) {
 			e0 = "Shader has never been executed. Are you sure it is attached?<br>";
+		} else if (invocationAt == null && s.lastAccumulatedError!=null) {
+			e0 = "Shader has never been executed successfully. It has linker and validation errors: <br>"+s.lastAccumulatedError;
 		} else {
 			Duration d0 = Duration.between(invocationAt, now);
 			Duration dr = Duration.between(reloadedAt, now);
@@ -225,6 +227,11 @@ public class ShaderIntrospection {
 					    d0) + "</b> ago; compiled, <b>" + reloadedTimes + "</b> time" + (reloadedTimes == 1 ? "" : "s") + " in total; most recently <b>" + timeString(
 					    dr) + "</b>ago.<br>";
 			}
+
+			if (errorIsInvalid!=null)
+			{
+				e0 += "<br><b>"+errorIsInvalid+"</b><br> Linker and validation errors: <br><pre style='font-size:75%'>"+s.lastAccumulatedError+"</pre><br>";
+			}
 		}
 
 
@@ -233,10 +240,11 @@ public class ShaderIntrospection {
 		if (okMeshes.size() == 0 && problemMeshes.size() == 0) {
 			e1 = "No meshes are attached to this shader.\n";
 		}
+		else
 		if (okMeshes.size() > 0 && problemMeshes.size() == 0) {
 			e1 = "No problems found in " + okMeshes.size() + " mesh" + (okMeshes.size() == 1 ? "" : "es") + ". Meshes are :" + convert.apply(okMeshes);
 		} else {
-			String a = "Problems found in " + problemMeshes.size() + " mesh" + (problemMeshes.size() == 1 ? "" : "es") + " &mdash;\n";
+			String a = "Potential problems found in " + problemMeshes.size() + " mesh" + (problemMeshes.size() == 1 ? "" : "es") + " &mdash;\n";
 			for (Map.Entry<BaseMesh, String> entry : problemMeshes.entrySet()) {
 				a += "<div class='mesh-problem'>" + convert.apply(entry.getKey()) + "<br>";
 				a += entry.getValue() + "\n</div>";

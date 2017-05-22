@@ -1,6 +1,7 @@
 package fieldbox.boxes.plugins;
 
 import field.graphics.FLine;
+import field.graphics.StandardFLineDrawing;
 import field.linalg.Vec2;
 import field.linalg.Vec4;
 import field.utility.*;
@@ -99,6 +100,12 @@ public class StatusBar extends Box {
 			f.attributes.put(color, Colors.statusBarBackground);
 			f.attributes.put(filled, true);
 			f.nodes.get(f.nodes.size() - 1).attributes.put(text, statusText());
+
+			float dd = this.properties.getFloat(depth, 0f);
+			if (dd==0)
+				f.attributes.put(StandardFLineDrawing.hint_noDepth, true);
+			else
+				f.nodes.forEach(x -> x.setZ(dd));
 
 			return f;
 		}, (box) -> new Pair(box.properties.get(frame), statusText())));

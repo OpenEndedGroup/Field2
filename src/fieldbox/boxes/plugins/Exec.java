@@ -12,7 +12,9 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * Plugin that adds '_.exec' to the graph
+ * Plugin that adds `_.exec("someCode()")` to the graph.
+ *
+ * <img src="${_.rel}/a.jpg">
  */
 public class Exec extends Box {
 
@@ -21,8 +23,6 @@ public class Exec extends Box {
     public Exec(Box root)
     {
         this.properties.put(exec, (box, string) -> {
-
-
             Execution ex = RemoteEditor.getExecution(box, Execution.code);
             Execution.ExecutionSupport support = ex.support(box, Execution.code);
 

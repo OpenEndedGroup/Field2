@@ -80,7 +80,7 @@ public class BridgedTernSupport {
 		return "";
 	}
 
-	public List<Completion> completion(Consumer<String> engine, String boxName, String allText, int line, int ch) {
+	public List<Completion> completion(Consumer<String> engine, String boxName, String allText, int line, int ch, boolean explicitlyRequested) {
 		List<Completion> r = new ArrayList<>();
 
 

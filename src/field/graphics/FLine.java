@@ -6,11 +6,11 @@ import fieldbox.boxes.Box;
 import fieldbox.execution.Completion;
 import fieldbox.execution.HandlesCompletion;
 import fieldbox.execution.JavaSupport;
-import fieldlinker.Linker;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 import jdk.nashorn.api.scripting.ScriptUtils;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -21,26 +21,27 @@ import java.util.stream.Collectors;
 
 import static field.graphics.FLinesAndJavaShapes.flineToJavaShape;
 import static field.graphics.FLinesAndJavaShapes.javaShapeToFLine;
+import static field.graphics.StandardFLineDrawing.hint_noDepth;
 import static fieldbox.boxes.Box.compress;
+import static fieldbox.boxes.Box.depth;
 import static fieldbox.boxes.Box.format;
 
 /**
  * FLine is our main high level geometry container for lines, meshes and lists of points.
- *
+ * <p>
  * FLines consist of a list of drawing instructions, or nodes: `line.moveTo(...).lineTo(...).cubicTo(...)` .etc
- *
+ * <p>
  * This is essentially the common postscript / pdf / java2d drawing model with a few key differences and refinements.
- *
+ * <p>
  * Firstly, the drawing instructions are in 3d. 2d (the z=0 plane) is a special case; secondly, attributes can be associated with both the line itself and with individual nodes; thirdly, per-node attributes that are
  * present in some places on the line and absent in others are interpolated; finally, the structure is freely mutable, although changes to attributes are not automatically tracked (call `line.modify()` to
  * cause an explicit un-caching of this line).
- *
+ * <p>
  * The caching of the flattening of this line into MeshBuilder data (ready for OpenGL) cascades into MeshBuilder's cache structure. Thus, we have three levels of caching in total: FLine caches whether or not the geometry has changed at all, MeshBuilder caches whether or not there's any point sending anything to the OpenGL
  * underlying Buffers or whether this piece of geometry can be skipped, and finally individual ArrayBuffers can elect to skip the upload to OpenGL. This means that static geometry is extremely cheap
  * to draw
- *
  */
-public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
+public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesCompletion {
 
 	public List<Node> nodes = new ArrayList<>();
 	public Dict attributes = new Dict();
@@ -129,6 +130,15 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 		return add(new MoveTo(x.x, x.y, x.z));
 	}
 
+	public FLine moveToRel(float dx, float dy) {
+		if (nodes.size() == 0)
+			return moveTo(dx, dy);
+
+		Vec3 t = nodes.get(nodes.size() - 1).to;
+		return moveTo(t.x + dx, t.y + dy, t.z);
+	}
+
+
 	public FLine lineTo(double x, double y) {
 		if (nodes.size() == 0) return moveTo(x, y);
 		return add(new LineTo(x, y, 0));
@@ -144,6 +154,13 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 		return add(new LineTo(x.x, x.y, x.z));
 	}
 
+	public FLine lineToRel(float dx, float dy) {
+		if (nodes.size() == 0) return moveTo(dx, dy);
+		Vec3 v = nodes.get(nodes.size() - 1).to;
+		return lineTo(dx + v.x, dy + v.y, v.z);
+	}
+
+
 	public FLine moveTo(double x, double y, double z) {
 		return add(new MoveTo(x, y, z));
 	}
@@ -156,6 +173,12 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 	public FLine cubicTo(double c1x, double c1y, double c2x, double c2y, double x, double y) {
 		if (nodes.size() == 0) return moveTo(x, y);
 		return add(new CubicTo(c1x, c1y, 0, c2x, c2y, 0, x, y, 0));
+	}
+
+	public FLine cubicToRel(double c1x, double c1y, double c2x, double c2y, double x, double y) {
+		if (nodes.size() == 0) return moveTo(x, y);
+		Vec3 v = nodes.get(nodes.size() - 1).to;
+		return cubicTo(c1x + v.x, c1y + v.y, v.z, c2x + v.x, c2y + v.y, v.z, x + v.x, y + v.y, v.z);
 	}
 
 	public FLine cubicTo(Vec2 c1, Vec2 c2, Vec2 x) {
@@ -184,7 +207,9 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 	 * @return
 	 */
 	public FLine polarCubicTo(float r1, float theta1, float r2, float theta2, Vec2 destination) {
+
 		Vec2 a = last().to.toVec2();
+
 		Vec2 d = Vec2.sub(destination, a, new Vec2());
 
 		Vec2 c1 = new Vec2(d).mul(r1 / 3);
@@ -246,6 +271,15 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 		return this.cubicTo(x - r, y - k, x - k, y - r, x, y - r);
 	}
 
+	public FLine circle(double x, double y, double r, double z) {
+		double k = 0.5522847498f * r;
+		this.moveTo(x, y - r, z);
+		this.cubicTo(x + k, y - r, z, x + r, y - k, z, x + r, y, z);
+		this.cubicTo(x + r, y + k, z, x + k, y + r, z, x, y + r, z);
+		this.cubicTo(x - k, y + r, z, x - r, y + k, z, x - r, y, z);
+		return this.cubicTo(x - r, y - k, z, x - k, y - r, z, x, y - r, z);
+	}
+
 	/**
 	 * calls function 'fun' with a parameter that goes from 0 -> 1 (inclusive) in 'samples' steps. Then hands the results to `data('t*', ...)`
 	 */
@@ -263,7 +297,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 	/**
 	 * This takes a list of "things" and successively transforms them into a list of (list of...) Vec3 or Vec2. Each of the transformation rules are tried in turn (and in order) and anything that
 	 * returns non-null terminates the transformation for that "turn". Collections are understood. All exceptions are suppressed inside the .apply method of these transformations.
-	 * 
+	 * <p>
 	 * If, after all this, you have a List of Vec2 or Vec3 then you get a single line, otherwise a List of List of Vec2 or Vec3 gets you a group of lines
 	 */
 	public FLine dataLines(Collection<Object> input, Function<Object, Object>... transformation) {
@@ -339,7 +373,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 
 	/**
 	 * take 'many things' and turn them into a line based on the formatting string.
-	 * 
+	 * <p>
 	 * 'm' - moveTo, needs a Vec2 or a Vec3 'l' - lineTo, needs a Vec2 or a Vec3 'c' - cubicTo, needs 3 Vec2 or Vec3; 's' - smoothTo, needs 1 Vec2 or Vec3 '*' will loop the previous instruction;
 	 * '+' will loop the whole set of instructions 'd' will drop a Vec3; 'C' — is a cubic segment that consumes the next two instructions as well (e.g. you need to write 12C to do the same as 'c')
 	 * until you run out of Vec3 inputs; 't' — dispatches based on the tag of a TaggedVec3
@@ -359,7 +393,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 				i--;
 				looping = true;
 			}
-			if (c == '.') {
+			if (c == '+') {
 				c = cs[0];
 				i = 0;
 				looping = true;
@@ -409,7 +443,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 
 	/**
 	 * take 'many things' and turn them into a line based on the formatting string.
-	 * 
+	 * <p>
 	 * 'm' - moveTo, needs a Vec2 or a Vec3 'l' - lineTo, needs a Vec2 or a Vec3 'c' - cubicTo, needs 3 Vec2 or Vec3; 's' - smoothTo, needs 1 Vec2 or Vec3 '*' will loop the previous instruction
 	 * until you run out of Vec3 inputs
 	 */
@@ -505,6 +539,10 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 	 */
 	public FLine smoothTo(Vec2 v) {
 		return smoothTo(v.toVec3());
+	}
+
+	public FLine smoothTo(double x, double y) {
+		return smoothTo(new Vec3(x, y, 0));
 	}
 
 	/**
@@ -751,7 +789,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 					Node b = nodes.get(i);
 
 					if (b instanceof MoveTo) {
-						if (start != null) m.nextLine(start.at() + 1);
+						if (start != null) m.line(start.at() + 1);
 						a = moveTo.apply(m, a, (MoveTo) b);
 						start = m.bookmark();
 					} else {
@@ -766,7 +804,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 				MeshBuilder.Bookmark end = m.bookmark();
 
 				if (start != null && start.at() != end.at()) {
-					m.nextLine(start.at() + 1);
+					m.line(start.at() + 1);
 				}
 			} finally {
 				m.close();
@@ -784,7 +822,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 
 		return m.skipTo(c.start, c.end, mod, () -> {
 			Shape s = /*stroke.createStrokedShape*/(flineToJavaShape(this));
-			FLine drawInstead = javaShapeToFLine(s);
+			FLine drawInstead = this.attributes.isTrue(hint_noDepth, false) ? javaShapeToFLine(s) : javaShapeToFLine(s, this, new AffineTransform());
 			drawInstead.attributes.putAll(attributes);
 			drawInstead.renderToMesh(m, fixedSizeForCubic);
 		});
@@ -800,19 +838,31 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 			MeshBuilder_tesselationSupport ts = m.getTessSupport();
 			flattenAuxProperties();
 
+			boolean noContours = attributes.isTrue(StandardFLineDrawing.noContours, false);
+
 			m.open();
 			try {
 				MeshBuilder.Bookmark start = null;
 
 				Node a = null;
-				ts.begin();
+				if (!noContours)
+					ts.begin();
 
 				for (int i = 0; i < nodes.size(); i++) {
 					Node b = nodes.get(i);
 
 					if (b instanceof MoveTo) {
-						if (start != null) ts.endContour();
-						ts.beginContour();
+
+						if (start != null) {
+							if (!noContours)
+								ts.endContour();
+							else ts.end();
+						}
+						if (!noContours)
+							ts.beginContour();
+						else ts.begin();
+
+
 						a = moveTo.apply(ts, a, (MoveTo) b);
 						start = m.bookmark();
 					} else {
@@ -821,7 +871,9 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 						else throw new IllegalArgumentException(" unknown subclass ");
 						if (start == null) {
 							start = m.bookmark();
-							ts.beginContour();
+							if (!noContours)
+								ts.beginContour();
+							else ts.begin();
 						}
 
 					}
@@ -830,9 +882,12 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 				MeshBuilder.Bookmark end = m.bookmark();
 
 				if (start != null && start.at() != end.at()) {
-					ts.endContour();
+					if (!noContours)
+						ts.endContour();
+					else ts.end();
 				}
-				ts.end();
+				if (!noContours)
+					ts.end();
 			} finally {
 				m.close();
 			}
@@ -864,7 +919,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 
 		for (Map.Entry ii : auxProperties.entrySet()) {
 
-			// Nashorn's map literals have string keys not integer keys
+			// Surprise! Nashorn's map literals have string keys not integer keys
 
 			Object k = ii.getKey();
 			Integer kv = null;
@@ -939,7 +994,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 			if (value != null && channel > 0) m.aux(channel, value);
 		}
 		Log.log("drawing.trace", () -> "moveTo " + to.to);
-		m.nextVertex(to.to.x, to.to.y, to.to.z);
+		m.v(to.to.x, to.to.y, to.to.z);
 		return to;
 	}
 
@@ -953,7 +1008,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 
 		Log.log("drawing.trace", () -> "lineTo " + to.to);
 
-		m.nextVertex(to.to.x, to.to.y, to.to.z);
+		m.v(to.to.x, to.to.y, to.to.z);
 		return to;
 	}
 
@@ -978,7 +1033,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 					if (r != null && channel > 0) meshBuilder.aux(channel, r);
 				}
 
-				meshBuilder.nextVertex(o.x, o.y, o.z);
+				meshBuilder.v(o.x, o.y, o.z);
 			}
 			return to;
 		};
@@ -1034,6 +1089,16 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 
 	}
 
+	/**
+	 * handy method that sets the z coordinate of all the nodes in this FLine to be the `depth` of this box (or 0)
+	 * @param of
+	 */
+	public void depthTo(Box of)
+	{
+		float d = of.properties.getFloat(depth, 0f);
+		for(Node n : nodes)
+			n.setZ(d);
+	}
 
 	public long getModCount() {
 		return mod;
@@ -1055,12 +1120,12 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 	@Override
 	@HiddenInAutocomplete
 	public boolean asMap_isProperty(String p) {
-		if (Dict.Canonical.findCannon(p) != null) return true;
 
-		if (knownNonProperties == null) knownNonProperties = computeKnownNonProperties();
+		if (knownNonProperties == null)
+			knownNonProperties = computeKnownNonProperties();
 
-		return !knownNonProperties.contains(p);
-
+		if (knownNonProperties.contains(p)) return false;
+		return (Dict.Canonical.findCannon(p) != null);
 	}
 
 	@HiddenInAutocomplete
@@ -1076,6 +1141,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 			r.add(ff.getName());
 		return r;
 	}
+
 
 	@Override
 	@HiddenInAutocomplete
@@ -1104,6 +1170,13 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 		if (value != null && value.getClass().getName().endsWith("ConsString")) value = "" + value;
 
 		Dict.Prop cannon = new Dict.Prop(name).toCannon();
+
+		if (cannon.getAttributes().isTrue(Dict.writeOnly, false))
+			throw new IllegalArgumentException("can't write to property " + name);
+
+		Function<Object, Object> c = cannon.getAttributes().get(Dict.customCaster);
+		if (c != null)
+			value = c.apply(value);
 
 		Object converted = convert(value, cannon.getTypeInformation());
 
@@ -1237,10 +1310,24 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 
 
 		l1.forEach(x -> {
-//			x.rank+=200;
 			if (!x.info.contains("(unset)"))
 				x.rank -= 200;
 		});
+
+		List<Completion> l1b = attributes.getMap().keySet().stream()
+			.filter(x -> x.getName().startsWith(prefix))
+			.map(q -> new Completion(-1, -1, q.getName(), " = <span class='type'>" + Conversions.fold(q.getTypeInformation(), t -> compress(
+				t)) + "</span> " + possibleToString(q) + " &mdash; <span class='doc'>" + format(q.getDocumentation()) + "</span>")).collect(Collectors.toList());
+
+
+		l1b.stream().filter(x -> {
+			x.rank += 100;
+			for (Completion cc : l1) {
+				if (cc.replacewith.equals(x.replacewith))
+					return false;
+			}
+			return true;
+		}).forEach(x -> l1.add(x));
 
 
 		List<Completion> l2 = JavaSupport.javaSupport.getOptionCompletionsFor(this, prefix);
@@ -1280,7 +1367,7 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 	}
 
 
-	public class Node implements Linker.AsMap {
+	public class Node implements fieldlinker.AsMap {
 		public final Vec3 to;
 		public Dict attributes = new Dict();
 		transient protected Set<String> knownNonProperties;
@@ -1497,6 +1584,9 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 			FLine.this.modify();
 		}
 
+		public void setZ(float z) {
+			this.to.z = z;
+		}
 	}
 
 	public class BookmarkCache {
@@ -1601,6 +1691,12 @@ public class FLine implements Supplier<FLine>, Linker.AsMap, HandlesCompletion {
 		@Override
 		public String toString() {
 			return "c[" + c1.x + "," + c1.y + "," + c1.z + ";" + c2.x + "," + c2.y + "," + c2.z + ";" + to.x + "," + to.y + "," + to.z + "]";
+		}
+
+		public void setZ(float z) {
+			this.to.z = z;
+			this.c1.z = z;
+			this.c2.z = z;
 		}
 
 	}

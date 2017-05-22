@@ -3,9 +3,9 @@ package field.graphics;
 import field.linalg.Vec2;
 import field.linalg.Vec3;
 import field.linalg.Vec4;
-import field.utility.Log;
-import field.utility.Pair;
-import field.utility.Util;
+import field.utility.*;
+import fieldlinker.AsMap_callable;
+import fieldnashorn.annotations.HiddenInAutocomplete;
 import org.lwjgl.opengl.GL15;
 
 import java.nio.FloatBuffer;
@@ -16,7 +16,7 @@ import java.util.function.Consumer;
 /**
  * Dynamically create geometry piece by piece in a way that is cacheable and as friendly to contemporary OpenGL as possible.
  */
-public class MeshBuilder implements MeshAcceptor, Bracketable {
+public class MeshBuilder implements MeshAcceptor, Bracketable, Scene.ContainsPerform, AsMap_callable {
 
 	static public int cacheHits = 0;
 	static public int cacheMisses_cursor = 0;
@@ -64,6 +64,30 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 		openCount++;
 		return this;
 	}
+
+	/**
+	 * Call this function, wrapped between an open() and close() pair
+	 */
+	public MeshBuilder asMap_call(Object r, Object o1) {
+
+		Object rr = Conversions.convert(o1, Runnable.class);
+
+		if (rr instanceof Runnable) {
+
+			open();
+			try {
+				((Runnable)rr).run();
+			} finally {
+				close();
+			}
+		}
+		else
+			throw new ClassCastException(" can't call "+o1);
+
+		return this;
+	}
+
+
 
 	/**
 	 * opens a MeshBuilder to get it ready for accepting additional geometry. Make sure that there's a matching close() for every open() (i.e. learn how to use try-with-resources and try-finally
@@ -228,7 +252,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 
 	/**
 	 * Creates a new cache bookmark at this point in the construction of the geometry. You can use a pair of bookmarks at some future recreation of this mesh to ask if a group of calls to
-	 * nextVertex, nextElement, and aux can be skipped completely
+	 * v, e, and aux can be skipped completely
 	 */
 	public Bookmark bookmark() {
 		return new Bookmark();
@@ -236,7 +260,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 
 	/**
 	 * Creates a new cache bookmark at this point in the construction of the geometry. You can use a pair of bookmarks at some future recreation of this mesh to ask if a group of calls to
-	 * nextVertex, nextElement, and aux can be skipped completely.
+	 * v, e, and aux can be skipped completely.
 	 *
 	 * @param absolute, point to a particular vertex
 	 */
@@ -245,7 +269,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	}
 
 	/**
-	 * Can all the calls to nextVertex, nextElement and aux, between these two bookmarks be skipped? Returns true if we have skipped forward, false otherwise.
+	 * Can all the calls to v, e and aux, between these two bookmarks be skipped? Returns true if we have skipped forward, false otherwise.
 	 */
 	public boolean skipTo(Bookmark from, Bookmark to) {
 		if (!from.stillValid() || from.getOuter() != this) return false;
@@ -255,7 +279,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	}
 
 	/**
-	 * Can all the calls to nextVertex, nextElement and aux, between these two bookmarks be skipped? Returns true if we have skipped forward, false otherwise. Bookmarks can be unskippable because
+	 * Can all the calls to v, e and aux, between these two bookmarks be skipped? Returns true if we have skipped forward, false otherwise. Bookmarks can be unskippable because
 	 * externalHashes have changed, because internalHashes have changed (for example an aux channgel has been added) or because the geometry layout has changed (the number of vertices or elements
 	 * added up to this point is different).
 	 * <p>
@@ -276,7 +300,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	}
 
 	/**
-	 * Can all the calls to nextVertex, nextElement and aux, between these two bookmarks be skipped? Returns true if we have skipped forward, false otherwise.
+	 * Can all the calls to v, e and aux, between these two bookmarks be skipped? Returns true if we have skipped forward, false otherwise.
 	 * <p>
 	 * Equivalent to skipTo(from, to, externalHash, (Consumer<MeshBuilder> x -> updator.run())
 	 */
@@ -284,10 +308,11 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 		return skipTo(from, to, externalHash, x -> updator.run());
 	}
 
+
 	/**
 	 * Adds a vertex to this MeshBuilder
 	 */
-	public MeshBuilder nextVertex(float x, float y, float z) {
+	public MeshBuilder v(float x, float y, float z) {
 		FloatBuffer dest = ensureSize(0, 3, vertexCursor);
 		dest.put(x);
 		dest.put(y);
@@ -302,15 +327,15 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	/**
 	 * Adds a vertex to this MeshBuilder
 	 */
-	public MeshBuilder nextVertex(Vec3 a) {
-		return nextVertex((float) a.x, (float) a.y, (float) a.z);
+	public MeshBuilder v(Vec3 a) {
+		return v((float) a.x, (float) a.y, (float) a.z);
 	}
 
 	/**
 	 * Adds a vertex to this MeshBuilder
 	 */
-	public MeshBuilder nextVertex(Vec2 a) {
-		return nextVertex((float) a.x, (float) a.y, 0);
+	public MeshBuilder v(Vec2 a) {
+		return v((float) a.x, (float) a.y, 0);
 	}
 
 
@@ -318,9 +343,9 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	 * Adds a element of type "line with adjacency" to this MeshBuilder. Line with adjancey is an OpenGL element that is a line segment with two other associated vertices (typically the previous
 	 * and next vertices, but shaders are free to interpret these however they'd like to)
 	 * <p>
-	 * (vertex numbers are backwards from the current vertex, so vertex 0 is the most recent call to nextVertex, 1 is the vertex before that and so on)
+	 * (vertex numbers are backwards from the current vertex, so vertex 0 is the most recent call to v, 1 is the vertex before that and so on)
 	 */
-	public MeshBuilder nextElement(int v1, int v2, int v3, int v4) {
+	public MeshBuilder e(int v1, int v2, int v3, int v4) {
 		IntBuffer dest = ensureElementSize(4, elementCursor);
 		if (vertexCursor - 1 - v1 < 0)
 			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with start " + v1 + " > " + (vertexCursor - 1));
@@ -342,9 +367,9 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	/**
 	 * Adds two triangles that mark out the quad v1,v2,v3,v4. Specifically v1,v2,v3 and v1,v3,v4.
 	 * <p>
-	 * (vertex numbers are backwards from the current vertex, so vertex 0 is the most recent call to nextVertex, 1 is the vertex before that and so on)
+	 * (vertex numbers are backwards from the current vertex, so vertex 0 is the most recent call to v, 1 is the vertex before that and so on)
 	 */
-	public MeshBuilder nextElement_quad(int v1, int v2, int v3, int v4) {
+	public MeshBuilder e_quad(int v1, int v2, int v3, int v4) {
 		IntBuffer dest = ensureElementSize(3, elementCursor + 1);
 		if (vertexCursor - 1 - v1 < 0)
 			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with start " + v1 + " > " + (vertexCursor - 1));
@@ -371,10 +396,9 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	/**
 	 * Adds the triangle v1,v2,v3.
 	 * <p>
-	 * vertex numbers are backwards from the current vertex, so vertex 0 is the most recent call to nextVertex, 1 is the vertex before that and so on
+	 * vertex numbers are backwards from the current vertex, so vertex 0 is the most recent call to v, 1 is the vertex before that and so on
 	 */
-	public MeshBuilder nextElement(int v1, int v2, int v3) {
-
+	public MeshBuilder e(int v1, int v2, int v3) {
 
 		IntBuffer dest = ensureElementSize(3, elementCursor);
 		if (vertexCursor - 1 - v1 < 0)
@@ -395,9 +419,9 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	/**
 	 * Adds the line segment v1, v2.
 	 * <p>
-	 * vertex numbers are backwards from the current vertex, so vertex 0 is the most recent call to nextVertex, 1 is the vertex before that and so on
+	 * vertex numbers are backwards from the current vertex, so vertex 0 is the most recent call to v, 1 is the vertex before that and so on
 	 */
-	public MeshBuilder nextElement(int v1, int v2) {
+	public MeshBuilder e(int v1, int v2) {
 		IntBuffer dest = ensureElementSize(2, elementCursor);
 		if (vertexCursor - 1 - v1 < 0)
 			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with start " + v1 + " > " + (vertexCursor - 1));
@@ -414,9 +438,9 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	/**
 	 * Adds a string of line segments stretching from start all the way through to end.
 	 * <p>
-	 * vertex numbers are backwards from the current vertex, so vertex 0 is the most recent call to nextVertex, 1 is the vertex before that and so on
+	 * vertex numbers are backwards from the current vertex, so vertex 0 is the most recent call to v, 1 is the vertex before that and so on
 	 */
-	public MeshBuilder nextLine(int start, int end) {
+	public MeshBuilder line(int start, int end) {
 		IntBuffer dest = ensureElementSize(2, elementCursor + Math.abs(start - end));
 		if (start < 0)
 			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access an unwritten index with start " + start);
@@ -452,20 +476,21 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	/**
 	 * Adds a string of line segments corresponding to the Vec3's in this List. (note, nothing will happen if line.size()<=1
 	 */
-	public MeshBuilder nextLine(List<Vec3> line) {
+	public MeshBuilder line(List<Vec3> line) {
 		if (line.size() <= 1) return this;
 
 		for (int i = 0; i < line.size(); i++) {
-			nextVertex(line.get(i));
+			v(line.get(i));
 		}
-		nextLine(0, line.size() - 1);
+		line(0, line.size() - 1);
 		return this;
 	}
 
 	/**
-	 * Adds a contour, via the tesselator, to a triangle mesh. Like the rest of the public api, toTesselate refers to vertex indices by starting at '0' (the most recently added via nextVertex(...)) and the '1' (the one added before that) etc..
+	 * Adds a contour, via the tesselator, to a triangle mesh. Like the rest of the public api, toTesselate refers to vertex indices by starting at '0' (the most recently added via v(...)) and the '1' (the one added before that) etc..
 	 */
-	public MeshBuilder nextElement(List<Integer> toTesselate) {
+	public MeshBuilder e(List<Integer> toTesselate) {
+
 
 		ArrayList<Integer> abs = new ArrayList<Integer>(toTesselate.size());
 		for (int i = 0; i < toTesselate.size(); i++)
@@ -515,7 +540,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	/**
 	 * Adds a set of contours described by a list of lists of Vec3. These lists are tesselated into triangles by the GLU_TESS_WINDING_NONZERO tesselation rule
 	 */
-	public MeshBuilder nextContourSet(List<List<Vec3>> contours) {
+	public MeshBuilder contours(List<List<Vec3>> contours) {
 		MeshBuilder_tesselationSupport tess = getTessSupport();
 		tess.begin();
 		for (List<Vec3> c : contours) {
@@ -532,7 +557,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	/**
 	 * Adds a contours described by list of Vec3. This list is tesselated into triangles by the GLU_TESS_WINDING_NONZERO tesselation rule
 	 */
-	public MeshBuilder nextContour(List<Vec3> contours) {
+	public MeshBuilder contour(List<Vec3> contours) {
 		MeshBuilder_tesselationSupport tess = getTessSupport();
 		tess.begin();
 		tess.beginContour();
@@ -542,6 +567,83 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 		tess.endContour();
 		tess.end();
 		return this;
+	}
+
+	public MeshBuilder addMesh(List<Vec3> vertex, List<int[]> faces) {
+		int here = vertexCursor;
+		vertex.forEach(x -> v(x));
+
+		if (target.elements == null) {
+			return this;
+		}
+
+		if (target.elements.getDimension() == 2) {
+			int origin = vertexCursor - here;
+
+			for (int[] f : faces) {
+				for (int i = 0; i < f.length; i++) {
+					int a = f[i];
+					int b = f[(i + 1) % f.length];
+
+					b = origin - b;
+					a = origin - a;
+
+					e(a, b);
+				}
+			}
+			return this;
+		}
+
+		if (target.elements.getDimension() == 4) {
+			int origin = vertexCursor - here;
+
+			for (int[] f : faces) {
+				for (int i = 0; i < f.length; i++) {
+					int a0 = f[(i-1+f.length)%f.length];
+					int a = f[i];
+					int b = f[(i + 1) % f.length];
+					int b0 = f[(i + 2) % f.length];
+
+					b0 = origin - b0;
+					a0 = origin - a0;
+					b = origin - b;
+					a = origin - a;
+
+					e(a0, a, b, b0);
+				}
+			}
+			return this;
+		}
+
+		if (target.elements.getDimension() == 3) {
+
+			int origin = vertexCursor - here;
+			for (int[] f : faces) {
+
+				if (f.length==3)
+				{
+					e(origin-f[0], origin-f[1], origin-f[2]);
+					continue;
+				}
+				if (f.length==4)
+				{
+					e(origin-f[0], origin-f[1], origin-f[2]);
+					e(origin-f[0], origin-f[2], origin-f[3]);
+					continue;
+				}
+				if (f.length<3)
+					continue;
+
+				List<Integer> ee = new ArrayList<>(f.length);
+				for(int ff : f)
+					ee.add(origin-ff);
+				e(ee);
+			}
+			return this;
+		}
+
+		throw new IllegalArgumentException(" addMesh not supported for element dimension "+target.elements.getDimension());
+
 	}
 
 	/**
@@ -605,12 +707,12 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	}
 
 	/**
-	 * vertex numbers are backwards from the current vertex, so vertex 0 is the most recent call to nextVertex, 1 is the vertex before that and so on
+	 * vertex numbers are backwards from the current vertex, so vertex 0 is the most recent call to v, 1 is the vertex before that and so on
 	 * <p>
-	 * equivalent to nextLine(start, 0), e.g. nextLine from 'start' to here
+	 * equivalent to line(start, 0), e.g. line from 'start' to here
 	 */
-	public MeshBuilder nextLine(int start) {
-		return nextLine(start, 0);
+	public MeshBuilder line(int start) {
+		return line(start, 0);
 	}
 
 	/**
@@ -703,6 +805,13 @@ public class MeshBuilder implements MeshAcceptor, Bracketable {
 	public BaseMesh getTarget() {
 		return target;
 	}
+
+	@Override
+	@HiddenInAutocomplete
+	public Scene.Perform getPerform() {
+		return getTarget();
+	}
+
 
 	public class Bookmark {
 		public Object externalHash;

@@ -2,7 +2,7 @@ root=`dirname $0`
 cd $root
 
 echo -- using javac from : --
-echo `which javac` => `javac -fullversion`
+echo `which javac` / `javac -fullversion`
 echo --
 
 

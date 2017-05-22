@@ -91,7 +91,7 @@ public class TernSupport {
 		}).start();
 	}
 
-	public List<Completion> completion(ScriptEngine engine, String boxName, String allText, int line, int ch) {
+	public List<Completion> completion(ScriptEngine engine, String boxName, String allText, int line, int ch, boolean explicitlyRequested) {
 
 		List<Completion> r = new ArrayList<>();
 
@@ -153,8 +153,7 @@ public class TernSupport {
 				String s = allText.substring(ret[0], ret[1]);
 
 
-				if (s.trim()
-					.startsWith("\"")) {
+				if (s.trim().startsWith("\"")) {
 					// we have quote completion, do that instead
 
 					String quoteSoFar = s.trim()
@@ -171,26 +170,29 @@ public class TernSupport {
 						String previousS = allText.substring(previously[0], previously[1]);
 
 
-						Object e = engine.eval("_e=eval('" + previousS.replace("'", "\\'") + "')");
-						Log.log("completion.debug", () -> "PREVIOUS e is :" + e + " " + e.getClass() + " computed prefix from <" + s + "> <" + s.lastIndexOf('.') + ">");
+						if (explicitlyRequested) {
+							Object e = engine.eval("_e=eval('" + previousS.replace("'", "\\'") + "')");
+							Log.log("completion.debug", () -> "PREVIOUS e is :" + e + " " + e.getClass() + " computed prefix from <" + s + "> <" + s.lastIndexOf('.') + ">");
 
 
-						if (e instanceof HandlesQuoteCompletion) {
-							r.clear();
-							List<Completion> completions = ((HandlesQuoteCompletion) e).getQuoteCompletionsFor(quoteSoFar);
-							for (Completion x : completions) {
-								if (x.start == -1) x.start = c - quoteSoFar.length();
-								if (x.end == -1) x.end = c;
+							if (e instanceof HandlesQuoteCompletion) {
+								r.clear();
+								List<Completion> completions = ((HandlesQuoteCompletion) e).getQuoteCompletionsFor(quoteSoFar);
+								for (Completion x : completions) {
+									if (x.start == -1)
+										x.start = c - quoteSoFar.length();
+									if (x.end == -1) x.end = c;
+								}
+								r.addAll(completions);
+								Collections.sort(r, (a, b) -> {
+									if (a.rank != b.rank)
+										return Double.compare(a.rank, b.rank);
+									if (a.replacewith.length() != b.replacewith.length())
+										return Double.compare(a.replacewith.length(), b.replacewith.length());
+									return String.CASE_INSENSITIVE_ORDER.compare(a.replacewith, b.replacewith);
+								});
+								customCompleted = true;
 							}
-							r.addAll(completions);
-							Collections.sort(r, (a, b) -> {
-								if (a.rank != b.rank)
-									return Double.compare(a.rank, b.rank);
-								if (a.replacewith.length() != b.replacewith.length())
-									return Double.compare(a.replacewith.length(), b.replacewith.length());
-								return String.CASE_INSENSITIVE_ORDER.compare(a.replacewith, b.replacewith);
-							});
-							customCompleted = true;
 						}
 					} catch (Throwable t) {
 						Log.log("completion.error", () -> "quote completion threw an exception, but we'll continue on anyway");
@@ -221,8 +223,7 @@ public class TernSupport {
 				if (s.lastIndexOf('.') != -1) {
 					left = s.substring(0, s.lastIndexOf('.'));
 					right = s.substring(s.lastIndexOf('.') + 1);
-				}
-				else {
+				} else {
 					Object directlyBound = engine.get(left);
 					if (directlyBound != null && !directlyBound.getClass().getName().toLowerCase().endsWith("staticclass")) {
 						Completion direct = new Completion(-1, -1, left + " = " + directlyBound, "<span class=type>" + (directlyBound.getClass().getName()) + "</span><span class=doc> value from this box</span>");
@@ -230,11 +231,12 @@ public class TernSupport {
 						r.add(direct);
 					}
 				}
-				if (right.trim().length()==0 && !s.trim().endsWith("."))
-				{
-					// don't execute something just becuase it's a complete expression
-				}
-				else {
+//				if (right.trim().length()==0 && !s.trim().endsWith("."))
+//				{
+//					// don't execute something just because it's a complete expression
+//				}
+//				else
+				if (explicitlyRequested || left.indexOf("(") == -1) {
 
 					Object e = engine.eval("_e=eval('" + left.replace("'", "\\'") + "')");
 					final Object finalE = e;
@@ -272,6 +274,10 @@ public class TernSupport {
 						for (Completion x : fromJava) {
 							if (x.start == -1) x.start = c - right.length();
 							if (x.end == -1) x.end = c;
+
+							if (x.replacewith.toLowerCase().equals(left.toLowerCase())) {
+								x.start -= left.length();
+							}
 						}
 
 						r.addAll(fromJava);
@@ -295,7 +301,7 @@ public class TernSupport {
 				t.printStackTrace();
 			}
 		} catch (ScriptException e) {
-			e.printStackTrace();
+			Log.log("completion.errors", () -> "Completion throw an exception "+e.getMessage());
 		}
 		Collections.sort(r, (a, b) -> {
 			return String.CASE_INSENSITIVE_ORDER.compare(a.replacewith, b.replacewith);
@@ -322,12 +328,11 @@ public class TernSupport {
 		}
 
 		Collections.sort(r, (a, b) -> {
-			if (a.rank != b.rank) return Double.compare(a.rank, b.rank);
+			if (a.rank != b.rank) return -Double.compare(a.rank, b.rank);
 			if (a.replacewith.length() != b.replacewith.length())
 				return Double.compare(a.replacewith.length(), b.replacewith.length());
 			return String.CASE_INSENSITIVE_ORDER.compare(a.replacewith, b.replacewith);
 		});
-
 
 		return r;
 	}
@@ -335,14 +340,17 @@ public class TernSupport {
 	private List<Completion> getQuoteCompletionsForFileSystems(String name) {
 		File f;
 		File[] ff;
+		if (name.equals("")) name =".";
+
 		if (new File(name).exists()) {
 			f = new File(name);
 			ff = f.listFiles(x -> true);
 		} else {
 			f = new File(name).getParentFile();
+			String finalName = name;
 			ff = f.listFiles(x -> x.getName()
 				.toLowerCase()
-				.startsWith(new File(name).getName()
+				.startsWith(new File(finalName).getName()
 					.toString()
 					.toLowerCase()));
 		}

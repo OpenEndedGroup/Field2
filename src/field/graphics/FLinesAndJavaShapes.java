@@ -16,6 +16,7 @@ import java.awt.*;
 import java.awt.geom.*;
 import java.util.*;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -39,7 +40,7 @@ public class FLinesAndJavaShapes {
 	//         point = (x + v0 * w + v1 * arcWidth,
 	//                  y + v2 * h + v3 * arcHeight);
 	private static double ctrlpts[][]
-		    = {{0.0, 0.0, 0.0, 0.5}, {0.0, 0.0, 1.0, -0.5}, {0.0, 0.0, 1.0, -acv, 0.0, acv, 1.0, 0.0, 0.0, 0.5, 1.0, 0.0}, {1.0, -0.5, 1.0, 0.0}, {1.0, -acv, 1.0, 0.0, 1.0, 0.0, 1.0, -acv, 1.0, 0.0, 1.0, -0.5}, {1.0, 0.0, 0.0, 0.5}, {1.0, 0.0, 0.0, acv, 1.0, -acv, 0.0, 0.0, 1.0, -0.5, 0.0, 0.0}, {0.0, 0.5, 0.0, 0.0}, {0.0, acv, 0.0, 0.0, 0.0, 0.0, 0.0, acv, 0.0, 0.0, 0.0, 0.5}, {},};
+		= {{0.0, 0.0, 0.0, 0.5}, {0.0, 0.0, 1.0, -0.5}, {0.0, 0.0, 1.0, -acv, 0.0, acv, 1.0, 0.0, 0.0, 0.5, 1.0, 0.0}, {1.0, -0.5, 1.0, 0.0}, {1.0, -acv, 1.0, 0.0, 1.0, 0.0, 1.0, -acv, 1.0, 0.0, 1.0, -0.5}, {1.0, 0.0, 0.0, 0.5}, {1.0, 0.0, 0.0, acv, 1.0, -acv, 0.0, 0.0, 1.0, -0.5, 0.0, 0.0}, {0.0, 0.5, 0.0, 0.0}, {0.0, acv, 0.0, 0.0, 0.0, 0.0, 0.0, acv, 0.0, 0.0, 0.0, 0.5}, {},};
 
 	static public Shape flineToJavaShape(FLine f) {
 
@@ -56,22 +57,21 @@ public class FLinesAndJavaShapes {
 	}
 
 
-
 	private static GeneralPath _flineToJavaShape(FLine f) {
 		GeneralPath p = new GeneralPath();
 
 		for (FLine.Node n : f.nodes) {
 			if (n instanceof FLine.MoveTo) p.moveTo(n.to.x, n.to.y);
 			else if (n instanceof FLine.LineTo) p.lineTo(n.to.x, n.to.y);
-			else if (n instanceof FLine.CubicTo) p.curveTo(((FLine.CubicTo) n).c1.x, ((FLine.CubicTo) n).c1.y, ((FLine.CubicTo) n).c2.x, ((FLine.CubicTo) n).c2.y, n.to.x, n.to.y);
+			else if (n instanceof FLine.CubicTo)
+				p.curveTo(((FLine.CubicTo) n).c1.x, ((FLine.CubicTo) n).c1.y, ((FLine.CubicTo) n).c2.x, ((FLine.CubicTo) n).c2.y, n.to.x, n.to.y);
 
 		}
 		return p;
 
 	}
 
-	static public Shape flineToJavaShape(Collection<FLine> f)
-	{
+	static public Shape flineToJavaShape(Collection<FLine> f) {
 		GeneralPath p = new GeneralPath();
 
 
@@ -247,11 +247,11 @@ public class FLinesAndJavaShapes {
 	}
 
 	static public FLine javaShapeToFLine(Shape f) {
-		return javaShapeToFLine(f, AffineTransform.getTranslateInstance(0,0));
+		return javaShapeToFLine(f, AffineTransform.getTranslateInstance(0, 0));
 	}
 
 	static public FLine javaShapeToFLineFlat(Shape f, double tol, int levels) {
-		PathIterator pi = f.getPathIterator(AffineTransform.getTranslateInstance(0,0));
+		PathIterator pi = f.getPathIterator(AffineTransform.getTranslateInstance(0, 0));
 		pi = new FlatteningPathIterator(pi, tol, levels);
 		float[] cc = new float[6];
 		Vec2 lastAt = null;
@@ -261,24 +261,28 @@ public class FLinesAndJavaShapes {
 		while (!pi.isDone()) {
 			int ty = pi.currentSegment(cc);
 			if (ty == PathIterator.SEG_CLOSE) {
-				if (lastMoveTo != null && lastAt.distance(lastMoveTo) > 1e-6) in.lineTo(lastMoveTo.x, lastMoveTo.y);
+				if (lastMoveTo != null && lastAt.distance(lastMoveTo) > 1e-6)
+					in.lineTo(lastMoveTo.x, lastMoveTo.y);
 				lastAt = null;
 			} else if (ty == PathIterator.SEG_CUBICTO) {
-				if (lastAt == null || (Math.abs(lastAt.x - cc[4]) + Math.abs(lastAt.y - cc[5]) > 1e-15)) in.cubicTo(cc[0], cc[1], cc[2], cc[3], cc[4], cc[5]);
+				if (lastAt == null || (Math.abs(lastAt.x - cc[4]) + Math.abs(lastAt.y - cc[5]) > 1e-15))
+					in.cubicTo(cc[0], cc[1], cc[2], cc[3], cc[4], cc[5]);
 				if (lastAt == null) lastAt = new Vec2(cc[4], cc[5]);
 				else {
 					lastAt.x = cc[4];
 					lastAt.y = cc[5];
 				}
 			} else if (ty == PathIterator.SEG_LINETO) {
-				if (lastAt == null || (Math.abs(lastAt.x - cc[0]) + Math.abs(lastAt.y - cc[1]) > 1e-15)) in.lineTo(cc[0], cc[1]);
+				if (lastAt == null || (Math.abs(lastAt.x - cc[0]) + Math.abs(lastAt.y - cc[1]) > 1e-15))
+					in.lineTo(cc[0], cc[1]);
 				if (lastAt == null) lastAt = new Vec2(cc[0], cc[1]);
 				else {
 					lastAt.x = cc[0];
 					lastAt.y = cc[1];
 				}
 			} else if (ty == PathIterator.SEG_MOVETO) {
-				if (lastAt == null || (Math.abs(lastAt.x - cc[0]) + Math.abs(lastAt.y - cc[1]) > 1e-15)) in.moveTo(cc[0], cc[1]);
+				if (lastAt == null || (Math.abs(lastAt.x - cc[0]) + Math.abs(lastAt.y - cc[1]) > 1e-15))
+					in.moveTo(cc[0], cc[1]);
 
 				lastMoveTo = new Vec2(cc[0], cc[1]);
 
@@ -290,7 +294,7 @@ public class FLinesAndJavaShapes {
 			} else if (ty == PathIterator.SEG_QUADTO) {
 				if (lastAt == null || (Math.abs(lastAt.x - cc[2]) + Math.abs(lastAt.y - cc[3]) > 1e-15))
 					in.cubicTo((cc[0] - lastAt.x) * (2 / 3f) + lastAt.x, (cc[1] - lastAt.y) * (2 / 3f) + lastAt.y, (cc[0] - cc[2]) * (2 / 3f) + cc[2],
-							(cc[1] - cc[3]) * (2 / 3f) + cc[3], cc[2], cc[3]);
+						(cc[1] - cc[3]) * (2 / 3f) + cc[3], cc[2], cc[3]);
 
 				if (lastAt == null) lastAt = new Vec2(cc[2], cc[3]);
 				else {
@@ -317,24 +321,28 @@ public class FLinesAndJavaShapes {
 		while (!pi.isDone()) {
 			int ty = pi.currentSegment(cc);
 			if (ty == PathIterator.SEG_CLOSE) {
-				if (lastMoveTo != null && lastAt.distance(lastMoveTo) > 1e-6) in.lineTo(lastMoveTo.x, lastMoveTo.y);
+				if (lastMoveTo != null && lastAt.distance(lastMoveTo) > 1e-6)
+					in.lineTo(lastMoveTo.x, lastMoveTo.y);
 				lastAt = null;
 			} else if (ty == PathIterator.SEG_CUBICTO) {
-				if (lastAt == null || (Math.abs(lastAt.x - cc[4]) + Math.abs(lastAt.y - cc[5]) > 1e-15)) in.cubicTo(cc[0], cc[1], cc[2], cc[3], cc[4], cc[5]);
+				if (lastAt == null || (Math.abs(lastAt.x - cc[4]) + Math.abs(lastAt.y - cc[5]) > 1e-15))
+					in.cubicTo(cc[0], cc[1], cc[2], cc[3], cc[4], cc[5]);
 				if (lastAt == null) lastAt = new Vec2(cc[4], cc[5]);
 				else {
 					lastAt.x = cc[4];
 					lastAt.y = cc[5];
 				}
 			} else if (ty == PathIterator.SEG_LINETO) {
-				if (lastAt == null || (Math.abs(lastAt.x - cc[0]) + Math.abs(lastAt.y - cc[1]) > 1e-15)) in.lineTo(cc[0], cc[1]);
+				if (lastAt == null || (Math.abs(lastAt.x - cc[0]) + Math.abs(lastAt.y - cc[1]) > 1e-15))
+					in.lineTo(cc[0], cc[1]);
 				if (lastAt == null) lastAt = new Vec2(cc[0], cc[1]);
 				else {
 					lastAt.x = cc[0];
 					lastAt.y = cc[1];
 				}
 			} else if (ty == PathIterator.SEG_MOVETO) {
-				if (lastAt == null || (Math.abs(lastAt.x - cc[0]) + Math.abs(lastAt.y - cc[1]) > 1e-15)) in.moveTo(cc[0], cc[1]);
+				if (lastAt == null || (Math.abs(lastAt.x - cc[0]) + Math.abs(lastAt.y - cc[1]) > 1e-15))
+					in.moveTo(cc[0], cc[1]);
 
 				lastMoveTo = new Vec2(cc[0], cc[1]);
 
@@ -346,7 +354,7 @@ public class FLinesAndJavaShapes {
 			} else if (ty == PathIterator.SEG_QUADTO) {
 				if (lastAt == null || (Math.abs(lastAt.x - cc[2]) + Math.abs(lastAt.y - cc[3]) > 1e-15))
 					in.cubicTo((cc[0] - lastAt.x) * (2 / 3f) + lastAt.x, (cc[1] - lastAt.y) * (2 / 3f) + lastAt.y, (cc[0] - cc[2]) * (2 / 3f) + cc[2],
-						   (cc[1] - cc[3]) * (2 / 3f) + cc[3], cc[2], cc[3]);
+						(cc[1] - cc[3]) * (2 / 3f) + cc[3], cc[2], cc[3]);
 
 				if (lastAt == null) lastAt = new Vec2(cc[2], cc[3]);
 				else {
@@ -363,8 +371,60 @@ public class FLinesAndJavaShapes {
 		return in;
 	}
 
+	static public FLine javaShapeToFLine(Shape f, FLine copyDepthFrom, AffineTransform at) {
+		FLine s1 = javaShapeToFLine(f, at);
+		copyDepthFrom(s1, n -> {
+			float d = Float.POSITIVE_INFINITY;
+			float z = 0;
+			for (FLine.Node n2 : copyDepthFrom.nodes) {
+				{
+					float dd = (float) ((n2.to.x - n.x) * (n2.to.x - n.x) + (n2.to.y - n.y) * (n2.to.y - n.y));
+					if (dd < d) {
+						d = dd;
+						z = (float) n2.to.z;
+					}
+				}
+				if (n2 instanceof FLine.CubicTo) {
+					{
+						float dd = (float) ((((FLine.CubicTo) n2).c1.x - n.x) * (((FLine.CubicTo) n2).c1.x - n.x) + (((FLine.CubicTo) n2).c1.y - n.y) * (((FLine.CubicTo) n2).c1.y - n.y));
+						if (dd < d) {
+							d = dd;
+							z = (float) ((FLine.CubicTo) n2).c1.z;
+						}
+					}
+					{
+						float dd = (float) ((((FLine.CubicTo) n2).c2.x - n.x) * (((FLine.CubicTo) n2).c2.x - n.x) + (((FLine.CubicTo) n2).c2.y - n.y) * (((FLine.CubicTo) n2).c2.y - n.y));
+						if (dd < d) {
+							d = dd;
+							z = (float) ((FLine.CubicTo) n2).c2.z;
+						}
+
+					}
+				}
+			}
+			return z;
+		});
+		return s1;
+	}
+
+	private static void copyDepthFrom(FLine s1, Function<Vec2, Float> close) {
+		for (FLine.Node n : s1.nodes) {
+
+			float z = close.apply(n.to.toVec2());
+			n.to.z = z;
+			if (n instanceof FLine.CubicTo) {
+				z = close.apply(((FLine.CubicTo) n).c1.toVec2());
+				((FLine.CubicTo) n).c1.z = z;
+				z = close.apply(((FLine.CubicTo) n).c2.toVec2());
+				((FLine.CubicTo) n).c2.z = z;
+			}
+
+		}
+		s1.modify();
+	}
+
 	static public FLine insetShape(FLine f, float amount) {
-		Shape s = flineToJavaShape(f);
+		Shape s = flineToJavaShape_notThickened(f);
 		Shape ss = new BasicStroke(amount, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND).createStrokedShape(s);
 
 		Area sa = new Area(s);
@@ -373,15 +433,23 @@ public class FLinesAndJavaShapes {
 		return javaShapeToFLine(sa);
 	}
 
-	static public List<Vec3> samplePoints(FLine f, float distance)
-	{
+	static public Shape outsetShape(FLine f, float amount) {
+		Shape s = flineToJavaShape_notThickened(f);
+		Shape ss = new BasicStroke(amount, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND).createStrokedShape(s);
+
+		Area sa = new Area(s);
+		Area ssa = new Area(ss);
+		sa.add(ssa);
+		return sa;
+	}
+
+	static public List<Vec3> samplePoints(FLine f, float distance) {
 		Cursor cc = f.cursor();
 		ArrayList<Vec3> r = new ArrayList<>();
 		double D = 0;
-		while(D<cc.lengthD())
-		{
+		while (D < cc.lengthD()) {
 			r.add(cc.position());
-			cc.setD(D+=distance);
+			cc.setD(D += distance);
 		}
 		return r;
 	}
@@ -390,16 +458,16 @@ public class FLinesAndJavaShapes {
 		into.moveTo(x + ctrlpts[0][0] * w + ctrlpts[0][1] * r, y + ctrlpts[0][2] * h + ctrlpts[0][3] * r);
 		into.lineTo(x + ctrlpts[1][0] * w + ctrlpts[1][1] * r, y + ctrlpts[1][2] * h + ctrlpts[1][3] * r);
 		into.cubicTo(x + ctrlpts[2][0] * w + ctrlpts[2][1] * r, y + ctrlpts[2][2] * h + ctrlpts[2][3] * r, x + ctrlpts[2][4] * w + ctrlpts[2][5] * r, y + ctrlpts[2][6] * h + ctrlpts[2][7] * r,
-			     x + ctrlpts[2][8] * w + ctrlpts[2][9] * r, y + ctrlpts[2][10] * h + ctrlpts[2][11] * r);
+			x + ctrlpts[2][8] * w + ctrlpts[2][9] * r, y + ctrlpts[2][10] * h + ctrlpts[2][11] * r);
 		into.lineTo(x + ctrlpts[3][0] * w + ctrlpts[3][1] * r, y + ctrlpts[3][2] * h + ctrlpts[3][3] * r);
 		into.cubicTo(x + ctrlpts[4][0] * w + ctrlpts[4][1] * r, y + ctrlpts[4][2] * h + ctrlpts[4][3] * r, x + ctrlpts[4][4] * w + ctrlpts[4][5] * r, y + ctrlpts[4][6] * h + ctrlpts[4][7] * r,
-			     x + ctrlpts[4][8] * w + ctrlpts[4][9] * r, y + ctrlpts[4][10] * h + ctrlpts[4][11] * r);
+			x + ctrlpts[4][8] * w + ctrlpts[4][9] * r, y + ctrlpts[4][10] * h + ctrlpts[4][11] * r);
 		into.lineTo(x + ctrlpts[5][0] * w + ctrlpts[5][1] * r, y + ctrlpts[5][2] * h + ctrlpts[5][3] * r);
 		into.cubicTo(x + ctrlpts[6][0] * w + ctrlpts[6][1] * r, y + ctrlpts[6][2] * h + ctrlpts[6][3] * r, x + ctrlpts[6][4] * w + ctrlpts[6][5] * r, y + ctrlpts[6][6] * h + ctrlpts[6][7] * r,
-			     x + ctrlpts[6][8] * w + ctrlpts[6][9] * r, y + ctrlpts[6][10] * h + ctrlpts[6][11] * r);
+			x + ctrlpts[6][8] * w + ctrlpts[6][9] * r, y + ctrlpts[6][10] * h + ctrlpts[6][11] * r);
 		into.lineTo(x + ctrlpts[7][0] * w + ctrlpts[7][1] * r, y + ctrlpts[7][2] * h + ctrlpts[7][3] * r);
 		into.cubicTo(x + ctrlpts[8][0] * w + ctrlpts[8][1] * r, y + ctrlpts[8][2] * h + ctrlpts[8][3] * r, x + ctrlpts[8][4] * w + ctrlpts[8][5] * r, y + ctrlpts[8][6] * h + ctrlpts[8][7] * r,
-			     x + ctrlpts[8][8] * w + ctrlpts[8][9] * r, y + ctrlpts[8][10] * h + ctrlpts[8][11] * r);
+			x + ctrlpts[8][8] * w + ctrlpts[8][9] * r, y + ctrlpts[8][10] * h + ctrlpts[8][11] * r);
 		return into;
 	}
 
@@ -499,18 +567,18 @@ public class FLinesAndJavaShapes {
 	public Supplier<FLine> relativeTo(FLine f, Box box, Vec2 at) {
 
 		Vec2 q = box.properties.get(Box.frame)
-				       .convert(at.x, at.y);
+			.convert(at.x, at.y);
 
 		FLine template = f.byTransforming(x -> new Vec3(x.x - q.x, x.y - q.y, x.z));
 
 		Cached<Box, Vec2, FLine> c = new Cached<>((x, prev) -> {
 			Vec2 p = x.properties.get(Box.frame)
-					     .convert(at.x, at.y);
+				.convert(at.x, at.y);
 
 			return template.byTransforming(m -> new Vec3(m.x + p.x, m.y + p.y, m.z));
 
 		}, x -> x.properties.get(Box.frame)
-				    .convert(at.x, at.y));
+			.convert(at.x, at.y));
 
 
 		return () -> c.apply(box);
@@ -554,14 +622,15 @@ public class FLinesAndJavaShapes {
 	}
 
 	public FLine rail(FLine a, FLine b) {
-		if (a.nodes.size() != b.nodes.size()) throw new IllegalArgumentException(" lines do not have same number of nodes ");
+		if (a.nodes.size() != b.nodes.size())
+			throw new IllegalArgumentException(" lines do not have same number of nodes ");
 
 		FLine out = new FLine();
 
 		for (int i = 1; i < a.nodes.size(); i++) {
 			rail(out, a, i, new FLine().moveTo(a.nodes.get(i).to)
-						   .lineTo(b.nodes.get(i).to), 1, b, i, true, new FLine().moveTo(b.nodes.get(i - 1).to)
-													 .lineTo(a.nodes.get(i - 1).to), 1, false);
+				.lineTo(b.nodes.get(i).to), 1, b, i, true, new FLine().moveTo(b.nodes.get(i - 1).to)
+				.lineTo(a.nodes.get(i - 1).to), 1, false);
 		}
 		return out;
 	}
@@ -576,10 +645,10 @@ public class FLinesAndJavaShapes {
 
 		Cursor controlCusor = new Cursor(control, 0.1f);
 		Quat q2 = new Quat().rotateTo(controlCusor.setT(0)
-							  .tangent(), z);
+			.tangent(), z);
 
 		xy = xy.byTransforming(x -> q2.transform(new Vec3(x))
-					      .add(control.nodes.get(0).to));
+			.add(control.nodes.get(0).to));
 
 //		out.add(xy);
 
@@ -587,12 +656,12 @@ public class FLinesAndJavaShapes {
 			final int fi = i;
 
 			Quat q1 = new Quat().rotateTo(controlCusor.setT(i)
-								  .tangent(), controlCusor.setT(i - 1)
-											  .tangent());
+				.tangent(), controlCusor.setT(i - 1)
+				.tangent());
 
 
 			FLine nxy = xy.byTransforming(x -> q1.transform(new Vec3(x).sub(control.nodes.get(fi - 1).to))
-							     .add(control.nodes.get(fi).to));
+				.add(control.nodes.get(fi).to));
 
 			for (int x = 1; x < nxy.nodes.size(); x++) {
 
@@ -602,7 +671,7 @@ public class FLinesAndJavaShapes {
 				Vec3 e1 = nxy.nodes.get(x - 1).to;
 
 				FLine seg = new FLine().moveTo(control.nodes.get(i - 1).to)
-						       .copyTo(control.nodes.get(i));
+					.copyTo(control.nodes.get(i));
 
 
 				Vec3 s2 = xy.nodes.get(x).to;
@@ -651,10 +720,10 @@ public class FLinesAndJavaShapes {
 	public List<Vec3> positions(FLine f, float flatness) {
 		Cursor c = new Cursor(f, flatness);
 		List<PathFlattener.Mapping> m = c.getPathFlattener()
-						 .getMappings();
+			.getMappings();
 		List<Vec3> o = m.stream()
-				.map(x -> x.start)
-				.collect(Collectors.toList());
+			.map(x -> x.start)
+			.collect(Collectors.toList());
 
 		o.add(m.get(m.size() - 1).end);
 
@@ -699,9 +768,11 @@ public class FLinesAndJavaShapes {
 
 		public Vec3[] next() {
 			try {
-				if (segmentIsCubic()) return new Vec3[]{new Vec3(on.nodes.get(clamp(index)).to), new Vec3(((FLine.CubicTo) on.nodes.get(clamp(index + 1))).c1), new Vec3(
-					    ((FLine.CubicTo) on.nodes.get(clamp(index + 1))).c2), new Vec3(((FLine.CubicTo) on.nodes.get(clamp(index + 1))).to)};
-				else if (segmentIsLinear()) return new Vec3[]{new Vec3(on.nodes.get(clamp(index)).to), new Vec3(on.nodes.get(clamp(index + 1)).to)};
+				if (segmentIsCubic())
+					return new Vec3[]{new Vec3(on.nodes.get(clamp(index)).to), new Vec3(((FLine.CubicTo) on.nodes.get(clamp(index + 1))).c1), new Vec3(
+						((FLine.CubicTo) on.nodes.get(clamp(index + 1))).c2), new Vec3(((FLine.CubicTo) on.nodes.get(clamp(index + 1))).to)};
+				else if (segmentIsLinear())
+					return new Vec3[]{new Vec3(on.nodes.get(clamp(index)).to), new Vec3(on.nodes.get(clamp(index + 1)).to)};
 				else if (segmentIsMove()) return new Vec3[]{new Vec3(on.nodes.get(clamp(index)).to)};
 				else throw new IllegalStateException(" segment not implemented ");
 			} finally {
@@ -721,7 +792,7 @@ public class FLinesAndJavaShapes {
 				return Vec3.lerp(on.nodes.get(clamp(index)).to, on.nodes.get(clamp(index + 1)).to, alpha, null);
 			} else if (segmentIsCubic()) {
 				return evaluateCubicFrame(on.nodes.get(clamp(index)).to, ((FLine.CubicTo) on.nodes.get(clamp(index + 1))).c1, ((FLine.CubicTo) on.nodes.get(clamp(index + 1))).c2,
-							  ((FLine.CubicTo) on.nodes.get(clamp(index + 1))).to, alpha, new Vec3());
+					((FLine.CubicTo) on.nodes.get(clamp(index + 1))).to, alpha, new Vec3());
 			} else throw new IllegalStateException(" segment not implemented ");
 		}
 
@@ -732,7 +803,7 @@ public class FLinesAndJavaShapes {
 				return Vec3.sub(on.nodes.get(clamp(index + 1)).to, on.nodes.get(clamp(index)).to, new Vec3());
 			} else if (segmentIsCubic()) {
 				return evaluateDCubicFrame(on.nodes.get(clamp(index)).to, ((FLine.CubicTo) on.nodes.get(clamp(index + 1))).c1, ((FLine.CubicTo) on.nodes.get(clamp(index + 1))).c2,
-							   ((FLine.CubicTo) on.nodes.get(clamp(index + 1))).to, alpha, new Vec3());
+					((FLine.CubicTo) on.nodes.get(clamp(index + 1))).to, alpha, new Vec3());
 			} else throw new IllegalStateException(" segment not implemented ");
 		}
 
@@ -757,7 +828,7 @@ public class FLinesAndJavaShapes {
 				return new Vec3();
 			} else if (segmentIsCubic()) {
 				return evaluateDDCubicFrame(on.nodes.get(clamp(index)).to, ((FLine.CubicTo) on.nodes.get(clamp(index + 1))).c1, ((FLine.CubicTo) on.nodes.get(clamp(index + 1))).c2,
-							    ((FLine.CubicTo) on.nodes.get(clamp(index + 1))).to, alpha, new Vec3());
+					((FLine.CubicTo) on.nodes.get(clamp(index + 1))).to, alpha, new Vec3());
 			} else throw new IllegalStateException(" segment not implemented ");
 		}
 
@@ -832,13 +903,12 @@ public class FLinesAndJavaShapes {
 		}
 
 
-		public Vec2 normal2()
-		{
+		public Vec2 normal2() {
 			Vec3 t = tangent();
-			Vec2 t2 = t==null ? null : new Vec2(t.y, -t.x);
+			Vec2 t2 = t == null ? null : new Vec2(t.y, -t.x);
 
-			if (t2==null)
-				System.err.println("NORMAL2 failed :"+this.on.nodes+" / "+this.alpha);
+			if (t2 == null)
+				System.err.println("NORMAL2 failed :" + this.on.nodes + " / " + this.alpha);
 
 			return t2;
 		}
@@ -855,7 +925,7 @@ public class FLinesAndJavaShapes {
 
 				CubicSegment3 c = new CubicSegment3(p0, p1, p2, p3);
 				return new Vec3(normal()).normalize()
-							 .mul(c.R(alpha));
+					.mul(c.R(alpha));
 
 			} else return null;
 		}
@@ -885,7 +955,7 @@ public class FLinesAndJavaShapes {
 			if (t1 == null && t2 == null) return null;
 
 			Vec3 t = new Vec3(t1 == null ? t2 : t1).add(t2 == null ? t1 : t2)
-							       .mul(0.5f);
+				.mul(0.5f);
 			return t.isNaN() ? null : t;
 		}
 
@@ -900,7 +970,7 @@ public class FLinesAndJavaShapes {
 			if (t1 == null && t2 == null) return null;
 
 			Vec3 t = new Vec3(t1 == null ? t2 : t1).add(t2 == null ? t1 : t2)
-							       .mul(0.5f);
+				.mul(0.5f);
 			return t.isNaN() ? null : t;
 		}
 
@@ -947,7 +1017,7 @@ public class FLinesAndJavaShapes {
 		 */
 		public List<Double> extremalOuterPoints() {
 			return this.extremalOuterPoints(
-				    p -> Math.signum(p.first.x) != Math.signum(p.second.x) || Math.signum(p.first.y) != Math.signum(p.second.y) || Math.signum(p.first.z) != Math.signum(p.second.z));
+				p -> Math.signum(p.first.x) != Math.signum(p.second.x) || Math.signum(p.first.y) != Math.signum(p.second.y) || Math.signum(p.first.z) != Math.signum(p.second.z));
 		}
 
 		public List<Double> inflectionPointsXY() {
@@ -1190,18 +1260,17 @@ public class FLinesAndJavaShapes {
 
 	}
 
-	static public Vec2 intersectTwoLineSegments(Vec2 l1a, Vec2 l1d, Vec2 l2a, Vec2 l2d)
-	{
-		double c = l1d.x*l2d.y-l1d.y*l2d.x;
+	static public Vec2 intersectTwoLineSegments(Vec2 l1a, Vec2 l1d, Vec2 l2a, Vec2 l2d) {
+		double c = l1d.x * l2d.y - l1d.y * l2d.x;
 
-		if (c==0) return null; // colinear
+		if (c == 0) return null; // colinear
 
 		Vec2 across = new Vec2(l2a).sub(l1a);
 
-		double t = (across.x*l2d.y-across.y*l2d.x)/c;
-		double u = (across.x*l1d.y-across.y*l1d.x)/c;
+		double t = (across.x * l2d.y - across.y * l2d.x) / c;
+		double u = (across.x * l1d.y - across.y * l1d.x) / c;
 
-		if (t<0 || t>1 || u<0 || u>1) return null;
+		if (t < 0 || t > 1 || u < 0 || u > 1) return null;
 
 		return new Vec2(l1a).fma((float) t, l1d);
 
@@ -1231,10 +1300,10 @@ public class FLinesAndJavaShapes {
 		public List<Vec3> intersect(Vec3 x1, Vec3 x2) {
 			CubicSegment3 c2 = rotateToX(x1, x2);
 			return c2.findYZeroRoots()
-				 .stream()
-				 .filter(x -> Math.abs(evaluateCubicFrame(c2.a.z, c2.b.z, c2.c.z, c2.d.z, x).x) < 1e-5)
-				 .map(x -> evaluateCubicFrame(a, b, c, d, x, new Vec3()))
-				 .collect(Collectors.toList());
+				.stream()
+				.filter(x -> Math.abs(evaluateCubicFrame(c2.a.z, c2.b.z, c2.c.z, c2.d.z, x).x) < 1e-5)
+				.map(x -> evaluateCubicFrame(a, b, c, d, x, new Vec3()))
+				.collect(Collectors.toList());
 
 			// filter out things passed the end of x1->x2?
 		}
@@ -1340,12 +1409,12 @@ public class FLinesAndJavaShapes {
 
 						Cuboid bnn = cache.computeIfAbsent(nib, (x) -> nib.boundingBox());
 
-						Log.log("intersection", ()->"checking " + baa + " / " + bnn + "");
+						Log.log("intersection", () -> "checking " + baa + " / " + bnn + "");
 
 
 						if (baa.intersects(bnn)) {
 
-							Log.log("intersection", ()->" -- intersect");
+							Log.log("intersection", () -> " -- intersect");
 
 							if (Math.max(baa.w, baa.h) < sz && Math.max(bnn.w, bnn.h) < sz) {
 								ib.remove();
@@ -1359,7 +1428,7 @@ public class FLinesAndJavaShapes {
 						}
 					}
 
-					Log.log("intersection", ()->"nothing intersects with " + baa);
+					Log.log("intersection", () -> "nothing intersects with " + baa);
 				}
 
 				a.clear();
@@ -1390,7 +1459,7 @@ public class FLinesAndJavaShapes {
 				gen++;
 			}
 
-			if (gen == 20) Log.log("intersection", ()->"warning: bailed");
+			if (gen == 20) Log.log("intersection", () -> "warning: bailed");
 
 			return out;
 
@@ -1416,8 +1485,8 @@ public class FLinesAndJavaShapes {
 			for (int i = 0; i < dd.size(); i++) {
 				for (int j = i + 1; j < dd.size(); j++) {
 					if (Math.abs(dd.get(i)
-						       .doubleValue() - dd.get(j)
-									  .doubleValue()) < 1e-6) {
+						.doubleValue() - dd.get(j)
+						.doubleValue()) < 1e-6) {
 						dd.remove(j);
 						j--;
 					}
@@ -1468,8 +1537,8 @@ public class FLinesAndJavaShapes {
 			for (int i = 0; i < dd.size(); i++) {
 				for (int j = i + 1; j < dd.size(); j++) {
 					if (Math.abs(dd.get(i)
-						       .doubleValue() - dd.get(j)
-									  .doubleValue()) < 1e-6) {
+						.doubleValue() - dd.get(j)
+						.doubleValue()) < 1e-6) {
 						dd.remove(j);
 						j--;
 					}
@@ -1520,8 +1589,8 @@ public class FLinesAndJavaShapes {
 			for (int i = 0; i < dd.size(); i++) {
 				for (int j = i + 1; j < dd.size(); j++) {
 					if (Math.abs(dd.get(i)
-						       .doubleValue() - dd.get(j)
-									  .doubleValue()) < 1e-6) {
+						.doubleValue() - dd.get(j)
+						.doubleValue()) < 1e-6) {
 						dd.remove(j);
 						j--;
 					}
@@ -1572,8 +1641,8 @@ public class FLinesAndJavaShapes {
 			for (int i = 0; i < dd.size(); i++) {
 				for (int j = i + 1; j < dd.size(); j++) {
 					if (Math.abs(dd.get(i)
-						       .doubleValue() - dd.get(j)
-									  .doubleValue()) < 1e-6) {
+						.doubleValue() - dd.get(j)
+						.doubleValue()) < 1e-6) {
 						dd.remove(j);
 						j--;
 					}
@@ -1625,8 +1694,8 @@ public class FLinesAndJavaShapes {
 			for (int i = 0; i < dd.size(); i++) {
 				for (int j = i + 1; j < dd.size(); j++) {
 					if (Math.abs(dd.get(i)
-						       .doubleValue() - dd.get(j)
-									  .doubleValue()) < 1e-6) {
+						.doubleValue() - dd.get(j)
+						.doubleValue()) < 1e-6) {
 						dd.remove(j);
 						j--;
 					}
@@ -1667,14 +1736,14 @@ public class FLinesAndJavaShapes {
 
 			Vec3 a = new Vec3(this.b).sub(this.a);
 			Vec3 b = new Vec3(this.c).fma(this.b, -2)
-						 .add(this.a);
+				.add(this.a);
 			Vec3 c = new Vec3(this.d).fma(this.c, -3)
-						 .fma(this.b, 3)
-						 .fma(this.a, -1);
+				.fma(this.b, 3)
+				.fma(this.a, -1);
 
 			Vec3 D = new Vec3().fma(a, 3)
-					   .fma(b, 6 * alpha)
-					   .fma(c, 3 * alpha * alpha);
+				.fma(b, 6 * alpha)
+				.fma(c, 3 * alpha * alpha);
 
 			return D;
 		}
@@ -1684,13 +1753,13 @@ public class FLinesAndJavaShapes {
 
 			Vec3 a = new Vec3(this.b).sub(this.c);
 			Vec3 b = new Vec3(this.c).fma(this.b, -2)
-						 .add(this.a);
+				.add(this.a);
 			Vec3 c = new Vec3(this.d).fma(this.c, -3)
-						 .fma(this.b, 3)
-						 .fma(this.a, -1);
+				.fma(this.b, 3)
+				.fma(this.a, -1);
 
 			Vec3 DD = new Vec3().fma(b, 6)
-					    .fma(c, 6 * alpha);
+				.fma(c, 6 * alpha);
 
 			return DD;
 		}
@@ -1701,7 +1770,7 @@ public class FLinesAndJavaShapes {
 			Vec3 DD = DD(alpha);
 
 			return Math.pow(D.x * D.x + D.y * D.y + D.z * D.z, 3 / 2f) / Vec3.cross(D, DD, new Vec3())
-											 .length();
+				.length();
 		}
 
 		public List<Double> inflectionPointsXY() {
@@ -1825,9 +1894,9 @@ public class FLinesAndJavaShapes {
 
 			BrentOptimizer o = new BrentOptimizer(1e-4, 1e-4);
 			UnivariatePointValuePair p1 = o.optimize(new UnivariateObjectiveFunction((x) -> evaluateCubicFrame(a, b, c, d, x, new Vec3()).distance(v)),
-								 new SearchInterval(0, 0.5, 0.25), GoalType.MINIMIZE, new MaxEval(200));
+				new SearchInterval(0, 0.5, 0.25), GoalType.MINIMIZE, new MaxEval(200));
 			UnivariatePointValuePair p2 = o.optimize(new UnivariateObjectiveFunction((x) -> evaluateCubicFrame(a, b, c, d, x, new Vec3()).distance(v)),
-								 new SearchInterval(0.5, 1, 0.75), GoalType.MINIMIZE, new MaxEval(200));
+				new SearchInterval(0.5, 1, 0.75), GoalType.MINIMIZE, new MaxEval(200));
 
 			if (p1.getValue() < p2.getValue()) return p1.getPoint();
 			else return p2.getPoint();
@@ -1859,9 +1928,9 @@ public class FLinesAndJavaShapes {
 		public List<Vec2> intersect(Vec2 x1, Vec2 x2) {
 			CubicSegment2 c2 = rotateToX(x1, x2);
 			return c2.findYZeroRoots()
-				 .stream()
-				 .map(x -> evaluateCubicFrame(a, b, c, d, x, new Vec2()))
-				 .collect(Collectors.toList());
+				.stream()
+				.map(x -> evaluateCubicFrame(a, b, c, d, x, new Vec2()))
+				.collect(Collectors.toList());
 
 			// filter out things passed the end of x1->x2?
 		}
@@ -1877,13 +1946,13 @@ public class FLinesAndJavaShapes {
 			x2 = q.transform(x2);
 
 			Vec2 a2 = Vec2.sub(q.transform(a)
-					    , x1, new Vec2());
+				, x1, new Vec2());
 			Vec2 b2 = Vec2.sub(q.transform(b)
-					    , x1, new Vec2());
+				, x1, new Vec2());
 			Vec2 c2 = Vec2.sub(q.transform(c)
-					    , x1, new Vec2());
+				, x1, new Vec2());
 			Vec2 d2 = Vec2.sub(q.transform(d)
-					    , x1, new Vec2());
+				, x1, new Vec2());
 			return new CubicSegment2(a2, b2, c2, d2);
 		}
 
@@ -1961,12 +2030,12 @@ public class FLinesAndJavaShapes {
 
 						Rect bnn = cache.computeIfAbsent(nib, (x) -> nib.boundingBox());
 
-						Log.log("intersection", ()->"checking " + baa + " / " + bnn + "");
+						Log.log("intersection", () -> "checking " + baa + " / " + bnn + "");
 
 
 						if (baa.intersects(bnn)) {
 
-							Log.log("intersection", ()->" -- intersect");
+							Log.log("intersection", () -> " -- intersect");
 
 							if (Math.max(baa.w, baa.h) < sz && Math.max(bnn.w, bnn.h) < sz) {
 								ib.remove();
@@ -1980,7 +2049,7 @@ public class FLinesAndJavaShapes {
 						}
 					}
 
-					Log.log("intersection",()-> "nothing intersects with " + baa);
+					Log.log("intersection", () -> "nothing intersects with " + baa);
 				}
 
 				a.clear();
@@ -2011,7 +2080,7 @@ public class FLinesAndJavaShapes {
 				gen++;
 			}
 
-			if (gen == 20) Log.log("intersection", ()->"warning: bailed");
+			if (gen == 20) Log.log("intersection", () -> "warning: bailed");
 
 			return out;
 
@@ -2037,8 +2106,8 @@ public class FLinesAndJavaShapes {
 			for (int i = 0; i < dd.size(); i++) {
 				for (int j = i + 1; j < dd.size(); j++) {
 					if (Math.abs(dd.get(i)
-						       .doubleValue() - dd.get(j)
-									  .doubleValue()) < 1e-6) {
+						.doubleValue() - dd.get(j)
+						.doubleValue()) < 1e-6) {
 						dd.remove(j);
 						j--;
 					}
@@ -2089,8 +2158,8 @@ public class FLinesAndJavaShapes {
 			for (int i = 0; i < dd.size(); i++) {
 				for (int j = i + 1; j < dd.size(); j++) {
 					if (Math.abs(dd.get(i)
-						       .doubleValue() - dd.get(j)
-									  .doubleValue()) < 1e-6) {
+						.doubleValue() - dd.get(j)
+						.doubleValue()) < 1e-6) {
 						dd.remove(j);
 						j--;
 					}
@@ -2141,8 +2210,8 @@ public class FLinesAndJavaShapes {
 			for (int i = 0; i < dd.size(); i++) {
 				for (int j = i + 1; j < dd.size(); j++) {
 					if (Math.abs(dd.get(i)
-						       .doubleValue() - dd.get(j)
-									  .doubleValue()) < 1e-6) {
+						.doubleValue() - dd.get(j)
+						.doubleValue()) < 1e-6) {
 						dd.remove(j);
 						j--;
 					}
@@ -2193,8 +2262,8 @@ public class FLinesAndJavaShapes {
 			for (int i = 0; i < dd.size(); i++) {
 				for (int j = i + 1; j < dd.size(); j++) {
 					if (Math.abs(dd.get(i)
-						       .doubleValue() - dd.get(j)
-									  .doubleValue()) < 1e-6) {
+						.doubleValue() - dd.get(j)
+						.doubleValue()) < 1e-6) {
 						dd.remove(j);
 						j--;
 					}
@@ -2232,9 +2301,9 @@ public class FLinesAndJavaShapes {
 
 			BrentOptimizer o = new BrentOptimizer(1e-4, 1e-4);
 			UnivariatePointValuePair p1 = o.optimize(new UnivariateObjectiveFunction((x) -> evaluateCubicFrame(a, b, c, d, x, new Vec2()).distance(v)),
-								 new SearchInterval(0, 0.5, 0.25), GoalType.MINIMIZE);
+				new SearchInterval(0, 0.5, 0.25), GoalType.MINIMIZE);
 			UnivariatePointValuePair p2 = o.optimize(new UnivariateObjectiveFunction((x) -> evaluateCubicFrame(a, b, c, d, x, new Vec2()).distance(v)),
-								 new SearchInterval(0.5, 1, 0.75), GoalType.MINIMIZE);
+				new SearchInterval(0.5, 1, 0.75), GoalType.MINIMIZE);
 
 			if (p1.getValue() < p2.getValue()) return p1.getPoint();
 			else return p2.getPoint();

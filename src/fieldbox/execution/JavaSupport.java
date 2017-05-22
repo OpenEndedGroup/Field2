@@ -69,7 +69,7 @@ public class JavaSupport {
 					String appDir = System.getProperty("appDir");
 					if (new File(appDir, "src").exists() && new File(appDir, "src").isDirectory()) {
 						Log.log("jar.indexer", () -> "found a src directory in appDir");
-						if (indexSrcTree(appDir + "/src"));
+						if (indexSrcTree(appDir + "/src")) ;
 					}
 
 					Log.log("jar.indexer", () -> "will index paths:" + paths + " from classloader " + classLoader);
@@ -86,6 +86,11 @@ public class JavaSupport {
 
 							File f = new File(path.getFile());
 							while (f != null) {
+
+								File finalF2 = f;
+								Log.log("jar.indexer", () -> "recursing upwards to :" + finalF2.getAbsolutePath());
+
+
 								if (f.isDirectory()) {
 									if (new File(f, "src.zip").exists()) {
 										final File finalF = f;
@@ -102,6 +107,20 @@ public class JavaSupport {
 												e.printStackTrace();
 											}
 											break;
+										}
+									} else if (new File(f, "srcjars").exists()) {
+										for (File ff : new File(f, "srcjars").listFiles(x -> x.getName().endsWith(".jar"))) {
+											String p = ff.getAbsolutePath();
+											synchronized (srcZipsDeltWith) {
+												if (srcZipsDeltWith.contains(p))
+													break;
+												srcZipsDeltWith.add(p);
+												try {
+													indexSrcZip(p);
+												} catch (IOException e) {
+													e.printStackTrace();
+												}
+											}
 										}
 									}
 								}
@@ -121,6 +140,7 @@ public class JavaSupport {
 
 					builder.setErrorHandler(e -> Log.log("completion.general", () -> " problem parsing Java source file for completion, will skip this file and continue on "));
 					builder.addClassLoader(classLoader);
+
 
 					String root = fieldagent.Main.app;
 					Files.walkFileTree(FileSystems.getDefault()
@@ -157,6 +177,10 @@ public class JavaSupport {
 						}
 					});
 					Log.log("completion.debug", () -> " all is :" + all);
+					if (failedToParse.size() > 0) {
+						Log.log("completion.debug", () -> "The following source files failed to parse correctly (this is likely a problem with the parser, not the code):" + failedToParse);
+
+					}
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -166,7 +190,7 @@ public class JavaSupport {
 
 	private boolean indexSrcTree(String p) {
 		if (srcZipsDeltWith.contains(p)) {
-			Log.log("jar.indexer", () -> " we've already delt with path "+p);
+			Log.log("jar.indexer", () -> " we've already delt with path " + p);
 			return true;
 		}
 		srcZipsDeltWith.add(p);
@@ -181,8 +205,10 @@ public class JavaSupport {
 			public void visitFile(File currentFile) {
 				try {
 					builder.addSource(currentFile);
-				} catch (Throwable var3) {
-					var3.printStackTrace();
+				} catch (com.thoughtworks.qdox.parser.ParseException e) {
+					failedToParse.add(p);
+				} catch (Throwable t) {
+					t.printStackTrace();
 				}
 
 			}
@@ -210,8 +236,8 @@ public class JavaSupport {
 		signature = signature.trim();
 		String[] leader = signature.split(" ");
 		if (signature.contains(name)) {
-			signature = signature.replace(leader[0], "") + " -> " + leader[0];
-			signature = signature.replace(name, "");
+			signature = signature.replaceFirst(leader[0], "") + " -> " + leader[0];
+			signature = signature.replaceFirst(name, "");
 		}
 
 //		p = Pattern.compile(" " + name + "[ \\(]");
@@ -220,20 +246,38 @@ public class JavaSupport {
 //			signature = m.replaceAll("&rarr;(");
 //		}
 
-		signature = signature.replace("  ", " ");
-		signature = signature.replace("  ", " ");
+		signature = signature.replaceAll(" +", " ");
 
 		return signature.trim();
 	}
 
+	private Set<String> failedToParse = new LinkedHashSet<>();
+
 	private void indexSrcZip(String filename) throws IOException {
-		ZipFile zipFile = new ZipFile(filename);
-		Enumeration entries = zipFile.entries();
-		while (entries.hasMoreElements()) {
-			ZipEntry zipEntry = (ZipEntry) entries.nextElement();
-			String u = "jar:file://" + filename + "!/" + zipEntry.getName();
-			Log.log("jar.indexer", () -> "will index a source file from a jar:" + u);
-			builder.addSource(new URL(u));
+
+		System.out.println(" index src zip <"+filename+">");
+
+		try {
+			ZipFile zipFile = new ZipFile(filename);
+			Enumeration entries = zipFile.entries();
+			while (entries.hasMoreElements()) {
+				ZipEntry zipEntry = (ZipEntry) entries.nextElement();
+				try {
+					if (zipEntry.getName().endsWith(".java")) {
+						String u = "jar:file://" + filename + "!/" + zipEntry.getName();
+						Log.log("jar.indexer", () -> "will index a source file from a jar:" + u);
+						builder.addSource(new URL(u));
+					}
+				} catch (com.thoughtworks.qdox.parser.ParseException t) {
+					failedToParse.add(zipEntry.getName());
+				} catch (Throwable t) {
+					t.printStackTrace();
+				}
+			}
+		}
+		catch(FileSystemException e)
+		{
+			System.out.println(" FSE "+filename);
 		}
 	}
 
@@ -409,7 +453,8 @@ public class JavaSupport {
 		JavaClass j = builder.getClassByName(c.getName());
 
 		final JavaClass finalJ = j;
-		Log.log("completion.debug", () -> " java class (for javadoc supported completion) :" + finalJ + " prefix is <" + prefix + "> " + includeConstructors + " " + staticsOnly);
+		boolean finalIncludeConstructors = includeConstructors;
+		Log.log("completion.debug", () -> " java class (for javadoc supported completion) :" + finalJ + " prefix is <" + prefix + "> " + finalIncludeConstructors + " " + staticsOnly);
 
 		List<Completion> r = new ArrayList<>();
 		try {
@@ -467,6 +512,10 @@ public class JavaSupport {
 					for (JavaField m : j.getFields()) {
 						if (hasAnnotation(m.getAnnotations(), HiddenInAutocomplete.class))
 							continue;
+
+						if (m.isStatic() && isTypeProp(m))
+							continue;
+
 						if (docOnly && m.getComment()
 							.trim()
 							.length() < 1) continue;
@@ -479,7 +528,7 @@ public class JavaSupport {
 								val = "= <b>" + access(c.getDeclaredField(m.getName())).get(o) + "</b> &nbsp;";
 								tostring = true;
 							} catch (Throwable t) {
-								t.printStackTrace();
+//								t.printStackTrace();
 							}
 						}
 
@@ -497,6 +546,11 @@ public class JavaSupport {
 					for (JavaMethod m : j.getMethods()) {
 						if (hasAnnotation(m.getAnnotations(), HiddenInAutocomplete.class))
 							continue;
+
+						if (m.getName().equals("toString")) continue;
+						if (m.getName().equals("equals")) continue;
+						if (m.getName().equals("hashCode")) continue;
+
 						if (docOnly && m.getComment()
 							.trim()
 							.length() < 1) continue;
@@ -540,6 +594,7 @@ public class JavaSupport {
 					.startsWith("jdk");
 				if (!wasJava && isJava) break;
 
+				includeConstructors = false; // only include constructors from the initial class
 			}
 		} catch (Throwable t) {
 			t.printStackTrace();
@@ -550,8 +605,23 @@ public class JavaSupport {
 		return r;
 	}
 
+	// qdox can throw an NPE during isA when, presumably, it isN't
+	private boolean isTypeProp(JavaField m) {
+		try{
+			return m.getType().isA("field.utility.Dict$Prop");
+		}
+		catch(NullPointerException e)
+		{
+			return false;
+		}
+	}
+
 	private <T extends AccessibleObject> T access(T object) {
-		object.setAccessible(true);
+		try {
+			object.setAccessible(true);
+		} catch (java.lang.reflect.InaccessibleObjectException e) {
+			// well, hello jigsaw...
+		}
 		return object;
 	}
 
@@ -616,4 +686,7 @@ public class JavaSupport {
 	}
 
 
+	public JavaClass sourceForClass(Class<?> of) {
+		return builder.getClassByName(of.getName());
+	}
 }

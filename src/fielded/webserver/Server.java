@@ -289,10 +289,17 @@ public class Server {
 		webSocketServer.connections().forEach(x -> x.send(message));
 	}
 
+	static public class ConnectionLost extends RuntimeException
+	{
+		public ConnectionLost(String s) {
+			super(s);
+		}
+	}
+
 	public void send(String name, String message) {
 		synchronized (knownSockets) {
 			if (knownSockets.get(name) != null) queue(() -> knownSockets.get(name).send(message));
-			else throw new IllegalArgumentException(" cannot find connection called " + name);
+			else throw new ConnectionLost(" cannot find connection called " + name);
 		}
 	}
 

@@ -73,25 +73,30 @@ public class Compositor {
 	private FBO newFBO(int unit) {
 		if (Options.dict()
 			   .isTrue(new Dict.Prop<Boolean>("multisample"), Main.os != Main.OS.mac))
-			return new FBO(FBO.FBOSpecification.rgbaMultisample(unit, window.getFrameBufferWidth(), window.getFrameBufferHeight()));
-		return new FBO(FBO.FBOSpecification.rgba(unit, window.getFrameBufferWidth(), window.getFrameBufferHeight()));
+			return new FBO(FBO.FBOSpecification.rgbaMultisampleAndDepth(unit, window.getFrameBufferWidth(), window.getFrameBufferHeight()));
+
+		return new FBO(FBO.FBOSpecification.rgbaAndDepth(unit, window.getFrameBufferWidth(), window.getFrameBufferHeight()));
 	}
 
 	private FBO newFBO(int unit, int res) {
 
 		if (res > 1) {
-			return new FBO(FBO.FBOSpecification.rgba(unit, window.getFrameBufferWidth() / res, window.getFrameBufferHeight() / res));
+			return new FBO(FBO.FBOSpecification.rgbaAndDepth(unit, window.getFrameBufferWidth() / res, window.getFrameBufferHeight() / res));
 
 		} else {
 			if (Options.dict()
 				   .isTrue(new Dict.Prop<Boolean>("multisample"), Main.os != Main.OS.mac))
-				return new FBO(FBO.FBOSpecification.rgbaMultisample(unit, window.getFrameBufferWidth() / res, window.getFrameBufferHeight() / res));
-			return new FBO(FBO.FBOSpecification.rgba(unit, window.getFrameBufferWidth() / res, window.getFrameBufferHeight() / res));
+				return new FBO(FBO.FBOSpecification.rgbaMultisampleAndDepth(unit, window.getFrameBufferWidth() / res, window.getFrameBufferHeight() / res));
+			return new FBO(FBO.FBOSpecification.rgbaAndDepth(unit, window.getFrameBufferWidth() / res, window.getFrameBufferHeight() / res));
 		}
 	}
 
 	public Layer getMainLayer() {
 		return getLayer("__main__");
+	}
+
+	public Map<String, Layer> getLayers() {
+		return layers;
 	}
 
 	public Layer newLayer(String name) {
@@ -168,6 +173,10 @@ public class Compositor {
 			return this;
 		}
 
+		public FBO getFBO() {
+			return fbo;
+		}
+
 		public void addDependancy(Layer l) {
 			// javaC / IDEA need these casts
 			dependsOn.put(l, new Cache<Layer>(l, x -> x.mod, x -> {
@@ -200,11 +209,11 @@ public class Compositor {
 		public void drawInto(Scene s) {
 			BaseMesh mesh = BaseMesh.triangleList(4, 2);
 			MeshBuilder mb = new MeshBuilder(mesh);
-			mb.nextVertex(-1, -1, 0);
-			mb.nextVertex(1, -1, 0);
-			mb.nextVertex(1, 1, 0);
-			mb.nextVertex(-1, 1, 0);
-			mb.nextElement_quad(0, 1, 2, 3);
+			mb.v(-1, -1, 0);
+			mb.v(1, -1, 0);
+			mb.v(1, 1, 0);
+			mb.v(-1, 1, 0);
+			mb.e_quad(0, 1, 2, 3);
 			Shader shader = new Shader();
 
 			shader.addSource(Shader.Type.vertex, "#version 410\n" +
@@ -238,11 +247,11 @@ public class Compositor {
 		public void compositeWith(Layer underlayer, Scene s) {
 			BaseMesh mesh = BaseMesh.triangleList(4, 2);
 			MeshBuilder mb = new MeshBuilder(mesh);
-			mb.nextVertex(-1, -1, 0);
-			mb.nextVertex(1, -1, 0);
-			mb.nextVertex(1, 1, 0);
-			mb.nextVertex(-1, 1, 0);
-			mb.nextElement_quad(0, 1, 2, 3);
+			mb.v(-1, -1, 0);
+			mb.v(1, -1, 0);
+			mb.v(1, 1, 0);
+			mb.v(-1, 1, 0);
+			mb.e_quad(0, 1, 2, 3);
 			Shader shader = new Shader();
 
 			shader.addSource(Shader.Type.vertex, "#version 410\n" +
@@ -299,11 +308,11 @@ public class Compositor {
 		protected void blurInto(int taps, Scene s, String access) {
 			BaseMesh mesh = BaseMesh.triangleList(4, 2);
 			MeshBuilder mb = new MeshBuilder(mesh);
-			mb.nextVertex(-1, -1, 0);
-			mb.nextVertex(1, -1, 0);
-			mb.nextVertex(1, 1, 0);
-			mb.nextVertex(-1, 1, 0);
-			mb.nextElement_quad(0, 1, 2, 3);
+			mb.v(-1, -1, 0);
+			mb.v(1, -1, 0);
+			mb.v(1, 1, 0);
+			mb.v(-1, 1, 0);
+			mb.e_quad(0, 1, 2, 3);
 			Shader shader = new Shader();
 
 			shader.addSource(Shader.Type.vertex, "#version 410\n" +

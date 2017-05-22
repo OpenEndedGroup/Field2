@@ -30,7 +30,7 @@ public class Channels extends Box {
 		}
 	}
 
-	static public class Infoer implements Linker.AsMap
+	static public class Infoer implements fieldlinker.AsMap
 	{
 		protected final Box on;
 

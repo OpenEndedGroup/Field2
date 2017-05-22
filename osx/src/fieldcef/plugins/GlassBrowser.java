@@ -10,6 +10,7 @@ import field.utility.Log;
 import field.utility.Rect;
 import fieldagent.Main;
 import fieldbox.boxes.*;
+import fieldbox.boxes.plugins.KeyboardFocus;
 import fieldbox.boxes.plugins.Planes;
 import fieldbox.execution.CompletionStats;
 import fieldbox.io.IO;
@@ -80,13 +81,34 @@ public class GlassBrowser extends Box implements IO.Loaded {
 		RunLoop.main.getLoop()
 			.attach(x -> {
 				if (t[0] == 0) t[0] = System.currentTimeMillis();
-				if (System.currentTimeMillis() - t[0] > 5000) {
+				if (System.currentTimeMillis() - t[0] > 3000) {
+
+					System.out.println(" -- this is your 3 second late boot up call ---");
+
 					boot();
 
 					return false;
 				}
 				return true;
 			});
+
+
+		KeyboardFocus keyboardFocus = find(KeyboardFocus._keyboardFocus, both()).findFirst().get();
+
+		boolean[] wasFocus = {false};
+		RunLoop.main.getLoop()
+			.attach(x -> {
+				boolean is = keyboardFocus.isFocused(browser);
+
+				if (wasFocus[0] && !is)
+				{
+					System.out.println(" hiding on negative edge of keyboard focus");
+					hide();
+				}
+				wasFocus[0] = is;
+				return true;
+			});
+
 
 
 		// I've been looking forward to this for a while
@@ -151,9 +173,15 @@ public class GlassBrowser extends Box implements IO.Loaded {
 			ret.accept("OK");
 		});
 
+		browser.addHandler(x -> x.equals("lostFocus"), (address, payload, ret) -> {
+			if (ignoreHide > 0) ignoreHide--;
+			else hide();
+			ret.accept("OK");
+		});
+
 		browser.addHandler(x -> x.equals("request.commands"), (address, paylod, ret) -> {
 			commandHelper.requestCommands(Optional.of(selection().findFirst()
-				.orElse(this)), null, null, ret, -1, -1);
+				.orElse(root)), null, null, ret, -1, -1);
 		});
 
 		browser.addHandler(x -> x.equals("call.command"), (address, payload, ret) -> {
@@ -176,6 +204,8 @@ public class GlassBrowser extends Box implements IO.Loaded {
 			}
 			ret.accept("OK");
 		});
+
+
 
 
 		browser.addHandler(x -> x.equals("call.alternative"), (address, payload, ret) -> {

@@ -8,14 +8,13 @@ import field.utility.Log;
 import field.utility.Pair;
 import field.utility.Rect;
 import fieldbox.boxes.*;
+import fieldbox.boxes.plugins.DragToCopy;
 import fieldbox.io.IO;
 import fielded.Commands;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Plugin: Adds Standard Menus and Shortcuts too basic not to have (new box, save etc.)
@@ -31,13 +30,15 @@ public class DefaultMenus extends Box {
 	static public final Dict.Prop<BiFunctionOfBoxAnd<String, Box>> ensureChild = new Dict.Prop<FunctionOfBox<Box>>("ensureChild").toCannon()
 		.doc("`_.ensureChild('name')` creates a new box that's a child of this one, if there already isn't one with this `name`");
 	static public final Dict.Prop<TriFunctionOfBoxAnd<String, Class, Box>> ensureChildOfClass = new Dict.Prop<BiFunctionOfBoxAnd<Class, Box>>("ensureChildOfClass").toCannon()
-		.doc("`_.ensureChildOfClass('name', c)` create a new box that's a peer of this one, with a custom class `c`, if one called `name` doesn't already exist");
+		.doc("`_.ensureChildOfClass('name', Something.class)` create a new box that's a peer of this one, with a custom class `Something`, if one called `name` doesn't already exist");
 
+	static public final Dict.Prop<BiFunctionOfBoxAnd<Class, Box>> setClass = new Dict.Prop<FunctionOfBox<Box>>("setClass").toCannon()
+		.doc("`_ = _.setClass(Something.class)` sets the class 'this' box to be `Something`. This only does anything if `Something` is a valid subclass of `Box`");
 
 	static public final Dict.Prop<FunctionOfBox<Box>> delete = new Dict.Prop<FunctionOfBox<Box>>("delete").toCannon()
 		.doc("delete this box");
 
-	// this gets set if we sucessfully opened something
+	// this gets set if we successfully opened something
 	static public volatile boolean safeToSave = false;
 
 	private final Box root;
@@ -72,6 +73,35 @@ public class DefaultMenus extends Box {
 				return spec;
 			}
 			return null;
+		});
+
+		properties.put(setClass, (box, clazz) -> {
+
+			if (!Box.class.isAssignableFrom(clazz))
+				throw new ClassCastException(" class '" + clazz + "' isn't a Box subclass");
+
+			if (box.getClass().equals(clazz)) // nothing to do
+				return box;
+
+			Set<Box> c = new LinkedHashSet<>(box.children());
+			Set<Box> p = new LinkedHashSet<>(box.parents());
+
+			try {
+				Box newBox = DragToCopy.duplicateBox(box, clazz);
+
+				for (Box cc : c)
+					newBox.connect(cc);
+				for (Box pp : p)
+					pp.connect(newBox);
+
+				box.disconnectFromAll();
+
+				return newBox;
+			} catch (NullPointerException e) {
+				ClassCastException q = new ClassCastException(" class '" + clazz + "' didn't instantiate propertly");
+				q.initCause(e);
+				throw q;
+			}
 		});
 
 		properties.put(Commands.commands, () -> {
@@ -164,9 +194,7 @@ public class DefaultMenus extends Box {
 		try {
 			b1 = (Box) cz.getConstructor()
 				.newInstance();
-		}
-		catch (NoSuchMethodException e)
-		{
+		} catch (NoSuchMethodException e) {
 			try {
 				b1 = (Box) cz.getConstructor(Box.class)
 					.newInstance(parents[0]);
@@ -174,7 +202,7 @@ public class DefaultMenus extends Box {
 				e1.printStackTrace();
 			}
 
-		} catch (InstantiationException | IllegalAccessException  | InvocationTargetException e) {
+		} catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
 			e.printStackTrace();
 		}
 		if (b1 == null) return null;

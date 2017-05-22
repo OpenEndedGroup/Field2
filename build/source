@@ -49,9 +49,11 @@
 ../src/field/graphics/TaggedVec3.java
 ../src/field/graphics/Texture.java
 ../src/field/graphics/TextureBuffer.java
+../src/field/graphics/TransformFeedback.java
 ../src/field/graphics/Uniform.java
 ../src/field/graphics/UniformBundle.java
 ../src/field/graphics/UniformCache.java
+../src/field/graphics/util/ArcBallCamera.java
 ../src/field/graphics/util/BufferUtils.java
 ../src/field/graphics/util/CurveThroughFourPoints.java
 ../src/field/graphics/util/EstimateControlPoints.java
@@ -61,6 +63,7 @@
 ../src/field/graphics/util/KeyEventMapping.java
 ../src/field/graphics/util/NearestPoint.java
 ../src/field/graphics/util/Saver.java
+../src/field/graphics/util/SimpleCanvas.java
 ../src/field/graphics/util/SimplePDFOutput.java
 ../src/field/graphics/Window.java
 ../src/field/graphics/Windows.java
@@ -107,6 +110,7 @@
 ../src/field/utility/SimpleVoronoi.java
 ../src/field/utility/StreamSearcher.java
 ../src/field/utility/Triple.java
+../src/field/utility/UnorderedPair.java
 ../src/field/utility/Util.java
 ../src/fieldbox/boxes/annotations/PublishAsCommand.java
 ../src/fieldbox/boxes/Box.java
@@ -126,6 +130,7 @@
 ../src/fieldbox/boxes/Meshes.java
 ../src/fieldbox/boxes/Mouse.java
 ../src/fieldbox/boxes/plugins/Alignment.java
+../src/fieldbox/boxes/plugins/AsEditable.java
 ../src/fieldbox/boxes/plugins/Auto.java
 ../src/fieldbox/boxes/plugins/BlankCanvas.java
 ../src/fieldbox/boxes/plugins/BoxDefaultCode.java
@@ -145,6 +150,7 @@
 ../src/fieldbox/boxes/plugins/Exec.java
 ../src/fieldbox/boxes/plugins/FileBrowser.java
 ../src/fieldbox/boxes/plugins/FLineButton.java
+../src/fieldbox/boxes/plugins/FLinePointHitTest.java
 ../src/fieldbox/boxes/plugins/FrameChangedHash.java
 ../src/fieldbox/boxes/plugins/FrameConstraints.java
 ../src/fieldbox/boxes/plugins/GraphicsSupport.java
@@ -192,6 +198,8 @@
 ../src/fieldbox/boxes/Watches.java
 ../src/fieldbox/Copy.java
 ../src/fieldbox/DefaultMenus.java
+../src/fieldbox/documentation/Documentation.java
+../src/fieldbox/documentation/GenerateDocumentation.java
 ../src/fieldbox/execution/Completion.java
 ../src/fieldbox/execution/CompletionStats.java
 ../src/fieldbox/execution/Errors.java
@@ -275,6 +283,7 @@
 ../win/src/fieldcef/plugins/Taps.java
 ../win/src/fieldcef/plugins/TextEditor.java
 ../win/src/fieldcef/plugins/TextEditor_boxBrowser.java
+../win/src/fieldcef/plugins/TextEditor_boxBrowser2.java
 ../win/src/org/cef/browser/CefBrowser.java
 ../win/src/org/cef/browser/CefBrowserFactory.java
 ../win/src/org/cef/browser/CefBrowserWindow.java

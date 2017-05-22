@@ -15,6 +15,7 @@ import fieldbox.boxes.FLineDrawing;
 import fieldbox.boxes.Mouse;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -49,12 +50,12 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 					.filter(x -> !x.properties.isTrue(
 						Box.hidden, false))
 					.forEach(x -> {
-						if (Planes.on(root, x)<1) return;
+						if (Planes.on(root, x) < 1) return;
 
 						int n = 0;
 						for (Box x2 : new ArrayList<>(x.children())) {
 							if (x2.properties.has(
-								Box.frame) && Planes.on(root, x2)>=1 ) {
+								Box.frame) && Planes.on(root, x2) >= 1) {
 
 								ensureBox(x, x2);
 
@@ -79,14 +80,16 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 				.filter(x -> x.properties.isTrue(Mouse.isSelected, false))
 				.forEach(x -> {
 					if (x.disconnected) return;
-					if (Planes.on(root, x)<1) return;
+					if (Planes.on(root, x) < 1) return;
 					if (x instanceof DispatchBox) return;
 
 					int n = 0;
 					for (Box x2 : new ArrayList<>(x.children())) {
 						if (x2 instanceof DispatchBox) continue;
-						if (x2.properties.has(Box.frame) && x2.properties.has(Box.name) && x2.properties.get(Box.name).trim().length() > 0 && !x2.disconnected && Planes.on(root, x2)>=1 && !x2.properties.isTrue(Box.hidden, false)) {
-							FLine m = arc(x.properties.get(Box.frame), x2.properties.get(Box.frame), true).first;
+						if (x2.properties.has(Box.frame) && x2.properties.has(Box.name) && x2.properties.get(Box.name).trim().length() > 0 && !x2.disconnected && Planes.on(root, x2) >= 1 && !x2.properties.isTrue(Box.hidden, false)) {
+							float d1 = x.properties.getFloat(Box.depth,0f);
+							float d2 = x2.properties.getFloat(Box.depth,0f);
+							FLine m = arc(x.properties.get(Box.frame), x2.properties.get(Box.frame), d1, d2, true).first;
 							if (f.nodes.size() == 0) f.attributes.putAll(m.attributes);
 							f.nodes.addAll(m.nodes);
 							if (n++ > 10)
@@ -96,8 +99,10 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 
 					for (Box x2 : new ArrayList<>(x.parents())) {
 						if (x2 instanceof DispatchBox) continue;
-						if (x2.properties.has(Box.frame) && x2.properties.has(Box.name) && x2.properties.get(Box.name).trim().length() > 0 && !x2.disconnected && Planes.on(root, x2)>=1 && !x2.properties.isTrue(Box.hidden, false)) {
-							FLine m = arc(x2.properties.get(Box.frame), x.properties.get(Box.frame), true).first;
+						if (x2.properties.has(Box.frame) && x2.properties.has(Box.name) && x2.properties.get(Box.name).trim().length() > 0 && !x2.disconnected && Planes.on(root, x2) >= 1 && !x2.properties.isTrue(Box.hidden, false)) {
+							float d1 = x.properties.getFloat(Box.depth,0f);
+							float d2 = x2.properties.getFloat(Box.depth,0f);
+							FLine m = arc(x2.properties.get(Box.frame), x.properties.get(Box.frame), d2, d1, true).first;
 							if (f.nodes.size() == 0) f.attributes.putAll(m.attributes);
 							f.nodes.addAll(m.nodes);
 							if (n++ > 10)
@@ -173,8 +178,9 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 		this.properties.putToMap(frameDrawing, "__ongoingDrag__", (box) -> {
 
 			Rect f1 = frame(start);
+			float d1 = start.properties.getFloat(depth, 0f);
 
-			FLine m = arc(f1, new Rect(to.x - 10, to.y - 10, 20, 20), true).first;
+			FLine m = arc(f1, new Rect(to.x - 10, to.y - 10, 20, 20), d1, 0, true).first;
 
 			boolean selected = false;
 
@@ -208,7 +214,7 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 	}
 
 	private void ensureBox(Box start, Box box) {
-		if ((start instanceof DispatchBox) || (box instanceof DispatchBox)) return ;
+		if ((start instanceof DispatchBox) || (box instanceof DispatchBox)) return;
 
 		if (!root.breadthFirst(root.both()).filter(x -> x instanceof DispatchBox).filter(x -> ((DispatchBox) x).head() == start && ((DispatchBox) x).tail() == box).findAny().isPresent()) {
 			if (!start.disconnected && !box.disconnected) {
@@ -224,7 +230,10 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 			Rect f1 = frame(start);
 			Rect f2 = frame(end);
 
-			FLine m = arc(f1, f2, true).first;
+			float d1 = start.properties.getFloat(depth, 0f);
+			float d2 = end.properties.getFloat(depth, 0f);
+
+			FLine m = arc(f1, f2, d1, d2, true).first;
 
 			m.attributes.put(StandardFLineDrawing.color, new Vec4(0, 0, 0, 0.4f));
 
@@ -233,24 +242,24 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 		Drawing.dirty(this);
 	}
 
-	static protected Pair<FLine, Vec2> arc(Rect f1, Rect f2, boolean selected) {
+	static protected Pair<FLine, Vec3> arc(Rect f1, Rect f2, float depth1, float depth2, boolean selected) {
 
-		if (false)
-		{
-			FLine f = new FLine();
-			f.moveTo(f1.x+f1.w/2, f1.y+f1.h/2);
-			f.lineTo(f2.x+f2.w/2, f2.y+f2.h/2);
-
-			f.attributes.put(fillColor, selected ? new Vec4(1, 1, 1, 0.5) : new Vec4(0.0, 0.0, 0.0, 0.05f));
-			f.attributes.put(strokeColor, selected ? new Vec4(1, 1, 1, 0.5) : new Vec4(0.0, 0.0, 0.0, 0.05f));
-			f.attributes.put(color, selected ? new Vec4(1, 1, 0, 0.5) : new Vec4(0.0, 0.0, 0.0, 0.05f));
-
-			if (!selected)
-				f.attributes.put(thicken, new BasicStroke(selected ? 13.25f : 5.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
-			if (selected) f.attributes.put(filled, true);
-
-			return new Pair<>(f, new Vec2(f1.x+f1.w/2+f2.x+f2.w/2, f1.y+f1.h/2+f2.y+f2.h/2).mul(0.5));
-		}
+//		if (false)
+//		{
+//			FLine f = new FLine();
+//			f.moveTo(f1.x+f1.w/2, f1.y+f1.h/2);
+//			f.lineTo(f2.x+f2.w/2, f2.y+f2.h/2);
+//
+//			f.attributes.put(fillColor, selected ? new Vec4(1, 1, 1, 0.5) : new Vec4(0.0, 0.0, 0.0, 0.05f));
+//			f.attributes.put(strokeColor, selected ? new Vec4(1, 1, 1, 0.5) : new Vec4(0.0, 0.0, 0.0, 0.05f));
+//			f.attributes.put(color, selected ? new Vec4(1, 1, 0, 0.5) : new Vec4(0.0, 0.0, 0.0, 0.05f));
+//
+//			if (!selected)
+//				f.attributes.put(thicken, new BasicStroke(selected ? 13.25f : 5.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
+//			if (selected) f.attributes.put(filled, true);
+//
+//			return new Pair<>(f, new Vec2(f1.x+f1.w/2+f2.x+f2.w/2, f1.y+f1.h/2+f2.y+f2.h/2).mul(0.5));
+//		}
 
 		float inset = 0;
 		Vec2[] a = new Vec2[]{new Vec2(f1.x + inset, f1.y + inset), new Vec2(f1.x + f1.w - inset, f1.y + f1.h - inset), new Vec2(f1.x + f1.w - inset, f1.y + inset), new Vec2(f1.x + inset, f1.y + f1.h - inset)};
@@ -296,8 +305,8 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 		Vec2 c1 = new Vec2(a[da[0]].x + normal.x * 1 / 3f + tan.x, a[da[0]].y + normal.y * 1 / 3f + tan.y);
 		Vec2 c2 = new Vec2(a[da[0]].x + normal.x * 2 / 3f + tan.x, a[da[0]].y + normal.y * 2 / 3f + tan.y);
 
-		f.moveTo(a[da[0]].x, a[da[0]].y);
-		f.cubicTo(c1.x, c1.y, c2.x, c2.y, b[da[1]].x, b[da[1]].y);
+		f.moveTo(a[da[0]].x, a[da[0]].y, depth1);
+		f.cubicTo(c1.x, c1.y, (depth1 * 2 + depth2) / 3, c2.x, c2.y, (depth1 * 1 + depth2 * 2) / 3, b[da[1]].x, b[da[1]].y, depth2);
 
 		FLinesAndJavaShapes.Cursor c = new FLinesAndJavaShapes.Cursor(f, 0.5f);
 		c.setT(0.5f);
@@ -319,9 +328,9 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 			float sz = 5;
 			float sz2 = -5;
 
-			arrow.moveTo(at.x + norm.x * sz + tang.x * sz2, at.y + norm.y * sz + tang.y * sz2);
-			arrow.lineTo(at.x, at.y);
-			arrow.lineTo(at.x - norm.x * sz + tang.x * sz2, at.y - norm.y * sz + tang.y * sz2);
+			arrow.moveTo(at.x + norm.x * sz + tang.x * sz2, at.y + norm.y * sz + tang.y * sz2, (depth1 + depth2) / 2);
+			arrow.lineTo(at.x, at.y, (depth1 + depth2) / 2);
+			arrow.lineTo(at.x - norm.x * sz + tang.x * sz2, at.y - norm.y * sz + tang.y * sz2, (depth1 + depth2) / 2);
 
 
 //			arrowA = new Area(new BasicStroke(5f).createStrokedShape(FLinesAndJavaShapes.flineToJavaShape(arrow)));
@@ -346,19 +355,27 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 //		if (arrowA != null) r1.add(arrowA);
 //		f = FLinesAndJavaShapes.javaShapeToFLineFlat(r1, 0.1f, 3);
 
-		f.attributes.put(fillColor, selected ? new Vec4(1, 1, 1, 0.5) : new Vec4(1, 0.5, 0.0, 0.5f));
-		f.attributes.put(strokeColor, selected ? new Vec4(1, 1, 1, 0.5) : new Vec4(1.0, 0.5, 0.0, 0.5f));
-		f.attributes.put(color, selected ? new Vec4(1, 1, 1, 0.5) : new Vec4(1.0, 0.5, 0.0, 0.5f));
-
-		f.circle(a[da[0]].x, a[da[0]].y, 5);
-		f.circle(b[da[1]].x, b[da[1]].y, 5);
+		f.attributes.put(fillColor, selected ? new Vec4(1, 1, 1, 0.35) : new Vec4(1, 0.5, 0.0, 0.25f));
+		f.attributes.put(strokeColor, selected ? new Vec4(1, 1, 1, 0.35) : new Vec4(1.0, 0.5, 0.0, 0.25f));
+		f.attributes.put(color, selected ? new Vec4(1, 1, 1, 0.35) : new Vec4(1.0, 0.5, 0.0, 0.25f));
 
 
 //		if (!selected)
-			f.attributes.put(thicken, new BasicStroke(selected ? 3.5f : 1.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
-//		if (selected) f.attributes.put(filled, true);
+		f.attributes.put(thicken, new BasicStroke(selected ? 1.5f : 1.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
 
-		return new Pair<>(f, midpoint);
+		FLine fFinal = FLinesAndJavaShapes.javaShapeToFLine(FLinesAndJavaShapes.flineToJavaShape(f),f, new AffineTransform());
+
+		fFinal.attributes.putAll(f.attributes);
+		fFinal.attributes.remove(thicken);
+
+		fFinal.circle(a[da[0]].x, a[da[0]].y, 5, depth1);
+		fFinal.circle(b[da[1]].x, b[da[1]].y, 5, depth2);
+
+		fFinal.attributes.put(filled, true);
+
+		//		if (selected) f.attributes.put(filled, true);
+
+		return new Pair<>(fFinal, new Vec3(midpoint.x, midpoint.y, (depth1 + depth2) / 2));
 	}
 
 	protected Rect frame(Box hitBox) {

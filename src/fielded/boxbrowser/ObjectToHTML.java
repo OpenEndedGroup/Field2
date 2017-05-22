@@ -15,7 +15,7 @@ import java.util.function.Function;
 public class ObjectToHTML {
 
 	public interface MasqueradesAs {
-		public Object masqueradesAs();
+		Object masqueradesAs();
 	}
 
 	static public ThreadLocal<Stack<String>> contextStack = new ThreadLocal<Stack<String>>() {

@@ -3,7 +3,6 @@ package fieldcef.browser;
 import field.app.RunLoop;
 import field.graphics.*;
 import field.graphics.Window;
-import field.graphics.csg.Plane;
 import field.graphics.util.KeyEventMapping;
 import field.linalg.Vec2;
 import field.linalg.Vec4;
@@ -116,12 +115,12 @@ public class Browser extends Box implements IO.Loaded {
 				float ay = y / (ns - 1f);
 
 				builder.aux(5, ax * r.w / w, ay * r.h / h, op);
-				builder.nextVertex(r.x + ax * r.w, r.y + ay * r.h, 0);
+				builder.v(r.x + ax * r.w, r.y + ay * r.h, 0);
 			}
 		}
 		for (int x = 0; x < ns - 1; x++) {
 			for (int y = 0; y < ns - 1; y++) {
-				builder.nextElement_quad((x + 1) * ns + y, x * ns + y, x * ns + y + 1, (x + 1) * ns + y + 1);
+				builder.e_quad((x + 1) * ns + y, x * ns + y, x * ns + y + 1, (x + 1) * ns + y + 1);
 			}
 		}
 

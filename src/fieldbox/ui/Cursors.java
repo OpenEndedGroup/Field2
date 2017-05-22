@@ -28,6 +28,9 @@ public class Cursors {
 
 	static protected long currentCursor = 0;
 
+	public static long getCurrentCursor() {
+		return currentCursor;
+	}
 
 	static public void clear(Window window) {
 		if (currentCursor != 0) glfwSetCursor(window.getGLFWWindowReference(), currentCursor = 0);

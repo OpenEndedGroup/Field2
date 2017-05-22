@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 /**
  * Interpose this class between a Scene.Perform and it's Scene to only execute a Scene.Perform is a Function is true. Use this, for example, to
  * implement View Frustum Culling or to skip the drawing of a Mesh that has no vertices (which is, in general, not a safe thing to do, because while a
- * mesh might have no verities, it might have some children which have other side-effects)
+ * mesh might have no vertices, it might have some children which have other side-effects)
  */
 public class Guard implements Scene.Perform {
 

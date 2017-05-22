@@ -182,8 +182,16 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 			return new FBOSpecification(unit, GL_RGBA, width, height, GL_RGBA, GL_BYTE, 8, false, 1, false, false, 1);
 		}
 
+		static public FBOSpecification rgbaAndDepth(int unit, int width, int height) {
+			return new FBOSpecification(unit, GL_RGBA, width, height, GL_RGBA, GL_BYTE, 8, true, 1, false, false, 1);
+		}
+
 		static public FBOSpecification rgbaMultisample(int unit, int width, int height) {
 			return new FBOSpecification(unit, GL_RGBA, width, height, GL_RGBA, GL_BYTE, 8, false, 1, true, false, 1);
+		}
+
+		static public FBOSpecification rgbaMultisampleAndDepth(int unit, int width, int height) {
+			return new FBOSpecification(unit, GL_RGBA, width, height, GL_RGBA, GL_BYTE, 8, true, 1, true, false, 1);
 		}
 
 		static public FBOSpecification srgba(int unit, int width, int height) {
@@ -528,10 +536,11 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 			ato = ByteBuffer.allocateDirect(sz);
 		} else ato = to;
 
+		Thread t = Thread.currentThread();
 		CompletableFuture<ByteBuffer> c = new CompletableFuture<ByteBuffer>() {
 			@Override
 			public ByteBuffer get() throws InterruptedException, ExecutionException {
-				if (!isDone()) return ato;
+				if (Thread.currentThread()==t && !isDone()) return ato;
 				return super.get();
 			}
 		};
@@ -679,7 +688,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 
 
 
-	public Scene getS()
+	public Scene getScene()
 	{
 		return scene;
 	}

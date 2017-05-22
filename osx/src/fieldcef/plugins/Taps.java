@@ -19,7 +19,6 @@ import org.json.JSONObject;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -242,8 +241,14 @@ public class Taps extends Box implements IO.Loaded {
 
 				if (editorPosition == null) return new FLine(); // check current editable
 
+				if (t.browser_.properties.isTrue(Box.hidden, false)) return new FLine();
 
-				Rect f0 = t.browser.properties.get(Box.frame)
+				List<Box> c = selection().collect(Collectors.toList());
+				if (c.size()!=1) return new FLine();
+				if (c.get(0)!=inside) return new FLine();
+
+
+				Rect f0 = t.browser_.properties.get(Box.frame)
 							      .duplicate();
 				Rect f1 = target.properties.get(Box.frame);
 
@@ -266,11 +271,9 @@ public class Taps extends Box implements IO.Loaded {
 				f.moveTo(f0.x, f0.y + editorPosition.h);
 				f.lineTo(f1.x, f1.y + f1.h);
 
-				f.attributes.put(StandardFLineDrawing.color, new Vec4(0, 0, 0, 0.1));
+				f.attributes.put(StandardFLineDrawing.color, new Vec4(0, 0, 0, 0.5));
 
 				return f;
-
-
 			};
 		}
 

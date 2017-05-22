@@ -139,15 +139,15 @@ public class ImageProcessor {
 		MeshBuilder tt = new MeshBuilder(t);
 		tt.open();
 		tt.aux(2, 0, 0);
-		tt.nextVertex(-1, -1, 0);
+		tt.v(-1, -1, 0);
 		tt.aux(2, 1, 0);
-		tt.nextVertex(1, -1, 0);
+		tt.v(1, -1, 0);
 		tt.aux(2, 1, 1);
-		tt.nextVertex(1, 1, 0);
+		tt.v(1, 1, 0);
 		tt.aux(2, 0, 1);
-		tt.nextVertex(-1, 1, 0);
-		tt.nextElement(0, 1, 2);
-		tt.nextElement(0, 2, 3);
+		tt.v(-1, 1, 0);
+		tt.e(0, 1, 2);
+		tt.e(0, 2, 3);
 		tt.close();
 		return t;
 	}
