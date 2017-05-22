@@ -395,7 +395,7 @@ public class Scene extends Box implements Linker.AsMap {
 
 	UniformBundle defaultBundle = null;
 
-	protected UniformBundle getDefaultBundle() {
+	public UniformBundle getDefaultBundle() {
 		if (defaultBundle != null) return defaultBundle;
 		defaultBundle = new UniformBundle();
 		this.attach(defaultBundle);
@@ -438,6 +438,12 @@ public class Scene extends Box implements Linker.AsMap {
 
 		if (Uniform.isAccepableInstance(fo))
 			return getDefaultBundle().set(p, () -> fo).setIntOnly(fo instanceof Integer);
+
+		if (fo instanceof  OffersUniform)
+		{
+			getDefaultBundle().set(p, () -> ((OffersUniform)fo).getUniform());
+			// fall through -- connect things as well as set them as uniforms
+		}
 
 		o = Conversions.convert(o, Perform.class);
 		if (o instanceof Perform) {
@@ -553,12 +559,6 @@ public class Scene extends Box implements Linker.AsMap {
 		@Override
 		public boolean perform(int pass) {
 			if (allContexts.remove(GraphicsContext.getContext())) call.accept(pass);
-
-			if (!onceOnly) {
-				if (allContexts.size() > 0) {
-					System.out.println(" transient will wait for remaining contexts :" + allContexts);
-				}
-			}
 
 			return !onceOnly && allContexts.size() > 0;
 		}
