@@ -114,10 +114,10 @@ public class Browser extends Box implements IO.Loaded {
 
         for (int x = 0; x < ns; x++) {
             for (int y = 0; y < ns; y++) {
-                float ax = x / (ns - 1f);
-                float ay = y / (ns - 1f);
+                float ax = (0.f+x) / (float)(ns - 1);
+                float ay = (0.f+y) / (float)(ns - 1);
 
-                builder.aux(5, ax * r.w / w, ay * r.h / h, op);
+                builder.aux(5, ax * r.w / w, ay * (r.h+0.5f) / h, op);
                 builder.v(r.x + ax * r.w, r.y + ay * r.h, 0);
             }
         }
@@ -202,7 +202,7 @@ public class Browser extends Box implements IO.Loaded {
                 .orElseThrow(() -> new IllegalArgumentException(" can't install text-drawing into something without drawing support"));
 
 
-        float rsf = 2f;//window.getRetinaScaleFactor();
+        float rsf = 1f;//window.getRetinaScaleFactor();
 
         System.out.println("CefSystem is making a browser: " + w + "x" + h + "x" + rsf);
 
@@ -219,14 +219,14 @@ public class Browser extends Box implements IO.Loaded {
             }
 
         });
-
+        browser.setZoomLevel(1);
 
         keyboardHacks = new BrowserKeyboardHacks(browser);
         source = ByteBuffer.allocateDirect(((int) (w * rsf) * ((int) (h * rsf)) * 4)).order(ByteOrder.nativeOrder());
         source.position(0)
                 .limit(source.capacity());
         sourceView = source.slice();
-        texture = new Texture(Texture.TextureSpecification.byte4(0, (int) (w * rsf), (int) (h * rsf), source, true)).setIsDoubleBuffered(true);
+        texture = new Texture(Texture.TextureSpecification.byte4(0, (int) (w * rsf), (int) (h * rsf), source, false)).setIsDoubleBuffered(false);
 
         q = BaseMesh.triangleList(0, 0);
         builder = new MeshBuilder(q);
@@ -258,13 +258,13 @@ public class Browser extends Box implements IO.Loaded {
                 "\n" +
                 "void main()\n" +
                 "{\n" +
-                "float g = 2;\n"+
-                "\tvec4 current = pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)), 0), vec4(g,g,g,1));\n" +
-                "\tcurrent += 0.5*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0))+ivec2(1.7,0), 0), vec4(g,g,g,1));\n" +
-                "\tcurrent += 0.5*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0))+ivec2(0,1.7), 0), vec4(g,g,g,1));\n" +
-                "\tcurrent += 0.5*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0))+ivec2(-1.7,0), 0), vec4(g,g,g,1));\n" +
-                "\tcurrent += 0.5*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0))+ivec2(0,-1.7), 0), vec4(g,g,g,1));\n" +
-                "current = current/3;\n" +
+                "float g = 1.6;\n"+
+                "\tvec4 current = pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+vec2(0.5,0.5)), 0), vec4(g,g,g,1));\n" +
+                "\tcurrent += 0.25*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+vec2(0.5,0.5))+ivec2(1.0,0), 0), vec4(g,g,g,1));\n" +
+                "\tcurrent += 0.25*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+vec2(0.5,0.5))+ivec2(0,1.), 0), vec4(g,g,g,1));\n" +
+                "\tcurrent += 0.25*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+vec2(0.5,0.5))+ivec2(-1.,0), 0), vec4(g,g,g,1));\n" +
+                "\tcurrent += 0.25*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+vec2(0.5,0.5))+ivec2(0,-1.), 0), vec4(g,g,g,1));\n" +
+                "current = current/2;\n" +
                 "current = pow(current, vec4(1/g, 1/g, 1/g, 1));" +
                 "\tfloat m = min(current.x, min(current.y, current.z));\n" +
                 "float sat = 0.3;\n"+
@@ -273,7 +273,9 @@ public class Browser extends Box implements IO.Loaded {
                 "current.xyz = pow(current.xyz, vec3(1.1));\n" +
                 "\t_output  = vec4(current.zyx,max(0.6, min(1, d*3))*current.w*vtc.z);\n" +
                 "\t if (vtc.x==0 || vtc.x==1 || vtc.y==0 || vtc.y==1) _output.w=0;\n" +
-//			"\t _output=vec4(current.xyz,1);\n" +
+                "\t int ccx = ivec2(vtc.xy*textureSize(te,0)).x;\n" +
+                "\t int ccy = ivec2(vtc.xy*textureSize(te,0)).y;\n" +
+//    			"\t _output+=vec4((ccx%5<1 ? 1 : 0)*1,(ccy%5<1 ? 1 : 0)*1,0,1)*0.5;\n" +
                 "}");
 
         shader.attach(new Uniform<Vec2>("translation", () -> drawing.getTranslationRounded()));
