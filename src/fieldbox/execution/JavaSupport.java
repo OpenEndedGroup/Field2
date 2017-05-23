@@ -263,7 +263,6 @@ public class JavaSupport {
 				try {
 					if (zipEntry.getName().endsWith(".java")) {
 						String u = "jar:"+new File(filename).toURI().toURL()+"!/" + zipEntry.getName();
-						System.out.println(" index :"+u);
 						Log.log("jar.indexer", () -> "will index a source file from a jar:" + u);
 						builder.setEncoding(Charset.defaultCharset().name());
 						builder.addSource(new URL(u));
