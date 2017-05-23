@@ -32,7 +32,7 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 
 	public Linker() {
 		if (debug)
-			System.out.println(" linker has been constructed ");
+			System.err.println(" linker has been constructed ");
 	}
 
 

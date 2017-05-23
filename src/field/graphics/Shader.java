@@ -6,7 +6,7 @@ import field.utility.Log;
 import fieldbox.boxes.Box;
 import fieldbox.execution.HandlesCompletion;
 import fielded.boxbrowser.BoxBrowser;
-import fieldlinker.Linker;
+import fieldlinker.*;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 import org.lwjgl.opengl.*;
 
@@ -23,8 +23,6 @@ import java.util.regex.Pattern;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.GL_INTERLEAVED_ATTRIBS;
 import static org.lwjgl.opengl.GL30.glTransformFeedbackVaryings;
-
-;
 
 /**
  * An OpenGL Shader written in GL Shader Language (GLSL)
@@ -55,8 +53,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, fi
 	}
 
 	public enum Type {
-		vertex(GL20.GL_VERTEX_SHADER), geometry(GL32.GL_GEOMETRY_SHADER), fragment(GL20.GL_FRAGMENT_SHADER), tessControl(GL40.GL_TESS_CONTROL_SHADER), tessEval(
-			GL40.GL_TESS_EVALUATION_SHADER), compute(GL43.GL_COMPUTE_SHADER);
+		vertex(GL20.GL_VERTEX_SHADER), geometry(GL32.GL_GEOMETRY_SHADER), fragment(GL20.GL_FRAGMENT_SHADER), tessControl(GL40.GL_TESS_CONTROL_SHADER), tessEval(GL40.GL_TESS_EVALUATION_SHADER), compute(GL43.GL_COMPUTE_SHADER);
 
 		public int gl;
 
@@ -80,14 +77,14 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, fi
 	Map<Type, Source> source = new LinkedHashMap<>();
 
 	static public class Source {
-		public String source;
+		public Supplier<String> source;
 		protected final Type type;
 		protected int status;
 		public iErrorHandler onError = null;
 
 		protected Set<Integer> attachedTo = new LinkedHashSet<>();
 
-		public Source(String source, Type type) {
+		public Source(Supplier<String> source, Type type) {
 			this.type = type;
 			this.source = source;
 			this.status = 0;
@@ -111,18 +108,18 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, fi
 		protected boolean clean() {
 			State s = GraphicsContext.get(this, () -> {
 				State state = new State();
-				state.source = source;
+				state.source = source.get();
 				return state;
 			});
 
-			if (!s.source.equals(this.source)) {
+			if (!s.source.equals(this.source.get())) {
 				for (Integer ii : attachedTo)
 					GL20.glDetachShader(ii, s.name);
 				attachedTo.clear();
 				GL20.glDeleteShader(s.name);
 
 				s = new State();
-				s.source = source;
+				s.source = source.get();
 				GraphicsContext.put(this, s);
 			}
 
@@ -157,7 +154,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, fi
 								} catch (NumberFormatException e) {
 									try {
 										Matcher q = Pattern.compile(".*?\\((.*?)\\)")
-											.matcher(ll);
+												.matcher(ll);
 										q.find();
 										String g = q.group(1);
 										int ii = Integer.parseInt(g);
@@ -201,11 +198,18 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, fi
 		return s;
 	}
 
-	public Source addSource(Type type, String source) {
+	public Source addSource(Type type, Supplier<String> source) {
 		Source s = new Source(source, type);
 		this.source.put(type, s);
 		return s;
 	}
+
+	public Source addSource(Type type, String source) {
+		Source s = new Source(() -> source, type);
+		this.source.put(type, s);
+		return s;
+	}
+
 
 	public Map<Type, Source> getSources() {
 		return this.source;
@@ -232,7 +236,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, fi
 
 		for (Map.Entry<Type, Source> s : source.entrySet()) {
 			work |= s.getValue()
-				.clean();
+					.clean();
 		}
 
 		State name = GraphicsContext.get(this);
@@ -405,7 +409,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, fi
 	protected Set<String> computeKnownNonProperties() {
 		Set<String> r = new LinkedHashSet<>();
 		Method[] m = this.getClass()
-			.getMethods();
+				.getMethods();
 		for (Method mm : m)
 			r.add(mm.getName());
 		Field[] f = this.getClass()

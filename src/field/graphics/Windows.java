@@ -75,9 +75,7 @@ public class Windows {
 
 		glfwSetCharCallback(window, keep(window, GLFWCharCallback.create(c::character)));
 		glfwSetKeyCallback(window, keep(window, GLFWKeyCallback.create(c::key)));
-		glfwSetCharModsCallback(window, keep(window, GLFWCharModsCallback.create((w, codepoint, mods) -> {
-//			System.out.println(" char mod called ? " + w + " " + codepoint + " " + mods);
-		})));
+		glfwSetCharModsCallback(window, keep(window, GLFWCharModsCallback.create((w, codepoint, mods) -> {})));
 		glfwSetWindowSizeCallback(window, keep(window, GLFWWindowSizeCallback.create(c::windowSize)));
 		glfwSetWindowPosCallback(window, keep(window, GLFWWindowPosCallback.create(c::windowPos)));
 		glfwSetCursorPosCallback(window, keep(window, GLFWCursorPosCallback.create(c::cursorPos)));
@@ -210,6 +208,7 @@ public class Windows {
 
 			@Override
 			public void cursorPos(long window, double x, double y) {
+
 				Runnable r = () -> {
 					checkClassLoader();
 					GlfwCallback a = adaptors.get(window);

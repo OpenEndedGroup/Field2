@@ -138,459 +138,456 @@ public class Pseudo extends Box {
 		this.properties.put(yieldUntil, Until::new);
 		this.properties.put(replace, Replacer::new);
 //		this.properties.put(query, XPath::new);
-		this.properties.put(ref, Refer::new);
-		this.properties.put(named, Namer::new);
-		this.properties.put(withID, WithID::new);
-		this.properties.put(once, Oncer::new);
-		this.properties.put(contained, Contained::new);
-		this.properties.put(here, Herer::new);
-		this.properties.put(inMainThread, MainThreader::new);
-
-		this.properties.putToMap(Boxes.insideRunLoop, "main.__next__", () -> {
-			r.breadthFirst(r.downwards())
-				.map(x -> x.properties.get(next))
-				.filter(x -> x != null)
-				.forEach(x -> {
-					ArrayList<Runnable> q = new ArrayList<>(x.values());
-					x.clear();
-					q.forEach(z -> z.run());
-				});
-			return true;
-		});
-		this.properties.putToMap(Boxes.insideRunLoop, "main.__next10__", () -> {
-			r.breadthFirst(r.downwards())
-				.map(x -> x.properties.get(next10))
-				.filter(x -> x != null)
-				.forEach(x -> {
-					ArrayList<Runnable> q = new ArrayList<>(x.values());
-					x.clear();
-					q.forEach(z -> RunLoop.main.delayTicks(z, 10));
-				});
-			return true;
-		});
-
-		this.properties.put(sync, Sync::new);
-	}
-
-	static public class Namer implements AsMap, HandlesCompletion {
-
-		protected final Box on;
-
-		public Namer(Box on) {
-			this.on = on;
-		}
-
-		@Override
-		public boolean asMap_isProperty(String s) {
-			return true;
-		}
-
-		@Override
-		public Object asMap_call(Object o, Object o1) {
-			return asMap_getElement(o1);
-		}
-
-		@Override
-		public Object asMap_getElement(Object element) {
-			return asMap_get(element + "");
-		}
-
-		@Override
-		public Object asMap_setElement(int element, Object o) {
-			return null;
-		}
-
-		@Override
-		public Object asMap_get(String p) {
-			return on.breadthFirst(on.downwards())
-				.filter(x -> x.properties.has(Box.name))
-				.filter(x -> x.properties.get(Box.name)
-					.matches(p))
-				.collect(Collectors.toList());
-		}
-
-		@Override
-		public Object asMap_set(String p, Object val) {
-			return null;
-		}
-
-
-		@Override
-		public Object asMap_new(Object a) {
-			return null;
-		}
-
-		@Override
-		public Object asMap_new(Object a, Object b) {
-			return null;
-		}
-
-		@Override
-		public Object asMap_getElement(int element) {
-			return asMap_get("" + element);
-		}
-
-		@Override
-		public boolean asMap_delete(Object o) {
-			return false;
-		}
-
-		public List<Completion> getCompletionsFor(String prefix) {
-			Set<String> q = on.breadthFirst(on.downwards())
-				.filter(x -> x.properties.has(Box.name))
-				.map(x -> x.properties.get(Box.name)).filter(x -> x.startsWith(prefix)).collect(Collectors.toSet());
-
-			List<Completion> c = new ArrayList<>();
-
-			q.forEach(x -> {
-				c.add(new Completion(-1, -1, x, ""));
-			});
-			return c;
-
-		}
-
-	}
-
-	static public class MainThreader extends Namer {
-
-		public MainThreader(Box on) {
-			super(on);
-		}
-
+        this.properties.put(ref, Refer::new);
+        this.properties.put(named, Namer::new);
+        this.properties.put(withID, WithID::new);
+        this.properties.put(once, Oncer::new);
+        this.properties.put(here, Herer::new);
+        this.properties.put(inMainThread, MainThreader::new);
+
+        this.properties.putToMap(Boxes.insideRunLoop, "main.__next__", () -> {
+            r.breadthFirst(r.downwards())
+                    .map(x -> x.properties.get(next))
+                    .filter(x -> x != null)
+                    .forEach(x -> {
+                        ArrayList<Runnable> q = new ArrayList<>(x.values());
+                        x.clear();
+                        q.forEach(z -> z.run());
+                    });
+            return true;
+        });
+        this.properties.putToMap(Boxes.insideRunLoop, "main.__next10__", () -> {
+            r.breadthFirst(r.downwards())
+                    .map(x -> x.properties.get(next10))
+                    .filter(x -> x != null)
+                    .forEach(x -> {
+                        ArrayList<Runnable> q = new ArrayList<>(x.values());
+                        x.clear();
+                        q.forEach(z -> RunLoop.main.delayTicks(z, 10));
+                    });
+            return true;
+        });
+
+        this.properties.put(sync, Sync::new);
+    }
+
+    static public class Namer implements AsMap, HandlesCompletion {
+
+        protected final Box on;
+
+        public Namer(Box on) {
+            this.on = on;
+        }
+
+        @Override
+        public boolean asMap_isProperty(String s) {
+            return true;
+        }
+
+        @Override
+        public Object asMap_call(Object o, Object o1) {
+            return asMap_getElement(o1);
+        }
+
+        @Override
+        public Object asMap_getElement(Object element) {
+            return asMap_get(element + "");
+        }
+
+        @Override
+        public Object asMap_setElement(int element, Object o) {
+            return null;
+        }
+
+        @Override
+        public Object asMap_get(String p) {
+            return on.breadthFirst(on.downwards())
+                    .filter(x -> x.properties.has(Box.name))
+                    .filter(x -> x.properties.get(Box.name)
+                            .matches(p))
+                    .collect(Collectors.toList());
+        }
+
+        @Override
+        public Object asMap_set(String p, Object val) {
+            return null;
+        }
+
+
+        @Override
+        public Object asMap_new(Object a) {
+            return null;
+        }
+
+        @Override
+        public Object asMap_new(Object a, Object b) {
+            return null;
+        }
+
+        @Override
+        public Object asMap_getElement(int element) {
+            return asMap_get("" + element);
+        }
+
+        @Override
+        public boolean asMap_delete(Object o) {
+            return false;
+        }
+
+        public List<Completion> getCompletionsFor(String prefix) {
+            Set<String> q = on.breadthFirst(on.downwards())
+                    .filter(x -> x.properties.has(Box.name))
+                    .map(x -> x.properties.get(Box.name)).filter(x -> x.startsWith(prefix)).collect(Collectors.toSet());
+
+            List<Completion> c = new ArrayList<>();
+
+            q.forEach(x -> {
+                c.add(new Completion(-1, -1, x, ""));
+            });
+            return c;
+
+        }
+
+    }
+
+    static public class MainThreader extends Namer {
+
+        public MainThreader(Box on) {
+            super(on);
+        }
+
+
+        @Override
+        public Object asMap_setElement(int element, Object o) {
+            return asMap_set("" + element, o);
+        }
+
+        @Override
+        public Object asMap_set(String p, Object val) {
+
+            Supplier q = (Supplier) Conversions.convert(val, Supplier.class);
+            if (q == null)
+                throw new IllegalArgumentException(" can't convert " + val + " to something I can call");
+            try {
+                Object m = ThreadSync.callInMainThreadAndWait((Callable<Object>) q::get);
+                on.properties.put(new Dict.Prop<>(p), m);
+                return m;
+            } catch (Exception e) {
+                e.printStackTrace();
+                IllegalArgumentException t = new IllegalArgumentException(" function threw an exception ");
+                t.initCause(e);
+                throw t;
+            }
+        }
+
+    }
+
+    static public class WithID implements AsMap {
+
+        private final Box on;
+
+        public WithID(Box on) {
+            this.on = on;
+        }
+
+        @Override
+        public boolean asMap_isProperty(String s) {
+            return true;
+        }
 
-		@Override
-		public Object asMap_setElement(int element, Object o) {
-			return asMap_set("" + element, o);
-		}
+        @Override
+        public Object asMap_call(Object o, Object o1) {
+            return asMap_getElement(o1);
+        }
+
+        @Override
+        public Object asMap_getElement(Object element) {
+            return asMap_get(element + "");
+        }
+
+        @Override
+        public Object asMap_setElement(int element, Object o) {
+            return null;
+        }
+
+        @Override
+        public Object asMap_get(String p) {
+            return on.breadthFirst(on.downwards())
+                    .filter(x -> x.properties.has(IO.id))
+                    .filter(x -> x.properties.get(IO.id)
+                            .matches(p))
+                    .findFirst().orElse(null);
+        }
 
-		@Override
-		public Object asMap_set(String p, Object val) {
-
-			System.out.println(" in main thread :" + p + " -> " + val);
-
-			Supplier q = (Supplier) Conversions.convert(val, Supplier.class);
-			if (q == null)
-				throw new IllegalArgumentException(" can't convert " + val + " to something I can call");
-			try {
-				Object m = ThreadSync.callInMainThreadAndWait((Callable<Object>) q::get);
-				on.properties.put(new Dict.Prop<>(p), m);
-				return m;
-			} catch (Exception e) {
-				e.printStackTrace();
-				IllegalArgumentException t = new IllegalArgumentException(" function threw an exception ");
-				t.initCause(e);
-				throw t;
-			}
-		}
-
-	}
-
-	static public class WithID implements AsMap {
-
-		private final Box on;
-
-		public WithID(Box on) {
-			this.on = on;
-		}
-
-		@Override
-		public boolean asMap_isProperty(String s) {
-			return true;
-		}
+        @Override
+        public Object asMap_set(String p, Object val) {
+            return null;
+        }
+
+
+        @Override
+        public Object asMap_new(Object a) {
+            return null;
+        }
+
+        @Override
+        public Object asMap_new(Object a, Object b) {
+            return null;
+        }
+
+        @Override
+        public Object asMap_getElement(int element) {
+            return asMap_get("" + element);
+        }
+
+        @Override
+        public boolean asMap_delete(Object o) {
+            return false;
+        }
+    }
+
+    static public class Oncer implements AsMap {
+
+        private final Box on;
+
+        public Oncer(Box on) {
+            this.on = on;
+        }
 
-		@Override
-		public Object asMap_call(Object o, Object o1) {
-			return asMap_getElement(o1);
-		}
-
-		@Override
-		public Object asMap_getElement(Object element) {
-			return asMap_get(element + "");
-		}
-
-		@Override
-		public Object asMap_setElement(int element, Object o) {
-			return null;
-		}
-
-		@Override
-		public Object asMap_get(String p) {
-			return on.breadthFirst(on.downwards())
-				.filter(x -> x.properties.has(IO.id))
-				.filter(x -> x.properties.get(IO.id)
-					.matches(p))
-				.findFirst().orElse(null);
-		}
-
-		@Override
-		public Object asMap_set(String p, Object val) {
-			return null;
-		}
-
-
-		@Override
-		public Object asMap_new(Object a) {
-			return null;
-		}
-
-		@Override
-		public Object asMap_new(Object a, Object b) {
-			return null;
-		}
-
-		@Override
-		public Object asMap_getElement(int element) {
-			return asMap_get("" + element);
-		}
-
-		@Override
-		public boolean asMap_delete(Object o) {
-			return false;
-		}
-	}
-
-	static public class Oncer implements AsMap {
-
-		private final Box on;
-
-		public Oncer(Box on) {
-			this.on = on;
-		}
-
-		@Override
-		public boolean asMap_isProperty(String s) {
-			return true;
-		}
-
-		@Override
-		public Object asMap_call(Object o, Object o1) {
-			return asMap_getElement(o1);
-		}
-
-		@Override
-		public Object asMap_getElement(Object element) {
-			return asMap_get(element + "");
-		}
-
-		@Override
-		public Object asMap_setElement(int element, Object o) {
-			return null;
-		}
-
-		@Override
-		public Object asMap_get(String p) {
-			return null;
-		}
-
-		@Override
-		public Object asMap_set(String p, Object val) {
-
-			Dict.Prop cc = new Dict.Prop(p);
-
-			Dict.Prop cannon = cc.findCannon();
-			if (cannon != null) cc = cannon;
-			Supplier s = (Supplier) Conversions.convert(val, Supplier.class);
-
-			return on.properties.computeIfAbsent(cc, x -> s.get());
-		}
-
-
-		@Override
-		public Object asMap_new(Object a) {
-			return null;
-		}
-
-		@Override
-		public Object asMap_new(Object a, Object b) {
-			return null;
-		}
-
-		@Override
-		public Object asMap_getElement(int element) {
-			return asMap_get("" + element);
-		}
-
-		@Override
-		public boolean asMap_delete(Object o) {
-			return false;
-		}
-	}
-
-	static public class Sync implements AsMap {
-
-		private final Box on;
-
-		public Sync(Box on) {
-			this.on = on;
-		}
-
-		@Override
-		public boolean asMap_isProperty(String s) {
-			return true;
-		}
-
-		@Override
-		public Object asMap_call(Object o, Object o1) {
-			return asMap_getElement(o1);
-		}
-
-		@Override
-		public Object asMap_getElement(Object element) {
-			return asMap_get(element + "");
-		}
-
-		@Override
-		public Object asMap_setElement(int element, Object o) {
-			return null;
-		}
-
-		@Override
-		public Object asMap_get(String p) {
-			return null;
-		}
-
-		@Override
-		public Object asMap_set(String p, Object val) {
-
-			Supplier c = (Supplier) Conversions.convert(val, Supplier.class);
-
-			Object[] o = {null};
-
-			if (c != null) {
-				try {
-					ThreadSync.inMainThread(() -> {
-						o[0] = c.get();
-					});
-				} catch (InterruptedException e) {
-					throw (IllegalArgumentException) new IllegalArgumentException().initCause(e);
-				} catch (ExecutionException e) {
-					throw (IllegalArgumentException) new IllegalArgumentException().initCause(e);
-				}
-			}
-
-
-			return on.properties.put(new Dict.Prop(p), o[0]);
-		}
-
-
-		@Override
-		public Object asMap_new(Object a) {
-			return null;
-		}
-
-		@Override
-		public Object asMap_new(Object a, Object b) {
-			return null;
-		}
-
-		@Override
-		public Object asMap_getElement(int element) {
-			return asMap_get("" + element);
-		}
-
-		@Override
-		public boolean asMap_delete(Object o) {
-			return false;
-		}
-	}
-
-	static public class First implements AsMap {
-
-		protected final Box on;
-
-		public First(Box on) {
-			this.on = on;
-		}
-
-		@Override
-		public boolean asMap_isProperty(String s) {
-			return true;
-		}
-
-		@Override
-		public Object asMap_call(Object o, Object o1) {
-			return null;
-		}
-
-		@Override
-		public boolean asMap_delete(Object o) {
-			Box q = (Box) asMap_get("" + o);
-			if (q != null) {
-				return q.properties.asMap_delete(o);
-			}
-			return false;
-		}
-
-		@Override
-		public Object asMap_get(String s) {
-			Dict.Prop p = new Dict.Prop(s);
-			return on.breadthFirst(on.upwards())
-				.filter(x -> x.properties.has(p))
-				.findFirst()
-				.orElseGet(() -> null);
-		}
-
-		@Override
-		public Object asMap_set(String s, Object o) {
-
-			if (o instanceof Box) {
-				Dict.Prop p = new Dict.Prop(s);
-				return on.breadthFirst(on.upwards())
-					.filter(x -> x.properties.has(p))
-					.findFirst()
-					.map(x -> {
-						Object v = x.properties.remove(p);
-						((Box) o).properties.put(p, v);
-						return v;
-					});
-			} else {
-				throw new IllegalArgumentException(" can't move property to something that isn't a box");
-			}
-		}
-
-		@Override
-		public Object asMap_new(Object o) {
-			return null;
-		}
-
-		@Override
-		public Object asMap_new(Object o, Object o1) {
-			return null;
-		}
-
-		@Override
-		public Object asMap_getElement(int i) {
-			return null;
-		}
-
-		@Override
-		public Object asMap_setElement(int i, Object o) {
-			return null;
-		}
-	}
-
-	static public class Herer implements AsMap {
-
-		protected final Box on;
-
-		public Herer(Box on) {
-			this.on = on;
-		}
-
-		@Override
-		public boolean asMap_isProperty(String s) {
-			return true;
-		}
-
-		@Override
-		public Object asMap_call(Object o, Object o1) {
-			return null;
-		}
-
-		@Override
-		public boolean asMap_delete(Object o) {
-			throw new IllegalArgumentException(" can't delete here");
-		}
+        @Override
+        public boolean asMap_isProperty(String s) {
+            return true;
+        }
+
+        @Override
+        public Object asMap_call(Object o, Object o1) {
+            return asMap_getElement(o1);
+        }
+
+        @Override
+        public Object asMap_getElement(Object element) {
+            return asMap_get(element + "");
+        }
+
+        @Override
+        public Object asMap_setElement(int element, Object o) {
+            return null;
+        }
+
+        @Override
+        public Object asMap_get(String p) {
+            return null;
+        }
+
+        @Override
+        public Object asMap_set(String p, Object val) {
+
+            Dict.Prop cc = new Dict.Prop(p);
+
+            Dict.Prop cannon = cc.findCannon();
+            if (cannon != null) cc = cannon;
+            Supplier s = (Supplier) Conversions.convert(val, Supplier.class);
+
+            return on.properties.computeIfAbsent(cc, x -> s.get());
+        }
+
+
+        @Override
+        public Object asMap_new(Object a) {
+            return null;
+        }
+
+        @Override
+        public Object asMap_new(Object a, Object b) {
+            return null;
+        }
+
+        @Override
+        public Object asMap_getElement(int element) {
+            return asMap_get("" + element);
+        }
+
+        @Override
+        public boolean asMap_delete(Object o) {
+            return false;
+        }
+    }
+
+    static public class Sync implements AsMap {
+
+        private final Box on;
+
+        public Sync(Box on) {
+            this.on = on;
+        }
+
+        @Override
+        public boolean asMap_isProperty(String s) {
+            return true;
+        }
+
+        @Override
+        public Object asMap_call(Object o, Object o1) {
+            return asMap_getElement(o1);
+        }
+
+        @Override
+        public Object asMap_getElement(Object element) {
+            return asMap_get(element + "");
+        }
+
+        @Override
+        public Object asMap_setElement(int element, Object o) {
+            return null;
+        }
+
+        @Override
+        public Object asMap_get(String p) {
+            return null;
+        }
+
+        @Override
+        public Object asMap_set(String p, Object val) {
+
+            Supplier c = (Supplier) Conversions.convert(val, Supplier.class);
+
+            Object[] o = {null};
+
+            if (c != null) {
+                try {
+                    ThreadSync.inMainThread(() -> {
+                        o[0] = c.get();
+                    });
+                } catch (InterruptedException e) {
+                    throw (IllegalArgumentException) new IllegalArgumentException().initCause(e);
+                } catch (ExecutionException e) {
+                    throw (IllegalArgumentException) new IllegalArgumentException().initCause(e);
+                }
+            }
+
+
+            return on.properties.put(new Dict.Prop(p), o[0]);
+        }
+
+
+        @Override
+        public Object asMap_new(Object a) {
+            return null;
+        }
+
+        @Override
+        public Object asMap_new(Object a, Object b) {
+            return null;
+        }
+
+        @Override
+        public Object asMap_getElement(int element) {
+            return asMap_get("" + element);
+        }
+
+        @Override
+        public boolean asMap_delete(Object o) {
+            return false;
+        }
+    }
+
+    static public class First implements AsMap {
+
+        protected final Box on;
+
+        public First(Box on) {
+            this.on = on;
+        }
+
+        @Override
+        public boolean asMap_isProperty(String s) {
+            return true;
+        }
+
+        @Override
+        public Object asMap_call(Object o, Object o1) {
+            return null;
+        }
+
+        @Override
+        public boolean asMap_delete(Object o) {
+            Box q = (Box) asMap_get("" + o);
+            if (q != null) {
+                return q.properties.asMap_delete(o);
+            }
+            return false;
+        }
+
+        @Override
+        public Object asMap_get(String s) {
+            Dict.Prop p = new Dict.Prop(s);
+            return on.breadthFirst(on.upwards())
+                    .filter(x -> x.properties.has(p))
+                    .findFirst()
+                    .orElseGet(() -> null);
+        }
+
+        @Override
+        public Object asMap_set(String s, Object o) {
+
+            if (o instanceof Box) {
+                Dict.Prop p = new Dict.Prop(s);
+                return on.breadthFirst(on.upwards())
+                        .filter(x -> x.properties.has(p))
+                        .findFirst()
+                        .map(x -> {
+                            Object v = x.properties.remove(p);
+                            ((Box) o).properties.put(p, v);
+                            return v;
+                        });
+            } else {
+                throw new IllegalArgumentException(" can't move property to something that isn't a box");
+            }
+        }
+
+        @Override
+        public Object asMap_new(Object o) {
+            return null;
+        }
+
+        @Override
+        public Object asMap_new(Object o, Object o1) {
+            return null;
+        }
+
+        @Override
+        public Object asMap_getElement(int i) {
+            return null;
+        }
+
+        @Override
+        public Object asMap_setElement(int i, Object o) {
+            return null;
+        }
+    }
+
+    static public class Herer implements AsMap {
+
+        protected final Box on;
+
+        public Herer(Box on) {
+            this.on = on;
+        }
+
+        @Override
+        public boolean asMap_isProperty(String s) {
+            return true;
+        }
+
+        @Override
+        public Object asMap_call(Object o, Object o1) {
+            return null;
+        }
+
+        @Override
+        public boolean asMap_delete(Object o) {
+            throw new IllegalArgumentException(" can't delete here");
+        }
 
 		@Override
 		public Object asMap_get(String s) {

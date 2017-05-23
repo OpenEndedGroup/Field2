@@ -117,7 +117,7 @@ public class PluginList {
 					loaded.put(o, (Loaded)plugin);
 
 			} catch (Throwable e) {
-				System.out.println(" -- problem activating plugin \"" + o + "\", will continue on regardless -- ");
+				System.err.println(" -- problem activating plugin \"" + o + "\", will continue on regardless -- ");
 				e.printStackTrace();
 			}
 			Log.log("startup", ()->"<<<<<<<<<<<<< finished plugin '" + o + "'");
@@ -130,7 +130,7 @@ public class PluginList {
 				o.getValue().loaded();
 				Callbacks.load((Box) o.getValue());
 			} catch (Throwable e) {
-				System.out.println(" -- problem activating plugin \"" + o + "\", will continue on regardless -- ");
+				System.err.println(" -- problem activating plugin \"" + o + "\", will continue on regardless -- ");
 				e.printStackTrace();
 			}
 			Log.log("startup", ()->"<<<<<<<<<<<<< late initialization for plugin '" + o + "' finished");

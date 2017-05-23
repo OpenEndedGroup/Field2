@@ -201,7 +201,7 @@ public class Browser extends Box implements IO.Loaded {
 
 		float rsf = window.getRetinaScaleFactor();
 
-		System.out.println("MAKING CefSystem :" + w + " " + h + " " + rsf);
+		System.out.println("CefSystem is initializing a browser at "+w+"x"+h);
 
 		browser = CefSystem.cefSystem.makeBrowser((int) (w * rsf), (int) (h * rsf), this::paint, this::message, () -> {
 			try {
@@ -219,12 +219,10 @@ public class Browser extends Box implements IO.Loaded {
 
 
 		keyboardHacks = new BrowserKeyboardHacks(browser);
-		System.out.println("MAKING sourceTextureBuffer :" + w + " " + h + " " + rsf);
 		source = ByteBuffer.allocateDirect(((int) (w * rsf) * ((int) (h * rsf)) * 4));
 		source.position(0)
 			.limit(source.capacity());
 		sourceView = source.slice();
-		System.out.println("MAKING sourceTexture :" + w + " " + h + " " + rsf);
 		texture = new Texture(Texture.TextureSpecification.byte4(0, (int) (w * rsf), (int) (h * rsf), source, true)).setIsDoubleBuffered(false);
 
 		q = BaseMesh.triangleList(0, 0);

@@ -65,7 +65,7 @@ public class CompletionStats {
 				Double cc = counts.get(x.first);
 				if (cc != null) {
 					double score = Math.max(1, Math.min(3, 3 * cc / (n[0] / num[0])));
-					String second = x.second + "</span><span class=\"stars\">" + num(score, "★") + " ";
+					String second = x.second + "</span><span class=\"stars\">" + num(score, "&#9733;") + " ";
 
 					Triple<String, String, Runnable> t = new Triple<>(x.first, second, x.third);
 

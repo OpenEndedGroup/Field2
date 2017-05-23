@@ -114,16 +114,16 @@ public class Browser extends Box implements IO.Loaded {
 
         for (int x = 0; x < ns; x++) {
             for (int y = 0; y < ns; y++) {
-                float ax = x / (ns - 1f);
-                float ay = y / (ns - 1f);
+                float ax = (0.f+x) / (float)(ns - 1);
+                float ay = (0.f+y) / (float)(ns - 1);
 
-                builder.aux(5, ax * r.w / w, ay * r.h / h, op);
-                builder.nextVertex(r.x + ax * r.w, r.y + ay * r.h, 0);
+                builder.aux(5, ax * r.w / w, ay * (r.h+0.5f) / h, op);
+                builder.v(r.x + ax * r.w, r.y + ay * r.h, 0);
             }
         }
         for (int x = 0; x < ns - 1; x++) {
             for (int y = 0; y < ns - 1; y++) {
-                builder.nextElement_quad((x + 1) * ns + y, x * ns + y, x * ns + y + 1, (x + 1) * ns + y + 1);
+                builder.e_quad((x + 1) * ns + y, x * ns + y, x * ns + y + 1, (x + 1) * ns + y + 1);
             }
         }
 
@@ -204,7 +204,7 @@ public class Browser extends Box implements IO.Loaded {
 
         float rsf = 1f;//window.getRetinaScaleFactor();
 
-        System.out.println("MAKING CefSystem :" + w + " " + h + " " + rsf);
+        System.out.println("CefSystem is making a browser: " + w + "x" + h + "x" + rsf);
 
         browser = CefSystem.cefSystem.makeBrowser((int) (w * rsf), (int) (h * rsf), this::paint, this::message, () -> {
             try {
@@ -219,15 +219,13 @@ public class Browser extends Box implements IO.Loaded {
             }
 
         });
-
+        browser.setZoomLevel(1);
 
         keyboardHacks = new BrowserKeyboardHacks(browser);
-        System.out.println("MAKING sourceTextureBuffer :" + w + " " + h + " " + rsf);
         source = ByteBuffer.allocateDirect(((int) (w * rsf) * ((int) (h * rsf)) * 4)).order(ByteOrder.nativeOrder());
         source.position(0)
                 .limit(source.capacity());
         sourceView = source.slice();
-        System.out.println("MAKING sourceTexture :" + w + " " + h + " " + rsf);
         texture = new Texture(Texture.TextureSpecification.byte4(0, (int) (w * rsf), (int) (h * rsf), source, false)).setIsDoubleBuffered(false);
 
         q = BaseMesh.triangleList(0, 0);
@@ -260,12 +258,14 @@ public class Browser extends Box implements IO.Loaded {
                 "\n" +
                 "void main()\n" +
                 "{\n" +
-                "\tvec4 current = texelFetch(te, ivec2(vtc.xy*textureSize(te,0)), 0);\n" +
-                "\tcurrent += 0.15*texelFetch(te, ivec2(vtc.xy*textureSize(te,0))+ivec2(1,0), 0);\n" +
-                "\tcurrent += 0.15*texelFetch(te, ivec2(vtc.xy*textureSize(te,0))+ivec2(0,1), 0);\n" +
-                "\tcurrent += 0.15*texelFetch(te, ivec2(vtc.xy*textureSize(te,0))+ivec2(-1,0), 0);\n" +
-                "\tcurrent += 0.15*texelFetch(te, ivec2(vtc.xy*textureSize(te,0))+ivec2(0,-1), 0);\n" +
-                "current = current/1.6;\n" +
+                "float g = 1.6;\n"+
+                "\tvec4 current = pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+vec2(0.5,0.5)), 0), vec4(g,g,g,1));\n" +
+                "\tcurrent += 0.25*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+vec2(0.5,0.5))+ivec2(1.0,0), 0), vec4(g,g,g,1));\n" +
+                "\tcurrent += 0.25*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+vec2(0.5,0.5))+ivec2(0,1.), 0), vec4(g,g,g,1));\n" +
+                "\tcurrent += 0.25*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+vec2(0.5,0.5))+ivec2(-1.,0), 0), vec4(g,g,g,1));\n" +
+                "\tcurrent += 0.25*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+vec2(0.5,0.5))+ivec2(0,-1.), 0), vec4(g,g,g,1));\n" +
+                "current = current/2;\n" +
+                "current = pow(current, vec4(1/g, 1/g, 1/g, 1));" +
                 "\tfloat m = min(current.x, min(current.y, current.z));\n" +
                 "float sat = 0.3;\n"+
                 "\tcurrent.xyz = (current.xyz-vec3(m)*sat)/(1-sat);\n" +
@@ -273,7 +273,9 @@ public class Browser extends Box implements IO.Loaded {
                 "current.xyz = pow(current.xyz, vec3(1.1));\n" +
                 "\t_output  = vec4(current.zyx,max(0.6, min(1, d*3))*current.w*vtc.z);\n" +
                 "\t if (vtc.x==0 || vtc.x==1 || vtc.y==0 || vtc.y==1) _output.w=0;\n" +
-//			"\t _output=vec4(current.xyz,1);\n" +
+                "\t int ccx = ivec2(vtc.xy*textureSize(te,0)).x;\n" +
+                "\t int ccy = ivec2(vtc.xy*textureSize(te,0)).y;\n" +
+//    			"\t _output+=vec4((ccx%5<1 ? 1 : 0)*1,(ccy%5<1 ? 1 : 0)*1,0,1)*0.5;\n" +
                 "}");
 
         shader.attach(new Uniform<Vec2>("translation", () -> drawing.getTranslationRounded()));
@@ -413,8 +415,6 @@ public class Browser extends Box implements IO.Loaded {
 
         this.properties.putToMap(Mouse.onMouseScroll, "__browser__", (e) -> {
 
-            System.out.println(" SCROLL ?!");
-
             Rect r = properties.get(Box.frame);
             if (!intersects(r, e)) return;
             if (!isSelected() && !getFocus()) return;
@@ -433,18 +433,12 @@ public class Browser extends Box implements IO.Loaded {
                         new MouseEvent(component, MouseEvent.MOUSE_PRESSED, 0, MouseEvent.getMaskForButton(1) | (e.after.keyboardState.isAltDown() ? KeyEvent.ALT_DOWN_MASK : 0),
                                 (int) ((int) (point.x - r.x) * rsf), (int) ((int) (point.y - r.y) * rsf), 1, false, 1));
                 if (e.after.dwheely > 0) {
-                    System.out.println(" inc ");
                     find(RunCommand.runCommand, this.both()).findFirst().ifPresent(x -> {
-                        System.out.println(" inc2");
                         Boolean done = x.apply(root, "Increment Number");
-                        System.out.println(" inc? "+done);
                     });
                 } else if (e.after.dwheely < 0) {
-                    System.out.println(" dec ");
                     find(RunCommand.runCommand, this.both()).findFirst().ifPresent(x -> {
-                        System.out.println(" dec2 ");
                         Boolean done = x.apply(root, "Decrement Number");
-                        System.out.println(" dec2? "+done);
                     });
                 }
             }
@@ -751,14 +745,13 @@ public class Browser extends Box implements IO.Loaded {
 
     protected void update(float x, float y, float scale) {
 
-//		System.out.println(" inside update for browser ");
-
         if (this.dirty.getAndSet(false) && damage != null) {
             if (check-- > 0) {
                 if (Main.os != Main.OS.windows)
                     browser.setZoomLevel(2 * window.getRetinaScaleFactor());
-                else
-                    browser.setZoomLevel(1);
+                else {
+                    browser.setZoomLevel(2);
+                }
             }
             Log.log("cef.debug", () -> " texture was dirty, uploading ");
 

@@ -218,8 +218,8 @@ public class NashornExecution implements Execution.ExecutionSupport {
 		currentEngine.set(engine);
 
 		Errors.errors.push((t, m) -> {
-			System.out.println(" exception thrown inside box " + box);
-			System.out.println(" message is :" + t.getMessage() + " " + m);
+			System.err.println(" exception thrown inside box " + box);
+			System.err.println(" message is :" + t.getMessage() + " " + m);
 			t.printStackTrace();
 
 

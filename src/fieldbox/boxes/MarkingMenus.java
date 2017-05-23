@@ -140,8 +140,6 @@ public class MarkingMenus extends Box {
 			if (event.after.keysDown.size()!=1) return null;
 			if (event.before.keysDown.size()!=0) return null;
 
-			System.out.println("SPACE !");
-
 			Box startAt = Intersects.startAt(event.after.mouseState, root);
 
 
@@ -248,8 +246,6 @@ public class MarkingMenus extends Box {
 		List<Position> hover = menus.show(center, m);
 		Keyboard.Hold[] replaceWith = {null};
 		return (event, term) -> {
-
-			System.out.println(" hold hold hold ");
 
 			if (replaceWith[0] != null) {
 				return replaceWith[0].update(event, term);

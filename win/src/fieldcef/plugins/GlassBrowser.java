@@ -220,8 +220,6 @@ public class GlassBrowser extends Box implements IO.Loaded {
 //		viewBounds.w-=200;
 //		viewBounds.h-=200;
 
-        System.out.println(" show glass browser");
-
         browser.properties.put(Box.frame, vb);
         center();
 
@@ -263,15 +261,6 @@ public class GlassBrowser extends Box implements IO.Loaded {
         FieldBoxWindow window = this.find(Boxes.window, both())
                 .findFirst()
                 .get();
-
-//		browser.executeJavaScript("$(\".CodeMirror\").height(" + (window.getHeight()) + ")");
-//		browser.executeJavaScript("$(\".CodeMirror\").width(" + window.getWidth() + ")");
-
-//		browser.executeJavaScript("$(\"body\").height(" + (window.getHeight()) + ")");
-//		browser.executeJavaScript("$(\"body\").width(" + window.getWidth() + ")");
-//
-//		browser.executeJavaScript("console.log('width of glass now '+$(\"body\").width())");
-
 
         if (!browser.properties.isTrue(Box.hidden, false)) Drawing.dirty(this);
     }
@@ -332,7 +321,7 @@ public class GlassBrowser extends Box implements IO.Loaded {
 
     private String findAndLoad(String f, boolean append) {
 
-        String[] roots = {Main.app + "/modules/fieldcore/resources/", Main.app + "/modules/fieldcef_macosx/resources/"};
+        String[] roots = {Main.app + "/modules/fieldcore/resources/", Main.app + "/modules/fieldcef_macosx/resources/",Main.app+"/lib/web/", Main.app+"/win/lib/web/"};
         for (String s : roots) {
             if (new File(s + "/" + f).exists()) return readFile(s + "/" + f, append);
         }

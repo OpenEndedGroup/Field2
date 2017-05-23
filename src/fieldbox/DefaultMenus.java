@@ -51,8 +51,6 @@ public class DefaultMenus extends Box {
 		properties.put(MarkingMenus.menuSpecs, (event) -> {
 			if (isNothingSelected()) {
 
-				System.out.println(" decided that nothing is selected ");
-
 				MarkingMenus.MenuSpecification spec = new MarkingMenus.MenuSpecification();
 
 				MarkingMenus.MenuSpecification saveMenu = new MarkingMenus.MenuSpecification();

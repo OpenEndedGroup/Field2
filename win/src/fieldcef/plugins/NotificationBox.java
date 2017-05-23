@@ -203,7 +203,7 @@ public class NotificationBox extends Box implements IO.Loaded {
 
 	private String findAndLoad(String f, boolean append) {
 
-		String[] roots = {Main.app + "/modules/fieldcore/resources/"};
+		String[] roots = {Main.app + "/modules/fieldcore/resources/",Main.app+"/lib/web/", Main.app+"/win/lib/web/"};
 		for (String s : roots) {
 			if (new File(s + "/" + f).exists()) return readFile(s + "/" + f, append);
 		}

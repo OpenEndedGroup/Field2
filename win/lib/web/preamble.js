@@ -34,7 +34,6 @@
 				 }),
 				 persistent: false,
 				 onSuccess: function(r) {
-						 console.log("callback "+r+" "+callback);
 						 callback(JSON.parse(r), "");
 				 },
 				 error: function(e, em) {
@@ -48,9 +47,12 @@
 
  // stubs for functions that we expect to have in 'cm' -- for now we are focused on getting the commands system up and running
  var cm = {
-		 focus: function() {
-				 _field.send("focus", {});
-		 }
+     focus: function() {
+         _field.send("focus", {});
+     },
+     lostFocus: function() {
+         _field.send("lostFocus", {});
+     }
  };
 
  function fuzzy(pat) {
@@ -64,7 +66,6 @@
  }
 
  function replacer() {
-		 console.log(arguments);
 		 prefix = arguments[arguments.length - 1].substring(0, arguments[arguments.length - 1]);
 		 for (var i = 1; i < arguments.length - 2; i += 2) {
 				 prefix += "<span class='matched'>" + arguments[i] + "</span>" + arguments[i + 1];
@@ -126,7 +127,10 @@
 								 return m
 						 };
 						 if (completions.length > 0)
-								 runModal("Commands...", completionFunction, "Field-Modal")
+								 runModal("Commands...", completionFunction, "Field-Modal", undefined, false, function(){
+								 	console.log(" BLUR: lost focus from box")
+									cm.lostFocus();
+						})
 				 }
 		 );
  };

@@ -23,65 +23,68 @@ import java.util.stream.Collectors;
  */
 public class RunCommand extends Box {
 
-	static public final Dict.Prop<BiFunctionOfBoxAnd<String, Boolean>> runCommand
-		= new Dict.Prop<>("runCommand").doc("`_.runCommand(x)` runs commands for box `_` that match string `x`")
-		.type()
-		.toCannon();
-	private Box root;
+    static public final Dict.Prop<BiFunctionOfBoxAnd<String, Boolean>> runCommand
+            = new Dict.Prop<>("runCommand").doc("`_.runCommand(x)` runs commands for box `_` that match string `x`")
+            .type()
+            .toCannon();
+    private Box root;
 
-	public RunCommand(Box root) {
-		this.root = root;
-		this.properties.put(runCommand, new RunCompletor());
-	}
+    public RunCommand(Box root) {
+        this.root = root;
+        this.properties.put(runCommand, new RunCompletor());
+    }
 
-	protected class RunCompletor implements BiFunctionOfBoxAnd<String, Boolean>, HandlesQuoteCompletion {
+    protected class RunCompletor implements BiFunctionOfBoxAnd<String, Boolean>, HandlesQuoteCompletion {
 
-		@Override
-		public List<Completion> getQuoteCompletionsFor(String prefix) {
-			List<Triple<String, String, Runnable>> commands = Commands.getCommandsAndDocs(root);
-			return commands.stream().filter(x -> stripFormatting(x.first.toLowerCase()).startsWith(prefix.toLowerCase())).map(x -> {
-				Completion c = new Completion(-1, -1, x.first, "<span class='doc'>"+x.second+"</span>");
-				return c;
-			}).collect(Collectors.toList());
-		}
+        @Override
+        public List<Completion> getQuoteCompletionsFor(String prefix) {
+            List<Triple<String, String, Runnable>> commands = Commands.getCommandsAndDocs(root);
+            return commands.stream().filter(x -> stripFormatting(x.first.toLowerCase()).startsWith(prefix.toLowerCase())).map(x -> {
+                Completion c = new Completion(-1, -1, x.first, "<span class='doc'>" + x.second + "</span>");
+                return c;
+            }).collect(Collectors.toList());
+        }
 
-		@Override
-		public Boolean apply(Box box, String of) {
+        @Override
+        public Boolean apply(Box box, String of) {
+            Pattern p = Pattern.compile(of);
+            List<Triple<String, String, Runnable>> commands = Commands.getCommandsAndDocs(box);
 
-			Log.log("run.command", () -> box + " " + of);
-
-			Pattern p = Pattern.compile(of);
-			List<Triple<String, String, Runnable>> commands = Commands.getCommandsAndDocs(box);
-
-			System.out.println(" commands ? " + commands);
-
-			Log.log("run.command", () -> "command size is " + commands.size());
-			if (commands.size() == 0) return false;
-
-			// Nashorn doesn't like a lambda here
-
-			boolean[] found = {false};
-
-			commands.stream().filter(x -> stripFormatting(x.first.toLowerCase()).equals(of.toLowerCase())).forEach(r -> {
-				if (r.third instanceof RemoteEditor.ExtendedCommand) {
-					((RemoteEditor.ExtendedCommand) r.third).begin((pr, o, a) -> {
-						a.begin(null, null); // SHOULD BE AN ARG
-						a.run();
-						found[0] = true;
-					}, null);
-					r.third.run();
-				} else {
-					r.third.run();
-					found[0] = true;
-				}
-			});
-			return found[0];		}
-	}
+            Log.log("run.command", () -> "command size is " + commands.size());
+            if (commands.size() == 0) return false;
+            Log.log("run.command", () -> box + " " + of);
 
 
-	private String stripFormatting(String s) {
-		return s.replaceAll("<[^>]*>", "");
-	}
+            System.out.println(" commands ? " + commands);
+
+            Log.log("run.command", () -> "command size is " + commands.size());
+            if (commands.size() == 0) return false;
+
+            // Nashorn doesn't like a lambda here
+
+            boolean[] found = {false};
+
+            commands.stream().filter(x -> stripFormatting(x.first.toLowerCase()).equals(of.toLowerCase())).forEach(r -> {
+                if (r.third instanceof RemoteEditor.ExtendedCommand) {
+                    ((RemoteEditor.ExtendedCommand) r.third).begin((pr, o, a) -> {
+                        a.begin(null, null); // SHOULD BE AN ARG
+                        a.run();
+                        found[0] = true;
+                    }, null);
+                    r.third.run();
+                } else {
+                    r.third.run();
+                    found[0] = true;
+                }
+            });
+            return found[0];
+        }
+    }
+
+
+    private String stripFormatting(String s) {
+        return s.replaceAll("<[^>]*>", "");
+    }
 
 
 }

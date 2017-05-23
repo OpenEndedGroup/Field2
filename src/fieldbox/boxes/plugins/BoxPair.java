@@ -60,9 +60,6 @@ public class BoxPair extends Box {
 
 		this.properties.putToMap(Callbacks.onFrameChanged, "__checkPairFrames__", (box, rect) -> {
 
-			System.out.println(" ON FRAME CHANGE <"+box+" "+rect+" <- "+box.properties.get(Box.frame));
-
-
 			if (!box.properties.isTrue(isPaired, false)) return rect;
 			boolean isMain = box.properties.get(Box.name).trim().length()>0;
 			Rect now = box.properties.get(Box.frame);

@@ -188,7 +188,7 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 				GraphicsContext cc = GraphicsContext.getContext();
 
 				if (cc != was) {
-					System.out.println(" graphics context doesn't match ");
+					System.err.println(" WARNING: graphics context doesn't match ");
 					new Exception().printStackTrace();
 				}
 				if (cc!=was)

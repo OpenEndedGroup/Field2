@@ -71,8 +71,6 @@ public class Server {
 
 				Log.log("server", ()->"Serving "+uri);
 
-				System.out.println(" serving :"+uri);
-
 				Log.log("server", ()->"will check:"+uriHandlers);
 
 				Object id = parms.get("id");
@@ -97,15 +95,12 @@ public class Server {
 						File ff = new File(s + "/" + e);
 						if (ff.exists()) {
 							try {
-
-								System.out.println(" success ");
 								return new Response(Response.Status.OK, null, new BufferedInputStream(new FileInputStream(ff)));
 							} catch (FileNotFoundException e1) {
 								e1.printStackTrace();
 							}
 						}
 					}
-					System.out.println(" not found in :"+documentRoots);
 					return new Response(Response.Status.NOT_FOUND, null, "couldn't find " + e);
 				}
 
@@ -132,7 +127,7 @@ public class Server {
 			public void onClose(WebSocket webSocket, int i, String s, boolean b) {
 				Log.log("remote.trace", ()->" websocket closed " + i + " " + s + " " + b);
 				synchronized (knownSockets) {
-					System.out.println(" WEBSOCKET CLOSED ");
+					System.err.println(" WEBSOCKET CLOSED ");
 					knownSockets.values().remove(webSocket);
 				}
 			}

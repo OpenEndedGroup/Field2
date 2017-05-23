@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.lang.reflect.AccessibleObject;
 import java.net.URI;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
@@ -134,13 +135,6 @@ public class JavaSupport {
 								f = f.getParentFile();
 							}
 						});
-					}
-
-					System.out.println(FLine.class);
-					try {
-						Thread.sleep(2000);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
 					}
 
 					allClassNames.putAll(indexJigsaw());
@@ -261,21 +255,28 @@ public class JavaSupport {
 	private Set<String> failedToParse = new LinkedHashSet<>();
 
 	private void indexSrcZip(String filename) throws IOException {
-		ZipFile zipFile = new ZipFile(filename);
-		Enumeration entries = zipFile.entries();
-		while (entries.hasMoreElements()) {
-			ZipEntry zipEntry = (ZipEntry) entries.nextElement();
-			try {
-				if (zipEntry.getName().endsWith(".java")) {
-					String u = "jar:file://" + filename + "!/" + zipEntry.getName();
-					Log.log("jar.indexer", () -> "will index a source file from a jar:" + u);
-					builder.addSource(new URL(u));
+		try {
+			ZipFile zipFile = new ZipFile(filename);
+			Enumeration entries = zipFile.entries();
+			while (entries.hasMoreElements()) {
+				ZipEntry zipEntry = (ZipEntry) entries.nextElement();
+				try {
+					if (zipEntry.getName().endsWith(".java")) {
+						String u = "jar:"+new File(filename).toURI().toURL()+"!/" + zipEntry.getName();
+						Log.log("jar.indexer", () -> "will index a source file from a jar:" + u);
+						builder.setEncoding(Charset.defaultCharset().name());
+						builder.addSource(new URL(u));
+					}
+				} catch (com.thoughtworks.qdox.parser.ParseException t) {
+					failedToParse.add(zipEntry.getName());
+				} catch (Throwable t) {
+					t.printStackTrace();
 				}
-			} catch (com.thoughtworks.qdox.parser.ParseException t) {
-				failedToParse.add(zipEntry.getName());
-			} catch (Throwable t) {
-				t.printStackTrace();
 			}
+		}
+		catch(FileSystemException e)
+		{
+			System.out.println(" FSE "+filename);
 		}
 	}
 
@@ -489,8 +490,6 @@ public class JavaSupport {
 								.contains("public")) {
 
 
-								m.getParameters().forEach(x -> System.out.println(x.getName()));
-
 								String classComment = m.getDeclaringClass().getComment();
 								String constructorComment = m.getComment();
 								String comment = ((classComment == null ? "" : classComment) + " " + (constructorComment == null ? "" : constructorComment)).trim();
@@ -649,7 +648,6 @@ public class JavaSupport {
 			Set<String> seen = new LinkedHashSet<>();
 
 			for (JavaClass c : builder.getClasses()) {
-//				System.out.println(" -- " + c.getName());
 				if (c.getName()
 					.contains(left) && !seen.contains(c.getFullyQualifiedName())) {
 					seen.add(c.getFullyQualifiedName());
@@ -657,10 +655,8 @@ public class JavaSupport {
 				}
 			}
 
-			System.out.println();
 			synchronized (allClassNames) {
 				for (Map.Entry<String, String> e : allClassNames.entrySet()) {
-//					System.out.println(" -- " + e.getKey());
 					if (e.getKey()
 						.contains(left) && !seen.contains(e.getKey())) {
 						seen.add(e.getKey());

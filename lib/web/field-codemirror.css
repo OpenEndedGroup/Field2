@@ -1,27 +1,6 @@
 
 
 @font-face {
-    font-family: 'Source Code Pro';
-    src: url('/field/filesystem/fonts/SourceCodePro-Regular.ttf.woff') format('woff');
-    font-weight: 400;
-    font-style: normal;
-}
-
-@font-face {
-    font-family: 'Source Code Pro';
-    src: url('/field/filesystem/fonts/SourceCodePro-Light.ttf.woff') format('woff');
-    font-weight: 100;
-    font-style: normal;
-}
-
-@font-face {
-    font-family: 'Source Code Pro';
-    src: url('/field/filesystem/fonts/SourceCodePro-Bold.ttf.woff') format('woff');
-    font-weight: 700;
-    font-style: normal;
-}
-
-@font-face {
     font-family: 'Source Sans Pro';
     src: url('/field/filesystem/fonts/SourceSansPro-Regular.ttf.woff') format('woff');
     font-weight: 400;
@@ -42,25 +21,36 @@
     font-style: normal;
 }
 
-@font-face {
-    font-family: 'Source Sans Pro';
-    src: url('/field/filesystem/fonts/SourceSansPro-It.ttf.woff') format('woff');
-    font-weight: 400;
-    font-style: italic;
+@font-face{
+    font-family: 'Fira Code';
+    src: url('/field/filesystem/fonts/FiraCode-Light.woff') format('woff'),
+    url('/field/filesystem/fonts/FiraCode-Light.ttf') format('truetype');
+    font-weight: 300;
+    font-style: normal;
 }
 
-@font-face {
-    font-family: 'Source Sans Pro';
-    src: url('/field/filesystem/fonts/SourceSansPro-LightIt.ttf.woff') format('woff');
-    font-weight: 100;
-    font-style: italic;
+@font-face{
+    font-family: 'Fira Code';
+    src: url('/field/filesystem/fonts/FiraCode-Medium.woff') format('woff'),
+    url('/field/filesystem/fonts/FiraCode-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
 }
 
-@font-face {
-    font-family: 'Source Sans Pro';
-    src: url('/field/filesystem/fonts/SourceSansPro-BoldIt.ttf.woff') format('woff');
+@font-face{
+    font-family: 'Fira Code';
+    src: url('/field/filesystem/fonts/FiraCode-Bold.woff') format('woff'),
+    url('/field/filesystem/fonts/FiraCode-Bold.ttf') format('truetype');
     font-weight: 700;
-    font-style: italic;
+    font-style: normal;
+}
+
+@font-face{
+    font-family: 'Fira Code';
+    src: url('/field/filesystem/fonts/FiraCode-Regular.woff') format('woff'),
+    url('/field/filesystem/fonts/FiraCode-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
 }
 
 :root {
@@ -71,12 +61,10 @@
 ***********************************************************/
 
 html {
-    background: #2d3133;
     background: rgba(0, 0, 0, 0);
 }
 
 body {
-    font-variant-ligatures: normal;
     -webkit-font-variant-ligatures: common-ligatures;
     font-variant-ligatures: common-ligatures;
     background: rgba(0, 0, 0, 0);
@@ -208,7 +196,7 @@ a {
 }
 
 .maptable {
-    font-family: "Fira Code", "Source Code Pro";
+    font-family: "Fira Code";
     background-color: rgba(0, 0, 0, 0.2);
     border-radius: 2px;
 }
@@ -538,7 +526,7 @@ a {
     width: 100%;
     max-width: 1300px;
     transition: width 0.25s;
-    font-family: "Source Sans Pro";
+    font-family: "Fira Code";
     font-size: 16px;
     color: #eee;
 }
@@ -592,8 +580,8 @@ a {
 
 input {
     width: 100%;
-/ / min-width : 90 px;
-/ / max-width : 300 px;
+// min-width : 90 px;
+// max-width : 300 px;
     transition: width 0.25s;
 }
 
@@ -606,7 +594,6 @@ input {
     list-style-type: circle;
     padding: 0;
     margin: 0;
-    font-family: "Source Sans Pro";
     font-size: 14px;
     max-width: 80vh;
     overflow-y: auto;
@@ -618,7 +605,6 @@ input {
     list-style-type: circle;
     padding: 0;
     margin: 0;
-    font-family: "Source Sans Pro";
     font-size: 14px;
     max-width: 80vh;
     overflow-y: auto;
@@ -843,9 +829,9 @@ input {
 }
 
 code {
-    font-size: 90%;
     font-family: "Fira Code";
     font-opacity:100% !important;
+    font-size:80%;
     font-weight: bolder;
 }
 
@@ -864,7 +850,7 @@ code {
 }
 
 .CodeMirror-gutters {
-/ / background : #2d3133;
+    background : #2d3133;
     border-color: #2d3133;
     background: rgba(0, 0, 0, 0);
     border-color: rgba(255, 255, 255, 0.1);
@@ -883,7 +869,7 @@ code {
     foreground: #aaa !important;
     padding: 0.2em 0.2em;
     overflow: hidden;
-    font-family: "Source Sans Pro";
+    font-family: "Fira Code";
     font-size: 100%;
 }
 

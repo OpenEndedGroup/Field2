@@ -61,6 +61,17 @@ public class Rect implements Mutable<Rect>, Serializable {
 		return new Rect(minx, miny, maxx - minx, maxy - miny);
 	}
 
+	static public Rect intersection(Rect a, Rect b)
+	{
+		float minx = (float) Math.min(a.x+a.w, b.x+b.w);
+		float miny = (float) Math.min(a.y+a.h, b.y+b.h);
+
+		float maxx= (float) Math.max(a.x, b.x);
+		float maxy = (float) Math.max(a.y, b.y);
+
+		return new Rect(maxx, maxy, Math.max(0, minx-maxx), Math.max(0, miny-maxy));
+	}
+
 	public Rect translate(Vec2 by)
 	{
 		return new Rect(x+by.x, y+by.y, w, h);

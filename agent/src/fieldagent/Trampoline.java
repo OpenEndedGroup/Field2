@@ -271,7 +271,6 @@ public class Trampoline {
 								for (int i = pieces.length - 2; i >= 0; i--) {
 									Path q = x.getName(x.getNameCount() - o);
 									if (!q.getName(0).toString().equals(pieces[i])) {
-										System.out.println(" piece mismatch :" + q.getName(0) + " " + pieces[i]);
 										busted = true;
 										break;
 									}

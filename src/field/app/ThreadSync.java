@@ -155,12 +155,8 @@ public class ThreadSync {
         if (fiber.get().stopped) throw new Stop();
         if (o == null) o = NULL;
 
-        System.out.println(" LEAVE :" + fiber.get().input.size() + " | " + fiber.get().output.size());
-
         Object t = fiber.get().input.poll();
         fiber.get().output.offer(o);
-
-        System.out.println(" after leave :" + fiber.get().input.size() + " | " + fiber.get().output.size());
 
         if (fiber.get().stopped) throw new Stop();
 

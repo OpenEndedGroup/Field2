@@ -140,7 +140,8 @@ public class WebApps extends Box implements IO.Loaded {
 		s.addDocumentRoot(fieldagent.Main.app + "/modules/fieldbox/resources/");
 		s.addDocumentRoot(fieldagent.Main.app + "/modules/fielded/resources/");
 		s.addDocumentRoot(fieldagent.Main.app + "/modules/fieldcore/resources/");
-
+		s.addDocumentRoot(fieldagent.Main.app + "/lib/web/");
+		s.addDocumentRoot(fieldagent.Main.app + "/win/lib/web/");
 
 		s.addURIHandler((uri, method, headers, params, files) -> {
 			if (uri.startsWith(EXECUTE)) {
