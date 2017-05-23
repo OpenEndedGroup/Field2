@@ -152,7 +152,6 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 			textFragment = prefix + textFragment + (filename == null ? "" : ("//# sourceURL=" + filename));
 
-
 			//TODO: should be find?
 			SourceTransformer st = box.properties.get(sourceTransformer);
 

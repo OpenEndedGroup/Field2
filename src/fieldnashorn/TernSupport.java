@@ -310,7 +310,7 @@ public class TernSupport {
 		for (int i = 1; i < r.size(); i++) {
 			Completion a = r.get(i - 1);
 			Completion b = r.get(i);
-			if (a.replacewith.equals(b.replacewith)) {
+			if (a.replacewith.equals(b.replacewith) && a.type==b.type) {
 				if (a.rank > b.rank) {
 					r.remove(i - 1);
 					i--;
