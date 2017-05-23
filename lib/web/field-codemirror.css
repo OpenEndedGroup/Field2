@@ -62,7 +62,6 @@
 
 html {
     background: rgba(0, 0, 0, 0);
-    zoom: 175%;
 }
 
 body {
@@ -812,7 +811,7 @@ input {
     padding: 5px;
     border-radius: 5px;
     transition: 1s opacity;
-    font-family: "Fira Code";
+    font-family: "Source Sans Pro";
 }
 
 .Field-status .highlighted {
