@@ -11,11 +11,9 @@
       <root url="jar://$PROJECT_DIR$/lib/jars/lwjgl.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/jars/lwjgl-glfw.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/jars/lwjgl-jemalloc.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/jars/lwjgl-nuklear.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/jars/lwjgl-openal.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/jars/lwjgl-opengl.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/jars/lwjgl-ovr.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/jars/lwjgl-stb.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/jars/lwjgl_util.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/jars/poly2tri-core-0.1.1-SNAPSHOT.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/jars/prettytime-4.0.1.Final.jar!/" />

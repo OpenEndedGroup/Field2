@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="JAVA_MODULE" version="4">
-  <component name="NewModuleRootManager">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_9">
     <output url="file://$MODULE_DIR$/build/classes" />
     <output-test url="file://$MODULE_DIR$/out/test/fieldwork2_altbuild" />
     <exclude-output />
@@ -14,5 +14,8 @@
     <orderEntry type="library" name="field_prebuild" level="project" />
     <orderEntry type="library" name="quickhull3d" level="project" />
     <orderEntry type="library" name="jmustache-1.13" level="project" />
+    <orderEntry type="library" name="lwjgl-par" level="project" />
+    <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
+    <orderEntry type="library" name="tools" level="application" />
   </component>
 </module>
