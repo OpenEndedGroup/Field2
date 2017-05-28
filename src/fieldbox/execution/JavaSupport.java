@@ -4,9 +4,11 @@ import com.thoughtworks.qdox.JavaProjectBuilder;
 import com.thoughtworks.qdox.directorywalker.DirectoryScanner;
 import com.thoughtworks.qdox.directorywalker.SuffixFilter;
 import com.thoughtworks.qdox.model.*;
+import com.thoughtworks.qdox.model.impl.DefaultJavaParameter;
 import com.thoughtworks.qdox.parser.ParseException;
 import field.app.RunLoop;
 import field.graphics.FLine;
+import field.utility.Documentation;
 import field.utility.Log;
 import field.utility.MarkdownToHTML;
 import field.utility.Pair;
@@ -19,6 +21,8 @@ import fieldnashorn.annotations.StopAutocompleteHere;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.AccessibleObject;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -38,7 +42,7 @@ import java.util.zip.ZipFile;
  * <p>
  * This class also contains our class discovery mechanism for import help
  * <p>
- * Todo: this is useful accross language runtimes, not just Nashorn/Javascript.
+ * Todo: this is useful across language runtimes, not just Nashorn/Javascript.
  */
 public class JavaSupport {
 
@@ -262,7 +266,7 @@ public class JavaSupport {
 				ZipEntry zipEntry = (ZipEntry) entries.nextElement();
 				try {
 					if (zipEntry.getName().endsWith(".java")) {
-						String u = "jar:"+new File(filename).toURI().toURL()+"!/" + zipEntry.getName();
+						String u = "jar:" + new File(filename).toURI().toURL() + "!/" + zipEntry.getName();
 						Log.log("jar.indexer", () -> "will index a source file from a jar:" + u);
 						builder.setEncoding(Charset.defaultCharset().name());
 						builder.addSource(new URL(u));
@@ -273,10 +277,8 @@ public class JavaSupport {
 					t.printStackTrace();
 				}
 			}
-		}
-		catch(FileSystemException e)
-		{
-			System.out.println(" FSE "+filename);
+		} catch (FileSystemException e) {
+			System.out.println(" FSE " + filename);
 		}
 	}
 
@@ -450,12 +452,12 @@ public class JavaSupport {
 			.startsWith("java");
 
 		JavaClass j = builder.getClassByName(c.getName());
+		List<Completion> r = new ArrayList<>();
 
 		final JavaClass finalJ = j;
 		boolean finalIncludeConstructors = includeConstructors;
 		Log.log("completion.debug", () -> " java class (for javadoc supported completion) :" + finalJ + " prefix is <" + prefix + "> " + finalIncludeConstructors + " " + staticsOnly);
 
-		List<Completion> r = new ArrayList<>();
 		try {
 			while (j != null) {
 
@@ -489,7 +491,6 @@ public class JavaSupport {
 								.startsWith(prefix)) && m.getModifiers()
 								.contains("public")) {
 
-
 								String classComment = m.getDeclaringClass().getComment();
 								String constructorComment = m.getComment();
 								String comment = ((classComment == null ? "" : classComment) + " " + (constructorComment == null ? "" : constructorComment)).trim();
@@ -519,9 +520,12 @@ public class JavaSupport {
 							.trim()
 							.length() < 1) continue;
 
+						String annotationDoc = getDocumentationFromAnnotation(c, m);
+
 						String val = "";
 						boolean tostring = false;
-						if (!staticsOnly && (hasAnnotation(m.getAnnotations(), SafeToToString.class) || m.getType().isPrimitive())) {
+						if (!staticsOnly && (hasAnnotation(m.getAnnotations(), SafeToToString.class) || m.getType().isPrimitive())
+							|| hasAnnotation(builder.getClassByName(m.getType().getCanonicalName()).getAnnotations(), SafeToToString.class)) {
 							try {
 								val = "= <b>" + access(c.getDeclaredField(m.getName())).get(o) + "</b> &nbsp;";
 								tostring = true;
@@ -535,7 +539,7 @@ public class JavaSupport {
 							.contains("public") && (!staticsOnly || m.getModifiers()
 							.contains("static"))) {
 							Completion cc = new Completion(-1, -1, m.getName(), val + "<span class=type>" + compress(m.getName(), m.getDeclarationSignature(
-								true)) + "</span>" + (m.getComment() != null ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + m.getComment() + "</span>" : ""));
+								true)) + "</span>" + (annotationDoc != null ? ("<span class=type>&nbsp;&mdash;</span> <span class=doc>" + annotationDoc + "</span>") : (m.getComment() != null ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + m.getComment() + "</span>" : "")));
 							add(val.length() > 0, r, cc);
 							cc.rank += tostring ? 100 : 0;
 							cc.rank += m.getComment() != null ? 10 : 0;
@@ -546,6 +550,8 @@ public class JavaSupport {
 						if (hasAnnotation(m.getAnnotations(), HiddenInAutocomplete.class))
 							continue;
 
+						if (m.getName().contains("$")) continue;
+
 						if (m.getName().equals("toString")) continue;
 						if (m.getName().equals("equals")) continue;
 						if (m.getName().equals("hashCode")) continue;
@@ -554,6 +560,8 @@ public class JavaSupport {
 							.trim()
 							.length() < 1) continue;
 
+
+						String annotationDoc = getDocumentationFromAnnotation(c, m);
 
 						String val = "";
 						boolean tostring = false;
@@ -570,8 +578,8 @@ public class JavaSupport {
 							.startsWith(prefix)) && m.getModifiers()
 							.contains("public") && (!staticsOnly || m.getModifiers()
 							.contains("static"))) {
-							Completion cc = new Completion(-1, -1, m.getName(), val + "<span class=type>" + compress(m.getName(), m.getDeclarationSignature(
-								true)) + "</span>" + (m.getComment() != null ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + m.getComment() + "</span>" : ""));
+							Completion cc = new Completion(-1, -1, m.getName(),
+								val + "<span class=type>" + getDeclarationSignature(c, m) + "</span>" + (annotationDoc != null ? ("<span class=type>&nbsp;&mdash;</span> <span class=doc>" + annotationDoc + "</span>") : (m.getComment() != null ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + m.getComment() + "</span>" : "")));
 							add(val.length() > 0, r, cc);
 							cc.rank += tostring ? 100 : 0;
 							cc.rank += m.getComment() != null ? 10 : 0;
@@ -604,13 +612,80 @@ public class JavaSupport {
 		return r;
 	}
 
+
+	private String getDeclarationSignature(Class c, JavaMethod m) throws ClassNotFoundException {
+
+		// try to dig out better names from the class itself if qdox has missed them
+		try {
+			List<JavaType> t = m.getParameterTypes();
+			Class[] tt = new Class[t.size()];
+			for (int i = 0; i < t.size(); i++) {
+				tt[i] = classFor(t.get(i).getFullyQualifiedName());
+			}
+			Method meth = c.getDeclaredMethod(m.getName(), tt);
+
+			m.getParameters().get(0).getName();
+
+			for (int i = 0; i < meth.getParameters().length; i++) {
+				if (((DefaultJavaParameter) m.getParameters().get(i)).getName().startsWith("p"))
+					((DefaultJavaParameter) m.getParameters().get(i)).setName(meth.getParameters()[i].getName());
+			}
+		} catch (NoSuchMethodException e) {
+
+		}
+
+		String sig = compress(m.getName(), m.getDeclarationSignature(true));
+		System.out.println(" sig for " + m.getClass() + " is " + sig);
+
+		// if sig has no names, qdox doesn't seem to introspect it at all
+
+		return sig;
+	}
+
+	private String getDocumentationFromAnnotation(Class c, JavaField m) {
+		try {
+			return c.getDeclaredField(m.getName()).getAnnotation(Documentation.class).value();
+		} catch (Throwable e) {
+			return null;
+		}
+	}
+
+	private String getDocumentationFromAnnotation(Class c, JavaMethod m) {
+		try {
+
+			List<JavaType> t = m.getParameterTypes();
+			Class[] tt = new Class[t.size()];
+			for (int i = 0; i < t.size(); i++) {
+				tt[i] = classFor(t.get(i).getFullyQualifiedName());
+			}
+			Method meth = c.getDeclaredMethod(m.getName(), tt);
+			System.out.println(" looked up " + m.getName() + " in " + c + " " + Arrays.asList(tt));
+			System.out.println(Arrays.asList(meth.getAnnotations()));
+			System.out.println(meth.getAnnotation(Documentation.class));
+			return meth.getAnnotation(Documentation.class).value();
+		} catch (Throwable e) {
+			System.err.println(" while documentation from annotation :" + c + " " + m);
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	private Class classFor(String fullyQualifiedName) throws ClassNotFoundException {
+		if (fullyQualifiedName.equals("int")) return Integer.TYPE;
+		if (fullyQualifiedName.equals("long")) return Long.TYPE;
+		if (fullyQualifiedName.equals("double")) return Double.TYPE;
+		if (fullyQualifiedName.equals("float")) return Float.TYPE;
+		if (fullyQualifiedName.equals("char")) return Character.TYPE;
+		if (fullyQualifiedName.equals("byte")) return Byte.TYPE;
+		if (fullyQualifiedName.equals("short")) return Short.TYPE;
+		return this.getClass().getClassLoader().loadClass(fullyQualifiedName);
+	}
+
 	// qdox can throw an NPE during isA when, presumably, it isN't
 	private boolean isTypeProp(JavaField m) {
-		try{
+		try {
 			return m.getType().isA("field.utility.Dict$Prop");
-		}
-		catch(NullPointerException e)
-		{
+		} catch (NullPointerException e) {
 			return false;
 		}
 	}
@@ -631,14 +706,15 @@ public class JavaSupport {
 	}
 
 	private boolean hasAnnotation(List<JavaAnnotation> annotations, Class hiddenInAutocompleteClass) {
-		return annotations.stream()
+		return (annotations.stream()
 			.filter(x -> x.getType()
 				.getName()
 				.equals(hiddenInAutocompleteClass.getName()
 					.substring(1 + hiddenInAutocompleteClass.getName()
 						.lastIndexOf('.'))))
 			.findFirst()
-			.isPresent();
+			.isPresent());
+
 	}
 
 	public List<Pair<String, String>> getPossibleJavaClassesFor(String left) {

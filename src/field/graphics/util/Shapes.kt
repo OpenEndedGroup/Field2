@@ -10,8 +10,6 @@ import field.utility.use
 import fieldnashorn.annotations.SafeToToString
 import org.lwjgl.util.par.ParShapes
 import org.lwjgl.util.par.ParShapesMesh
-import kotlin.coroutines.experimental.EmptyCoroutineContext.plus
-import kotlin.reflect.full.memberFunctions
 
 /**
  * Classes that will help MeshBuilder support simple shapes
