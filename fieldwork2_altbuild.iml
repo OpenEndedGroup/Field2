@@ -17,5 +17,6 @@
     <orderEntry type="library" name="lwjgl-par" level="project" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="library" name="tools" level="application" />
+    <orderEntry type="library" name="lwjgl-assimp" level="project" />
   </component>
 </module>
