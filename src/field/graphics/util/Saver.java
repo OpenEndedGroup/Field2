@@ -68,6 +68,10 @@ public class Saver {
 
 
 	public void update() {
+		update(prefix, frameNumber++, ".jpg");
+	}
+
+	public void update(String prefix, int frameNumber, String suffix) {
 		if (!on) return;
 
 		ByteBuffer storage = null;
@@ -94,7 +98,7 @@ public class Saver {
 
 		runHooks(storage);
 
-		lastFilename = prefix + pad(frameNumber++) + ".jpg";
+		lastFilename = prefix + pad(frameNumber++) + suffix;
 		FutureTask<ByteBuffer> task = new FutureTask<ByteBuffer>(makeWorker(storage, lastFilename));
 		pool.execute(task);
 		workers.add(task);
@@ -108,7 +112,7 @@ public class Saver {
 
 	private String pad(int i) {
 		String s = i + "";
-		while (s.length() < 5) s = "0" + s;
+		while (s.length() < 6) s = "0" + s;
 		return s;
 	}
 
