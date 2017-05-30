@@ -18,7 +18,7 @@ public class Meshes extends Box implements Drawing.Drawer {
 		.doc("Geometry (specifically instances of BaseMesh) to be drawn along with this box")
 		.autoConstructs(() -> new IdempotencyMap<>(Supplier.class));
 
-	static public final Dict.Prop<Scene> scene = new Dict.Prop<>("scene").type()
+	static public final Dict.Prop<Scene> windowScene = new Dict.Prop<>("windowScene").type()
 		.toCannon()
 		.doc("Scenegraph of the main layer of the main window");
 
@@ -27,7 +27,7 @@ public class Meshes extends Box implements Drawing.Drawer {
 		this.properties.putToList(Drawing.drawers, this);
 		Optional<FieldBoxWindow> w = root.find(Boxes.window, root.both())
 			.findFirst();
-		this.properties.put(scene, w.get().getCompositor().getLayer("__main__").getScene());
+		this.properties.put(windowScene, w.get().getCompositor().getLayer("__main__").getScene());
 	}
 
 	@Override
