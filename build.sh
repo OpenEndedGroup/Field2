@@ -1,10 +1,27 @@
 root=`dirname $0`
 cd $root
 
+
+function join() {
+    local IFS=$1
+    shift
+    echo "$*"
+}
+
+
+if [ ! -d kotlinc ]; then
+    echo -- downloading kotlinc --
+    curl -L https://github.com/JetBrains/kotlin/archive/build-1.1.2-release-105.zip > kotlinc.zip
+    echo -- decompressing --
+    unzip kotlinc.zip
+    echo -- complete --
+fi
+
 echo -- using javac from : --
 echo `which javac` / `javac -fullversion`
-echo --
 
+echo -- using kotlinc version : --
+echo `./kotlinc/bin/kotlinc -version`
 
 
 echo -- removing build directory --
@@ -39,14 +56,20 @@ echo -- 2/2 - making jar --
 jar cmf ../../linker/lib/META-INF/MANIFEST.MF ../field_linker.jar .
 cd ..
 
-
+echo
 
 echo -- building main classes -- 
 mkdir classes
 find ../src -iname '*.java' > source
 find ../osx/src -iname '*.java' >> source
 
+cp0=$(join ':' ../lib/jars/*.jar)
+cp1=$(join ':' ../osx/lib/jars/*)
+
+
 # XDignore.symbol.file suppresses the otherwise unspressable warning about Unsafe, which will be there until there's a replacement for Unsafe
+../kotlinc/bin/kotlinc -jdk-home /Library/Java/JavaVirtualMachines/jdk-9.jdk/Contents/Home/ -J--add-opens -Jjava.base/jdk.internal.misc=ALL-UNNAMED -J--add-opens -Jjava.desktop/sun.awt=ALL-UNNAMED -J--add-opens -Jjava.base/java.lang.reflect=ALL-UNNAMED -J--add-opens -Jjava.base/java.lang=ALL-UNNAMED -J--add-opens -Jjava.base/java.util=ALL-UNNAMED -J--add-opens -Jjava.base/java.util.concurrent.atomic=ALL-UNNAMED -J--add-opens -Jjava.desktop/sun.awt=ALL-UNNAMED -J--add-opens -Jjava.base/java.lang.reflect=ALL-UNNAMED -J--add-opens -Jjava.base/java.lang=ALL-UNNAMED -J--add-opens -Jjava.base/java.util=ALL-UNNAMED  -classpath field_agent.jar:field_linker.jar:$cp0:$cp1 -d classes ../src 
+
 javac -Xlint:-deprecation -Xlint:-unchecked -XDignore.symbol.file -classpath "field_agent.jar:field_linker.jar:../lib/jars/*:../lib/jars/orientdb/*:../osx/lib/jars/*"  @source -d classes/
 
 echo -- build complete -- 

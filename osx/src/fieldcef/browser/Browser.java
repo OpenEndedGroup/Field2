@@ -111,13 +111,14 @@ public class Browser extends Box implements IO.Loaded {
 
 		for (int x = 0; x < ns; x++) {
 			for (int y = 0; y < ns; y++) {
-				float ax = x / (ns - 1f);
-				float ay = y / (ns - 1f);
+				float ax = (0.f+x) / (float)(ns - 1);
+				float ay = (0.f+y) / (float)(ns - 1);
 
-				builder.aux(5, ax * r.w / w, ay * r.h / h, op);
+				builder.aux(5, ax * r.w / w, ay * (r.h+0.5f) / h, op);
 				builder.v(r.x + ax * r.w, r.y + ay * r.h, 0);
 			}
 		}
+
 		for (int x = 0; x < ns - 1; x++) {
 			for (int y = 0; y < ns - 1; y++) {
 				builder.e_quad((x + 1) * ns + y, x * ns + y, x * ns + y + 1, (x + 1) * ns + y + 1);
@@ -255,7 +256,15 @@ public class Browser extends Box implements IO.Loaded {
 			"\n" +
 			"void main()\n" +
 			"{\n" +
-			"\tvec4 current = texelFetch(te, ivec2(vtc.xy*textureSize(te,0)), 0);\n" +
+			"ivec2 TC = ivec2(vtc.xy*textureSize(te,0));\n" +
+			"float g = 1.6;\n"+
+			"\tvec4 current = pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+vec2(0.25,0.25)), 0), vec4(g,g,g,1));\n" +
+			"\tcurrent += 0.25*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+vec2(0.25,0.25))+ivec2(1.0,0), 0), vec4(g,g,g,1));\n" +
+			"\tcurrent += 0.25*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+vec2(0.25,0.25))+ivec2(0,1.), 0), vec4(g,g,g,1));\n" +
+			"\tcurrent += 0.25*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+vec2(0.25,0.25))+ivec2(-1.,0), 0), vec4(g,g,g,1));\n" +
+			"\tcurrent += 0.25*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+vec2(0.25,0.25))+ivec2(0,-1.), 0), vec4(g,g,g,1));\n" +
+			"current = current/2;\n" +
+			"current = pow(current, vec4(1/g, 1/g, 1/g, 1));" +
 			"\tfloat m = min(current.x, min(current.y, current.z));\n" +
 			"float sat = 0.2;\n" +
 			"\tcurrent.xyz = (current.xyz-vec3(m)*sat)/(1-sat);\n" +
@@ -264,7 +273,9 @@ public class Browser extends Box implements IO.Loaded {
 			"\t_output  = vec4(current.zyx,max(0.4, min(1, d*3))*current.w*vtc.z);\n" +
 			"\t if (vtc.x==0 || vtc.x==1 || vtc.y==0 || vtc.y==1) _output.w=0;\n" +
 //			"\t _output=vec4(current.xyz,1);\n" +
+//			"_output+=vec4(TC.x%15<1 ? 1 : 0, 0, 0, 1)*0.5;\n" +
 			"}");
+
 
 		shader.attach(new Uniform<Vec2>("translation", () -> drawing.getTranslationRounded()));
 		shader.attach(new Uniform<Vec2>("scale", () -> drawing.getScale()));
