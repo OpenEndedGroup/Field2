@@ -18,139 +18,144 @@ Class to save out a canvas to a directory of .jpgs
  */
 public class Saver {
 
-	private final int numWorkers;
+    private final int numWorkers;
 
-	private final int width;
+    private final int width;
 
-	private final int height;
+    private final int height;
 
-	private final ExecutorService pool;
+    private final ExecutorService pool;
 
-	private final String prefix;
+    private final String prefix;
 
-	public Saver(int width, int height, int numWorkers, String prefix) {
-		this.width = width;
-		this.height = height;
-		this.numWorkers = numWorkers;
-		this.prefix = prefix;
+    public Saver(int width, int height, int numWorkers, String prefix) {
+        this.width = width;
+        this.height = height;
+        this.numWorkers = numWorkers;
+        this.prefix = prefix;
 
-		pool = Executors.newCachedThreadPool();
-	}
+        pool = Executors.newCachedThreadPool();
+    }
 
-	List<FutureTask<ByteBuffer>> workers = new ArrayList<FutureTask<ByteBuffer>>();
+    List<FutureTask<ByteBuffer>> workers = new ArrayList<FutureTask<ByteBuffer>>();
 
-	int frameNumber = 0;
+    int frameNumber = 0;
 
-	boolean on = false;
-	boolean drip = false;
+    boolean on = false;
+    boolean drip = false;
 
-	private String lastFilename;
+    private String lastFilename;
 
-	public void setOn(boolean on) {
-		this.on = on;
-		drip = false;
-	}
+    public void setOn(boolean on) {
+        this.on = on;
+        drip = false;
+    }
 
-	public void start() {
-		setOn(true);
-	}
+    public void start() {
+        setOn(true);
+    }
 
-	public void stop() {
-		setOn(false);
-	}
+    public void stop() {
+        setOn(false);
+    }
 
-	public void drip() {
-		on = true;
-		drip = true;
-	}
+    public void drip() {
+        on = true;
+        drip = true;
+    }
 
-	public IdempotencyMap<Consumer<ByteBuffer>> hooks = new IdempotencyMap<Consumer<ByteBuffer>>(Consumer.class);
+    public IdempotencyMap<Consumer<ByteBuffer>> hooks = new IdempotencyMap<Consumer<ByteBuffer>>(Consumer.class);
 
 
-	public void update() {
-		update(prefix, frameNumber++, ".jpg");
-	}
+    public void update() {
+        if (update(prefix, frameNumber, ".jpg")) frameNumber++;
+    }
 
-	public void update(String prefix, int frameNumber, String suffix) {
-		if (!on) return;
+    public boolean update(String prefix, int frameNumber, String suffix) {
+        if (!on) return false;
 
-		ByteBuffer storage = null;
+        ByteBuffer storage = null;
 
-		if (workers.size() < numWorkers) {
+        if (workers.size() < numWorkers) {
 
-			storage = newStorage();
-		} else {
-			//System.out.println("state opf workers: ");
-			for (FutureTask t : workers)
-				;//System.out.println(t.isDone());
+            storage = newStorage();
+        } else {
+            //System.out.println("state opf workers: ");
+//			for (FutureTask t : workers)
+//				System.out.println(t.isDone());
 
-			FutureTask<ByteBuffer> w = workers.remove(0);
-			try {
-				storage = w.get();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			} catch (ExecutionException e) {
-				e.printStackTrace();
-			}
-		}
+            FutureTask<ByteBuffer> w = workers.remove(0);
+            try {
+                storage = w.get();
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
 
-		getImage(storage);
+        getImage(storage);
 
-		runHooks(storage);
+        runHooks(storage);
 
-		lastFilename = prefix + pad(frameNumber++) + suffix;
-		FutureTask<ByteBuffer> task = new FutureTask<ByteBuffer>(makeWorker(storage, lastFilename));
-		pool.execute(task);
-		workers.add(task);
+        lastFilename = prefix + pad(frameNumber) + suffix;
+        FutureTask<ByteBuffer> task = new FutureTask<ByteBuffer>(makeWorker(storage, lastFilename));
+        pool.execute(task);
+        workers.add(task);
 
-		if (drip) on = false;
-	}
+        if (drip) on = false;
 
-	private void runHooks(ByteBuffer storage) {
-		hooks.values().stream().forEach(x -> x.accept(storage));
-	}
+        return true;
+    }
 
-	private String pad(int i) {
-		String s = i + "";
-		while (s.length() < 6) s = "0" + s;
-		return s;
-	}
+    private void runHooks(ByteBuffer storage) {
+        hooks.values().stream().forEach(x -> x.accept(storage));
+    }
 
-	private void getImage(ByteBuffer storage) {
+    private String pad(int i) {
+        String s = i + "";
+        while (s.length() < 6) s = "0" + s;
+        return s;
+    }
 
-		int[] a = {0};
-		assert glGetError() == 0;
+    private void getImage(ByteBuffer storage) {
+
+        int[] a = {0};
+        assert glGetError() == 0;
 
 //		glFinish();
-		storage.rewind();
-		a[0] = glGetInteger(GL_FRAMEBUFFER_BINDING);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        storage.rewind();
+        a[0] = glGetInteger(GL_FRAMEBUFFER_BINDING);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 //		glFinish();
 //		GL11.glReadBuffer(GL11.GL_BACK);
-		glReadPixels(0, 0, width, height, GL11.GL_RGB, GL_UNSIGNED_BYTE, storage);
+        glReadPixels(0, 0, width, height, GL11.GL_RGB, GL_UNSIGNED_BYTE, storage);
 //		glFinish();
-		glBindFramebuffer(GL_FRAMEBUFFER, a[0]);
-		storage.rewind();
+        glBindFramebuffer(GL_FRAMEBUFFER, a[0]);
+        storage.rewind();
 
-		assert glGetError() == 0;
-	}
+        assert glGetError() == 0;
+    }
 
-	FastJPEG j2 = new FastJPEG();
+    FastJPEG j2 = new FastJPEG();
 
-	private Callable<ByteBuffer> makeWorker(final ByteBuffer storage, final String filename) {
-		return new Callable<ByteBuffer>() {
-			public ByteBuffer call() throws Exception {
+    private Callable<ByteBuffer> makeWorker(final ByteBuffer storage, final String filename) {
+        return new Callable<ByteBuffer>() {
+            public ByteBuffer call() throws Exception {
 
-				j2.compress(filename, storage, width, height);
+                try {
+                    j2.compress(filename, storage, width, height);
+                } catch (Throwable t) {
+                    System.err.println(" -- exception thrown in compress for :" + filename + " " + storage + " " + width + " " + height);
+                    t.printStackTrace();
+                }
+                return storage;
 
-				return storage;
-			}
-		};
-	}
+            }
+        };
+    }
 
-	private ByteBuffer newStorage() {
-		return ByteBuffer.allocateDirect(width * height * 4);
-	}
+    private ByteBuffer newStorage() {
+        return ByteBuffer.allocateDirect(width * height * 4);
+    }
 
 
 }
