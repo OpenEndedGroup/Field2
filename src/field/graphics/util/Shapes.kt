@@ -179,7 +179,7 @@ class Shapes {
         mesh.e.rewind()
 
         val rot = { x: Number, y: Number, z: Number -> rotate.transform(Vec3(x.toDouble(), y.toDouble(), z.toDouble())) }
-        val trans = { x: Number, y: Number, z: Number -> translate + Vec3(x.toDouble(), y.toDouble(), z.toDouble()) }
+        val trans = { x : Vec3 -> translate + x }
 
 
         builder.use {
@@ -187,11 +187,11 @@ class Shapes {
 
             for (n in 0 until V) {
                 if (mesh.n != null && normals>0)
-                    builder.aux(normals, mesh.n.get(), mesh.n.get())
+                    builder.aux(normals, rot(mesh.n.get(), mesh.n.get(), mesh.n.get()))
                 if (mesh.c != null && colors>0)
                     builder.aux(colors, mesh.c.get(), mesh.c.get(), mesh.c.get(), mesh.c.get())
 
-                builder.v(Vec3(mesh.v))
+                builder.v(trans(rot(mesh.v.get(), mesh.v.get(), mesh.v.get())))
             }
 
             when (builder.target.elementDimension) {
@@ -291,7 +291,7 @@ class Shapes {
         val triangle = shape.triangles(t * 3)
 
         val rot = { x: Number, y: Number, z: Number -> rotate.transform(Vec3(x.toDouble(), y.toDouble(), z.toDouble())) }
-        val trans = { x: Number, y: Number, z: Number -> translate + Vec3(x.toDouble(), y.toDouble(), z.toDouble()) }
+        val trans = { x: Vec3-> translate + x }
 
         builder.use {
             for (n in 0 until p) {
@@ -301,7 +301,7 @@ class Shapes {
                     it.aux(textures, texture.get(), texture.get())
 
 
-                it.v(trans(vertex.get(), vertex.get(), vertex.get()))
+                it.v(trans(rot(vertex.get(), vertex.get(), vertex.get())))
             }
 
             when (builder.target.elementDimension) {

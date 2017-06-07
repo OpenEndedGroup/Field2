@@ -20,11 +20,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-//import jdk.nashorn.internal.runtime.ConsString;
-//import jdk.nashorn.internal.runtime.ConsString;
 
 /**
- * The fundemental unit in Field --- the box.
+ * The fundamental unit in Field --- the box.
  * <p>
  * A Box has properties and it's in a graph structure.
  * <p>
