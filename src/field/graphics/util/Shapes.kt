@@ -159,13 +159,13 @@ class Shapes {
 
             // optionally, normals
             val vn = aimesh.mNormals()
-            val n = bufferToFloatBuffer(vn)
+            val normal = bufferToFloatBuffer(vn)
 
             // optionally color 0
             val vc = aimesh.mColors(0);
             val c = bufferToFloatBuffer(vc);
 
-            out += Mesh(v, e, n, c, aimesh.mName().dataString())
+            out += Mesh(v, e, normal, c, aimesh.mName().dataString())
         }
 
         return out
