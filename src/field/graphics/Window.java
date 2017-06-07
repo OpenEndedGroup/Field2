@@ -827,8 +827,8 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 					boolean meta = ((glfwGetKey(window, GLFW_KEY_LEFT_SUPER)) | (glfwGetKey(window, GLFW_KEY_RIGHT_SUPER))) != 0;
 					boolean ctrl = ((glfwGetKey(window, GLFW_KEY_LEFT_CONTROL)) | (glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL))) != 0;
 
-					next = modifiers.cleanModifiers(next);
-					next = next.clean(window);
+//					next = modifiers.cleanModifiers(next);
+//					next = next.clean(window);
 
 					fireKeyboardTransition(keyboardState, next);
 					keyboardState = next;
