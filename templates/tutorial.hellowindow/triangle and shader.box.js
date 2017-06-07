@@ -5,7 +5,7 @@ var BaseMesh = Java.type('field.graphics.BaseMesh')
 shader = _.newShader()
 
 // this lets us edit the glsl (command-space 'vertex' and 'fragment' and 'geometry')
-// reload with command-space 'reload' or with, 'ctrl_r' thank's to this line:
+// reload with ctrl-space 'reload' or with, 'ctrl-r' thank's to this line:
 _.shortcut.ctrl_r = () => _.runCommand("reload shader")
 
 // and a mesh (which will start with 0 triangles and 0 vertices)
