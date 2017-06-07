@@ -149,8 +149,7 @@ public class BrowserKeyboardHacks {
 			e.properties.put(Window.consumed, true);
 
 			if (e.after.isAltDown()) continue;
-			if (e.after
-				    .isControlDown()) continue;
+			if (e.after.isControlDown()) continue;
 
 			target.sendKeyEvent(ke);
 		}
