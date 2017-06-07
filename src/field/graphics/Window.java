@@ -809,8 +809,8 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 
 					modifiers.event(key, scancode, action, mods, next.keysDown);
 
-					next = modifiers.cleanModifiers(next);
-					next = next.clean(window);
+//					next = modifiers.cleanModifiers(next);
+//					next = next.clean(window);
 
 					fireKeyboardTransition(keyboardState, next);
 					keyboardState = next;
@@ -834,8 +834,8 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 					keyboardState = next;
 					next = keyboardState.withChar((char) character, false);
 
-					next = modifiers.cleanModifiers(next);
-					next = next.clean(window);
+//					next = modifiers.cleanModifiers(next);
+//					next = next.clean(window);
 					fireKeyboardTransition(keyboardState, next);
 					keyboardState = next;
 				}
