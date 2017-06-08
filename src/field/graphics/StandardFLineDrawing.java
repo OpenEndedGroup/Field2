@@ -147,7 +147,7 @@ public class StandardFLineDrawing {
 			fline.nodes.stream()
 				.filter(node -> node.attributes.has(text))
 				.forEach(node -> {
-					String textToDraw = node.attributes.get(text);
+					String textToDraw = ""+node.attributes.get(text);
 					float textScale = node.attributes.getFloat(StandardFLineDrawing.textScale, 1f) * 0.15f;
 					float align = node.attributes.getFloat(StandardFLineDrawing.textAlign, 0.5f);
 					ot.map(t -> t.getFontSupport(fline.attributes.getOr(font, () -> "source-sans-pro-regular-92.fnt"), layerName))

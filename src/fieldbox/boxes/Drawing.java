@@ -43,7 +43,7 @@ public class Drawing extends Box implements DrawingInterface {
 	static public final Dict.Prop<Drawing> drawing = new Dict.Prop<>("drawing").type()
 		.toCannon()
 		.doc("the Drawing plugin")
-		.set(Dict.writeOnly, true);
+		.set(Dict.readOnly, true);
 
 	static public final Dict.Prop<Boolean> needRepaint = new Dict.Prop<>("_needRepaint").type()
 		.toCannon();
