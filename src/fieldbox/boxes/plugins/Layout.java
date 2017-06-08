@@ -13,6 +13,25 @@ import java.util.function.BiFunction;
  */
 public class Layout {
 
+	public Layout(Box root)
+	{
+		initialize(root);
+	}
+
+	public Layout()
+	{
+	}
+	public Layout(Box root, float outset)
+	{
+		initialize(root);
+		this.inset = outset;
+	}
+
+	public Layout(float outset)
+	{
+		this.inset = outset;
+	}
+
 	Map<String, Rect> r = new LinkedHashMap<>();
 	float inset = 10;
 
@@ -50,11 +69,11 @@ public class Layout {
 	}
 
 	protected BiFunction<Rect, Rect, Rect> right() {
-		return (rr, R) -> new Rect(rr.x + inset + rr.w, rr.y, R.w, R.h);
+		return (rr, R) -> new Rect(rr.x + inset + rr.w, R.y, R.w, R.h);
 	}
 
 	protected BiFunction<Rect, Rect, Rect> left() {
-		return (rr, R) -> new Rect(rr.x - inset - R.w, rr.y, R.w, R.h);
+		return (rr, R) -> new Rect(rr.x - inset - R.w, R.y, R.w, R.h);
 	}
 
 
@@ -72,12 +91,14 @@ public class Layout {
 		    .forEach(x -> r.put(x.properties.getOrConstruct(IO.id), x.properties.get(Box.frame)));
 	}
 
+
 	public Box advance(Box b, BiFunction<Rect, Rect, Rect> advance) {
 		Rect R = b.properties.get(Box.frame);
 		boolean repeat = false;
 		do {
 			repeat = false;
 			for (Rect rr : r.values()) {
+				if (rr==null) continue;
 				if (overlaps(rr, R)) {
 					R = advance.apply(rr, R);
 					repeat = true;
@@ -99,6 +120,7 @@ public class Layout {
 		do {
 			repeat = false;
 			for (Rect rr : r.values()) {
+				if (rr==null) continue;
 				if (overlaps(rr, R)) {
 					R = advance.apply(rr, R);
 
