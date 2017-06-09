@@ -50,21 +50,21 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 		.toCannon()
 		.doc("Functions that compute lines to be drawn along with this box")
 		.set(IO.dontCopy, true)
-		.set(Dict.writeOnly, true);
+		.set(Dict.readOnly, true);
 
 	static public final Dict.Prop<IdempotencyMap<Supplier<FLine>>> lines = new Dict.Prop<>("lines").type()
 		.toCannon()
 		.doc("Geometry to be drawn along with this box")
 		.autoConstructs(() -> new IdempotencyMap<>(Supplier.class))
 		.set(IO.dontCopy, true)
-		.set(Dict.writeOnly, true);
+		.set(Dict.readOnly, true);
 
 	static public final Dict.Prop<IdempotencyMap<Supplier<Collection<Supplier<FLine>>>>> bulkLines = new Dict.Prop<>("bulkLines").type()
 		.toCannon()
 		.doc("Geometry to be drawn along with this box")
 		.autoConstructs(() -> new IdempotencyMap<>(Supplier.class))
 		.set(IO.dontCopy, true)
-		.set(Dict.writeOnly, true);
+		.set(Dict.readOnly, true);
 
 	static public final Dict.Prop<String> layer = new Dict.Prop<>("layer").type()
 		.toCannon()
