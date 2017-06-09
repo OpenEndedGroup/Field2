@@ -115,6 +115,24 @@ public class TextureBuffer extends BaseScene<TextureBuffer.State> implements Sce
 		if (specification.customStorage != null) this.buffer.setCustomStorage(specification.customStorage);
 	}
 
+	public TextureBuffer(int unit, SimpleArrayBuffer buffer)
+	{
+		this.specification = new TextureBufferSpecification();
+		this.specification.dimension = buffer.getDimension();
+		this.specification.elements = buffer.getSize();
+		switch(buffer.getDimension())
+		{
+			case 1: this.specification.type = GL30.GL_R32F; break;
+			case 2: this.specification.type = GL30.GL_RG32F; break;
+			case 3: this.specification.type = GL30.GL_RGB32F; break;
+			case 4: this.specification.type = GL30.GL_RGBA32F; break;
+			default: throw new IllegalArgumentException("buffer.getDimension() ? "+buffer.getDimension());
+		}
+		this.specification.customStorage = null;
+		this.specification.unit = unit;
+		this.buffer = buffer;
+	}
+
 	public SimpleArrayBuffer getBuffer() {
 		return buffer;
 	}
