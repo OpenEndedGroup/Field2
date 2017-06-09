@@ -99,6 +99,13 @@ public class IO {
 		knownProperties.add(FrameManipulation.lockWidth.getName());
 	}
 
+	public void setDefaultDirectory(String defaultDirectory) throws IOException
+	{
+		this.defaultDirectory = new File(defaultDirectory).getCanonicalPath();
+		if (!new File(defaultDirectory).exists()) new File(defaultDirectory).mkdir();
+	}
+
+
 	static public String readFromFile(File f) {
 		try {
 			return Files.readAllLines(sanitizeName(f).toPath())
