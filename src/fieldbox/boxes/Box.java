@@ -7,7 +7,6 @@ import fieldbox.boxes.plugins.BoxDefaultCode;
 import fieldbox.boxes.plugins.Missing;
 import fieldbox.execution.*;
 import fieldbox.io.IO;
-import fieldlinker.Linker;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 
 import java.lang.reflect.Field;
@@ -509,7 +508,7 @@ public class Box implements fieldlinker.AsMap, HandlesCompletion {
 
 		Dict.Prop cannon = new Dict.Prop(name).toCannon();
 
-		if (cannon.getAttributes().isTrue(Dict.writeOnly, false))
+		if (cannon.getAttributes().isTrue(Dict.readOnly, false))
 			throw new IllegalArgumentException("can't write to property " + name);
 
 		Function<Object, Object> c = cannon.getAttributes().get(Dict.customCaster);

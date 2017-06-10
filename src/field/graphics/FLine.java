@@ -1171,7 +1171,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 
 		Dict.Prop cannon = new Dict.Prop(name).toCannon();
 
-		if (cannon.getAttributes().isTrue(Dict.writeOnly, false))
+		if (cannon.getAttributes().isTrue(Dict.readOnly, false))
 			throw new IllegalArgumentException("can't write to property " + name);
 
 		Function<Object, Object> c = cannon.getAttributes().get(Dict.customCaster);
@@ -1418,6 +1418,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 
 			// workaround bug in Nashorn
 //			if (value instanceof ConsString) value = value.toString();
+			if (value != null && value.getClass().getName().endsWith("ConsString")) value = "" + value;
 
 
 //			Log.log("underscore.debug", " underscore box set :" + name + " to " + value.getClass() + " <" + Function.class.getName() + ">");

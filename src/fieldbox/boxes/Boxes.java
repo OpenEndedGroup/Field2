@@ -23,10 +23,10 @@ public class Boxes {
 	static public final Dict.Prop<Box> root = new Dict.Prop<>("root").type()
 		.toCannon()
 		.doc("the root of the box graph")
-		.set(Dict.writeOnly, true);
+		.set(Dict.readOnly, true);
 	static public final Dict.Prop<FieldBoxWindow> window = new Dict.Prop<>("window")
 		.doc("the FieldBoxWindow that this graph is currently in")
-		.set(Dict.writeOnly, true);
+		.set(Dict.readOnly, true);
 	static public final Dict.Prop<Map<String, Supplier<Boolean>>> insideRunLoop = new Dict.Prop<>("_insideRunLoop");
 	static public final Dict.Prop<Boolean> dontSave = new Dict.Prop<>("dontSave").type()
 		.toCannon()

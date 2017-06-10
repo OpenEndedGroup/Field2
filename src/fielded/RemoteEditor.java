@@ -303,7 +303,7 @@ public class RemoteEditor extends Box {
 			int v = current_ln.incrementAndGet();
 			RunLoop.main.workerPool.submit(() -> {
 				try {
-					Thread.sleep(100);
+					Thread.sleep(1000);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -1232,7 +1232,7 @@ public class RemoteEditor extends Box {
 
 	static public Execution getExecution(Box box, Dict.Prop<String> prop) {
 
-		return box.breadthFirst(box.both())
+		return box.breadthFirst(box.upwards())
 			.filter(x -> x.properties.has(Execution.execution))
 			.map(x -> x.properties.get(Execution.execution))
 			.filter(x -> x != null)

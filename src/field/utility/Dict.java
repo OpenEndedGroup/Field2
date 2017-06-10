@@ -71,9 +71,9 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 	 */
 	public static Dict.Prop<String> domain = new Dict.Prop<>("domain").toCannon();
 	/**
-	 * this property tags a property as writeOnly (from the poiint of view of the scripting world, from Java there's nothing in place to prevent writing properties)
+	 * this property tags a property as readOnly (from the point of view of the scripting world, from Java there's nothing in place to prevent writing properties)
 	 */
-	public static Prop<Boolean> writeOnly = new Prop<>("writeOnly").toCannon().set(domain, "*/attributes");
+	public static Prop<Boolean> readOnly = new Prop<>("readOnly").toCannon().set(domain, "*/attributes");
 
 	/**
 	 * this lets you add to a property a function that massages values as they are set
