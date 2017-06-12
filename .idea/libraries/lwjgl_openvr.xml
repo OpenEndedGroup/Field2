@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="lwjgl-openvr">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/jars/lwjgl-openvr.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
