@@ -25,6 +25,10 @@ class OpenVRDrawTarget {
 
     var debug = false
 
+    val buttons = Buttons {
+        it.addAxis("button_left_0", "button_left_1") // ...
+    }
+
 
     fun init(w: Scene) {
         w.attach("__initopenvr__", Scene.Perform { _: Int ->
@@ -57,13 +61,48 @@ class OpenVRDrawTarget {
 
                         val h34 = pose.mDeviceToAbsoluteTracking()
                         if (clazz == VR.ETrackedDeviceClass_TrackedDeviceClass_HMD)
-                            head.set(h34.m(0), h34.m(1), h34.m(2), h34.m(3), h34.m(4), h34.m(5), h34.m(6), h34.m(7), h34.m(8), h34.m(9), h34.m(10), h34.m(11), 0f,0f,0f, 1f)
-                        if (clazz == VR.ETrackedDeviceClass_TrackedDeviceClass_Controller) // todo, two hands?
-                            hand1.set(h34.m(0), h34.m(1), h34.m(2), h34.m(3), h34.m(4), h34.m(5), h34.m(6), h34.m(7), h34.m(8), h34.m(9), h34.m(10), h34.m(11), 0f,0f,0f, 1f)
+                            head.set(h34.m(0), h34.m(1), h34.m(2), h34.m(3), h34.m(4), h34.m(5), h34.m(6), h34.m(7), h34.m(8), h34.m(9), h34.m(10), h34.m(11), 0f, 0f, 0f, 1f)
+                        if (clazz == VR.ETrackedDeviceClass_TrackedDeviceClass_Controller) {
+                            val role = VRSystem_GetControllerRoleForTrackedDeviceIndex(n)
+                            if (role == VR.ETrackedControllerRole_TrackedControllerRole_LeftHand) {
+                                hand1.set(h34.m(0), h34.m(1), h34.m(2), h34.m(3), h34.m(4), h34.m(5), h34.m(6), h34.m(7), h34.m(8), h34.m(9), h34.m(10), h34.m(11), 0f, 0f, 0f, 1f)
+                                var state = VRControllerState.calloc()
+                                VRSystem_GetControllerState(n, state)
+                                for (q in 0 until VR.k_unControllerStateAxisCount) {
+                                    buttons.setAxis("axis${q}_left_x", state.rAxis(q).x())
+                                    buttons.setAxis("axis${q}_left_y", state.rAxis(q).y())
+                                }
+                                val bd = state.ulButtonPressed();
+
+                                // No API to get real names for these
+                                for (q in 0 until 16)
+                                    buttons.setAxis("button${q}_left", if ((bd and (1L shl q))!=0L) 1f else 0f )
+
+                            }
+                            else {
+                                hand2.set(h34.m(0), h34.m(1), h34.m(2), h34.m(3), h34.m(4), h34.m(5), h34.m(6), h34.m(7), h34.m(8), h34.m(9), h34.m(10), h34.m(11), 0f, 0f, 0f, 1f)
+                                var state = VRControllerState.calloc()
+                                VRSystem_GetControllerState(n, state)
+                                for (q in 0 until VR.k_unControllerStateAxisCount) {
+                                    buttons.setAxis("axis${q}_right_x", state.rAxis(q).x())
+                                    buttons.setAxis("axis${q}_right_y", state.rAxis(q).y())
+                                }
+                                val bd = state.ulButtonPressed();
+                                for (q in 0 until 16)
+                                    buttons.setAxis("button${q}_right", if ((bd and (1L shl q))!=0L) 1f else 0f )
+
+
+
+                            }
+                        }
+
 
                         if (debug)
                             print("device $n is valid is $clazz, $valid, $connected ${h34.m(0)}\n")
                     }
+
+                    buttons.run()
+
                     glEnable(GL_CLIP_PLANE0)
                     fbo?.draw()
                     glDisable(GL_CLIP_PLANE0)
@@ -106,12 +145,9 @@ class OpenVRDrawTarget {
             }
 
             override fun view(stereoSide: Float): Mat4 {
-                if (stereoSide < 0)
-                {
+                if (stereoSide < 0) {
                     return Mat4.mul(Mat4(left_v), Mat4(head), Mat4()).invert()
-                }
-                else
-                {
+                } else {
                     return Mat4.mul(Mat4(right_v), Mat4(head), Mat4()).invert()
                 }
             }
@@ -123,8 +159,7 @@ class OpenVRDrawTarget {
         }
     }
 
-    fun cameraInterface() : StereoCameraInterface
-    {
+    fun cameraInterface(): StereoCameraInterface {
         return cameraInterface
     }
 
@@ -188,9 +223,9 @@ class OpenVRDrawTarget {
 
                     val view = HmdMatrix34.malloc()
                     VRSystem_GetEyeToHeadTransform(EVREye_Eye_Left, view)
-                    left_v.set(view.m(0),view.m(1),view.m(2),view.m(3),view.m(4),view.m(5),view.m(6),view.m(7),view.m(8),view.m(9),view.m(10),view.m(11), 0f, 0f, 0f, 1f)
+                    left_v.set(view.m(0), view.m(1), view.m(2), view.m(3), view.m(4), view.m(5), view.m(6), view.m(7), view.m(8), view.m(9), view.m(10), view.m(11), 0f, 0f, 0f, 1f)
                     VRSystem_GetEyeToHeadTransform(EVREye_Eye_Right, view)
-                    right_v.set(view.m(0),view.m(1),view.m(2),view.m(3),view.m(4),view.m(5),view.m(6),view.m(7),view.m(8),view.m(9),view.m(10),view.m(11), 0f, 0f, 0f, 1f)
+                    right_v.set(view.m(0), view.m(1), view.m(2), view.m(3), view.m(4), view.m(5), view.m(6), view.m(7), view.m(8), view.m(9), view.m(10), view.m(11), 0f, 0f, 0f, 1f)
 
                     print(" static camera matrix elements ")
                     print(" left_p :\n$left_p")
@@ -203,7 +238,7 @@ class OpenVRDrawTarget {
 
                     fbo!!.scene.attach(-100, Scene.Perform { k ->
 
-                        GL11.glClearColor(0.0f,0.0f,0f,1f)
+                        GL11.glClearColor(0.0f, 0.0f, 0f, 1f)
                         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT)
 
 //                        GL11.glClearColor(0.05f,0f,0f,1f)
