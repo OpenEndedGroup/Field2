@@ -1031,6 +1031,50 @@ public class Mat4 implements Externalizable, Supplier<Mat4>, Mutable, Serializab
 		return this;
 	}
 
+
+	/**
+	 * Set the values within this matrix to the supplied double values. The matrix will look like this:<br><br>
+	 * <p>
+	 * m00, m10, m20, m30<br> m01, m11, m21, m31<br> m02, m12, m22, m32<br> m03, m13, m23, m33
+	 *
+	 * @param m00 the new value of m00
+	 * @param m01 the new value of m01
+	 * @param m02 the new value of m02
+	 * @param m03 the new value of m03
+	 * @param m10 the new value of m10
+	 * @param m11 the new value of m11
+	 * @param m12 the new value of m12
+	 * @param m13 the new value of m13
+	 * @param m20 the new value of m20
+	 * @param m21 the new value of m21
+	 * @param m22 the new value of m22
+	 * @param m23 the new value of m23
+	 * @param m30 the new value of m30
+	 * @param m31 the new value of m31
+	 * @param m32 the new value of m32
+	 * @param m33 the new value of m33
+	 * @return this
+	 */
+	public Mat4 set(float m00, float m01, float m02, float m03, float m10, float m11, float m12, float m13, float m20, float m21, float m22, float m23, float m30, float m31, float m32, float m33) {
+		this.m00 = m00;
+		this.m01 = m01;
+		this.m02 = m02;
+		this.m03 = m03;
+		this.m10 = m10;
+		this.m11 = m11;
+		this.m12 = m12;
+		this.m13 = m13;
+		this.m20 = m20;
+		this.m21 = m21;
+		this.m22 = m22;
+		this.m23 = m23;
+		this.m30 = m30;
+		this.m31 = m31;
+		this.m32 = m32;
+		this.m33 = m33;
+		return this;
+	}
+
 	/**
 	 * Set the values in the matrix using a double array that contains the matrix elements in column-major order.
 	 * <p>
