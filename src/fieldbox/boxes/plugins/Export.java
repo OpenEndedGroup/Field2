@@ -1,17 +1,23 @@
 package fieldbox.boxes.plugins;
 
+import field.linalg.Vec2;
 import field.utility.Dict;
 import field.utility.Log;
+import field.utility.Pair;
 import fieldbox.FieldBox;
 import fieldbox.Open;
 import fieldbox.boxes.Box;
+import fieldbox.boxes.Boxes;
 import fieldbox.boxes.Drawing;
 import fieldbox.io.IO;
+import fieldbox.ui.FieldBoxWindow;
+import fielded.Commands;
+import fielded.RemoteEditor;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
 /**
  * Plugin to let you "save as" and "package to new Workspace"
@@ -27,6 +33,8 @@ public class Export extends Box {
 		this.root = root;
 
 		this.properties.put(exportToWorkspace, (d, f) -> exportToNewWorkspace(d, f, null));
+
+
 	}
 
 	public boolean exportToNewWorkspace(String workspaceDir, String filename, String prefix) {
