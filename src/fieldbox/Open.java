@@ -239,6 +239,7 @@ public class Open {
 
 		new Image(boxes.root()).connect(boxes.root());
 
+		new Export(boxes.root()).connect(boxes.root());
 
 		new Templates(boxes.root()).connect(boxes.root());
 
@@ -332,7 +333,7 @@ public class Open {
 			    .attach(10, Scene.strobe((i) -> {
 				    if (MeshBuilder.cacheHits + MeshBuilder.cacheMisses_internalHash + MeshBuilder.cacheMisses_cursor + MeshBuilder.cacheMisses_externalHash > 0) {
 					    Log.println("graphics.stats",
-							" meshbuilder cache h" + MeshBuilder.cacheHits + " | mc" + MeshBuilder.cacheMisses_cursor + " / meh" + MeshBuilder.cacheMisses_externalHash + " / mih" + MeshBuilder.cacheMisses_internalHash + " / mto" + MeshBuilder.cacheMisses_tooOld + " | tex" + Texture.bytesUploaded);
+						    " meshbuilder cache h" + MeshBuilder.cacheHits + " | mc" + MeshBuilder.cacheMisses_cursor + " / meh" + MeshBuilder.cacheMisses_externalHash + " / mih" + MeshBuilder.cacheMisses_internalHash + " / mto" + MeshBuilder.cacheMisses_tooOld + " | tex" + Texture.bytesUploaded);
 					    MeshBuilder.cacheHits = 0;
 					    MeshBuilder.cacheMisses_cursor = 0;
 					    MeshBuilder.cacheMisses_externalHash = 0;
@@ -386,7 +387,7 @@ public class Open {
 			new OutputBox(boxes.root()).connect(boxes.root());
 			new NotificationBox(boxes.root()).connect(boxes.root());
 
-			if (Main.os!=Main.OS.windows) {
+			if (Main.os != Main.OS.windows) {
 
 				new BoxBrowser(boxes.root()).connect(boxes.root());
 				new TextEditor_boxBrowser2(boxes.root()).connect(boxes.root());

@@ -224,7 +224,8 @@ public class DefaultMenus extends Box {
 	}
 
 	private void save() {
-		if (filename.endsWith(".field2")) {
+//		if (filename.endsWith(".field2"))
+		{
 
 			Log.println("io.debug", " saving .... ");
 			Map<Box, String> special = new LinkedHashMap<>();
