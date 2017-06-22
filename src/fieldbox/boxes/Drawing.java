@@ -75,7 +75,29 @@ public class Drawing extends Box implements DrawingInterface {
 	private float opacity = 1f;
 
 	public Drawing() {
+		this.properties.putToMap(IO.onPreparingToSave, "__checkWindowSpace__", () -> {
+			System.out.println(" handling window space boxes ");
 
+			Map<Box, Rect> oldFrames = new LinkedHashMap<>();
+
+			this.breadthFirstAll(this.allDownwardsFrom()).forEach( x -> {
+				if (x.properties.has(frame))
+					oldFrames.put(x, x.properties.get(frame).duplicate());
+			});
+
+			updateWindowSpaceBoxes(translation, new Vec2(0,0), lastDimensions, lastDimensions, scale, new Vec2(1,1));
+
+			this.properties.putToMap(IO.onFinishingSaving, "__checkWindowSpace__", () -> {
+				RunLoop.main.delayTicks(() -> {
+					System.out.println(" undoing window space boxes ");
+					this.breadthFirstAll(this.allDownwardsFrom()).forEach(x -> {
+						if (oldFrames.containsKey(x))
+							x.properties.put(frame, oldFrames.get(x));
+					});
+					oldFrames.clear();
+				}, 1);
+			});
+		});
 	}
 
 	static public boolean intersects(Window.Event<?> event, Box box) {
@@ -459,6 +481,14 @@ public class Drawing extends Box implements DrawingInterface {
 	 * to convert between OpenGL / Box / Drawing coordinates and event / mouse / pixel coordinates.
 	 */
 	public Vec2 drawingSystemToWindowSystem(Vec2 window) {
+		return drawingSystemToWindowSystem(window, translation, scale);
+	}
+
+
+	/**
+	 * to convert between OpenGL / Box / Drawing coordinates and event / mouse / pixel coordinates.
+	 */
+	public Vec2 drawingSystemToWindowSystem(Vec2 window, Vec2 translation, Vec2 scale) {
 		double y = window.y;
 		double x = window.x;
 
@@ -473,7 +503,7 @@ public class Drawing extends Box implements DrawingInterface {
 	/**
 	 * to convert between event / mouse / pixel coordinates and OpenGL / Box / Drawing coordinates.
 	 */
-	protected Vec2 windowSystemToDrawingSystemNext(Vec2 window) {
+	protected Vec2 windowSystemToDrawingSystemNext(Vec2 window, Vec2 translationNext, Vec2 scaleNext) {
 		double y = /*Window.getCurrentHeight() -*/ window.y;
 		double x = window.x;
 
@@ -488,7 +518,7 @@ public class Drawing extends Box implements DrawingInterface {
 	/**
 	 * to convert between OpenGL / Box / Drawing coordinates and event / mouse / pixel coordinates.
 	 */
-	protected Vec2 drawingSystemToWindowSystemNext(Vec2 window) {
+	protected Vec2 drawingSystemToWindowSystemNext(Vec2 window, Vec2 translationNext, Vec2 scaleNext) {
 		double y = window.y;
 		double x = window.x;
 
@@ -504,6 +534,12 @@ public class Drawing extends Box implements DrawingInterface {
 	 * to convert between event / mouse / pixel coordinates and OpenGL / Box / Drawing delta's.
 	 */
 	public Vec2 windowSystemToDrawingSystemDelta(Vec2 windowDelta) {
+		return windowSystemToDrawingSystemDelta(windowDelta, translation, scale);
+	}
+	/**
+	 * to convert between event / mouse / pixel coordinates and OpenGL / Box / Drawing delta's.
+	 */
+	public Vec2 windowSystemToDrawingSystemDelta(Vec2 windowDelta, Vec2 translation, Vec2 scale) {
 		double y = /*-*/windowDelta.y;
 		double x = windowDelta.x;
 
@@ -605,7 +641,7 @@ public class Drawing extends Box implements DrawingInterface {
 		}
 	}
 
-	private void updateWindowSpaceBoxes(Vec2 translation, Vec2 translationNext, Vec2 dimensions, Vec2 dimensionsNext, Vec2 scale, Vec2 scaleNext) {
+	private void updateWindowSpaceBoxes(Vec2 t, Vec2 tn, Vec2 d, Vec2 dn, Vec2 s, Vec2 sn) {
 		this.breadthFirst(both())
 			.filter(x -> x.properties.get(windowSpace) != null)
 			.forEach(box -> {
@@ -619,7 +655,7 @@ public class Drawing extends Box implements DrawingInterface {
 				float by = f.y + f.h;
 
 				Vec2 at = new Vec2(f.x, f.y);
-				Vec2 delta = deltaToStabalize(dimensions, dimensionsNext, v, at);
+				Vec2 delta = deltaToStabalize(d, dn, v, at, t, tn, s, sn);
 				f.x -= delta.x;
 				f.y -= delta.y;
 
@@ -627,7 +663,7 @@ public class Drawing extends Box implements DrawingInterface {
 				if (v2 != null) {
 
 					at = new Vec2(bx, by);
-					delta = deltaToStabalize(dimensions, dimensionsNext, v2, at);
+					delta = deltaToStabalize(d, dn, v2, at, t, tn, s, sn);
 
 					bx -= delta.x;
 					by -= delta.y;
@@ -641,11 +677,11 @@ public class Drawing extends Box implements DrawingInterface {
 			});
 	}
 
-	private Vec2 deltaToStabalize(Vec2 dimensions, Vec2 dimensionsNext, Vec2 v, Vec2 at) {
-		Vec2 tl_win = drawingSystemToWindowSystem(at);
-		Vec2 tl_winN = drawingSystemToWindowSystemNext(at);
+	private Vec2 deltaToStabalize(Vec2 dimensions, Vec2 dimensionsNext, Vec2 v, Vec2 at, Vec2 t, Vec2 tn, Vec2 s, Vec2 sn) {
+		Vec2 tl_win = drawingSystemToWindowSystem(at, t, s);
+		Vec2 tl_winN = drawingSystemToWindowSystemNext(at, tn, sn);
 		Vec2 delta = new Vec2(tl_winN).sub(tl_win).sub(new Vec2(dimensionsNext.x * v.x - dimensions.x * v.x, dimensionsNext.y * v.y - dimensions.y * v.y));
-		delta = windowSystemToDrawingSystemDeltaNext(delta);
+		delta = windowSystemToDrawingSystemDelta(delta, tn, sn);
 		return delta;
 	}
 

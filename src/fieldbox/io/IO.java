@@ -1,6 +1,7 @@
 package fieldbox.io;
 
 import field.utility.Dict;
+import field.utility.IdempotencyMap;
 import field.utility.Log;
 import fieldagent.Main;
 import fieldbox.boxes.Box;
@@ -60,8 +61,17 @@ public class IO {
 		.set(Dict.domain, "*/attributes");
 
 	public static final Dict.Prop<List<String>> classpath = new Dict.Prop<>("classpath").toCannon()
-		.type()
-		.doc("This box asks the classloader to extend the classpath by this list of paths");
+											    .type()
+											    .doc("This box asks the classloader to extend the classpath by this list of paths");
+
+	public static final Dict.Prop<IdempotencyMap<Runnable>> onPreparingToSave = new Dict.Prop<>("onPreparingToSave").toCannon()
+														    .type()
+														    .doc("Notification that this box is going to be saved to disk");
+	public static final Dict.Prop<IdempotencyMap<Runnable>> onFinishingSaving = new Dict.Prop<>("onFinishingSaving").toCannon()
+														    .type()
+														    .doc("Notification that this box is going to be saved to disk");
+
+
 
 	static Set<String> knownProperties = new LinkedHashSet<String>();
 	static Map<String, Filespec> knownFiles = new HashMap<String, Filespec>();
@@ -251,6 +261,7 @@ public class IO {
 	public Document compileDocument(String defaultSubDirectory, Box documentRoot, Predicate<Box> include, Map<Box, String> specialBoxes) {
 		Document d = new Document();
 
+		Callbacks.call_runnable(documentRoot, onPreparingToSave, null, false, documentRoot.both());
 		try (Variant.Memo memo = Variant.connectAll(documentRoot)) {
 
 			d.externalList = documentRoot.breadthFirstAll(documentRoot.allDownwardsFrom())
@@ -260,6 +271,10 @@ public class IO {
 				.collect(Collectors.toList());
 			d.knownFiles = new LinkedHashMap<>(knownFiles);
 			d.knownProperties = new LinkedHashSet<>(knownProperties);
+		}
+		finally
+		{
+			Callbacks.call_runnable(documentRoot, onFinishingSaving, null, false, documentRoot.both());
 		}
 		return d;
 	}
