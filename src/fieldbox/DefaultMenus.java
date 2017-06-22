@@ -35,7 +35,7 @@ public class DefaultMenus extends Box {
 	static public final Dict.Prop<BiFunctionOfBoxAnd<Class, Box>> setClass = new Dict.Prop<FunctionOfBox<Box>>("setClass").toCannon()
 		.doc("`_ = _.setClass(Something.class)` sets the class 'this' box to be `Something`. This only does anything if `Something` is a valid subclass of `Box`");
 
-	static public final Dict.Prop<FunctionOfBox<Box>> delete = new Dict.Prop<FunctionOfBox<Box>>("delete").toCannon()
+	static public final Dict.Prop<FunctionOfBox<Box>> deleteBox = new Dict.Prop<FunctionOfBox<Box>>("deleteBox").toCannon().type()
 		.doc("delete this box");
 
 	// this gets set if we successfully opened something
@@ -169,7 +169,7 @@ public class DefaultMenus extends Box {
 				.isPresent()) save();
 		});
 
-		properties.put(delete, (box) -> {
+		properties.put(deleteBox, (box) -> {
 			Callbacks.call(box, Callbacks.onDelete);
 			box.disconnectFromAll();
 			return null;

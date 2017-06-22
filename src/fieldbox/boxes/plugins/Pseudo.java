@@ -127,6 +127,10 @@ public class Pseudo extends Box {
 														    .type()
 														    .doc("`_.once.x = () => { ... do something ... }` will call that function if `x` isn't set here and set `x` to the result if that function returns something. It's a fine way to initialize something once.");
 
+	static public Dict.Prop<FunctionOfBoxValued<Deleter>> delete = new Dict.Prop<FunctionOfBoxValued<Deleter>>("delete").toCannon()
+														    .type()
+														    .doc("`_.delete.banana` removes the property `banana` from the box `_`. If you want to remove `banana` from wherever it is found (carefully!): `_.where.banana.delete.banana`` will do the trick.");
+
 	public Pseudo(Box r) {
 		this.properties.put(where, First::new);
 		this.properties.put(all, All::new);
@@ -146,6 +150,7 @@ public class Pseudo extends Box {
 		this.properties.put(once, Oncer::new);
 		this.properties.put(here, Herer::new);
 		this.properties.put(inMainThread, MainThreader::new);
+		this.properties.put(delete, Deleter::new);
 
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__next__", () -> {
 			r.breadthFirst(r.downwards())
@@ -250,6 +255,41 @@ public class Pseudo extends Box {
 
 		}
 
+	}
+
+	static public class Deleter extends Namer
+	{
+
+		public Deleter(Box on) {
+			super(on);
+		}
+
+		@Override
+		public Object asMap_set(String p, Object val) {
+			throw new IllegalArgumentException("cannot set property while deleting it");
+		}
+
+
+		@Override
+		public Object asMap_setElement(int element, Object o) {
+			throw new IllegalArgumentException("cannot set property while deleting it");
+		}
+
+		@Override
+		public Object asMap_getElement(int element) {
+			throw new IllegalArgumentException("cannot get property '"+element+"' to delete it");
+		}
+
+		@Override
+		public Object asMap_getElement(Object element) {
+			return asMap_get(""+element);
+		}
+
+		@Override
+		public Object asMap_get(String p) {
+			Object val = on.properties.remove(new Dict.Prop(p));
+			return val;
+		}
 	}
 
 	static public class MainThreader extends Namer {
