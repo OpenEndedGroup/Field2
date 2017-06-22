@@ -63,14 +63,11 @@ public abstract class AsMapDelegator implements fieldlinker.AsMap {
 
 	@Override
 	public Object asMap_get(String p) {
-		System.out.println(" get :"+p);
-
 		return delegateTo().asMap_get(p);
 	}
 
 	@Override
 	public Object asMap_set(String p, Object o) {
-		System.out.println(" set :"+p+" "+o);
 		return delegateTo().asMap_set(p, o);
 	}
 
