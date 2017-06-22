@@ -10,7 +10,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * A Fundamental problem in sending code off for execution (remotely or in draw loops) is what you do when it throws an exception. This is particularly bad in the case of a draw loop --- you might
+ * A Fundamental problem in sending code off for execution (remotely, in draw loops or other callbacks) is what you do when it throws an exception. This is particularly bad in the case of a draw loop --- you might
  * only catch an OpenGL error long after some code has executed. Therefore we often push things onto this stack and leave them there.
  */
 public class Errors {
