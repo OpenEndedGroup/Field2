@@ -152,6 +152,7 @@ public class Alignment extends Box {
 
 	private void set(Box b, Consumer<Rect> r) {
 		Callbacks.frameModified(b, r);
+		Drawing.dirty(b);
 	}
 
 	private void abutV() {
