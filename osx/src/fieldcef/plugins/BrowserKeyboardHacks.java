@@ -118,6 +118,7 @@ public class BrowserKeyboardHacks {
 	}
 
 	public void onCharDown(Window.Event<Window.KeyboardState> e, char key) {
+		System.out.println(" main onCharDown "+e+" "+key);
 		HashSet<Character> c = new HashSet<Character>(e.after.charsDown.values());
 		c.removeAll(e.before.charsDown.values());
 
@@ -147,9 +148,10 @@ public class BrowserKeyboardHacks {
 			e.properties.put(Window.consumed, true);
 
 			if (e.after.isAltDown()) continue;
-			if (e.after
-				    .isControlDown()) continue;
+			if (e.after.isControlDown()) continue;
 
+
+			System.out.println(" >> TYPED :"+cc);
 			target.sendKeyEvent(ke);
 		}
 
