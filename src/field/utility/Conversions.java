@@ -361,7 +361,7 @@ public class Conversions {
 			if (errorConsumer != null)
 				errorConsumer.consume(t, s + "||" + m);
 			else {
-				System.err.println(" missing error consumer in graphics scene");
+				System.err.println(" missing error consumer ");
 				System.err.println(" message is " + s + " / " + m);
 				System.err.println(" error is " + t.getMessage());
 				t.printStackTrace();
@@ -425,7 +425,6 @@ public class Conversions {
 				String url = (String) ReflectionTools.get(value, "data/source/explicitURL");
 
 				extraInfo.accept("LN<"+lineNumber + "@" + url + "> function is called [" + functionName + "]");
-
 			} catch (NoSuchFieldException e) {
 				e.printStackTrace();
 			} catch (IllegalAccessException e) {
@@ -433,38 +432,6 @@ public class Conversions {
 			}
 
 			return converted;
-
-			/*
-			StaticClass adapterClassFor = JavaAdapterFactory.getAdapterClassFor(new Class[]{fit.get(0)}, (ScriptObject) value, MethodHandles.lookup());
-
-			String extraString = null;
-
-			try {
-				String functionName = (String) ReflectionTools.get(value, "data/functionName");
-				Integer lineNumber = (Integer) ReflectionTools.get(value, "data/lineNumber");
-				String url = (String) ReflectionTools.get(value, "data/source/explicitURL");
-
-				System.out.println(" extra secret information about this function is :" + functionName + " " + lineNumber + " " + url);
-
-				extraInfo.accept("LN<" + lineNumber + "@" + url + "> function is called [" + functionName + "]");
-
-			} catch (NoSuchFieldException e) {
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				e.printStackTrace();
-			}
-
-			try {
-				Object o = adapterClassFor.getRepresentedClass()
-					.newInstance();
-
-				return o;
-
-			} catch (InstantiationException e) {
-				Log.log("underscore.error", () -> " problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0) + e);
-			} catch (IllegalAccessException e) {
-				Log.log("underscore.error", ()->" problem instantiating adaptor class to take us from " + value + " ->" + fit.get(0)+ e);
-			}*/
 		}
 
 
