@@ -355,7 +355,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 				box.properties.putToMap(Boxes.insideRunLoop, name, () -> {
 					try {
-						Callbacks.call(box, Callbacks.run, initiator, first[0]);
+						Callbacks.call(box, Callbacks.run, initiator, first[0], box.upwards());
 					} catch (Throwable t) {
 						Errors.tryToReportTo(t, "Exception in `_.run()`, called from box `" + box + "`", e);
 						first[0] = false;
