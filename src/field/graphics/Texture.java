@@ -326,9 +326,11 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 //			glCompressedTexSubImage2D(specification.target, 0, 0, 0, specification.width, specification.height, specification.internalFormat, specification.pixels.capacity(), specification.pixels);
             throw new IllegalArgumentException(" not implemented ");
         } else {
-            glTexSubImage2D(specification.target, 0, 0, 0, specification.width, specification.height, specification.format, specification.type, specification.pixels);
-            if (specification.highQuality) {
-                glGenerateMipmap(specification.target);
+            if (specification.pixels!=null) {
+                glTexSubImage2D(specification.target, 0, 0, 0, specification.width, specification.height, specification.format, specification.type, specification.pixels);
+                if (specification.highQuality) {
+                    glGenerateMipmap(specification.target);
+                }
             }
         }
         GraphicsContext.checkError(() -> "setting up texture " + specification);
