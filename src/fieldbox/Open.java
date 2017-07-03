@@ -26,6 +26,7 @@ import jdk.dynalink.linker.GuardingDynamicLinkerExporter;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -237,7 +238,7 @@ public class Open {
 
 		new Taps(boxes.root()).connect(boxes.root());
 
-		new Image(boxes.root()).connect(boxes.root());
+		new Image2(boxes.root()).connect(boxes.root());
 
 		new Export(boxes.root()).connect(boxes.root());
 
@@ -419,7 +420,7 @@ public class Open {
 
 //		if (filename.endsWith(".field2"))
 		{
-			IO.Document doc = FieldBox.fieldBox.io.readDocument(filename.startsWith("/") ? filename : (IO.WORKSPACE + "/" + filename), special, created);
+			IO.Document doc = FieldBox.fieldBox.io.readDocument(new File(filename).isAbsolute() ? filename : (IO.WORKSPACE + "/" + filename), special, created);
 			Log.println("io.debug", "created :" + created);
 		}
 		Drawing.dirty(root);
