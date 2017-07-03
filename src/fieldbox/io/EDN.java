@@ -105,8 +105,7 @@ public class EDN {
 
 	public String write(Object o) {
 		StringBuilder w = new StringBuilder();
-		Printers.newPrinter(thePrinter, w)
-			.printValue(o);
+		Printers.newPrinter(thePrinter, w).printValue(o);
 		return w.toString();
 	}
 
