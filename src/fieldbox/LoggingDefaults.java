@@ -21,7 +21,7 @@ public class LoggingDefaults {
 		Log.on("cef.console", Log::green);
 		Log.on("cef.*", Log::green);
 		Log.on("glass.*", Log::green);
-		Log.on("completion.debug", Log::green);
+//		Log.on("completion.debug", Log::green);
 		Log.on(".*error", Log::red);
 		Log.disable("drawing.*");//, Log::green);
 		Log.disable("cache");//, Log::green);
