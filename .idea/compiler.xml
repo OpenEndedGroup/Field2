@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
-    <option name="BUILD_PROCESS_ADDITIONAL_VM_OPTIONS" value="--add-exports java.base/java.lang.reflect=ALL-UNNAMED" />
+    <option name="BUILD_PROCESS_ADDITIONAL_VM_OPTIONS" value="--add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/java.util.concurrent.atomic=ALL-UNNAMED" />
     <bytecodeTargetLevel target="1.8" />
   </component>
   <component name="JavacSettings">
