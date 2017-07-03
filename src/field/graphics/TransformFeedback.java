@@ -105,6 +105,7 @@ public class TransformFeedback extends BaseScene<TransformFeedback.State> implem
 			didNotApply = false;
 		}
 
+
 		GraphicsContext.checkError(() -> "exiting perform0 of transform feedback");
 		return true;
 	}
@@ -118,6 +119,8 @@ public class TransformFeedback extends BaseScene<TransformFeedback.State> implem
 			s.num = -1;
 			return true;
 		}
+
+		glFinish();
 
 		GraphicsContext.checkError(() -> "entering perform1 of transform feedback");
 		glEndTransformFeedback();
