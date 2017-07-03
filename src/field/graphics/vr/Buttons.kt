@@ -18,10 +18,6 @@ class Buttons : Runnable {
 
     var slop = 0.01f;
 
-    constructor()
-    {
-
-    }
 
     constructor(init : (Buttons) -> Unit)
     {
@@ -32,13 +28,25 @@ class Buttons : Runnable {
 
         val currentDown = axesMap.entries.filter { abs(it.value.toDouble()) > slop }.map { it.key }.toSet()
 
+        if (currentDown.size>0)
+            println("current : "+currentDown)
+
         val downEvents = LinkedHashSet<String>(currentDown)
         downEvents.removeAll(lastDown)
         downEvents.map { down[it] }.filter { it != null }.flatMap { it!!.values }.forEach { it.get() }
 
+        if (downEvents.size>0)
+            println("down :"+downEvents)
+
         val upEvents = LinkedHashSet<String>(lastDown)
         upEvents.removeAll(currentDown)
         upEvents.map { up[it] }.filter { it != null }.flatMap { it!!.values }.forEach { it.get() }
+
+        if (upEvents.size>0)
+            println("up :"+upEvents)
+
+        lastDown.clear()
+        lastDown.addAll(currentDown);
 
     }
 
