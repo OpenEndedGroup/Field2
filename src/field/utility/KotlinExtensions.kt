@@ -49,8 +49,14 @@ operator fun Vec4.minus(other: Vec4): Vec4
 operator fun Vec2.times(other: Double): Vec2
 		= Vec2(this.x * other, this.y * other)
 
+operator fun Vec2.times(other: Vec2): Vec2
+		= Vec2(this.x * other.x, this.y * other.y)
+
 operator fun Vec3.times(other: Double): Vec3
 		= Vec3(this.x * other, this.y * other, this.z * other)
+
+operator fun Vec3.times(other: Vec3): Vec3
+		= Vec3(this.x * other.x, this.y * other.y, this.z * other.z)
 
 operator fun Vec4.times(other: Double): Vec4
 		= Vec4(this.x * other, this.y * other, this.z * other, this.w * other)
