@@ -409,7 +409,9 @@ public class IO {
 			try {
 				Map<?, ?> m = (Map) serializeFromString(read);
 				for (Map.Entry<?, ?> entry : m.entrySet()) {
-					ex.box.properties.put(new Dict.Prop((String) entry.getKey()), entry.getValue());
+					Dict.Prop p = new Dict.Prop((String) entry.getKey());
+					p.toCannon().getAttributes().put(persistent, true);
+					ex.box.properties.put(p, entry.getValue());
 				}
 			} catch (Exception e) {
 				Log.log("io.error", () -> "trouble loading external " + dataFile + ". Corrupt file?");
