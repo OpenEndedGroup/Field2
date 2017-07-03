@@ -39,7 +39,7 @@ public class Saver {
 
     List<FutureTask<ByteBuffer>> workers = new ArrayList<FutureTask<ByteBuffer>>();
 
-    int frameNumber = 0;
+    public int frameNumber = 0;
 
     boolean on = false;
     boolean drip = false;
@@ -72,7 +72,11 @@ public class Saver {
     }
 
     public boolean update(String prefix, int frameNumber, String suffix) {
-        if (!on) return false;
+        if (!on)
+        {
+            runHooks(null);
+            return false;
+        }
 
         ByteBuffer storage = null;
 
