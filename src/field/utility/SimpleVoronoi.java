@@ -36,12 +36,12 @@ import java.util.*;
 
 public class SimpleVoronoi {
 
-	int initialSize = 10000;
-	Triangle initialTriangle = new Triangle(new Pnt(-initialSize, -initialSize), new Pnt(initialSize, -initialSize), new Pnt(0, initialSize));
-	Triangulation dt = new Triangulation(initialTriangle);
+	public int initialSize = 10000;
+	public Triangle initialTriangle = new Triangle(new Pnt(-initialSize, -initialSize), new Pnt(initialSize, -initialSize), new Pnt(0, initialSize));
+	public Triangulation dt = new Triangulation(initialTriangle);
 
 	public Pnt add(Vec2 location) {
-		Pnt site = new Pnt((float)location.x, (float)location.y);
+		Pnt site = new Pnt((double)location.x, (double)location.y);
 		dt.delaunayPlace(site);
 		return site;
 	}
@@ -66,8 +66,8 @@ public class SimpleVoronoi {
 		return null;
 	}
 
-	protected float area(Pnt[] A) {
-		float a = 0;
+	protected double area(Pnt[] A) {
+		double a = 0;
 		for (int i = 0; i < A.length ; i++) {
 			a += A[i].coordinates[0] * A[(i+1)%A.length].coordinates[1] - A[(i+1)%A.length].coordinates[0] * A[i].coordinates[1];
 		}
@@ -75,11 +75,11 @@ public class SimpleVoronoi {
 	}
 
 	protected Vec2 centroid(Pnt[] A) {
-		float x = 0;
-		float y = 0;
-		float aa = 0;
+		double x = 0;
+		double y = 0;
+		double aa = 0;
 		for (int i = 0; i < A.length; i++) {
-			float a = A[i].coordinates[0] * A[(i+1)%A.length].coordinates[1] - A[(i+1)%A.length].coordinates[0] * A[i].coordinates[1];
+			double a = A[i].coordinates[0] * A[(i+1)%A.length].coordinates[1] - A[(i+1)%A.length].coordinates[0] * A[i].coordinates[1];
 			aa += a;
 			x += (A[i].coordinates[0] + A[(i+1)%A.length].coordinates[0]) * a;
 			y += (A[i].coordinates[1] + A[(i+1)%A.length].coordinates[1]) * a;
@@ -294,7 +294,7 @@ public class SimpleVoronoi {
 
 	static public class Pnt {
 
-		private float[] coordinates; // The point's coordinates
+		public final double[] coordinates; // The point's coordinates
 
 		/**
 		 * Constructor.
@@ -302,13 +302,13 @@ public class SimpleVoronoi {
 		 * @param coords
 		 *                the coordinates
 		 */
-		public Pnt(float... coords) {
+		public Pnt(double... coords) {
 			// Copying is done here to ensure that Pnt's coords
 			// cannot be altered.
-			// This is necessary because the float... notation
+			// This is necessary because the double... notation
 			// actually creates a
-			// constructor with float[] as its argument.
-			coordinates = new float[coords.length];
+			// constructor with double[] as its argument.
+			coordinates = new double[coords.length];
 			System.arraycopy(coords, 0, coordinates, 0, coords.length);
 		}
 
@@ -339,8 +339,8 @@ public class SimpleVoronoi {
 		@Override
 		public int hashCode() {
 			int hash = 0;
-			for (float c : this.coordinates) {
-				long bits = Float.floatToIntBits(c);
+			for (double c : this.coordinates) {
+				long bits = Double.doubleToLongBits(c);
 				hash = (31 * hash) ^ (int) (bits ^ (bits >> 32));
 			}
 			return hash;
@@ -353,7 +353,7 @@ public class SimpleVoronoi {
 		 * @throws ArrayIndexOutOfBoundsException
 		 *                 for bad coordinate
 		 */
-		public float coord(int i) {
+		public double coord(int i) {
 			return this.coordinates[i];
 		}
 
@@ -388,8 +388,8 @@ public class SimpleVoronoi {
 		 *                the new coordinates (added on the right end)
 		 * @return a new Pnt with the additional coordinates
 		 */
-		public Pnt extend(float... coords) {
-			float[] result = new float[coordinates.length + coords.length];
+		public Pnt extend(double... coords) {
+			double[] result = new double[coordinates.length + coords.length];
 			System.arraycopy(coordinates, 0, result, 0, coordinates.length);
 			System.arraycopy(coords, 0, result, coordinates.length, coords.length);
 			return new Pnt(result);
@@ -402,9 +402,9 @@ public class SimpleVoronoi {
 		 *                the other Pnt
 		 * @return dot product of this Pnt and p
 		 */
-		public float dot(Pnt p) {
+		public double dot(Pnt p) {
 			int len = dimCheck(p);
-			float sum = 0;
+			double sum = 0;
 			for (int i = 0; i < len; i++)
 				sum += this.coordinates[i] * p.coordinates[i];
 			return sum;
@@ -415,8 +415,8 @@ public class SimpleVoronoi {
 		 *
 		 * @return the Euclidean length of this vector
 		 */
-		public float magnitude() {
-			return (float)Math.sqrt(this.dot(this));
+		public double magnitude() {
+			return (double)Math.sqrt(this.dot(this));
 		}
 
 		/**
@@ -428,7 +428,7 @@ public class SimpleVoronoi {
 		 */
 		public Pnt subtract(Pnt p) {
 			int len = dimCheck(p);
-			float[] coords = new float[len];
+			double[] coords = new double[len];
 			for (int i = 0; i < len; i++)
 				coords[i] = this.coordinates[i] - p.coordinates[i];
 			return new Pnt(coords);
@@ -443,7 +443,7 @@ public class SimpleVoronoi {
 		 */
 		public Pnt add(Pnt p) {
 			int len = dimCheck(p);
-			float[] coords = new float[len];
+			double[] coords = new double[len];
 			for (int i = 0; i < len; i++)
 				coords[i] = this.coordinates[i] + p.coordinates[i];
 			return new Pnt(coords);
@@ -456,8 +456,8 @@ public class SimpleVoronoi {
 		 *                the other Pnt
 		 * @return the angle (in radians) between the two Pnts
 		 */
-		public float angle(Pnt p) {
-			return (float)Math.acos(this.dot(p) / (this.magnitude() * p.magnitude()));
+		public double angle(Pnt p) {
+			return (double)Math.acos(this.dot(p) / (this.magnitude() * p.magnitude()));
 		}
 
 		/**
@@ -474,7 +474,7 @@ public class SimpleVoronoi {
 			dimCheck(point);
 			Pnt diff = this.subtract(point);
 			Pnt sum = this.add(point);
-			float dot = diff.dot(sum);
+			double dot = diff.dot(sum);
 			return diff.extend(-dot / 2);
 		}
 
@@ -518,7 +518,7 @@ public class SimpleVoronoi {
 			/* Create and load the matrix */
 			Pnt[] matrix = new Pnt[dim + 1];
 			/* First row */
-			float[] coords = new float[dim + 2];
+			double[] coords = new double[dim + 2];
 			for (int j = 0; j < coords.length; j++)
 				coords[j] = 1;
 			matrix[0] = new Pnt(coords);
@@ -535,10 +535,10 @@ public class SimpleVoronoi {
 			 * areas/volumes/contents
 			 */
 			Pnt vector = cross(matrix);
-			float content = vector.coordinates[0];
+			double content = vector.coordinates[0];
 			int[] result = new int[dim + 1];
 			for (int i = 0; i < result.length; i++) {
-				float value = vector.coordinates[i + 1];
+				double value = vector.coordinates[i + 1];
 				if (Math.abs(value) <= 1.0e-6 * Math.abs(content))
 					result[i] = 0;
 				else if (value < 0)
@@ -622,7 +622,7 @@ public class SimpleVoronoi {
 			for (int i = 0; i < simplex.length; i++)
 				matrix[i] = simplex[i].extend(1, simplex[i].dot(simplex[i]));
 			matrix[simplex.length] = this.extend(1, this.dot(this));
-			float d = determinant(matrix);
+			double d = determinant(matrix);
 			int result = (d < 0) ? -1 : ((d > 0) ? +1 : 0);
 			if (content(simplex) < 0)
 				result = -result;
@@ -666,7 +666,7 @@ public class SimpleVoronoi {
 	 * @throws IllegalArgumentException
 	 *                 if dimensions are wrong
 	 */
-	public static float determinant(Pnt[] matrix) {
+	public static double determinant(Pnt[] matrix) {
 		if (matrix.length != matrix[0].dimension())
 			throw new IllegalArgumentException("Matrix is not square");
 		boolean[] columns = new boolean[matrix.length];
@@ -693,10 +693,10 @@ public class SimpleVoronoi {
 	 * @throws ArrayIndexOutOfBoundsException
 	 *                 if dimensions are wrong
 	 */
-	private static float determinant(Pnt[] matrix, int row, boolean[] columns) {
+	private static double determinant(Pnt[] matrix, int row, boolean[] columns) {
 		if (row == matrix.length)
 			return 1;
-		float sum = 0;
+		double sum = 0;
 		int sign = 1;
 		for (int col = 0; col < columns.length; col++) {
 			if (!columns[col])
@@ -729,7 +729,7 @@ public class SimpleVoronoi {
 		boolean[] columns = new boolean[len];
 		for (int i = 0; i < len; i++)
 			columns[i] = true;
-		float[] result = new float[len];
+		double[] result = new double[len];
 		int sign = 1;
 		try {
 			for (int i = 0; i < len; i++) {
@@ -752,7 +752,7 @@ public class SimpleVoronoi {
 	 *                the simplex (as an array of Pnts)
 	 * @return the signed content of the simplex
 	 */
-	public static float content(Pnt[] simplex) {
+	public static double content(Pnt[] simplex) {
 		Pnt[] matrix = new Pnt[simplex.length];
 		for (int i = 0; i < matrix.length; i++)
 			matrix[i] = simplex[i].extend(1);
@@ -771,8 +771,8 @@ public class SimpleVoronoi {
 			matrix[i] = simplex[i].bisector(simplex[i + 1]);
 		Pnt hCenter = cross(matrix); // Center in homogeneous
 		// coordinates
-		float last = hCenter.coordinates[dim];
-		float[] result = new float[dim];
+		double last = hCenter.coordinates[dim];
+		double[] result = new double[dim];
 		for (int i = 0; i < dim; i++)
 			result[i] = hCenter.coordinates[i] / last;
 		return new Pnt(result);
