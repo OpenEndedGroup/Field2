@@ -522,10 +522,14 @@ public class TernSupport {
 				possibleJavaClassesFor.forEach(System.out::println);
 
 				for (Pair<String, String> p : possibleJavaClassesFor) {
-					int tail = p.first.lastIndexOf(".");
+					int tail = Math.max(p.first.lastIndexOf("."), p.first.lastIndexOf("$"));
 
 					Completion ex = new Completion(c - left.length(), c, p.first.substring(tail + 1), p.second);
-					ex.header = "var " + p.first.substring(tail + 1) + " = Java.type('" + p.first + "')";
+					String typeName = p.first.replaceAll("\\$", ".");
+
+					if (typeName.endsWith(".")) typeName = typeName.substring(0, typeName.length()-1);
+
+					ex.header = "var " + p.first.substring(tail + 1) + " = Java.type('" + typeName + "')";
 					r.add(ex);
 				}
 
