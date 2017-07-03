@@ -748,9 +748,9 @@ public class Browser extends Box implements IO.Loaded {
         if (this.dirty.getAndSet(false) && damage != null) {
             if (check-- > 0) {
                 if (Main.os != Main.OS.windows)
-                    browser.setZoomLevel(2 * window.getRetinaScaleFactor());
+                    browser.setZoomLevel(1 * window.getRetinaScaleFactor());
                 else {
-                    browser.setZoomLevel(2);
+                    browser.setZoomLevel(1);
                 }
             }
             Log.log("cef.debug", () -> " texture was dirty, uploading ");

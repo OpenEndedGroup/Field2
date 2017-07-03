@@ -309,6 +309,7 @@ public class JavaSupport {
 							name = name.substring(1);
 							name = name.replace("//", ".");
 							name = name.replace("/", ".");
+							name = name.replace("\\", ".");
 							name = name.replace(".class", "");
 							name = name.replace("$", ".");
 

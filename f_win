@@ -10,11 +10,13 @@ java="$JDK"/java
 echo $fieldhome
 
 "$java" \
-    -Xdebug \
+    --add-opens java.base/sun.nio.ch=ALL-UNNAMED \
+	-Xdebug \
     -Xrunjdwp:server=y,transport=dt_socket,address=5005,suspend=n -Dorg.lwjgl.util.Debug=true \
     -DappDir=$fieldhome \
-    -Xmx5g \
+    -Xmx6g \
     -Xms2g \
+    -Dfile.encoding=UTF-8 \
     -javaagent:$fieldhome/build/field_agent.jar \
     -cp "$out;$fieldhome/build/field_linker.jar;$fieldhome/lib/;$fieldhome/lib/jars/*;$fieldhome/build/field_agent.jar" \
     -Djava.library.path=$fieldhome/win/lib/ \
