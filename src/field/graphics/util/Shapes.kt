@@ -295,9 +295,9 @@ class Shapes {
 
         builder.use {
             for (n in 0 until p) {
-                if (normals > 0)
+                if (normals > 0 && normal!=null)
                     it.aux(normals, rot(normal.get(), normal.get(), normal.get()))
-                if (textures > 0)
+                if (textures > 0 && texture!=null)
                     it.aux(textures, texture.get(), texture.get())
 
 
