@@ -12,7 +12,7 @@ import kotlin.reflect.KProperty
  * Grab-bag of Kotlin Extension functions for doing things in the Field codebase
  */
 
-fun <R, T : Bracketable> T.use(b: (T) -> R): R {
+inline fun <R, T : Bracketable> T.use(b: (T) -> R): R {
 	this.open()
 	var r: R
 	try {
@@ -22,6 +22,7 @@ fun <R, T : Bracketable> T.use(b: (T) -> R): R {
 	}
 	return r
 }
+
 
 /**
  * Linalg work below
@@ -46,8 +47,11 @@ operator fun Vec3.minus(other: Vec3): Vec3
 operator fun Vec4.minus(other: Vec4): Vec4
 		= Vec4(this.x - other.x, this.y - other.y, this.z - other.z, this.w - other.w)
 
-operator fun Vec2.times(other: Double): Vec2
-		= Vec2(this.x * other, this.y * other)
+operator fun Vec2.times(other: Number): Vec2
+		= Vec2(this.x * other.toDouble(), this.y * other.toDouble())
+
+operator fun Vec3.times(other: Number): Vec3
+		= Vec3(this.x * other.toDouble(), this.y * other.toDouble(), this.z * other.toDouble())
 
 operator fun Vec2.times(other: Vec2): Vec2
 		= Vec2(this.x * other.x, this.y * other.y)
@@ -60,6 +64,11 @@ operator fun Vec3.times(other: Vec3): Vec3
 
 operator fun Vec4.times(other: Double): Vec4
 		= Vec4(this.x * other, this.y * other, this.z * other, this.w * other)
+
+operator fun Vec4.times(other: Number): Vec4
+		= Vec4(this.x * other.toDouble(), this.y * other.toDouble(), this.z * other.toDouble(), this.w * other.toDouble())
+
+
 
 
 operator fun Vec2.remAssign(to: Vec2) {

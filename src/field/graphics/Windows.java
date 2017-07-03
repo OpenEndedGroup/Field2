@@ -225,8 +225,6 @@ public class Windows {
 			@Override
 			public void key(long window, int key, int scancode, int action, int mods) {
 
-				System.out.println("::Key "+window+" "+key+" "+scancode+" "+action+" "+mods);
-
 				// we occasionally get a spurious 'a' (scancode 0) on command-tabbing to our application. If it's just a plain 'a' let's assume that the character callback will handle it
 				if (scancode == 0 && mods == 0) return;
 
@@ -246,7 +244,7 @@ public class Windows {
 
 			@Override
 			public void character(long window, int character) {
-				System.out.println("::Char "+character);
+//				System.out.println("::Char "+character);
 				Runnable r = () -> {
 					checkClassLoader();
 					GlfwCallback a = adaptors.get(window);

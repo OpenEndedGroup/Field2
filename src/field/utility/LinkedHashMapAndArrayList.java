@@ -28,16 +28,16 @@ public class LinkedHashMapAndArrayList<V> extends LinkedHashMap<String, V> {
 
 	@Override
 	public V put(String key, Object value) {
-		return _put(key, massage(value));
+		return _put(key, massage(value, get(massageKey(key))));
 	}
 
 	// this one is better for writing Java, because it gives you type inference on lambdas as V
 	public V _put(String key, V v)
 	{
 		V displaced = super.put(massageKey(key), v);
-		if (displaced!=null)
+		if (displaced!=null && displaced!=v)
 		{
-			_removed(displaced);
+			_removed(displaced, v);
 		}
 		return displaced;
 	}
@@ -45,6 +45,11 @@ public class LinkedHashMapAndArrayList<V> extends LinkedHashMap<String, V> {
 	protected V massage(Object vraw) {
 		return (V)vraw;
 	}
+
+	protected V massage(Object vraw, Object previously) {
+		return massage(vraw);
+	}
+
 
 	protected String massageKey(String k) {
 		return k;
@@ -74,6 +79,10 @@ public class LinkedHashMapAndArrayList<V> extends LinkedHashMap<String, V> {
 
 	protected void _removed(Object v) {
 
+	}
+
+	protected void _removed(Object v, Object inExchangeFor) {
+		_removed(v);
 	}
 
 }

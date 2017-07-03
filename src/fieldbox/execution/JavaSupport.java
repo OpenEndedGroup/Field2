@@ -369,6 +369,7 @@ public class JavaSupport {
 						tail = tail.replace("//", "/");
 						tail = tail.replace("//", "/");
 						tail = tail.replace('/', '.');
+						tail = tail.replace('\\', '.');
 						tail = tail.replace(".class", "");
 						tail = tail.replace("$", ".");
 						ret.put(tail, f);

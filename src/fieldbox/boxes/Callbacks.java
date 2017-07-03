@@ -288,8 +288,9 @@ public class Callbacks {
 				      .findFirst()
 				      .orElseThrow(() -> new IllegalArgumentException("can't execute a box not connected to the graph"));
 
-			if (argMap instanceof Map) {
-				m = (Map<?, ?>) Conversions.convert(argMap, Map.class);
+			m = argMap==null ? null : (Map<?, ?>) Conversions.convert(argMap, Map.class);
+
+			if (m instanceof Map) {
 				for (Map.Entry<?, ?> e : m.entrySet()) {
 					Object was = root.properties.get(new Dict.Prop("" + e.getKey()));
 					if (root.properties.has(new Dict.Prop("" + e.getKey())))

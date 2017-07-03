@@ -82,7 +82,13 @@ class MeshBuilder_tesselationSupport implements MeshAcceptor{
 	}
 
 	public void end() {
-		tess.gluTessEndPolygon();
+		try {
+			tess.gluTessEndPolygon();
+		}
+		catch(ArrayIndexOutOfBoundsException e)
+		{
+			e.printStackTrace();
+		}
 	}
 
 	public void endContour() {

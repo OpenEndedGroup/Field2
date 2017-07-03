@@ -474,6 +474,48 @@ public class MeshBuilder implements MeshAcceptor, Bracketable, Scene.ContainsPer
 	}
 
 	/**
+	 * Adds a string of line segments stretching from start all the way through to end.
+	 * <p>
+	 * vertex numbers are backwards from the current vertex, so vertex 0 is the most recent call to v, 1 is the vertex before that and so on
+	 */
+	public MeshBuilder lineAdj(int start, int end) {
+		IntBuffer dest = ensureElementSize(4, elementCursor + Math.abs(start - end));
+		if (start < 0)
+			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access an unwritten index with start " + start);
+		if (end < 0)
+			throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access an unwritten index with end " + start);
+		if (end > start) {
+			if (vertexCursor - 1 - (start + 3) < 0)
+				throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with start " + start + " > " + (vertexCursor - 1));
+			if (vertexCursor - 1 - (end - 1 + 3) < 0)
+				throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with end " + end + " > " + (vertexCursor - 1));
+
+			for (int a = start; a < end; a++) {
+				dest.put(vertexCursor - 1 - a);
+				dest.put(vertexCursor - 1 - (a + 1));
+				dest.put(vertexCursor - 1 - (a + 2));
+				dest.put(vertexCursor - 1 - (a + 3));
+				elementCursor++;
+			}
+		} else {
+			if (vertexCursor - 1 - (start - 3) < 0)
+				throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with start " + start + " > " + (vertexCursor - 1));
+			if (vertexCursor - 1 - (end +1 - 3 ) < 0)
+				throw new IllegalArgumentException(" can't write line into vertexbuffer, trying to access a negative index with end " + end + " > " + (vertexCursor - 1));
+
+			for (int a = start - 1; a > end; a--) {
+				dest.put(vertexCursor - 1 - a);
+				dest.put(vertexCursor - 1 - (a - 1));
+				dest.put(vertexCursor - 1 - (a - 2));
+				dest.put(vertexCursor - 1 - (a - 3));
+				elementCursor++;
+			}
+		}
+
+		return this;
+	}
+
+	/**
 	 * Adds a string of line segments corresponding to the Vec3's in this List. (note, nothing will happen if line.size()<=1
 	 */
 	public MeshBuilder line(List<Vec3> line) {
@@ -713,6 +755,15 @@ public class MeshBuilder implements MeshAcceptor, Bracketable, Scene.ContainsPer
 	 */
 	public MeshBuilder line(int start) {
 		return line(start, 0);
+	}
+
+	/**
+	 * vertex numbers are backwards from the current vertex, so vertex 0 is the most recent call to v, 1 is the vertex before that and so on
+	 * <p>
+	 * equivalent to lineAdj(start, 0), e.g. line from 'start' to here
+	 */
+	public MeshBuilder lineAdj(int start) {
+		return lineAdj(start, 0);
 	}
 
 	/**

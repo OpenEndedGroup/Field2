@@ -112,13 +112,15 @@ public class Browser extends Box implements IO.Loaded {
 
         int ns = 30;
 
+        float Z = now.properties.getOr(depth, () -> 0f).floatValue();
+
         for (int x = 0; x < ns; x++) {
             for (int y = 0; y < ns; y++) {
                 float ax = (0.f+x) / (float)(ns - 1);
                 float ay = (0.f+y) / (float)(ns - 1);
 
                 builder.aux(5, ax * r.w / w, ay * (r.h+0.5f) / h, op);
-                builder.v(r.x + ax * r.w, r.y + ay * r.h, 0);
+                builder.v(r.x + ax * r.w, r.y + ay * r.h, Z);
             }
         }
         for (int x = 0; x < ns - 1; x++) {
@@ -149,7 +151,7 @@ public class Browser extends Box implements IO.Loaded {
 //            update(r.x, r.y, 1/*r.w/w*/);
 //        });
 
-        s.attach(texture);
+        s.asMap_set("te", texture);
         s.attach(q);
 
 //		this.properties.putToListMap(Callbacks.onDelete, (bx) -> {
@@ -188,6 +190,8 @@ public class Browser extends Box implements IO.Loaded {
 
             return null;
         });
+
+        this.properties.put(depth, -0.1f);
 
         this.w = (int) this.properties.get(Box.frame).w;
         this.h = (int) this.properties.get(Box.frame).h;
@@ -288,7 +292,7 @@ public class Browser extends Box implements IO.Loaded {
         });
 
         shader.attach(q);
-        shader.attach(texture);
+        shader.asMap_set("te", texture);
 
         window.getCompositor()
                 .getLayer(properties.computeIfAbsent(FLineDrawing.layer, k -> "__main__"))

@@ -238,7 +238,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
             GL15.glBindBuffer(GL21.GL_PIXEL_UNPACK_BUFFER, 0);
             Log.log("graphics.trace", () -> "uploaded part 1");
             s.mod++;
-        }, -2).setOnceOnly().setAllContextsFor(this));
+        }, -2)/*.setOnceOnly()*/.setAllContextsFor(this));
     }
 
     public int getPendingUploads() {
@@ -326,7 +326,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 //			glCompressedTexSubImage2D(specification.target, 0, 0, 0, specification.width, specification.height, specification.internalFormat, specification.pixels.capacity(), specification.pixels);
             throw new IllegalArgumentException(" not implemented ");
         } else {
-            if (specification.pixels!=null) {
+            if (specification.pixels != null) {
                 glTexSubImage2D(specification.target, 0, 0, 0, specification.width, specification.height, specification.format, specification.type, specification.pixels);
                 if (specification.highQuality) {
                     glGenerateMipmap(specification.target);

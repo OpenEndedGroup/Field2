@@ -11,6 +11,9 @@ import jdk.nashorn.api.scripting.ScriptUtils;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -41,7 +44,7 @@ import static fieldbox.boxes.Box.format;
  * underlying Buffers or whether this piece of geometry can be skipped, and finally individual ArrayBuffers can elect to skip the upload to OpenGL. This means that static geometry is extremely cheap
  * to draw
  */
-public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesCompletion {
+public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesCompletion, Serializable_safe {
 
 	public List<Node> nodes = new ArrayList<>();
 	public Dict attributes = new Dict();
@@ -376,13 +379,14 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	 * <p>
 	 * 'm' - moveTo, needs a Vec2 or a Vec3 'l' - lineTo, needs a Vec2 or a Vec3 'c' - cubicTo, needs 3 Vec2 or Vec3; 's' - smoothTo, needs 1 Vec2 or Vec3 '*' will loop the previous instruction;
 	 * '+' will loop the whole set of instructions 'd' will drop a Vec3; 'C' — is a cubic segment that consumes the next two instructions as well (e.g. you need to write 12C to do the same as 'c')
-	 * until you run out of Vec3 inputs; 't' — dispatches based on the tag of a TaggedVec3
+	 * until you run out of Vec3 inputs; 't' — dispatches based on the tag of a TaggedVec3; 'b' pushes the previous 'm'oveTo onto the stack to be consumed again by futher instructions (e.g 'mlllbl' draws a closed quadrilateral)
 	 */
 	public FLine data(String format, Object... input) {
 		List<Vec3> f = flattenInput(input);
 
 		int q = 0;
 
+		Vec3 lastMove = null;
 		char[] cs = format.toCharArray();
 		boolean looping = false;
 		for (int i = 0; i < cs.length; i++) {
@@ -404,8 +408,14 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 			try {
 				switch (c) {
 
+					case 'b':
+						if (lastMove==null)
+							throw new IllegalArgumentException(" 'b' without previous 'm'");
+						f.add(q, lastMove);
+						break;
 					case 'm':
-						moveTo(f.get(q++));
+						lastMove = f.get(q++);
+						moveTo(lastMove);
 						break;
 					case 'l':
 						lineTo(f.get(q++));
@@ -431,7 +441,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 						break;
 
 					default:
-						throw new IllegalArgumentException(" unknown format specification ");
+						throw new IllegalArgumentException(" unknown format specification "+c);
 				}
 			} catch (IndexOutOfBoundsException e) {
 				if (looping) return this;
@@ -1706,4 +1716,20 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	public String toString() {
 		return "FLine (with " + nodes.size() + " node" + (nodes.size() == 1 ? "" : "s") + ")";
 	}
+
+
+    private void writeObject(ObjectOutputStream out) throws IOException
+    {
+        FLineSerializationHelper.writeObject(this, out);
+    }
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException
+    {
+		nodes = new ArrayList<>();
+		attributes = new Dict();
+		cache = new WeakHashMap<>();
+		cache_thickening = new WeakHashMap<>();
+		
+        FLineSerializationHelper.readObject(this, in);
+
+    }
 }
