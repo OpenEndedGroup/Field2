@@ -1,16 +1,35 @@
+
+# you might need to change these
+javac=/cygdrive/c/Program\ Files/Java/jdk-9/bin/javac
+java=/cygdrive/c/Program\ Files/Java/jdk-9/bin/java
+jar=/cygdrive/c/Program\ Files/Java/jdk-9/bin/jar
+
 root=`dirname $0`
 cd $root
 
-JDK="/cygdrive/c/Program Files/Java/jdk-9/bin/"
 
-echo
+function join() {
+    local IFS=$1
+    shift
+    echo "$*"
+}
+
+
+if [ ! -d kotlinc ]; then
+    echo -- downloading kotlinc --
+    curl -L https://github.com/JetBrains/kotlin/archive/build-1.1.2-release-105.zip > kotlinc.zip
+    echo -- decompressing --
+    unzip kotlinc.zip
+    echo -- complete --
+fi
+
 echo -- using javac from : --
-which "$JDK"/javac.exe
-echo -- which is version : --
-"$JDK"/javac.exe -fullversion
+echo "$java" / `"$javac" -fullversion`
+
+echo -- using kotlinc version : --
+echo `./kotlinc/bin/kotlinc -version`
 
 
-echo
 echo -- removing build directory --
 
 rm -r build
@@ -19,38 +38,44 @@ cd build
 mkdir agent_classes
 mkdir linker_classes
 
-
 echo
-echo ---- building field agent jar ----
+
+echo -- building field agent jar --
 find ../agent/src -iname '*.java' > agent_source
 echo -- 1/2 - compiling classes --
-"$JDK"/javac.exe -Xlint:-deprecation -Xlint:-unchecked -classpath "../agent/lib/*"  @agent_source -d agent_classes/
+"$javac" -Xlint:-deprecation -Xlint:-unchecked -classpath "../agent/lib/*"  @agent_source -d agent_classes/
 cd agent_classes
 cp -r ../../agent/lib/META-INF .
 echo -- 2/2 - making jar --
-"$JDK"/jar.exe cmf ../../agent/lib/META-INF/MANIFEST.MF ../field_agent.jar .
+"$jar" cmf ../../agent/lib/META-INF/MANIFEST.MF ../field_agent.jar .
 cd ..
 
 echo
-echo ---- building field linker jar ----
+
+echo -- building field linker jar --
 find ../linker/src -iname '*.java' > linker_source
 echo -- 1/2 - compiling classes --
-"$JDK"/javac.exe -Xlint:-deprecation -Xlint:-unchecked -classpath "../linker/lib/*"  @linker_source -d linker_classes/
+"$javac" -Xlint:-deprecation -Xlint:-unchecked -classpath "../linker/lib/*"  @linker_source -d linker_classes/
 cd linker_classes
 cp -r ../../linker/lib/META-INF .
 echo -- 2/2 - making jar --
-"$JDK"/jar.exe cmf ../../linker/lib/META-INF/MANIFEST.MF ../field_linker.jar .
+"$jar" cmf ../../linker/lib/META-INF/MANIFEST.MF ../field_linker.jar .
 cd ..
 
-
-
 echo
-echo ---- building main classes ----
+
+echo -- building main classes -- 
 mkdir classes
 find ../src -iname '*.java' > source
-find ../win/src -iname '*.java' >> source
+find ../osx/src -iname '*.java' >> source
+
+cp0=$(join ';' ../lib/jars/*.jar)
+cp1=$(join ';' ../win/lib/jars/*)
+
 
 # XDignore.symbol.file suppresses the otherwise unspressable warning about Unsafe, which will be there until there's a replacement for Unsafe
-"$JDK"/javac.exe -Xlint:-deprecation -Xlint:-unchecked -XDignore.symbol.file -classpath "field_agent.jar;field_linker.jar;../lib/jars/*"  @source -d classes/
+../kotlinc/bin/kotlinc -jdk-home /Library/Java/JavaVirtualMachines/jdk-9.jdk/Contents/Home/ -J--add-opens -Jjava.base/jdk.internal.misc=ALL-UNNAMED -J--add-opens -Jjava.desktop/sun.awt=ALL-UNNAMED -J--add-opens -Jjava.base/java.lang.reflect=ALL-UNNAMED -J--add-opens -Jjava.base/java.lang=ALL-UNNAMED -J--add-opens -Jjava.base/java.util=ALL-UNNAMED -J--add-opens -Jjava.base/java.util.concurrent.atomic=ALL-UNNAMED -J--add-opens -Jjava.desktop/sun.awt=ALL-UNNAMED -J--add-opens -Jjava.base/java.lang.reflect=ALL-UNNAMED -J--add-opens -Jjava.base/java.lang=ALL-UNNAMED -J--add-opens -Jjava.base/java.util=ALL-UNNAMED  -classpath field_agent.jar:field_linker.jar:$cp0:$cp1 -d classes ../src 
 
-echo ---- build complete ----
+"$javac" -verbose -Xlint:-deprecation -Xlint:-unchecked -XDignore.symbol.file -classpath "field_agent.jar;field_linker.jar;../lib/jars/*;../lib/jars/orientdb/*;../win/lib/jars/*"  @source -d classes/
+
+echo -- build complete -- 
