@@ -6,7 +6,7 @@ import static org.lwjgl.opengl.GL42.glBindImageTexture;
 /**
  * This is an OpenGL Image class (which is not to be confused with an OpenGL Texture).
  * <p>
- * An OpenGL Image is a very recent addition to OpenGL. Unlike Textures, Images can be writeable in random access ways from shaders.
+ * An OpenGL Image is a very recent addition to OpenGL. Unlike Textures, Images can be writeable in random access ways from shaders. Doesn't work, currently, on any version of OS X
  */
 public class Image implements Scene.Perform, OffersUniform<Integer> {
 

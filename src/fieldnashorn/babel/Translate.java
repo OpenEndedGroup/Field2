@@ -14,10 +14,14 @@ import java.util.function.Function;
 
 /**
  * Tools for caching
+ * <p>
+ * // need to move from a tmp directory to one where 'npm install --save babel-plugin-transform-regenerator' has been run
  */
 public class Translate implements SourceTransformer {
 
-	static public final String command = "babel --stage 0 # --out-file #.5.js --source-maps";
+	//	static public final String command = "babel --stage 0 # --out-file #.5.js --source-maps";
+	static public final String command = "babel -s true --plugins transform-regenerator # -o #.5.js";
+	private final String congifurationDirectory;
 
 	LinkedHashMap<String, String> codeCache = new LinkedHashMap<String, String>() {
 		@Override
@@ -35,28 +39,36 @@ public class Translate implements SourceTransformer {
 
 	boolean first = false;
 
-	public Translate()
-	{
+	public Translate(String congifurationDirectory) throws IOException, InterruptedException {
+		File error = File.createTempFile("field", ".error");
+		error.deleteOnExit();
+
+		this.congifurationDirectory = congifurationDirectory;
+		new File(congifurationDirectory).mkdirs();
+		int success = new ProcessBuilder().directory(new File(congifurationDirectory)).command("npm install --save babel-plugin-transform-regenerator".split(" "))
+						  .redirectError(error)
+						  .start()
+						  .waitFor();
+
+		if (success != 0) {
+			throw new IOException("Failed to install babel: command 'npm install --save babel-plugin-transform-regenerator' failed with message :" + new String(Files.readAllBytes(error.toPath())));
+		}
 		first = true;
 	}
 
-	static public  String preamble;
+	static public String preamble;
 
 	{
-		try{
-			preamble = Files.readAllLines(new File("/Users/marc/fieldwork2/out/production/fieldnashorn/polyfill.js").toPath())
+		try {
+			preamble = Files.readAllLines(new File("/Users/marc/temp/babelcheck/runtime.js").toPath())
 					.stream()
-					.reduce("", (a, b) -> a + "\n" + b)+"\n\n";
+					.reduce("", (a, b) -> a + "\n" + b) + "\n\n";
 
-			preamble += Files.readAllLines(new File("/Users/marc/fieldwork2/out/production/fieldnashorn/regenerator.js").toPath())
-					.stream()
-					.reduce("", (a, b) -> a + "\n" + b)+"\n\n";
-
-		}catch(IOException e)
-		{
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
+
 	@Override
 	public Pair<String, Function<Integer, Integer>> transform(String c) throws TranslationFailedException {
 		String t = codeCache.get(c);
@@ -72,9 +84,9 @@ public class Translate implements SourceTransformer {
 	private Pair<String, Function<Integer, Integer>> _transform(String c) throws TranslationFailedException {
 
 		try {
-			File f = File.createTempFile("field", ".js");
+			File f = File.createTempFile("field", ".js", new File(congifurationDirectory));
 			f.deleteOnExit();
-			File error = File.createTempFile("field", ".error");
+			File error = File.createTempFile("field", ".error", new File(congifurationDirectory));
 			error.deleteOnExit();
 
 			FileWriter fw = new FileWriter(f);
@@ -82,8 +94,8 @@ public class Translate implements SourceTransformer {
 			fw.close();
 
 
-			int success = new ProcessBuilder().command(command.replace("#", f.getAbsolutePath())
-									  .split(" "))
+			int success = new ProcessBuilder().directory(new File(congifurationDirectory))
+							  .command(command.replace("#", f.getAbsolutePath()).split(" "))
 							  .redirectError(error)
 							  .start()
 							  .waitFor();
@@ -101,14 +113,13 @@ public class Translate implements SourceTransformer {
 				Function<Integer, Integer> fn = x -> x;
 				try {
 					fn = x -> sm.getMappingForLine(x, 1)
-									       .getLineNumber();
+						    .getLineNumber();
 					mapCache.put(c, fn);
-				} catch (NullPointerException e)
-				{
+				} catch (NullPointerException e) {
 					e.printStackTrace();
 				}
 
-				return new Pair<>((first ? preamble : "")+code, fn);
+				return new Pair<>((first ? preamble : "") + code, fn);
 			} else {
 				String code = new String(Files.readAllBytes(error.toPath()));
 				throw new TranslationFailedException(code);

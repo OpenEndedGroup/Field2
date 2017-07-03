@@ -4,6 +4,7 @@ import field.linalg.Vec2;
 import field.utility.Dict;
 import field.utility.Log;
 import field.utility.Pair;
+import fieldagent.Main;
 import fieldbox.FieldBox;
 import fieldbox.Open;
 import fieldbox.boxes.Box;
@@ -13,7 +14,11 @@ import fieldbox.io.IO;
 import fieldbox.ui.FieldBoxWindow;
 import fielded.Commands;
 import fielded.RemoteEditor;
+import org.lwjgl.PointerBuffer;
+import org.lwjgl.system.MemoryUtil;
+import org.lwjgl.util.nfd.NativeFileDialog;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.BiFunction;
@@ -35,6 +40,22 @@ public class Export extends Box {
 		this.properties.put(exportToWorkspace, (d, f) -> exportToNewWorkspace(d, f, null));
 
 
+	}
+
+	public boolean export() {
+
+		if (Main.os== Main.OS.mac)
+			throw new IllegalArgumentException(" file dialogs not supportable on macOS");
+
+
+		System.out.println(" >> thread is :" + Thread.currentThread());
+		PointerBuffer o = PointerBuffer.allocateDirect(1024);
+				NativeFileDialog.NFD_PickFolder(System.getProperty("user.home"), o);
+				String workspaceDir = MemoryUtil.memUTF8(o.address());
+
+				System.out.println(" workspace " + workspaceDir);
+
+		return false;
 	}
 
 	public boolean exportToNewWorkspace(String workspaceDir, String filename, String prefix) {

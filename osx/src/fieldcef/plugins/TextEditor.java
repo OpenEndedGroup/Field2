@@ -248,8 +248,11 @@ public class TextEditor extends Box implements IO.Loaded {
 	public void trigger() {
 		long now = System.currentTimeMillis();
 		if (now - lastTriggerAt < 500) {
-			if (!browser_.getFocus()) browser_.executeJavaScript_queued("_messageBus.publish('focus', {})");
-			browser_.setFocus(!browser_.getFocus());
+			if (!browser_.properties.isTrue(Box.hidden, false)) {
+				if (!browser_.getFocus())
+					browser_.executeJavaScript_queued("_messageBus.publish('focus', {})");
+				browser_.setFocus(!browser_.getFocus());
+			}
 		}
 		lastTriggerAt = now;
 	}
