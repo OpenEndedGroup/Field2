@@ -130,7 +130,12 @@ public class StandardFLineDrawing {
 				fline.renderToLine(line, 20);
 			}
 		}
-		if (fline.attributes.isTrue(filled, false) && mesh != null) fline.renderToMesh(mesh, 20);
+		if (fline.attributes.isTrue(filled, false) && mesh != null) {
+			fline.addAuxProperties(1, color.getName());
+			mesh.aux(1, fc);
+			fline.renderToMesh(mesh, 20);
+			mesh.aux(1, fc);
+		}
 		if (fline.attributes.isTrue(pointed, false) && points != null) {
 			float ps = fline.attributes.getFloat(pointSize, 0f);
 			points.aux(2, ps);

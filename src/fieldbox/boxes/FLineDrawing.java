@@ -350,16 +350,12 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 			for (int i = 0; i < f.nodes.size(); i++) {
 				float alpha = ((i + 2) % f.nodes.size()) / (f.nodes.size() - 1f);
 				alpha = alpha * (1 - alpha) * 4;
-				f.nodes.get(i).attributes.put(fillColor, new Vec4(ar * (1 - alpha) + alpha * br, ag * (1 - alpha) + alpha * bg, ab * (1 - alpha) + alpha * bb, s));
+				f.nodes.get(i).attributes.put(color, new Vec4(ar * (1 - alpha) + alpha * br, ag * (1 - alpha) + alpha * bg, ab * (1 - alpha) + alpha * bb, s));
 				f.nodes.get(i).setZ(d);
 			}
 
 			f.attributes.put(filled, true);
 			f.attributes.put(stroked, false);
-
-			Map<Integer, String> customFill = new LinkedHashMap<Integer, String>();
-			customFill.put(1, "fillColor");
-			f.setAuxProperties(customFill);
 
 			if (d == 0)
 				f.attributes.put(hint_noDepth, true);
