@@ -2,6 +2,7 @@ package fieldbox.boxes.plugins;
 
 import field.utility.Rect;
 import fieldbox.boxes.Box;
+import fieldbox.boxes.TimeSlider;
 import fieldbox.io.IO;
 
 import java.util.LinkedHashMap;
@@ -87,7 +88,7 @@ public class Layout {
 
 
 	public void initialize(Box root) {
-		root.breadthFirst(root.allDownwardsFrom())
+		root.breadthFirst(root.allDownwardsFrom()).filter(x -> !(x instanceof TimeSlider))
 		    .forEach(x -> r.put(x.properties.getOrConstruct(IO.id), x.properties.get(Box.frame)));
 	}
 
