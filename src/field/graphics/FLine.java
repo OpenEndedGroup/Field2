@@ -178,6 +178,34 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		return add(new CubicTo(c1x, c1y, 0, c2x, c2y, 0, x, y, 0));
 	}
 
+	public FLine quadTo(double q1x, double q1y, double x, double y) {
+		if (nodes.size() == 0) return moveTo(x, y);
+
+		Vec3 at = last().to;
+
+		double c1x = (at.x + q1x * 2) / 3;
+		double c1y = (at.y + q1y * 2) / 3;
+		double c2x = (at.x * 2 + q1x) / 3;
+		double c2y = (at.y * 2 + q1y) / 3;
+
+		return cubicTo(c1x, c1y, c2x, c2y, x, y);
+	}
+
+	public FLine quadTo(double q1x, double q1y, double q1z, double x, double y, double z) {
+		if (nodes.size() == 0) return moveTo(x, y);
+
+		Vec3 at = last().to;
+
+		double c1x = (at.x + q1x * 2) / 3;
+		double c1y = (at.y + q1y * 2) / 3;
+		double c1z = (at.z + q1z * 2) / 3;
+		double c2x = (at.x * 2 + q1x) / 3;
+		double c2y = (at.y * 2 + q1y) / 3;
+		double c2z = (at.z * 2 + q1z) / 3;
+
+		return cubicTo(c1x, c1y, c1z, c2x, c2y, c2z, x, y, z);
+	}
+
 	public FLine cubicToRel(double c1x, double c1y, double c2x, double c2y, double x, double y) {
 		if (nodes.size() == 0) return moveTo(x, y);
 		Vec3 v = nodes.get(nodes.size() - 1).to;
@@ -219,11 +247,11 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		Vec2 c2 = new Vec2(d).mul(-r2 / 3);
 
 		c1 = new Quat().setAngleAxis(theta1, new Vec3(0, 0, 1))
-			.transform(c1.toVec3())
-			.toVec2();
+			       .transform(c1.toVec3())
+			       .toVec2();
 		c2 = new Quat().setAngleAxis(theta2, new Vec3(0, 0, 1))
-			.transform(c2.toVec3())
-			.toVec2();
+			       .transform(c2.toVec3())
+			       .toVec2();
 
 		Vec2.add(c1, a, c1);
 		Vec2.add(c2, destination, c2);
@@ -409,7 +437,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 				switch (c) {
 
 					case 'b':
-						if (lastMove==null)
+						if (lastMove == null)
 							throw new IllegalArgumentException(" 'b' without previous 'm'");
 						f.add(q, lastMove);
 						break;
@@ -441,7 +469,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 						break;
 
 					default:
-						throw new IllegalArgumentException(" unknown format specification "+c);
+						throw new IllegalArgumentException(" unknown format specification " + c);
 				}
 			} catch (IndexOutOfBoundsException e) {
 				if (looping) return this;
@@ -1081,7 +1109,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		Vec3 t = new Vec3(center2).sub(center);
 
 		Vec3 cD = new Vec3(cEnd).sub(cStart)
-			.normalize();
+					.normalize();
 		Vec3 d = new Vec3(end).sub(start);
 
 		Quat q = cD.isNaN() || d.isNaN() ? new Quat() : new Quat().rotateTo(d, cD);
@@ -1093,20 +1121,20 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		double fs = s;
 
 		return byTransforming(x -> q.transform(new Vec3(x).sub(center))
-			.mul(fs)
-			.add(center)
-			.add(t));
+					    .mul(fs)
+					    .add(center)
+					    .add(t));
 
 	}
 
 	/**
 	 * handy method that sets the z coordinate of all the nodes in this FLine to be the `depth` of this box (or 0)
+	 *
 	 * @param of
 	 */
-	public void depthTo(Box of)
-	{
+	public void depthTo(Box of) {
 		float d = of.properties.getFloat(depth, 0f);
-		for(Node n : nodes)
+		for (Node n : nodes)
 			n.setZ(d);
 	}
 
@@ -1142,11 +1170,11 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	protected Set<String> computeKnownNonProperties() {
 		Set<String> r = new LinkedHashSet<>();
 		Method[] m = this.getClass()
-			.getMethods();
+				 .getMethods();
 		for (Method mm : m)
 			r.add(mm.getName());
 		Field[] f = this.getClass()
-			.getFields();
+				.getFields();
 		for (Field ff : f)
 			r.add(ff.getName());
 		return r;
@@ -1256,8 +1284,8 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	@HiddenInAutocomplete
 	public Object asMap_call(Object a, Object b) {
 		System.err.println(" call called :" + a + " " + b + " " + (b instanceof Map ? ((Map) b).keySet() : b.getClass()
-			.getSuperclass() + " " + Arrays.asList(b.getClass()
-			.getInterfaces())));
+														    .getSuperclass() + " " + Arrays.asList(b.getClass()
+																			    .getInterfaces())));
 		boolean success = false;
 		try {
 			Map<?, ?> m = (Map<?, ?>) ScriptUtils.convert(b, Map.class);
@@ -1313,10 +1341,10 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	public List<Completion> getCompletionsFor(String prefix) {
 
 		List<Completion> l1 = Dict.cannonicalProperties().filter(x -> x.getAttributes().has(Dict.domain))
-			.filter(x -> x.getAttributes().get(Dict.domain).contains("fline"))
-			.filter(x -> x.getName().startsWith(prefix))
-			.map(q -> new Completion(-1, -1, q.getName(), " = <span class='type'>" + Conversions.fold(q.getTypeInformation(), t -> compress(
-				t)) + "</span> " + possibleToString(q) + " &mdash; <span class='doc'>" + format(q.getDocumentation()) + "</span>")).collect(Collectors.toList());
+					  .filter(x -> x.getAttributes().get(Dict.domain).contains("fline"))
+					  .filter(x -> x.getName().startsWith(prefix))
+					  .map(q -> new Completion(-1, -1, q.getName(), " = <span class='type'>" + Conversions.fold(q.getTypeInformation(), t -> compress(
+						  t)) + "</span> " + possibleToString(q) + " &mdash; <span class='doc'>" + format(q.getDocumentation()) + "</span>")).collect(Collectors.toList());
 
 
 		l1.forEach(x -> {
@@ -1325,9 +1353,9 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		});
 
 		List<Completion> l1b = attributes.getMap().keySet().stream()
-			.filter(x -> x.getName().startsWith(prefix))
-			.map(q -> new Completion(-1, -1, q.getName(), " = <span class='type'>" + Conversions.fold(q.getTypeInformation(), t -> compress(
-				t)) + "</span> " + possibleToString(q) + " &mdash; <span class='doc'>" + format(q.getDocumentation()) + "</span>")).collect(Collectors.toList());
+						 .filter(x -> x.getName().startsWith(prefix))
+						 .map(q -> new Completion(-1, -1, q.getName(), " = <span class='type'>" + Conversions.fold(q.getTypeInformation(), t -> compress(
+							 t)) + "</span> " + possibleToString(q) + " &mdash; <span class='doc'>" + format(q.getDocumentation()) + "</span>")).collect(Collectors.toList());
 
 
 		l1b.stream().filter(x -> {
@@ -1343,12 +1371,12 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		List<Completion> l2 = JavaSupport.javaSupport.getOptionCompletionsFor(this, prefix);
 
 		l1.addAll(l2.stream()
-			.filter(x -> {
-				for (Completion c : l1)
-					if (c.replacewith.equals(x.replacewith)) return false;
-				return true;
-			})
-			.collect(Collectors.toList()));
+			    .filter(x -> {
+				    for (Completion c : l1)
+					    if (c.replacewith.equals(x.replacewith)) return false;
+				    return true;
+			    })
+			    .collect(Collectors.toList()));
 
 		return l1;
 
@@ -1515,8 +1543,8 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		@Override
 		public Object asMap_call(Object a, Object b) {
 			System.err.println(" call called :" + a + " " + b + " " + (b instanceof Map ? ((Map) b).keySet() : b.getClass()
-				.getSuperclass() + " " + Arrays.asList(b.getClass()
-				.getInterfaces())));
+															    .getSuperclass() + " " + Arrays.asList(b.getClass()
+																				    .getInterfaces())));
 			boolean success = false;
 			try {
 				Map<?, ?> m = (Map<?, ?>) ScriptUtils.convert(b, Map.class);
@@ -1575,11 +1603,11 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		protected Set<String> computeKnownNonProperties() {
 			Set<String> r = new LinkedHashSet<>();
 			Method[] m = this.getClass()
-				.getMethods();
+					 .getMethods();
 			for (Method mm : m)
 				r.add(mm.getName());
 			Field[] f = this.getClass()
-				.getFields();
+					.getFields();
 			for (Field ff : f)
 				r.add(ff.getName());
 			return r;
@@ -1718,18 +1746,17 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	}
 
 
-    private void writeObject(ObjectOutputStream out) throws IOException
-    {
-        FLineSerializationHelper.writeObject(this, out);
-    }
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException
-    {
+	private void writeObject(ObjectOutputStream out) throws IOException {
+		FLineSerializationHelper.writeObject(this, out);
+	}
+
+	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
 		nodes = new ArrayList<>();
 		attributes = new Dict();
 		cache = new WeakHashMap<>();
 		cache_thickening = new WeakHashMap<>();
-		
-        FLineSerializationHelper.readObject(this, in);
 
-    }
+		FLineSerializationHelper.readObject(this, in);
+
+	}
 }
