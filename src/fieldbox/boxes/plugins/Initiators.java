@@ -30,13 +30,16 @@ public class Initiators {
 		return b;
 	}
 
-	static public Supplier<Number> mouseX(Box forBox, double other)
-	{
+	static public fieldlinker.AsMap constant(Box forBox, double c) {
+		Box b = new _constant(c, forBox);
+		return b;
+	}
+
+	static public Supplier<Number> mouseX(Box forBox, double other) {
 		return () -> forBox.find(Boxes.window, forBox.upwards()).findFirst().map(x -> x.getCurrentMouseState().x).orElse(other);
 	}
 
-	static public Supplier<Number> mouseY(Box forBox, double other)
-	{
+	static public Supplier<Number> mouseY(Box forBox, double other) {
 		return () -> forBox.find(Boxes.window, forBox.upwards()).findFirst().map(x -> x.getCurrentMouseState().y).orElse(other);
 	}
 
@@ -85,7 +88,31 @@ public class Initiators {
 	}
 
 	// Method Handle dispatch needs these to be public
-	public  static class _txy extends Box {
+	public static class _constant extends Box {
+		private final Box forBox;
+		private final double xn;
+
+		public _constant(double xn, Box forBox) {
+			this.forBox = forBox;
+			this.xn = xn;
+		}
+
+		@Override
+		public Object asMap_call(Object o) {
+			return xn;
+		}
+
+		@Override
+		public Object asMap_get(String m) {
+			if (m.equals("x")) {
+				return xn;
+			}
+			return null;
+		}
+	}
+
+	// Method Handle dispatch needs these to be public
+	public static class _txy extends Box {
 		private final Supplier<Number> x;
 		private final Box forBox;
 		private final Supplier<Number> y;
@@ -143,15 +170,13 @@ public class Initiators {
 				Rect f = forBox.properties.get(Box.frame);
 				return Math.max(0, Math.max(1, (d - f.y) / f.h));
 			}
-			if (m.equals("rawt") || m.equals("raw"))
-			{
+			if (m.equals("rawt") || m.equals("raw")) {
 				double d = x.get()
 					    .doubleValue();
 				Rect f = forBox.properties.get(Box.frame);
 				return (d - f.x) / f.w;
 			}
-			if (m.equals("raws"))
-			{
+			if (m.equals("raws")) {
 				double d = y.get()
 					    .doubleValue();
 				Rect f = forBox.properties.get(Box.frame);

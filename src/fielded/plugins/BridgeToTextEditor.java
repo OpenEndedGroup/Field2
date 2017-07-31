@@ -172,7 +172,7 @@ public class BridgeToTextEditor extends Box {
 				}
 
 				@Override
-				public String begin(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success, Map<String, Object> initiator) {
+				public String begin(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success, Map<String, Object> initiator, boolean endOthers) {
 					//TODO
 /*
 					System.out.println(" WRAPPED (begin)");
