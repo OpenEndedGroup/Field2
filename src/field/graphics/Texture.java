@@ -622,7 +622,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
         protected ByteBuffer old;
         int x0, x1, y0, y1;
 
-        long textureHandle;
+        public long textureHandle;
     }
 
     /**
