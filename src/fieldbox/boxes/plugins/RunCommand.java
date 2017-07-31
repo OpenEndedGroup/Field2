@@ -27,6 +27,7 @@ public class RunCommand extends Box {
             = new Dict.Prop<>("runCommand").doc("`_.runCommand(x)` runs commands for box `_` that match string `x`")
             .type()
             .toCannon();
+
     private Box root;
 
     public RunCommand(Box root) {
