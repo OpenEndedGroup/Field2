@@ -17,7 +17,7 @@ public class RunLoop {
 	static public final RunLoop main = new RunLoop();
 	static public final ReentrantLock lock = new ReentrantLock(true);
 	static public final ExecutorService workerPool = Executors.newFixedThreadPool(Runtime.getRuntime()
-		.availableProcessors() + 2);
+											     .availableProcessors() + 2);
 	static public long tick = 0;
 	protected final Thread shutdownThread;
 	public Scene mainLoop = new Scene();
@@ -29,7 +29,7 @@ public class RunLoop {
 	protected RunLoop() {
 		mainThread = Thread.currentThread();
 		Runtime.getRuntime()
-			.addShutdownHook(shutdownThread = new Thread(() -> exit()));
+		       .addShutdownHook(shutdownThread = new Thread(() -> exit()));
 	}
 
 	public Scene getLoop() {
@@ -57,6 +57,9 @@ public class RunLoop {
 		if (Thread.currentThread() != mainThread)
 			throw new IllegalArgumentException(" cannot enter main loop on non-main thread");
 
+		if (ThreadSync2.getEnabled())
+			ThreadSync2.setSync(new ThreadSync2());
+
 		while (true) {
 			try {
 				tick++;
@@ -70,7 +73,12 @@ public class RunLoop {
 
 					long c = System.nanoTime();
 					didWork = ThreadSync.get()
-						.serviceAndCull();
+							    .serviceAndCull();
+
+					if (ThreadSync2.getEnabled()) {
+						didWork |= ThreadSync2.getSync()
+							   .service();
+					}
 
 					long d = System.nanoTime();
 
@@ -94,7 +102,7 @@ public class RunLoop {
 							" a" + (getLock / (double) interval) + " b" + (hasLock / (double) interval) + " c" + (service / (double) interval) + " d" + (mainloop / (double) interval) + " m" + locksMissed + " s" + sleepsTaken);
 						System.out.println(" f" + (System.nanoTime() - intervalIn) / interval);
 						System.out.println(" m" + (Runtime.getRuntime()
-							.freeMemory() - freeMemIn) / interval);
+										  .freeMemory() - freeMemIn) / interval);
 
 					}
 					getLock = 0;
@@ -105,7 +113,7 @@ public class RunLoop {
 					sleepsTaken = 0;
 					intervalIn = System.nanoTime();
 					freeMemIn = Runtime.getRuntime()
-						.freeMemory();
+							   .freeMemory();
 				}
 
 			} catch (Throwable t) {
@@ -184,6 +192,37 @@ public class RunLoop {
 			@Override
 			public boolean perform(int pass) {
 				if (System.currentTimeMillis() - now > ms) {
+					p0.run();
+					return false;
+				}
+				return true;
+			}
+
+			Errors.ErrorConsumer ec = Errors.errors.get();
+
+			@Override
+			public void setErrorConsumer(Errors.ErrorConsumer c) {
+				this.ec = ec;
+			}
+
+			@Override
+			public Errors.ErrorConsumer getErrorConsumer() {
+				if (p0 instanceof Errors.ErrorConsumer) return ((Errors.ErrorConsumer) p0);
+				if (p0 instanceof Errors.SavesErrorConsumer)
+					return ((Errors.SavesErrorConsumer) p0).getErrorConsumer();
+				return ec;
+			}
+		});
+	}
+
+	public void delayUntil(Runnable p0, long when) {
+
+		mainLoop.attach(new Scene.Perform() {
+			int t = 0;
+
+			@Override
+			public boolean perform(int pass) {
+				if (System.currentTimeMillis()  > when) {
 					p0.run();
 					return false;
 				}
