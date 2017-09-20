@@ -59,7 +59,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 		.set(IO.dontCopy, true)
 		.set(Dict.readOnly, true);
 
-	static public final Dict.Prop<IdempotencyMap<Supplier<Collection<Supplier<FLine>>>>> bulkLines = new Dict.Prop<>("bulkLines").type()
+	static public final Dict.Prop<IdempotencyMap<Supplier<Collection<? extends Supplier<FLine>>>>> bulkLines = new Dict.Prop<>("bulkLines").type()
 		.toCannon()
 		.doc("Geometry to be drawn along with this box")
 		.autoConstructs(() -> new IdempotencyMap<>(Supplier.class))
@@ -268,15 +268,15 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 					.forEach(fline -> dispatchLine(fline, context, text, defaultLayer));
 
 
-				Map<String, Supplier<Collection<Supplier<FLine>>>> bl = x.properties.get(bulkLines);
+				Map<String, Supplier<Collection<? extends Supplier<FLine>>>> bl = x.properties.get(bulkLines);
 
 				if (bl != null) {
 					all = new ArrayList<>();
-					Iterator<Supplier<Collection<Supplier<FLine>>>> it3 = bl.values()
+					Iterator<Supplier<Collection<? extends Supplier<FLine>>>> it3 = bl.values()
 						.iterator();
 					while (it3.hasNext()) {
-						Supplier<Collection<Supplier<FLine>>> f = it3.next();
-						Collection<Supplier<FLine>> fl = f.get();
+						Supplier<Collection<? extends Supplier<FLine>>> f = it3.next();
+						Collection<? extends Supplier<FLine>> fl = f.get();
 						if (fl == null) it3.remove();
 						else {
 							final List<FLine> finalAll = all;
