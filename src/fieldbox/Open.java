@@ -270,6 +270,8 @@ public class Open {
 
 		new AsEditable(boxes.root()).connect(boxes.root());
 
+		new TimeHelper(boxes.root()).connect(boxes.root());
+
 
 		if (ThreadSync.enabled) new ThreadSyncFeedback(boxes.root()).connect(boxes.root());
 
