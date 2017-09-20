@@ -1720,7 +1720,8 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 
     private void writeObject(ObjectOutputStream out) throws IOException
     {
-        FLineSerializationHelper.writeObject(this, out);
+		throw new IllegalArgumentException("FIXME");
+//        new FLineSerializationHelper().writeObject(this, out);
     }
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException
     {
@@ -1728,8 +1729,9 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		attributes = new Dict();
 		cache = new WeakHashMap<>();
 		cache_thickening = new WeakHashMap<>();
-		
-        FLineSerializationHelper.readObject(this, in);
+
+//		new FLineSerializationHelper().readObject(this, in);
+		throw new IllegalArgumentException("FIXME");
 
     }
 }
