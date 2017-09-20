@@ -131,7 +131,7 @@ public class RemoteEditor extends Box {
 //			} else {
 
 
-			System.out.println(" message :"+socketName+" -> "+value);
+//			System.out.println(" message :"+socketName+" -> "+value);
 
 			for(Pair<String, String> v : value)
 				server.send(socketName, "_messageBus.publish('" + key + "', " + v.second + ")");
@@ -309,7 +309,7 @@ public class RemoteEditor extends Box {
 				}
 				if (current_ln.get() != v) return;
 
-//				if (true) return;
+				if (true) return;
 
 				Execution.ExecutionSupport support = getExecution(box.get(), new Dict.Prop<String>(prop)).support(box.get(), new Dict.Prop<String>(prop));
 
