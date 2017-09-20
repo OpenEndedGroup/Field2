@@ -14,11 +14,14 @@ import fieldbox.boxes.Drawing;
 import fieldbox.boxes.MarkingMenus;
 import fieldbox.boxes.Mouse;
 import fieldbox.execution.Execution;
+import fielded.RemoteEditor;
 import fieldlinker.Linker;
 
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -32,12 +35,19 @@ import static fieldbox.boxes.FLineDrawing.*;
 public class Chorder extends Box {
 
 	static public final Dict.Prop<FunctionOfBox<Supplier<Boolean>>> begin = new Dict.Prop<>(
-		    "begin").type()
-			    .toCannon()
-			    .doc("call <code>.begin()</code> to add a box to the animation cycle. Returns a function that tells you whether this box is still running.");
+		"begin").type()
+			.toCannon()
+			.doc("call <code>.begin()</code> to add a box to the animation cycle, ending any animation that this box is currently performing. Returns a function that tells you whether this box is still running.");
+
 	static public final Dict.Prop<FunctionOfBox> end = new Dict.Prop<>("end").type()
-										       .toCannon()
-										       .doc("call <code>.end()</code> to remove a box from the animation cycle.");
+										 .toCannon()
+										 .doc("call <code>.end()</code> to remove a box from the animation cycle.");
+
+
+	static public final Dict.Prop<FunctionOfBox<Runnable>> beginAgain = new Dict.Prop<>(
+		"beginAgain").type()
+			     .toCannon()
+			     .doc("call <code>.beginAgain()</code> to add a box to the animation cycle. Returns a function that, when you call it, will forcibly _.end() just that execution.");
 
 	static public final Dict.Prop<Boolean> nox = new Dict.Prop<>("_nox").type()
 									    .toCannon()
@@ -84,13 +94,29 @@ public class Chorder extends Box {
 		this.properties.put(begin, box -> {
 			box.first(Execution.execution)
 			   .ifPresent(x -> x.support(box, Execution.code)
-					    .begin(box, getInitiator()));
+					    .begin(box, getInitiator(box)));
 			return () -> box.properties.computeIfAbsent(IsExecuting.executionCount, (k) -> 0) > 0;
+		});
+		this.properties.put(beginAgain, box -> {
+			Optional<String> name = box.first(Execution.execution).map(x -> x.support(box, Execution.code)
+											 .begin(box, getInitiator(box), false));
+			if (name.isPresent()) {
+				Function<Box, Consumer<Pair<Integer, String>>> ef = box.first(RemoteEditor.outputErrorFactory)
+										       .orElse((x) -> (is -> System.err.println("error (without remote editor attached) :" + is)));
+				Function<Box, Consumer<String>> of = box.first(RemoteEditor.outputFactory)
+									.orElse(x -> (is -> System.out.println("output (without remote editor attached) :" + is)));
+
+				return () -> {
+					box.first(Execution.execution).ifPresent(x -> x.support(box, Execution.code).end(name.get(), ef.apply(box), of.apply(box)));
+				};
+			} else {
+				return null;
+			}
 		});
 		this.properties.put(end, box -> {
 			((Box)box).first(Execution.execution)
-			   .ifPresent(x -> x.support((Box)box, Execution.code)
-					    .end((Box)box));
+			   .ifPresent(x -> x.support(((Box)box), Execution.code)
+					    .end(((Box)box)));
 			return null;
 		});
 	}
@@ -103,8 +129,8 @@ public class Chorder extends Box {
 
 				FLine f = new FLine();
 				Rect fr = frame(box);
-				int i=0;
-				f.rect(fr.x+i, fr.y+i, fr.w-i*2, fr.h-i*2);
+				int i = 0;
+				f.rect(fr.x + i, fr.y + i, fr.w - i * 2, fr.h - i * 2);
 
 				f.depthTo(box);
 				f.attributes.put(strokeColor, new Vec4(0.5f, 0.75f, 0.5f, -0.5f));
@@ -122,18 +148,18 @@ public class Chorder extends Box {
 			fieldlinker.AsMap i = Initiators.get(box, Initiators.mouseX(box, point.x), Initiators.mouseY(box, point.y));
 
 			box.first(Execution.execution)
-					  .ifPresent(x -> x.support(box, Execution.code)
-							   .begin(box, Collections.singletonMap("_t",  i)));
+			   .ifPresent(x -> x.support(box, Execution.code)
+					    .begin(box, Collections.singletonMap("_t", i)));
 			// with remote back ends it's possible we'll have to defer this to the next update cycle to give them a chance to acknowledge that were actually executing
 			int count1 = box.properties.computeIfAbsent(IsExecuting.executionCount,
-								    (k) -> 0);
+				(k) -> 0);
 
 			if (count1 > count0) {
 				MarkingMenus.MenuSpecification menuSpec
-					    = new MarkingMenus.MenuSpecification();
+					= new MarkingMenus.MenuSpecification();
 				menuSpec.items.put(MarkingMenus.Position.NH,
-						   new MarkingMenus.MenuItem("Continue", () -> {
-						   }));
+					new MarkingMenus.MenuItem("Continue", () -> {
+					}));
 				menuSpec.nothing = () -> {
 					box.first(Execution.execution)
 					   .ifPresent(x -> x.support(box, Execution.code)
@@ -144,13 +170,13 @@ public class Chorder extends Box {
 			}
 		} else {
 			MarkingMenus.MenuSpecification menuSpec
-				    = new MarkingMenus.MenuSpecification();
+				= new MarkingMenus.MenuSpecification();
 			menuSpec.items.put(MarkingMenus.Position.SH, new MarkingMenus.MenuItem("Stop", () -> {
-						   box.first(Execution.execution)
-						      .ifPresent(x -> x.support(box, Execution.code)
-								       .end(box));
-						   Drawing.dirty(this, 3);
-					   }));
+				box.first(Execution.execution)
+				   .ifPresent(x -> x.support(box, Execution.code)
+						    .end(box));
+				Drawing.dirty(this, 3);
+			}));
 			return MarkingMenus.runMenu(box, point, menuSpec);
 		}
 
@@ -163,19 +189,19 @@ public class Chorder extends Box {
 
 
 		this.properties.putToMap(StatusBar.statuses, "__chordfeedback__",
-					 () -> "Drag to start multiple boxes");
+			() -> "Drag to start multiple boxes");
 
 		return (e, end) -> {
 
-			Vec2 point =new Vec2(e.after.mx, e.after.my);
+			Vec2 point = new Vec2(e.after.mx, e.after.my);
 			chordOver(frames, start, point, end);
 
 			if (end && !once[0]) {
 
 				List<Triple<Vec2, Float, Box>> intersections = intersectionsFor(
-					    frames, start, point);
+					frames, start, point);
 
-				intersections = intersections.stream().filter(x -> x!=null).filter(x -> x.third!=null).sorted((a,b) -> Double.compare(a.second, b.second)).collect(Collectors.toList());
+				intersections = intersections.stream().filter(x -> x != null).filter(x -> x.third != null).sorted((a, b) -> Double.compare(a.second, b.second)).collect(Collectors.toList());
 
 				once[0] = true;
 				for (int i = 0; i < intersections.size(); i++) {
@@ -185,7 +211,7 @@ public class Chorder extends Box {
 
 					Vec2 p = intersections.get(i).first;
 
-					fieldlinker.AsMap in = Initiators.get(b, ()->p.x, ()->p.y);
+					fieldlinker.AsMap in = Initiators.get(b, () -> p.x, () -> p.y);
 
 					b.first(Execution.execution)
 					 .ifPresent(x -> x.support(b, Execution.code)
@@ -197,12 +223,12 @@ public class Chorder extends Box {
 							  .count();
 
 				this.properties.putToMap(StatusBar.statuses, "__chordfeedback__",
-							 () -> "Drag started " + (count == 0 ? "" : (count == 1 ? "this " : "these ") + count + " box" + (count == 1 ? "" : "es")));
+					() -> "Drag started " + (count == 0 ? "" : (count == 1 ? "this " : "these ") + count + " box" + (count == 1 ? "" : "es")));
 
 				RunLoop.main.delay(
-					    () -> this.properties.removeFromMap(StatusBar.statuses,
-										"__chordfeedback__"),
-					    1000);
+					() -> this.properties.removeFromMap(StatusBar.statuses,
+						"__chordfeedback__"),
+					1000);
 
 			}
 
@@ -245,9 +271,9 @@ public class Chorder extends Box {
 			      .filter(x -> x != null)
 			      .count();
 		if (count > 0) this.properties.putToMap(StatusBar.statuses, "__chordfeedback__",
-							() -> "Release to start " + (count == 0 ? "" : (count == 1 ? "this " : "these ") + count + " box" + (count == 1 ? "" : "es")));
+			() -> "Release to start " + (count == 0 ? "" : (count == 1 ? "this " : "these ") + count + " box" + (count == 1 ? "" : "es")));
 		else this.properties.putToMap(StatusBar.statuses, "__chordfeedback__",
-					      () -> "Drag to start multiple boxes");
+			() -> "Drag to start multiple boxes");
 
 		properties.putToMap(frameDrawing, "__feedback__chorderbox", expires(box -> {
 
@@ -307,7 +333,7 @@ public class Chorder extends Box {
 
 				 f.moveTo(x.first.x + delta.x * 12, x.first.y + delta.y * 12, x.third.properties.getFloat(depth, 0f));
 				 f.nodes.get(f.nodes.size() - 1).attributes.put(text,
-										" " + (counter[0]++));
+					 " " + (counter[0]++));
 			 });
 
 			f.attributes.put(color, new Vec4(0.1f, 0.25f, 0.1f, 0.75f));
@@ -334,13 +360,13 @@ public class Chorder extends Box {
 			Rect r = br.second;
 
 			Vec2 v1 = getLineIntersection(new Vec2(r.x, r.y), new Vec2(r.x + r.w, r.y),
-						      start, end);
+				start, end);
 			Vec2 v2 = getLineIntersection(new Vec2(r.x, r.y + r.h),
-						      new Vec2(r.x + r.w, r.y + r.h), start, end);
+				new Vec2(r.x + r.w, r.y + r.h), start, end);
 			Vec2 v3 = getLineIntersection(new Vec2(r.x, r.y + r.h), new Vec2(r.x, r.y),
-						      start, end);
+				start, end);
 			Vec2 v4 = getLineIntersection(new Vec2(r.x + r.w, r.y),
-						      new Vec2(r.x + r.w, r.y + r.h), start, end);
+				new Vec2(r.x + r.w, r.y + r.h), start, end);
 			List<Vec2> al = Arrays.asList(v1, v2, v3, v4);
 			Collections.sort(al, (a, b) -> {
 				if (a == null) return b == null ? 0 : 1;
@@ -387,7 +413,7 @@ public class Chorder extends Box {
 		return new Vec2(p0.x + (t * s10_x), p0.y + (t * s10_y));
 	}
 
-	public Map<String,Object> getInitiator() {
-		return Collections.singletonMap("_t", null);
+	public Map<String, Object> getInitiator(Box forBox) {
+		return Collections.singletonMap("_t", Initiators.constant(forBox, 0.5));
 	}
 }

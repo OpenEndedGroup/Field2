@@ -1,6 +1,7 @@
 package fieldnashorn;
 
 import field.app.ThreadSync;
+import field.app.ThreadSync2;
 import field.linalg.Vec4;
 import field.utility.*;
 import fieldbox.boxes.Box;
@@ -40,7 +41,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 	static public final Dict.Prop<SourceTransformer> sourceTransformer = new Dict.Prop<SourceTransformer>("sourceTransformer").doc(
 		"an instanceof of a SourceTransformer that will take the source code here and transform it into JavaScript. This allows things like Babel.js to be used in Field")
-		.toCannon();
+																  .toCannon();
 
 	private final Dict.Prop<String> property;
 	private final Box box;
@@ -64,8 +65,8 @@ public class NashornExecution implements Execution.ExecutionSupport {
 		this.engine = engine;
 
 		output = box.find(Out.__out, box.both())
-			.findFirst()
-			.orElseThrow(() -> new IllegalStateException("Can't find html output support"));
+			    .findFirst()
+			    .orElseThrow(() -> new IllegalStateException("Can't find html output support"));
 	}
 
 	@Override
@@ -104,17 +105,16 @@ public class NashornExecution implements Execution.ExecutionSupport {
 //								success.accept(s);
 								final String finalS = s;
 								Set<Consumer<Quad<Box, Integer, String, Boolean>>> o = box.find(Execution.directedOutput, box.upwards())
-									.collect(Collectors.toSet());
+															  .collect(Collectors.toSet());
 								o.forEach(x -> x.accept(new Quad<>(box, -1, finalS, true)));
 
-							}
-							else {
+							} else {
 
 								final String finalS = s;
 								Set<Consumer<Quad<Box, Integer, String, Boolean>>> o = box.find(Execution.directedOutput, box.upwards())
-									.collect(Collectors.toSet());
+															  .collect(Collectors.toSet());
 
-								if (o.size()>0) {
+								if (o.size() > 0) {
 									o.forEach(x -> x.accept(new Quad<>(currentLineNumber.first, currentLineNumber.second, finalS, currentLineNumber.third)));
 								} else {
 //									success.accept(finalS);
@@ -136,7 +136,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 					}
 				};
 				engine.getContext()
-					.setWriter(writer);
+				      .setWriter(writer);
 			}
 
 			Log.log("nashorn.general", () -> "\n>>javascript in");
@@ -214,7 +214,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 	private Util.ExceptionlessAutoCloasable pushErrorContext(Consumer<Pair<Integer, String>> lineErrors) {
 		Execution.context.get()
-			.push(box);
+				 .push(box);
 		currentEngine.set(engine);
 
 		Errors.errors.push((t, m) -> {
@@ -230,7 +230,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 			int ln = -1;
 			Matcher matcher = Pattern.compile("LN<(.*)@(.*)>")
-				.matcher(t.getMessage() + " " + m);
+						 .matcher(t.getMessage() + " " + m);
 
 			if (matcher.find()) {
 				try {
@@ -252,7 +252,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 		return () -> {
 			Execution.context.get()
-				.pop();
+					 .pop();
 
 			Errors.errors.pop();
 		};
@@ -280,7 +280,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 				if (s != null) {
 					for (int i = 0; i < s.length; i++) {
 						if (s[i].getFileName() != null && s[i].getFileName()
-							.startsWith("bx[")) {
+										      .startsWith("bx[")) {
 							String m = e.getMessage();
 							if (m == null)
 								m = "" + e.getClass();
@@ -307,10 +307,10 @@ public class NashornExecution implements Execution.ExecutionSupport {
 		if (ThreadSync.enabled && Thread.currentThread() == ThreadSync.get().mainThread) {
 			try {
 				ThreadSync.Fiber f = ThreadSync.get()
-					.run("execution of {{"+textFragment+"}}", () -> engine.eval(textFragment, context), t -> {
-						if (seenBefore.add(t))
-							exception.accept(t);
-					});
+							       .run("execution of {{" + textFragment + "}}", () -> engine.eval(textFragment, context), t -> {
+								       if (seenBefore.add(t))
+									       exception.accept(t);
+							       });
 				f.tag = box;
 				return f.lastReturn;
 
@@ -319,6 +319,18 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 				return null;
 			}
+		}
+		if (ThreadSync2.getEnabled() && Thread.currentThread() == ThreadSync2.getSync().getMainThread()) {
+
+			ThreadSync2.Fibre f = ThreadSync2.getSync()
+							 .launchAndServiceOnce("execution of {{" + textFragment + "}}", () -> engine.eval(textFragment, context), t -> {
+								 if (seenBefore.add(t))
+									 exception.accept(t);
+							 });
+			f.tag = box;
+			return f.lastReturn;
+
+
 		} else {
 			Object ret = engine.eval(textFragment, context);
 
@@ -346,15 +358,14 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	}
 
 	@Override
-	public String begin(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success, Map<String, Object> initiator) {
+	public String begin(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success, Map<String, Object> initiator, boolean endOngoing) {
 
 		try (Util.ExceptionlessAutoCloasable __ = pushErrorContext(lineErrors)) {
 
 			// is "run" defined here or anywhere above?
 
 			if (box.find(Callbacks.run, box.upwards()).findAny().isPresent()) {
-				end(lineErrors, success);
-
+				if (endOngoing) end(lineErrors, success);
 
 				String name = "main._animator_" + (uniq);
 				boolean[] first = {true};
@@ -374,7 +385,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 				});
 				box.first(IsExecuting.isExecuting)
-					.ifPresent(x -> x.accept(box, name));
+				   .ifPresent(x -> x.accept(box, name));
 
 				uniq++;
 				return name;
@@ -384,21 +395,21 @@ public class NashornExecution implements Execution.ExecutionSupport {
 			context.setAttribute("_r", null, ScriptContext.ENGINE_SCOPE);
 
 			initiator.entrySet()
-				.forEach(x -> context.setAttribute(x.getKey(), x.getValue(), ScriptContext.ENGINE_SCOPE));
+				 .forEach(x -> context.setAttribute(x.getKey(), x.getValue(), ScriptContext.ENGINE_SCOPE));
 
 			String allText = DisabledRangeHelper.getStringWithDisabledRanges(box, property, "/* -- start -- ", "-- end -- */");
 
 			executeAndReturn(allText, lineErrors, success, true);
 			Object _r = context.getBindings(ScriptContext.ENGINE_SCOPE)
-				.get("_r");
+					   .get("_r");
 
 			Supplier<Boolean> r = interpretAnimation(_r);
 			if (r != null) {
-				end(lineErrors, success);
+				if (endOngoing) end(lineErrors, success);
 				String name = "main._animator_" + (uniq);
 				box.properties.putToMap(Boxes.insideRunLoop, name, r);
 				box.first(IsExecuting.isExecuting)
-					.ifPresent(x -> x.accept(box, name));
+				   .ifPresent(x -> x.accept(box, name));
 
 				uniq++;
 				return name;
@@ -418,10 +429,18 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 	@Override
 	public void end(Consumer<field.utility.Pair<Integer, String>> lineErrors, Consumer<String> success) {
+		end("main\\._animator_.*", lineErrors, success);
+	}
+
+	@Override
+	public void end(String regex, Consumer<field.utility.Pair<Integer, String>> lineErrors, Consumer<String> success) {
 		Map<String, Supplier<Boolean>> m = box.properties.get(Boxes.insideRunLoop);
 		if (m == null) return;
+
+		Pattern p = Pattern.compile(regex);
+
 		for (String s : new ArrayList<>(m.keySet())) {
-			if (s.contains("_animator_")) {
+			if (p.matcher(s).matches()) {
 				Supplier<Boolean> b = m.get(s);
 				if (b instanceof Consumer) ((Consumer<Boolean>) b).accept(false);
 				else {
@@ -431,6 +450,8 @@ public class NashornExecution implements Execution.ExecutionSupport {
 		}
 		Drawing.dirty(box);
 	}
+
+
 
 	@Override
 	public void setConsoleOutput(Consumer<String> stdout, Consumer<String> stderr) {
@@ -447,7 +468,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 		this.box.find(Execution.completions, this.box.upwards())
 			.flatMap(x -> x.values()
-				.stream())
+				       .stream())
 			.forEach(x -> x.completion(this.box, allText, line, ch, results));
 	}
 
@@ -460,7 +481,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 		this.box.find(Execution.imports, this.box.upwards())
 			.flatMap(x -> x.values()
-				.stream())
+				       .stream())
 			.forEach(x -> x.completion(this.box, allText, line, ch, results));
 	}
 

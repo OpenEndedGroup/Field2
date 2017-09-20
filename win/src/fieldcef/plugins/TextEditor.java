@@ -97,12 +97,12 @@ public class TextEditor extends Box implements IO.Loaded {
 			browser_ = new Browser();
 
 			Vec2 v = drawing.windowSystemToDrawingSystem(new Vec2(window.getWidth() - maxw - 10, 10));
-			Vec2 vd = drawing.windowSystemToDrawingSystemDelta(new Vec2(maxw, 1600));
+			Vec2 vd = drawing.windowSystemToDrawingSystemDelta(new Vec2(maxw, 2560));
 
 			frameLast = (int) vd.x;
 			browser_.properties.put(Box.frame, new Rect(v.x, v.y, vd.x, vd.y));
 
-			maxhOnCreation = 1600;
+			maxhOnCreation = 2560;
 
 			browser_.pauseForBoot();
 
@@ -217,8 +217,10 @@ public class TextEditor extends Box implements IO.Loaded {
 
 							System.out.println(" height now :"+Math.min(f.h-20, maxhOnCreation - 40));
 
-							setHeightCode = "$(\"body\").height(" + Math.min(f.h-20, maxhOnCreation - 40) + ");cm.refresh();";
-							setHeightCode += "$(\".CodeMirror\").height(" + Math.min(f.h-20, maxhOnCreation - 40) + ");cm.refresh();";
+//							setHeightCode = "$(\"body\").height(" + Math.min(f.h*0.84-10, maxhOnCreation - 40) + ");cm.refresh();";
+//							setHeightCode += "$(\".CodeMirror\").height(" + Math.min(f.h*0.84-40, maxhOnCreation - 40) + ");cm.refresh();";
+							setHeightCode = "$(\"body\").height(" + Math.min(f.h*0.833, maxhOnCreation - 40) + ");cm.refresh();";
+							setHeightCode += "$(\".CodeMirror\").height(\"100%\");cm.refresh();";
 							executeJavaScript(setHeightCode);
 						}
 
@@ -227,9 +229,9 @@ public class TextEditor extends Box implements IO.Loaded {
 							frameLast = (int) f.w;
 							f = f.duplicate();
 
-							setWidthCode = "$(\"body\").width(" + Math.min(maxw - 28 * 2, (int) (f.w - 28)) + ");cm.refresh();";
+							setWidthCode = "$(\"body\").width(" + Math.min(maxw*0.8333 - 28 * 2, (int) (f.w*0.8333)) + ");cm.refresh();";
+							setWidthCode += "$(\".CodeMirror\").width(\"100%\");cm.refresh();";
 							executeJavaScript(setWidthCode);
-
 						}
 
 

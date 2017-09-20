@@ -1,10 +1,7 @@
 package fieldnashorn;
 
 
-import field.utility.Cached;
-import field.utility.Dict;
-import field.utility.Log;
-import field.utility.Pair;
+import field.utility.*;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Boxes;
 import fielded.Animatable;
@@ -15,16 +12,13 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import javax.script.SimpleBindings;
-import java.util.Map;
-import java.util.WeakHashMap;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
 /**
  * Adds Nashorn-based JavaScript support to Field.
  * <p>
- * Todo: It's likely that this will have to be lightly refactored as a plugin now that a solid notion of a plugin has emerged as soon as we have
- * another runtime / backend to support
  */
 public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecution> {
 
@@ -37,7 +31,7 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 
 	public Nashorn() {
 
-		engine = factory.getScriptEngine("-scripting", "--optimistic-types=true", "--language=es6");
+		engine = factory.getScriptEngine("-scripting", "--global-per-engine", "--optimistic-types=true", "--language=es6");
 
 		global = new SimpleBindings();
 		try {
@@ -183,12 +177,7 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 	}
 
 	static public Animatable.AnimationElement noop() {
-		return new Animatable.AnimationElement() {
-			@Override
-			public Object middle(boolean isEnding) {
-				return null;
-			}
-		};
+		return isEnding -> null;
 	}
 
 	static public Animatable.AnimationElement interpretReturn(Animatable.AnimationElement was, Object next) {
@@ -199,12 +188,21 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 		return was;
 	}
 
-	Map<Box, ScriptEngine> bindingsPerBox = new WeakHashMap<Box, ScriptEngine>();
+	public Map<Box, ScriptEngine> bindingsPerBox = new WeakHashMap<Box, ScriptEngine>();
 	Map<Box, NashornExecution> executionsPerBox = new WeakHashMap<Box, NashornExecution>();
+
+	static public final List<String> scriptArgs = new ArrayList(Arrays.asList("-scripting", "--language=es6"));
+	static
+	{
+		if (Options.dict().isTrue(new Dict.Prop<Number>("strict"), false))
+			scriptArgs.add("-strict");
+	}
+
+
 
 	Cached<Pair<Box, Dict.Prop<String>>, Pair<Box, Dict.Prop<String>>, NashornExecution> cached = new Cached<>((next, was) -> {
 
-		ScriptEngine en = bindingsPerBox.computeIfAbsent(next.first, k -> factory.getScriptEngine("-scripting", "--language=es6"));
+		ScriptEngine en = bindingsPerBox.computeIfAbsent(next.first, k -> factory.getScriptEngine(scriptArgs.toArray(new String[0])));
 
 		ScriptContext b = en.getContext();
 		en.setBindings(global, ScriptContext.GLOBAL_SCOPE);

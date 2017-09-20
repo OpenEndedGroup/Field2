@@ -7,6 +7,7 @@ import field.graphics.StereoCameraInterface;
 import field.linalg.Mat4;
 import field.linalg.Quat;
 import field.linalg.Vec3;
+import field.utility.IdempotencyMap;
 import field.utility.Rect;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.PointerBuffer;
@@ -42,6 +43,8 @@ import static org.lwjgl.system.MemoryUtil.memAllocPointer;
 public class OculusDrawTarget2 {
 
     private long hmd;
+
+    public boolean debugControllers = false;
 
     private final OVRFovPort fovPorts[] = new OVRFovPort[2];
     private final OVRMatrix4f[] projections = new OVRMatrix4f[2];
@@ -90,6 +93,8 @@ public class OculusDrawTarget2 {
     private FBO fpreview;
     public Quat orientation;
     public Vec3 translation;
+    public OVRInputState leftInputState;
+    public OVRInputState rightInputState;
 
     public Mat4 view() {
         if (thisModelView == null)
@@ -212,6 +217,10 @@ public class OculusDrawTarget2 {
 
     }
 
+    boolean previouslyVisible = false;
+    public IdempotencyMap<Runnable> headOn = new IdempotencyMap<>(Runnable.class);
+    public IdempotencyMap<Runnable> headOff = new IdempotencyMap<>(Runnable.class);
+
 
     public void init(Scene w) {
 
@@ -247,6 +256,7 @@ public class OculusDrawTarget2 {
                 OVRHmdDesc d = OVRHmdDesc.calloc();//new OVRHmdDesc(MemoryUtil.memByteBuffer(hmd, OVRHmdDesc.SIZEOF));
                 ovr_GetHmdDesc(hmd, d);
 //				syntheticToString(d);
+
 
                 int resolutionW = d.Resolution().w();
                 int resolutionH = d.Resolution().h();
@@ -328,7 +338,7 @@ public class OculusDrawTarget2 {
                     fbuffers[i] = new FBO(FBO.FBOSpecification.rgba(texID.get(0), textureW * 2, textureH).setOverrideTextureID(texID.get(0)));
                 }
 
-                fpreview = new FBO(FBO.FBOSpecification.rgba(texID.get(0), textureW * 2, textureH));
+                fpreview = new FBO(FBO.FBOSpecification.srgba(texID.get(0), textureW * 2, textureH));
 
                 fpreview.scene.attach(0, new Scene.Perform() {
                     @Override
@@ -412,8 +422,11 @@ public class OculusDrawTarget2 {
 
                 OVRSessionStatus stat = OVRSessionStatus.create();
                 OVR.ovr_GetSessionStatus(hmd, stat);
-                System.out.println(" status :"+stat.DisplayLost()+" "+stat.HmdMounted()+" "+stat.HmdPresent()+" "+stat.ShouldQuit()+" "+stat.ShouldRecenter());
-                System.out.println(" status -- :"+stat.IsVisible());
+
+
+
+//                System.out.println(" status :"+stat.DisplayLost()+" "+stat.HmdMounted()+" "+stat.HmdPresent()+" "+stat.ShouldQuit()+" "+stat.ShouldRecenter());
+//                System.out.println(" status -- :"+stat.IsVisible());
 
 //				System.exit(0);
 
@@ -455,22 +468,33 @@ public class OculusDrawTarget2 {
                 layer0.Header().Type(ovrLayerType_EyeFov);
                 layer0.Header().Flags(ovrLayerFlag_TextureOriginAtBottomLeft | ovrLayerFlag_HighQuality);
 
-
-
                 int types = OVR.ovr_GetConnectedControllerTypes(hmd);
-                System.out.println("\n controller types :"+types);
+                if (debugControllers)
+                    System.out.println("controller types connected are: "+types);
 
 
                 OVRInputState inputState = OVRInputState.create();
-                OVR.ovr_GetInputState(hmd, OVR.ovrControllerType_Touch, inputState);
+                OVR.ovr_GetInputState(hmd, OVR.ovrControllerType_LTouch, inputState);
 
+                if (debugControllers) {
+                    System.out.println("== " + inputState.Buttons() + " " + inputState.Touches());
+                    System.out.println("== " + inputState.IndexTrigger(0) + " " + inputState.IndexTrigger(1));
+                    System.out.println("== " + inputState.HandTrigger(0) + " " + inputState.HandTrigger(1));
+                    System.out.println("== " + inputState.Thumbstick(0).x() + "/" + inputState.Thumbstick(0).y() + "   " + inputState.Thumbstick(1).x() + "/" + inputState.Thumbstick(1).y());
+                }
+                leftInputState = inputState;
 
-                System.out.println("::"+OVRInputState.INDEXTRIGGER);
+                inputState = OVRInputState.create();
+                OVR.ovr_GetInputState(hmd, OVR.ovrControllerType_RTouch, inputState);
 
-                System.out.println("== "+inputState.Buttons()+" "+inputState.Touches());
-                System.out.println("== "+inputState.IndexTrigger(0)+" "+inputState.IndexTrigger(1));
-                System.out.println("== "+inputState.HandTrigger(0)+" "+inputState.HandTrigger(1));
-                System.out.println("== "+inputState.Thumbstick(0).x()+"/"+inputState.Thumbstick(0).y()+"   "+inputState.Thumbstick(1).x()+"/"+inputState.Thumbstick(1).y());
+                if (debugControllers) {
+                    System.out.println("== " + inputState.Buttons() + " " + inputState.Touches());
+                    System.out.println("== " + inputState.IndexTrigger(0) + " " + inputState.IndexTrigger(1));
+                    System.out.println("== " + inputState.HandTrigger(0) + " " + inputState.HandTrigger(1));
+                    System.out.println("== " + inputState.Thumbstick(0).x() + "/" + inputState.Thumbstick(0).y() + "   " + inputState.Thumbstick(1).x() + "/" + inputState.Thumbstick(1).y());
+                }
+                rightInputState = inputState;
+
 
 				/*
                 OVRPoseStatef handPose = hmdState.HandPoses(0);
@@ -591,19 +615,39 @@ public class OculusDrawTarget2 {
                     fpreview.draw();
                 }
 
+
 //				System.out.println(" size is :" + textureW + " " + textureH);
 
 //				System.out.println("\n================= SUBMIT\n");
                 int result = ovr_SubmitFrame(hmd, 0, scale, layers);
+
 //				System.out.println("\n================= SUBMITED\n");
-                if (result == ovrSuccess_NotVisible) {
+//                System.out.println(" result :"+result);
+
+
+                if (!stat.HmdMounted()) {
                     notVisible = true;
+                    if (notVisible && previouslyVisible)
+                    {
+                        headOff.values().forEach(Runnable::run);
+                    }
+                    previouslyVisible = !notVisible;
+
 //					System.out.println("TODO not vis!!");
-                } else if (result != ovrSuccess) {
+                }
+                else {
+                    notVisible = false;
+
+                    if (!notVisible && !previouslyVisible)
+                    {
+                        headOn.values().forEach(Runnable::run);
+                    }
+                    previouslyVisible = !notVisible;
+
+                }
+                if (result != ovrSuccess) {
                     System.out.println("TODO failed submit");
                 }
-                else
-                    notVisible = false;
 
 
 

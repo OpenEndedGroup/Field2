@@ -59,7 +59,10 @@ public class RunLoop {
         if (Thread.currentThread() != mainThread)
             throw new IllegalArgumentException(" cannot enter main loop on non-main thread");
 
-        while (true) {
+		if (ThreadSync2.getEnabled())
+			ThreadSync2.setSync(new ThreadSync2());
+
+		while (true) {
             try {
                 tick++;
 
@@ -73,7 +76,10 @@ public class RunLoop {
                     long c = System.nanoTime();
                     didWork = ThreadSync.get()
                             .serviceAndCull();
-
+					if (ThreadSync2.getEnabled()) {
+						didWork |= ThreadSync2.getSync()
+								.service();
+					}
                     long d = System.nanoTime();
 
                     getLock += b - a;
@@ -266,6 +272,5 @@ public class RunLoop {
         // we add this to the start of the list, it will be run before anything that's already there.
         onExit.add(0, r);
     }
-
 
 }

@@ -2,6 +2,7 @@ package fieldbox;
 
 import field.app.RunLoop;
 import field.app.ThreadSync;
+import field.app.ThreadSync2;
 import field.graphics.*;
 import field.utility.AutoPersist;
 import field.utility.Dict;
@@ -274,6 +275,7 @@ public class Open {
 
 
 		if (ThreadSync.enabled) new ThreadSyncFeedback(boxes.root()).connect(boxes.root());
+		if (ThreadSync2.getEnabled()) new ThreadSync2Feedback(boxes.root()).connect(boxes.root());
 
 		FileBrowser fb = new FileBrowser(boxes.root());
 		fb.connect(boxes.root());

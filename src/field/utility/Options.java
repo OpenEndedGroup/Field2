@@ -133,7 +133,14 @@ public class Options {
 
 
 	public static String getString(String key, Supplier<String> def) {
-		return ""+dict().computeIfAbsent(new Dict.Prop(key), (k) -> def.get());
+		Dict.Prop pp = new Dict.Prop(key);
+		boolean found = dict().has(pp);
+
+		String r = ""+dict().computeIfAbsent(pp, (k) -> def.get());
+
+		System.err.println("-"+key+" = "+r+(found ? "" : "(default)"));
+
+		return r;
 	}
 
 	public static String getDirectory(String key, Supplier<String> def) {

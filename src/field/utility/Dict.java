@@ -97,6 +97,8 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 	static public class Prop<T> implements Serializable, fieldlinker.AsMap {
 		String name;
 
+		static private final long serialVersionUID = -3019710755596488302L;
+
 		// optional type information
 		private List<Class> typeInformation;
 		public Class definedInClass;

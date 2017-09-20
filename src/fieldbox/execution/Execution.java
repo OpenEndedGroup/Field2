@@ -63,9 +63,14 @@ public class Execution extends Box {
 
 		default void setLineOffsetForFragment(int line, Dict.Prop<String> origin){}
 
-		String begin(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success, Map<String, Object> initiator);
+		String begin(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success, Map<String, Object> initiator, boolean endOthers);
 
 		void end(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success);
+
+		default void end(String regex, Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success)
+		{
+			end(lineErrors, success); // temp
+		}
 
 		void setConsoleOutput(Consumer<String> stdout, Consumer<String> stderr);
 
@@ -84,14 +89,18 @@ public class Execution extends Box {
 
 		}
 
-		default void begin(Box box, Map<String, Object> initiator) {
+		default String begin(Box box, Map<String, Object> initiator) {
+			return begin(box, initiator, true);
+		}
+
+		default String begin(Box box, Map<String, Object> initiator, boolean endOthers) {
 
 			Function<Box, Consumer<Pair<Integer, String>>> ef = box.first(RemoteEditor.outputErrorFactory)
-				    .orElse((x) -> (is -> System.err.println("error (without remote editor attached) :" + is)));
+									       .orElse((x) -> (is -> System.err.println("error (without remote editor attached) :" + is)));
 			Function<Box, Consumer<String>> of = box.first(RemoteEditor.outputFactory)
-				    .orElse(x -> (is -> System.out.println("output (without remote editor attached) :" + is)));
+								.orElse(x -> (is -> System.out.println("output (without remote editor attached) :" + is)));
 
-			begin(ef.apply(box), of.apply(box), initiator);
+			return begin(ef.apply(box), of.apply(box), initiator, endOthers);
 		}
 
 		default void executeTextFragment(String allText, Box box) {
@@ -114,6 +123,8 @@ public class Execution extends Box {
 				    .first(RemoteEditor.outputFactory)
 				    .orElse(x -> (is -> System.out.println("output (without remote editor attached) :" + is))).apply(box));
 		}
+
+
 
 	}
 

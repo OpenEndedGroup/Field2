@@ -22,7 +22,7 @@ public abstract class BaseScene<t_state extends BaseScene.Modifiable> extends Sc
 
 	protected BaseScene() {
 		// its generally important that things get initialized as early as possible (and, furthermore, not in some random spot in the Scene update)
-		GraphicsContext.preQueueInAllContexts(() -> {
+		GraphicsContext.postQueueInAllContexts(() -> {
 			try(Util.ExceptionlessAutoCloasable st = GraphicsContext.getContext().stateTracker.save()) {
 				GraphicsContext.put(this, setup());
 			}

@@ -20,7 +20,7 @@ import java.util.function.Supplier;
 /**
  *
  */
-public class Linker extends GuardingDynamicLinkerExporter implements GuardingDynamicLinker, GuardingTypeConverterFactory {
+public class Linker extends GuardingDynamicLinkerExporter implements GuardingDynamicLinker/*, GuardingTypeConverterFactory*/ {
 
 	@Override
 	public List<GuardingDynamicLinker> get() {
@@ -296,10 +296,10 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 		return implementingClassFor(aClass.getSuperclass());
 	}
 
-	@Override
-	public GuardedInvocation convertToType(Class<?> sourceType, Class<?> targetType, Supplier<MethodHandles.Lookup> lookupSupplier) throws Exception {
-		if (debug) System.err.println("LINKER convertToType :" + sourceType + " " + targetType);
-		return null;
-	}
+//	@Override
+//	public GuardedInvocation convertToType(Class<?> sourceType, Class<?> targetType, Supplier<MethodHandles.Lookup> lookupSupplier) throws Exception {
+//		if (debug) System.err.println("LINKER convertToType :" + sourceType + " " + targetType);
+//		return null;
+//	}
 
 }

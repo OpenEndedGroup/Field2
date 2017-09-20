@@ -10,6 +10,7 @@ import field.message.MessageQueue;
 import field.utility.*;
 import fieldbox.FieldBox;
 import fieldbox.boxes.*;
+import fieldbox.boxes.plugins.Initiators;
 import fieldbox.execution.Completion;
 import fieldbox.execution.CompletionStats;
 import fieldbox.execution.Execution;
@@ -584,7 +585,7 @@ public class RemoteEditor extends Box {
 					.value(m)
 					.endObject()
 					.toString()),
-				Collections.singletonMap("_t", null));
+				Collections.singletonMap("_t", Initiators.constant(box.get(), 0.5)), true);
 
 			boxFeedback(box, new Vec4(0, 0.5f, 0.3f, 0.5f));
 			Drawing.dirty(box.get());

@@ -2,6 +2,7 @@ package field.graphics;
 
 import field.linalg.*;
 import fieldbox.execution.Errors;
+import org.lwjgl.opengl.NVBindlessTexture;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -178,7 +179,7 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 		pushed = false;
 
 		Integer name = GraphicsContext.getContext().stateTracker.shader.get();
-		GraphicsContext.checkError(() -> "while setting :" + name + " / " + this.name);
+		GraphicsContext.checkError(() -> "while setting (1):" + name + " / " + this.name);
 		T t = value.get();
 
 		if (push) {
@@ -212,7 +213,7 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 			if (name == null) return true;
 
 			int location = cached_glGetUniformLocation(name, this.name);
-			GraphicsContext.checkError(() -> "while setting :" + name + " / " + this.name);
+			GraphicsContext.checkError(() -> "while setting (2):" + name + " / " + this.name);
 
 			lastType = null;
 
@@ -226,7 +227,7 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 				float[] tf = rewriteToFloatArray(t);
 				GraphicsContext.checkError();
 				if (tf != null && !intOnly) {
-					GraphicsContext.checkError(() -> "while setting :" + name + " / " + this.name);
+					GraphicsContext.checkError(() -> "while setting (3):" + name + " / " + this.name);
 					if (tf.length == 1) {
 						glUniform1f(location, tf[0]);
 						lastType = Float.class;
@@ -241,62 +242,71 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 						lastType = Vec4.class;
 					} else
 						throw new IllegalArgumentException(" bad dimension after conversion to float array " + t + " -> " + tf.length);
-					GraphicsContext.checkError(() -> "while setting :" + name + " / " + this.name);
+					GraphicsContext.checkError(() -> "while setting (4):" + name + " / " + this.name);
 				} else {
-					int[] ti = rewriteToIntArray(t);
-					if (ti != null) {
-						GraphicsContext.checkError(() -> "while setting :" + name + " / " + this.name);
-						if (ti.length == 1) {
-							glUniform1i(location, ti[0]);
-							lastType = Integer.class;
-						} else if (ti.length == 2) {
-							glUniform2i(location, ti[0], ti[1]);
-							lastType = int[].class;
-						} else if (ti.length == 3) {
-							glUniform3i(location, ti[0], ti[1], ti[2]);
-							lastType = int[].class;
-						} else if (ti.length == 4) {
-							glUniform4i(location, ti[0], ti[1], ti[2], ti[3]);
-							lastType = int[].class;
-						} else
-							throw new IllegalArgumentException(" bad dimension after conversion to int array " + t + " -> " + ti.length);
-						GraphicsContext.checkError(() -> "while setting :" + name + " / " + this.name);
-					} else {
-						float[][] tm = rewriteToFloatMatrix(t);
 
-						GraphicsContext.checkError(() -> "while setting :" + name + " / " + this.name);
+					if (t instanceof Long)
+					{
+						NVBindlessTexture.glUniformHandleui64NV(location, (Long)t);
+						GraphicsContext.checkError(() -> "while setting (long, texturehandle):" + name + " / " + this.name);
+					}
+					else {
 
-						if (tm != null && !intOnly) {
-							if (tm.length == 3) {
-								matrix3.rewind();
-								matrix3.put(tm[0]);
-								matrix3.put(tm[1]);
-								matrix3.put(tm[2]);
-								matrix3.rewind();
-								glUniformMatrix3fv(location, transpose, matrix3);
-								lastType = Mat3.class;
-							} else if (tm.length == 4) {
-								matrix4.rewind();
-								matrix4.put(tm[0]);
-								matrix4.put(tm[1]);
-								matrix4.put(tm[2]);
-								matrix4.put(tm[3]);
-								matrix4.rewind();
-								lastType = Mat4.class;
-								glUniformMatrix4fv(location, transpose, matrix4);
-							} else if (tm.length == 2) {
-								matrix4.rewind();
-								matrix4.put(tm[0]);
-								matrix4.put(tm[1]);
-								matrix4.rewind();
-								lastType = Mat2.class;
-								glUniformMatrix2fv(location, transpose, matrix4);
+						int[] ti = rewriteToIntArray(t);
+						if (ti != null) {
+							GraphicsContext.checkError(() -> "while setting (4b):" + name + " / " + this.name);
+							if (ti.length == 1) {
+								glUniform1i(location, ti[0]);
+								lastType = Integer.class;
+							} else if (ti.length == 2) {
+								glUniform2i(location, ti[0], ti[1]);
+								lastType = int[].class;
+							} else if (ti.length == 3) {
+								glUniform3i(location, ti[0], ti[1], ti[2]);
+								lastType = int[].class;
+							} else if (ti.length == 4) {
+								glUniform4i(location, ti[0], ti[1], ti[2], ti[3]);
+								lastType = int[].class;
 							} else
-								throw new IllegalArgumentException(" bad dimension after conversion to float matrix " + t + " -> " + tm.length);
-						} else
-							throw new IllegalArgumentException(" cannot convert " + t + " to something that OpenGL can use as a uniform");
-						GraphicsContext.checkError(() -> "while setting :" + name + " / " + this.name);
+								throw new IllegalArgumentException(" bad dimension after conversion to int array " + t + " -> " + ti.length);
+							GraphicsContext.checkError(() -> "while setting (5):" + name + " / " + this.name);
+						} else {
+							float[][] tm = rewriteToFloatMatrix(t);
 
+							GraphicsContext.checkError(() -> "while setting (6):" + name + " / " + this.name);
+
+							if (tm != null && !intOnly) {
+								if (tm.length == 3) {
+									matrix3.rewind();
+									matrix3.put(tm[0]);
+									matrix3.put(tm[1]);
+									matrix3.put(tm[2]);
+									matrix3.rewind();
+									glUniformMatrix3fv(location, transpose, matrix3);
+									lastType = Mat3.class;
+								} else if (tm.length == 4) {
+									matrix4.rewind();
+									matrix4.put(tm[0]);
+									matrix4.put(tm[1]);
+									matrix4.put(tm[2]);
+									matrix4.put(tm[3]);
+									matrix4.rewind();
+									lastType = Mat4.class;
+									glUniformMatrix4fv(location, transpose, matrix4);
+								} else if (tm.length == 2) {
+									matrix4.rewind();
+									matrix4.put(tm[0]);
+									matrix4.put(tm[1]);
+									matrix4.rewind();
+									lastType = Mat2.class;
+									glUniformMatrix2fv(location, transpose, matrix4);
+								} else
+									throw new IllegalArgumentException(" bad dimension after conversion to float matrix " + t + " -> " + tm.length);
+							} else
+								throw new IllegalArgumentException(" cannot convert " + t + " to something that OpenGL can use as a uniform");
+							GraphicsContext.checkError(() -> "while setting (7):" + name + " / " + this.name);
+
+						}
 					}
 				}
 			}

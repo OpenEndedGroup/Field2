@@ -688,10 +688,8 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 
 		Util.Errors errors = new Util.Errors();
 
-
 		if (event.after.dwheely != 0.0 || event.after.dwheel != 0.0) onMouseScroll.values()
 			.forEach(Util.wrap(x -> x.onMouseScroll(event), errors));
-
 
 		pressed.stream()
 			.forEach(p -> {
@@ -710,6 +708,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 					x.first.printStackTrace();
 				});
 		}
+
 	}
 
 	/**

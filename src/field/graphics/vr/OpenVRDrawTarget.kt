@@ -28,7 +28,7 @@ class OpenVRDrawTarget {
     var debug = false
 
     val buttons = Buttons { b ->
-        val axes = listOf("button0_left", "button1_left","button32_left", "axis0_left_x", "axis0_left_y", "axis1_left_x")
+        val axes = listOf("button0_left", "button1_left", "button2_left", "button32_left", "button33_left", "axis0_left_x", "axis0_left_y", "axis1_left_x")
         axes.forEach { b.addAxis(it) }
         axes.forEach { b.addAxis(it.replace("left", "right")) }
     }
@@ -39,19 +39,15 @@ class OpenVRDrawTarget {
 
     fun init(w: Scene) {
         w.attach(0, "__initopenvr__", { _: Int ->
-            if (warmUp++ < 1) // is this code needed anymore?
-                true
-            else {
-                actualInit(w)
-                false
-            }
+            actualInit(w)
+            false
         })
 
 
         w.attach(0, "__go_openvr__", { _: Int ->
 
             if (fbo != null)
-                stackPush().use { stack: MemoryStack ->
+                stackPush().use {
 
                     val poses = TrackedDevicePose.callocStack(VR.k_unMaxTrackedDeviceCount)
                     val gposes = TrackedDevicePose.callocStack(VR.k_unMaxTrackedDeviceCount) // no idea what this is?

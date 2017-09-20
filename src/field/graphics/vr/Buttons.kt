@@ -33,14 +33,18 @@ class Buttons : Runnable {
 
         val downEvents = LinkedHashSet<String>(currentDown)
         downEvents.removeAll(lastDown)
-        downEvents.map { down[it] }.filter { it != null }.flatMap { it!!.values }.forEach { it.get() }
+        downEvents.map { down[it] }.filter { it != null }.map { it!!.values }.forEach {
+            it.removeIf { v -> !v.get() }
+        }
 
         if (downEvents.size>0)
             println("down :"+downEvents)
 
         val upEvents = LinkedHashSet<String>(lastDown)
         upEvents.removeAll(currentDown)
-        upEvents.map { up[it] }.filter { it != null }.flatMap { it!!.values }.forEach { it.get() }
+        upEvents.map { up[it] }.filter { it != null }.map { it!!.values }.forEach {
+            it.removeIf { v -> !v.get() }
+        }
 
         if (upEvents.size>0)
             println("up :"+upEvents)

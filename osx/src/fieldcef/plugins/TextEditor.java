@@ -91,7 +91,7 @@ public class TextEditor extends Box implements IO.Loaded {
 				.orElseThrow(() -> new IllegalArgumentException(" can't install text-drawing into something without drawing support"));
 
 
-			maxh = window.getHeight() - 25 - 10 - 10 - 2;
+			maxh = 2160;
 
 			browser_ = new Browser();
 
@@ -101,7 +101,7 @@ public class TextEditor extends Box implements IO.Loaded {
 			frameLast = (int) vd.x;
 			browser_.properties.put(Box.frame, new Rect(v.x, v.y, vd.x, vd.y));
 
-			maxhOnCreation = 1080 * 1;
+			maxhOnCreation = 2160 * 1;
 
 			browser_.pauseForBoot();
 

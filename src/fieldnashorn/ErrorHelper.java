@@ -82,7 +82,9 @@ public class ErrorHelper {
 							int s = ed.getCursorPosition();
 
 							String[] f = p.first.split("[\\.$]");
-							String insert = "var " + f[f.length - 1] + " = Java.type('" + p.first.replaceAll("$", ".") + "')\\n";
+							String typeName = p.first.replaceAll("$", ".");
+							if (typeName.endsWith(".")) typeName = typeName.substring(0, typeName.length()-1);
+							String insert = "var " + f[f.length - 1] + " = Java.type('" + typeName+ "')\\n";
 							ed.insertAtStart(insert);
 
 						});

@@ -379,20 +379,31 @@ public class Conversions {
 
     static protected Object _convert(Object value, List<Class> fit, Consumer<String> extraInfo) {
 
+        if (value == null) return null;
+
         if (fit == null) return value;
         if (fit.get(0)
                 .isInstance(value)) return value;
 
         // promote non-arrays to arrays
         if (List.class.isAssignableFrom(fit.get(0))) {
-            if (!(value instanceof List)) {
+            try {
+                Object converted = ScriptUtils.convert(value, List.class);
+                if (converted != null) return converted;
+            } catch (ClassCastException e) {
+            }
+
+            if (!(value instanceof List) && fit.size() > 1) {
                 return Collections.singletonList(_convert(value, fit.subList(1, fit.size()), extraInfo));
             } else {
                 return value;
             }
         } else if (Map.class.isAssignableFrom(fit.get(0))) {
-            Object converted = ScriptUtils.convert(value, Map.class);
-            if (converted != null) return converted;
+            try {
+                Object converted = ScriptUtils.convert(value, Map.class);
+                if (converted != null) return converted;
+            } catch (ClassCastException e) {
+            }
         }
 
         if (Map.class.isAssignableFrom(fit.get(0)) && (fit.size() == 1 || String.class.isAssignableFrom(fit.get(1)))) {
@@ -404,7 +415,14 @@ public class Conversions {
             }
 
         } else if (Collection.class.isAssignableFrom(fit.get(0))) {
-            if (!(value instanceof Collection)) {
+
+            try {
+                Object converted = ScriptUtils.convert(value, Collection.class);
+                if (converted != null) return converted;
+            } catch (ClassCastException e) {
+            }
+
+            if (!(value instanceof Collection) && fit.size() > 1) {
                 return Collections.singletonList(convert(value, fit.subList(1, fit.size())));
             } else {
                 return value;

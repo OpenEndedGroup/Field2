@@ -89,36 +89,31 @@ public class Topology extends Box implements Mouse.OnMouseDown {
 
 			Box origin = hit.get();
 
-			return new Mouse.Dragger() {
-				@Override
-				public boolean update(Window.Event<Window.MouseState> e, boolean termination) {
+			return (e1, termination) -> {
 
-					Vec2 point = new Vec2(e.after.mx, e.after.my);
+                Vec2 point1 = new Vec2(e1.after.mx, e1.after.my);
 
-					Optional<Box> hit = breadthFirst(both()).filter(x -> !x.properties.isTrue(Box.hidden, false))
-										.filter(b -> frame(b) != null)
-										.filter(b -> frame(b).intersects(point))
-										.sorted((a, b) -> Float.compare(order(frame(a)), order(frame(b))))
-										.findFirst();
+                Optional<Box> hit1 = breadthFirst(both()).filter(x -> !x.properties.isTrue(Box.hidden, false))
+                                    .filter(b -> frame(b) != null)
+                                    .filter(b -> frame(b).intersects(point1))
+                                    .sorted((a, b) -> Float.compare(order(frame(a)), order(frame(b))))
+                                    .findFirst();
 
-					if (hit.isPresent()) {
-						showCompleteDrag(origin, hit.get());
-						if (termination) {
-							completeDrag(origin, hit.get());
-						}
-					} else {
-						showIncompleteDrag(origin, point);
-						if (termination) {
-							Topology.this.properties.removeFromMap(frameDrawing, "__ongoingDrag__");
-						}
-					}
+                if (hit1.isPresent()) {
+                    showCompleteDrag(origin, hit1.get());
+                    if (termination) {
+                        completeDrag(origin, hit1.get());
+                    }
+                } else {
+                    showIncompleteDrag(origin, point1);
+                    if (termination) {
+                        Topology.this.properties.removeFromMap(frameDrawing, "__ongoingDrag__");
+                    }
+                }
 
 
-					return true;
-				}
-
-
-			};
+                return !termination;
+            };
 		}
 		return null;
 	}

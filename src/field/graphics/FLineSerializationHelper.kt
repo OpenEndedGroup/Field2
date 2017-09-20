@@ -1,3 +1,4 @@
+@file:JvmName("FLineSerializationHelper")
 package field.graphics
 
 import field.linalg.Vec3

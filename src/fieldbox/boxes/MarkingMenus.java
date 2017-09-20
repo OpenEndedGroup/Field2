@@ -48,6 +48,11 @@ public class MarkingMenus extends Box {
 		.autoConstructs(() -> new IdempotencyMap<>(FunctionOfBox.class)).doc("Adds a menu item to a box at a particular direction. For example `_.spaceMenu.show_something_n = function(_) { ... }` will place a menu item 'show something' at the 'N(orth)' position. Note this position can get 'bumped' by other items.");
 
 
+	static public Dict.Prop<IdempotencyMap<FunctionOfBox>> nothingCallback = new Dict.Prop<>("nothingCallback").toCannon()
+			.autoConstructs(() -> new IdempotencyMap<>(FunctionOfBox.class)).doc("Callback that's called should nothing be selected in a right-click menu. Allows you to bind a right-click to a box.");
+
+
+
 	public MarkingMenus(Box root) {
 
 		this.properties.put(markingMenus, this);
@@ -124,7 +129,7 @@ public class MarkingMenus extends Box {
 			if (m.items.size() > 0) {
 				event.properties.put(Window.consumed, true);
 
-				return runMenu(startAt==null ? this : startAt, new Vec2(event.after.mx, event.after.my), m);
+				return runMenu(startAt==null ? root : startAt, new Vec2(event.after.mx, event.after.my), m);
 			} else {
 				log("debug.markingmenus", () -> " no menuSpecs for event ");
 				return null;
@@ -187,7 +192,7 @@ public class MarkingMenus extends Box {
 			if (m.items.size() > 0) {
 				event.properties.put(Window.consumed, true);
 
-				return runMenuHold(startAt==null ? this : startAt, new Vec2(event.after.mouseState.mx, event.after.mouseState.my), m);
+				return runMenuHold(startAt==null ? root : startAt, new Vec2(event.after.mouseState.mx, event.after.mouseState.my), m);
 			} else {
 				log("debug.markingmenus", () -> " no menuSpecs for event ");
 				return null;
@@ -298,12 +303,16 @@ public class MarkingMenus extends Box {
 		textLine.attributes.put(hasText, true);
 		double maxHeight = 0;
 
-		SimpleVoronoi v = new SimpleVoronoi();
+
+			SimpleVoronoi v = new SimpleVoronoi();
 		Map<Position, SimpleVoronoi.Pnt> sites = new HashMap<>();
 		for (Map.Entry<Position, MenuItem> e : m.items.entrySet()) {
-			sites.put(e.getKey(), v.add(new Vec2(center.x + e.getKey().pos.x * scale, center.y + e.getKey().pos.y * scale)));
+			sites.put(e.getKey(), v.add(new Vec2(e.getKey().pos.x * scale, e.getKey().pos.y * scale)));
 		}
-		sites.put(null, v.add(center));
+		sites.put(null, v.add(new Vec2(0,0)));
+
+
+
 
 		float outset = 10;
 
@@ -353,7 +362,7 @@ public class MarkingMenus extends Box {
 				areas.add(new Area(FLinesAndJavaShapes.flineToJavaShape(label)));
 			}
 
-			FLine fo = v.makeFLine(v.getContourForSite(sites.get(e.getKey())));
+			FLine fo = v.makeFLine(v.getContourForSite(center, sites.get(e.getKey())));
 			FLine f = bound(center, fo);
 
 			this.properties.putToMap(frameDrawing, "contour" + e.getKey(), box -> f);
