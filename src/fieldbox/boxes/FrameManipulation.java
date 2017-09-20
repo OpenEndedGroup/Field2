@@ -8,8 +8,10 @@ import field.linalg.Vec4;
 import field.utility.Dict;
 import field.utility.Log;
 import field.utility.Rect;
+import field.utility.Triple;
 import fieldbox.boxes.plugins.Planes;
 import fieldbox.boxes.plugins.Scrolling;
+import fieldbox.boxes.plugins.SimpleSnapHelper;
 import fieldbox.ui.Cursors;
 
 import java.awt.*;
@@ -20,6 +22,7 @@ import java.util.stream.Collectors;
 import static fieldbox.boxes.plugins.Planes.plane;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_SHIFT;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_TAB;
 
 /**
  * Plugin: Adds the ability to drag boxes around with the mouse and change their sizes with their edges. Provides textual feedback when this happens.
@@ -47,8 +50,12 @@ public class FrameManipulation extends Box {
 
 	private final Box root;
 
+	SimpleSnapHelper helper;
+	List<FLine> extraAnnotations = Collections.emptyList();
+
 	public FrameManipulation(Box root) {
 		this.root = root;
+		this.helper = new SimpleSnapHelper(root, 10);
 		this.properties.put(plane, "__always__");
 		this.properties.put(selection, x -> breadthFirst(both()).filter(q -> (q.properties.isTrue(Mouse.isSelected, false) && !q.properties.isTrue(Mouse.isSticky, false)))
 			.collect(Collectors.toList()));
@@ -89,11 +96,13 @@ public class FrameManipulation extends Box {
 			}
 			return null;
 		});
+
+		this.properties.putToMap(FLineDrawing.bulkLines, "__extraAnnotationsForSnap__", () -> {
+			return extraAnnotations;
+		});
 	}
 
 	static public void continueTranslationFeedback(Box b, boolean endNow) {
-
-//		if (true) return;
 
 		Drawing q = b.find(Drawing.drawing, b.both())
 			.findFirst()
@@ -280,9 +289,9 @@ public class FrameManipulation extends Box {
 				}).filter(x -> Planes.on(root, x) >= 1).forEach(x -> workingSet.add(x));
 			}
 
-			if (hitBox.properties.isTrue(Mouse.isSticky, false))
-			{
-				workingSet.clear();;
+			if (hitBox.properties.isTrue(Mouse.isSticky, false)) {
+				workingSet.clear();
+				;
 				workingSet.add(hitBox);
 			}
 
@@ -323,15 +332,33 @@ public class FrameManipulation extends Box {
 
 //					System.out.println(" delta :"+delta+" -> "+drawingDelta);
 
-					workingSet.stream()
+					List<Triple<Box, Rect, Rect>> c1 = workingSet.stream().map(x -> {
+						Rect r0 = frame(x);
+						return transformPart1(x, r0, targets, drawingDelta);
+					}).collect(Collectors.toList());
 
-						.forEach(x -> {
-							Rect r0 = frame(x);
-							Rect r = transform(x, r0, targets, drawingDelta);
-							x.properties.put(frame, r);
-							feedback(hitBox, originalFrame, r, termination ? 60 : -1);
-							Drawing.dirty(hitBox);
-						});
+					if (drag.after.keyboardState.keysDown.contains(GLFW_KEY_TAB))
+						extraAnnotations = helper.help(c1);
+					else
+						extraAnnotations = Collections.emptyList();
+
+					transformPart2(c1);
+
+					c1.forEach(x -> {
+						x.first.properties.put(frame, x.third);
+						feedback(hitBox, originalFrame, x.third, termination ? 60 : -1);
+						Drawing.dirty(hitBox);
+					});
+
+//					workingSet.stream()
+//
+//						.forEach(x -> {
+//							Rect r0 = frame(x);
+//							Rect r = transform(x, r0, targets, drawingDelta);
+//							x.properties.put(frame, r);
+//							feedback(hitBox, originalFrame, r, termination ? 60 : -1);
+//							Drawing.dirty(hitBox);
+//						});
 
 					if (!e.after.keyboardState.isSuperDown())
 						if (termination && frame(hitBox).equals(originalFrame) && selected) {
@@ -341,6 +368,8 @@ public class FrameManipulation extends Box {
 
 
 					if (termination) {
+
+						extraAnnotations = Collections.emptyList();
 
 						if (!e.after.keyboardState.isSuperDown())
 							if (drag.after.x == e.after.x && drag.after.y == e.after.y) {
@@ -470,7 +499,8 @@ public class FrameManipulation extends Box {
 		return hitBox.properties.get(Box.frame);
 	}
 
-	private Rect transform(Box b, Rect r, List<DragTarget> targets, Vec2 drawingDelta) {
+	private Triple<Box, Rect, Rect> transformPart1(Box b, Rect r, List<DragTarget> targets, Vec2 drawingDelta) {
+		Rect source = r.duplicate();
 		for (DragTarget d : targets) {
 
 			Rect was = r;
@@ -502,11 +532,17 @@ public class FrameManipulation extends Box {
 			if (b.properties.isTrue(lockY, false)) r = new Rect(r.x, was.y, r.w, r.h);
 		}
 
-		r = Callbacks.frameChange(b, r);
-
-		return r;
-
+//		r = Callbacks.frameChange(b, r);
+//
+//		return r;
+		return new Triple(b, source, r);
 	}
+
+	private List<Triple<Box, Rect, Rect>> transformPart2(List<Triple<Box, Rect, Rect>> actions) {
+		return actions.stream()
+			.map(x -> new Triple<Box, Rect, Rect>(x.first, x.second, Callbacks.frameChange(x.first, x.third))).collect(Collectors.toList());
+	}
+
 
 	private List<DragTarget> targetsFor(Rect rect, Vec2 point, Vec2 scale, boolean lockWidth, boolean lockHeight) {
 		List<DragTarget> r = new ArrayList<>();

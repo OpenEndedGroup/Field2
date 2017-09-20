@@ -4,6 +4,8 @@ import field.graphics.Bracketable
 import field.linalg.Vec2
 import field.linalg.Vec3
 import field.linalg.Vec4
+import fieldlinker.AsMap
+import kotlin.Pair
 import kotlin.properties.ReadOnlyProperty
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
@@ -11,6 +13,11 @@ import kotlin.reflect.KProperty
 /**
  * Grab-bag of Kotlin Extension functions for doing things in the Field codebase
  */
+
+operator fun <T> AsMap.plusAssign(pair: Pair<Dict.Prop<T>, T>) {
+    this.asMap_set(pair.first.name, pair.second)
+}
+
 
 inline fun <R, T : Bracketable> T.use(b: (T) -> R): R {
 	this.open()
