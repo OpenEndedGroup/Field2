@@ -7,12 +7,14 @@ import field.graphics.Window;
 import field.linalg.Vec2;
 import field.linalg.Vec3;
 import field.linalg.Vec4;
+import field.utility.Dict;
 import field.utility.Pair;
 import field.utility.Rect;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Drawing;
 import fieldbox.boxes.FLineDrawing;
 import fieldbox.boxes.Mouse;
+import fieldbox.io.IO;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
@@ -30,6 +32,10 @@ import static org.lwjgl.glfw.GLFW.GLFW_KEY_G;
  * This is like Topology.java, but simpler, since the connections that it produces are not reified as new boxes.
  */
 public class Dispatch extends Box implements Mouse.OnMouseDown {
+
+	static public final Dict.Prop<Boolean> shyConnections = new Dict.Prop<>("shyConnections").type()
+		.toCanon()
+		.doc("boxes with this property set to true only show connections when they are selected").set(IO.persistent, true);
 
 	private final Box root;
 	boolean on = false;
@@ -51,11 +57,13 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 						Box.hidden, false))
 					.forEach(x -> {
 						if (Planes.on(root, x) < 1) return;
+						if (x.properties.isTrue(shyConnections, false))
+							return;
 
 						int n = 0;
 						for (Box x2 : new ArrayList<>(x.children())) {
-							if (x2.properties.has(
-								Box.frame) && Planes.on(root, x2) >= 1) {
+							if (x2.properties.has(Box.frame) && Planes.on(root, x2) >= 1 && (!x2.properties.isTrue(shyConnections, false))) {
+
 
 								ensureBox(x, x2);
 
@@ -86,9 +94,9 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 					int n = 0;
 					for (Box x2 : new ArrayList<>(x.children())) {
 						if (x2 instanceof DispatchBox) continue;
-						if (x2.properties.has(Box.frame) && x2.properties.has(Box.name) && x2.properties.get(Box.name).trim().length() > 0 && !x2.disconnected && Planes.on(root, x2) >= 1 && !x2.properties.isTrue(Box.hidden, false)) {
-							float d1 = x.properties.getFloat(Box.depth,0f);
-							float d2 = x2.properties.getFloat(Box.depth,0f);
+						if (x2.properties.has(Box.frame) && x2.properties.has(Box.name) && x2.properties.get(Box.name).trim().length() > 0 && !x2.disconnected && Planes.on(root, x2) >= 1 && !x2.properties.isTrue(Box.hidden, false) && (x2.properties.isTrue(Mouse.isSelected, false) || !x2.properties.isTrue(shyConnections, false))) {
+							float d1 = x.properties.getFloat(Box.depth, 0f);
+							float d2 = x2.properties.getFloat(Box.depth, 0f);
 							FLine m = arc(x.properties.get(Box.frame), x2.properties.get(Box.frame), d1, d2, true).first;
 							if (f.nodes.size() == 0) f.attributes.putAll(m.attributes);
 							f.nodes.addAll(m.nodes);
@@ -99,9 +107,9 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 
 					for (Box x2 : new ArrayList<>(x.parents())) {
 						if (x2 instanceof DispatchBox) continue;
-						if (x2.properties.has(Box.frame) && x2.properties.has(Box.name) && x2.properties.get(Box.name).trim().length() > 0 && !x2.disconnected && Planes.on(root, x2) >= 1 && !x2.properties.isTrue(Box.hidden, false)) {
-							float d1 = x.properties.getFloat(Box.depth,0f);
-							float d2 = x2.properties.getFloat(Box.depth,0f);
+						if (x2.properties.has(Box.frame) && x2.properties.has(Box.name) && x2.properties.get(Box.name).trim().length() > 0 && !x2.disconnected && Planes.on(root, x2) >= 1 && !x2.properties.isTrue(Box.hidden, false) && (x2.properties.isTrue(Mouse.isSelected, false) || !x2.properties.isTrue(shyConnections, false))) {
+							float d1 = x.properties.getFloat(Box.depth, 0f);
+							float d2 = x2.properties.getFloat(Box.depth, 0f);
 							FLine m = arc(x2.properties.get(Box.frame), x.properties.get(Box.frame), d2, d1, true).first;
 							if (f.nodes.size() == 0) f.attributes.putAll(m.attributes);
 							f.nodes.addAll(m.nodes);
@@ -363,7 +371,7 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 //		if (!selected)
 		f.attributes.put(thicken, new BasicStroke(selected ? 1.5f : 1.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
 
-		FLine fFinal = FLinesAndJavaShapes.javaShapeToFLine(FLinesAndJavaShapes.flineToJavaShape(f),f, new AffineTransform());
+		FLine fFinal = FLinesAndJavaShapes.javaShapeToFLine(FLinesAndJavaShapes.flineToJavaShape(f), f, new AffineTransform());
 
 		fFinal.attributes.putAll(f.attributes);
 		fFinal.attributes.remove(thicken);
