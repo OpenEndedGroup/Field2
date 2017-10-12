@@ -1081,14 +1081,14 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	public FLine byTransforming(Function<Vec3, Vec3> spaceTransform) {
 
 		FLine f = new FLine();
-		f.attributes = attributes.duplicate();
+		f.attributes = attributes.duplicate(f);
 
 		for (Node n : nodes) {
 			if (n instanceof MoveTo) f.add(new MoveTo(spaceTransform.apply(n.to)));
 			else if (n instanceof LineTo) f.add(new LineTo(spaceTransform.apply(n.to)));
 			else if (n instanceof CubicTo)
 				f.add(new CubicTo(spaceTransform.apply(((CubicTo) n).c1), spaceTransform.apply(((CubicTo) n).c2), spaceTransform.apply(n.to)));
-			f.nodes.get(f.nodes.size() - 1).attributes = n.attributes.duplicate();
+			f.nodes.get(f.nodes.size() - 1).attributes = n.attributes.duplicate(f.nodes.get(f.nodes.size() - 1));
 		}
 
 		if (auxProperties != null) f.setAuxProperties(new LinkedHashMap<>(auxProperties));
@@ -1163,7 +1163,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 			knownNonProperties = computeKnownNonProperties();
 
 		if (knownNonProperties.contains(p)) return false;
-		return (Dict.Canonical.findCannon(p) != null);
+		return (Dict.Canonical.findCanon(p) != null);
 	}
 
 	@HiddenInAutocomplete
@@ -1187,9 +1187,9 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 
 		if (m.equals("n")) return last();
 
-		Dict.Prop cannon = new Dict.Prop(m).findCannon();
+		Dict.Prop canon = new Dict.Prop(m).findCanon();
 
-		Object ret = attributes.getOrConstruct(cannon);
+		Object ret = attributes.getOrConstruct(canon);
 
 
 		if (ret instanceof Box.FunctionOfBox) {
@@ -1207,18 +1207,18 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 //		if (value instanceof ConsString) value = value.toString(); //jdk9 module security breaks this
 		if (value != null && value.getClass().getName().endsWith("ConsString")) value = "" + value;
 
-		Dict.Prop cannon = new Dict.Prop(name).toCannon();
+		Dict.Prop canon = new Dict.Prop(name).toCanon();
 
-		if (cannon.getAttributes().isTrue(Dict.readOnly, false))
+		if (canon.getAttributes().isTrue(Dict.readOnly, false))
 			throw new IllegalArgumentException("can't write to property " + name);
 
-		Function<Object, Object> c = cannon.getAttributes().get(Dict.customCaster);
+		Function<Object, Object> c = canon.getAttributes().get(Dict.customCaster);
 		if (c != null)
 			value = c.apply(value);
 
-		Object converted = convert(value, cannon.getTypeInformation());
+		Object converted = convert(value, canon.getTypeInformation());
 
-		attributes.put(cannon, converted);
+		attributes.put(canon, converted);
 
 
 		modify();
@@ -1340,7 +1340,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	@Override
 	public List<Completion> getCompletionsFor(String prefix) {
 
-		List<Completion> l1 = Dict.cannonicalProperties().filter(x -> x.getAttributes().has(Dict.domain))
+		List<Completion> l1 = Dict.canonicalProperties().filter(x -> x.getAttributes().has(Dict.domain))
 					  .filter(x -> x.getAttributes().get(Dict.domain).contains("fline"))
 					  .filter(x -> x.getName().startsWith(prefix))
 					  .map(q -> new Completion(-1, -1, q.getName(), " = <span class='type'>" + Conversions.fold(q.getTypeInformation(), t -> compress(
@@ -1433,9 +1433,9 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		@HiddenInAutocomplete
 		public Object asMap_get(String m) {
 
-			Dict.Prop cannon = new Dict.Prop(m).findCannon();
+			Dict.Prop canon = new Dict.Prop(m).findCanon();
 
-			Object ret = attributes.getOrConstruct(cannon);
+			Object ret = attributes.getOrConstruct(canon);
 
 
 			if (ret instanceof Box.FunctionOfBox) {
@@ -1460,13 +1460,13 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 
 
 //			Log.log("underscore.debug", " underscore box set :" + name + " to " + value.getClass() + " <" + Function.class.getName() + ">");
-			Dict.Prop cannon = new Dict.Prop(name).toCannon();
+			Dict.Prop canon = new Dict.Prop(name).toCanon();
 
-//			Log.log("underscore.debug", " cannonical type information " + cannon.getTypeInformation());
+//			Log.log("underscore.debug", " canonical type information " + canon.getTypeInformation());
 
-			Object converted = convert(value, cannon.getTypeInformation());
+			Object converted = convert(value, canon.getTypeInformation());
 
-			attributes.put(cannon, converted);
+			attributes.put(canon, converted);
 
 //			Log.log("underscore.debug", () -> {
 //				Log.log("underscore.debug", " PROPERTIES NOW :");
@@ -1592,7 +1592,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		@Override
 		@HiddenInAutocomplete
 		public boolean asMap_isProperty(String p) {
-			if (Dict.Canonical.findCannon(p) != null) return true;
+			if (Dict.Canonical.findCanon(p) != null) return true;
 
 			if (knownNonProperties == null) knownNonProperties = computeKnownNonProperties();
 
