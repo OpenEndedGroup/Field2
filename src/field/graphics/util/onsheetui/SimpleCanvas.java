@@ -1,4 +1,4 @@
-package field.graphics.util;
+package field.graphics.util.onsheetui;
 
 import field.app.RunLoop;
 import field.graphics.FLine;
@@ -29,8 +29,7 @@ import static fielded.ServerSupport.readFile;
 public class SimpleCanvas extends Box implements IO.Loaded {
 
 	static public final Dict.Prop<String> __preamble = new Dict.Prop<>("__preamble").type()
-		.toCannon().set(Dict.domain, "attributes").set(BoxDefaultCode._configured, true);
-
+		.toCanon().set(Dict.domain, "attributes").set(BoxDefaultCode._configured, true);
 
 	protected final Runnable repaint;
 	protected final Map<String, Set> translation = new LinkedHashMap<>();
@@ -185,7 +184,7 @@ public class SimpleCanvas extends Box implements IO.Loaded {
 			m.attributes.put(StandardFLineDrawing.stroked, true);
 			m.attributes.put(StandardFLineDrawing.strokeColor, new Vec4(1, 1, 1, 0.3));
 			float dd = this.properties.getFloat(depth, 0f);
-			if (dd==0)
+			if (dd == 0)
 				m.attributes.put(StandardFLineDrawing.hint_noDepth, true);
 			else
 				m.nodes.forEach(x -> x.setZ(dd));
@@ -196,8 +195,15 @@ public class SimpleCanvas extends Box implements IO.Loaded {
 		buildProperties();
 	}
 
-	public void loaded()
-	{
+	public void clear() {
+		IdempotencyMap<Supplier<FLine>> ll = this.properties.get(FLineDrawing.lines);
+		if (ll != null) ll.clear();
+
+		ll = this.properties.get(FLineInteraction.interactiveLines);
+		if (ll != null) ll.clear();
+	}
+
+	public void loaded() {
 		String drags = readFile(Main.app + "/lib/web/drags.js");
 
 		String m = this.properties.get(__preamble) + "\n" + drags;
@@ -239,7 +245,7 @@ public class SimpleCanvas extends Box implements IO.Loaded {
 			m.attributes.put(StandardFLineDrawing.stroked, true);
 			m.attributes.put(StandardFLineDrawing.strokeColor, new Vec4(1, 1, 1, 0.3));
 			float dd = cc.properties.getFloat(depth, 0f);
-			if (dd==0)
+			if (dd == 0)
 				m.attributes.put(StandardFLineDrawing.hint_noDepth, true);
 			else
 				m.nodes.forEach(x -> x.setZ(dd));
