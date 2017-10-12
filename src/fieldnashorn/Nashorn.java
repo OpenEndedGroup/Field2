@@ -11,10 +11,7 @@ import fielded.Animatable;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 
-import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
-import javax.script.ScriptException;
-import javax.script.SimpleBindings;
+import javax.script.*;
 import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.function.BiFunction;
@@ -43,13 +40,12 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 		try {
 			global.put("__fieldglobal", engine.eval("({})"));
 			global.put("global", global);
-			Log.log("bindings", ()->"__fieldglobal set up to be :" + global.get("__fieldglobal"));
+			Log.log("bindings", () -> "__fieldglobal set up to be :" + global.get("__fieldglobal"));
 		} catch (ScriptException e) {
 			e.printStackTrace();
 		}
 
 		engine.setBindings(global, ScriptContext.GLOBAL_SCOPE);
-
 
 		try {
 			engine.eval("__fieldglobal.fielded = Packages.fielded");
@@ -64,7 +60,6 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 
 		ternSupport = new TernSupport();
 		ternSupport.inject(engine);
-
 
 		Animatable.registerHandler((was, o) -> {
 
@@ -83,7 +78,8 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 				if (som.hasSlot(2)) end = Animatable.interpret(som.getSlot(2), was);
 
 				if (som.hasMember("start")) start = Animatable.interpret(som.getMember("start"), was);
-				if (som.hasMember("middle")) middle = Animatable.interpret(som.getMember("middle"), was);
+				if (som.hasMember("middle"))
+					middle = Animatable.interpret(som.getMember("middle"), was);
 				if (som.hasMember("end")) end = Animatable.interpret(som.getMember("end"), was);
 
 				if (start == null) start = noop();
@@ -91,7 +87,7 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 				if (end == null) end = noop();
 
 				if (start == middle) start = noop();
-				if (end== middle) end = noop();
+				if (end == middle) end = noop();
 
 				Animatable.AnimationElement fstart = start;
 				Animatable.AnimationElement fmiddle = middle;
@@ -175,7 +171,7 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 						return null;/*return middle(isEnding);*/
 					}
 
- 				};
+				};
 			}
 			return was;
 		});
@@ -211,11 +207,29 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 
 		setupInitialBindings(b, next.first);
 
-		NashornExecution ex = new NashornExecution(next.first, next.second, b, en);
+		NashornExecution ex = new NashornExecution(this, next.first, next.second, b, en);
 		ex.setTernSupport(ternSupport);
 
 		return ex;
 	}, (x) -> x);
+
+
+	NashornExecution fork(NashornExecution from, Map<String, Object> parameters) {
+		ScriptEngine se = factory.getScriptEngine("-scripting", "--language=es6");
+		ScriptContext context = se.getContext();
+
+		Bindings dest = from.context.getBindings(ScriptContext.GLOBAL_SCOPE);
+		Bindings source = from.context.getBindings(ScriptContext.GLOBAL_SCOPE);
+
+		dest.entrySet().forEach(e -> source.put(e.getKey(), e.getValue()));
+
+		context.setAttribute("_", from.box, ScriptContext.ENGINE_SCOPE);
+		from.box.find(Boxes.root, from.box.both()).findFirst().ifPresent(x -> context.setAttribute("__", x, ScriptContext.ENGINE_SCOPE));
+
+		NashornExecution ex = new NashornExecution(this, from.box, from.property, context, se);
+		return ex;
+	}
+
 
 	void setupInitialBindings(ScriptContext context, Box first) {
 		context.setAttribute("_", first, ScriptContext.ENGINE_SCOPE);
