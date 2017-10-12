@@ -118,6 +118,10 @@ public class MeshBuilder implements MeshAcceptor, Bracketable, Scene.ContainsPer
 		elementCursor = target.getElementLimit();
 	}
 
+	public int getVertexCursor() {
+		return vertexCursor;
+	}
+
 	/**
 	 * closes a MeshBuilder. There should be a close() for every open() and it's an error to let the graphics system get hold of a MeshBuilder that isn't closed properly. Alas, this is a hard
 	 * error to catch since the missing close() by definition doesn't have a known stacktrace. Closing something that isn't open will through an IllegalArgumentException, but again, this isn't
