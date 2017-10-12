@@ -11,6 +11,7 @@ import field.utility.IdempotencyMap;
 import field.utility.Rect;
 import field.utility.SimpleVoronoi;
 import fieldbox.boxes.plugins.Planes;
+import fieldbox.ui.FieldBoxWindow;
 import org.lwjgl.glfw.GLFW;
 
 import java.awt.*;
@@ -39,12 +40,12 @@ public class MarkingMenus extends Box {
 	static public Dict.Prop<Function<Window.Event<Window.MouseState>, MenuSpecification>> menuSpecs = new Dict.Prop<>("menuSpecs"); // TODO: comment
 
 	// easy interface
-	static public Dict.Prop<IdempotencyMap<FunctionOfBox>> menu = new Dict.Prop<>("menu").toCannon()
+	static public Dict.Prop<IdempotencyMap<FunctionOfBox>> menu = new Dict.Prop<>("menu").toCanon()
 		.autoConstructs(() -> new IdempotencyMap<>(FunctionOfBox.class)).doc("Adds a menu item to a box at a particular direction. For example `_.menu.show_something_n = function(_) { ... }` will place a menu item 'show something' at the 'N(orth)' position. Note this position can get 'bumped' by other items.");
 
 
 	// easy interface
-	static public Dict.Prop<IdempotencyMap<FunctionOfBox>> spaceMenu = new Dict.Prop<>("spaceMenu").toCannon()
+	static public Dict.Prop<IdempotencyMap<FunctionOfBox>> spaceMenu = new Dict.Prop<>("spaceMenu").toCanon()
 		.autoConstructs(() -> new IdempotencyMap<>(FunctionOfBox.class)).doc("Adds a menu item to a box at a particular direction. For example `_.spaceMenu.show_something_n = function(_) { ... }` will place a menu item 'show something' at the 'N(orth)' position. Note this position can get 'bumped' by other items.");
 
 
@@ -66,6 +67,21 @@ public class MarkingMenus extends Box {
 			{
 				FrameManipulation.setSelectionTo(root, Collections.singleton(startAt));
 			}
+
+
+			FieldBoxWindow window = find(Boxes.window, both()).findFirst().get();
+			Drawing drawing = find(Drawing.drawing, both()).findFirst().get();
+
+			Rect bounds= window.getBounds();
+			Rect viewBounds = drawing.getCurrentViewBounds(this);
+			double[] originalMouseX = {0};
+			double[] originalMouseY = {0};
+
+			GLFW.glfwGetCursorPos(window.getGLFWWindowReference(), originalMouseX, originalMouseY);
+			GLFW.glfwSetCursorPos(window.getGLFWWindowReference(), bounds.w/2, bounds.h/2);
+
+			event.after.mx = viewBounds.x+viewBounds.w/2;
+			event.after.my = viewBounds.y+viewBounds.h/2;
 
 			MenuSpecification m = startAt.find(menuSpecs, upwardsOrDownwards())
 				.filter(x -> x != null)
@@ -124,7 +140,9 @@ public class MarkingMenus extends Box {
 			if (m.items.size() > 0) {
 				event.properties.put(Window.consumed, true);
 
-				return runMenu(startAt==null ? this : startAt, new Vec2(event.after.mx, event.after.my), m);
+				return runMenu(startAt==null ? this : startAt, new Vec2(event.after.mx, event.after.my), m, () -> {
+					GLFW.glfwSetCursorPos(window.getGLFWWindowReference(), originalMouseX[0], originalMouseY[0]);
+				});
 			} else {
 				log("debug.markingmenus", () -> " no menuSpecs for event ");
 				return null;
@@ -196,8 +214,11 @@ public class MarkingMenus extends Box {
 
 	}
 
-
-	static public Mouse.Dragger runMenu(Box origin, Vec2 center, MenuSpecification m) {
+	static public Mouse.Dragger runMenu(Box origin, Vec2 center, MenuSpecification m)
+	{
+		return runMenu(origin, center, m, null);
+	}
+	static public Mouse.Dragger runMenu(Box origin, Vec2 center, MenuSpecification m, Runnable atEnd) {
 
 		MarkingMenus menus = origin.first(markingMenus, origin.both())
 			.orElseThrow(() -> new IllegalArgumentException(" can't show marking menus if we can't find MarkingMenus"));
@@ -229,13 +250,17 @@ public class MarkingMenus extends Box {
 					if (sub != null) {
 						menus.hide();
 						log("marking", () -> "going submenu");
-						replaceWith[0] = runMenu(origin, new Vec2(event.after.mx, event.after.my), sub);
+						replaceWith[0] = runMenu(origin, new Vec2(event.after.mx, event.after.my), sub, atEnd);
 					}
 				}
 			}
 
+			if (term && atEnd!=null)
+			{
+				atEnd.run();
+			}
 
-			return true;
+			return !term;
 		};
 	}
 
