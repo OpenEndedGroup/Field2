@@ -217,7 +217,7 @@ public class EstimateControlPoints {
 
 	public FLinesAndJavaShapes.CubicSegment3 reestimate(FLinesAndJavaShapes.CubicSegment3 initial, Vec3[] p, Function<FLinesAndJavaShapes.CubicSegment3, Double> weight) {
 
-		BOBYQAOptimizer optimizer = new BOBYQAOptimizer(7, 50, 3);
+		BOBYQAOptimizer optimizer = new BOBYQAOptimizer(10, 500, 3);
 
 		double[] dd = new double[]{initial.b.x, initial.b.y, initial.c.x, initial.c.y};
 
@@ -231,7 +231,7 @@ public class EstimateControlPoints {
 			double sc = initial.a.distance(C1) + initial.d.distance(C2) + C1.distance(C2);
 
 			FLinesAndJavaShapes.CubicSegment3 seg = new FLinesAndJavaShapes.CubicSegment3(initial.a, C1, C2, initial.d);
-			Double w = weight.apply(seg) + sc;
+			Double w = weight.apply(seg) + sc/5;
 
 //			Log.log("max", w);
 			return w;
