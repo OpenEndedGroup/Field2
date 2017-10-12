@@ -73,8 +73,11 @@ public class Delete extends Box {
 
 					long c = cc.size();
 					if (c > 0) {
+
+						System.out.println(" children of box "+selectedNoGroups().collect(Collectors.toList())+" is "+cc);
+
 						spec.items.put(MarkingMenus.Position.NE2,
-							new MarkingMenus.MenuItem("Hide " + count + " child" + (count == 1 ? "" : "ren") + " box" + (count == 1 ? "" : "es"), () -> {
+							new MarkingMenus.MenuItem("Hide " + count + " child" + (c == 1 ? "" : "ren") + " box" + (c == 1 ? "" : "es"), () -> {
 								recursivelyHideFrom(selected());
 							}));
 					}
@@ -89,7 +92,7 @@ public class Delete extends Box {
 					long c = cc.size();
 					if (c > 0) {
 						spec.items.put(MarkingMenus.Position.SW2,
-							new MarkingMenus.MenuItem("Show" + count + " hidden child" + (count == 1 ? "" : "ren") + " box" + (count == 1 ? "" : "es"), () -> {
+							new MarkingMenus.MenuItem("Show" + count + " hidden child" + (c == 1 ? "" : "ren") + " box" + (c == 1 ? "" : "es"), () -> {
 								recursivelyShowFrom(selected());
 							}));
 					}
