@@ -83,7 +83,7 @@ public class IdempotencyMap<T> extends LinkedHashMapAndArrayList<T> implements M
 			if (autoConstructor != null) {
 				T t = autoConstructor.apply((String) key);
 				if (t != null) {
-					put((String) key, t);
+					_put((String) key, t);
 					return true;
 				}
 			}
