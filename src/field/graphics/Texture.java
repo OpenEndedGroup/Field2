@@ -45,7 +45,6 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
     public final TextureSpecification specification;
     boolean isDoubleBuffered = true;
     AtomicInteger pendingUploads = new AtomicInteger(0);
-    private Errors.ErrorConsumer ec;
 
     protected boolean bindless;
 
@@ -53,7 +52,6 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
     public Texture(TextureSpecification specification) {
         this.specification = specification;
         if (this.specification.forceSingleBuffered) setIsDoubleBuffered(false);
-        setErrorConsumer(Errors.errors.get());
     }
 
 
@@ -463,16 +461,6 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 //		return s.name;
 
         return specification.unit;
-    }
-
-    @Override
-    public void setErrorConsumer(Errors.ErrorConsumer c) {
-        this.ec = c;
-    }
-
-    @Override
-    public Errors.ErrorConsumer getErrorConsumer() {
-        return ec;
     }
 
     static public class TextureSpecification {

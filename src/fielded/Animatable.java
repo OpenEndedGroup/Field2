@@ -30,15 +30,13 @@ public class Animatable {
 		}
 	}
 
-	static public class Shim implements Supplier<Boolean>, Consumer<Boolean>, Errors.SavesErrorConsumer {
+	static public class Shim implements Supplier<Boolean>, Consumer<Boolean>{
 		protected final AnimationElement e;
 		protected boolean stopping = false;
 		protected boolean first = true;
-		protected Errors.ErrorConsumer errorConsumer;
 
 		public Shim(AnimationElement e) {
 			this.e = e;
-			this.errorConsumer = Errors.errors.get();
 		}
 
 		@Override
@@ -59,10 +57,7 @@ public class Animatable {
 			catch(Throwable t)
 			{
 				t.printStackTrace();
-				if (errorConsumer!=null)
-				{
-					errorConsumer.consume(t, "(Error thrown in box animation, we'll stop this box now)");
-				}
+				Errors.INSTANCE.tryToReportTo(t, "Error throw in box animation, box stopped", null);
 				return false;
 			}
 		}
@@ -72,15 +67,6 @@ public class Animatable {
 			stopping = !willContinue;
 		}
 
-		@Override
-		public void setErrorConsumer(Errors.ErrorConsumer c) {
-			this.errorConsumer = c;
-		}
-
-		@Override
-		public Errors.ErrorConsumer getErrorConsumer() {
-			return this.errorConsumer;
-		}
 	}
 
 	static List<BiFunction<AnimationElement, Object, AnimationElement>> handlers = new ArrayList<>();

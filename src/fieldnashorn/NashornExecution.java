@@ -30,7 +30,6 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -41,15 +40,16 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 	static public final Dict.Prop<SourceTransformer> sourceTransformer = new Dict.Prop<SourceTransformer>("sourceTransformer").doc(
 		"an instanceof of a SourceTransformer that will take the source code here and transform it into JavaScript. This allows things like Babel.js to be used in Field")
-																  .toCannon();
+																  .toCanon();
 
-	private final Dict.Prop<String> property;
-	private final Box box;
-	private final ScriptContext context;
+	public final Dict.Prop<String> property;
+	private Nashorn factory;
+	public final Box box;
+	public final ScriptContext context;
 	private final ScriptEngine engine;
 	private final Out output;
 	public String filename = null;
-	int uniq = 0;
+	static int uniq = 0;
 	private TernSupport ternSupport;
 	private int lineOffset;
 	private Triple<Box, Integer, Boolean> currentLineNumber = null;
@@ -58,7 +58,11 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	private Dict.Prop<String> originProperty;
 
 
-	public NashornExecution(Box box, Dict.Prop<String> property, ScriptContext b, ScriptEngine engine) {
+	final String prefix = ""+(uniq++);
+
+
+	public NashornExecution(Nashorn factory, Box box, Dict.Prop<String> property, ScriptContext b, ScriptEngine engine) {
+		this.factory = factory;
 		this.box = box;
 		this.property = property;
 		this.context = b;
@@ -82,7 +86,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 		lineErrors = new ErrorHelper().errorHelper(lineErrors, box);
 		Callbacks.call(box, Callbacks.onExecute);
-		try (AutoCloseable __ = pushErrorContext(lineErrors)) {
+		try {
 
 			Writer writer = null;
 			boolean[] written = {false};
@@ -212,51 +216,6 @@ public class NashornExecution implements Execution.ExecutionSupport {
 		currentLineNumber = boxLine;
 	}
 
-	private Util.ExceptionlessAutoCloasable pushErrorContext(Consumer<Pair<Integer, String>> lineErrors) {
-		Execution.context.get()
-				 .push(box);
-		currentEngine.set(engine);
-
-		Errors.errors.push((t, m) -> {
-			System.err.println(" exception thrown inside box " + box);
-			System.err.println(" message is :" + t.getMessage() + " " + m);
-			t.printStackTrace();
-
-
-			if (t instanceof NashornException) {
-				handleScriptException(t, lineErrors, lineTransform, m);
-				return;
-			}
-
-			int ln = -1;
-			Matcher matcher = Pattern.compile("LN<(.*)@(.*)>")
-						 .matcher(t.getMessage() + " " + m);
-
-			if (matcher.find()) {
-				try {
-					ln = Integer.parseInt(matcher.group(1));
-				} catch (NumberFormatException e) {
-					System.err.println(" malformed number ? " + matcher.group(1));
-					ln = -1;
-				}
-
-				String boxName = matcher.group(2);
-
-				lineErrors.accept(new Pair<>(ln, "Error in deferred execution on line " + ln + " in box " + boxName + "\n" + "Full message is " + m + " / " + t.getMessage()));
-			} else {
-				lineErrors.accept(new Pair<>(ln, "Error in deferred execution '" + m + "'\n" + t.getMessage()));
-			}
-
-			RemoteEditor.boxFeedback(Optional.of(box), new Vec4(1, 0, 0, 0.5), "__redmark__", -1, -1);
-		});
-
-		return () -> {
-			Execution.context.get()
-					 .pop();
-
-			Errors.errors.pop();
-		};
-	}
 
 	private void handleScriptException(Throwable t, Consumer<Pair<Integer, String>> lineErrors, Function<Integer, Integer> lineTransform) {
 		handleScriptException(t, lineErrors, lineTransform, "");
@@ -352,63 +311,62 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	@Override
 	public String begin(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success, Map<String, Object> initiator, boolean endOngoing) {
 
-		try (Util.ExceptionlessAutoCloasable __ = pushErrorContext(lineErrors)) {
-
-			// is "run" defined here or anywhere above?
-
-			if (box.find(Callbacks.run, box.upwards()).findAny().isPresent()) {
-				if (endOngoing) end(lineErrors, success);
-
-				String name = "main._animator_" + (uniq);
-				boolean[] first = {true};
-
-				Errors.ErrorConsumer e = Errors.errors.get();
-
-				box.properties.putToMap(Boxes.insideRunLoop, name, () -> {
-					try {
-						Callbacks.call(box, Callbacks.run, initiator, first[0], box.upwards());
-					} catch (Throwable t) {
-						Errors.tryToReportTo(t, "Exception in `_.run()`, called from box `" + box + "`", e);
-						first[0] = false;
-						return false;
-					}
-					first[0] = false;
-					return true;
-
-				});
-				box.first(IsExecuting.isExecuting)
-				   .ifPresent(x -> x.accept(box, name));
-
-				uniq++;
-				return name;
-			}
-
-			// otherwise, use the old system
-			context.setAttribute("_r", null, ScriptContext.ENGINE_SCOPE);
-
-			initiator.entrySet()
-				 .forEach(x -> context.setAttribute(x.getKey(), x.getValue(), ScriptContext.ENGINE_SCOPE));
-
-			String allText = DisabledRangeHelper.getStringWithDisabledRanges(box, property, "/* -- start -- ", "-- end -- */");
-
-			executeAndReturn(allText, lineErrors, success, true);
-			Object _r = context.getBindings(ScriptContext.ENGINE_SCOPE)
-					   .get("_r");
-
-			Supplier<Boolean> r = interpretAnimation(_r);
-			if (r != null) {
-				if (endOngoing) end(lineErrors, success);
-				String name = "main._animator_" + (uniq);
-				box.properties.putToMap(Boxes.insideRunLoop, name, r);
-				box.first(IsExecuting.isExecuting)
-				   .ifPresent(x -> x.accept(box, name));
-
-				uniq++;
-				return name;
-			}
-
-			return null;
+		if (!endOngoing)
+		{
+			return factory.fork(this, Collections.emptyMap()).begin(lineErrors, success, initiator, true); // there wont be anything ended here because there will be another prefix
 		}
+		// is "run" defined here or anywhere above?
+
+		if (box.find(Callbacks.run, box.upwards()).findAny().isPresent()) {
+			if (endOngoing) end(lineErrors, success);
+
+			String name = "main._animator"+prefix+"_" + (uniq);
+			boolean[] first = {true};
+
+			box.properties.putToMap(Boxes.insideRunLoop, name, () -> {
+				try {
+					Callbacks.call(box, Callbacks.run, initiator, first[0], box.upwards());
+				} catch (Throwable t) {
+					Errors.INSTANCE.tryToReportTo(t, "Exception in `_.run()`, called from box `" + box + "`", null);
+					first[0] = false;
+					return false;
+				}
+				first[0] = false;
+				return true;
+
+			});
+			box.first(IsExecuting.isExecuting)
+			   .ifPresent(x -> x.accept(box, name));
+
+			uniq++;
+			return name;
+		}
+
+		// otherwise, use the old system
+		context.setAttribute("_r", null, ScriptContext.ENGINE_SCOPE);
+
+		initiator.entrySet()
+			 .forEach(x -> context.setAttribute(x.getKey(), x.getValue(), ScriptContext.ENGINE_SCOPE));
+
+		String allText = DisabledRangeHelper.getStringWithDisabledRanges(box, property, "/* -- start -- ", "-- end -- */");
+
+		executeAndReturn(allText, lineErrors, success, true);
+		Object _r = context.getBindings(ScriptContext.ENGINE_SCOPE)
+				   .get("_r");
+
+		Supplier<Boolean> r = interpretAnimation(_r);
+		if (r != null) {
+			if (endOngoing) end(lineErrors, success);
+			String name = "main._animator"+prefix+"_" + (uniq);
+			box.properties.putToMap(Boxes.insideRunLoop, name, r);
+			box.first(IsExecuting.isExecuting)
+			   .ifPresent(x -> x.accept(box, name));
+
+			uniq++;
+			return name;
+		}
+
+		return null;
 	}
 
 	private Supplier<Boolean> interpretAnimation(Object r) {
@@ -421,7 +379,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 	@Override
 	public void end(Consumer<field.utility.Pair<Integer, String>> lineErrors, Consumer<String> success) {
-		end("main\\._animator_.*", lineErrors, success);
+		end("main\\._animator"+prefix+"_.*", lineErrors, success);
 	}
 
 	@Override
@@ -442,7 +400,6 @@ public class NashornExecution implements Execution.ExecutionSupport {
 		}
 		Drawing.dirty(box);
 	}
-
 
 
 	@Override

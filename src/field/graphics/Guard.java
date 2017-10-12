@@ -15,23 +15,12 @@ public class Guard implements Scene.Perform {
 
 	private final Supplier<Scene.Perform> p;
 	private final Function<Integer, Boolean> guard;
-	Errors.ErrorConsumer ec;
 
 	public Guard(Scene.Perform p, Function<Integer, Boolean> guard) {
 		this.p = () -> p;
 		this.guard = guard;
-		ec = Errors.errors.get();
 	}
 
-	@Override
-	public void setErrorConsumer(Errors.ErrorConsumer c) {
-		this.ec = c;
-	}
-
-	@Override
-	public Errors.ErrorConsumer getErrorConsumer() {
-		return ec;
-	}
 
 	public Guard(Supplier<Scene.Perform> p, Function<Integer, Boolean> guard) {
 		this.p = p;

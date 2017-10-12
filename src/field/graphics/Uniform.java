@@ -38,32 +38,13 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 	public Uniform(String name, Supplier<T> value) {
 		this.name = name;
 		this.value = value;
-		if (value instanceof Errors.ErrorConsumer)
-			this.ec = ((Errors.ErrorConsumer) value);
-		else
-			this.ec = Errors.errors.get();
 	}
 
 	public Uniform(String name, T value) {
 		this.name = name;
 		this.value = () -> value;
-		if (value instanceof Errors.ErrorConsumer)
-			this.ec = ((Errors.ErrorConsumer) value);
-		else
-			this.ec = Errors.errors.get();
 	}
 
-	Errors.ErrorConsumer ec;
-
-	@Override
-	public void setErrorConsumer(Errors.ErrorConsumer c) {
-		this.ec = c;
-	}
-
-	@Override
-	public Errors.ErrorConsumer getErrorConsumer() {
-		return this.ec;
-	}
 
 	static public float[] rewriteToFloatArray(Object t) {
 

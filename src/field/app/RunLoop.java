@@ -21,6 +21,7 @@ public class RunLoop {
 	static public long tick = 0;
 	protected final Thread shutdownThread;
 	public Scene mainLoop = new Scene();
+
 	public Set<Object> shouldSleep = Collections.synchronizedSet(new LinkedHashSet<>());
 	final Thread mainThread;
 	List<Runnable> onExit = new LinkedList<>();
@@ -165,21 +166,6 @@ public class RunLoop {
 				p0.run();
 				return t++ < n;
 			}
-
-			Errors.ErrorConsumer ec = Errors.errors.get();
-
-			@Override
-			public void setErrorConsumer(Errors.ErrorConsumer c) {
-				this.ec = ec;
-			}
-
-			@Override
-			public Errors.ErrorConsumer getErrorConsumer() {
-				if (p0 instanceof Errors.ErrorConsumer) return ((Errors.ErrorConsumer) p0);
-				if (p0 instanceof Errors.SavesErrorConsumer)
-					return ((Errors.SavesErrorConsumer) p0).getErrorConsumer();
-				return ec;
-			}
 		});
 	}
 
@@ -198,20 +184,6 @@ public class RunLoop {
 				return true;
 			}
 
-			Errors.ErrorConsumer ec = Errors.errors.get();
-
-			@Override
-			public void setErrorConsumer(Errors.ErrorConsumer c) {
-				this.ec = ec;
-			}
-
-			@Override
-			public Errors.ErrorConsumer getErrorConsumer() {
-				if (p0 instanceof Errors.ErrorConsumer) return ((Errors.ErrorConsumer) p0);
-				if (p0 instanceof Errors.SavesErrorConsumer)
-					return ((Errors.SavesErrorConsumer) p0).getErrorConsumer();
-				return ec;
-			}
 		});
 	}
 
@@ -229,20 +201,6 @@ public class RunLoop {
 				return true;
 			}
 
-			Errors.ErrorConsumer ec = Errors.errors.get();
-
-			@Override
-			public void setErrorConsumer(Errors.ErrorConsumer c) {
-				this.ec = ec;
-			}
-
-			@Override
-			public Errors.ErrorConsumer getErrorConsumer() {
-				if (p0 instanceof Errors.ErrorConsumer) return ((Errors.ErrorConsumer) p0);
-				if (p0 instanceof Errors.SavesErrorConsumer)
-					return ((Errors.SavesErrorConsumer) p0).getErrorConsumer();
-				return ec;
-			}
 		});
 	}
 
@@ -260,20 +218,6 @@ public class RunLoop {
 				return true;
 			}
 
-			Errors.ErrorConsumer ec = Errors.errors.get();
-
-			@Override
-			public void setErrorConsumer(Errors.ErrorConsumer c) {
-				this.ec = ec;
-			}
-
-			@Override
-			public Errors.ErrorConsumer getErrorConsumer() {
-				if (p0 instanceof Errors.ErrorConsumer) return ((Errors.ErrorConsumer) p0);
-				if (p0 instanceof Errors.SavesErrorConsumer)
-					return ((Errors.SavesErrorConsumer) p0).getErrorConsumer();
-				return ec;
-			}
 		});
 	}
 
