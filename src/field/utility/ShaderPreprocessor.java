@@ -3,9 +3,8 @@ package field.utility;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.plugins.Exec;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -15,17 +14,25 @@ import java.util.regex.Pattern;
  */
 public class ShaderPreprocessor {
 
-	Pattern p = Pattern.compile("(\\$\\{(.*)\\})");
+	Pattern p = Pattern.compile("(\\$\\{(.*?)\\})");
 
 	public String preprocess(Box inside, String s) {
+		return preprocess(inside, s, Collections.emptyMap());
+	}
+
+	public String preprocess(Box inside, String s, Map<String, Function<String, String>> extra) {
 		Box.BiFunctionOfBoxAnd<String, Triple<Object, List<String>, List<Pair<Integer, String>>>> e = inside.find(Exec.exec, inside.upwardsOrDownwards()).findFirst().get();
 
-		System.out.println(" preprocess :"+s);
+		System.out.println(" preprocess :" + s);
 
 		Matcher q = p.matcher(s);
 		return q.replaceAll(x -> {
 			String g = q.group(2);
-			Object z = e.apply(inside, g).first;
+			Object z;
+			if (extra.containsKey(g)) {
+				z = extra.get(g).apply(g);
+			} else
+				z = e.apply(inside, g).first;
 			if (z == null || ("" + z).toLowerCase().equals("undefined")) {
 				return "";
 			} else return "" + z;
