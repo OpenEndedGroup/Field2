@@ -34,7 +34,7 @@ public class OutputBox extends Box implements IO.Loaded {
 
 
 	static public final Dict.Prop<FunctionOfBoxValued<TemplateMap<Browser>>> output = new Dict.Prop<>("output").type().doc("`_.output.blah.print('something')` will print to (and, if necessary, create) an html output box")
-			.toCannon();
+			.toCanon();
 
 	private final Box root;
 

@@ -29,8 +29,8 @@ import static fieldbox.boxes.FLineDrawing.frameDrawing;
  */
 public class TimeSlider extends Box {
 
-	static public final Dict.Prop<TimeSlider> time = new Dict.Prop<>("time").toCannon().doc("the default red-line time slider. Set `_.time.frame.x` = something to move it around.");
-	static public final Dict.Prop<Double> velocity = new Dict.Prop<>("velocity").toCannon().doc("the rate at which this time slider is moving (that is, delta-frame.x per update).");
+	static public final Dict.Prop<TimeSlider> time = new Dict.Prop<>("time").toCanon().doc("the default red-line time slider. Set `_.time.frame.x` = something to move it around.");
+	static public final Dict.Prop<Double> velocity = new Dict.Prop<>("velocity").toCanon().doc("the rate at which this time slider is moving (that is, delta-frame.x per update).");
 
 	Rect was = null;
 

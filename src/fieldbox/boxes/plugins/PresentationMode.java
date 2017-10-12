@@ -13,19 +13,19 @@ import java.util.stream.Collectors;
  */
 public class PresentationMode extends Box {
 
-	static public Dict.Prop<IdempotencyMap<Runnable>> onEnterPresentationMode = new Dict.Prop<>("onEnterPresentationMode").toCannon()
+	static public Dict.Prop<IdempotencyMap<Runnable>> onEnterPresentationMode = new Dict.Prop<>("onEnterPresentationMode").toCanon()
 															      .type()
 															      .autoConstructs(() -> new IdempotencyMap<Runnable>(Runnable.class));
-	static public Dict.Prop<IdempotencyMap<Runnable>> onExitPresentationMode = new Dict.Prop<>("onExitPresentationMode").toCannon()
+	static public Dict.Prop<IdempotencyMap<Runnable>> onExitPresentationMode = new Dict.Prop<>("onExitPresentationMode").toCanon()
 															    .type()
 															    .autoConstructs(() -> new IdempotencyMap<Runnable>(Runnable.class));
 
-	static public Dict.Prop<Runnable> enterPresentationMode = new Dict.Prop<>("enterPresentationMode").toCannon()
+	static public Dict.Prop<Runnable> enterPresentationMode = new Dict.Prop<>("enterPresentationMode").toCanon()
 													  .type();
-	static public Dict.Prop<Runnable> exitPresentationMode = new Dict.Prop<>("exitPresentationMode").toCannon()
+	static public Dict.Prop<Runnable> exitPresentationMode = new Dict.Prop<>("exitPresentationMode").toCanon()
 		.type();
 
-	static public Dict.Prop<PresentationMode> _presentationMode = new Dict.Prop<>("_presentationMode").toCannon()
+	static public Dict.Prop<PresentationMode> _presentationMode = new Dict.Prop<>("_presentationMode").toCanon()
 		.type();
 
 	boolean present = false;

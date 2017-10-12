@@ -27,9 +27,9 @@ public class BoxPair extends Box {
 
 	private final Box root;
 
-	static public final Dict.Prop<Boolean> isPaired = new Dict.Prop<Box>("isPaired").doc("is this a special paired box").toCannon().type();
-	static public final Dict.Prop<Box> f = new Dict.Prop<Box>("f").doc("the 'footage' box").toCannon().type().set(availableForCompletion, x -> x.properties.has(isPaired));
-	static public final Dict.Prop<Box> m = new Dict.Prop<Box>("m").doc("the 'main' box").toCannon().type().set(availableForCompletion, x -> x.properties.has(isPaired));
+	static public final Dict.Prop<Boolean> isPaired = new Dict.Prop<Box>("isPaired").doc("is this a special paired box").toCanon().type();
+	static public final Dict.Prop<Box> f = new Dict.Prop<Box>("f").doc("the 'footage' box").toCanon().type().set(availableForCompletion, x -> x.properties.has(isPaired));
+	static public final Dict.Prop<Box> m = new Dict.Prop<Box>("m").doc("the 'main' box").toCanon().type().set(availableForCompletion, x -> x.properties.has(isPaired));
 
 	static
 	{
@@ -168,8 +168,8 @@ public class BoxPair extends Box {
 		// callbacks for frame changed!
 		for(Box bb : frameBoxes)
 		{
-			IdempotencyMap<Supplier<Collection<Supplier<FLine>>>> q = bb.properties.getOrConstruct(FLineDrawing.bulkLines);
-			Supplier<Collection<Supplier<FLine>>> fr = q.get("__framemarking__");
+			IdempotencyMap<Supplier<Collection<? extends Supplier<FLine>>>> q = bb.properties.getOrConstruct(FLineDrawing.bulkLines);
+			Supplier<Collection<? extends Supplier<FLine>>> fr = q.get("__framemarking__");
 			if (fr==null)
 			{
 				installFrameDecor(bb);
@@ -177,8 +177,8 @@ public class BoxPair extends Box {
 		}
 		for(Box bb : mainBoxes)
 		{
-			IdempotencyMap<Supplier<Collection<Supplier<FLine>>>> q = bb.properties.getOrConstruct(FLineDrawing.bulkLines);
-			Supplier<Collection<Supplier<FLine>>> fr = q.get("__framemarking__");
+			IdempotencyMap<Supplier<Collection<? extends Supplier<FLine>>>> q = bb.properties.getOrConstruct(FLineDrawing.bulkLines);
+			Supplier<Collection<? extends Supplier<FLine>>> fr = q.get("__framemarking__");
 			if (fr==null)
 			{
 				installMainDecor(bb);

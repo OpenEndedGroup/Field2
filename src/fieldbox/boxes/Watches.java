@@ -20,7 +20,7 @@ import java.util.function.Consumer;
 public class Watches extends Box  {
 
 	private final MessageQueue<Quad<Dict.Prop, Box,  Object, Object>, String> messageQueue;
-	static public final Dict.Prop<Watches> watches = new Dict.Prop<>("_watches").type().toCannon();
+	static public final Dict.Prop<Watches> watches = new Dict.Prop<>("_watches").type().toCanon();
 
 	public Watches(MessageQueue<Quad<Dict.Prop, Box,  Object, Object>, String> messageQueue) {
 		this.messageQueue = messageQueue;

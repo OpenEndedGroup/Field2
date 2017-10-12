@@ -30,7 +30,7 @@ import static fieldbox.boxes.FLineDrawing.frameDrawing;
  */
 public class BridgeToTextEditor extends Box {
 
-	static public final Dict.Prop<Boolean> bridgedToEditor = new Dict.Prop<>("bridgedToEditor").toCannon();
+	static public final Dict.Prop<Boolean> bridgedToEditor = new Dict.Prop<>("bridgedToEditor").toCanon();
 
 	static {
 		IO.persist(bridgedToEditor);

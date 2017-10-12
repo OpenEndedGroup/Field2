@@ -29,14 +29,15 @@ public class DispatchBox extends Box implements IO.Loaded // the drawer is initi
 {
 
 	static public final Dict.Prop<BoxRef> head = new Dict.Prop<>("head").type()
-		.toCannon()
+		.toCanon()
 		.doc("the head of this topology arrow box");
 	static public final Dict.Prop<BoxRef> tail = new Dict.Prop<>("tail").type()
-		.toCannon()
+		.toCanon()
 		.doc("the tail of this topology arrow box");
 
+
 	static public final Dict.Prop<FunctionOfBoxValued<Collection<Missing.Log>>> logThrough = new Dict.Prop<>("logThrough").type()
-		.toCannon()
+		.toCanon()
 		.doc("property transcript filtered to include only property access that's _through_ this connection");
 
 	static {

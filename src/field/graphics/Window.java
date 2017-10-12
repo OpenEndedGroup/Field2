@@ -37,7 +37,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 
 	static public final Dict.Prop<Boolean> consumed = new Dict.Prop<>("consumed").type()
 		.doc("marks an event as handled elsewhere")
-		.toCannon().set(Dict.domain, "event");
+		.toCanon().set(Dict.domain, "event");
 
 	static ThreadLocal<Window> currentWindow = new ThreadLocal<Window>() {
 		@Override
@@ -154,7 +154,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 //	try {
 //			ThreadSync.callInMainThreadAndWait(() -> {
 
-		window = glfwCreateWindow(w, h, title, 0, shareContext == this ? 0 : shareContext.window);
+		window = glfwCreateWindow(w, h, title==null ? "" : title, 0, shareContext == this ? 0 : shareContext.window);
 
 		this.title = title;
 
@@ -803,14 +803,14 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 
 			@Override
 			public void key(long window, int key, int scancode, int action, int mods) {
-				if (window == Window.this.window && RunLoop.tick > windowOpenedAt + 10) { // we ignore keyboard events from the first couple of updates; they can refer to key downs that we'll never recieve up fors
+				if (window == Window.this.window && RunLoop.tick > windowOpenedAt + 10) { // we ignore keyboard events from the first couple of updates; they can refer to key downs that we'll never receive
 
 					KeyboardState next = keyboardState.withKey(key, action != GLFW_RELEASE);
 
 					modifiers.event(key, scancode, action, mods, next.keysDown);
 
 //					next = modifiers.cleanModifiers(next);
-//					next = next.clean(window);
+					next = next.clean(window);
 
 					fireKeyboardTransition(keyboardState, next);
 					keyboardState = next;
@@ -828,14 +828,14 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 					boolean ctrl = ((glfwGetKey(window, GLFW_KEY_LEFT_CONTROL)) | (glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL))) != 0;
 
 //					next = modifiers.cleanModifiers(next);
-//					next = next.clean(window);
+					next = next.clean(window);
 
 					fireKeyboardTransition(keyboardState, next);
 					keyboardState = next;
 					next = keyboardState.withChar((char) character, false);
 
 //					next = modifiers.cleanModifiers(next);
-//					next = next.clean(window);
+					next = next.clean(window);
 					fireKeyboardTransition(keyboardState, next);
 					keyboardState = next;
 				}

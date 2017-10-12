@@ -28,8 +28,8 @@ import java.util.stream.Stream;
  */
 public class NotificationBox extends Box implements IO.Loaded {
 
-	static public final Dict.Prop<Consumer<String>> note = new Dict.Prop<>("note").type().toCannon().doc("...");
-	static public final Dict.Prop<Runnable> clearNote = new Dict.Prop<>("clearNote").type().toCannon().doc("...");
+	static public final Dict.Prop<Consumer<String>> note = new Dict.Prop<>("note").type().toCanon().doc("...");
+	static public final Dict.Prop<Runnable> clearNote = new Dict.Prop<>("clearNote").type().toCanon().doc("...");
 
 	private final Box root;
 	private Browser theBox;

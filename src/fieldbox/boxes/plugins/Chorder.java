@@ -36,21 +36,21 @@ public class Chorder extends Box {
 
 	static public final Dict.Prop<FunctionOfBox<Supplier<Boolean>>> begin = new Dict.Prop<>(
 		"begin").type()
-			.toCannon()
+			.toCanon()
 			.doc("call <code>.begin()</code> to add a box to the animation cycle, ending any animation that this box is currently performing. Returns a function that tells you whether this box is still running.");
 
 	static public final Dict.Prop<FunctionOfBox> end = new Dict.Prop<>("end").type()
-										 .toCannon()
+										 .toCanon()
 										 .doc("call <code>.end()</code> to remove a box from the animation cycle.");
 
 
 	static public final Dict.Prop<FunctionOfBox<Runnable>> beginAgain = new Dict.Prop<>(
 		"beginAgain").type()
-			     .toCannon()
-			     .doc("call <code>.beginAgain()</code> to add a box to the animation cycle. Returns a function that, when you call it, will forcibly _.end() just that execution.");
+			     .toCanon()
+			     .doc("call <code>.beginAgain()</code> to add a box to the animation cycle. Returns a function that, when you call it, will forcibly _.end() just that execution (while, potentially, other executions continue to run).");
 
 	static public final Dict.Prop<Boolean> nox = new Dict.Prop<>("_nox").type()
-									    .toCannon()
+									    .toCanon()
 									    .doc("'NO eXecution. Set to prevent option-clicking from running this box");
 
 
@@ -91,7 +91,7 @@ public class Chorder extends Box {
 			return chordAt(frames, point, e);
 		});
 
-		this.properties.put(begin, box -> {
+		this.properties.put(begin,  box -> {
 			box.first(Execution.execution)
 			   .ifPresent(x -> x.support(box, Execution.code)
 					    .begin(box, getInitiator(box)));

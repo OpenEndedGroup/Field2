@@ -41,15 +41,15 @@ import static fieldbox.boxes.FLineDrawing.*;
  */
 public class RemoteEditor extends Box {
 
-	static public final Dict.Prop<EditorUtils> editorUtils = new Dict.Prop<EditorUtils>("editorUtils").toCannon()
+	static public final Dict.Prop<EditorUtils> editorUtils = new Dict.Prop<EditorUtils>("editorUtils").toCanon()
 		.doc("utility class for manipulating the editor at a high level");
 
 	static public final Dict.Prop<Supplier<Map<Pair<String, String>, Runnable>>> hotkeyCommands = new Dict.Prop<>("hotkeyCommands").type()
 		.doc("commands injected into the editor as hotkey menuSpecs")
-		.toCannon();
+		.toCanon();
 	static public final Dict.Prop<RemoteEditor> editor = new Dict.Prop<>("editor").type()
 		.doc("the (remote) editor object")
-		.toCannon();
+		.toCanon();
 	static public final Dict.Prop<Function<Box, Consumer<String>>> outputFactory = new Dict.Prop<>("outputFactory");
 	static public final Dict.Prop<Function<Box, Consumer<Pair<Integer, String>>>> outputErrorFactory = new Dict.Prop<>("outputErrorFactory");
 	static public final Dict.Prop<Function<Box, BiConsumer<String, JSONObject>>> outputMessageFactory = new Dict.Prop<>("outputMessageFactory");
@@ -1207,7 +1207,7 @@ public class RemoteEditor extends Box {
 					objectProp = currentlyEditing;
 				} else objectProp = target.find(defaultEditorProperty, target.upwards())
 					.findFirst()
-					.map(x -> (Dict.Prop) new Dict.Prop<String>(x).toCannon())
+					.map(x -> (Dict.Prop) new Dict.Prop<String>(x).toCanon())
 					.orElseGet(() -> (Dict.Prop) Execution.code);
 
 

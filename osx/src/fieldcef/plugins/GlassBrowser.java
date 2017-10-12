@@ -33,7 +33,7 @@ import java.util.stream.Stream;
  */
 public class GlassBrowser extends Box implements IO.Loaded {
 
-	static public final Dict.Prop<GlassBrowser> glassBrowser = new Dict.Prop<>("glassBrowser").toCannon()
+	static public final Dict.Prop<GlassBrowser> glassBrowser = new Dict.Prop<>("glassBrowser").toCanon()
 		.type()
 		.doc("The Browser that is stuck in front of the window, in window coordinates");
 	private final Box root;

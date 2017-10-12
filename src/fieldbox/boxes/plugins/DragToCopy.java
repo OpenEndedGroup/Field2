@@ -22,7 +22,7 @@ import java.util.stream.Stream;
  */
 public class DragToCopy extends Box {
 
-	static public final Dict.Prop<FunctionOfBox<Box>> duplicate = new Dict.Prop<FunctionOfBox<Box>>("duplicate").toCannon().doc("duplicates a box (and all of it's properties)");
+	static public final Dict.Prop<FunctionOfBox<Box>> duplicate = new Dict.Prop<FunctionOfBox<Box>>("duplicate").toCanon().doc("duplicates a box (and all of it's properties)");
 
 	public DragToCopy(Box root)
 	{

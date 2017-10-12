@@ -3,6 +3,7 @@ package fieldlinker;
 
 //import jdk.dynalink.CallSiteDescriptor;
 
+import jdk.dynalink.beans.StaticClass;
 import jdk.dynalink.linker.*;
 //import jdk.dynalink.support.Guards;
 //import jdk.nashorn.api.scripting.extensions.CustomDelete;
@@ -111,7 +112,7 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 			}
 
 
-		} else if (linkRequest.getCallSiteDescriptor()
+		}  else if (linkRequest.getCallSiteDescriptor()
 			.getOperation().toString().startsWith("NEW") && linkRequest.getArguments().length == 2) {
 
 			Object rec = linkRequest.getReceiver();

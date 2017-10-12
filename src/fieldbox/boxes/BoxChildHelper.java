@@ -51,7 +51,7 @@ public class BoxChildHelper implements fieldlinker.AsMap, Collection<Box>, Objec
 		Stream<Object> o = c.stream().map(x -> x.asMap_get(p)).filter(x -> x != null);
 		Optional val = null;
 
-		Dict.Prop c = new Dict.Prop(p).findCannon();
+		Dict.Prop c = new Dict.Prop(p).findCanon();
 		if (c != null) {
 			BinaryOperator sr = c.getAttributes().get(Dict.streamReducer);
 			if (sr != null)

@@ -22,10 +22,10 @@ import static field.graphics.StandardFLineDrawing.*;
 public class StatusBar extends Box {
 
 	static public Dict.Prop<StatusBar> statusBar = new Dict.Prop<StatusBar>("statusBar").type()
-											    .toCannon()
+											    .toCanon()
 											    .doc("The status-bar plugin");
 	static public Dict.Prop<IdempotencyMap<Supplier<String>>> statuses = new Dict.Prop<>("statuses").type()
-												     .toCannon()
+												     .toCanon()
 												     .autoConstructs(() -> new IdempotencyMap<>(Supplier.class))
 												     .doc("Add things here to the status bar, and call `_.statusBar.update()` to update/repaint");
 	int insetW = 10;

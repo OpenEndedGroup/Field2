@@ -23,7 +23,7 @@ import java.util.function.Function;
  */
 public class Image extends Box {
 
-	static public final Dict.Prop<Function<String, TextureLoader>> newImage = new Dict.Prop<>("newImage").toCannon();
+	static public final Dict.Prop<Function<String, TextureLoader>> newImage = new Dict.Prop<>("newImage").toCanon();
 	FastJPEG j = new FastJPEG();
 	Map<String, PerLayer> layerLocal = new LinkedHashMap<>();
 

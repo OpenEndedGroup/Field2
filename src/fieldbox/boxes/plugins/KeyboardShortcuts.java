@@ -22,11 +22,11 @@ public class KeyboardShortcuts extends Box {
 	static protected final Dict.Prop<Boolean> __deltwith = new Dict.Prop<>("__deltwith");
 
 	static public final Dict.Prop<Set<Integer>> keysDown = new Dict.Prop<>("keysDown")
-		.type().toCannon()
+		.type().toCanon()
 		.doc("A property that's set to all of the 'chars' that are currently being held down on the keyboard");
 
 	static public final Dict.Prop<IdempotencyMap<Function<Box, Void>>> shortcut = new Dict.Prop<>("shortcut").type()
-		.toCannon()
+		.toCanon()
 		.doc("A map for keyboard shortcuts. For example `_.shortcut.ctrl_f = function(box){...}`. In order to qualify as a keyboard shortcut, alt, ctrl or meta (aka command) must be pressed")
 		.autoConstructs(() -> new IdempotencyMap<>(Function.class));
 

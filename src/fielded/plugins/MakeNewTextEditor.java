@@ -28,9 +28,9 @@ import java.util.stream.Stream;
  */
 public class MakeNewTextEditor extends Box {
 
-	static public Dict.Prop<FunctionOfBox<Box>> makeNewTextEditor = new Dict.Prop<>("makeNewTextEditor").type().toCannon();
+	static public Dict.Prop<FunctionOfBox<Box>> makeNewTextEditor = new Dict.Prop<>("makeNewTextEditor").type().toCanon();
 
-	static public Dict.Prop<TriFunctionOfBoxAnd<Box, String, Boolean>> setCurrentlyEdited = new Dict.Prop<>("setCurrentlyEdited").type().toCannon();
+	static public Dict.Prop<TriFunctionOfBoxAnd<Box, String, Boolean>> setCurrentlyEdited = new Dict.Prop<>("setCurrentlyEdited").type().toCanon();
 
 	public MakeNewTextEditor(Box root) {
 

@@ -24,8 +24,8 @@ import java.util.function.Function;
  */
 public class Image2 extends Box {
 
-    static public final Dict.Prop<FunctionOfBoxValued<IdempotencyMap<TextureLoader>>> images = new Dict.Prop<>("images").toCannon();
-    static public final Dict.Prop<IdempotencyMap<TextureLoader>> _currentImages = new Dict.Prop<>("_currentImages").toCannon();
+    static public final Dict.Prop<FunctionOfBoxValued<IdempotencyMap<TextureLoader>>> images = new Dict.Prop<>("images").toCanon();
+    static public final Dict.Prop<IdempotencyMap<TextureLoader>> _currentImages = new Dict.Prop<>("_currentImages").toCanon();
 
     FastJPEG j = new FastJPEG();
     Map<String, PerLayer> layerLocal = new LinkedHashMap<>();

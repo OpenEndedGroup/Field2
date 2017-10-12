@@ -23,16 +23,16 @@ import java.util.stream.Stream;
  */
 public class Templates extends Box implements IO.Loaded {
 
-	static public final Dict.Prop<Box.BiFunctionOfBoxAnd<String, Box>> templateChild = new Dict.Prop<>("templateChild").toCannon()
+	static public final Dict.Prop<Box.BiFunctionOfBoxAnd<String, Box>> templateChild = new Dict.Prop<>("templateChild").toCanon()
 		.type()
 		.doc("`_.templateChild('template')` create a new box that's a child of this one, copied from 'template'");
 
-	static public final Dict.Prop<Box.TriFunctionOfBoxAnd<String, String, Box>> ensureChildTemplated = new Dict.Prop<>("ensureChildTemplated").toCannon()
+	static public final Dict.Prop<Box.TriFunctionOfBoxAnd<String, String, Box>> ensureChildTemplated = new Dict.Prop<>("ensureChildTemplated").toCanon()
 		.type()
 		.doc("`_.ensureChildTemplated('template', 'a')` create a new box that's a child of this one, copied from `template`, called `a`. If there's already something called `a`, just return that");
 
 	static public final Dict.Prop<Box.BiFunctionOfBoxAnd<String, Box>> saveAsTemplate = new Dict.Prop<>("saveAsTemplate").type()
-		.toCannon()
+		.toCanon()
 		.doc("`_.saveAsTemplate('name')`. Save this box as a template called `name`");
 
 	private final Box root;

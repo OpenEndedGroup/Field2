@@ -32,19 +32,19 @@ import static org.lwjgl.glfw.GLFW.GLFW_KEY_TAB;
 public class FrameManipulation extends Box {
 
 	static public final Dict.Prop<Boolean> lockWidth = new Dict.Prop<>("lockWidth").type()
-		.toCannon()
+		.toCanon()
 		.doc("set to true to disable changes to the width of this box via the mouse");
 	static public final Dict.Prop<Boolean> lockHeight = new Dict.Prop<>("lockHeight").type()
-		.toCannon()
+		.toCanon()
 		.doc("set to true to disable changes to the height of this box via the mouse");
 	static public final Dict.Prop<Boolean> lockX = new Dict.Prop<>("lockX").type()
-		.toCannon()
+		.toCanon()
 		.doc("set to true to disable changes to the x-position of this box via the mouse");
 	static public final Dict.Prop<Boolean> lockY = new Dict.Prop<>("lockY").type()
-		.toCannon()
+		.toCanon()
 		.doc("set to true to disable changes to the y-position of this box via the mouse");
 
-	static public final Dict.Prop<FunctionOfBoxValued<List<Box>>> selection = new Dict.Prop<>("selection").toCannon()
+	static public final Dict.Prop<FunctionOfBoxValued<List<Box>>> selection = new Dict.Prop<>("selection").toCanon()
 		.type()
 		.doc("the list of boxes that are selected");
 

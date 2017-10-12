@@ -24,15 +24,15 @@ import java.util.Map;
  */
 public class GraphicsSupport extends Box {
 
-	static public Dict.Prop<String> fragment = new Dict.Prop<>("fragment").doc("fragment shader text").type().toCannon().set(IO.persistent, true);
-	static public Dict.Prop<String> geometry = new Dict.Prop<>("geometry").doc("geometry shader text").type().toCannon().set(IO.persistent, true);
-	static public Dict.Prop<String> vertex = new Dict.Prop<>("vertex").doc("vertex shader text").type().toCannon().set(IO.persistent, true);
+	static public Dict.Prop<String> fragment = new Dict.Prop<>("fragment").doc("fragment shader text").type().toCanon().set(IO.persistent, true);
+	static public Dict.Prop<String> geometry = new Dict.Prop<>("geometry").doc("geometry shader text").type().toCanon().set(IO.persistent, true);
+	static public Dict.Prop<String> vertex = new Dict.Prop<>("vertex").doc("vertex shader text").type().toCanon().set(IO.persistent, true);
 
 	static public Dict.Prop<FunctionOfBox> newShader = new Dict.Prop<>("newShader")
-			.doc("creates a shader from a box, populating the _vertex_,  _geometry_ and _fragment_ properties with defaults").type().toCannon();
+			.doc("creates a shader from a box, populating the _vertex_,  _geometry_ and _fragment_ properties with defaults").type().toCanon();
 
 	static public Dict.Prop<BiFunctionOfBoxAnd<Shader, Object>> bindShader= new Dict.Prop<>("bindShader")
-			.doc("adds an existing Shader to this box, populating the _vertex_,  _geometry_ and _fragment_ properties with the source code for the shader, and letting 'reload shader' work").type().toCannon();
+			.doc("adds an existing Shader to this box, populating the _vertex_,  _geometry_ and _fragment_ properties with the source code for the shader, and letting 'reload shader' work").type().toCanon();
 
 	static public Dict.Prop<List<Shader>> _shaders = new Dict.Prop<>("_shaders");
 

@@ -25,19 +25,19 @@ public class Commands extends Box {
 
 	static public final Dict.Prop<Supplier<Map<Pair<String, String>, Runnable>>> commands = new Dict.Prop<>("commands").type()
 		.doc("commands injected into the editor as ctrl-space menuSpecs. For a simpler, static, interface you might try `_.command`")
-		.toCannon();
+		.toCanon();
 
 	static public final Dict.Prop<IdempotencyMap<Function<Box, Void>>> command = new Dict.Prop<>("command").type()
-		.toCannon()
+		.toCanon()
 		.doc("commands for this box (and all boxes below). For example `_.command.foo = function(_) bar(_)`")
 		.autoConstructs(() -> new IdempotencyMap<>(Function.class));
 	static public final Dict.Prop<IdempotencyMap<Function<Box, Boolean>>> commandGuard = new Dict.Prop<>("commandGuard").type()
-		.toCannon()
+		.toCanon()
 		.doc("a predicate that allows you to turn on and off a command. `_.commandGuard.foo = function(_) false` will turn off command `foo` for this box and all progengy")
 		.autoConstructs(() -> new IdempotencyMap<>(Function.class));
 
 	static public final Dict.Prop<IdempotencyMap<String>> commandDoc = new Dict.Prop<>("commandDoc").type()
-		.toCannon()
+		.toCanon()
 		.doc("documentation for commands for this box (and all boxes below). For example `_.commandDoc.foo = \"foos the bar\"`")
 		.autoConstructs(() -> new IdempotencyMap<>(String.class));
 

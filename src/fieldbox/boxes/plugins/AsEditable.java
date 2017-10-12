@@ -20,7 +20,7 @@ import java.util.Map;
  */
 public class AsEditable extends Box {
 
-	static public final Dict.Prop<Box.TriFunctionOfBoxAnd<String, String, Boolean>> makeEditable = new Dict.Prop<>("makeEditable").doc("makes a property editable as source code in the editor. Specifically, `_.makeEditable('luaSource', 'lua') will make a property called `_.luaSource` editable, and the source code will be stored in files with the `.custom.lua` file extension and syntax highlighted as Lua.").toCannon();
+	static public final Dict.Prop<Box.TriFunctionOfBoxAnd<String, String, Boolean>> makeEditable = new Dict.Prop<>("makeEditable").doc("makes a property editable as source code in the editor. Specifically, `_.makeEditable('luaSource', 'lua') will make a property called `_.luaSource` editable, and the source code will be stored in files with the `.custom.lua` file extension and syntax highlighted as Lua.").toCanon();
 
 	private final Box root;
 
@@ -37,7 +37,7 @@ public class AsEditable extends Box {
 
 			Dict.Prop<String> p = new Dict.Prop<>(propName);
 			FieldBox.fieldBox.io.addFilespec(propName, ".custom." + ext, knownModes.getOrDefault(ext, ext));
-			p.toCannon().set(IO.persistent, true);
+			p.toCanon().set(IO.persistent, true);
 
 			bx.properties.put(Commands.commands, () -> {
 				Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();

@@ -31,8 +31,8 @@ public class Keyboard {
 
 	Map<Integer, Collection<Hold>> ongoingDrags = new HashMap<Integer, Collection<Hold>>();
 
-	static public final Dict.Prop<Map<String, OnKeyDown>> onKeyDown = new Dict.Prop<>("onKeyDown").type().toCannon().autoConstructs(() -> new IdempotencyMap<>(OnKeyDown.class));
-	static public final Dict.Prop<Map<String, OnCharTyped>> onCharTyped = new Dict.Prop<>("onCharTyped").type().toCannon().autoConstructs(() -> new IdempotencyMap<>(OnCharTyped.class));
+	static public final Dict.Prop<Map<String, OnKeyDown>> onKeyDown = new Dict.Prop<>("onKeyDown").type().toCanon().autoConstructs(() -> new IdempotencyMap<>(OnKeyDown.class));
+	static public final Dict.Prop<Map<String, OnCharTyped>> onCharTyped = new Dict.Prop<>("onCharTyped").type().toCanon().autoConstructs(() -> new IdempotencyMap<>(OnCharTyped.class));
 
 
 	public void dispatch(Box root, Window.Event<Window.KeyboardState> event) {

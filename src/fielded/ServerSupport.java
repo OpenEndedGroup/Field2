@@ -28,7 +28,7 @@ public class ServerSupport {
 
 //	static public int webserverPort = -1;
 
-	static public final Dict.Prop<Server> server = new Dict.Prop<Server>("server").type().toCannon().doc("The internal websocket-capable server");
+	static public final Dict.Prop<Server> server = new Dict.Prop<Server>("server").type().toCanon().doc("The internal websocket-capable server");
 
 	static public List<String> playlist = Arrays
 		    .asList("messagebus.js", "instantiate.js", "kill.js", "changehooks.js", "status.js", "helpbox.js", "modal.js", "brackets.js", "output.js", "doubleshift.js", "JSHotkeyFunctions.js", "colorPicker.js", "drags.js", "taps.js");

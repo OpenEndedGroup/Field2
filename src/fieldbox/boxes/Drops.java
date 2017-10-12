@@ -14,7 +14,7 @@ import java.util.Map;
 public class Drops {
 
 	static public final Dict.Prop<Map<String, OnDrop>> onDrop = new Dict.Prop<>("onDrop").type()
-											    .toCannon().autoConstructs(() -> new IdempotencyMap<OnDrop>(OnDrop.class));
+											    .toCanon().autoConstructs(() -> new IdempotencyMap<OnDrop>(OnDrop.class));
 
 	public void dispatch(Box root, Window.Event<Window.Drop> drop) {
 

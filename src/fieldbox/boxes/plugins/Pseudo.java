@@ -27,107 +27,107 @@ public class Pseudo extends Box {
 
 	static public Dict.Prop<FunctionOfBoxValued<First>> where = new Dict.Prop<FunctionOfBoxValued<First>>("where").doc(
 		"`_.where.x` returns the box that contains the property `_.x`. This means that `_.where.x=someOtherBox` can be used to move properties around.")
-														      .toCannon()
+														      .toCanon()
 														      .type();
 
 	static public Dict.Prop<FunctionOfBoxValued<All>> all = new Dict.Prop<FunctionOfBoxValued<All>>("all").doc(" `_.all.x` returns all values of `x` above this box and at this box")
-													      .toCannon()
+													      .toCanon()
 													      .type();
 
 	static public Dict.Prop<FunctionOfBoxValued<Up>> up = new Dict.Prop<FunctionOfBoxValued<Up>>("up").doc(" `_.up.x` returns _a_ first value of `x` above this box, or `null` if there isn't one")
-													  .toCannon()
+													  .toCanon()
 													  .type();
 
 
 	static public Dict.Prop<FunctionOfBoxValued<Has>> has = new Dict.Prop<FunctionOfBoxValued<All>>("has").doc(" `_.has.x` returns true if this box, or any box above it, has a property `x` ")
-													      .toCannon()
+													      .toCanon()
 													      .type();
 
 	static public Dict.Prop<FunctionOfBoxValued<Herer>> here = new Dict.Prop<FunctionOfBoxValued<Herer>>("here").doc(" `_.here.x` returns true if this box has a property `x` ")
-														    .toCannon()
+														    .toCanon()
 														    .type();
 
 	static public Dict.Prop<FunctionOfBoxValued<Signal>> signal = new Dict.Prop<FunctionOfBoxValued<All>>("signal").doc(
 		" `_.signal.x` returns `_.has.x`, and deletes this value at the same time. ")
-														       .toCannon()
+														       .toCanon()
 														       .type();
 
 	static public Dict.Prop<FunctionOfBoxValued<Queue>> queue = new Dict.Prop<FunctionOfBoxValued<Queue>>("queue").doc(" `_.queue.A = 10`, pushes a value to queue `A`, `_.queue.A` pops it")
-														      .toCannon()
+														      .toCanon()
 														      .type();
 	static public Dict.Prop<FunctionOfBoxValued<Peek>> peek = new Dict.Prop<FunctionOfBoxValued<Queue>>("peek").doc(
 		" `_.peek.A = 10`, pushes a value to queue `A`, `_.peek.A` peeks at it (returns it without popping)")
-														   .toCannon()
+														   .toCanon()
 														   .type();
 
 
 	static public Dict.Prop<FunctionOfBoxValued<Until>> yieldUntil = new Dict.Prop<FunctionOfBoxValued<Until>>("yieldUntil").doc(
 		" `_.yieldUntil.A` yields until property `A` is non-null / non-false,`_yieldUntil.A=10`, yields until `A==10`")
-																.toCannon()
+																.toCanon()
 																.type();
 
 	static public Dict.Prop<FunctionOfBoxValued<Sync>> sync = new Dict.Prop<FunctionOfBoxValued<Sync>>("sync").doc(
 		" `_.sync.canvas = function() { ... return blah } executes that function on the main thread, and sets `_.canvas` to be the return value of that function. This does this synchronously.")
-														  .toCannon()
+														  .toCanon()
 														  .type();
 
 
 	static public Dict.Prop<FunctionOfBoxValued<Down>> down = new Dict.Prop<FunctionOfBoxValued<Down>>("down").doc(" `_.down.x` searches for `x` _down_ the dispatch graph rather than upwards ")
-														  .toCannon()
+														  .toCanon()
 														  .type();
 
 	static public Dict.Prop<FunctionOfBoxValued<AllDown>> allDown = new Dict.Prop<FunctionOfBoxValued<AllDown>>("allDown").doc(
 		"`_.allDown.x` searches for `x` _down_ the dispatch graph rather than upwards, and returns all results")
-															      .toCannon()
+															      .toCanon()
 															      .type();
 
 	static public Dict.Prop<FunctionOfBoxValued<Contained>> contained = new Dict.Prop<FunctionOfBoxValued<AllDown>>("contained").doc(
 		"`_.contained.x` searches for `x` in all children boxes of this box. Useful for groups, which are parents of groups")
-																    .toCannon()
+																    .toCanon()
 																    .type();
 
 	static public Dict.Prop<IdempotencyMap<Runnable>> next = new Dict.Prop<IdempotencyMap<Runnable>>("next").doc(
 		"`_.next.A = () => { ... }` executes this function in the next update cycle. Note, `A` will overwrite anything else that's been set in this box with this name for this cycle")
-														.toCannon()
+														.toCanon()
 														.type()
 														.autoConstructs(() -> new IdempotencyMap<>(Runnable.class));
 
 	static public Dict.Prop<FunctionOfBoxValued<MainThreader>> inMainThread = new Dict.Prop<FunctionOfBoxValued<MainThreader>>("inMainThread").doc(
 		"`_.inMainThread.foo = ()=>{ ... }` execute that function in the main thread, waiting for it to return and sets `_.foo` to the return value")
-																		  .toCannon()
+																		  .toCanon()
 																		  .type();
 
 
 	static public Dict.Prop<IdempotencyMap<Runnable>> next10 = new Dict.Prop<IdempotencyMap<Runnable>>("next10").doc(
 		"`_.next10.A = ()=>{ ... }` executes this function 10 update cycles later. Note, `A` will overwrite anything else that's been set in this box with this name for this cycle")
-														    .toCannon()
+														    .toCanon()
 														    .type()
 														    .autoConstructs(() -> new IdempotencyMap<>(Runnable.class));
 
 
 	static public Dict.Prop<FunctionOfBoxValued<Replacer>> replace = new Dict.Prop<FunctionOfBoxValued<Replacer>>("replace").doc(
 		"`_.replace.x = 10` replaces the value of `x` where it is found (e.g. here or some parent).")
-																.toCannon();
+																.toCanon();
 
-	static public Dict.Prop<FunctionOfBoxValued<Refer>> ref = new Dict.Prop<FunctionOfBoxValued<Refer>>("ref").toCannon()
+	static public Dict.Prop<FunctionOfBoxValued<Refer>> ref = new Dict.Prop<FunctionOfBoxValued<Refer>>("ref").toCanon()
 														  .type()
 														  .doc("`_.ref.x` returns the property `x` itself (rather than the value of `x` here). You can use this to modify things about property `x`. For Example `_.ref.x.persistent=true` will cause `x` to be saved with the document.");
 
-	//	static public Dict.Prop<FunctionOfBoxValued<XPath>> query = new Dict.Prop<>("query").toCannon().type();
-	static public Dict.Prop<FunctionOfBoxValued<Namer>> named = new Dict.Prop<>("named").toCannon()
+	//	static public Dict.Prop<FunctionOfBoxValued<XPath>> query = new Dict.Prop<>("query").toCanon().type();
+	static public Dict.Prop<FunctionOfBoxValued<Namer>> named = new Dict.Prop<>("named").toCanon()
 											    .type()
 											    .doc("`_.named.x` returns an array of all the boxes named `x` that are _below_ this box. If you want to search everywhere, try `_.root.named.x`. To match regex or use whitespace in names, try `_.named['.*x']`");
 
 
-	static public Dict.Prop<FunctionOfBoxValued<WithID>> withID = new Dict.Prop<>("withID").toCannon()
+	static public Dict.Prop<FunctionOfBoxValued<WithID>> withID = new Dict.Prop<>("withID").toCanon()
 											       .type()
 											       .doc("`_.withID['abc']` returns any box with ID `abc` _below_ this box. If you want to search everywhere, try `_.root.withID.x`. ID's are uniqe (across the universe).");
 
-	static public Dict.Prop<FunctionOfBoxValued<Oncer>> once = new Dict.Prop<FunctionOfBoxValued<Oncer>>("once").toCannon()
+	static public Dict.Prop<FunctionOfBoxValued<Oncer>> once = new Dict.Prop<FunctionOfBoxValued<Oncer>>("once").toCanon()
 														    .type()
 														    .doc("`_.once.x = () => { ... do something ... }` will call that function if `x` isn't set here and set `x` to the result if that function returns something. It's a fine way to initialize something once.");
 
-	static public Dict.Prop<FunctionOfBoxValued<Deleter>> delete = new Dict.Prop<FunctionOfBoxValued<Deleter>>("delete").toCannon()
+	static public Dict.Prop<FunctionOfBoxValued<Deleter>> delete = new Dict.Prop<FunctionOfBoxValued<Deleter>>("delete").toCanon()
 														    .type()
 														    .doc("`_.delete.banana` removes the property `banana` from the box `_`. If you want to remove `banana` from wherever it is found (carefully!): `_.where.banana.delete.banana`` will do the trick.");
 
@@ -426,8 +426,8 @@ public class Pseudo extends Box {
 
 			Dict.Prop cc = new Dict.Prop(p);
 
-			Dict.Prop cannon = cc.findCannon();
-			if (cannon != null) cc = cannon;
+			Dict.Prop canon = cc.findCanon();
+			if (canon != null) cc = canon;
 
 			if (cc.getAttributes().isTrue(readOnly, false))
 				throw new IllegalArgumentException("can't write to property '" + p + "', property is read-only");
@@ -720,7 +720,7 @@ public class Pseudo extends Box {
 
 		@Override
 		public Object asMap_get(String s) {
-			return new Dict.Prop(s).toCannon();
+			return new Dict.Prop(s).toCanon();
 		}
 
 

@@ -20,7 +20,7 @@ import java.util.Optional;
 public class HotkeyMenus extends Box {
 
 	//TODO: consider being able to .toCommand("A command") Suppliers and FunctionOfBox's
-	static public final Dict.Prop<FunctionOfBox<Box>> newBox = new Dict.Prop<FunctionOfBox<Box>>("newBox").toCannon().doc("create a new box that's a peer of this one");
+	static public final Dict.Prop<FunctionOfBox<Box>> newBox = new Dict.Prop<FunctionOfBox<Box>>("newBox").toCanon().doc("create a new box that's a peer of this one");
 
 	private final Box root;
 	private final String filename;
