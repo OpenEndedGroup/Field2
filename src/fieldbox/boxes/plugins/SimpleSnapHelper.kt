@@ -51,7 +51,7 @@ class SimpleSnapHelper(private val inside: Box, val THRESHOLD: Int = 10) {
 
             // min should be m1.second by aligning to box m1.first
             ongoing.forEach {
-                it.third.x = m2.third.invoke(it.third.xw, m2.first to m2.second).toFloat()-it.third.w
+                it.third.x = m2.third.invoke(it.third.xw, m2.first to m2.second).toFloat() - it.third.w
             }
 
             val f = FLine().moveTo(m2.second.toDouble(), viewBounds.y.toDouble()).lineTo(m2.second.toDouble(), viewBounds.yh.toDouble())
@@ -82,9 +82,13 @@ class SimpleSnapHelper(private val inside: Box, val THRESHOLD: Int = 10) {
 
 }
 
-private val Rect.yh: Float
+val Rect.yh: Float
     get() {
         return this.y + this.h;
+    }
+val Rect.xw: Float
+    get() {
+        return this.x + this.w;
     }
 
 private fun <A, B> kotlin.Pair<A, B>.toPair(): Pair<A, B> {
@@ -92,7 +96,3 @@ private fun <A, B> kotlin.Pair<A, B>.toPair(): Pair<A, B> {
 }
 
 
-private val Rect.xw: Float
-    get() {
-        return this.x + this.w;
-    }
