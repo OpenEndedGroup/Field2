@@ -502,7 +502,7 @@ public class FLinesAndJavaShapes {
 					double dd = at.distance(point);
 					if (dd < best) {
 						best = dd;
-						tt = d + (i - 1);
+						tt = d/len + (i - 1);
 					}
 				}
 			} else {
@@ -1078,10 +1078,15 @@ public class FLinesAndJavaShapes {
 			}
 
 			if (segmentIsMove()) {
-
+				for (int i = index + 1; i < on.nodes.size(); i++) {
+					right.copyTo(on.nodes.get(i));
+				}
 			} else if (segmentIsLinear()) {
 				left.lineTo(position());
 				right.moveTo(position());
+				for (int i = index + 1; i < on.nodes.size(); i++) {
+					right.copyTo(on.nodes.get(i));
+				}
 			} else if (segmentIsCubic()) {
 				Vec3 a = new Vec3(on.nodes.get(clamp(index)).to);
 				Vec3 c1 = new Vec3(((FLine.CubicTo) on.nodes.get(clamp(index + 1))).c1);
@@ -1098,9 +1103,9 @@ public class FLinesAndJavaShapes {
 				left.cubicTo(c1, c12, m);
 				right.moveTo(m);
 				right.cubicTo(c21, c2, b);
-			}
-			for (int i = index + 2; i < on.nodes.size(); i++) {
-				right.copyTo(on.nodes.get(i));
+				for (int i = index + 2; i < on.nodes.size(); i++) {
+					right.copyTo(on.nodes.get(i));
+				}
 			}
 
 			return new Pair<>(left, right);
