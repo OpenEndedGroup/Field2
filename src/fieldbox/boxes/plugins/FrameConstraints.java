@@ -21,7 +21,7 @@ import java.util.function.Function;
  */
 public class FrameConstraints extends Box {
 
-	static public final Dict.Prop<FrameConstraints> frameConstraints = new Dict.Prop<FrameConstraints>("frameConstraints").type().toCannon()
+	static public final Dict.Prop<FrameConstraints> frameConstraints = new Dict.Prop<FrameConstraints>("frameConstraints").type().toCanon()
 		    .doc("The constraint layout plugin");
 
 	ClSimplexSolver solver = new ClSimplexSolver();
@@ -29,14 +29,6 @@ public class FrameConstraints extends Box {
 	public FrameConstraints(Box root) {
 		this.properties.put(frameConstraints, this);
 		this.properties.putToMap(Boxes.insideRunLoop, "main.updateConstraints", () -> run());
-	}
-
-	public interface OnFrameChange {
-		FrameChanging frameChange(Box target, Rect was, Rect now);
-	}
-
-	public interface FrameChanging {
-
 	}
 
 
