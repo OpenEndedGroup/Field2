@@ -4,6 +4,7 @@ import field.app.RunLoop;
 import field.app.ThreadSync;
 import field.app.ThreadSync2;
 import field.graphics.*;
+import field.graphics.util.onsheetui.Label;
 import field.utility.AutoPersist;
 import field.utility.Dict;
 import field.utility.Log;
@@ -47,7 +48,7 @@ import static org.lwjgl.opengl.GL11.*;
  */
 public class Open {
 
-	static public final Dict.Prop<String> fieldFilename = new Dict.Prop<>("fieldFilename").toCannon()
+	static public final Dict.Prop<String> fieldFilename = new Dict.Prop<>("fieldFilename").toCanon()
 											      .type()
 											      .doc("the name of the field sheet that we are currently in");
 
@@ -270,6 +271,8 @@ public class Open {
 		new Exec(boxes.root()).connect(boxes.root());
 
 		new AsEditable(boxes.root()).connect(boxes.root());
+
+		new Label(boxes.root()).connect(boxes.root());
 
 
 		if (ThreadSync.enabled) new ThreadSyncFeedback(boxes.root()).connect(boxes.root());
