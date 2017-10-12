@@ -22,20 +22,24 @@ import java.util.*;
 public class DefaultMenus extends Box {
 
 	//TODO: consider being able to .toCommand("A command") Suppliers and FunctionOfBox's
-	static public final Dict.Prop<FunctionOfBox<Box>> newBox = new Dict.Prop<FunctionOfBox<Box>>("newBox").toCannon()
+	static public final Dict.Prop<FunctionOfBox<Box>> newBox = new Dict.Prop<FunctionOfBox<Box>>("newBox").toCanon()
 		.doc("`_.newBox()` will create a new box that's a peer of this one");
-	static public final Dict.Prop<BiFunctionOfBoxAnd<Class, Box>> newBoxOfClass = new Dict.Prop<BiFunctionOfBoxAnd<Class, Box>>("newBoxOfClass").toCannon()
+	static public final Dict.Prop<BiFunctionOfBoxAnd<Class, Box>> newBoxOfClass = new Dict.Prop<BiFunctionOfBoxAnd<Class, Box>>("newBoxOfClass").toCanon()
 		.doc("`_.newBoxOfClass(c)` create a new box that's a peer of this one, with a custom class `c`");
 
-	static public final Dict.Prop<BiFunctionOfBoxAnd<String, Box>> ensureChild = new Dict.Prop<FunctionOfBox<Box>>("ensureChild").toCannon()
+	static public final Dict.Prop<BiFunctionOfBoxAnd<String, Box>> ensureChild = new Dict.Prop<FunctionOfBox<Box>>("ensureChild").toCanon()
 		.doc("`_.ensureChild('name')` creates a new box that's a child of this one, if there already isn't one with this `name`");
-	static public final Dict.Prop<TriFunctionOfBoxAnd<String, Class, Box>> ensureChildOfClass = new Dict.Prop<BiFunctionOfBoxAnd<Class, Box>>("ensureChildOfClass").toCannon()
+
+	static public final Dict.Prop<Boolean> wasNew = new Dict.Prop<Boolean>("wasNew").toCanon()
+		.doc("`_.wasNew` is set to indicate that the box mentioned by calls like `_.ensureChild()` was actually created, not merely found");
+
+	static public final Dict.Prop<TriFunctionOfBoxAnd<String, Class, Box>> ensureChildOfClass = new Dict.Prop<BiFunctionOfBoxAnd<Class, Box>>("ensureChildOfClass").toCanon()
 		.doc("`_.ensureChildOfClass('name', Something.class)` create a new box that's a peer of this one, with a custom class `Something`, if one called `name` doesn't already exist");
 
-	static public final Dict.Prop<BiFunctionOfBoxAnd<Class, Box>> setClass = new Dict.Prop<FunctionOfBox<Box>>("setClass").toCannon()
+	static public final Dict.Prop<BiFunctionOfBoxAnd<Class, Box>> setClass = new Dict.Prop<FunctionOfBox<Box>>("setClass").toCanon()
 		.doc("`_ = _.setClass(Something.class)` sets the class 'this' box to be `Something`. This only does anything if `Something` is a valid subclass of `Box`");
 
-	static public final Dict.Prop<FunctionOfBox<Box>> deleteBox = new Dict.Prop<FunctionOfBox<Box>>("deleteBox").toCannon().type()
+	static public final Dict.Prop<FunctionOfBox<Box>> deleteBox = new Dict.Prop<FunctionOfBox<Box>>("deleteBox").toCanon().type()
 		.doc("delete this box");
 
 	// this gets set if we successfully opened something
@@ -126,6 +130,8 @@ public class DefaultMenus extends Box {
 				.filter(x -> x.properties.equals(Box.name, name))
 				.findFirst();
 
+			f.map(x -> x.properties.remove(wasNew));
+
 			return f.orElseGet(() -> {
 				Box bx = newBox(box.find(Box.frame, box.both())
 					.findFirst()
@@ -153,6 +159,8 @@ public class DefaultMenus extends Box {
 				.filter(cz::isInstance)
 				.findFirst();
 
+			f.map(x -> x.properties.remove(wasNew));
+
 			return f.orElseGet(() -> {
 				Box bx = newBoxOfClass(cz, box.find(Box.frame, box.both())
 					.findFirst()
@@ -170,6 +178,7 @@ public class DefaultMenus extends Box {
 		});
 
 		properties.put(deleteBox, (box) -> {
+			Callbacks.transition(box, Mouse.isSelected, false, false, Callbacks.onSelect, Callbacks.onDeselect);
 			Callbacks.call(box, Callbacks.onDelete);
 			box.disconnectFromAll();
 			return null;
@@ -185,6 +194,7 @@ public class DefaultMenus extends Box {
 		float w = 50;
 		b1.properties.put(frame, new Rect(at.x - w, at.y - w, w * 2, w * 2));
 		b1.properties.put(Box.name, "Untitled");
+		b1.properties.put(wasNew, true);
 		Drawing.dirty(b1);
 		return b1;
 	}
@@ -212,6 +222,7 @@ public class DefaultMenus extends Box {
 		float w = 50;
 		b1.properties.put(frame, new Rect(at.x - w, at.y - w, w * 2, w * 2));
 		b1.properties.put(Box.name, "Untitled");
+		b1.properties.put(wasNew, true);
 		Drawing.dirty(b1);
 		return b1;
 	}
