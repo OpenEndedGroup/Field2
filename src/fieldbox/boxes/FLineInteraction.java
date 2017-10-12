@@ -24,19 +24,21 @@ import java.util.stream.Collectors;
  */
 public class FLineInteraction extends Box implements Drawing.Drawer, Mouse.OnMouseDown, Mouse.OnMouseMove {
 
-	static public final Dict.Prop<FLineInteraction> interaction = new Dict.Prop<>("interaction").type().toCannon()
+	static public final Dict.Prop<FLineInteraction> interaction = new Dict.Prop<>("interaction").type().toCanon()
 		.doc("the FLineInteraction Plugin");
+	static public final Dict.Prop<FLine> _interactionTarget = new Dict.Prop<>("_interactionTarget").type().toCanon();
+
 	static public final Dict.Prop<Cached<FLine, Object, Area>> projectedArea = new Dict.Prop<>("_projectedArea");
 
-	static public final Dict.Prop<IdempotencyMap<Function<Box, FLine>>> interactiveDrawing = new Dict.Prop<>("interactiveDrawing").type().toCannon().autoConstructs(() -> new IdempotencyMap<>(Function.class)).set(IO.dontCopy, true)
+	static public final Dict.Prop<IdempotencyMap<Function<Box, FLine>>> interactiveDrawing = new Dict.Prop<>("interactiveDrawing").type().toCanon().autoConstructs(() -> new IdempotencyMap<>(Function.class)).set(IO.dontCopy, true)
 		.doc("add lines to this property to make them interactive. onMouseExit and onMouseEnter attributes will be called appropriately. See FLineButton for a helper class.");
 
-	static public final Dict.Prop<Float> interactionOutset = new Dict.Prop<>("interactionOutset").type().toCannon()
+	static public final Dict.Prop<Float> interactionOutset = new Dict.Prop<>("interactionOutset").type().toCanon()
 		.doc("sets how much shapes are outset for the purposes of hovering, clicking and draging").set(Dict.domain, "fline");
 
 
 	static public final Dict.Prop<IdempotencyMap<Supplier<FLine>>> interactiveLines = new Dict.Prop<>("interactiveLines").type().autoConstructs(() -> new IdempotencyMap<>(Supplier.class)).set(IO.dontCopy, true)
-		.toCannon()
+		.toCanon()
 		.doc("add lines to this property to make them interactive. onMouseExit and onMouseEnter attributes will be called appropriately. See FLineButton for a helper class.");
 
 	public FLineInteraction(Box root) {
@@ -52,35 +54,39 @@ public class FLineInteraction extends Box implements Drawing.Drawer, Mouse.OnMou
 	public void draw(DrawingInterface context) {
 		all = new LinkedHashSet<>();
 		this.breadthFirst(this.both()).forEach(x -> {
-			Rect r = x.properties.get(frame);
-			{
-				Map<String, Function<Box, FLine>> drawing = x.properties
-					.get(interactiveDrawing);
+			try {
+				Rect r = x.properties.get(frame);
+				{
+					Map<String, Function<Box, FLine>> drawing = x.properties
+						.get(interactiveDrawing);
 
-				if (drawing != null && drawing.size() > 0) {
-					Iterator<Function<Box, FLine>> it = drawing.values().iterator();
-					while (it.hasNext()) {
-						Function<Box, FLine> f = it.next();
-						FLine fl = f.apply(x);
-						if (fl == null) it.remove();
-						else all.add(fl);
+					if (drawing != null && drawing.size() > 0) {
+						Iterator<Function<Box, FLine>> it = drawing.values().iterator();
+						while (it.hasNext()) {
+							Function<Box, FLine> f = it.next();
+							FLine fl = f.apply(x);
+							if (fl == null) it.remove();
+							else all.add(fl);
+						}
 					}
 				}
-			}
-			{
-				Map<String, Supplier<FLine>> drawing = x.properties.get(interactiveLines);
+				{
+					Map<String, Supplier<FLine>> drawing = x.properties.get(interactiveLines);
 
-				if (drawing != null && drawing.size() > 0) {
-					Iterator<Supplier<FLine>> it = drawing.values().iterator();
-					while (it.hasNext()) {
-						Supplier<FLine> f = it.next();
-						FLine fl = f.get();
-						if (fl == null) it.remove();
-						else all.add(fl);
+					if (drawing != null && drawing.size() > 0) {
+						Iterator<Supplier<FLine>> it = drawing.values().iterator();
+						while (it.hasNext()) {
+							Supplier<FLine> f = it.next();
+							FLine fl = f.get();
+							if (fl == null) it.remove();
+							else all.add(fl);
+						}
 					}
 				}
+			} catch (Exception e) {
+				System.err.println(" Exception thrown inside FLineInteraction.draw() --- problem with contents of 'interactiveLines' ?");
+				e.printStackTrace();
 			}
-
 		});
 		for (FLine f : all)
 			f.attributes.computeIfAbsent(projectedArea, (k) -> new Cached<>((fline, previously) -> projectFLineToArea(fline), (fline) -> new Object[]{fline, fline
@@ -120,10 +126,10 @@ public class FLineInteraction extends Box implements Drawing.Drawer, Mouse.OnMou
 		Window.Event<Window.MouseState> eMarked = e/*.copy()*/;
 		eMarked.properties.put(interaction, this);
 
-		List<Mouse.Dragger> draggers = all.stream().filter(f -> f.attributes.get(projectedArea) != null)
+		List<Pair<FLine, Mouse.Dragger>> draggers = all.stream().filter(f -> f.attributes.get(projectedArea) != null)
 			.filter(f -> f.attributes.get(projectedArea).apply(f).contains(point.x, point.y))
-			.flatMap(f -> f.attributes.getOr(Mouse.onMouseDown, Collections::emptyMap).values().stream())
-			.map(omd -> omd.onMouseDown(eMarked, button)).filter(x -> x != null).collect(Collectors.toList());
+			.flatMap(f -> f.attributes.getOr(Mouse.onMouseDown, Collections::emptyMap).values().stream().map(ff -> new Pair<>(f, ff)))
+			.map(omd -> new Pair<>(omd.first, omd.second.onMouseDown(eMarked, button))).filter(x -> x.second != null).collect(Collectors.toList());
 
 
 		if (draggers.size() > 0) {
@@ -132,9 +138,13 @@ public class FLineInteraction extends Box implements Drawing.Drawer, Mouse.OnMou
 //				event = event.copy();
 				event.properties.put(interaction, this);
 
-				Iterator<Mouse.Dragger> it = draggers.iterator();
+				Iterator<Pair<FLine, Mouse.Dragger>> it = draggers.iterator();
 				while (it.hasNext()) {
-					if (!it.next().update(event, termination)) it.remove();
+					Pair<FLine, Mouse.Dragger> at = it.next();
+
+					event.properties.put(_interactionTarget, at.first);
+
+					if (!at.second.update(event, termination)) it.remove();
 				}
 				return draggers.size() > 0;
 			};
@@ -167,16 +177,16 @@ public class FLineInteraction extends Box implements Drawing.Drawer, Mouse.OnMou
 
 		previousIntersection = intersects;
 
-		List<Mouse.Dragger> draggers = intersects.stream()
-			.flatMap(f -> f.attributes.getOr(Mouse.onMouseMove, Collections::emptyMap).values().stream()).map(omd -> omd.onMouseMove(eMarked))
-			.filter(x -> x != null).collect(Collectors.toList());
+		List<Pair<FLine, Mouse.Dragger>> draggers = intersects.stream()
+			.flatMap(f -> f.attributes.getOr(Mouse.onMouseMove, Collections::emptyMap).values().stream().map(ff -> new Pair<>(f, ff))).map(omd -> new Pair<>(omd.first, omd.second.onMouseMove(eMarked)))
+			.filter(x -> x.second != null).collect(Collectors.toList());
 
 
 		exit.stream().flatMap(f -> f.attributes.getOr(Mouse.onMouseExit, Collections::emptyMap).values().stream())
 			.forEach(omd -> omd.onMouseExit(eMarked));
 
-		draggers.addAll(enter.stream().flatMap(f -> f.attributes.getOr(Mouse.onMouseEnter, Collections::emptyMap).values().stream())
-			.map(omd -> omd.onMouseEnter(eMarked)).filter(x -> x != null).collect(Collectors.toList()));
+		draggers.addAll(enter.stream().flatMap(f -> f.attributes.getOr(Mouse.onMouseEnter, Collections::emptyMap).values().stream().map(ff -> new Pair<>(f, ff)))
+			.map(omd -> new Pair<>(omd.first, omd.second.onMouseEnter(eMarked))).filter(x -> x.second != null).collect(Collectors.toList()));
 
 		if (draggers.size() > 0) {
 			return (event, termination) -> {
@@ -184,9 +194,13 @@ public class FLineInteraction extends Box implements Drawing.Drawer, Mouse.OnMou
 				event.properties.put(interaction, this);
 
 
-				Iterator<Mouse.Dragger> it = draggers.iterator();
+				Iterator<Pair<FLine, Mouse.Dragger>> it = draggers.iterator();
 				while (it.hasNext()) {
-					if (!it.next().update(event, termination)) it.remove();
+					Pair<FLine, Mouse.Dragger> at = it.next();
+
+					event.properties.put(_interactionTarget, at.first);
+
+					if (!at.second.update(event, termination)) it.remove();
 				}
 				return draggers.size() > 0;
 			};
