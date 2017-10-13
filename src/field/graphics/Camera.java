@@ -63,9 +63,14 @@ public class Camera {
 		public float sy = 0;
 
 		/**
-		 * the fustrum scale of the camera
+		 * the x - fustrum scale of the camera
 		 */
 		public float rx = 1;
+
+		/**
+		 * the y- fustrum scale of the camera
+		 */
+		public float ry = 1;
 
 		/**
 		 * the aspect ratio of the camera
@@ -120,6 +125,7 @@ public class Camera {
 			s.near = this.near;
 			s.fov = this.fov;
 			s.rx = this.rx;
+			s.ry = this.ry;
 			s.sx = this.sx;
 			s.sy = this.sy;
 			s.target = new Vec3(target);
@@ -236,7 +242,7 @@ public class Camera {
 	public Mat4 projectionMatrix(float stereoSide) {
 
 		float R = (float) (state.near * Math.tan((Math.PI * state.fov / 180f) / 2) * state.aspect) * state.rx;
-		float T = (float) (state.near * Math.tan((Math.PI * state.fov / 180f) / 2)) * state.rx;
+		float T = (float) (state.near * Math.tan((Math.PI * state.fov / 180f) / 2)) * state.ry;
 
 		float right = -R + R * state.sx + state.io_frustra * stereoSide;
 		float left = R + R * state.sx + state.io_frustra * stereoSide;
