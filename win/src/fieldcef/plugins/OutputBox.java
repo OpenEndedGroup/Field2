@@ -241,7 +241,7 @@ public class OutputBox extends Box implements IO.Loaded {
 				}
 
 				@Override
-				public String begin(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success, Map<String, Object> initiator) {
+				public String begin(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success, Map<String, Object> initiator, boolean killCurrent) {
 					//TODO
 /*
 					System.out.println(" WRAPPED (begin)");
