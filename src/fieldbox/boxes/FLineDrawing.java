@@ -216,7 +216,8 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 
 		this.breadthFirst(this.both())
 			.forEach(Util.wrap(x -> {
-				if (Planes.on(root, x) <= 0) {
+				float ON = (float) Planes.on(root, x);
+				if (ON <= 0) {
 					return;
 				}
 
@@ -246,7 +247,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 					.map(c -> c.apply(x))
 					.filter(fline -> fline != null)
 					.collect(Collectors.toList())
-					.forEach(fline -> dispatchLine(fline, context, text, defaultLayer));
+					.forEach(fline -> dispatchLine(fline, context, text, defaultLayer, ON));
 				Map<String, Supplier<FLine>> ll = x.properties.computeIfAbsent(lines, (k) -> new IdempotencyMap<>(Supplier.class));
 
 				all = new ArrayList<>();
@@ -265,7 +266,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 					.stream()
 					.map(c -> c.get())
 					.filter(fline -> fline != null)
-					.forEach(fline -> dispatchLine(fline, context, text, defaultLayer));
+					.forEach(fline -> dispatchLine(fline, context, text, defaultLayer, ON));
 
 
 				Map<String, Supplier<Collection<? extends Supplier<FLine>>>> bl = x.properties.get(bulkLines);
@@ -290,7 +291,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 					final List<FLine> finalAll = all;
 					Log.log("drawing.trace", () -> " --> " + finalAll);
 
-					all.forEach(fline -> dispatchLine(fline, context, text, defaultLayer));
+					all.forEach(fline -> dispatchLine(fline, context, text, defaultLayer, ON));
 				}
 				Log.log("drawing.trace", () -> "lines for " + x + " finished");
 
@@ -311,13 +312,17 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 	}
 
 	protected void dispatchLine(FLine fline, DrawingInterface context, Optional<TextDrawing> text, String defaultLayer) {
+		dispatchLine(fline, context, text, defaultLayer, 1f);
+	}
+
+	protected void dispatchLine(FLine fline, DrawingInterface context, Optional<TextDrawing> text, String defaultLayer, float opacityMul) {
 		String layerName = fline.attributes.getOr(layer, () -> defaultLayer);
 
 		MeshBuilder line = context.getLine(layerName);
 		MeshBuilder mesh = context.getMesh(layerName);
 		MeshBuilder points = context.getPoints(layerName);
 
-		StandardFLineDrawing.dispatchLine(fline, mesh, line, points, text, layerName);
+		StandardFLineDrawing.dispatchLine(fline, mesh, line, points, text, layerName, opacityMul);
 	}
 
 	protected Map<String, Function<Box, FLine>> defaultdrawsLines(Dict.Prop<Map<String, Function<Box, FLine>>> k) {
