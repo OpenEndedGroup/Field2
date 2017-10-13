@@ -5,6 +5,7 @@ import field.linalg.Vec4;
 import field.utility.*;
 import fieldbox.boxes.plugins.Chorder;
 import fieldbox.boxes.plugins.Initiators;
+import fieldbox.boxes.plugins.Planes;
 import fieldbox.execution.Execution;
 import fieldlinker.Linker;
 
@@ -104,8 +105,7 @@ public class TimeSlider extends Box {
     protected void perform(Rect was, Rect now) {
 
         Stream<Box> off = population().filter(x -> x.properties.get(frame).intersectsX(was.x))
-                .filter(x -> !x.properties.get(frame)
-                        .intersectsX(now.x));
+                .filter(x -> !x.properties.get(frame).intersectsX(now.x));
         Stream<Box> on = population().filter(x -> !x.properties.get(frame).intersectsX(was.x))
                 .filter(x -> x.properties.get(frame)
                         .intersectsX(now.x));
@@ -218,6 +218,7 @@ public class TimeSlider extends Box {
                 .filter(x -> !x.properties.isTrue(Chorder.nox,
                                                   x.properties.has(Drawing.windowSpace) ||
                                                           x.properties.has(Drawing.windowScale)))
+                .filter(x -> Planes.on(parents().iterator().next(), x)>=0.5)
                 .filter(x -> x.properties.has(frame))
                 .filter(x -> x != this);
     }
