@@ -166,6 +166,10 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 			return new FBOSpecification(unit, GL_RGBA32F, width, height, GL_RGBA, GL_FLOAT, 32, false, 1, false, false, 1);
 		}
 
+		static public FBOSpecification singleFloat16(int unit, int width, int height) {
+			return new FBOSpecification(unit, GL_RGBA16F, width, height, GL_RGBA, GL_HALF_FLOAT, 16, false, 1, false, false, 1);
+		}
+
 		static public FBOSpecification layeredFloat(int unit, int width, int height, int layers) {
 			return new FBOSpecification(unit, GL_RGBA32F, width, height, GL_RGBA, GL_FLOAT, 32, false, 1, false, false, layers);
 		}
