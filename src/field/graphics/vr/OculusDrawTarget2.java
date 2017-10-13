@@ -42,6 +42,8 @@ import static org.lwjgl.system.MemoryUtil.memAllocPointer;
  */
 public class OculusDrawTarget2 {
 
+    static public boolean floatResolution = false;
+
     private long hmd;
 
     public boolean debugControllers = false;
@@ -71,7 +73,7 @@ public class OculusDrawTarget2 {
         @Override
         public void invoke(long userdata, int level, long message) {
             System.out.println("" +
-                    "LibOVR [" + level + "] ");
+                                       "LibOVR [" + level + "] ");
             System.out.println("message is :" + memASCII(message));
         }
     };
@@ -133,22 +135,21 @@ public class OculusDrawTarget2 {
     }
 
 
-    public StereoCameraInterface cameraInterface()
-    {
+    public StereoCameraInterface cameraInterface() {
         return new StereoCameraInterface() {
             @Override
             public Mat4 projectionMatrix(float stereoSide) {
-                if (stereoSide<0) return leftProjectionMatrixT();
+                if (stereoSide < 0) return leftProjectionMatrixT();
                 return rightProjectionMatrixT();
             }
 
             @Override
             public Mat4 view(float stereoSide) {
                 Mat4 V;
-                if (stereoSide<0) V = new Mat4(leftViewT());
+                if (stereoSide < 0) V = new Mat4(leftViewT());
                 V = new Mat4(rightViewT());
 
-                Mat4 r = new Mat4().rotate(Math.PI, new Vec3(1,0,0));
+                Mat4 r = new Mat4().rotate(Math.PI, new Vec3(1, 0, 0));
 
                 V = new Mat4(r).mul(V);
                 return V;
@@ -190,8 +191,7 @@ public class OculusDrawTarget2 {
 
     boolean go = false;
 
-    public FBO getPreviewTexture()
-    {
+    public FBO getPreviewTexture() {
         return fpreview;
     }
 
@@ -234,7 +234,8 @@ public class OculusDrawTarget2 {
                 OVRDetectResult detect = OVRDetectResult.calloc();
                 ovr_Detect(0, detect);
 
-                System.out.println("ovrHmd_Detect = " + detect.IsOculusHMDConnected() + " " + detect.IsOculusServiceRunning());
+                System.out.println(
+                        "ovrHmd_Detect = " + detect.IsOculusHMDConnected() + " " + detect.IsOculusServiceRunning());
 
                 OVRInitParams initParams = OVRInitParams.calloc();
                 initParams.LogCallback(callback);
@@ -270,7 +271,9 @@ public class OculusDrawTarget2 {
 
                 for (int eye = 0; eye < 2; eye++) {
                     fovPorts[eye] = d.DefaultEyeFov(eye);
-                    System.out.println("eye " + eye + " = " + fovPorts[eye].UpTan() + ", " + fovPorts[eye].DownTan() + ", " + fovPorts[eye].LeftTan() + ", " + fovPorts[eye].RightTan());
+                    System.out.println(
+                            "eye " + eye + " = " + fovPorts[eye].UpTan() + ", " + fovPorts[eye].DownTan() + ", " + fovPorts[eye]
+                                    .LeftTan() + ", " + fovPorts[eye].RightTan());
                 }
 
                 playerEyePos = new Vec3(0.0f, -ovr_GetFloat(hmd, OVR_KEY_EYE_HEIGHT, 1.65f), 0.0f);
@@ -279,7 +282,8 @@ public class OculusDrawTarget2 {
                 for (int eye = 0; eye < 2; eye++) {
                     projections[eye] = OVRMatrix4f.malloc();
 //					OVRUtil.ovrMatrix4f_Projection(fovPorts[eye], 0.5f, 500f, OVRUtil.ovrProjection_RightHanded, projections[eye]);
-                    OVRUtil.ovrMatrix4f_Projection(fovPorts[eye], 0.5f, 5000f, OVRUtil.ovrProjection_ClipRangeOpenGL, projections[eye]);
+                    OVRUtil.ovrMatrix4f_Projection(fovPorts[eye], 0.5f, 5000f, OVRUtil.ovrProjection_ClipRangeOpenGL,
+                                                   projections[eye]);
                 }
 
                 // step 6 - render desc
@@ -298,7 +302,8 @@ public class OculusDrawTarget2 {
                 System.out.println("leftTextureSize W=" + leftTextureSize.w() + ", H=" + leftTextureSize.h());
 
                 OVRSizei rightTextureSize = OVRSizei.malloc();
-                ovr_GetFovTextureSize(hmd, ovrEye_Right, fovPorts[ovrEye_Right], pixelsPerDisplayPixel, rightTextureSize);
+                ovr_GetFovTextureSize(hmd, ovrEye_Right, fovPorts[ovrEye_Right], pixelsPerDisplayPixel,
+                                      rightTextureSize);
                 System.out.println("rightTextureSize W=" + rightTextureSize.w() + ", H=" + rightTextureSize.h());
 
 
@@ -316,9 +321,15 @@ public class OculusDrawTarget2 {
 
                 OVRTextureSwapChainDesc swapChainDesc = OVRTextureSwapChainDesc.create();
 
-                swapChainDesc.set(ovrTexture_2D, OVR_FORMAT_R8G8B8A8_UNORM_SRGB, 1, textureW * 2, textureH, 1, 1, false, 0, 0);
+                if (floatResolution)
+                    swapChainDesc.set(ovrTexture_2D, OVR_FORMAT_R16G16B16A16_FLOAT, 1, textureW * 2, textureH, 1, 1,
+                                      false, 0, 0);
+                else
+                    swapChainDesc.set(ovrTexture_2D, OVR_FORMAT_R8G8B8A8_UNORM_SRGB, 1, textureW * 2, textureH, 1, 1,
+                                      false, 0, 0);
 
-                if (OVRGL.ovr_CreateTextureSwapChainGL(hmd, swapChainDesc, textureSetPB) != ovrSuccess) {      // twice width for single texture
+                if (OVRGL.ovr_CreateTextureSwapChainGL(hmd, swapChainDesc,
+                                                       textureSetPB) != ovrSuccess) {      // twice width for single texture
                     throw new IllegalStateException("Failed to create Swap Texture Set");
                 }
                 long hts = textureSetPB.get(0);
@@ -335,21 +346,35 @@ public class OculusDrawTarget2 {
                 fbuffers = new FBO[chainLengh];
                 for (int i = 0; i < chainLengh; i++) {
                     OVRGL.ovr_GetTextureSwapChainBufferGL(hmd, textureSetPB.get(0), i, texID);
-                    fbuffers[i] = new FBO(FBO.FBOSpecification.rgba(texID.get(0), textureW * 2, textureH).setOverrideTextureID(texID.get(0)));
+
+
+                    if (floatResolution)
+                        fbuffers[i] = new FBO(FBO.FBOSpecification.singleFloat16(texID.get(0), textureW * 2, textureH)
+                                                      .setOverrideTextureID(texID.get(0)));
+                    else
+                        fbuffers[i] = new FBO(FBO.FBOSpecification.rgba(texID.get(0), textureW * 2, textureH)
+                                                      .setOverrideTextureID(texID.get(0)));
+
                 }
 
-                fpreview = new FBO(FBO.FBOSpecification.srgba(texID.get(0), textureW * 2, textureH));
+
+                if (floatResolution)
+                    fpreview = new FBO(FBO.FBOSpecification.singleFloat16(texID.get(0), textureW * 2, textureH));
+                else
+                    fpreview = new FBO(FBO.FBOSpecification.srgba(texID.get(0), textureW * 2, textureH));
 
                 fpreview.scene.attach(0, new Scene.Perform() {
                     @Override
                     public boolean perform(int pass) {
 
-                        if (currentTPEIndex!=0) return true;
+                        if (currentTPEIndex != 0) return true;
 
                         glClearColor(0.2f, 0.4f, 0, 1);
                         glClear(GL_COLOR_BUFFER_BIT);
-                        glBindFramebuffer(GL_READ_FRAMEBUFFER, fbuffers[currentTPEIndex].getOpenGLFrameBufferNameInCurrentContext());
-                        glBlitFramebuffer(0, 0, textureW * 2, textureH, 0, 0, textureW * 2, textureH, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+                        glBindFramebuffer(GL_READ_FRAMEBUFFER,
+                                          fbuffers[currentTPEIndex].getOpenGLFrameBufferNameInCurrentContext());
+                        glBlitFramebuffer(0, 0, textureW * 2, textureH, 0, 0, textureW * 2, textureH,
+                                          GL_COLOR_BUFFER_BIT, GL_NEAREST);
                         return true;
                     }
                 });
@@ -424,7 +449,6 @@ public class OculusDrawTarget2 {
                 OVR.ovr_GetSessionStatus(hmd, stat);
 
 
-
 //                System.out.println(" status :"+stat.DisplayLost()+" "+stat.HmdMounted()+" "+stat.HmdPresent()+" "+stat.ShouldQuit()+" "+stat.ShouldRecenter());
 //                System.out.println(" status -- :"+stat.IsVisible());
 
@@ -470,7 +494,7 @@ public class OculusDrawTarget2 {
 
                 int types = OVR.ovr_GetConnectedControllerTypes(hmd);
                 if (debugControllers)
-                    System.out.println("controller types connected are: "+types);
+                    System.out.println("controller types connected are: " + types);
 
 
                 OVRInputState inputState = OVRInputState.create();
@@ -480,7 +504,8 @@ public class OculusDrawTarget2 {
                     System.out.println("== " + inputState.Buttons() + " " + inputState.Touches());
                     System.out.println("== " + inputState.IndexTrigger(0) + " " + inputState.IndexTrigger(1));
                     System.out.println("== " + inputState.HandTrigger(0) + " " + inputState.HandTrigger(1));
-                    System.out.println("== " + inputState.Thumbstick(0).x() + "/" + inputState.Thumbstick(0).y() + "   " + inputState.Thumbstick(1).x() + "/" + inputState.Thumbstick(1).y());
+                    System.out.println("== " + inputState.Thumbstick(0).x() + "/" + inputState.Thumbstick(0)
+                            .y() + "   " + inputState.Thumbstick(1).x() + "/" + inputState.Thumbstick(1).y());
                 }
                 leftInputState = inputState;
 
@@ -491,7 +516,8 @@ public class OculusDrawTarget2 {
                     System.out.println("== " + inputState.Buttons() + " " + inputState.Touches());
                     System.out.println("== " + inputState.IndexTrigger(0) + " " + inputState.IndexTrigger(1));
                     System.out.println("== " + inputState.HandTrigger(0) + " " + inputState.HandTrigger(1));
-                    System.out.println("== " + inputState.Thumbstick(0).x() + "/" + inputState.Thumbstick(0).y() + "   " + inputState.Thumbstick(1).x() + "/" + inputState.Thumbstick(1).y());
+                    System.out.println("== " + inputState.Thumbstick(0).x() + "/" + inputState.Thumbstick(0)
+                            .y() + "   " + inputState.Thumbstick(1).x() + "/" + inputState.Thumbstick(1).y());
                 }
                 rightInputState = inputState;
 
@@ -529,15 +555,19 @@ public class OculusDrawTarget2 {
 
                     mat.identity();
 
-                    Vec3 offsetPosition = new Vec3(eyeRenderDesc[eye].HmdToEyeOffset().x(), eyeRenderDesc[eye].HmdToEyeOffset().y(), eyeRenderDesc[eye].HmdToEyeOffset().z());
+                    Vec3 offsetPosition = new Vec3(eyeRenderDesc[eye].HmdToEyeOffset().x(),
+                                                   eyeRenderDesc[eye].HmdToEyeOffset().y(),
+                                                   eyeRenderDesc[eye].HmdToEyeOffset().z());
 
                     if (!pauseCamera) {
-                        orientation = new Quat(eyePose.Orientation().x(), eyePose.Orientation().y(), eyePose.Orientation().z(), eyePose.Orientation().w());
+                        orientation = new Quat(eyePose.Orientation().x(), eyePose.Orientation().y(),
+                                               eyePose.Orientation().z(), eyePose.Orientation().w());
                         orientation.invert();
                     }
                     mat.rotate(orientation);
 
-                    Vec3 position = new Vec3(-eyePose.Position().x(), -eyePose.Position().y(), -eyePose.Position().z()).add(extraCameraTranslation);
+                    Vec3 position = new Vec3(-eyePose.Position().x(), -eyePose.Position().y(),
+                                             -eyePose.Position().z()).add(extraCameraTranslation);
                     mat.translate(position);
                     mat.translate(playerEyePos);    //back to 'floor' height
 
@@ -558,7 +588,6 @@ public class OculusDrawTarget2 {
                         theseProjections[eye] = new Mat4(matP);
 
                     }
-
 
 
 //					fbuffers[currentTPEIndex].setViewport(renderViewport);
@@ -606,12 +635,13 @@ public class OculusDrawTarget2 {
                 if (debugBlit) {
                     glClearColor(0.2f, 0, 0, 1);
                     glClear(GL_COLOR_BUFFER_BIT);
-                    glBindFramebuffer(GL_READ_FRAMEBUFFER, fbuffers[currentTPEIndex].getOpenGLFrameBufferNameInCurrentContext());
+                    glBindFramebuffer(GL_READ_FRAMEBUFFER,
+                                      fbuffers[currentTPEIndex].getOpenGLFrameBufferNameInCurrentContext());
                     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-                    glBlitFramebuffer(0, 0, textureW * 2, textureH, 0, 0, textureW * 2, textureH, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+                    glBlitFramebuffer(0, 0, textureW * 2, textureH, 0, 0, textureW * 2, textureH, GL_COLOR_BUFFER_BIT,
+                                      GL_NEAREST);
                 }
-                if (debugFBO)
-                {
+                if (debugFBO) {
                     fpreview.draw();
                 }
 
@@ -627,19 +657,16 @@ public class OculusDrawTarget2 {
 
                 if (!stat.HmdMounted()) {
                     notVisible = true;
-                    if (notVisible && previouslyVisible)
-                    {
+                    if (notVisible && previouslyVisible) {
                         headOff.values().forEach(Runnable::run);
                     }
                     previouslyVisible = !notVisible;
 
 //					System.out.println("TODO not vis!!");
-                }
-                else {
+                } else {
                     notVisible = false;
 
-                    if (!notVisible && !previouslyVisible)
-                    {
+                    if (!notVisible && !previouslyVisible) {
                         headOn.values().forEach(Runnable::run);
                     }
                     previouslyVisible = !notVisible;
@@ -648,7 +675,6 @@ public class OculusDrawTarget2 {
                 if (result != ovrSuccess) {
                     System.out.println("TODO failed submit");
                 }
-
 
 
                 glfwSwapInterval(0);
@@ -669,8 +695,7 @@ public class OculusDrawTarget2 {
 
     boolean notVisible = true;
 
-    public boolean isVisible()
-    {
+    public boolean isVisible() {
         return !notVisible;
     }
 
