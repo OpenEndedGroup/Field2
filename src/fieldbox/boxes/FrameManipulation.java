@@ -69,7 +69,7 @@ public class FrameManipulation extends Box {
 
 			Optional<Box> hit = breadthFirst(both()).filter(b -> frame(b) != null)
 				.filter(b -> !b.properties.isTrue(Box.hidden, false))
-				.filter(b -> Planes.on(root, b) >= 1)
+				.filter(b -> Planes.on(root, b) >= 0.5f)
 				.filter(b -> frame(b).intersects(point))
 				.sorted((a, b) -> Float.compare(order(frame(a)), order(frame(b))))
 				.findFirst();
@@ -99,7 +99,7 @@ public class FrameManipulation extends Box {
 		});
 
 		this.properties.putToMap(FLineDrawing.bulkLines, "__extraAnnotationsForSnap__", () -> {
-			return (Collection<Supplier<FLine>>)extraAnnotations;
+			return extraAnnotations;
 		});
 	}
 
@@ -177,7 +177,7 @@ public class FrameManipulation extends Box {
 
 		Optional<Box> hit = breadthFirst(both()).filter(b -> frame(b) != null)
 			.filter(b -> !b.properties.isTrue(Box.hidden, false))
-			.filter(b -> Planes.on(root, b) >= 1)
+			.filter(b -> Planes.on(root, b) >= 0)
 			.filter(b -> frame(b).intersects(point))
 			.sorted((a, b) -> Float.compare(order(frame(a)), order(frame(b))))
 			.findFirst();
@@ -233,7 +233,7 @@ public class FrameManipulation extends Box {
 		Optional<Box> hit = breadthFirst(both()).filter(b -> frame(b) != null)
 			.filter(b -> !b.properties.isTrue(Box.hidden, false))
 			//.filter(b -> !b.properties.isTrue(Mouse.isSticky, false))
-			.filter(b -> Planes.on(root, b) >= 1)
+			.filter(b -> Planes.on(root, b) >= 0.5)
 			.filter(b -> frame(b).intersects(point))
 			.sorted((a, b) -> Float.compare(order(frame(a)), order(frame(b))))
 			.findFirst();
@@ -287,7 +287,7 @@ public class FrameManipulation extends Box {
 				hitBox.breadthFirst(x -> {
 					LinkedHashSet<Box> c = new LinkedHashSet<>(x.children());
 					return c.stream().filter(q -> q != root).filter(q -> Planes.on(root, q) >= 1).collect(Collectors.toSet());
-				}).filter(x -> Planes.on(root, x) >= 1).forEach(x -> workingSet.add(x));
+				}).filter(x -> Planes.on(root, x) >= 0.5).forEach(x -> workingSet.add(x));
 			}
 
 			if (hitBox.properties.isTrue(Mouse.isSticky, false)) {
@@ -432,7 +432,7 @@ public class FrameManipulation extends Box {
 							if (f == null) return;
 
 							if (f.intersects(new Rect(Math.min(downAt.x, point.x), Math.min(downAt.y, point.y), Math.max(downAt.x, point.x) - Math.min(downAt.x, point.x),
-								Math.max(downAt.y, point.y) - Math.min(downAt.y, point.y))) && (!x.properties.isTrue(Box.hidden, false)) && Planes.on(root, x) >= 1) {
+								Math.max(downAt.y, point.y) - Math.min(downAt.y, point.y))) && (!x.properties.isTrue(Box.hidden, false)) && Planes.on(root, x) >= 0.5) {
 								Callbacks.transition(x, Mouse.isSelected, true, false, Callbacks.onSelect, Callbacks.onDeselect);
 							} else {
 								if (b == null || !b)
