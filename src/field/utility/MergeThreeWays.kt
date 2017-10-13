@@ -22,7 +22,7 @@
  * limitations under the License.
  */
 
-package name.fraser.neil.plaintext
+package field.utility
 
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
@@ -34,6 +34,7 @@ import java.util.LinkedList
 import java.util.Stack
 import java.util.regex.Matcher
 import java.util.regex.Pattern
+import kotlin.Pair
 
 /*
  * Functions for diff, match and patch.
@@ -675,7 +676,8 @@ class MergeThreeWays {
         // Check again based on the third quarter.
         val hm2 = diff_halfMatchI(longtext, shorttext,
                 (longtext.length + 1) / 2)
-        val hm: Array<String>
+        val hm: Array<String>?
+
         if (hm1 == null && hm2 == null) {
             return null
         } else if (hm2 == null) {
@@ -692,7 +694,7 @@ class MergeThreeWays {
             hm
             //return new String[]{hm[0], hm[1], hm[2], hm[3], hm[4]};
         } else {
-            arrayOf(hm[2], hm[3], hm[0], hm[1], hm[4])
+            arrayOf(hm!![2], hm!![3], hm!![0], hm!![1], hm!![4])
         }
     }
 
@@ -710,12 +712,13 @@ class MergeThreeWays {
         // Start with a 1/4 length substring at position i as a seed.
         val seed = longtext.substring(i, i + longtext.length / 4)
         var j = -1
+        j = (shorttext.indexOf(seed, j + 1))
         var best_common = ""
         var best_longtext_a = ""
         var best_longtext_b = ""
         var best_shorttext_a = ""
         var best_shorttext_b = ""
-        while ((j = shorttext.indexOf(seed, j + 1)) != -1) {
+        while (j != -1) {
             val prefixLength = diff_commonPrefix(longtext.substring(i),
                     shorttext.substring(j))
             val suffixLength = diff_commonSuffix(longtext.substring(0, i),
@@ -727,6 +730,7 @@ class MergeThreeWays {
                 best_shorttext_a = shorttext.substring(0, j - suffixLength)
                 best_shorttext_b = shorttext.substring(j + prefixLength)
             }
+            j = (shorttext.indexOf(seed, j + 1))
         }
         return if (best_common.length * 2 >= longtext.length) {
             arrayOf(best_longtext_a, best_longtext_b, best_shorttext_a, best_shorttext_b, best_common)
@@ -1036,7 +1040,7 @@ class MergeThreeWays {
         // Is there a deletion operation after the last equality.
         var post_del = false
         var thisDiff: Diff? = pointer.next()
-        var safeDiff: Diff = thisDiff  // The last Diff that is known to be unsplitable.
+        var safeDiff: Diff? = thisDiff  // The last Diff that is known to be unsplitable.
         while (thisDiff != null) {
             if (thisDiff.operation == Operation.EQUAL) {
                 // Equality found.
@@ -1070,7 +1074,7 @@ class MergeThreeWays {
          * <ins>A</ins><del>B</del>X<del>C</del>
          */
                 if (lastequality != null && (pre_ins && pre_del && post_ins && post_del || lastequality.length < Diff_EditCost / 2 && (if (pre_ins) 1 else 0) + (if (pre_del) 1 else 0)
-                        + (if (post_ins) 1 else 0) + if (post_del) 1 else 0 == 3)) {
+                        + (if (post_ins) 1 else 0) + (if (post_del) 1 else 0) == 3)) {
                     //System.out.println("Splitting: '" + lastequality + "'");
                     // Walk back to offending equality.
                     while (thisDiff !== equalities.lastElement()) {
@@ -1081,7 +1085,7 @@ class MergeThreeWays {
                     // Replace equality with a delete.
                     pointer.set(Diff(Operation.DELETE, lastequality))
                     // Insert a corresponding an insert.
-                    pointer.add(thisDiff = Diff(Operation.INSERT, lastequality))
+                    pointer.add(Diff(Operation.INSERT, lastequality))
 
                     equalities.pop()  // Throw away the equality we just deleted.
                     lastequality = null
@@ -1467,7 +1471,8 @@ class MergeThreeWays {
                     }
                     val text: String
                     try {
-                        text = text1.substring(pointer, pointer += n)
+                        text = text1.substring(pointer, pointer + n)
+                        pointer += n
                     } catch (e: StringIndexOutOfBoundsException) {
                         throw IllegalArgumentException("Delta length (" + pointer
                                 + ") larger than source text length (" + text1.length
@@ -1593,7 +1598,7 @@ class MergeThreeWays {
                     // Out of range.
                     charMatch = 0
                 } else {
-                    charMatch = s[text[j - 1]]
+                    charMatch = s[text[j - 1]]!!
                 }
                 if (d == 0) {
                     // First pass: exact match.
@@ -1642,7 +1647,7 @@ class MergeThreeWays {
         val proximity = Math.abs(loc - x)
         return if (Match_Distance == 0) {
             // Dodge divide by zero error.
-            if (proximity == 0) accuracy else 1.0
+            if (proximity == 0) accuracy.toDouble() else 1.0
         } else (accuracy + proximity / Match_Distance.toFloat()).toDouble()
     }
 
@@ -1659,7 +1664,7 @@ class MergeThreeWays {
         }
         var i = 0
         for (c in char_pattern) {
-            s.put(c, s[c] or (1 shl pattern.length - i - 1))
+            s.put(c, s[c]!! or (1 shl pattern.length - i - 1))
             i++
         }
         return s
@@ -1797,8 +1802,7 @@ class MergeThreeWays {
                 MergeThreeWays.Operation.INSERT -> {
                     patch.diffs.add(aDiff)
                     patch.length2 += aDiff.text!!.length
-                    postpatch_text = postpatch_text!!.substring(0, char_count2)
-                    +aDiff.text + postpatch_text.substring(char_count2)
+                    postpatch_text = postpatch_text!!.substring(0, char_count2) + aDiff.text + postpatch_text.substring(char_count2)
                 }
                 MergeThreeWays.Operation.DELETE -> {
                     patch.length1 += aDiff.text!!.length
@@ -1878,11 +1882,11 @@ class MergeThreeWays {
      * @return Two element Object array, containing the new text and an array of
      * boolean values.
      */
-    fun patch_apply(patches: LinkedList<Patch>, text: String): Array<Any> {
+    fun patch_apply(patches: LinkedList<Patch>, text: String): Pair<String, BooleanArray> {
         var patches = patches
         var text = text
         if (patches.isEmpty()) {
-            return arrayOf(text, BooleanArray(0))
+            return text to BooleanArray(0)
         }
 
         // Deep copy the patches so that no changes are made to originals.
@@ -1940,8 +1944,7 @@ class MergeThreeWays {
                 }
                 if (text1 == text2) {
                     // Perfect match, just shove the replacement text in.
-                    text = text.substring(0, start_loc) + diff_text2(aPatch.diffs)
-                    +text.substring(start_loc + text1.length)
+                    text = text.substring(0, start_loc) + diff_text2(aPatch.diffs) + text.substring(start_loc + text1.length)
                 } else {
                     // Imperfect match.  Run a diff to get a framework of equivalent
                     // indices.
@@ -1957,8 +1960,7 @@ class MergeThreeWays {
                                 val index2 = diff_xIndex(diffs, index1)
                                 if (aDiff.operation == Operation.INSERT) {
                                     // Insertion
-                                    text = text.substring(0, start_loc + index2) + aDiff.text
-                                    +text.substring(start_loc + index2)
+                                    text = text.substring(0, start_loc + index2) + aDiff.text + text.substring(start_loc + index2)
                                 } else if (aDiff.operation == Operation.DELETE) {
                                     // Deletion
                                     text = text.substring(0, start_loc + index2) + text.substring(start_loc + diff_xIndex(diffs,
@@ -1976,7 +1978,7 @@ class MergeThreeWays {
         }
         // Strip the padding off.
         text = text.substring(nullPadding.length, text.length - nullPadding.length)
-        return arrayOf(text, results)
+        return text to results
     }
 
     /**
@@ -2270,7 +2272,7 @@ class MergeThreeWays {
             /**
              * The text associated with this diff operation.
              */
-            var text: String?)// Construct a diff with the specified operation and text.
+            var text: String)// Construct a diff with the specified operation and text.
     {
 
         /**
