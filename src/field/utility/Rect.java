@@ -23,6 +23,13 @@ public class Rect implements Mutable<Rect>, Serializable {
 		this.w = (float)w;
 	}
 
+	public Rect(float x,  float y, float w, float h) {
+		this.x = (float)x;
+		this.y = (float)y;
+		this.h = (float)h;
+		this.w = (float)w;
+	}
+
 	public static Rect union(Rect r, Rect rect) {
 		if (r == null)
 			return rect;
