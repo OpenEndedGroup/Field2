@@ -168,8 +168,8 @@ public class BoxPair extends Box {
 		// callbacks for frame changed!
 		for(Box bb : frameBoxes)
 		{
-			IdempotencyMap<Supplier<Collection<Supplier<FLine>>>> q = bb.properties.getOrConstruct(FLineDrawing.bulkLines);
-			Supplier<Collection<Supplier<FLine>>> fr = q.get("__framemarking__");
+			IdempotencyMap<Supplier<Collection<? extends Supplier<FLine>>>> q = bb.properties.getOrConstruct(FLineDrawing.bulkLines);
+			Supplier<Collection<? extends Supplier<FLine>>> fr = q.get("__framemarking__");
 			if (fr==null)
 			{
 				installFrameDecor(bb);
@@ -177,8 +177,8 @@ public class BoxPair extends Box {
 		}
 		for(Box bb : mainBoxes)
 		{
-			IdempotencyMap<Supplier<Collection<Supplier<FLine>>>> q = bb.properties.getOrConstruct(FLineDrawing.bulkLines);
-			Supplier<Collection<Supplier<FLine>>> fr = q.get("__framemarking__");
+			IdempotencyMap<Supplier<Collection<? extends Supplier<FLine>>>> q = bb.properties.getOrConstruct(FLineDrawing.bulkLines);
+			Supplier<Collection<? extends Supplier<FLine>>> fr = q.get("__framemarking__");
 			if (fr==null)
 			{
 				installMainDecor(bb);
