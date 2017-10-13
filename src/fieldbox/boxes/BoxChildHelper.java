@@ -73,7 +73,7 @@ public class BoxChildHelper implements fieldlinker.AsMap, Collection<Box>, Objec
 		if (q.size() == 0) return null;
 		if (q.size() == 1) return q.get(0);
 
-		return q;
+		return new ListProxy(q);
 	}
 
 	@Override
