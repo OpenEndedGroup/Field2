@@ -103,14 +103,19 @@ public class StandardFLineDrawing {
 
 
 	static public void dispatchLine(FLine fline, MeshBuilder mesh, MeshBuilder line, MeshBuilder points, Optional<TextDrawing> ot, String layerName) {
+		dispatchLine(fline, mesh, line, points, ot, layerName, 1f);
+	}
+
+	static public void dispatchLine(FLine fline, MeshBuilder mesh, MeshBuilder line, MeshBuilder points, Optional<TextDrawing> ot, String layerName, float opacityMultiply) {
 
 		Vec4 sc = new Vec4(fline.attributes.getOr(strokeColor, () -> fline.attributes.getOr(color, () -> new Vec4(0, 0, 0, 1))).get());
 		Vec4 fc = new Vec4(fline.attributes.getOr(fillColor, () -> fline.attributes.getOr(color, () -> new Vec4(0, 0, 0, 1))).get());
 		Vec4 pc = new Vec4(fline.attributes.getOr(pointColor, () -> fline.attributes.getOr(color, () -> new Vec4(0, 0, 0, 1))).get());
 
-		float op = fline.attributes.getOr(opacity, () -> 1f);
-		float sop = fline.attributes.getOr(strokeOpacity, () -> 1f);
-		float fop = fline.attributes.getOr(fillOpacity, () -> 1f);
+		float op = fline.attributes.getOr(opacity, () -> 1f)*opacityMultiply;
+		float sop = fline.attributes.getOr(strokeOpacity, () -> 1f)*opacityMultiply;
+		float fop = fline.attributes.getOr(fillOpacity, () -> 1f)*opacityMultiply;
+
 		sc.w *= op * sop;
 		fc.w *= op * fop;
 		pc.w *= op;
@@ -126,12 +131,28 @@ public class StandardFLineDrawing {
 			mesh.aux(1, sc);
 		} else {
 			if (fline.attributes.isTrue(stroked, true) && line != null) {
-				fline.addAuxProperties(1, color.getName());
+				if (opacityMultiply==1)
+					fline.addAuxProperties(1, color.getName());
+				else
+					fline.addAuxPropertiesFunctions(1, n -> {
+						Supplier<Vec4> qq = n.attributes.get(color);
+						if (qq==null) return null;
+						Vec4 v = qq.get();
+						return new Vec4(v.x, v.y, v.z, v.w*opacityMultiply);
+					});
 				fline.renderToLine(line, 20);
 			}
 		}
 		if (fline.attributes.isTrue(filled, false) && mesh != null) {
-			fline.addAuxProperties(1, color.getName());
+			if (opacityMultiply==1)
+				fline.addAuxProperties(1, color.getName());
+			else
+				fline.addAuxPropertiesFunctions(1, n -> {
+					Supplier<Vec4> qq = n.attributes.get(color);
+					if (qq==null) return null;
+					Vec4 v = qq.get();
+					return new Vec4(v.x, v.y, v.z, v.w*opacityMultiply);
+				});
 			mesh.aux(1, fc);
 			fline.renderToMesh(mesh, 20);
 			mesh.aux(1, fc);
@@ -145,7 +166,7 @@ public class StandardFLineDrawing {
 		}
 
 		fline.nodes.stream().map(n -> n.attributes.get(subLines)).filter(n -> n != null).flatMap(n -> n.values().stream()).map(x -> x.get()).filter(x -> x != null).forEach(x -> {
-			dispatchLine(x, mesh, line, points, ot, layerName);
+			dispatchLine(x, mesh, line, points, ot, layerName, opacityMultiply);
 		});
 
 		if (fline.attributes.isTrue(hasText, false) && ot.isPresent()) {
