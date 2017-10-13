@@ -32,9 +32,10 @@ public class Conversions {
             for (Type t : args) {
                 r.addAll(linearize(t));
             }
-        } else {
+        } else if (c instanceof Class)
             r.add((Class) c);
-        }
+        else if (c instanceof WildcardType)
+            r.addAll(linearize(((WildcardType) c).getUpperBounds()[0]));
         return r;
     }
 
@@ -55,7 +56,8 @@ public class Conversions {
         Class c = typeInformation.remove(0);
         TypeVariable[] tp = c.getTypeParameters();
         if (tp == null || tp.length == 0) {
-            return cleaner.apply(c.getName()) + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
+            return cleaner.apply(c.getName()) + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(
+                    typeInformation, cleaner))) : "");
         }
 
         if (cleaner.apply(c.getName())
@@ -65,7 +67,9 @@ public class Conversions {
                 if (typeInformation.size() == 0) break;
                 inside += _fold(typeInformation, cleaner);
             }
-            return "() -> " + optionalBracket(inside) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
+            return "() -> " + optionalBracket(
+                    inside) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation,
+                                                                                                cleaner))) : "");
         }
 
         if (cleaner.apply(c.getName())
@@ -75,7 +79,9 @@ public class Conversions {
                 if (typeInformation.size() == 0) break;
                 inside += _fold(typeInformation, cleaner);
             }
-            return "&middot; name = " + optionalBracket(inside) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
+            return "&middot; name = " + optionalBracket(
+                    inside) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation,
+                                                                                                cleaner))) : "");
 
         } else if (cleaner.apply(c.getName())
                 .equals("Supplier")) {
@@ -84,7 +90,9 @@ public class Conversions {
                 if (typeInformation.size() == 0) break;
                 inside += _fold(typeInformation, cleaner);
             }
-            return "() -> " + optionalBracket(inside) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
+            return "() -> " + optionalBracket(
+                    inside) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation,
+                                                                                                cleaner))) : "");
 
         } else if (cleaner.apply(c.getName())
                 .equals("Predicate")) {
@@ -93,7 +101,8 @@ public class Conversions {
                 if (typeInformation.size() == 0) break;
                 inside += _fold(typeInformation, cleaner);
             }
-            return "(" + inside + ") -> Boolean " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
+            return "(" + inside + ") -> Boolean " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(
+                    typeInformation, cleaner))) : "");
 
         } else if (cleaner.apply(c.getName())
                 .equals("FunctionOfBoxValued")) {
@@ -102,7 +111,9 @@ public class Conversions {
                 if (typeInformation.size() == 0) break;
                 inside += _fold(typeInformation, cleaner);
             }
-            return "&#9178; " + optionalBracket(inside) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
+            return "&#9178; " + optionalBracket(
+                    inside) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation,
+                                                                                                cleaner))) : "");
 
         } else if (cleaner.apply(c.getName())
                 .equals("Function") && tp.length >= 2) {
@@ -111,7 +122,9 @@ public class Conversions {
             if (typeInformation.size() == 0) b = "?";
             else b = _fold(typeInformation, cleaner, false);
 
-            return optionalBracket(a) + " -> " + optionalBracket(b) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
+            return optionalBracket(a) + " -> " + optionalBracket(
+                    b) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation,
+                                                                                           cleaner))) : "");
         } else if (cleaner.apply(c.getName())
                 .equals("BiFunctionOfBoxAnd") && tp.length >= 2) {
             String a = _fold(typeInformation, cleaner, false);
@@ -119,7 +132,9 @@ public class Conversions {
             if (typeInformation.size() == 0) b = "?";
             else b = _fold(typeInformation, cleaner, false);
 
-            return "&#9178; " + optionalBracket(a) + " -> " + optionalBracket(b) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
+            return "&#9178; " + optionalBracket(a) + " -> " + optionalBracket(
+                    b) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation,
+                                                                                           cleaner))) : "");
         } else if (cleaner.apply(c.getName())
                 .equals("BiFunction") && tp.length >= 2) {
             String a = _fold(typeInformation, cleaner, false);
@@ -130,7 +145,9 @@ public class Conversions {
             if (typeInformation.size() == 0) d = "?";
             else d = _fold(typeInformation, cleaner, false);
 
-            return "(" + a + ", " + b + ") -> " + optionalBracket(d) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
+            return "(" + a + ", " + b + ") -> " + optionalBracket(
+                    d) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation,
+                                                                                           cleaner))) : "");
         } else if (cleaner.apply(c.getName())
                 .equals("TriFunctionOfBoxAnd") && tp.length >= 2) {
             String a = _fold(typeInformation, cleaner, false);
@@ -141,7 +158,9 @@ public class Conversions {
             if (typeInformation.size() == 0) d = "?";
             else d = _fold(typeInformation, cleaner, false);
 
-            return "&#9178; (" + a + ", " + b + ") -> " + optionalBracket(d) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
+            return "&#9178; (" + a + ", " + b + ") -> " + optionalBracket(
+                    d) + " " + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation,
+                                                                                           cleaner))) : "");
         } else if (cleaner.apply(c.getName())
                 .equals("Collection")) {
             String a = _fold(typeInformation, cleaner);
@@ -154,7 +173,8 @@ public class Conversions {
                 inside += _fold(typeInformation, cleaner);
             }
             inside += "&gt;";
-            return cleaner.apply(c.getName()) + inside + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(typeInformation, cleaner))) : "");
+            return cleaner.apply(c.getName()) + inside + (append ? (typeInformation.size() == 0 ? "" : (", " + _fold(
+                    typeInformation, cleaner))) : "");
         }
     }
 
@@ -222,7 +242,8 @@ public class Conversions {
         inputs.put(conversion.input, conversion);
         outputs.put(conversion.output, conversion);
 
-        Log.log("conversions.general", () -> " REGISTERED conversion " + length + " " + conversion.input + " -> " + conversion.output);
+        Log.log("conversions.general",
+                () -> " REGISTERED conversion " + length + " " + conversion.input + " -> " + conversion.output);
 
     }
 
@@ -287,7 +308,7 @@ public class Conversions {
             List<Class> assembled = new ArrayList<>();
             for (int index = 0; index < counts.length; index++) {
                 assembled.add(alternatives.get(index)
-                        .get(counts[index]));
+                                      .get(counts[index]));
             }
 
             if (m.containsKey(assembled)) return assembled;
@@ -356,22 +377,6 @@ public class Conversions {
     }
 
 
-    private static Errors.ErrorConsumer wrap(String s, Errors.ErrorConsumer errorConsumer) {
-
-        return (t, m) -> {
-            if (errorConsumer != null)
-                errorConsumer.consume(t, s + "||" + m);
-            else {
-                System.err.println(" missing error consumer in graphics scene");
-                System.err.println(" message is " + s + " / " + m);
-                System.err.println(" error is " + t.getMessage());
-                t.printStackTrace();
-            }
-        };
-
-    }
-
-
     static public Object convert(Object value, Class fit) {
         return convert(value, Collections.singletonList(fit));
     }
@@ -379,40 +384,31 @@ public class Conversions {
 
     static protected Object _convert(Object value, List<Class> fit, Consumer<String> extraInfo) {
 
-        if (value == null) return null;
-
         if (fit == null) return value;
         if (fit.get(0)
                 .isInstance(value)) return value;
 
         // promote non-arrays to arrays
         if (List.class.isAssignableFrom(fit.get(0))) {
-            try {
-                Object converted = ScriptUtils.convert(value, List.class);
-                if (converted != null) return converted;
-            } catch (ClassCastException e) {
-            }
-
-            if (!(value instanceof List) && fit.size() > 1) {
+            if (!(value instanceof List)) {
                 return Collections.singletonList(_convert(value, fit.subList(1, fit.size()), extraInfo));
             } else {
                 return value;
             }
         } else if (Map.class.isAssignableFrom(fit.get(0))) {
-            try {
-                Object converted = ScriptUtils.convert(value, Map.class);
-                if (converted != null) return converted;
-            } catch (ClassCastException e) {
-            }
+            Object converted = ScriptUtils.convert(value, Map.class);
+            if (converted != null) return converted;
         }
 
         if (Map.class.isAssignableFrom(fit.get(0)) && (fit.size() == 1 || String.class.isAssignableFrom(fit.get(1)))) {
             // promote non-Map<String, V> to Map<String, V>
             if (!(value instanceof Map)) {
-                return Collections.singletonMap("" + value + ":" + System.identityHashCode(value), _convert(value, fit.subList(2, fit.size()), extraInfo));
+                return Collections.singletonMap("" + value + ":" + System.identityHashCode(value),
+                                                _convert(value, fit.subList(2, fit.size()), extraInfo));
             } else {
                 return value;
             }
+
 
         } else if (Collection.class.isAssignableFrom(fit.get(0))) {
 
@@ -427,13 +423,13 @@ public class Conversions {
             } else {
                 return value;
             }
-
         }
 
         if (fit.get(0)
                 .isInterface() && value instanceof InvocationHandler) {
             return Proxy.newProxyInstance(Thread.currentThread()
-                    .getContextClassLoader(), new Class[]{fit.get(0)}, (InvocationHandler) value);
+                                                  .getContextClassLoader(), new Class[]{fit.get(0)},
+                                          (InvocationHandler) value);
         }
 
 
@@ -441,7 +437,11 @@ public class Conversions {
 
 
         if (value != null && value.getClass().getName().endsWith(".ScriptFunction")) {
+
+            System.out.println(" about to convert :" + value);
             Object converted = ScriptUtils.convert(value, fit.get(0));
+            System.out.println(" converted to :" + converted);
+
             try {
                 String functionName = (String) ReflectionTools.get(value, "data/functionName");
                 Integer lineNumber = (Integer) ReflectionTools.get(value, "data/lineNumber");
@@ -458,7 +458,7 @@ public class Conversions {
             return converted;
 
 			/*
-            StaticClass adapterClassFor = JavaAdapterFactory.getAdapterClassFor(new Class[]{fit.get(0)}, (ScriptObject) value, MethodHandles.lookup());
+        StaticClass adapterClassFor = JavaAdapterFactory.getAdapterClassFor(new Class[]{fit.get(0)}, (ScriptObject) value, MethodHandles.lookup());
 
 			String extraString = null;
 
@@ -499,7 +499,8 @@ public class Conversions {
             try {
                 return o.apply(x);
             } catch (Throwable t) {
-                IllegalArgumentException e = new IllegalArgumentException("Exception thrown in callback " + extraString);
+                IllegalArgumentException e = new IllegalArgumentException(
+                        "Exception thrown in callback " + extraString);
                 e.initCause(t);
                 throw e;
             }
@@ -511,7 +512,8 @@ public class Conversions {
             try {
                 return o.get();
             } catch (Throwable t) {
-                IllegalArgumentException e = new IllegalArgumentException("Exception thrown in callback " + extraString);
+                IllegalArgumentException e = new IllegalArgumentException(
+                        "Exception thrown in callback " + extraString);
                 e.initCause(t);
                 throw e;
             }
