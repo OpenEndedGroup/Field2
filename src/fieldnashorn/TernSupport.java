@@ -98,7 +98,7 @@ public class TernSupport {
 
 		try {
 			engine.put("__someFile", allText);
-			engine.eval("__completions = new java.util.ArrayList()");
+			engine.eval("var __completions = new java.util.ArrayList()");
 			try {
 				engine.eval("__fieldglobal.self.ternServer.request({query:{type:\"completions\", types:true, docs:true, file:\"#0\", end:{line:" + line + ",ch:" + ch + "}}, \n" +
 					"files:[{type:\"full\",name:\"" + boxName + ".js\",text:__someFile}]},\n" +
@@ -171,7 +171,7 @@ public class TernSupport {
 
 
 						if (explicitlyRequested) {
-							Object e = engine.eval("_e=eval('" + previousS.replace("'", "\\'") + "')");
+							Object e = engine.eval("var _e=eval('" + previousS.replace("'", "\\'") + "')");
 							Log.log("completion.debug", () -> "PREVIOUS e is :" + e + " " + e.getClass() + " computed prefix from <" + s + "> <" + s.lastIndexOf('.') + ">");
 
 
@@ -238,7 +238,7 @@ public class TernSupport {
 //				else
 				if (explicitlyRequested || left.indexOf("(") == -1) {
 
-					Object e = engine.eval("_e=eval('" + left.replace("'", "\\'") + "')");
+					Object e = engine.eval("var _e=eval('" + left.replace("'", "\\'") + "'); _e");
 					final Object finalE = e;
 					Log.log("completion.debug", () -> " e is :" + finalE + " " + finalE.getClass() + " computed prefix from <" + s + "> <" + s.lastIndexOf('.') + ">");
 
@@ -252,8 +252,7 @@ public class TernSupport {
 					// now if e is an actual java object --- i.e. it's got nothing to do with nashorn, then we could use a more general Field java completion service
 					// and just add the dot back in
 					if (e instanceof ScriptObjectMirror) {
-
-						Object[] retae = (Object[]) engine.eval("_v=[]; _p = {}; Object.bindProperties(_p, _e); for(var _k in _p) _v.push(_k); Java.to(_v)");
+						Object[] retae = (Object[]) engine.eval("var _v=[]; _p = {}; Object.bindProperties(_p, _e); for(var _k in _p) _v.push(_k); Java.to(_v)");
 						Log.log("completion.debug", () -> " auto eval completion got :" + Arrays.asList(retae));
 					} else if (e instanceof Box) {
 //					e = new UnderscoreBox((Box) e);
@@ -458,7 +457,7 @@ public class TernSupport {
 	}
 
 	private int[] expressionRangeForPosition(ScriptEngine engine, int c) throws ScriptException {
-		engine.eval("__c=new __fieldglobal.self.tern.Context()");
+		engine.eval("var __c=new __fieldglobal.self.tern.Context()");
 		try {
 			Object[] o = (Object[]) engine.eval("__fieldglobal.self.tern.withContext(__c, function(){\n" +
 				"\tvar a = __fieldglobal.self.tern.parse(__someFile)\n" +
@@ -482,7 +481,7 @@ public class TernSupport {
 
 		try {
 			engine.put("__someFile", allText);
-			engine.eval("__completions = new java.util.ArrayList()");
+			engine.eval("var __completions = new java.util.ArrayList()");
 
 
 			String[] lines = allText.split("\n");
@@ -497,7 +496,7 @@ public class TernSupport {
 			final int finalC = c;
 			Log.log("completion.debug", () -> " line :" + line + " -> " + ch + " -> " + finalC);
 
-			engine.eval("__c=new __fieldglobal.self.tern.Context()");
+			engine.eval("var __c=new __fieldglobal.self.tern.Context()");
 			Object[] ret = (Object[]) engine.eval("__fieldglobal.self.tern.withContext(__c, function(){\n" +
 				"\tvar a = __fieldglobal.self.tern.parse(__someFile)\n" +
 				"\t__fieldglobal.self.tern.analyze(a)\n" +
