@@ -7,6 +7,7 @@ import field.utility.Dict;
 import field.utility.IdempotencyMap;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Boxes;
+import fieldbox.boxes.ListProxy;
 import fieldbox.execution.Completion;
 import fieldbox.execution.HandlesCompletion;
 import fieldbox.io.IO;
@@ -30,7 +31,7 @@ public class Pseudo extends Box {
 														      .toCannon()
 														      .type();
 
-	static public Dict.Prop<FunctionOfBoxValued<All>> all = new Dict.Prop<FunctionOfBoxValued<All>>("all").doc(" `_.all.x` returns all values of `x` above this box and at this box")
+	static public Dict.Prop<FunctionOfBoxValued<All>> allUp = new Dict.Prop<FunctionOfBoxValued<All>>("allUp").doc(" `_.allUp.x` returns all values of `x` above this box _and at this box_")
 													      .toCannon()
 													      .type();
 
@@ -39,7 +40,7 @@ public class Pseudo extends Box {
 													  .type();
 
 
-	static public Dict.Prop<FunctionOfBoxValued<Has>> has = new Dict.Prop<FunctionOfBoxValued<All>>("has").doc(" `_.has.x` returns true if this box, or any box above it, has a property `x` ")
+	static public Dict.Prop<FunctionOfBoxValued<Has>> has = new Dict.Prop<FunctionOfBoxValued<Has>>("has").doc(" `_.has.x` returns true if this box, or any box above it, has a property `x` ")
 													      .toCannon()
 													      .type();
 
@@ -72,7 +73,7 @@ public class Pseudo extends Box {
 														  .type();
 
 
-	static public Dict.Prop<FunctionOfBoxValued<Down>> down = new Dict.Prop<FunctionOfBoxValued<Down>>("down").doc(" `_.down.x` searches for `x` _down_ the dispatch graph rather than upwards ")
+	static public Dict.Prop<FunctionOfBoxValued<Down>> down = new Dict.Prop<FunctionOfBoxValued<Down>>("down").doc(" `_.down.x` searches for `x` _down_ the dispatch graph rather than upwards, and returns the first thing found")
 														  .toCannon()
 														  .type();
 
@@ -133,7 +134,7 @@ public class Pseudo extends Box {
 
 	public Pseudo(Box r) {
 		this.properties.put(where, First::new);
-		this.properties.put(all, All::new);
+		this.properties.put(allUp, All::new);
 		this.properties.put(up, Up::new);
 		this.properties.put(down, Down::new);
 		this.properties.put(allDown, AllDown::new);
@@ -677,10 +678,10 @@ public class Pseudo extends Box {
 		@Override
 		public Object asMap_get(String s) {
 			Dict.Prop<?> p = new Dict.Prop(s);
-			return on.breadthFirst(on.upwards())
+			return new ListProxy(on.breadthFirst(on.upwards())
 				 .filter(x -> x.properties.has(p))
 				 .map(x -> x.properties.get(p))
-				 .collect(Collectors.toList());
+				 .collect(Collectors.toList()));
 		}
 
 	}
