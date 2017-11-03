@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
+import static org.lwjgl.opengl.GL12.GL_TEXTURE_3D;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL15.*;
@@ -470,6 +471,8 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
         public final int width;
         public final int height;
         public final int format;
+        public int depth;
+
         public final int type;
         public final int elementSize;
         public final boolean highQuality;
@@ -505,6 +508,12 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
             this.highQuality = highQuality;
             this.forceSingleBuffered = forceNotStreaming;
             this.compressed = compressed;
+        }
+
+        public TextureSpecification depth(int d)
+        {
+            this.depth = d;
+            return this;
         }
 
         static public TextureSpecification byte3(int unit, int width, int height, ByteBuffer source, boolean mips) {
@@ -583,6 +592,12 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
         static public TextureSpecification float4_1d(int unit, int width, ByteBuffer source, boolean mips) {
             return new TextureSpecification(unit, GL_TEXTURE_1D, GL30.GL_RGBA32F, width, 1, GL_RGBA, GL_FLOAT, 16, source, mips);
         }
+
+        static public TextureSpecification float4_3d(int unit, int width, int height, int depth, ByteBuffer source, boolean mips) {
+            return new TextureSpecification(unit, GL_TEXTURE_3D, GL30.GL_RGBA32F, width, height, GL_RGBA, GL_FLOAT, 16, source, mips).depth(depth);
+        }
+
+
 
         @Override
         public String toString() {
