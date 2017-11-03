@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * This is a browser, created by default, that embeds the text editor. We're checking for latency here
+ * This is a browser, created by default, that embeds the text editor.
  */
 public class TextEditor extends Box implements IO.Loaded {
 
