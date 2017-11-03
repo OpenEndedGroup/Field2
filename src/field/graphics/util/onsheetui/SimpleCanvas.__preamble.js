@@ -5,10 +5,11 @@
 var ignoreBracketChanges = false
 var globalCommands = []
 
-updateAllBrackets = function(){}
+var updateAllBrackets = function () {
+}
 
 console = {
-    log:function(x){
+    log: function (x) {
         print(x)
     }
 }
