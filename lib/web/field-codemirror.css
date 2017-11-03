@@ -157,9 +157,9 @@ a {
 
 .CodeMirror
 {
-    font-family: "Fira Code", "Source Code Pro" !important;
     font-size:13px;
 
+    font-family: "Fira Code", "Source Code Pro" !important;
     -webkit-font-variant-ligatures: common-ligatures;
     font-variant-ligatures: common-ligatures;
     -webkit-font-feature-settings: "kern";
@@ -173,7 +173,8 @@ a {
 }
 
 .CodeMirror div.CodeMirror-cursor {
-    border: 2px solid rgba(255, 0, 0, 0.35);
+    border-left: 1px solid rgba(255, 0, 0, 0.5);
+    border-right: 2px solid rgba(255, 0, 0, 0.1);
     background: rgba(255, 0, 0, 0.35);
 }
 
@@ -348,6 +349,7 @@ a {
 .CodeMirror-linewidget {
     margin-left: -25px;
     z-index: 4;
+
 }
 
 .Field-remoteOutput {
@@ -437,6 +439,22 @@ a {
     border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
+.Field-remoteWidgetOverlay {
+    display: inline-block;
+    vertical-align: middle;
+    background: rgba(128,108,78,0.9);
+    border-radius: 3px;
+    /* padding: 1px; */
+    margin-top: -33px;
+    margin-left: -3px;
+    white-space: pre;
+    pointer-events: all;
+    border: 1px solid rgba(220,120,20, 0.25);
+    /* overflow: visible; */
+    z-index: 4;
+    /* filter: invert() contrast(1) brightness(0.5); */
+}
+
 .Field-remoteColor form {
     display: inline;
 }
@@ -459,6 +477,7 @@ a {
 
     border-top: 2px solid #000;
     border-left: 2px solid #000;
+
 }
 
 .Field-expandBox {
@@ -968,7 +987,7 @@ code {
 
 
 .cm-s-default span.cm-keyword {
-    color: #dba;
+    color: #e93;
     font-style: italic;
 }
 
