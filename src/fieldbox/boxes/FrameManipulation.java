@@ -12,6 +12,7 @@ import field.utility.Triple;
 import fieldbox.boxes.plugins.Planes;
 import fieldbox.boxes.plugins.Scrolling;
 import fieldbox.boxes.plugins.SimpleSnapHelper;
+import fieldbox.boxes.plugins.UndoStack;
 import fieldbox.ui.Cursors;
 
 import java.awt.*;
@@ -43,6 +44,19 @@ public class FrameManipulation extends Box {
 	static public final Dict.Prop<Boolean> lockY = new Dict.Prop<>("lockY").type()
 		.toCanon()
 		.doc("set to true to disable changes to the y-position of this box via the mouse");
+
+	static public final Dict.Prop<Number> maxWidth = new Dict.Prop<>("maxWidth").type()
+		.toCanon()
+		.doc("set to this value to constrain the width of this box");
+	static public final Dict.Prop<Number> maxHeight = new Dict.Prop<>("maxHeight").type()
+		.toCanon()
+		.doc("set to this value to constrain the height of this box");
+	static public final Dict.Prop<Number> minWidth = new Dict.Prop<>("minWidth").type()
+		.toCanon()
+		.doc("set to this value to constrain the width of this box");
+	static public final Dict.Prop<Number> minHeight = new Dict.Prop<>("minHeight").type()
+		.toCanon()
+		.doc("set to this value to constrain the height of this box");
 
 	static public final Dict.Prop<FunctionOfBoxValued<List<Box>>> selection = new Dict.Prop<>("selection").toCanon()
 		.type()
@@ -345,7 +359,8 @@ public class FrameManipulation extends Box {
 					transformPart2(c1);
 
 					c1.forEach(x -> {
-						x.first.properties.put(frame, x.third);
+						UndoStack.u.change(x.first, frame, x.third);
+//						x.first.properties.put(frame, x.third);
 						feedback(hitBox, originalFrame, x.third, termination ? 60 : -1);
 						Drawing.dirty(hitBox);
 					});
@@ -530,6 +545,16 @@ public class FrameManipulation extends Box {
 			if (b.properties.isTrue(lockHeight, false)) r = new Rect(r.x, r.y, r.w, was.h);
 			if (b.properties.isTrue(lockX, false)) r = new Rect(was.x, r.y, r.w, r.h);
 			if (b.properties.isTrue(lockY, false)) r = new Rect(r.x, was.y, r.w, r.h);
+
+			if (b.properties.has(minWidth))
+				r = new Rect(r.x, r.y, Math.max(b.properties.getFloat(minWidth, r.w), r.w), r.h);
+			if (b.properties.has(minHeight))
+				r = new Rect(r.x, r.y, r.w, Math.max(b.properties.getFloat(minHeight, r.h), r.h));
+			if (b.properties.has(maxWidth))
+				r = new Rect(r.x, r.y, Math.min(b.properties.getFloat(maxWidth, r.w), r.w), r.h);
+			if (b.properties.has(maxHeight))
+				r = new Rect(r.x, r.y, r.w, Math.min(b.properties.getFloat(maxHeight, r.h), r.h));
+
 		}
 
 //		r = Callbacks.frameChange(b, r);
