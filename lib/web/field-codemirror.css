@@ -345,6 +345,21 @@ a {
     width: 48px;
 }
 
+.CodeMirror-gutters {
+    /*background : #2d3133;*/
+    /*border-color: #2d3133;*/
+    /*background: rgba(0, 0, 0, 0);*/
+    /*border-color: rgba(255, 255, 255, 0.1);*/
+
+    background : #444;
+    border : None;
+
+}
+.CodeMirror-linenumber {
+    color:#777;
+    font-weight: 100;
+}
+
 .CodeMirror-linewidget {
     margin-left: -25px;
     z-index: 4;
@@ -442,7 +457,7 @@ a {
 }
 
 .Field-closeBox {
-    font-size: 12px;
+    font-size: 10px;
     font-family: "Source Code Pro";
     position: absolute;
     border-radius: 6px 0 0 0;
@@ -462,7 +477,7 @@ a {
 }
 
 .Field-expandBox {
-    font-size: 12px;
+    font-size: 9px;
     position: absolute;
     font-family: "Source Code Pro";
     border-radius: 0 0 0 6px;
@@ -851,6 +866,7 @@ code {
 
 .CodeMirror-scroll {
     border-radius: 5px;
+    border: None;
     background: #222;
 }
 
@@ -861,14 +877,10 @@ code {
 .CodeMirror {
     border-radius: 5px;
     color: #aaa;
+    border: None;
 }
 
-.CodeMirror-gutters {
-    background : #2d3133;
-    border-color: #2d3133;
-    background: rgba(0, 0, 0, 0);
-    border-color: rgba(255, 255, 255, 0.1);
-}
+
 
 .CodeMirror-gutter-wrapper {
     pointer-events: none;
