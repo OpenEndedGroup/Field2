@@ -220,7 +220,7 @@ public class OutputBox extends Box implements IO.Loaded {
 
 			return new Execution.ExecutionSupport() {
 
-				protected Util.ExceptionlessAutoCloasable previousPush = null;
+				protected Util.ExceptionlessAutoClosable previousPush = null;
 
 				@Override
 				public Object getBinding(String name) {
