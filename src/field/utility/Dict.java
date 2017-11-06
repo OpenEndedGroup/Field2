@@ -406,9 +406,9 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 		}
 	}
 
-//	Map<Prop, Object> dictionary = new MapMaker().concurrencyLevel(2)
-//			.makeMap();
-	Map<Prop, Object> dictionary = new LinkedHashMap<>();
+	Map<Prop, Object> dictionary = new MapMaker().concurrencyLevel(2)
+			.makeMap();
+//	Map<Prop, Object> dictionary = new LinkedHashMap<>();
 
 	Function<Prop, Object> failure = null;
 
@@ -750,7 +750,7 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 
 		if (value != null && value.getClass().getName().endsWith("ConsString")) value = "" + value;
 
-		Dict.Prop cannon = new Dict.Prop(name).toCannon();
+		Dict.Prop cannon = new Dict.Prop(name).toCanon();
 
 		if (cannon.getAttributes().isTrue(Dict.readOnly, false))
 			throw new IllegalArgumentException("can't write to property " + name);
