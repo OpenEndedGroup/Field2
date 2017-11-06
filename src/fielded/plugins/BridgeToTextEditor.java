@@ -148,7 +148,7 @@ public class BridgeToTextEditor extends Box {
 
 			return new Execution.ExecutionSupport() {
 
-				protected Util.ExceptionlessAutoCloasable previousPush = null;
+				protected Util.ExceptionlessAutoClosable previousPush = null;
 
 				@Override
 				public Object getBinding(String name) {
