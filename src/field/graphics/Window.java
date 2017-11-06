@@ -244,9 +244,9 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 
 		if (Main.os == Main.OS.mac) {
 			int finalW = w;
-//			RunLoop.main.delayTicks(() -> {
+			RunLoop.main.delayTicks(() -> {
 				setBounds(x, y, finalW + 1, h);
-//			}, 2);
+			}, 2);
 		}
 
 
