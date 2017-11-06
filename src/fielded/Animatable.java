@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 /**
  * What does it mean to Animate a box? This class handles conversions from various dynamic language constructs to things with a beginning, a middle
  * and an end. Runtimes can register things that can be converted into this format here with this registry.
- *
+ * <p>
  * Question: should this just use the Conversions.java framework instead?
  */
 public class Animatable {
@@ -23,14 +23,16 @@ public class Animatable {
 			return this;
 		}
 
-		Object middle(boolean isEnding);
+		default Object middle(boolean isEnding) {
+			return this;
+		}
 
 		default Object end(boolean isEnding) {
 			return this;
 		}
 	}
 
-	static public class Shim implements Supplier<Boolean>, Consumer<Boolean>{
+	static public class Shim implements Supplier<Boolean>, Consumer<Boolean> {
 		protected final AnimationElement e;
 		protected boolean stopping = false;
 		protected boolean first = true;
@@ -53,9 +55,7 @@ public class Animatable {
 					e.middle(stopping);
 					return true;
 				}
-			}
-			catch(Throwable t)
-			{
+			} catch (Throwable t) {
 				t.printStackTrace();
 				Errors.INSTANCE.tryToReportTo(t, "Error throw in box animation, box stopped", null);
 				return false;
@@ -70,6 +70,15 @@ public class Animatable {
 	}
 
 	static List<BiFunction<AnimationElement, Object, AnimationElement>> handlers = new ArrayList<>();
+
+	static {
+		registerHandler((current, incomming) -> {
+			if (incomming instanceof AnimationElement) {
+				return (AnimationElement) incomming;
+			}
+			return current;
+		});
+	}
 
 	static public void registerHandler(BiFunction<AnimationElement, Object, AnimationElement> h) {
 		handlers.add(0, h);

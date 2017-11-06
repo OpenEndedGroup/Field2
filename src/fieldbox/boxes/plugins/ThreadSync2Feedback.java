@@ -38,7 +38,7 @@ public class ThreadSync2Feedback extends Box {
 				Stream<Box> s = selection();
 
 				List<Box> c = s.filter(x -> lastRunning.containsKey(x))
-					       .collect(Collectors.toList());
+					.collect(Collectors.toList());
 
 				if (c.size() == 0) return null;
 
@@ -59,12 +59,12 @@ public class ThreadSync2Feedback extends Box {
 //		return false;
 
 		return ThreadSync2.getSync()
-				  .getFibres()
-				  .stream()
-				  .filter(z -> z.tag == x)
-				  .filter(z -> z.paused)
-				  .findAny()
-				  .isPresent();
+			.getFibres()
+			.stream()
+			.filter(z -> z.tag == x)
+			.filter(z -> z.paused)
+			.findAny()
+			.isPresent();
 	}
 
 	static public boolean yield(Box x) {
@@ -104,15 +104,15 @@ public class ThreadSync2Feedback extends Box {
 	static protected boolean cont(Box box) {
 
 		List<ThreadSync2.Fibre> live = ThreadSync2.getSync()
-							  .getFibres();
+			.getFibres();
 		boolean[] done = {false};
 
 		live.stream()
-		    .filter(x -> x.tag == box)
-		    .forEach(x -> {
-			    x.paused = false;
-			    done[0] = true;
-		    });
+			.filter(x -> x.tag == box)
+			.forEach(x -> {
+				x.paused = false;
+				done[0] = true;
+			});
 
 		Drawing.dirty(box, 3);
 		return done[0];
@@ -121,14 +121,14 @@ public class ThreadSync2Feedback extends Box {
 	static protected boolean pause(Box box) {
 
 		List<ThreadSync2.Fibre> live = ThreadSync2.getSync()
-							  .getFibres();
+			.getFibres();
 		boolean[] done = {false};
 		live.stream()
-		    .filter(x -> x.tag == box)
-		    .forEach(x -> {
-			    x.paused = true;
-			    done[0] = true;
-		    });
+			.filter(x -> x.tag == box)
+			.forEach(x -> {
+				x.paused = true;
+				done[0] = true;
+			});
 		Drawing.dirty(box, 3);
 		return done[0];
 	}
@@ -136,45 +136,45 @@ public class ThreadSync2Feedback extends Box {
 	static protected boolean step(Box box) {
 
 		List<ThreadSync2.Fibre> live = ThreadSync2.getSync()
-							  .getFibres();
+			.getFibres();
 		boolean[] done = {false};
 		live.stream()
-		    .filter(x -> x.tag == box)
-		    .forEach(x -> {
-			    x.paused = false;
-			    x.pauseNext = true;
-			    done[0] = true;
-		    });
+			.filter(x -> x.tag == box)
+			.forEach(x -> {
+				x.paused = false;
+				x.pauseNext = true;
+				done[0] = true;
+			});
 		Drawing.dirty(box, 3);
 		return done[0];
 	}
 
-	static protected boolean kill(Box box) {
+	public static boolean kill(Box box) {
 
 		List<ThreadSync2.Fibre> live = ThreadSync2.getSync()
-							  .getFibres();
+			.getFibres();
 		boolean[] done = {false};
 		live.stream()
-		    .filter(x -> x.tag == box)
-		    .forEach(x -> {
-			    x.killed = true;
-			    x.paused = false;
-			    x.pauseNext = false;
-			    done[0] = true;
-		    });
+			.filter(x -> x.tag == box)
+			.forEach(x -> {
+				x.killed = true;
+				x.paused = false;
+				x.pauseNext = false;
+				done[0] = true;
+			});
 		Drawing.dirty(box, 3);
 		return done[0];
 	}
 
 	private Stream<Box> selection() {
 		return breadthFirst(both()).filter(x -> x.properties.isTrue(Mouse.isSelected, false))
-					   .filter(x -> !x.properties.isTrue(Mouse.isSticky, false))
-					   .filter(x -> x.properties.has(Box.name));
+			.filter(x -> !x.properties.isTrue(Mouse.isSticky, false))
+			.filter(x -> x.properties.has(Box.name));
 	}
 
 	protected boolean run() {
 		List<ThreadSync2.Fibre> live = ThreadSync2.getSync()
-							  .getFibres();
+			.getFibres();
 
 		Map<Box, Integer> running = new LinkedHashMap<>();
 
@@ -190,7 +190,7 @@ public class ThreadSync2Feedback extends Box {
 		finished.removeAll(running.keySet());
 
 		started.stream()
-		       .forEach(x -> addBadge(x));
+			.forEach(x -> addBadge(x));
 		finished.stream()
 			.forEach(x -> removeBadge(x));
 
@@ -277,5 +277,13 @@ public class ThreadSync2Feedback extends Box {
 			return null;
 
 		});
+	}
+
+	public static List<ThreadSync2.Fibre> fibresFor(Box box) {
+		List<ThreadSync2.Fibre> live = ThreadSync2.getSync()
+			.getFibres();
+
+		return live.stream()
+			.filter(x -> x.tag == box).collect(Collectors.toList());
 	}
 }
