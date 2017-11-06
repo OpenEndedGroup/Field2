@@ -425,7 +425,37 @@ a {
     overflow: hidden;
 }
 
+.Field-interventionMiddle
+{
+    background: rgba(255,205,155, 0.1);
+    padding: 2px;
+    border-radius: 4px;
+    border: 1px solid rgba(255,205,155,0.3);
+}
+
 .Field-remoteWidgetInline {
+    display: inline-block;
+    vertical-align: middle;
+    background: #333;
+    border-radius: 3px;
+    padding: 3px;
+    padding-left: 3px;
+    margin-top: 2px;
+    margin-left: 2px;
+    white-space: pre;
+    pointer-events: all;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+.Field-specialMarkedText
+{
+    color: #f00 !important;
+    border: 1px solid rgba(255,205,155,0.3);
+    border-radius: 5px;
+    padding: 2px;
+    background: rgba(255,205,155,0.05);
+}
+
+.Field-remoteTextBoxInline {
     display: inline-block;
     vertical-align: middle;
     background: #333;
