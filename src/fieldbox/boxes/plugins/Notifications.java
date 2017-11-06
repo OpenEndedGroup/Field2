@@ -18,8 +18,8 @@ import static field.graphics.StandardFLineDrawing.*;
  */
 public class Notifications extends Box {
 
-	static public final Dict.Prop<Box.BiFunctionOfBoxAnd<String, String>> badge = new Dict.Prop<>("badge").toCannon(); // TODO
-	static public final Dict.Prop<FunctionOfBoxValued<IdempotencyMap<String>>> badges = new Dict.Prop<>("badges").toCannon(); // TODO
+	static public final Dict.Prop<Box.BiFunctionOfBoxAnd<String, String>> badge = new Dict.Prop<>("badge").toCanon(); // TODO
+	static public final Dict.Prop<FunctionOfBoxValued<IdempotencyMap<String>>> badges = new Dict.Prop<>("badges").toCanon(); // TODO
 
 	static public final Dict.Prop<ArrayList<String>> _badgeList = new Dict.Prop<>("_badgeList");
 	static public final Dict.Prop<IdempotencyMap> _badgesList = new Dict.Prop<>("_badgesList");

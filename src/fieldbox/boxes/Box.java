@@ -33,28 +33,28 @@ import java.util.stream.Stream;
 public class Box implements fieldlinker.AsMap, HandlesCompletion {
 
 	static public final Dict.Prop<String> name = new Dict.Prop<>("name").type()
-		.toCannon()
+		.toCanon()
 		.doc("the name of this box");
 	static public final Dict.Prop<Rect> frame = new Dict.Prop<>("frame").type()
-		.toCannon()
+		.toCanon()
 		.doc("the rectangle that this box occupies").set(IO.persistent, true).set(IO.perDocument, true);
 	static public final Dict.Prop<Number> depth= new Dict.Prop<>("depth").type()
-		.toCannon()
+		.toCanon()
 		.doc("provides a completely cosmetic 'z' coordinate for this box. Visible in VR and on stereo displays.").set(IO.persistent, true).set(IO.perDocument, true);
 	static public final Dict.Prop<Boolean> hidden = new Dict.Prop<>("hidden").type()
-		.toCannon()
+		.toCanon()
 		.doc("set this to true to hide this box (but be careful, for if it's hidden, how will you get it back again?)");
 
 	static public final Dict.Prop<Boolean> decorative = new Dict.Prop<>("decorative").type()
-		.toCannon()
+		.toCanon()
 		.doc("boxes like arrows and text have this set");
 
 	static public final Dict.Prop<Boolean> undeletable = new Dict.Prop<>("undeletable").type()
-		.toCannon()
+		.toCanon()
 		.doc("set this to true to make this box not deletable by conventional means");
 
 	static public final Dict.Prop<Predicate<Box>> availableForCompletion = new Dict.Prop<>("availableForCompletion").type()
-		.toCannon()
+		.toCanon()
 		.doc("provides a `Predicate<Box>` to help decide if a Property should be shown as available for completion").set(Dict.domain, "attributes");
 
 
@@ -409,7 +409,7 @@ public class Box implements fieldlinker.AsMap, HandlesCompletion {
 
 		if (p.equals("_")) return true;
 
-		if (Dict.Canonical.findCannon(p) != null) return true;
+		if (Dict.Canonical.findCanon(p) != null) return true;
 
 		if (knownNonProperties == null) knownNonProperties = computeKnownNonProperties();
 
@@ -479,16 +479,16 @@ public class Box implements fieldlinker.AsMap, HandlesCompletion {
 
 	@HiddenInAutocomplete
 	public Object asMap_get_find(String m) {
-		Dict.Prop cannon = new Dict.Prop(m).toCannon();
+		Dict.Prop canon = new Dict.Prop(m).toCanon();
 
 		Object ret = null;
 
-		if (!properties.has(cannon) && cannon.autoConstructor != null) {
-			ret = cannon.autoConstructor.get();
-			if (ret != null) properties.put(cannon, ret);
+		if (!properties.has(canon) && canon.autoConstructor != null) {
+			ret = canon.autoConstructor.get();
+			if (ret != null) properties.put(canon, ret);
 
 		}
-		if (ret == null) ret = Missing.findFrom(this, cannon);
+		if (ret == null) ret = Missing.findFrom(this, canon);
 		return ret;
 	}
 
@@ -506,18 +506,18 @@ public class Box implements fieldlinker.AsMap, HandlesCompletion {
 //		if (value instanceof ConsString) value = value.toString(); //jdk9 module security breaks this
 		if (value != null && value.getClass().getName().endsWith("ConsString")) value = "" + value;
 
-		Dict.Prop cannon = new Dict.Prop(name).toCannon();
+		Dict.Prop canon = new Dict.Prop(name).toCanon();
 
-		if (cannon.getAttributes().isTrue(Dict.readOnly, false))
+		if (canon.getAttributes().isTrue(Dict.readOnly, false))
 			throw new IllegalArgumentException("can't write to property " + name);
 
-		Function<Object, Object> c = cannon.getAttributes().get(Dict.customCaster);
+		Function<Object, Object> c = canon.getAttributes().get(Dict.customCaster);
 		if (c!=null)
 			value = c.apply(value);
 
-		Object converted = Conversions.convert(value, cannon.getTypeInformation());
+		Object converted = Conversions.convert(value, canon.getTypeInformation());
 
-		Missing.setTo(this, cannon, converted);
+		Missing.setTo(this, canon, converted);
 
 		if (tick != RunLoop.tick) {
 //			Drawing.dirty(this);
@@ -601,7 +601,7 @@ public class Box implements fieldlinker.AsMap, HandlesCompletion {
 		List<Completion> l1 = assembleCompletions(prefix, propStream);
 		l1.forEach(x -> x.rank++);
 
-		List<Completion> l1b = assembleCompletions(prefix, Dict.cannonicalProperties());
+		List<Completion> l1b = assembleCompletions(prefix, Dict.canonicalProperties());
 		l1.addAll(l1b.stream()
 			.filter(x -> {
 				for (Completion c : l1)
@@ -643,7 +643,7 @@ public class Box implements fieldlinker.AsMap, HandlesCompletion {
 			.filter(x -> x.startsWith(prefix))
 			.sorted()
 			.map(x -> {
-				Dict.Prop q = new Dict.Prop(x).findCannon();
+				Dict.Prop q = new Dict.Prop(x).findCanon();
 				if (q == null) {
 					return null;
 				} else

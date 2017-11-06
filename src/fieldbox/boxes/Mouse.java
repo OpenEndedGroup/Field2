@@ -18,34 +18,34 @@ import java.util.stream.Collectors;
 public class Mouse {
 
 	static public final Dict.Prop<Map<String, OnMouseDown>> onMouseDown = new Dict.Prop<>("onMouseDown").type()
-													    .toCannon()
+													    .toCanon()
 													    .autoConstructs(() -> new IdempotencyMap<>(OnMouseDown.class));
 	static public final Dict.Prop<Map<String, OnDoubleClick>> onDoubleClick = new Dict.Prop<>("onDoubleClick").type()
-													    .toCannon()
+													    .toCanon()
 													    .autoConstructs(() -> new IdempotencyMap<>(OnDoubleClick.class));
 	static public final Dict.Prop<Map<String, OnMouseMove>> onMouseMove = new Dict.Prop<>("onMouseMove").type()
-													    .toCannon()
+													    .toCanon()
 													    .autoConstructs(() -> new IdempotencyMap<>(OnMouseMove.class));
 	static public final Dict.Prop<Map<String, OnMouseEnter>> onMouseEnter = new Dict.Prop<>("onMouseEnter").type()
-													       .toCannon()
+													       .toCanon()
 													       .autoConstructs(() -> new IdempotencyMap<>(OnMouseEnter.class));
 	static public final Dict.Prop<Map<String, OnMouseScroll>> onMouseScroll = new Dict.Prop<>("onMouseScroll").type()
-														  .toCannon()
+														  .toCanon()
 														  .autoConstructs(() -> new IdempotencyMap<>(OnMouseScroll.class));
 	static public final Dict.Prop<Map<String, OnMouseExit>> onMouseExit = new Dict.Prop<>("onMouseExit").type()
-													    .toCannon()
+													    .toCanon()
 													    .autoConstructs(() -> new IdempotencyMap<>(OnMouseExit.class));
 	static public final Dict.Prop<Boolean> isSelected = new Dict.Prop<>("isSelected").type()
-											 .toCannon();
+											 .toCanon();
 	static public final Dict.Prop<Boolean> isManipulated = new Dict.Prop<>("isManipulated").type()
-											       .toCannon();
+											       .toCanon();
 	static public final Dict.Prop<Boolean> isSticky = new Dict.Prop<>("isSticky").type()
-										     .toCannon();
+										     .toCanon();
 
 	static public final Dict.Prop<Integer> clickNumber= new Dict.Prop<>("clickNumber").type()
-											  .toCannon();
+											  .toCanon();
 	static public final Dict.Prop<Box> originatesAt= new Dict.Prop<>("originatesAt").type()
-											  .toCannon();
+											  .toCanon();
 
 	Map<Integer, Collection<Dragger>> ongoingDrags = new HashMap<Integer, Collection<Dragger>>();
 

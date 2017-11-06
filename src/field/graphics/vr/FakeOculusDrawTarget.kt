@@ -13,8 +13,8 @@ class FakeOculusDrawTarget {
 
     var floatResolution = false
 
-    val wPerEye: Int = 4096
-    val hPerEye: Int = 2048
+    val wPerEye: Int = 4096*2
+    val hPerEye: Int = 2048*2
 
     val camera = Camera()
 

@@ -28,9 +28,9 @@ import java.util.stream.Stream;
 public class Taps extends Box implements IO.Loaded {
 
 	static public final Dict.Prop<BiFunctionOfBoxAnd<String, Box /*Function<Object, Object>*/>> tap = new Dict.Prop<>("tap").type()
-																.toCannon(); //doc!
+																.toCanon(); //doc!
 	static public final Dict.Prop<Binding> tapBinding = new Dict.Prop<>("tapBinding").type()
-											 .toCannon(); //doc!
+											 .toCanon(); //doc!
 
 
 	boolean selectionHasChanged = false;

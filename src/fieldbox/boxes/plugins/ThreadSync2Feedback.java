@@ -19,13 +19,13 @@ import java.util.stream.Stream;
  */
 public class ThreadSync2Feedback extends Box {
 
-	static public Dict.Prop<FunctionOfBox<Boolean>> fPause = new Dict.Prop<>("fPause").toCannon().type().doc(" pauses all the fibers associated with a running box. Returns false if that box currently has no fibers. ");
-	static public Dict.Prop<FunctionOfBox<Boolean>> fCont = new Dict.Prop<>("fCont").toCannon().type().doc(" continues all the fibers associated with a running box. Returns false if that box currently has no fibers. ");
-	static public Dict.Prop<FunctionOfBox<Boolean>> fStep = new Dict.Prop<>("fStep").toCannon().type().doc(" steps once all the fibers associated with a running box. Returns false if that box currently has no fibers. ");
-	static public Dict.Prop<FunctionOfBox<Boolean>> fKill = new Dict.Prop<>("fKill").toCannon().type().doc(" kills all the fibers associated with a running box. Returns false if that box currently has no fibers. ");
+	static public Dict.Prop<FunctionOfBox<Boolean>> fPause = new Dict.Prop<>("fPause").toCanon().type().doc(" pauses all the fibers associated with a running box. Returns false if that box currently has no fibers. ");
+	static public Dict.Prop<FunctionOfBox<Boolean>> fCont = new Dict.Prop<>("fCont").toCanon().type().doc(" continues all the fibers associated with a running box. Returns false if that box currently has no fibers. ");
+	static public Dict.Prop<FunctionOfBox<Boolean>> fStep = new Dict.Prop<>("fStep").toCanon().type().doc(" steps once all the fibers associated with a running box. Returns false if that box currently has no fibers. ");
+	static public Dict.Prop<FunctionOfBox<Boolean>> fKill = new Dict.Prop<>("fKill").toCanon().type().doc(" kills all the fibers associated with a running box. Returns false if that box currently has no fibers. ");
 
-	static public Dict.Prop<FunctionOfBox<Boolean>> yield = new Dict.Prop<>("yield").toCannon().type().doc("call `_.yield()` to pause this code for one 'frame', allowing everything else (graphics, the rest of field) to update exactly once.");
-	static public Dict.Prop<FunctionOfBox<ThreadSync2.Fibre>> trace = new Dict.Prop<>("trace").toCannon().type().doc("call `_.trace()` to get an object that lives for this lifetime of this execution trace. Simultanous overlapping executions share the same namespace but different `_.trace()` objects");
+	static public Dict.Prop<FunctionOfBox<Boolean>> yield = new Dict.Prop<>("yield").toCanon().type().doc("call `_.yield()` to pause this code for one 'frame', allowing everything else (graphics, the rest of field) to update exactly once.");
+	static public Dict.Prop<FunctionOfBox<ThreadSync2.Fibre>> trace = new Dict.Prop<>("trace").toCanon().type().doc("call `_.trace()` to get an object that lives for this lifetime of this execution trace. Simultanous overlapping executions share the same namespace but different `_.trace()` objects");
 
 	Map<Box, Integer> lastRunning = new LinkedHashMap<>();
 

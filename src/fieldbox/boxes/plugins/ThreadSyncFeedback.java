@@ -19,10 +19,10 @@ import java.util.stream.Stream;
  */
 public class ThreadSyncFeedback extends Box {
 
-	static public Dict.Prop<FunctionOfBox<Boolean>> fPause = new Dict.Prop<>("fPause").toCannon().doc(" pauses all the fibers associated with a running box. Returns false if that box currently has no fibers. ");
-	static public Dict.Prop<FunctionOfBox<Boolean>> fCont = new Dict.Prop<>("fCont").toCannon().doc(" continues all the fibers associated with a running box. Returns false if that box currently has no fibers. ");
-	static public Dict.Prop<FunctionOfBox<Boolean>> fStep = new Dict.Prop<>("fStep").toCannon().doc(" steps once all the fibers associated with a running box. Returns false if that box currently has no fibers. ");
-	static public Dict.Prop<FunctionOfBox<Boolean>> fKill = new Dict.Prop<>("fKill").toCannon().doc(" kills all the fibers associated with a running box. Returns false if that box currently has no fibers. ");
+	static public Dict.Prop<FunctionOfBox<Boolean>> fPause = new Dict.Prop<>("fPause").toCanon().doc(" pauses all the fibers associated with a running box. Returns false if that box currently has no fibers. ");
+	static public Dict.Prop<FunctionOfBox<Boolean>> fCont = new Dict.Prop<>("fCont").toCanon().doc(" continues all the fibers associated with a running box. Returns false if that box currently has no fibers. ");
+	static public Dict.Prop<FunctionOfBox<Boolean>> fStep = new Dict.Prop<>("fStep").toCanon().doc(" steps once all the fibers associated with a running box. Returns false if that box currently has no fibers. ");
+	static public Dict.Prop<FunctionOfBox<Boolean>> fKill = new Dict.Prop<>("fKill").toCanon().doc(" kills all the fibers associated with a running box. Returns false if that box currently has no fibers. ");
 
 	Map<Box, Integer> lastRunning = new LinkedHashMap<>();
 

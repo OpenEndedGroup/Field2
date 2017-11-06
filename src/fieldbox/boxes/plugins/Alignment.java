@@ -41,7 +41,7 @@ public class Alignment extends Box {
 			MarkingMenus.MenuSpecification spec = new MarkingMenus.MenuSpecification();
 
 			if (selected().count() > 0) {
-				spec.items.put(MarkingMenus.Position.N, new MarkingMenus.MenuItem("Selection", () -> {
+				spec.items.put(MarkingMenus.Position.N2, new MarkingMenus.MenuItem("Selection", () -> {
 				}).setSubmenu(m2));
 			}
 

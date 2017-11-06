@@ -39,12 +39,12 @@ public class FileBrowser extends Box implements IO.Loaded {
 	static public final Dict.Prop<Boolean> isLinked = new Dict.Prop<Boolean>("isLinked").doc(
 		"property is set to true if this box is used in other sheets, and you are editing all of them at the same time")
 		.type()
-		.toCannon();
+		.toCanon();
 
-	static public final Dict.Prop<BiFunction<String, Vec2, Set<Box>>> copyFromFileCalled = new Dict.Prop<>("copyFromFileCalled").toCannon()
+	static public final Dict.Prop<BiFunction<String, Vec2, Set<Box>>> copyFromFileCalled = new Dict.Prop<>("copyFromFileCalled").toCanon()
 		.type()
 		.doc("`_.copyFromFileCalled('banana', new Vec2(0,0))` will copy into this document any file (.field2 file or box or template) called 'banana', centering all the boxes loaded on the point `Vec2(0,0)`");
-	static public final Dict.Prop<BiFunction<String, Vec2, Set<Box>>> insertFromFileCalled = new Dict.Prop<>("insertFromFileCalled").toCannon()
+	static public final Dict.Prop<BiFunction<String, Vec2, Set<Box>>> insertFromFileCalled = new Dict.Prop<>("insertFromFileCalled").toCanon()
 		.type()
 		.doc("`_.copyFromFileCalled('banana', new Vec2(0,0))` will insert a live reference into this document any file (.field2 file or box or template) called 'banana', centering all the boxes loaded on the point `Vec2(0,0)`");
 

@@ -16,7 +16,7 @@ import java.util.Map;
  */
 public class InternalCSS extends Box {
 
-	static public final Dict.Prop<String> css = new Dict.Prop<>("css").toCannon();
+	static public final Dict.Prop<String> css = new Dict.Prop<>("css").toCanon();
 
 	static
 	{

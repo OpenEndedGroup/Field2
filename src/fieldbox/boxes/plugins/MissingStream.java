@@ -4,7 +4,6 @@ import field.utility.Conversions;
 import field.utility.Dict;
 import field.utility.Util;
 import fieldbox.boxes.Box;
-import fieldlinker.Linker;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -16,7 +15,7 @@ import java.util.stream.Collectors;
 public class MissingStream extends Box {
 
 	static public final Dict.Prop<FunctionOfBoxValued<FilteredLogStreamMap>> log = new Dict.Prop<FunctionOfBoxValued<FilteredLogStreamMap>>("log").type()
-																		      .toCannon()
+																		      .toCanon()
 																		      .doc("returns a map that can be used to build readers for the properties log. For example `_.log.myreader` will return, incrementally, all the items of the log (in the absence of buffer overruns). Note this only returns log events that have something to do with this part of the hierarchy (and all children), but readers, once created, are visible from children. `_.log(\".*x\").somename` creates a reader that filters by property names ending in `x`. `_.log(function(l) l...).somename` also works");
 
 	public MissingStream(Box root_unused) {
@@ -98,7 +97,7 @@ public class MissingStream extends Box {
 		@Override
 		public Object asMap_get(String p) {
 			Dict.Prop<FilteredLogStream> pp = new Dict.Prop<>("__filteredLogStreamMap_" + prefix + "_" + p);
-			try (Util.ExceptionlessAutoCloasable $ = Missing.pause()) {
+			try (Util.ExceptionlessAutoClosable $ = Missing.pause()) {
 				Object o = at.asMap_get(pp.getName());
 				if (o == null) {
 					if (suppliesPredicate == null) at.properties.put(pp, ((FilteredLogStream) (o = new FilteredLogStream())));

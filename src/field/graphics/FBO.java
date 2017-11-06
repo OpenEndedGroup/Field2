@@ -43,7 +43,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 	@Override
 	@HiddenInAutocomplete
 	public Integer getUniform() {
-		try (Util.ExceptionlessAutoCloasable st = GraphicsContext.getContext().stateTracker.save()) {
+		try (Util.ExceptionlessAutoClosable st = GraphicsContext.getContext().stateTracker.save()) {
 			return specification.unit;
 		}
 	}
@@ -394,7 +394,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 	public boolean draw() {
 		drawCount++;
 		GraphicsContext.checkError(() -> "on FBO draw entry, specification " + specification);
-		try (Util.ExceptionlessAutoCloasable st = GraphicsContext.getContext().stateTracker.save()) {
+		try (Util.ExceptionlessAutoClosable st = GraphicsContext.getContext().stateTracker.save()) {
 
 			State s = GraphicsContext.get(this, this::setup);
 

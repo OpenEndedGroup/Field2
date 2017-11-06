@@ -13,11 +13,11 @@ import java.util.Map;
  */
 public class Channels extends Box {
 
-	static public final Dict.Prop<Number> max = new Dict.Prop<Number>("max").toCannon().type();
-	static public final Dict.Prop<Number> min = new Dict.Prop<Number>("min").toCannon().type();
-	static public final Dict.Prop<Class> typeOf = new Dict.Prop<Class>("typeOf").toCannon().type();
+	static public final Dict.Prop<Number> max = new Dict.Prop<Number>("max").toCanon().type();
+	static public final Dict.Prop<Number> min = new Dict.Prop<Number>("min").toCanon().type();
+	static public final Dict.Prop<Class> typeOf = new Dict.Prop<Class>("typeOf").toCanon().type();
 
-	static public final Dict.Prop<FunctionOfBoxValued<List<String>>> channels = new Dict.Prop<>("channels").toCannon().type();
+	static public final Dict.Prop<FunctionOfBoxValued<List<String>>> channels = new Dict.Prop<>("channels").toCanon().type();
 
 	static public class Info<T>
 	{
@@ -111,7 +111,7 @@ public class Channels extends Box {
 		}
 	}
 
-	static public final Dict.Prop<FunctionOfBoxValued<Infoer>> info = new Dict.Prop<Info>("info").type().toCannon().doc("returns an object that lets you set sidecar properties of properties, such as max, min, accessors etc. A property with a sidecar Dict is a 'channel'");
+	static public final Dict.Prop<FunctionOfBoxValued<Infoer>> info = new Dict.Prop<Info>("info").type().toCanon().doc("returns an object that lets you set sidecar properties of properties, such as max, min, accessors etc. A property with a sidecar Dict is a 'channel'");
 
 	public Channels(Box root)
 	{

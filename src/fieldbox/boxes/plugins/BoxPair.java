@@ -27,9 +27,9 @@ public class BoxPair extends Box {
 
 	private final Box root;
 
-	static public final Dict.Prop<Boolean> isPaired = new Dict.Prop<Box>("isPaired").doc("is this a special paired box").toCannon().type();
-	static public final Dict.Prop<Box> f = new Dict.Prop<Box>("f").doc("the 'footage' box").toCannon().type().set(availableForCompletion, x -> x.properties.has(isPaired));
-	static public final Dict.Prop<Box> m = new Dict.Prop<Box>("m").doc("the 'main' box").toCannon().type().set(availableForCompletion, x -> x.properties.has(isPaired));
+	static public final Dict.Prop<Boolean> isPaired = new Dict.Prop<Box>("isPaired").doc("is this a special paired box").toCanon().type();
+	static public final Dict.Prop<Box> f = new Dict.Prop<Box>("f").doc("the 'footage' box").toCanon().type().set(availableForCompletion, x -> x.properties.has(isPaired));
+	static public final Dict.Prop<Box> m = new Dict.Prop<Box>("m").doc("the 'main' box").toCanon().type().set(availableForCompletion, x -> x.properties.has(isPaired));
 
 	static
 	{

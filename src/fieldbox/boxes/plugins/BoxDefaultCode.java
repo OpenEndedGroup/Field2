@@ -20,11 +20,11 @@ public class BoxDefaultCode {
 
 	static public List<String> extensions = new ArrayList<>(Arrays.asList("js", "html", "css", "txt", "md", ""));
 
-	static public final Dict.Prop<Boolean> _configured = new Dict.Prop<Boolean>("_configured").toCannon().set(Dict.domain, "*/attributes");
+	static public final Dict.Prop<Boolean> _configured = new Dict.Prop<Boolean>("_configured").toCanon().set(Dict.domain, "*/attributes");
 
 	static public void configure(Box a) {
 
-		Dict.cannonicalProperties()
+		Dict.canonicalProperties()
 			.filter(x -> x.getAttributes()
 			.isTrue(_configured, false))
 			.forEach(x -> {
@@ -59,7 +59,7 @@ public class BoxDefaultCode {
 		return null;
 	}
 
-	private static String findSource(Class c, String propertyName) {
+	public static String findSource(Class c, String propertyName) {
 		String n = c.getName();
 		n = n.replaceAll("\\.", "/");
 		n = n + "." +propertyName;

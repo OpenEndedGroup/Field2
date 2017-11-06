@@ -22,21 +22,21 @@ import java.util.stream.Collectors;
 public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove {
 
 	static public final Dict.Prop<Boolean> editable = new Dict.Prop<Boolean>("editable").type()
-		.toCannon()
+		.toCanon()
 		.doc("Set this to true on an FLine to have it be editable by the handles system");
 	static public final Dict.Prop<Handles> handles = new Dict.Prop<Handles>("handles").type()
-		.toCannon()
+		.toCanon()
 		.doc("Provides customizeable node editing for FLines");
 
 	static public final Dict.Prop<IdempotencyMap<Draggable>> draggables = new Dict.Prop<>("draggables").type()
-		.toCannon()
+		.toCanon()
 		.doc("Collection of Draggable instances that offer interactive elements on the canvas. Can be inserted on FLine nodes")
 		.autoConstructs(() -> new IdempotencyMap<Draggable>(Draggable.class));
 	static public final Dict.Prop<Boolean> hasDraggables = new Dict.Prop<>("hasDraggables").type()
-		.toCannon()
+		.toCanon()
 		.doc("set to mark that an FLine contains Draggables inside it, and that it should be searched for draggable Nodes");
 
-	static public final Dict.Prop<Viewport> inside = new Dict.Prop<>("inside").type().toCannon().set(Dict.domain, "flines");
+	static public final Dict.Prop<Viewport> inside = new Dict.Prop<>("inside").type().toCanon().set(Dict.domain, "flines");
 
 
 	public interface SetAndConstrain {

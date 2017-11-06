@@ -1,10 +1,12 @@
 package fieldbox.boxes.plugins;
 
 import field.utility.Dict;
+import field.utility.IdempotencyMap;
 import field.utility.Util;
 import fieldbox.boxes.Box;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -14,16 +16,19 @@ import java.util.stream.Collectors;
  */
 public class Missing {
 
+	static public Dict.Prop<IdempotencyMap<BiConsumer<Box, Object>>> watch = new Dict.Prop<Boolean>("watch").toCanon().set(Dict.domain, "*/attributes").type().autoConstructs(() -> new IdempotencyMap<>(BiConsumer.class));
+
 	// we need this open for now and Nashorn's enum stuff is a little in flux
 	static public final String read = "READ";
 	static public final String delete = "DELETE";
 	static public final String write = "WRITE";
+
 	static public int maxLogSize = 100;
 	static private ArrayList<Log<?>> log = new ArrayList<>();
 
 	static public boolean suspended = false;
 
-	static public Util.ExceptionlessAutoCloasable pause() {
+	static public Util.ExceptionlessAutoClosable pause() {
 		suspended = true;
 		return Missing::play;
 	}
@@ -92,6 +97,12 @@ public class Missing {
 	}
 
 	private static <T> void recordSet(Box b, Dict.Prop<T> what, Box box, T r, T previously) {
+
+		IdempotencyMap<BiConsumer<Box, Object>> watch = what.getAttribute(Missing.watch);
+		if (watch != null) {
+			watch.values().forEach(x -> x.accept(box, previously));
+		}
+
 		if (suspended) return;
 		synchronized (log) {
 			log.add(new Log(write, b, what, box, r, previously));

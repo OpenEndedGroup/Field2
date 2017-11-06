@@ -194,7 +194,7 @@ public class BoxBrowser extends Box implements IO.Loaded {
 				.get(toMarkdown)
 				.apply(box, source);
 
-			String html = "<p>" + Errors.handle( () -> MarkdownToHTML.convert(md), t-> "A error was thrown while rendering this property as markdown: <code>"+t+"</code>") + "</p>";
+			String html = "<p>" + Errors.INSTANCE.handle( () -> MarkdownToHTML.convert(md), t-> "A error was thrown while rendering this property as markdown: <code>"+t+"</code>") + "</p>";
 			return html;
 		}
 		if (property.getAttributes()
@@ -208,7 +208,7 @@ public class BoxBrowser extends Box implements IO.Loaded {
 		}
 
 		if (source instanceof HasMarkdownInformation) {
-			String html = "<p>" + Errors.handle(() -> ((HasMarkdownInformation) source).generateMarkdown(box, property), t -> "An error was thrown while rendering this object as HTML: <code>" + t + "</code>") + "</p>";
+			String html = "<p>" + Errors.INSTANCE.handle(() -> ((HasMarkdownInformation) source).generateMarkdown(box, property), t -> "An error was thrown while rendering this object as HTML: <code>" + t + "</code>") + "</p>";
 			return html;
 		}
 

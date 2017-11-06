@@ -59,7 +59,7 @@ public class TextDrawing extends Box {
 		}
 	}
 
-	static public final Dict.Prop<TextDrawing> textDrawing = new Dict.Prop<>("textDrawing").toCannon();
+	static public final Dict.Prop<TextDrawing> textDrawing = new Dict.Prop<>("textDrawing").toCanon();
 
 
 	public float smoothing = 0.02f;

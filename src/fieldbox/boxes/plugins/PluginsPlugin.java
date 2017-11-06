@@ -12,8 +12,8 @@ import fieldbox.boxes.Box;
  */
 public class PluginsPlugin extends Box {
 
-	static public final Dict.Prop<String> edn = new Dict.Prop<String>("edn").toCannon().doc("EDN (or Field configuration file)").type();
-	static public final Dict.Prop<String> txt = new Dict.Prop<String>("txt").toCannon().doc("TXT (or Field configuration file)").type();
+	static public final Dict.Prop<String> edn = new Dict.Prop<String>("edn").toCanon().doc("EDN (or Field configuration file)").type();
+	static public final Dict.Prop<String> txt = new Dict.Prop<String>("txt").toCanon().doc("TXT (or Field configuration file)").type();
 
 	static {
 		FieldBox.fieldBox.io.addFilespec("edn", "edn", "clojure");

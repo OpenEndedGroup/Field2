@@ -32,7 +32,7 @@ import java.util.stream.Stream;
  */
 public class TextEditor extends Box implements IO.Loaded {
 
-	static public final Dict.Prop<TextEditor> textEditor = new Dict.Prop<>("textEditor").toCannon()
+	static public final Dict.Prop<TextEditor> textEditor = new Dict.Prop<>("textEditor").toCanon()
 			.type()
 			.doc("The TextEditor that is stuck in front of the window, in window coordinates");
 	private final Box root;

@@ -29,8 +29,8 @@ import static fieldbox.boxes.FLineDrawing.frameDrawing;
  */
 public class IsExecuting extends Box {
 
-	static public final Dict.Prop<BiConsumer<Box, String>> isExecuting = new Dict.Prop<>("isExecuting").type().toCannon().doc("Given a Box and a name of an run loop, install a drawer that decorates this box (green) while this run loop routine exists");
-	static public final Dict.Prop<Integer> executionCount = new Dict.Prop<>("_executionCount").type().toCannon().doc("How many times is this box running? non-zero if this box is currently executing (and is, thus, green).");
+	static public final Dict.Prop<BiConsumer<Box, String>> isExecuting = new Dict.Prop<>("isExecuting").type().toCanon().doc("Given a Box and a name of an run loop, install a drawer that decorates this box (green) while this run loop routine exists");
+	static public final Dict.Prop<Integer> executionCount = new Dict.Prop<>("_executionCount").type().toCanon().doc("How many times is this box running? non-zero if this box is currently executing (and is, thus, green).");
 
 	public IsExecuting(Box root_unused) {
 		this.properties.put(isExecuting, (box, name) -> {

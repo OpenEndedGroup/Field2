@@ -12,8 +12,8 @@ import java.util.stream.Stream;
  */
 public class Threading extends Box {
 
-    static public final Dict.Prop<AbstractJSObject> yield = new Dict.Prop<>("yield").toCannon().doc("`_.yield()` waits for one whole animation cycle before continuing on from here");
-    static public final Dict.Prop<FunctionOfBoxValued<Threads>> threads = new Dict.Prop<>("threads").toCannon().doc("`_.threads` returns a thread control object that provides a high-level interface to the fibre threading of a box");
+    static public final Dict.Prop<AbstractJSObject> yield = new Dict.Prop<>("yield").toCanon().doc("`_.yield()` waits for one whole animation cycle before continuing on from here");
+    static public final Dict.Prop<FunctionOfBoxValued<Threads>> threads = new Dict.Prop<>("threads").toCanon().doc("`_.threads` returns a thread control object that provides a high-level interface to the fibre threading of a box");
 
     // high-level information and control over thre threads in a box
     static public final class Threads {

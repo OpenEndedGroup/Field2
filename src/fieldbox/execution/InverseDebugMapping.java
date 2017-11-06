@@ -17,10 +17,11 @@ import java.util.Map;
  */
 public class InverseDebugMapping {
 
-	static public Box defaultRoot;
 	// although this is an awful static reference to a Box root (which will destroy our ability to have multiple documents open), we want to be able to sprinkle huntForReferences around without knowing what graph we should be in. This is for debug information only.
+	static public Box defaultRoot;
+
 	static public Map<Object, Pair<Box, String>> singleCache = new LinkedHashMap<>();
-	{
+	static {
 		RunLoop.main.mainLoop.attach(-100, x -> {
 			singleCache.clear();
 		});
@@ -30,7 +31,7 @@ public class InverseDebugMapping {
 									    .makeMap();
 
 	static public Pair<Box, String> huntForReference(Object of) {
-		return huntForReference(of);
+		return huntForReference(defaultRoot, of);
 	}
 
 	static public String describe(Object of) {

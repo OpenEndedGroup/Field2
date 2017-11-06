@@ -15,9 +15,9 @@ import java.util.function.Function;
  */
 public class Planes extends Box {
 
-	static public field.utility.Dict.Prop<String> plane = new Dict.Prop<>("plane").type().toCannon().doc("comma separated list of planes that this box is a member of. A _plane_ is a group of boxes inside a document that you want to view together. By default only boxes that aren't in any plane (where this property is unset or blank) are shown");
+	static public field.utility.Dict.Prop<String> plane = new Dict.Prop<>("plane").type().toCanon().doc("comma separated list of planes that this box is a member of. A _plane_ is a group of boxes inside a document that you want to view together. By default only boxes that aren't in any plane (where this property is unset or blank) are shown");
 
-	static public field.utility.Dict.Prop<Function<Box, Number>> selectPlane = new Dict.Prop<>("selectPlane").type().toCannon().doc("set at the root level to determine which planes are visible and interactive at any one time");
+	static public field.utility.Dict.Prop<Function<Box, Number>> selectPlane = new Dict.Prop<>("selectPlane").type().toCanon().doc("set at the root level to determine which planes are visible and interactive at any one time");
 
 	static public double on(Box root, Box test) {
 		Function<Box, Number> selector = root.properties.getOr(selectPlane, () -> null);

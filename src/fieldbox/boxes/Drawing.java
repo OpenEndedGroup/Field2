@@ -35,24 +35,24 @@ import static fieldbox.boxes.FLineDrawing.*;
 public class Drawing extends Box implements DrawingInterface {
 
 	static public final Dict.Prop<Collection<Drawer>> drawers = new Dict.Prop<>("drawers").type()
-		.toCannon()
+		.toCanon()
 		.doc("a collection of things that will draw inside the OpenGL paint context. Currently FrameDrawer & FLineInteraction plug into the window at this low level");
 	static public final Dict.Prop<Collection<Drawer>> lateDrawers = new Dict.Prop<>("lateDrawers").type()
-		.toCannon()
+		.toCanon()
 		.doc("a collection of things that will draw inside the OpenGL paint context, after everything else has drawn. Viewport plugs in at this level.");
 	static public final Dict.Prop<Drawing> drawing = new Dict.Prop<>("drawing").type()
-		.toCannon()
+		.toCanon()
 		.doc("the Drawing plugin")
 		.set(Dict.readOnly, true);
 
 	static public final Dict.Prop<Boolean> needRepaint = new Dict.Prop<>("_needRepaint").type()
-		.toCannon();
+		.toCanon();
 	static public final Dict.Prop<Vec2> windowSpace = new Dict.Prop<>("windowSpace").type()
-		.toCannon()
+		.toCanon()
 		.doc("set to make this box stick to the viewport when it pans around. The value is a <code>Vec2(x,y)</code>. <code>x=0, y=0</code> pins the top left of this box to the top left of the window; similarly <code>x=1, y=1</code> pins the top left of this box to the bottom right. ");
 
 	static public final Dict.Prop<Vec2> windowScale = new Dict.Prop<>("windowScale").type()
-		.toCannon()
+		.toCanon()
 		.doc("like `windowSpace` but changes the width and height of the box to maintain a position in space for the lower right corner of a box. Combine with `_.windowSpace`.");
 
 	static {
@@ -97,6 +97,8 @@ public class Drawing extends Box implements DrawingInterface {
 					oldFrames.clear();
 				}, 1);
 			});
+
+			Drawing.dirty(this);
 		});
 	}
 

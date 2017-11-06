@@ -30,8 +30,8 @@ public class TopologyBox extends Box
 	    implements IO.Loaded // the drawer is initialized after all the properties are loaded
 {
 
-	static public final Dict.Prop<BoxRef> head = new Dict.Prop<>("head").type().toCannon().doc("the head of this topology arrow box");
-	static public final Dict.Prop<BoxRef> tail = new Dict.Prop<>("tail").type().toCannon().doc("the tail of this topology arrow box");
+	static public final Dict.Prop<BoxRef> head = new Dict.Prop<>("head").type().toCanon().doc("the head of this topology arrow box");
+	static public final Dict.Prop<BoxRef> tail = new Dict.Prop<>("tail").type().toCanon().doc("the tail of this topology arrow box");
 
 	static {
 		// these properties need to be saved in our document
@@ -49,7 +49,7 @@ public class TopologyBox extends Box
 	/**
 	 * custom constructor, call init after you are done
 	 */
-	protected TopologyBox() {
+	public TopologyBox() {
 	}
 
 	public void loaded() {
@@ -63,6 +63,7 @@ public class TopologyBox extends Box
 		this.properties.put(FrameManipulation.lockY, true);
 
 		this.properties.put(Box.name, head().properties.get(Box.name) + "->" + tail().properties.get(Box.name));
+		this.properties.put(DragToCopy._ownedByParent, true);
 	}
 
 

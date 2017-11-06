@@ -54,7 +54,8 @@ public class Windows {
 				events.removeFirst()
 					.run();
 			} catch (Throwable t) {
-				Log.log("events.error", () -> "Exception thrown while handling event" + t);
+				Log.log("events.error", () -> "Exception thrown while handling event :" + t);
+				t.printStackTrace();
 			}
 		}
 		return true;

@@ -39,35 +39,35 @@ public class IO {
 
 	public static final Dict.Prop<String> id = new Dict.Prop<>("__id__").autoConstructs(() -> Box.newID());
 	public static final Dict.Prop<String> desiredBoxClass = new Dict.Prop<>("__desiredBoxClass__");
-	public static final Dict.Prop<String> comment = new Dict.Prop<>("comment").toCannon()
+	public static final Dict.Prop<String> comment = new Dict.Prop<>("comment").toCanon()
 		.type()
 		.doc("A comment string that's easily searchable. Set it to provide comments on boxes used in templates.");
 
-	public static final Dict.Prop<String> language = new Dict.Prop<>("language").toCannon()
+	public static final Dict.Prop<String> language = new Dict.Prop<>("language").toCanon()
 		.type()
 		.doc("marks a property's editable (CodeMirror) language")
 		.set(Dict.domain, "*/attributes");
-	public static final Dict.Prop<Boolean> persistent = new Dict.Prop<>("persistent").toCannon()
+	public static final Dict.Prop<Boolean> persistent = new Dict.Prop<>("persistent").toCanon()
 		.type()
 		.doc("marks a property as being saved to disk")
 		.set(Dict.domain, "*/attributes");
-	public static final Dict.Prop<Boolean> perDocument = new Dict.Prop<>("perDocument").toCannon()
+	public static final Dict.Prop<Boolean> perDocument = new Dict.Prop<>("perDocument").toCanon()
 		.type()
 		.doc("marks a property as being saved, conceptually, with the document rather than with the box (which might be shared between documents).")
 		.set(Dict.domain, "*/attributes");
-	public static final Dict.Prop<Boolean> dontCopy = new Dict.Prop<>("dontCopy").toCannon()
+	public static final Dict.Prop<Boolean> dontCopy = new Dict.Prop<>("dontCopy").toCanon()
 		.type()
 		.doc("marks a property as not being copyable between boxes.")
 		.set(Dict.domain, "*/attributes");
 
-	public static final Dict.Prop<List<String>> classpath = new Dict.Prop<>("classpath").toCannon()
+	public static final Dict.Prop<List<String>> classpath = new Dict.Prop<>("classpath").toCanon()
 											    .type()
 											    .doc("This box asks the classloader to extend the classpath by this list of paths");
 
-	public static final Dict.Prop<IdempotencyMap<Runnable>> onPreparingToSave = new Dict.Prop<>("onPreparingToSave").toCannon()
+	public static final Dict.Prop<IdempotencyMap<Runnable>> onPreparingToSave = new Dict.Prop<>("onPreparingToSave").toCanon()
 														    .type()
 														    .doc("Notification that this box is going to be saved to disk");
-	public static final Dict.Prop<IdempotencyMap<Runnable>> onFinishingSaving = new Dict.Prop<>("onFinishingSaving").toCannon()
+	public static final Dict.Prop<IdempotencyMap<Runnable>> onFinishingSaving = new Dict.Prop<>("onFinishingSaving").toCanon()
 														    .type()
 														    .doc("Notification that this box is going to be saved to disk");
 
@@ -141,7 +141,7 @@ public class IO {
 	}
 
 	public static boolean isPeristant(Dict.Prop prop) {
-		return knownFiles.containsKey(prop.getName()) || knownProperties.contains(prop.getName()) || (prop.findCannon() != null && prop.findCannon()
+		return knownFiles.containsKey(prop.getName()) || knownProperties.contains(prop.getName()) || (prop.findCanon() != null && prop.findCanon()
 			.getAttributes()
 			.isTrue(persistent, false));
 	}
@@ -220,7 +220,7 @@ public class IO {
 		if (pieces.length < 2) return null;
 		for (Filespec f : knownFiles.values()) {
 			if (f.defaultSuffix.equals(pieces[pieces.length - 1]))
-				return new Dict.Prop<String>(f.name).findCannon();
+				return new Dict.Prop<String>(f.name).findCanon();
 			if (f.defaultSuffix.equals(EXECUTION)) {
 				Optional<Execution> e = root.find(Execution.execution, root.both())
 					.findFirst();
@@ -228,7 +228,7 @@ public class IO {
 					.support(root, new Dict.Prop<String>(f.name))
 					.getDefaultFileExtension()
 					.equals(pieces[pieces.length - 1]))
-					return new Dict.Prop<String>(f.name).findCannon();
+					return new Dict.Prop<String>(f.name).findCanon();
 			}
 		}
 
@@ -425,7 +425,7 @@ public class IO {
 				Map<?, ?> m = (Map) serializeFromString(read);
 				for (Map.Entry<?, ?> entry : m.entrySet()) {
 					Dict.Prop p = new Dict.Prop((String) entry.getKey());
-					p.toCannon().getAttributes().put(persistent, true);
+					p.toCanon().getAttributes().put(persistent, true);
 					ex.box.properties.put(p, entry.getValue());
 				}
 			} catch (Exception e) {
@@ -438,10 +438,10 @@ public class IO {
 			ex.overriddenProperties.forEach((k, v) -> {
 				Dict.Prop p = new Dict.Prop("" + k);
 				ex.box.properties.put(p, v);
-				p.toCannon()
+				p.toCanon()
 					.getAttributes()
 					.put(perDocument, true);
-				p.toCannon()
+				p.toCanon()
 					.getAttributes()
 					.put(persistent, true);
 			});
@@ -660,12 +660,12 @@ public class IO {
 		for (Map.Entry<Dict.Prop, Object> e : external.box.properties.getMap()
 			.entrySet()) {
 			Log.log("io.general", () -> "property :" + e.getKey()
-				.toCannon() + " attributes are " + e.getKey()
-				.toCannon()
+				.toCanon() + " attributes are " + e.getKey()
+				.toCanon()
 				.getAttributes());
 
 			if (e.getKey()
-				.toCannon()
+				.toCanon()
 				.getAttributes()
 				.isTrue(perDocument, false) && isPeristant(e.getKey()))
 				external.overriddenProperties.put(e.getKey()
@@ -697,11 +697,14 @@ public class IO {
 	}
 
 	static private File sanitizeName(File filename) {
-
-		String f = filename.getAbsolutePath();
+		String f = filename.getName();
 		f = f.replaceAll(">", "_");
-		f = f.replaceAll("\\?", "_");
-		return new File(f);
+		f = f.replaceAll("\\?", "_query_");
+		f = f.replaceAll("\\*", "_star_");
+		f = f.replaceAll("\\:", "_colon_");
+		f = f.replaceAll("\\\\", "_backslash_");
+		f = f.replaceAll("\\/", "_slash_");
+		return new File(filename.getParent(), f);
 	}
 
 	public File filenameFor(String value) {
@@ -718,14 +721,14 @@ public class IO {
 
 	public File filenameFor(String defaultPrefix, String value) {
 		if (value.startsWith(TEMPLATES)) {
-			return new File(templateDirectory,
-					/*safe*/(value.substring(TEMPLATES.length())));
+			return sanitizeName(new File(templateDirectory,
+					/*safe*/(value.substring(TEMPLATES.length()))));
 		}
 		if (value.startsWith(WORKSPACE)) {
-			return new File(defaultDirectory,
-					/*safe*/(value.substring(WORKSPACE.length())));
+			return sanitizeName(new File(defaultDirectory,
+					/*safe*/(value.substring(WORKSPACE.length()))));
 		}
-		return filenameFor(defaultPrefix + "/" + value);
+		return sanitizeName(filenameFor(defaultPrefix + "/" + value));
 	}
 
 	private String safe(String filename) {

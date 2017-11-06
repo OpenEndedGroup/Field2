@@ -29,10 +29,10 @@ import static org.lwjgl.glfw.GLFW.GLFW_KEY_T;
 public class Topology extends Box implements Mouse.OnMouseDown {
 
 	static public final Dict.Prop<FunctionOfBoxValued<BoxChildHelper>> outward = new Dict.Prop<FunctionOfBoxValued<BoxChildHelper>>("outward").doc("a collection of boxes that are the outward connections to this box")
-																	.toCannon()
+																	.toCanon()
 																	.type();
 	static public final Dict.Prop<FunctionOfBoxValued<BoxChildHelper>> inward = new Dict.Prop<FunctionOfBoxValued<BoxChildHelper>>("inward").doc("a collection of boxes that are the inward connections to this box")
-																      .toCannon()
+																      .toCanon()
 																      .type();
 
 	private final Box root;

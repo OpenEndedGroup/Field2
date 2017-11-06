@@ -32,12 +32,11 @@ import java.util.stream.Collectors;
  */
 public class Scene extends Box implements fieldlinker.AsMap {
 
-	public interface ContainsPerform
-	{
+	public interface ContainsPerform {
 		Perform getPerform();
 	}
 
-	static public Dict.Prop<LinkedHashMapAndArrayList<Perform>> passes = new Dict.Prop<LinkedHashMapAndArrayList<Perform>>("passes").toCannon();
+	static public Dict.Prop<LinkedHashMapAndArrayList<Perform>> passes = new Dict.Prop<LinkedHashMapAndArrayList<Perform>>("passes").toCanon();
 	protected Set<String> knownNonProperties;
 	public TreeMap<Integer, Set<Consumer<Integer>>> internalScene = new TreeMap<>();
 	BiMap<String, Consumer<Integer>> tagged = HashBiMap.create();
@@ -444,11 +443,10 @@ public class Scene extends Box implements fieldlinker.AsMap {
 		if (Uniform.isAccepableInstance(fo))
 			return getDefaultBundle().set(p, () -> fo).setIntOnly(fo instanceof Integer);
 
-		if (o instanceof ContainsPerform)
-		{
-			o = ((ContainsPerform)o).getPerform();
+		if (o instanceof ContainsPerform) {
+			o = ((ContainsPerform) o).getPerform();
 		}
-		if (fo instanceof  OffersUniform) {
+		if (fo instanceof OffersUniform) {
 			getDefaultBundle().set(p, () -> ((OffersUniform) fo).getUniform());
 			// fall through -- connect things as well as set them as uniforms
 		}
@@ -456,8 +454,7 @@ public class Scene extends Box implements fieldlinker.AsMap {
 		o = Conversions.convert(o, Perform.class);
 		if (o instanceof Perform) {
 			return attach(p, (Perform) o);
-		}
-		else return super.asMap_set(p, o);
+		} else return super.asMap_set(p, o);
 	}
 
 	@Override
@@ -492,7 +489,7 @@ public class Scene extends Box implements fieldlinker.AsMap {
 	/**
 	 * Although we can build the Scene structure out of (int, Consumer<int>) tuples, it's more along the grain of Java's type system to use an interface with both
 	 */
-	public interface Perform extends Consumer<Integer>, Errors.SavesErrorConsumer {
+	public interface Perform extends Consumer<Integer> {
 		boolean perform(int pass);
 
 		default int[] getPasses() {
@@ -503,14 +500,22 @@ public class Scene extends Box implements fieldlinker.AsMap {
 			perform(p);
 		}
 
-		default Errors.ErrorConsumer getErrorConsumer() {
-			return Errors.errors.retrieve(this);
-		}
-
-		default void setErrorConsumer(Errors.ErrorConsumer c) {
-			Errors.errors.store(this, c);
-		}
 	}
+
+	static public Perform perform(int pass, Supplier<Boolean> action) {
+		return new Perform() {
+			@Override
+			public boolean perform(int pass) {
+				return action.get();
+			}
+
+			@Override
+			public int[] getPasses() {
+				return new int[pass];
+			}
+		};
+	}
+
 
 	static public class Cancel extends RuntimeException {
 	}
@@ -524,19 +529,16 @@ public class Scene extends Box implements fieldlinker.AsMap {
 		public Transient(Perform p) {
 			this.passes = p.getPasses();
 			this.call = (x) -> p.perform(x);
-			ec = Errors.errors.get();
 		}
 
 		public Transient(Runnable p, int... passes) {
 			this.passes = passes;
 			this.call = (x) -> p.run();
-			ec = Errors.errors.get();
 		}
 
 		public Transient(Consumer<Integer> m, int... passes) {
 			this.passes = passes;
 			this.call = (x) -> m.accept(x);
-			ec = Errors.errors.get();
 		}
 
 		/**
@@ -577,17 +579,6 @@ public class Scene extends Box implements fieldlinker.AsMap {
 			return passes;
 		}
 
-		Errors.ErrorConsumer ec;
-
-		@Override
-		public void setErrorConsumer(Errors.ErrorConsumer c) {
-			ec = c;
-		}
-
-		@Override
-		public Errors.ErrorConsumer getErrorConsumer() {
-			return ec;
-		}
 	}
 
 	public class PassShim implements fieldlinker.AsMap {
@@ -677,17 +668,6 @@ public class Scene extends Box implements fieldlinker.AsMap {
 				p2[i] = p[i] + shift;
 			return p2;
 		}
-
-		@Override
-		public void setErrorConsumer(Errors.ErrorConsumer c) {
-			child.setErrorConsumer(c);
-		}
-
-		@Override
-		public Errors.ErrorConsumer getErrorConsumer() {
-			return child.getErrorConsumer();
-		}
-
 
 		@Override
 		public String toString() {

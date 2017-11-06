@@ -14,12 +14,12 @@ import java.util.function.Supplier;
  */
 public class Meshes extends Box implements Drawing.Drawer {
 	static public final Dict.Prop<IdempotencyMap<Supplier<BaseMesh>>> meshes = new Dict.Prop<>("meshes").type()
-		.toCannon()
+		.toCanon()
 		.doc("Geometry (specifically instances of BaseMesh) to be drawn along with this box")
 		.autoConstructs(() -> new IdempotencyMap<>(Supplier.class));
 
 	static public final Dict.Prop<Scene> windowScene = new Dict.Prop<>("windowScene").type()
-		.toCannon()
+		.toCanon()
 		.doc("Scenegraph of the main layer of the main window");
 
 

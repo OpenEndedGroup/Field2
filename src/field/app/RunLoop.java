@@ -15,49 +15,49 @@ import java.util.function.Supplier;
  */
 public class RunLoop {
 
-    static public final RunLoop main = new RunLoop();
-    static public final ReentrantLock lock = new ReentrantLock(true);
-    static public final ExecutorService workerPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 2);
-    static public long tick = 0;
-    protected final Thread shutdownThread;
-    public Scene mainLoop = new Scene();
-    public Set<Object> shouldSleep = Collections.synchronizedSet(new LinkedHashSet<>());
-    final Thread mainThread;
-    List<Runnable> onExit = new LinkedList<>();
-    AtomicBoolean exitStarted = new AtomicBoolean(false);
+	static public final RunLoop main = new RunLoop();
+	static public final ReentrantLock lock = new ReentrantLock(true);
+	static public final ExecutorService workerPool = Executors.newFixedThreadPool(Runtime.getRuntime()
+											     .availableProcessors()*2 + 2);
+	static public long tick = 0;
+	protected final Thread shutdownThread;
+	public Scene mainLoop = new Scene();
 
-    static public Supplier<Double> time = () -> System.currentTimeMillis() + 0.0d;
+	public Set<Object> shouldSleep = Collections.synchronizedSet(new LinkedHashSet<>());
+	final Thread mainThread;
+	List<Runnable> onExit = new LinkedList<>();
+	AtomicBoolean exitStarted = new AtomicBoolean(false);
 
-    protected RunLoop() {
-        mainThread = Thread.currentThread();
-        Runtime.getRuntime()
-                .addShutdownHook(shutdownThread = new Thread(() -> exit()));
-    }
+	protected RunLoop() {
+		mainThread = Thread.currentThread();
+		Runtime.getRuntime()
+		       .addShutdownHook(shutdownThread = new Thread(() -> exit()));
+	}
 
-    public Scene getLoop() {
-        return mainLoop;
-    }
+	public Scene getLoop() {
+		return mainLoop;
+	}
 
-    public boolean isMainThread() {
-        return Thread.currentThread() == mainThread;
-    }
+	public boolean isMainThread() {
+		return Thread.currentThread() == mainThread;
+	}
 
-    long getLock;
-    long hasLock;
-    long service;
-    long mainloop;
-    long locksMissed;
-    long sleepsTaken;
-    long freeMemIn;
+	long getLock;
+	long hasLock;
+	long service;
+	long mainloop;
+	long locksMissed;
+	long sleepsTaken;
+	long freeMemIn;
 
-    long interval = 100;
-    long intervalIn = 0;
+	long interval = 100;
+	long intervalIn = 0;
 
-    static public boolean printTelemetry = false;
+	static public boolean printTelemetry = false;
 
-    public void enterMainLoop() {
-        if (Thread.currentThread() != mainThread)
-            throw new IllegalArgumentException(" cannot enter main loop on non-main thread");
+	public void enterMainLoop() {
+		if (Thread.currentThread() != mainThread)
+			throw new IllegalArgumentException(" cannot enter main loop on non-main thread");
 
 		if (ThreadSync2.getEnabled())
 			ThreadSync2.setSync(new ThreadSync2());
@@ -80,197 +80,147 @@ public class RunLoop {
 						didWork |= ThreadSync2.getSync()
 								.service();
 					}
-                    long d = System.nanoTime();
 
-                    getLock += b - a;
-                    hasLock += d - b;
-                    service += d - c;
-                    mainloop += c - b;
-                } else {
-                    locksMissed++;
-                }
+					getLock = 0;
+					hasLock = 0;
+					service = 0;
+					mainloop = 0;
+					locksMissed = 0;
+					sleepsTaken = 0;
+					intervalIn = System.nanoTime();
+					freeMemIn = Runtime.getRuntime()
+							   .freeMemory();
+				}
 
-                if (shouldSleep.size() == 0 && !didWork) {
-                    Thread.sleep(2);
-                    sleepsTaken++;
-                }
+			} catch (Throwable t) {
+				System.err.println(" exception thrown in main loop");
+				t.printStackTrace();
+			} finally {
+				RunLoop.lock.unlock();
+			}
 
-                if (tick % interval == 0) {
+		}
+	}
 
-                    if (printTelemetry) {
-                        System.out.println(
-                                " a" + (getLock / (double) interval) + " b" + (hasLock / (double) interval) + " c" + (service / (double) interval) + " d" + (mainloop / (double) interval) + " m" + locksMissed + " s" + sleepsTaken);
-                        System.out.println(" f" + (System.nanoTime() - intervalIn) / interval);
-                        System.out.println(" m" + (Runtime.getRuntime()
-                                .freeMemory() - freeMemIn) / interval);
+	public void once(Runnable r) {
+		mainLoop.attach(i -> {
+			try {
+				r.run();
+			} catch (Throwable t) {
+				t.printStackTrace();
+			} finally {
+				return false;
+			}
 
-                    }
-                    getLock = 0;
-                    hasLock = 0;
-                    service = 0;
-                    mainloop = 0;
-                    locksMissed = 0;
-                    sleepsTaken = 0;
-                    intervalIn = System.nanoTime();
-                    freeMemIn = Runtime.getRuntime()
-                            .freeMemory();
-                }
+		});
+	}
 
-            } catch (Throwable t) {
-                System.err.println(" exception thrown in main loop");
-                t.printStackTrace();
-            } finally {
-                RunLoop.lock.unlock();
-            }
+	public <T> void when(Future<T> f, Consumer<T> a) {
+		mainLoop.attach(i -> {
+			if (!f.isDone()) return true;
 
-        }
-    }
+			try {
+				T t = f.get();
+				a.accept(t);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} catch (ExecutionException e) {
+				e.printStackTrace();
+			}
+			return false;
+		});
 
-    public void once(Runnable r) {
-        mainLoop.attach(i -> {
-            try {
-                r.run();
-            } catch (Throwable t) {
-                t.printStackTrace();
-            } finally {
-                return false;
-            }
+	}
 
-        });
-    }
+	public void nTimes(Runnable p0, int n) {
+		mainLoop.attach(new Scene.Perform() {
+			int t = 0;
 
-    public <T> void when(Future<T> f, Consumer<T> a) {
-        mainLoop.attach(i -> {
-            if (!f.isDone()) return true;
+			@Override
+			public boolean perform(int pass) {
+				p0.run();
+				return t++ < n;
+			}
+		});
+	}
 
-            try {
-                T t = f.get();
-                a.accept(t);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            }
-            return false;
-        });
+	public void delay(Runnable p0, int ms) {
+		long now = System.currentTimeMillis();
 
-    }
+		mainLoop.attach(new Scene.Perform() {
+			int t = 0;
 
-    public void nTimes(Runnable p0, int n) {
-        mainLoop.attach(new Scene.Perform() {
-            int t = 0;
+			@Override
+			public boolean perform(int pass) {
+				if (System.currentTimeMillis() - now > ms) {
+					p0.run();
+					return false;
+				}
+				return true;
+			}
 
-            @Override
-            public boolean perform(int pass) {
-                p0.run();
-                return t++ < n;
-            }
+		});
+	}
 
-            Errors.ErrorConsumer ec = Errors.errors.get();
+	public void delayUntil(Runnable p0, long when) {
 
-            @Override
-            public void setErrorConsumer(Errors.ErrorConsumer c) {
-                this.ec = ec;
-            }
+		mainLoop.attach(new Scene.Perform() {
+			int t = 0;
 
-            @Override
-            public Errors.ErrorConsumer getErrorConsumer() {
-                if (p0 instanceof Errors.ErrorConsumer) return ((Errors.ErrorConsumer) p0);
-                if (p0 instanceof Errors.SavesErrorConsumer)
-                    return ((Errors.SavesErrorConsumer) p0).getErrorConsumer();
-                return ec;
-            }
-        });
-    }
+			@Override
+			public boolean perform(int pass) {
+				if (System.currentTimeMillis()  > when) {
+					p0.run();
+					return false;
+				}
+				return true;
+			}
 
-    public void delay(Runnable p0, int ms) {
-        double now = time.get();
+		});
+	}
 
-        mainLoop.attach(new Scene.Perform() {
-            int t = 0;
+	public void delayTicks(Runnable p0, int ticks) {
 
-            @Override
-            public boolean perform(int pass) {
-                if (time.get() - now > ms) {
-                    p0.run();
-                    return false;
-                }
-                return true;
-            }
+		mainLoop.attach(new Scene.Perform() {
+			int t = 0;
 
-            Errors.ErrorConsumer ec = Errors.errors.get();
+			@Override
+			public boolean perform(int pass) {
+				if (t++ > ticks) {
+					p0.run();
+					return false;
+				}
+				return true;
+			}
 
-            @Override
-            public void setErrorConsumer(Errors.ErrorConsumer c) {
-                this.ec = ec;
-            }
+		});
+	}
 
-            @Override
-            public Errors.ErrorConsumer getErrorConsumer() {
-                if (p0 instanceof Errors.ErrorConsumer) return ((Errors.ErrorConsumer) p0);
-                if (p0 instanceof Errors.SavesErrorConsumer)
-                    return ((Errors.SavesErrorConsumer) p0).getErrorConsumer();
-                return ec;
-            }
-        });
-    }
+	public void exit() {
+		try {
+			if (exitStarted.compareAndSet(false, true)) {
+				for (Runnable r : onExit) {
+					try {
+						r.run();
+					} catch (Throwable t) {
+						System.err.println(" exception thrown during exit (will continue on regardless)");
+						t.printStackTrace();
+					}
+				}
+				if (Thread.currentThread() != shutdownThread) System.exit(0);
+			}
+		} catch (Throwable t) {
+			System.err.println(" unexpected exception thrown during exit ");
+			t.printStackTrace();
+		}
+	}
 
-    public void delayTicks(Runnable p0, int ticks) {
-
-        mainLoop.attach(new Scene.Perform() {
-            int t = 0;
-
-            @Override
-            public boolean perform(int pass) {
-                if (t++ > ticks) {
-                    p0.run();
-                    return false;
-                }
-                return true;
-            }
-
-            Errors.ErrorConsumer ec = Errors.errors.get();
-
-            @Override
-            public void setErrorConsumer(Errors.ErrorConsumer c) {
-                this.ec = ec;
-            }
-
-            @Override
-            public Errors.ErrorConsumer getErrorConsumer() {
-                if (p0 instanceof Errors.ErrorConsumer) return ((Errors.ErrorConsumer) p0);
-                if (p0 instanceof Errors.SavesErrorConsumer)
-                    return ((Errors.SavesErrorConsumer) p0).getErrorConsumer();
-                return ec;
-            }
-        });
-    }
-
-    public void exit() {
-        try {
-            if (exitStarted.compareAndSet(false, true)) {
-                for (Runnable r : onExit) {
-                    try {
-                        r.run();
-                    } catch (Throwable t) {
-                        System.err.println(" exception thrown during exit (will continue on regardless)");
-                        t.printStackTrace();
-                    }
-                }
-                if (Thread.currentThread() != shutdownThread) System.exit(0);
-            }
-        } catch (Throwable t) {
-            System.err.println(" unexpected exception thrown during exit ");
-            t.printStackTrace();
-        }
-    }
-
-    /**
-     * adds a Runnable to be executed on exit. This will run before anything else that's been added.
-     */
-    public void onExit(Runnable r) {
-        // we add this to the start of the list, it will be run before anything that's already there.
-        onExit.add(0, r);
-    }
+	/**
+	 * adds a Runnable to be executed on exit. This will run before anything else that's been added.
+	 */
+	public void onExit(Runnable r) {
+		// we add this to the start of the list, it will be run before anything that's already there.
+		onExit.add(0, r);
+	}
 
 }

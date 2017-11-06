@@ -35,15 +35,15 @@ public class WebApps extends Box implements IO.Loaded {
 	static public final String FILESYSTEM = "/filesystem/";
 
 	static public Dict.Prop<BiFunctionOfBoxAnd<String, String>> newStaticHTML = new Dict.Prop<>("newStaticHTML").type()
-		.toCannon()
+		.toCanon()
 		.doc("`_.newStaticHTML(\"mypage\")` adds an `_.html` property to this box that is served up by the WebApps plugin at http://localhost:8082/mypage");
 
 	static public Dict.Prop<BiConsumer<String, String>> newStaticFile = new Dict.Prop<>("newStaticFile").type()
-		.toCannon()
+		.toCanon()
 		.doc("`_.newStaticFile(\"myjpeg.jpg\", \"/path/to/a/jpeg\")` adds a file to the webserver resolvable at  http://localhost:8082/myjpeg.jpg");
 
 	static public Dict.Prop<String> html = new Dict.Prop<>("html").type()
-		.toCannon()
+		.toCanon()
 		.doc(" a static html resource served by the WebApps plugin, creatable using `_.newStaticHTML(...)`");
 
 	static {

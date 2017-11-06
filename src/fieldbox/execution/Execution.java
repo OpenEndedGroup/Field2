@@ -26,11 +26,11 @@ public class Execution extends Box {
 	}
 
 	static public Dict.Prop<Execution> execution = new Dict.Prop<Execution>("execution");
-	static public Dict.Prop<LinkedHashMapAndArrayList<CompletionSupport>> completions = new Dict.Prop<>("completions").toCannon().type().doc("Functions that can return completions for code in the editor");
-	static public Dict.Prop<LinkedHashMapAndArrayList<CompletionSupport>> imports= new Dict.Prop<>("imports").toCannon().type().doc("Functions that can return import help for code in the editor");
-	static public Dict.Prop<FunctionOfBox<Boolean>> executionFilter = new Dict.Prop<>("executionFilter").toCannon().type().doc("defines a function that, when called with a box, returns a boolean describing whether this box should be handled by this Execution implementation");
+	static public Dict.Prop<LinkedHashMapAndArrayList<CompletionSupport>> completions = new Dict.Prop<>("completions").toCanon().type().doc("Functions that can return completions for code in the editor");
+	static public Dict.Prop<LinkedHashMapAndArrayList<CompletionSupport>> imports= new Dict.Prop<>("imports").toCanon().type().doc("Functions that can return import help for code in the editor");
+	static public Dict.Prop<FunctionOfBox<Boolean>> executionFilter = new Dict.Prop<>("executionFilter").toCanon().type().doc("defines a function that, when called with a box, returns a boolean describing whether this box should be handled by this Execution implementation");
 
-	static public Dict.Prop<Consumer<Quad<Box, Integer, String, Boolean>>> directedOutput = new Dict.Prop<>("_directedOutput").toCannon();
+	static public Dict.Prop<Consumer<Quad<Box, Integer, String, Boolean>>> directedOutput = new Dict.Prop<>("_directedOutput").toCanon();
 
 	private final BiFunction<Box, Dict.Prop<String>, ? extends ExecutionSupport> support;
 
@@ -38,7 +38,7 @@ public class Execution extends Box {
 	 * this is the default "code" property for a box. Obviously we can define others, and editors can edit other properties, but there's a lot of
 	 * UI that's built around a default notion of "run"ing and "begin"ing a box.
 	 */
-	static public final Dict.Prop<String> code = new Dict.Prop<>("code").toCannon().type().set(BoxDefaultCode._configured).set(Dict.streamReducer, (a,b) -> a+"\n"+b);
+	static public final Dict.Prop<String> code = new Dict.Prop<>("code").toCanon().type().set(BoxDefaultCode._configured).set(Dict.streamReducer, (a,b) -> a+"\n"+b);
 
 	/**
 	 * pushed and popped inside all eval's and executes

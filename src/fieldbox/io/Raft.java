@@ -143,7 +143,7 @@ public class Raft {
             if (s.startsWith("__")) continue;
 
             Dict.Prop p = new Dict.Prop(s);
-            Dict.Prop pc = p.findCannon();
+            Dict.Prop pc = p.findCanon();
             if (pc != null) p = pc;
 
             Object val = fromValue(p, vertex.values.get(s), alias, load);

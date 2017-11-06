@@ -4,6 +4,7 @@ import field.app.RunLoop;
 import field.app.ThreadSync;
 import field.app.ThreadSync2;
 import field.graphics.*;
+import field.graphics.util.onsheetui.Label;
 import field.utility.AutoPersist;
 import field.utility.Dict;
 import field.utility.Log;
@@ -47,7 +48,7 @@ import static org.lwjgl.opengl.GL11.*;
  */
 public class Open {
 
-	static public final Dict.Prop<String> fieldFilename = new Dict.Prop<>("fieldFilename").toCannon()
+	static public final Dict.Prop<String> fieldFilename = new Dict.Prop<>("fieldFilename").toCanon()
 											      .type()
 											      .doc("the name of the field sheet that we are currently in");
 
@@ -273,6 +274,9 @@ public class Open {
 
 		new TimeHelper(boxes.root()).connect(boxes.root());
 
+		new Label(boxes.root()).connect(boxes.root());
+
+		new Pads(boxes.root()).connect(boxes.root());
 
 		if (ThreadSync.enabled) new ThreadSyncFeedback(boxes.root()).connect(boxes.root());
 		if (ThreadSync2.getEnabled()) new ThreadSync2Feedback(boxes.root()).connect(boxes.root());
@@ -390,10 +394,10 @@ public class Open {
 			new TextEditor(boxes.root()).connect(boxes.root());
 			new GlassBrowser(boxes.root()).connect(boxes.root());
 			new OutputBox(boxes.root()).connect(boxes.root());
-			new NotificationBox(boxes.root()).connect(boxes.root());
+//			new NotificationBox(boxes.root()).connect(boxes.root());
 
-			if (Main.os != Main.OS.windows) {
-
+//			if (Main.os != Main.OS.windows)
+			{
 				new BoxBrowser(boxes.root()).connect(boxes.root());
 				new TextEditor_boxBrowser2(boxes.root()).connect(boxes.root());
 			}

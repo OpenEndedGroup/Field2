@@ -43,6 +43,7 @@ import static org.lwjgl.system.MemoryUtil.memAllocPointer;
 public class OculusDrawTarget2 {
 
     static public boolean floatResolution = false;
+    public boolean skip = false;
 
     private long hmd;
 
@@ -291,7 +292,7 @@ public class OculusDrawTarget2 {
                 for (int eye = 0; eye < 2; eye++) {
                     eyeRenderDesc[eye] = OVREyeRenderDesc.malloc();
                     ovr_GetRenderDesc(hmd, eye, fovPorts[eye], eyeRenderDesc[eye]);
-                    System.out.println("ipd eye " + eye + " = " + eyeRenderDesc[eye].HmdToEyeOffset().x());
+                    System.out.println("ipd eye " + eye + " = " + eyeRenderDesc[eye].HmdToEyePose().Position().x());
                 }
 
                 // docs claim there's no reason for this to be above 1.0
@@ -444,6 +445,8 @@ public class OculusDrawTarget2 {
             public boolean perform(int pass) {
 
                 if (!go) return true;
+                if (skip) return true;
+
 
                 OVRSessionStatus stat = OVRSessionStatus.create();
                 OVR.ovr_GetSessionStatus(hmd, stat);
@@ -463,9 +466,9 @@ public class OculusDrawTarget2 {
                 hmdState.free();
 
                 //build view offsets struct
-                OVRVector3f.Buffer HmdToEyeOffsets = OVRVector3f.calloc(2);
-                HmdToEyeOffsets.put(0, eyeRenderDesc[ovrEye_Left].HmdToEyeOffset());
-                HmdToEyeOffsets.put(1, eyeRenderDesc[ovrEye_Right].HmdToEyeOffset());
+                OVRPosef.Buffer HmdToEyeOffsets = OVRPosef.calloc(2);
+                HmdToEyeOffsets.put(0, eyeRenderDesc[ovrEye_Left].HmdToEyePose());
+                HmdToEyeOffsets.put(1, eyeRenderDesc[ovrEye_Right].HmdToEyePose());
 
                 //calculate eye poses
                 OVRPosef.Buffer outEyePoses = OVRPosef.create(2);
@@ -555,9 +558,6 @@ public class OculusDrawTarget2 {
 
                     mat.identity();
 
-                    Vec3 offsetPosition = new Vec3(eyeRenderDesc[eye].HmdToEyeOffset().x(),
-                                                   eyeRenderDesc[eye].HmdToEyeOffset().y(),
-                                                   eyeRenderDesc[eye].HmdToEyeOffset().z());
 
                     if (!pauseCamera) {
                         orientation = new Quat(eyePose.Orientation().x(), eyePose.Orientation().y(),
@@ -614,8 +614,8 @@ public class OculusDrawTarget2 {
 
                 OVRViewScaleDesc scale = OVRViewScaleDesc.calloc();
                 scale.HmdSpaceToWorldScaleInMeters(1);
-                scale.HmdToEyeOffset(0, eyeRenderDesc[ovrEye_Left].HmdToEyeOffset());
-                scale.HmdToEyeOffset(1, eyeRenderDesc[ovrEye_Right].HmdToEyeOffset());
+                scale.HmdToEyePose(0, eyeRenderDesc[ovrEye_Left].HmdToEyePose());
+                scale.HmdToEyePose(1, eyeRenderDesc[ovrEye_Right].HmdToEyePose());
 
 
                 for (int eye = 0; eye < 2; eye++) {
@@ -645,6 +645,7 @@ public class OculusDrawTarget2 {
                     fpreview.draw();
                 }
 
+//                if (true) return true;
 
 //				System.out.println(" size is :" + textureW + " " + textureH);
 

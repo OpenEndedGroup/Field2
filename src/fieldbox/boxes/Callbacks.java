@@ -19,33 +19,33 @@ import java.util.function.Supplier;
 public class Callbacks {
 
 	static public final Dict.Prop<IdempotencyMap<Box.FunctionOfBox>> onDelete = new Dict.Prop<>("onDelete").type()
-													       .toCannon()
+													       .toCanon()
 													       .doc("callback that's called when a box is deleted")
 													       .autoConstructs(() -> new IdempotencyMap<>(Box.FunctionOfBox.class));
 
 
 	static public final Dict.Prop<IdempotencyMap<Box.FunctionOfBox>> onLoad = new Dict.Prop<>("onLoad").type()
-													   .toCannon()
+													   .toCanon()
 													   .doc("callback that's called when a box is loaded")
 													   .autoConstructs(() -> new IdempotencyMap<>(Box.FunctionOfBox.class));
 
 	static public final Dict.Prop<IdempotencyMap<Box.FunctionOfBox>> onSelect = new Dict.Prop<>("onSelect").type()
-													       .toCannon()
+													       .toCanon()
 													       .doc("callback that's called when a box is selected")
 													       .autoConstructs(() -> new IdempotencyMap<>(Box.FunctionOfBox.class));
 
 	static public final Dict.Prop<IdempotencyMap<Box.FunctionOfBox>> onDeselect = new Dict.Prop<>("onDeselect").type()
-														   .toCannon()
+														   .toCanon()
 														   .doc("callback that's called when a box is deselected")
 														   .autoConstructs(() -> new IdempotencyMap<>(Box.FunctionOfBox.class));
 
 	static public final Dict.Prop<IdempotencyMap<Box.FunctionOfBox>> onExecute = new Dict.Prop<>("onExecute").type()
-														 .toCannon()
+														 .toCanon()
 														 .doc("callback that's called when code in a box is executed")
 														 .autoConstructs(() -> new IdempotencyMap<>(Box.FunctionOfBox.class));
 
 	static public final Dict.Prop<IdempotencyMap<Box.FunctionOfBox>> onEdit = new Dict.Prop<>("onEdit").type()
-													   .toCannon()
+													   .toCanon()
 													   .doc("callback that's called when code in a box is edited")
 													   .autoConstructs(() -> new IdempotencyMap<>(Box.FunctionOfBox.class));
 
@@ -82,7 +82,7 @@ public class Callbacks {
 	}
 
 	static public final Dict.Prop<IdempotencyMap<Box.BiFunctionOfBoxAnd<Rect, Rect>>> onFrameChanged = new Dict.Prop<>("onFrameChanged").type()
-																	    .toCannon()
+																	    .toCanon()
 																	    .doc("callback that's called when aa box is moved. Signature is .onFrameChanged(box, newRect) -> Rect ")
 																	    .autoConstructs(() -> new IdempotencyMap<>(
 																		    Box.BiFunctionOfBoxAnd.class));
@@ -105,7 +105,7 @@ public class Callbacks {
 	}
 
 	static public final Dict.Prop<IdempotencyMap<Box.BiFunctionOfBoxAnd<String, String>>> onNameChange = new Dict.Prop<>("onNameChange").type()
-																	    .toCannon()
+																	    .toCanon()
 																	    .doc("callback that's called when a boxes name is changed")
 																	    .autoConstructs(() -> new IdempotencyMap<>(
 																		    Box.BiFunctionOfBoxAnd.class));
@@ -143,17 +143,17 @@ public class Callbacks {
 			    try {
 				    az[0] = x.apply(from, (T) az[0]);
 			    } catch (Throwable t) {
-				    Errors.tryToReportTo(t, "Inside call[" + prop + "]", x);
+				    Errors.INSTANCE.tryToReportTo(t, "Inside call[" + prop + "]", x);
 			    }
 		    });
 		return (T) az[0];
 	}
 
-	static public final Dict.Prop<IdempotencyMap<Supplier<Object>>> main = new Dict.Prop<IdempotencyMap<Supplier<Object>>>("main").toCannon()
+	static public final Dict.Prop<IdempotencyMap<Supplier<Object>>> main = new Dict.Prop<IdempotencyMap<Supplier<Object>>>("main").toCanon()
 																      .type()
 																      .doc("`_.main.name = function(){...}` defines what happens when a box is 'called' (e.g. _()). If this isn't defined or is empty, the whole box is executed instead (and, should that result in `_.main` being defined, then that's called")
 																      .autoConstructs(() -> new IdempotencyMap<>(Supplier.class));
-	static public final Dict.Prop<IdempotencyMap<Supplier<Object>>> run = new Dict.Prop<IdempotencyMap<Supplier<Object>>>("run").toCannon()
+	static public final Dict.Prop<IdempotencyMap<Supplier<Object>>> run = new Dict.Prop<IdempotencyMap<Supplier<Object>>>("run").toCanon()
 																    .type()
 																    .doc("`_.run.name = function(){...}` defines what happens, each animation frame, when a box is 'run' (e.g. between _.begin() / _.end()). If this isn't defined or is empty, the whole box is executed instead (and, should that result in `_.run` being defined, then that's called")
 																    .autoConstructs(() -> new IdempotencyMap<>(Supplier.class));
@@ -248,7 +248,7 @@ public class Callbacks {
 					   try {
 						   x.run();
 					   } catch (Throwable t) {
-						   Errors.tryToReportTo(t, "Inside call[" + main + "]", x);
+						   Errors.INSTANCE.tryToReportTo(t, "Inside call[" + main + "]", x);
 					   }
 				   });
 
@@ -352,7 +352,7 @@ public class Callbacks {
 						   Object r = x.get();
 						   if (firstRet[0] == null) firstRet[0] = r;
 					   } catch (Throwable t) {
-						   Errors.tryToReportTo(t, "Inside call[" + main + "]", x);
+						   Errors.INSTANCE.tryToReportTo(t, "Inside call[" + main + "]", x);
 					   }
 				   });
 

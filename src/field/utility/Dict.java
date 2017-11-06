@@ -6,7 +6,6 @@ import com.thoughtworks.qdox.model.JavaField;
 import fieldbox.boxes.plugins.BoxDefaultCode;
 import fieldbox.execution.Execution;
 import fieldbox.execution.JavaSupport;
-import fieldlinker.Linker;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -30,18 +29,18 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 	private static final long serialVersionUID = 4506062700963421662L;
 
 	static public class Canonical {
-		static protected Map<String, Prop> cannon = Collections.synchronizedMap(new HashMap<>());
+		static protected Map<String, Prop> canon = Collections.synchronizedMap(new HashMap<>());
 
-		static public <T> Prop<T> cannonicalize(Prop<T> p) {
-			Prop<T> prop = cannon.computeIfAbsent(p.name, x -> p);
-			if (p.isCannon() && !prop.isCannon()) {
-				cannon.put(p.name, p);
+		static public <T> Prop<T> canonicalize(Prop<T> p) {
+			Prop<T> prop = canon.computeIfAbsent(p.name, x -> p);
+			if (p.isCanon() && !prop.isCanon()) {
+				canon.put(p.name, p);
 				prop = p;
-			} else if (p.isCannon() && prop.isCannon() && p != prop) {
+			} else if (p.isCanon() && prop.isCanon() && p != prop) {
 				// should be an Error?
 				System.err.println(" WARNING: two competing canonical definitions of a Prop <" + p + ">");
 				if (p.typeInformation != null && prop.typeInformation == null) {
-					cannon.put(p.name, p);
+					canon.put(p.name, p);
 					prop = p;
 				} else if (p.typeInformation == null && prop.typeInformation != null) {
 
@@ -52,16 +51,16 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 					}
 				}
 			}
-			prop.setCannon();
+			prop.setCanon();
 			return prop;
 		}
 
-		static public <T> Prop<T> findCannon(Prop<T> p) {
-			return cannon.get(p.name);
+		static public <T> Prop<T> findCanon(Prop<T> p) {
+			return canon.get(p.name);
 		}
 
-		static public <T> Prop<T> findCannon(String p) {
-			return cannon.get(p);
+		static public <T> Prop<T> findCanon(String p) {
+			return canon.get(p);
 		}
 
 	}
@@ -69,26 +68,26 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 	/**
 	 * this property is used to tag other properties as pertaining to a particular "domain" of use, for example FLine attributes
 	 */
-	public static Dict.Prop<String> domain = new Dict.Prop<>("domain").toCannon();
+	public static Dict.Prop<String> domain = new Dict.Prop<>("domain").toCanon();
 	/**
 	 * this property tags a property as readOnly (from the point of view of the scripting world, from Java there's nothing in place to prevent writing properties)
 	 */
-	public static Prop<Boolean> readOnly = new Prop<>("readOnly").toCannon().set(domain, "*/attributes");
+	public static Prop<Boolean> readOnly = new Prop<>("readOnly").toCanon().set(domain, "*/attributes");
 
 	/**
 	 * this lets you add to a property a function that massages values as they are set
 	 */
-	public static Prop<Function<Object, Object>> customCaster = new Prop<>("customCaster").toCannon().set(domain, "*/attributes");
+	public static Prop<Function<Object, Object>> customCaster = new Prop<>("customCaster").toCanon().set(domain, "*/attributes");
 
 	/**
 	 * this lets you add to a property that reduces pairs of T to a single T. This might be string concatenation, or addition, or something more complex
 	 */
-	public static Prop<BinaryOperator> streamReducer = new Prop<>("streamReducer").toCannon().set(domain, "*/attributes");
+	public static Prop<BinaryOperator> streamReducer = new Prop<>("streamReducer").toCanon().set(domain, "*/attributes");
 
 	/**
 	 * this lets you add to a property that reduces a collection of T to a single T. This might be averaging for example
 	 */
-	public static Prop<Function<Collection, Optional<Object>>> collectionReducer = new Prop<>("collectionReducer").toCannon().set(domain, "*/attributes");
+	public static Prop<Function<Collection, Optional<Object>>> collectionReducer = new Prop<>("collectionReducer").toCanon().set(domain, "*/attributes");
 
 	static {
 		domain.set(domain, "*/attributes");
@@ -97,7 +96,9 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 	static public class Prop<T> implements Serializable, fieldlinker.AsMap {
 		String name;
 
-		static private final long serialVersionUID = -3019710755596488302L;
+		//		static private final long serialVersionUID = -3019710755596488302L;
+		static private final long serialVersionUID = 957672202150481417L;
+
 
 		// optional type information
 		private List<Class> typeInformation;
@@ -108,13 +109,12 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 
 		private Dict attributes;
 
-		private boolean cannon = false;
+		private boolean canon = false;
 
 		public Prop(String name) {
 			this.name = name;
 
-			if (false)
-			{
+			if (false) {
 				StackTraceElement[] s = new Exception().getStackTrace();
 				String[] pieces = s[1].getClassName()
 					.split("\\.");
@@ -161,25 +161,25 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 			return name + (typeInformation == null ? "" : "" + typeInformation);
 		}
 
-		protected void setCannon() {
-			cannon = true;
+		protected void setCanon() {
+			canon = true;
 		}
 
-		public boolean isCannon() {
-			return cannon;
+		public boolean isCanon() {
+			return canon;
 		}
 
-		public <T> Prop<T> toCannon() {
-			return (Prop<T>) Canonical.cannonicalize(this);
+		public <T> Prop<T> toCanon() {
+			return (Prop<T>) Canonical.canonicalize(this);
 		}
 
 		public <T> Prop<T> doc(String doc) {
 			Prop on = this;
-			if (!isCannon()) {
-				Prop<T> already = (Prop<T>) findCannon();
+			if (!isCanon()) {
+				Prop<T> already = (Prop<T>) findCanon();
 				if (already == null) {
-					toCannon();
-					on.setCannon();
+					toCanon();
+					on.setCanon();
 				} else {
 					on = already;
 				}
@@ -193,40 +193,37 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 			return documentation;
 		}
 
-		public Class getDefiningClass()
-		{
+		public Class getDefiningClass() {
 			return definedInClass;
 		}
 
-		public String getExtendedDocumentation(){
+		public String getExtendedDocumentation() {
 			Prop on = this;
-			if (!isCannon()) {
-				Prop<T> already = (Prop<T>) findCannon();
+			if (!isCanon()) {
+				Prop<T> already = (Prop<T>) findCanon();
 				if (already == null) {
-					toCannon();
-					on.setCannon();
+					toCanon();
+					on.setCanon();
 				} else {
 					on = already;
 				}
 			}
-			if (on.definedInClass==null) return null;
+			if (on.definedInClass == null) return null;
 
 			String type1 = BoxDefaultCode.find(on.definedInClass, getName() + ".documentation.md");
-			if (type1!=null) return type1;
+			if (type1 != null) return type1;
 
-			try{
+			try {
 				JavaClass source = JavaSupport.javaSupport.sourceForClass(definedInClass);
 				JavaField n = source.getFieldByName(name);
-				if (n==null)
-					n = source.getFieldByName("_"+name);
-				if (n==null)
-					n = source.getFieldByName("__"+name);
-				if (n==null) return null;
+				if (n == null)
+					n = source.getFieldByName("_" + name);
+				if (n == null)
+					n = source.getFieldByName("__" + name);
+				if (n == null) return null;
 
 				return n.getComment();
-			}
-			catch(Throwable t)
-			{
+			} catch (Throwable t) {
 				t.printStackTrace();
 			}
 			return null;
@@ -235,11 +232,11 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 		public <T> Prop<T> type() {
 
 			Prop on = this;
-			if (!isCannon()) {
-				Prop<T> already = (Prop<T>) findCannon();
+			if (!isCanon()) {
+				Prop<T> already = (Prop<T>) findCanon();
 				if (already == null) {
-					toCannon();
-					on.setCannon();
+					toCanon();
+					on.setCanon();
 				} else {
 					on = already;
 				}
@@ -295,11 +292,11 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 
 		public <T> Prop<T> autoConstructs(Supplier<T> t) {
 			Prop on = this;
-			if (!isCannon()) {
-				Prop<T> already = (Prop<T>) findCannon();
+			if (!isCanon()) {
+				Prop<T> already = (Prop<T>) findCanon();
 				if (already == null) {
-					toCannon();
-					on.setCannon();
+					toCanon();
+					on.setCanon();
 				} else {
 					on = already;
 				}
@@ -315,17 +312,17 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 			return typeInformation == null ? null : new ArrayList<Class>(typeInformation);
 		}
 
-		public Prop<T> findCannon() {
-			return Canonical.findCannon(this);
+		public Prop<T> findCanon() {
+			return Canonical.findCanon(this);
 		}
 
 		public Dict getAttributes() {
 			Prop on = this;
-			if (!isCannon()) {
-				Prop<T> already = findCannon();
+			if (!isCanon()) {
+				Prop<T> already = findCanon();
 				if (already == null) {
-					toCannon();
-					on.setCannon();
+					toCanon();
+					on.setCanon();
 				} else {
 					on = already;
 				}
@@ -341,13 +338,13 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 
 		public <V> Prop<V> set(Prop<Boolean> m) {
 			getAttributes().put(m, true);
-			return (Prop<V>)this;
+			return (Prop<V>) this;
 		}
 
 
 		@Override
 		public boolean asMap_isProperty(String p) {
-			return Canonical.findCannon(p) != null;
+			return Canonical.findCanon(p) != null;
 		}
 
 		@Override
@@ -362,7 +359,7 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 
 		@Override
 		public Object asMap_get(String p) {
-			return getAttributes().asMap_get(p);
+			return getAttributes().getOrConstruct(new Dict.Prop<>(p));
 		}
 
 		@Override
@@ -400,6 +397,13 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 			return getAttributes().asMap_delete(o);
 		}
 
+		/**
+		 * doesn't automatically build the attribute map if it isn't there
+		 */
+		public <Q> Q getAttribute(Prop<Q> watch) {
+			if (attributes == null) return null;
+			return attributes.get(watch);
+		}
 	}
 
 //	Map<Prop, Object> dictionary = new MapMaker().concurrencyLevel(2)
@@ -424,7 +428,7 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 	@SuppressWarnings("unchecked")
 	public <T> T getOrConstruct(Prop<T> key) {
 
-		Prop<T> cc = key.findCannon();
+		Prop<T> cc = key.findCanon();
 		if (cc != null && cc.autoConstructor != null) {
 			return (T) dictionary.computeIfAbsent(key, k -> cc.autoConstructor.get());
 		}
@@ -464,6 +468,25 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 		r.dictionary = new LinkedHashMap<Prop, Object>(dictionary.size());
 		for (Map.Entry<Prop, Object> e : dictionary.entrySet()) {
 			r.dictionary.put(e.getKey(), e.getValue() instanceof Mutable ? ((Mutable) e.getValue()).duplicate() : e.getValue());
+		}
+		return r;
+	}
+
+	public <T> Dict duplicate(T newContainer) {
+		Dict r = new Dict();
+
+		r.dictionary = new LinkedHashMap<Prop, Object>(dictionary.size());
+		for (Map.Entry<Prop, Object> e : dictionary.entrySet()) {
+
+			Object v = e.getValue();
+
+			if (e.getValue() instanceof Mutable)
+				v = ((Mutable) e.getValue()).duplicate();
+
+			if (e.getValue() instanceof ContainerAware)
+				v = ((ContainerAware) v).moveContainer(newContainer);
+
+			r.dictionary.put(e.getKey(), v);
 		}
 		return r;
 	}
@@ -569,8 +592,8 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 
 	public <T> Dict putToList(Prop<? extends Collection<T>> key, T value) {
 
-		if (key.toCannon().autoConstructor != null) {
-			Collection<T> c = (Collection<T>) dictionary.computeIfAbsent(key, (k) -> key.toCannon().autoConstructor.get());
+		if (key.toCanon().autoConstructor != null) {
+			Collection<T> c = (Collection<T>) dictionary.computeIfAbsent(key, (k) -> key.toCanon().autoConstructor.get());
 			c.add(value);
 			return this;
 		} else {
@@ -582,8 +605,8 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 
 	public <T> Dict putToList(Prop<? extends Collection<T>> key, T value, Supplier<? extends Collection<T>> def) {
 
-		if (key.toCannon().autoConstructor != null) {
-			Collection<T> c = (Collection<T>) dictionary.computeIfAbsent(key, (k) -> key.toCannon().autoConstructor.get());
+		if (key.toCanon().autoConstructor != null) {
+			Collection<T> c = (Collection<T>) dictionary.computeIfAbsent(key, (k) -> key.toCanon().autoConstructor.get());
 			c.add(value);
 			return this;
 		} else {
@@ -595,8 +618,8 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 
 	public <T> Dict putToListMap(Prop<? extends LinkedHashMapAndArrayList<T>> key, T value) {
 
-		if (key.toCannon().autoConstructor != null) {
-			LinkedHashMapAndArrayList<T> c = (LinkedHashMapAndArrayList<T>) dictionary.computeIfAbsent(key, (k) -> key.toCannon().autoConstructor.get());
+		if (key.toCanon().autoConstructor != null) {
+			LinkedHashMapAndArrayList<T> c = (LinkedHashMapAndArrayList<T>) dictionary.computeIfAbsent(key, (k) -> key.toCanon().autoConstructor.get());
 			c.add(value);
 			return this;
 		} else {
@@ -607,8 +630,8 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 	}
 
 	public <K, T> Dict putToMap(Prop<? extends Map<String, T>> key, K tok, T value) {
-		if (key.toCannon().autoConstructor != null) {
-			Map<K, T> c = (Map<K, T>) dictionary.computeIfAbsent(key, (k) -> key.toCannon().autoConstructor.get());
+		if (key.toCanon().autoConstructor != null) {
+			Map<K, T> c = (Map<K, T>) dictionary.computeIfAbsent(key, (k) -> key.toCanon().autoConstructor.get());
 			c.put(tok, value);
 			return this;
 		} else {
@@ -765,8 +788,8 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 	}
 
 
-	static public Stream<Prop> cannonicalProperties() {
-		return Canonical.cannon.values().stream();
+	static public Stream<Prop> canonicalProperties() {
+		return Canonical.canon.values().stream();
 	}
 
 }

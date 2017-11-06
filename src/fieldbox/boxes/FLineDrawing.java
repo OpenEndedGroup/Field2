@@ -47,32 +47,32 @@ import static field.graphics.StandardFLineDrawing.*;
 public class FLineDrawing extends Box implements Drawing.Drawer {
 
 	static public final Dict.Prop<Map<String, Function<Box, FLine>>> frameDrawing = new Dict.Prop<>("frameDrawing").type()
-		.toCannon()
+		.toCanon()
 		.doc("Functions that compute lines to be drawn along with this box")
 		.set(IO.dontCopy, true)
 		.set(Dict.readOnly, true);
 
 	static public final Dict.Prop<IdempotencyMap<Supplier<FLine>>> lines = new Dict.Prop<>("lines").type()
-		.toCannon()
+		.toCanon()
 		.doc("Geometry to be drawn along with this box")
 		.autoConstructs(() -> new IdempotencyMap<>(Supplier.class))
 		.set(IO.dontCopy, true)
 		.set(Dict.readOnly, true);
 
 	static public final Dict.Prop<IdempotencyMap<Supplier<Collection<? extends Supplier<FLine>>>>> bulkLines = new Dict.Prop<>("bulkLines").type()
-		.toCannon()
+		.toCanon()
 		.doc("Geometry to be drawn along with this box")
 		.autoConstructs(() -> new IdempotencyMap<>(Supplier.class))
 		.set(IO.dontCopy, true)
 		.set(Dict.readOnly, true);
 
 	static public final Dict.Prop<String> layer = new Dict.Prop<>("layer").type()
-		.toCannon()
+		.toCanon()
 		.doc("which layer to draw to? Defaults to `__main__`, the other alternative right now is `__glass__` to draw on the blur layer above Field");
 
 	private final Box root;
 
-	static public final Dict.Prop<FunctionOfBox<Boolean>> redraw = new Dict.Prop<>("redraw").type().toCannon().doc("call `_.redraw()` to cause the window to be redrawn");
+	static public final Dict.Prop<FunctionOfBox<Boolean>> redraw = new Dict.Prop<>("redraw").type().toCanon().doc("call `_.redraw()` to cause the window to be redrawn");
 
 	public FLineDrawing(Box root) {
 		this.root = root;
@@ -447,7 +447,6 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 
 			FLine f = new FLine();
 			float dd = box.properties.getFloat(Box.depth, 0f);
-
 
 			String name = box.properties.getOr(Box.name, () -> "");
 			if (box.properties.isTrue(FileBrowser.isLinked, false)) name = "{ " + name + " }";

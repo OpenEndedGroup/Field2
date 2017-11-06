@@ -27,20 +27,20 @@ import java.util.regex.Pattern;
  */
 public class Out extends Box {
 	ObjectToHTML output = new ObjectToHTML();
-	static public final Dict.Prop<Function<Object, Object>> out = new Dict.Prop<Function<Object, Object>>("out").toCannon()
+	static public final Dict.Prop<Function<Object, Object>> out = new Dict.Prop<Function<Object, Object>>("out").toCanon()
 		.type()
 		.doc("write an object to the editor window. This will attempt to map the object into a useful (HTML) view of it using routines in `_.outMap`. `_.out(...)` clears any previous output from any previous update cycle.");
-	static public final Dict.Prop<Function<Object, Object>> outClear = new Dict.Prop<Function<Object, Object>>("outClear").toCannon()
+	static public final Dict.Prop<Function<Object, Object>> outClear = new Dict.Prop<Function<Object, Object>>("outClear").toCanon()
 		.type()
 		.doc("write an object to the editor window. This will attempt to map the object into a useful (HTML) view of it using routines in `_.outMap`. `_.outClear(...)` clears any previous output.");
-	static public final Dict.Prop<Function<Object, Object>> outAppend = new Dict.Prop<Function<Object, Object>>("outAppend").toCannon()
+	static public final Dict.Prop<Function<Object, Object>> outAppend = new Dict.Prop<Function<Object, Object>>("outAppend").toCanon()
 		.type()
 		.doc("write an object to the editor window. This will attempt to map the object into a useful (HTML) view of it using routines in `_.outMap`. `_.outAppend(...)` appends to any previous output.");
 
-	static public final Dict.Prop<IdempotencyMap<Function<Object, Object>>> outMap = new Dict.Prop<>("outMap").toCannon()
+	static public final Dict.Prop<IdempotencyMap<Function<Object, Object>>> outMap = new Dict.Prop<>("outMap").toCanon()
 		.type()
 		.doc("a map of functions that can be called upon to transform objects to HTML for the purposes of `_.out(...)`. Objects are transformed until a string starting with `{HTML`} is returned, or until no transformation changes anything.");
-	static public final Dict.Prop<Out> __out = new Dict.Prop<>("__out").toCannon()
+	static public final Dict.Prop<Out> __out = new Dict.Prop<>("__out").toCanon()
 		.type();
 
 	Writer theWriter = new PrintWriter(System.out);

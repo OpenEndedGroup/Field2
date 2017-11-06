@@ -44,10 +44,10 @@ import static field.graphics.StandardFLineDrawing.*;
 public class Browser extends Box implements IO.Loaded {
 
 	static public final Dict.Prop<String> url = new Dict.Prop<String>("url").type()
-		.toCannon()
+		.toCanon()
 		.doc("URL for the browser. Setting this will cause the browser to navigate, and repaint automatically");
 	static public final Dict.Prop<String> html = new Dict.Prop<String>("html").type()
-		.toCannon()
+		.toCanon()
 		.doc("HTML for the browser. Setting this will cause the browser to reload it's contents from this string, and repaint automatically");
 	private final KeyEventMapping mapper = new KeyEventMapping();
 	public CefRendererBrowserBuffer browser;

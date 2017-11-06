@@ -18,7 +18,7 @@ import java.util.function.Consumer;
  */
 public class Exec extends Box {
 
-    static public final Dict.Prop<Box.BiFunctionOfBoxAnd<String, Triple<Object, List<String>, List<Pair<Integer, String>>>>> exec = new Dict.Prop<>("exec").type().toCannon().doc("`_.exec('foo()')` executes the expression `foo()` as if you'd typed it into the text editor with `_` selected and pressed command-return. This returns a `Triple` containing the the `Object` returned, a `List<String>` of everything 'printed' by this code and the `List<Pair<Integer, String>>` of all the errors and error-line numbers if any.");
+    static public final Dict.Prop<Box.BiFunctionOfBoxAnd<String, Triple<Object, List<String>, List<Pair<Integer, String>>>>> exec = new Dict.Prop<>("exec").type().toCanon().doc("`_.exec('foo()')` executes the expression `foo()` as if you'd typed it into the text editor with `_` selected and pressed command-return. This returns a `Triple` containing the the `Object` returned, a `List<String>` of everything 'printed' by this code and the `List<Pair<Integer, String>>` of all the errors and error-line numbers if any.");
 
     public Exec(Box root)
     {

@@ -21,7 +21,7 @@ public class Documentation extends Box {
 	 * ##
 	 * This property is a field that we are going to document so well
 	 */
-	static public final Dict.Prop<Documentation> documentation = new Dict.Prop<>("_documentation").type().toCannon();
+	static public final Dict.Prop<Documentation> documentation = new Dict.Prop<>("_documentation").type().toCanon();
 
 	static public final String docprefix = "##";
 

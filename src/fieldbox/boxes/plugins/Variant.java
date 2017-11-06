@@ -13,7 +13,6 @@ import fieldbox.io.IO;
 import fielded.Commands;
 import fielded.RemoteEditor;
 import fielded.boxbrowser.BoxBrowser;
-import fieldlinker.Linker;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -32,19 +31,19 @@ import java.util.stream.Stream;
 public class Variant extends Box implements IO.Loaded {
 
 	static public Dict.Prop<Set<String>> includes = new Dict.Prop<Set<String>>("includes").type()
-		.toCannon()
+		.toCanon()
 		.autoConstructs(() -> new LinkedHashSet<String>()); // todo: doc
 
 
 	static public Dict.Prop<Set<String>> excludes = new Dict.Prop<Set<String>>("excludes").type()
-		.toCannon()
+		.toCanon()
 		.autoConstructs(() -> new LinkedHashSet<String>()); // todo: doc
 
 	// this is set per box, because we need it to be loaded and saved with the boxes
 	static public Dict.Prop<String> theVariant = new Dict.Prop<>("_theVariant").type();
 
 	static public Dict.Prop<FunctionOfBoxValued<CurrentVariant>> variant = new Dict.Prop<FunctionOfBoxValued<CurrentVariant>>("variant").type()
-		.toCannon();
+		.toCanon();
 
 	static {
 		IO.persist(theVariant);
@@ -130,7 +129,7 @@ public class Variant extends Box implements IO.Loaded {
 		}
 	}
 
-	static public class Memo implements Util.ExceptionlessAutoCloasable {
+	static public class Memo implements Util.ExceptionlessAutoClosable {
 		Map<Box, Boolean> state = new LinkedHashMap<>();
 
 		@Override

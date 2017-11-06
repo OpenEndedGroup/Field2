@@ -15,7 +15,6 @@ import java.awt.*;
 import java.nio.IntBuffer;
 import java.util.*;
 import java.util.List;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -27,30 +26,30 @@ import static field.graphics.StandardFLineDrawing.*;
 public class Viewport extends Box implements IO.Loaded, ProvidesGraphicsContext {
 
 	static public final Dict.Prop<Scene> scene = new Dict.Prop<Scene>("scene").type()
-		.toCannon()
+		.toCanon()
 		.doc("The Scene that's inside this viewport");
 
 	static public final Dict.Prop<Camera> camera = new Dict.Prop<Camera>("camera").type()
-		.toCannon()
+		.toCanon()
 		.doc("A Camera object for this viewport");
 
 	static public final Dict.Prop<IdempotencyMap<Supplier<FLine>>> lines3 = new Dict.Prop<>("lines3").type()
-		.toCannon()
+		.toCanon()
 		.doc("3D Geometry to be drawn along with this box")
 		.autoConstructs(() -> new IdempotencyMap<>(Supplier.class));
 
 	static public final Dict.Prop<IdempotencyMap<Supplier<FLine>>> pointSelection = new Dict.Prop<>("pointSelection").type()
-		.toCannon()
+		.toCanon()
 		.doc("adding lines to this property will additionally make their control points selectable")
 		.autoConstructs(() -> new IdempotencyMap<>(Supplier.class));
 
 	static public final Dict.Prop<IdempotencyMap<Supplier<Collection<Supplier<FLine>>>>> bulkLines3 = new Dict.Prop<>("bulkLines3").type()
-		.toCannon()
+		.toCanon()
 		.doc("3D Geometry to be drawn along with this box")
 		.autoConstructs(() -> new IdempotencyMap<>(Supplier.class));
 
 	static public final Dict.Prop<Boolean> clips = new Dict.Prop<>("clips").type()
-		.toCannon()
+		.toCanon()
 		.doc("set to `true` to have this viewport clip its contents to its frame").set(IO.persistent, true);
 
 	private Drawing drawing;
@@ -350,7 +349,7 @@ public class Viewport extends Box implements IO.Loaded, ProvidesGraphicsContext 
 			});
 		}
 
-		try (Util.ExceptionlessAutoCloasable s = GraphicsContext.getContext().stateTracker.save()) {
+		try (Util.ExceptionlessAutoClosable s = GraphicsContext.getContext().stateTracker.save()) {
 
 			Rect f = this.properties.get(Box.frame);
 

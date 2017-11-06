@@ -7,17 +7,17 @@ import java.util.List;
 
 public class NearestPoint {
 
-	 int MAXDEPTH = 64;	/*  Maximum depth for recursion */
+	int MAXDEPTH = 64;	/*  Maximum depth for recursion */
 
-	 double EPSILON = (Math.pow(2.0, -MAXDEPTH - 1)); /*Flatness control value */
-	 int DEGREE = 3;/*  Cubic Bezier curve		*/
-	 int W_DEGREE = 5; /*  Degree of eqn to find roots of */
+	double EPSILON = (Math.pow(2.0, -MAXDEPTH - 1)); /*Flatness control value */
+	int DEGREE = 3;/*  Cubic Bezier curve		*/
+	int W_DEGREE = 5; /*  Degree of eqn to find roots of */
 
-	 public Vec2 NearestPointOnCurve(Vec2 P, Vec2 a, Vec2 c1, Vec2 c2, Vec2 b) {
+	public Vec2 NearestPointOnCurve(Vec2 P, Vec2 a, Vec2 c1, Vec2 c2, Vec2 b) {
 		return NearestPointOnCurve(P, new Vec2[]{a, c1, c2, b});
 	}
 
-	 public Vec2 NearestPointOnCurve(Vec2 P, FLinesAndJavaShapes.CubicSegment3 s) {
+	public Vec2 NearestPointOnCurve(Vec2 P, FLinesAndJavaShapes.CubicSegment3 s) {
 		return NearestPointOnCurve(P, new Vec2[]{s.a.toVec2(), s.b.toVec2(), s.c.toVec2(), s.d.toVec2()});
 	}
 
@@ -33,13 +33,13 @@ public class NearestPoint {
 	}
 
 	/*
-			 *  NearestPointOnCurve :
-			 *  	Compute the parameter value of the point on a Bezier
-			 *		curve segment closest to some arbtitrary, user-input point.
-			 *		Return the point on the curve at that parameter value.
-			 *
+NearestPointOnCurve :
+			   	Compute the parameter value of the point on a Bezier
+			 		curve segment closest to some arbitrary, user-input point.
+			 		Return the point on the curve at that parameter value.
+
 			 */
-	 public Vec2 NearestPointOnCurve(Vec2 P, Vec2[] V) {
+	public Vec2 NearestPointOnCurve(Vec2 P, Vec2[] V) {
 		Vec2[] w;			/* Ctl pts for 5th-degree eqn	*/
 		double[] t_candidate = new double[W_DEGREE];	/* Possible roots		*/
 		int n_solutions;		/* Number of roots found	*/
@@ -95,7 +95,7 @@ public class NearestPoint {
 	 *		Bezier-format equation whose solution finds the point on the
 	 *      curve nearest the user-defined point.
 	 */
-	public  Vec2[] ConvertToBezierForm(Vec2 P, Vec2[] V) {
+	public Vec2[] ConvertToBezierForm(Vec2 P, Vec2[] V) {
 		int i, j, k, m, n, ub, lb;
 		int row, column;		/* Table indices		*/
 		Vec2[] c = new Vec2[DEGREE + 1];		/* V(i)'s - P			*/
@@ -103,7 +103,7 @@ public class NearestPoint {
 		Vec2[] w;			/* Ctl pts of 5th-degree curve  */
 		double[][] cdTable = new double[3][4];		/* Dot product of c, d		*/
 		double[][] z = {	/* Precomputed "z" for cubics	*/
-			    {1.0, 0.6, 0.3, 0.1}, {0.4, 0.6, 0.6, 0.4}, {0.1, 0.3, 0.6, 1.0},};
+			{1.0, 0.6, 0.3, 0.1}, {0.4, 0.6, 0.6, 0.4}, {0.1, 0.3, 0.6, 1.0},};
 
 
     /*Determine the c's -- these are vectors created by subtracting*/
@@ -155,12 +155,12 @@ public class NearestPoint {
 	 *	all of the roots in the interval [0, 1].  Return the number
 	 *	of roots found.
 	 */
-	public  int FindRoots(Vec2[] w, int degree, double[] t, int depth) {
+	public int FindRoots(Vec2[] w, int degree, double[] t, int depth) {
 		int i;
 		Vec2[] Left = new Vec2[W_DEGREE + 1];	/* New left and right 		*/
 		Vec2[] Right = new Vec2[W_DEGREE + 1];	/* control polygons		*/
 		int left_count,		/* Solution count from		*/
-			    right_count;		/* children			*/
+			right_count;		/* children			*/
 		double[] left_t = new double[W_DEGREE + 1];	/* Solutions from kids		*/
 		double[] right_t = new double[W_DEGREE + 1];
 
@@ -217,7 +217,7 @@ public class NearestPoint {
 	 *	crosses the 0-axis. This number is >= the number of roots.
 	 *
 	 */
-	 int CrossingCount(Vec2[] V, int degree) {
+	int CrossingCount(Vec2[] V, int degree) {
 		int i;
 		int n_crossings = 0;	/*  Number of zero-crossings	*/
 		int sign, old_sign;		/*  Sign of coefficients	*/
@@ -282,16 +282,16 @@ left_intercept = 0.0 and right_intercept = 0.9.
  */
 
 	/*  int ControlPolygonFlatEnough( const Vec2* V, int degree ) */
-	 boolean ControlPolygonFlatEnough(Vec2[] V, int degree) {
+	boolean ControlPolygonFlatEnough(Vec2[] V, int degree) {
 		int i;        /* Index variable        */
 		double value;
 		double max_distance_above;
 		double max_distance_below;
 		double error;        /* Precision of root        */
 		double intercept_1,
-			    intercept_2,
-			    left_intercept,
-			    right_intercept;
+			intercept_2,
+			left_intercept,
+			right_intercept;
 		double a, b, c;    /* Coefficients of implicit    */
 	    /* eqn for line from V[0]-V[deg]*/
 		double det, dInv;
@@ -359,7 +359,7 @@ left_intercept = 0.0 and right_intercept = 0.9.
 /* NOTE: "T" and "Y" do not have to be computed, and there are many useless
  * operations in the following (e.g. "0.0 - 0.0").
  */
-	 double ComputeXIntercept(Vec2[] V, int degree) {
+	double ComputeXIntercept(Vec2[] V, int degree) {
 		double XLK, YLK, XNM, YNM, XMK, YMK;
 		double det, detInv;
 		double S, T;
@@ -384,7 +384,7 @@ left_intercept = 0.0 and right_intercept = 0.9.
 		return X;
 	}
 
-	 public Vec2 Bezier(List<Vec2> V, int degree, double t) {
+	public Vec2 Bezier(List<Vec2> V, int degree, double t) {
 		return Bezier(V.toArray(new Vec2[4]), degree, t, null, null);
 	}
 
@@ -395,7 +395,7 @@ left_intercept = 0.0 and right_intercept = 0.9.
 	 *	"Right" are non-null.
 	 *
 	 */
-	 Vec2 Bezier(Vec2[] V, int degree, double t, Vec2[] Left, Vec2[] Right) {
+	Vec2 Bezier(Vec2[] V, int degree, double t, Vec2[] Left, Vec2[] Right) {
 		int i, j;		/* Index variables	*/
 		Vec2[][] Vtemp = new Vec2[W_DEGREE + 1][W_DEGREE + 1];
 		for (i = 0; i < Vtemp.length; i++) for (j = 0; j < Vtemp[i].length; j++) Vtemp[i][j] = new Vec2();
@@ -427,7 +427,7 @@ left_intercept = 0.0 and right_intercept = 0.9.
 		return (Vtemp[degree][0]);
 	}
 
-	 Vec2 V2ScaleII(Vec2 v, double s) {
+	Vec2 V2ScaleII(Vec2 v, double s) {
 		Vec2 result = new Vec2();
 
 		result.x = v.x * s;

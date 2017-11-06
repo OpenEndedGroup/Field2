@@ -2,7 +2,6 @@ package field.graphics;
 
 
 import field.utility.Util;
-import fieldbox.execution.Errors;
 
 import java.util.function.Supplier;
 
@@ -20,28 +19,14 @@ public abstract class BaseScene<t_state extends BaseScene.Modifiable> extends Sc
 		int mod = 0;
 	}
 
-	Errors.ErrorConsumer ec;
-
 	protected BaseScene() {
 		// its generally important that things get initialized as early as possible (and, furthermore, not in some random spot in the Scene update)
 		GraphicsContext.postQueueInAllContexts(() -> {
-			try(Util.ExceptionlessAutoCloasable st = GraphicsContext.getContext().stateTracker.save()) {
+			try(Util.ExceptionlessAutoClosable st = GraphicsContext.getContext().stateTracker.save()) {
 				GraphicsContext.put(this, setup());
 			}
 		});
 
-
-		ec = Errors.errors.get();
-	}
-
-	@Override
-	public void setErrorConsumer(Errors.ErrorConsumer c) {
-		this.ec = c;
-	}
-
-	@Override
-	public Errors.ErrorConsumer getErrorConsumer() {
-		return this.ec;
 	}
 
 	protected int mod = 0;

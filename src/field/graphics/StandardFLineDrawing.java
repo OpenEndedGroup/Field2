@@ -20,12 +20,12 @@ public class StandardFLineDrawing {
 
 
 	static public final Dict.Prop<Boolean> stroked = new Dict.Prop<>("stroked").type()
-		.toCannon()
+		.toCanon()
 		.doc("should the line be stroked? defaults to true").set(Dict.domain, "fline");
 	static public final Dict.Prop<BasicStroke> thicken = new Dict.Prop<>("thicken")
 		.type()
-		.toCannon()
-		.doc("should the line be thickened and tesselated with a java.awt.BasicStroke?")
+		.toCanon()
+		.doc("should the line be thickened and tesselated with a particular thickness (or java.awt.BasicStroke?)")
 		.set(Dict.domain, "fline")
 		.set(Dict.customCaster, v -> {
 			if (v instanceof Number)
@@ -33,72 +33,72 @@ public class StandardFLineDrawing {
 			return v;
 		});
 
-	static public final Dict.Prop<Boolean> hint_noDepth = new Dict.Prop<>("hint_noDepth").type().toCannon().doc("set on a line to hint to the renderer that z=0 for all nodes in this line. At present this merely allows lines to be `thicken` faster.");
+	static public final Dict.Prop<Boolean> hint_noDepth = new Dict.Prop<>("hint_noDepth").type().toCanon().doc("set on a line to hint to the renderer that z=0 for all nodes in this line. At present this merely allows lines to be `thicken` faster.");
 	static public final Dict.Prop<Boolean> filled = new Dict.Prop<>("filled").type()
-		.toCannon()
+		.toCanon()
 		.doc("should the line be filled and tessellated? defaults to false").set(Dict.domain, "fline");
 	static public final Dict.Prop<Boolean> pointed = new Dict.Prop<>("pointed").type()
-		.toCannon()
+		.toCanon()
 		.doc("should the points on the line be drawn? defaults to false").set(Dict.domain, "fline");
 
 	static public final Dict.Prop<Supplier<Vec4>> color = new Dict.Prop<>("color").type()
-		.toCannon()
+		.toCanon()
 		.doc("the color for the line. Defaults to black = Vec4(0,0,0,0)").set(Dict.domain, "fline");
 	static public final Dict.Prop<Float> opacity = new Dict.Prop<>("opacity").type()
-		.toCannon()
+		.toCanon()
 		.doc("the opacity to the line. Defaults to 1.0").set(Dict.domain, "fline");
 	static public final Dict.Prop<Float> fillOpacity = new Dict.Prop<>("fillOpacity").type()
-		.toCannon()
+		.toCanon()
 		.doc("the opacity of any fill the line has. Defaults to 1.0, multiplies along with `opacity` and any `fillColor`. ").set(Dict.domain, "fline");
 	static public final Dict.Prop<Float> strokeOpacity = new Dict.Prop<>("strokeOpacity").type()
-		.toCannon()
+		.toCanon()
 		.doc("the opacity to any stroke the line has. Defaults to 1.0, multiplies along with `opacity` and any `strokeColor`. ").set(Dict.domain, "fline");
 
 	static public final Dict.Prop<Supplier<Vec4>> strokeColor = new Dict.Prop<>("strokeColor").type()
-		.toCannon()
+		.toCanon()
 		.doc("the color for the stroke of a line. Defaults to the value of 'color'").set(Dict.domain, "fline");
 	static public final Dict.Prop<Supplier<Vec4>> fillColor = new Dict.Prop<>("fillColor").type()
-		.toCannon()
+		.toCanon()
 		.doc("the color for the fill of a line. Defaults to the value of 'color'").set(Dict.domain, "fline");
 	static public final Dict.Prop<Supplier<Vec4>> pointColor = new Dict.Prop<>("pointColor").type()
-		.toCannon()
+		.toCanon()
 		.doc("the color for the points on a line. Defaults to the value of 'color'").set(Dict.domain, "fline");
 
 	static public final Dict.Prop<Boolean> hasText = new Dict.Prop<>("hasText").type()
-		.toCannon()
+		.toCanon()
 		.doc("does this line contain text?").set(Dict.domain, "fline");
 	static public final Dict.Prop<String> text = new Dict.Prop<>("text").type()
-		.toCannon()
+		.toCanon()
 		.doc("NODE ATTRIBUTE. set this to be the text label centered on this node").set(Dict.domain, "fline");
 	static public final Dict.Prop<Number> textScale = new Dict.Prop<>("textScale").type()
-		.toCannon()
+		.toCanon()
 		.doc("the scale of the text on this node. Defaults to 1, the size of the labels on the boxes in Field").set(Dict.domain, "fline");
 	static public final Dict.Prop<Number> textAlign = new Dict.Prop<>("textAlign").type()
-		.toCannon()
+		.toCanon()
 		.doc("0.5 centers the text, 0 is left justified, 1 is right").set(Dict.domain, "fline");
 	static public final Dict.Prop<String> font = new Dict.Prop<>("font").type()
-		.toCannon()
+		.toCanon()
 		.doc("the (distance bitmap) font for Field text").set(Dict.domain, "fline");
 	static public final Dict.Prop<java.util.List<String>> textSpans = new Dict.Prop<>("textSpans").type()
-		.toCannon()
+		.toCanon()
 		.doc("a list of text spans for doing multi-color, multi-font runs of text").set(Dict.domain, "fline");
 	static public final Dict.Prop<java.util.List<String>> fontSpans = new Dict.Prop<>("fontSpans").type()
-		.toCannon()
+		.toCanon()
 		.doc("a list of font spans for doing multi-color, multi-font runs of text").set(Dict.domain, "fline");
 	static public final Dict.Prop<java.util.List<Vec4>> textColorSpans = new Dict.Prop<>("textColorSpans").type()
-		.toCannon()
+		.toCanon()
 		.doc("a list of color spans for doing multi-color, multi-font runs of text").set(Dict.domain, "fline");
 
 	static public final Dict.Prop<Number> pointSize = new Dict.Prop<>("pointSize").type()
-		.toCannon()
+		.toCanon()
 		.doc("sets the size of the point (if this line is drawn `.pointed=true`). This can be applied per vertex or per line.").set(Dict.domain, "fline");
 
 	static public final Dict.Prop<IdempotencyMap<Supplier<FLine>>> subLines = new Dict.Prop<>("subLines").type()
-		.toCannon()
+		.toCanon()
 		.doc("other, additional lines that are drawn along side this one. This can be applied per vertex or per line. Useful for decorations, annotations, selection marks etc.").set(Dict.domain, "fline");
 
 	static public final Dict.Prop<Boolean> noContours = new Dict.Prop<>("noContours").type()
-		.toCannon()
+		.toCanon()
 		.doc("setting `.noContours=true` turns off any smartness in the tesselator about how to fill FLines").set(Dict.domain, "fline");
 
 

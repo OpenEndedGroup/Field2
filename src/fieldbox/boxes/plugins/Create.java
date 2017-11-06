@@ -12,8 +12,8 @@ import java.util.Optional;
  */
 public class Create extends Box {
 
-	static public final Dict.Prop<TriFunctionOfBoxAnd<String, Class, Box>> _new = new Dict.Prop<>("new").toCannon();
-	static public final Dict.Prop<String> tag = new Dict.Prop<>("tag").toCannon();
+	static public final Dict.Prop<TriFunctionOfBoxAnd<String, Class, Box>> _new = new Dict.Prop<>("new").toCanon();
+	static public final Dict.Prop<String> tag = new Dict.Prop<>("tag").toCanon();
 
 	static {
 		IO.persist(tag);

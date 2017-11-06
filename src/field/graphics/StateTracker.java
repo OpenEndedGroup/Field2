@@ -66,7 +66,7 @@ public class StateTracker {
 
 	}
 
-	public Util.ExceptionlessAutoCloasable save() {
+	public Util.ExceptionlessAutoClosable save() {
 
 		try {
 			if (GraphicsContext.currentGraphicsContext == null) throw new IllegalStateException(" save() only valid inside draw method ");
@@ -132,7 +132,7 @@ public class StateTracker {
 		/**
 		 * returns a Runnable that can be used to restore this value to this point. Note that this is only valid for the current draw method
 		 */
-		public Util.ExceptionlessAutoCloasable save() {
+		public Util.ExceptionlessAutoClosable save() {
 			if (value == null) return () -> {
 			};
 
