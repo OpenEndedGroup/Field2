@@ -75,7 +75,7 @@ public class FieldBoxWindow extends Window {
 
 	@Override
 	protected GlfwCallback makeCallback() {
-		GlfwCallback parent = super.makeCallback();
+
 		return new GlfwCallbackDelegate(super.makeCallback()) {
 			@Override
 			public void windowRefresh(long l) {
