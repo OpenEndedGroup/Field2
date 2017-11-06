@@ -21,7 +21,7 @@ object Errors {
 
 
 	@JvmStatic
-	fun tryToReportTo(e: Throwable, additionalMessage: String, offendingObject: Any) {
+	fun tryToReportTo(e: Throwable, additionalMessage: String, offendingObject: Any?) {
 
 		val description = InverseDebugMapping.describe(offendingObject)
 		findResponsibleBox(InverseDebugMapping.defaultRoot, e, additionalMessage + (if (description != null) "\n" + description else ""))
