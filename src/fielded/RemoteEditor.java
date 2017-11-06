@@ -1278,7 +1278,7 @@ public class RemoteEditor extends Box {
 		return server;
 	}
 
-	public Util.ExceptionlessAutoCloasable pushToLogStack(Consumer<String> log, Consumer<String> error) {
+	public Util.ExceptionlessAutoClosable pushToLogStack(Consumer<String> log, Consumer<String> error) {
 		this.logStack.add(log);
 		this.errorStack.add(error);
 		return () -> {
