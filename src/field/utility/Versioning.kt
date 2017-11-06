@@ -12,6 +12,7 @@ class Versioning {
         if (inplay.isEmpty()) return
 
         inplay.forEach {
+            // PARENT is now the hand edited file, this is the edited version of VERSION
             box.properties.put(Dict.Prop(PARENT + it), copy<Any>(box.properties.get(Dict.Prop(it))))
         }
     }
@@ -27,13 +28,14 @@ class Versioning {
         clearFailure(box)
 
         inplay.forEach {
-            val B = box.properties.get<Any>(Dict.Prop(PARENT + it))
             val A = box.properties.get<Any>(Dict.Prop(VERSION + it))
+            val B = box.properties.get<Any>(Dict.Prop(PARENT + it))
             val C = box.properties.get<Any>(Dict.Prop(it))
 
             val ff = threeWayMerge(A, B, C)
             box.properties.put(Dict.Prop(it), ff.first)
-            box.properties.put(Dict.Prop(VERSION + it), ff.first)
+            // VERSION is the code that the machine want's it to be
+            box.properties.put(Dict.Prop(VERSION + it), C)
 
 
             if (ff.second)
@@ -51,18 +53,31 @@ class Versioning {
 
     fun version(p: Dict.Prop<*>, b: Box) {
         p.attributes.put(IO.persistent, true)
-        val cc = Dict.Prop<Any>(VERSION + p.getName()).toCannon<Any>()
+        val cc = Dict.Prop<Any>(VERSION + p.getName()).toCanon<Any>()
         cc.attributes.put(IO.persistent, true)
-        b.properties.put(cc, copy<Any>(b.properties.get(p)))
+        if (!b.properties.has(cc) && b.properties.has(p))
+            b.properties.put(cc, copy<Any>(b.properties.get(p)))
     }
 
     private fun <T> threeWayMerge(a: T, b: Any, c: Any): kotlin.Pair<T, Boolean> {
 
+        if (a!=b || a!=c)
+        {
+            println(" three way merge ")
+            println(a)
+            println(b)
+            println(c)
+        }
+        else
+            return (c as T) to false
+
         when (a) {
             is String -> {
-                val patches = MergeThreeWays().patch_make("" + a, "" + b);
-                val applied = MergeThreeWays().patch_apply(patches, "" + c)
+                val patches = MergeThreeWays().patch_make("" + a, "" + c);
+                val applied = MergeThreeWays().patch_apply(patches, "" + b)
 
+                println(" merged and got")
+                println(applied.first)
 
                 return (applied.first as T) to (applied.second.any { !it })
             }
