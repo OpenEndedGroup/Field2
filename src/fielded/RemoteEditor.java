@@ -132,9 +132,9 @@ public class RemoteEditor extends Box {
 //			} else {
 
 
-			System.out.println(" message :"+socketName+" -> "+value);
+			System.out.println(" message :" + socketName + " -> " + value);
 
-			for(Pair<String, String> v : value)
+			for (Pair<String, String> v : value)
 				server.send(socketName, "_messageBus.publish('" + key + "', " + v.second + ")");
 //			}
 		}
@@ -310,7 +310,7 @@ public class RemoteEditor extends Box {
 				}
 				if (current_ln.get() != v) return;
 
-				if (true) return;
+//				if (true) return;
 
 				Execution.ExecutionSupport support = getExecution(box.get(), new Dict.Prop<String>(prop)).support(box.get(), new Dict.Prop<String>(prop));
 
@@ -339,8 +339,8 @@ public class RemoteEditor extends Box {
 						}
 
 						String doc = cc.get(0).info.replace("&mdash;", "<br>");
-						if (doc.length()>200)
-							doc = doc.substring(0, 200)+"...";
+						if (doc.length() > 200)
+							doc = doc.substring(0, 200) + "...";
 
 						completionHelp.set("<div class='comp-space'>" + cc.get(0).replacewith + "</div> <span class=doc>" + doc + "</span>" + also);
 
@@ -486,7 +486,6 @@ public class RemoteEditor extends Box {
 
 			boxFeedback(box, new Vec4(0, 0.5f, 0.3f, 0.5f));
 			Drawing.dirty(box.get());
-
 
 
 			return payload;
@@ -1169,9 +1168,7 @@ public class RemoteEditor extends Box {
 			currentlyEditing = editingProperty;
 			this.currentSelection = currentSelection;
 
-		}
-		catch(Server.ConnectionLost e)
-		{
+		} catch (Server.ConnectionLost e) {
 			killRemoteEditor();
 		}
 	}
