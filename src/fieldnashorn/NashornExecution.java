@@ -281,7 +281,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 				return null;
 			}
 		}
-		if (ThreadSync2.getEnabled() && Thread.currentThread() == ThreadSync2.getSync().getMainThread()) {
+		if (!box.properties.isTrue(ThreadSync2Feedback.mainThread, false) && ThreadSync2.getEnabled() && Thread.currentThread() == ThreadSync2.getSync().getMainThread()) {
 
 			ThreadSync2.Fibre f = ThreadSync2.getSync()
 				.launchAndServiceOnce("execution of {{" + textFragment + "}}", () -> engine.eval(textFragment, context), t -> {
@@ -367,8 +367,8 @@ public class NashornExecution implements Execution.ExecutionSupport {
 				}
 			};
 
-			fibres.get(fibres.size()-1).setOnExit(() -> {
-				box.first(Chorder.end).ifPresent( x-> x.apply(box));
+			fibres.get(fibres.size() - 1).setOnExit(() -> {
+				box.first(Chorder.end).ifPresent(x -> x.apply(box));
 			});
 		}
 
