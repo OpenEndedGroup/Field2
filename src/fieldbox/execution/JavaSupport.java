@@ -499,7 +499,7 @@ public class JavaSupport {
 
 								Completion cc = new Completion(-1, -1, m.getName(), val + "<span class=type>" + compress(m.getName(), "(" + m.getParameters()
 																					     .stream()
-																					     .map(x -> x.getType() + " " + x.getName())
+																					     .map(x -> x.getType() + " <B>" + x.getName()+"</b>")
 																					     .reduce("",
 																						     (a, b) -> a + ", " + b)
 																					     .substring(m.getParameters()
