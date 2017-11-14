@@ -7,6 +7,7 @@ import field.linalg.Vec4;
 import field.utility.Dict;
 import field.utility.Rect;
 import fieldbox.boxes.*;
+import fieldbox.io.IO;
 
 import java.awt.*;
 import java.util.*;
@@ -26,6 +27,8 @@ public class ThreadSync2Feedback extends Box {
 
 	static public Dict.Prop<FunctionOfBox<Boolean>> yield = new Dict.Prop<>("yield").toCanon().type().doc("call `_.yield()` to pause this code for one 'frame', allowing everything else (graphics, the rest of field) to update exactly once.");
 	static public Dict.Prop<FunctionOfBox<ThreadSync2.Fibre>> trace = new Dict.Prop<>("trace").toCanon().type().doc("call `_.trace()` to get an object that lives for this lifetime of this execution trace. Simultanous overlapping executions share the same namespace but different `_.trace()` objects");
+
+	static public Dict.Prop<Boolean> mainThread = new Dict.Prop<>("mainThread").toCanon().type().doc("set `_.mainThread==true` to execute everything inside this box in the main thread").set(IO.persistent, true);
 
 	Map<Box, Integer> lastRunning = new LinkedHashMap<>();
 
@@ -280,6 +283,8 @@ public class ThreadSync2Feedback extends Box {
 	}
 
 	public static List<ThreadSync2.Fibre> fibresFor(Box box) {
+		if (!ThreadSync2.getEnabled()) return Collections.emptyList();
+
 		List<ThreadSync2.Fibre> live = ThreadSync2.getSync()
 			.getFibres();
 
