@@ -311,10 +311,10 @@ public class TernSupport {
 			Completion b = r.get(i);
 			if (a.replacewith.equals(b.replacewith) && a.type==b.type) {
 				if (a.rank > b.rank) {
-					r.remove(i - 1);
+					r.remove(i );
 					i--;
 				} else if (a.rank < b.rank) {
-					r.remove(i);
+					r.remove(i -1);
 					i--;
 				} else if (a.info.length() > b.info.length()) {
 					r.remove(i);

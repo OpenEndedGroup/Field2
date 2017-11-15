@@ -184,7 +184,6 @@ public class Open {
 
 		new Chorder(boxes.root()).connect(boxes.root());
 
-
 		new Meshes(boxes.root()).connect(boxes.root());
 
 		new IsExecuting(boxes.root()).connect(boxes.root());
@@ -213,7 +212,7 @@ public class Open {
 
 //		new StatusBar(boxes.root()).connect(boxes.root());
 
-		new HotkeyMenus(boxes.root(), null).connect(boxes.root());
+//		new HotkeyMenus(boxes.root(), null).connect(boxes.root());
 
 		new Threading().connect(boxes.root());
 

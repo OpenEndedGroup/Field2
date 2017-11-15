@@ -21,9 +21,9 @@ import java.util.*;
  */
 public class DefaultMenus extends Box {
 
-	//TODO: consider being able to .toCommand("A command") Suppliers and FunctionOfBox's
 	static public final Dict.Prop<FunctionOfBox<Box>> newBox = new Dict.Prop<FunctionOfBox<Box>>("newBox").toCanon()
 		.doc("`_.newBox()` will create a new box that's a child of this one");
+
 	static public final Dict.Prop<BiFunctionOfBoxAnd<Class, Box>> newBoxOfClass = new Dict.Prop<BiFunctionOfBoxAnd<Class, Box>>("newBoxOfClass").toCanon()
 		.doc("`_.newBoxOfClass(c)` create a new box that's a peer of this one, with a custom class `c`");
 
@@ -79,6 +79,13 @@ public class DefaultMenus extends Box {
 			return null;
 		});
 
+		properties.putToMap(Keyboard.onCharTyped, "__hotkeymenus__", (e, k) -> {
+			if (e.properties.isTrue(Window.consumed, false)) return;
+
+			if (k == 'n')
+				newBox(convertCoordinateSystem(e.after.mouseState), root);
+		});
+
 		properties.put(setClass, (box, clazz) -> {
 
 			if (!Box.class.isAssignableFrom(clazz))
@@ -102,7 +109,7 @@ public class DefaultMenus extends Box {
 
 				return newBox;
 			} catch (NullPointerException e) {
-				ClassCastException q = new ClassCastException(" class '" + clazz + "' didn't instantiate propertly");
+				ClassCastException q = new ClassCastException(" class '" + clazz + "' didn't instantiate properly");
 				q.initCause(e);
 				throw q;
 			}
@@ -116,12 +123,11 @@ public class DefaultMenus extends Box {
 			return m;
 		});
 
-		properties.put(newBox, (box) -> {
-			return newBox(box.find(Box.frame, box.both())
-				.findFirst()
-				.map(x -> new Vec2(x.x + x.w + 5, x.y + x.h + 5))
-				.orElseGet(() -> new Vec2(0, 0)), new Box[]{box});
-		});
+		properties.put(newBox, (box) -> newBox(box.find(Box.frame, box.both())
+			.findFirst()
+			.map(x -> new Vec2(x.x + x.w + 5, x.y + x.h + 5))
+			.orElseGet(() -> new Vec2(0, 0)), box.parents()
+			.toArray(new Box[]{})));
 
 		properties.put(ensureChild, (box, name) -> {
 			Optional<Box> f = box.children()

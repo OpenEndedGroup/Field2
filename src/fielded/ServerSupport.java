@@ -105,30 +105,6 @@ public class ServerSupport {
 				ed.connect(root);
 				ed.setCurrentlyEditingProperty(Execution.code);
 
-				//Set up file reading
-				File file = new File(System.getProperty("user.home") + "/.field/hotkeys.txt");
-				StringBuilder contents = new StringBuilder();
-
-				//Read properties text file into a string (contents)
-				try (BufferedReader in = new BufferedReader(new FileReader(file))) {
-					int curr;
-					while ((curr = in.read()) != -1) {
-						contents.append((char) curr);
-					}
-					in.close();
-				} catch (IOException x) {
-					System.err.println("Error: Cannot open properties text file in read");
-				}
-
-				for (String line : contents.toString().split("\n")) {
-					String[] splitLine = line.split(":");
-					Log.log("hotkeys.debug", () -> " line is :" + splitLine.length + " <" + line + ">");
-					if (splitLine.length > 1) {
-						ed.sendJavaScript("extraKeys[\"" + splitLine[0].trim() + "\"] = function (cm) {" + splitLine[1]
-							.trim() + ";}");
-					}
-				}
-
 				return payload;
 			});
 

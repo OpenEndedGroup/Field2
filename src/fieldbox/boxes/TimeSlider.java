@@ -6,17 +6,20 @@ import field.utility.*;
 import fieldbox.boxes.plugins.Chorder;
 import fieldbox.boxes.plugins.Delete;
 import fieldbox.boxes.plugins.Initiators;
+<<<<<<< HEAD
 import fieldbox.boxes.plugins.Planes;
+=======
+import fieldbox.boxes.plugins.LocalTime;
+>>>>>>> 72835b000a759db53e8374f4bd0b5b9f765c7ad5
 import fieldbox.execution.Execution;
 import fieldlinker.Linker;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.util.Collections;
-import java.util.LinkedHashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -34,10 +37,18 @@ public class TimeSlider extends Box {
 
 	static public final Dict.Prop<TimeSlider> time = new Dict.Prop<>("time").toCanon().doc("the default red-line time slider. Set `_.time.frame.x` = something to move it around.");
 	static public final Dict.Prop<Double> velocity = new Dict.Prop<>("velocity").toCanon().doc("the rate at which this time slider is moving (that is, delta-frame.x per update).");
+	public static Dict.Prop<BiFunctionOfBoxAnd<Double, Double>> localTime = new Dict.Prop<>("localTime")
+		.toCanon().type().doc("setting this property modifies");
 
     Rect was = null;
 
+<<<<<<< HEAD
     int width = 20;
+=======
+	int width = 20;
+	private Map<Box, Double> currentMapping = new LinkedHashMap<>();
+	private float currentMappingAtTime = 0;
+>>>>>>> 72835b000a759db53e8374f4bd0b5b9f765c7ad5
 
     public TimeSlider() {
         this.properties.putToMap(Boxes.insideRunLoop, "main.__force_onscreen__", this::forceOnscreen);
@@ -51,12 +62,20 @@ public class TimeSlider extends Box {
         this.properties.put(Boxes.dontSave, true);
         this.properties.put(Box.name, "TimeSlider");
 
+<<<<<<< HEAD
         this.properties.computeIfAbsent(frameDrawing, this::defaultdrawsLines);
         this.properties.put(velocity, 0d);
     }
+=======
+		this.properties.computeIfAbsent(frameDrawing, this::defaultdrawsLines);
+
+		this.properties.put(velocity, 0d);
+	}
+>>>>>>> 72835b000a759db53e8374f4bd0b5b9f765c7ad5
 
     protected boolean swiper() {
 
+<<<<<<< HEAD
         if (was == null) {
             this.properties.put(velocity, 0d);
             was = this.properties.get(frame).duplicate();
@@ -70,6 +89,21 @@ public class TimeSlider extends Box {
             }
             was = now.duplicate();
         }
+=======
+		if (was == null) {
+			this.properties.put(velocity, 0d);
+			was = this.properties.get(frame).duplicate();
+		} else {
+			Rect now = this.properties.get(frame);
+			if (now.x == was.x) {
+				this.properties.put(velocity, 0d);
+			} else {
+				this.properties.put(velocity, (double) (now.x - was.x));
+				perform(was, now);
+			}
+			was = now.duplicate();
+		}
+>>>>>>> 72835b000a759db53e8374f4bd0b5b9f765c7ad5
 
         return true;
     }
@@ -79,6 +113,7 @@ public class TimeSlider extends Box {
 
 //		if (was!=null && was.equals(f)) return true;
 
+<<<<<<< HEAD
         Rect w = f.inset(0);
 
         Drawing d = first(Drawing.drawing).orElse(null);
@@ -202,6 +237,158 @@ public class TimeSlider extends Box {
     protected void skipBackward(Stream<Box> skipBackward) {
         skipBackward.forEach(b -> {
             Log.log("debug.execution", () -> " -- backward :" + b);
+=======
+		Rect w = f.inset(0);
+
+		Drawing d = first(Drawing.drawing).orElse(null);
+
+		float safety = 500;
+
+		Rect viewBounds = d.getCurrentViewBounds(TimeSlider.this);
+
+		if (d != null) {
+			w.y = viewBounds.y - width - safety;
+			w.h = viewBounds.h + width * 2 + safety * 2;
+			w.w = width;
+		}
+
+		// this check stops us from having to blow the MeshBuilder cache on every vertical scroll...
+		if (!w.equals(f) && (f.y > viewBounds.y || f.y + f.h < viewBounds.y + viewBounds.h)) {
+			properties.put(frame, w);
+			Drawing.dirty(TimeSlider.this);
+		} else {
+		}
+
+		return true;
+	}
+
+	/*
+	protected void perform(Rect was, Rect now) {
+
+		Stream<Box> off = population().filter(x -> x.properties.get(frame).intersectsX(was.x))
+			.filter(x -> !x.properties.get(frame)
+				.intersectsX(now.x));
+		Stream<Box> on = population().filter(x -> !x.properties.get(frame).intersectsX(was.x))
+			.filter(x -> x.properties.get(frame)
+				.intersectsX(now.x));
+		Stream<Box> skipForward = population().filter(x -> x.properties.get(frame)
+			.inside(was.x, now.x));
+		Stream<Box> skipBackward = population().filter(x -> x.properties.get(frame).inside(now.x, was.x));
+
+		off(off);
+		on(on);
+		skipForward(skipForward);
+		skipBackward(skipBackward);
+
+	}
+*/
+	protected void perform(Rect was, Rect now) {
+
+		Map<Box, Double> previousMapping = LocalTime.Companion.growTimeFor(null, population().filter(x -> x.properties.get(frame).intersectsX(was.x)).collect(Collectors.toSet()), was.x);
+		previousMapping.entrySet().removeIf(m -> !m.getKey().properties.get(frame).intersectsX(m.getValue()));
+		Map<Box, Double> currentMapping = LocalTime.Companion.growTimeFor(null, population().filter(x -> x.properties.get(frame).intersectsX(now.x)).collect(Collectors.toSet()), now.x);
+		currentMapping.entrySet().removeIf(m -> !m.getKey().properties.get(frame).intersectsX(m.getValue()));
+
+		Set<Box> off = new LinkedHashSet<>(previousMapping.keySet());
+		off.removeAll(currentMapping.keySet());
+		Set<Box> on = new LinkedHashSet<>(currentMapping.keySet());
+		on.removeAll(previousMapping.keySet());
+
+
+//		Stream<Box> off = population().filter(x -> x.properties.get(frame).intersectsX(was.x))
+//			.filter(x -> !x.properties.get(frame)
+//				.intersectsX(now.x));
+//		Stream<Box> on = population().filter(x -> !x.properties.get(frame).intersectsX(was.x))
+//			.filter(x -> x.properties.get(frame)
+//				.intersectsX(now.x));
+
+		Set<Box> skipForward = new LinkedHashSet<>(currentMapping.keySet());
+		skipForward.retainAll(previousMapping.keySet());
+		skipForward.removeIf(x -> !x.properties.get(frame).inside(previousMapping.get(x).floatValue(), currentMapping.get(x).floatValue()));
+
+//		Stream<Box> skipForward = population().filter(x -> x.properties.get(frame)
+//			.inside(was.x, now.x));
+
+
+//		Stream<Box> skipBackward = population().filter(x -> x.properties.get(frame).inside(now.x, was.x));
+		this.currentMapping = currentMapping;
+		this.currentMappingAtTime = now.x;
+
+		off(off);
+		on(on, currentMapping);
+		skipForward(skipForward, currentMapping);
+//		skipBackward(skipBackward);
+
+
+	}
+
+	protected void off(Set<Box> off) {
+		off.forEach(b -> {
+			Log.log("debug.execution", () -> " -- END :" + b);
+			if (b != null)
+				b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).end(b));
+		});
+	}
+
+	protected void on(Set<Box> on, Map<Box, Double> mapping) {
+		on.forEach(b -> {
+			Log.log("debug.execution", () -> " -- BEGIN :" + b);
+			if (b != null)
+				b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).begin(b, initiator(b, mapping.get(b))));
+		});
+	}
+
+	/**
+	 * returns the list of boxes that this Time Slider currently intersects (and thus interacts) with
+	 *
+	 * @return
+	 */
+	public List<Box> intersectsWith() {
+		Rect now = properties.get(frame);
+		List<Box> nx = population().filter(x -> !x.properties.isTrue(Chorder.nox, false))
+			.filter(x -> x.properties.get(frame)
+				.intersectsX(now.x))
+			.collect(Collectors.toList());
+
+		return nx;
+	}
+
+	/**
+	 * builds the initiator object for this "begin" call. This can be used to get at the object that caused this "animation" to begin.
+	 *
+	 * @param b
+	 */
+	public Map<String, Object> initiator(Box b, double t) {
+		fieldlinker.AsMap init = Initiators.get(b, () -> currentMapping.get(b).floatValue(), () -> this.properties.get(Box.frame).y);
+		init.asMap_set("slider", this);
+		return Collections.singletonMap("_t", init);
+	}
+
+	/**
+	 * begins a box, given this slider. This is a lot like `_.begin()` except this slider is passed in as the reason that this box is running. In particular `_t()` works as expected and is tied to the position of this slider.
+	 */
+	public void beginBox(Box b) {
+		b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).begin(b, initiator(b, this.properties.get(frame).x)));
+	}
+
+	/**
+	 * by default things that we skip over backwards we _do_ run (and then immediately stop).
+	 */
+	protected void skipForward(Set<Box> skipForward, Map<Box, Double> times) {
+		skipForward.forEach(b -> {
+			Log.log("debug.execution", () -> " -- FORWARD :" + b);
+			b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).begin(b, initiator(b, times.get(b))));
+			b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).end(b));
+		});
+	}
+
+	/**
+	 * by default things that we skip over backwards we _do not_ run
+	 */
+	protected void skipBackward(Stream<Box> skipBackward) {
+		skipBackward.forEach(b -> {
+			Log.log("debug.execution", () -> " -- backward :" + b);
+>>>>>>> 72835b000a759db53e8374f4bd0b5b9f765c7ad5
 //			b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).begin(b, initiator(b)));
 //			b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).end(b));
         });
@@ -240,8 +427,12 @@ public class TimeSlider extends Box {
             f.moveTo(rect.x, rect.y);
             f.lineTo(rect.x, rect.y + rect.h);
 
+<<<<<<< HEAD
             f.attributes.put(strokeColor,
                              selected ? new Vec4(1, 0, 0, -1.0f) : new Vec4(0.5f, manipulated ? 0.5f : 0, 0, 0.5f));
+=======
+			f.attributes.put(strokeColor, selected ? new Vec4(1, 0, 0, -1.0f) : new Vec4(0.5f, manipulated ? 0.5f : 0, 0, 0.5f));
+>>>>>>> 72835b000a759db53e8374f4bd0b5b9f765c7ad5
 
             f.attributes.put(thicken,
                              new BasicStroke(selected ? 2.5f : 2.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
@@ -252,9 +443,28 @@ public class TimeSlider extends Box {
         }, (box) -> new Triple(box.properties.get(frame), box.properties.get(Mouse.isSelected),
                                box.properties.get(Mouse.isManipulated))));
 
+<<<<<<< HEAD
         r.put("__outlineFill__", new Cached<Box, Object, FLine>((box, previously) -> {
             Rect rect = box.properties.get(frame);
             if (rect == null) return null;
+=======
+		r.put("__localtime__", new Cached<Box, Object, FLine>((box, previously) -> {
+
+			if (currentMapping==null) return new FLine();
+			List<FLine> ff = LocalTime.Companion.drawTimesFor(currentMapping, currentMappingAtTime);
+
+			FLine container = new FLine();
+			IdempotencyMap<Supplier<FLine>> sl = container.attributes.getOrConstruct(subLines);
+			sl.addAll(ff);
+
+			return container;
+
+		}, (box) -> new Triple(box.properties.get(frame), box.properties.get(Mouse.isSelected), box.properties.get(Mouse.isManipulated))));
+
+		r.put("__outlineFill__", new Cached<Box, Object, FLine>((box, previously) -> {
+			Rect rect = box.properties.get(frame);
+			if (rect == null) return null;
+>>>>>>> 72835b000a759db53e8374f4bd0b5b9f765c7ad5
 
             boolean selected = box.properties.isTrue(Mouse.isSelected, false);
 

@@ -59,6 +59,11 @@ public class FrameManipulation extends Box {
 		.toCanon()
 		.doc("set to this value to constrain the height of this box");
 
+	static public final Dict.Prop<Number> movesWithParent = new Dict.Prop<>("movesWithParent").type()
+		.toCanon()
+		.doc("set this to true to make this box move whenever its parent moves");
+
+
 	static public final Dict.Prop<FunctionOfBoxValued<List<Box>>> selection = new Dict.Prop<>("selection").toCanon()
 		.type()
 		.doc("the list of boxes that are selected");
@@ -118,6 +123,8 @@ public class FrameManipulation extends Box {
 	}
 
 	static public void continueTranslationFeedback(Box b, boolean endNow) {
+
+		if (true) return;
 
 		Drawing q = b.find(Drawing.drawing, b.both())
 			.findFirst()
@@ -347,6 +354,7 @@ public class FrameManipulation extends Box {
 
 //					System.out.println(" delta :"+delta+" -> "+drawingDelta);
 
+
 					List<Triple<Box, Rect, Rect>> c1 = workingSet.stream().map(x -> {
 						Rect r0 = frame(x);
 						return transformPart1(x, r0, targets, drawingDelta);
@@ -507,8 +515,13 @@ public class FrameManipulation extends Box {
 
 	private Set<Box> singleChildrenFor(Box z) {
 
-		// for now, let's just move this box
-		return Collections.singleton(z);
+		Set<Box> was = new HashSet<>();
+		was.add(z);
+		Set<Box> next;
+		do {
+			next = was.stream().flatMap(x -> x.children.stream()).filter(x -> x.properties.isTrue(movesWithParent, false)).collect(Collectors.toSet());
+		} while (was.addAll(next));
+		return was;
 	}
 
 	protected Rect frame(Box hitBox) {

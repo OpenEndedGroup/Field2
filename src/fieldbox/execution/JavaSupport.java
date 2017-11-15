@@ -547,6 +547,7 @@ public class JavaSupport {
                                 val = "= <b>" + access(c.getDeclaredField(m.getName())).get(o) + "</b> &nbsp;";
                                 tostring = true;
                             } catch (Throwable t) {
+
 //								t.printStackTrace();
                             }
                         }

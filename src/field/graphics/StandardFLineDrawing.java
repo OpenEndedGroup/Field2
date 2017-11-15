@@ -8,6 +8,7 @@ import field.utility.IdempotencyMap;
 import fieldbox.boxes.TextDrawing;
 
 import java.awt.*;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -94,7 +95,7 @@ public class StandardFLineDrawing {
 		.doc("sets the size of the point (if this line is drawn `.pointed=true`). This can be applied per vertex or per line.").set(Dict.domain, "fline");
 
 	static public final Dict.Prop<IdempotencyMap<Supplier<FLine>>> subLines = new Dict.Prop<>("subLines").type()
-		.toCanon()
+		.toCanon().autoConstructs(() -> new IdempotencyMap<Supplier<FLine>>(Supplier.class))
 		.doc("other, additional lines that are drawn along side this one. This can be applied per vertex or per line. Useful for decorations, annotations, selection marks etc.").set(Dict.domain, "fline");
 
 	static public final Dict.Prop<Boolean> noContours = new Dict.Prop<>("noContours").type()
@@ -165,6 +166,15 @@ public class StandardFLineDrawing {
 			points.aux(2, ps);
 		}
 
+
+		IdempotencyMap<Supplier<FLine>> sl = fline.attributes.getOr(subLines, ()->null);
+
+		if (sl != null) {
+			sl.values().stream().filter(n -> n != null).map(x -> x.get()).filter(x -> x != null).forEach(x -> {
+				dispatchLine(x, mesh, line, points, ot, layerName);
+			});
+		}
+
 		fline.nodes.stream().map(n -> n.attributes.get(subLines)).filter(n -> n != null).flatMap(n -> n.values().stream()).map(x -> x.get()).filter(x -> x != null).forEach(x -> {
 			dispatchLine(x, mesh, line, points, ot, layerName, opacityMultiply);
 		});
@@ -173,7 +183,7 @@ public class StandardFLineDrawing {
 			fline.nodes.stream()
 				.filter(node -> node.attributes.has(text))
 				.forEach(node -> {
-					String textToDraw = ""+node.attributes.get(text);
+					String textToDraw = "" + node.attributes.get(text);
 					float textScale = node.attributes.getFloat(StandardFLineDrawing.textScale, 1f) * 0.15f;
 					float align = node.attributes.getFloat(StandardFLineDrawing.textAlign, 0.5f);
 					ot.map(t -> t.getFontSupport(fline.attributes.getOr(font, () -> "source-sans-pro-regular-92.fnt"), layerName))

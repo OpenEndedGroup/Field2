@@ -20,7 +20,7 @@ public class LinkedHashMapAndArrayList<V> extends LinkedHashMap<String, V> {
 		_put("__internal_" + (++uniq), massage(value));
 	}
 
-	public void addAll(Collection<Object> value)
+	public void addAll(Collection<?> value)
 	{
 		for(Object o : value)
 			add(o);
