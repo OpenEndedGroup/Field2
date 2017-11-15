@@ -118,6 +118,9 @@ public class TextEditor extends Box implements IO.Loaded {
 
 			browser_.properties.put(Box.undeletable, true);
 
+			browser_.properties.put(FrameManipulation.maxHeight, maxhOnCreation);
+			browser_.properties.put(FrameManipulation.maxWidth, maxw);
+
 			browser_.connect(root);
 			browser_.loaded();
 
@@ -141,7 +144,9 @@ public class TextEditor extends Box implements IO.Loaded {
 							// set correct size
 							int h = window.getHeight();
 
-							browser_.properties.get(Box.frame).h=h-40;
+							Rect r = browser_.properties.get(Box.frame);
+							Callbacks.frameChange(browser_, new Rect(r.x, r.y, r.w, Math.min(maxhOnCreation, r.h)));
+							browser_.properties.get(Box.frame).h=Math.min(maxhOnCreation, r.h);
 
 							return false;
 						}

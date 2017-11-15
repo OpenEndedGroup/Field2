@@ -8,10 +8,7 @@ import field.linalg.Vec4;
 import field.utility.Dict;
 import field.utility.Rect;
 import fieldbox.DefaultMenus;
-import fieldbox.boxes.Box;
-import fieldbox.boxes.BoxChildHelper;
-import fieldbox.boxes.Drawing;
-import fieldbox.boxes.Mouse;
+import fieldbox.boxes.*;
 import fieldbox.boxes.plugins.*;
 import fieldbox.execution.Execution;
 import fieldbox.io.IO;
@@ -53,26 +50,22 @@ public class Pads extends Box implements Mouse.OnMouseDown, IO.Loaded {
         this.properties.put(Planes.plane, "__always__");
         this.properties.putToMap(Mouse.onMouseDown, "__pads__", this);
 
-        root.properties.put(padOutward, (box) -> {
-            return new BoxChildHelper(box.children()
-                                              .stream()
-                                              .filter(x -> x.properties.has(TopologyBox.head))
-                                              .filter(x -> x.properties.get(TopologyBox.head)
-                                                      .get(root) == box)
-                                              .map(x -> x.properties.get(TopologyBox.tail)
-                                                      .get(root))
-                                              .collect(Collectors.toCollection(() -> new LinkedHashSet<>())));
-        });
-        root.properties.put(padInward, (box) -> {
-            return new BoxChildHelper(box.children()
-                                              .stream()
-                                              .filter(x -> x.properties.has(TopologyBox.tail))
-                                              .filter(x -> x.properties.get(TopologyBox.tail)
-                                                      .get(root) == box)
-                                              .map(x -> x.properties.get(TopologyBox.head)
-                                                      .get(root))
-                                              .collect(Collectors.toCollection(() -> new LinkedHashSet<>())));
-        });
+        root.properties.put(padOutward, (box) -> new BoxChildHelper(box.children()
+                                          .stream()
+                                          .filter(x -> x.properties.has(TopologyBox.head))
+                                          .filter(x -> x.properties.get(TopologyBox.head)
+                                                  .get(root) == box)
+                                          .map(x -> x.properties.get(TopologyBox.tail)
+                                                  .get(root))
+                                          .collect(Collectors.toCollection(() -> new LinkedHashSet<>()))));
+        root.properties.put(padInward, (box) -> new BoxChildHelper(box.children()
+                                          .stream()
+                                          .filter(x -> x.properties.has(TopologyBox.tail))
+                                          .filter(x -> x.properties.get(TopologyBox.tail)
+                                                  .get(root) == box)
+                                          .map(x -> x.properties.get(TopologyBox.head)
+                                                  .get(root))
+                                          .collect(Collectors.toCollection(() -> new LinkedHashSet<>()))));
 
     }
 
@@ -82,8 +75,11 @@ public class Pads extends Box implements Mouse.OnMouseDown, IO.Loaded {
                 .get()
                 .apply(parent, name, SimpleCanvas.class);
 
-        if (c.properties.isTrue(DefaultMenus.wasNew, false))
+        if (c.properties.isTrue(DefaultMenus.wasNew, false)) {
             c.properties.put(Execution.code, code_padFactory);
+
+            parent.find(Boxes.root, parent.upwards()).findFirst().map( r -> r.disconnect(c));
+        }
 
         c.properties.put(DragToCopy._ownedByParent, true);
 
