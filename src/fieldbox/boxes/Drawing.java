@@ -95,10 +95,10 @@ public class Drawing extends Box implements DrawingInterface {
 							x.properties.put(frame, oldFrames.get(x));
 					});
 					oldFrames.clear();
+					Drawing.dirty(this);
 				}, 1);
 			});
 
-			Drawing.dirty(this);
 		});
 	}
 

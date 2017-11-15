@@ -642,6 +642,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
                     ", elementSize=" + elementSize +
                     ", highQuality=" + highQuality +
                     ", pixels=" + pixels +
+                    ", depth=" + depth+
                     '}';
         }
     }

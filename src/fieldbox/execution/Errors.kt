@@ -21,11 +21,12 @@ object Errors {
 
 
 	@JvmStatic
-	fun tryToReportTo(e: Throwable, additionalMessage: String, offendingObject: Any) {
+	fun tryToReportTo(e: Throwable, additionalMessage: String, offendingObject: Any?) {
 
 		val description = InverseDebugMapping.describe(offendingObject)
 		findResponsibleBox(InverseDebugMapping.defaultRoot, e, additionalMessage + (if (description != null) "\n" + description else ""))
 	}
+
 
 	fun <T> handle(o: Supplier<T>, message: Function<Throwable, T>): T {
 		try {
@@ -39,17 +40,28 @@ object Errors {
 
 	private fun findResponsibleBox(root: Box, th: Throwable, additionalMessage: String) {
 //		println("scouring stacktrace")
-		for (t in th.stackTrace) {
-//			println(t.fileName + " || " + t.lineNumber + " || " + t.className + " || " + t.methodName + " ||    " + t)
-			val m = boxFinder.matcher(t.fileName)
-			if (m.matches()) {
-				val uid = m.group(2)
-				val name = m.group(1)
-				reportError(root, uid, name, t, t.lineNumber, th, additionalMessage)
-				return
+		try {
+			for (t in th.stackTrace) {
+				//			println(t.fileName + " || " + t.lineNumber + " || " + t.className + " || " + t.methodName + " ||    " + t)
+				if (t.fileName != null) {
+					val m = boxFinder.matcher(t.fileName)
+					if (m.matches()) {
+						val uid = m.group(2)
+						val name = m.group(1)
+						reportError(root, uid, name, t, t.lineNumber, th, additionalMessage)
+						return
+					}
+				}
 			}
 		}
+		catch (tt : Throwable)
+		{
+			// not interested in exceptions thrown by reportError
+		}
 
+		System.err.println(" exception thrown and the responsible party cannot be found:")
+		System.err.println("*** "+additionalMessage+" ***")
+		th.printStackTrace()
 
 	}
 

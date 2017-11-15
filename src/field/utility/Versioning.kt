@@ -139,7 +139,7 @@ private val Rect.xw: Float
         return this.x + this.w
     }
 
-private val Rect.yh: Float
+val Rect.yh: Float
     get() {
         return this.y + this.h
     }

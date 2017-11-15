@@ -55,7 +55,8 @@ public class Rename extends Box {
 							Log.log("run", ()->" ALT WAS :" + altWas);
 
 							if (altWas != null) selection().forEach(x -> {
-								x.properties.put(Box.name, altWas);
+								UndoStack.u.change(x, Box.name, altWas);
+//								x.properties.put(Box.name, altWas);
 								Drawing.dirty(x);
 								if (feedback != null) feedback.accept("Renamed to \"" + altWas + "\"");
 							});

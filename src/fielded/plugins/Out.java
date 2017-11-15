@@ -154,25 +154,25 @@ public class Out extends Box {
 			Mat4 m = (Mat4) x;
 			s += "<table class='mattable' cellspacing=0>";
 			s += "<tr>";
-			s += "<td>"+formatDouble(m.m00)+"</td>";
-			s += "<td>"+formatDouble(m.m10)+"</td>";
-			s += "<td>"+formatDouble(m.m20)+"</td>";
-			s += "<td>"+formatDouble(m.m30)+"</td>";
+			s += "<td>" + formatDouble(m.m00) + "</td>";
+			s += "<td>" + formatDouble(m.m10) + "</td>";
+			s += "<td>" + formatDouble(m.m20) + "</td>";
+			s += "<td>" + formatDouble(m.m30) + "</td>";
 			s += "</tr><tr>";
-			s += "<td>"+formatDouble(m.m01)+"</td>";
-			s += "<td>"+formatDouble(m.m11)+"</td>";
-			s += "<td>"+formatDouble(m.m21)+"</td>";
-			s += "<td>"+formatDouble(m.m31)+"</td>";
+			s += "<td>" + formatDouble(m.m01) + "</td>";
+			s += "<td>" + formatDouble(m.m11) + "</td>";
+			s += "<td>" + formatDouble(m.m21) + "</td>";
+			s += "<td>" + formatDouble(m.m31) + "</td>";
 			s += "</tr><tr>";
-			s += "<td>"+formatDouble(m.m02)+"</td>";
-			s += "<td>"+formatDouble(m.m12)+"</td>";
-			s += "<td>"+formatDouble(m.m22)+"</td>";
-			s += "<td>"+formatDouble(m.m32)+"</td>";
+			s += "<td>" + formatDouble(m.m02) + "</td>";
+			s += "<td>" + formatDouble(m.m12) + "</td>";
+			s += "<td>" + formatDouble(m.m22) + "</td>";
+			s += "<td>" + formatDouble(m.m32) + "</td>";
 			s += "</tr><tr>";
-			s += "<td>"+formatDouble(m.m03)+"</td>";
-			s += "<td>"+formatDouble(m.m13)+"</td>";
-			s += "<td>"+formatDouble(m.m23)+"</td>";
-			s += "<td>"+formatDouble(m.m33)+"</td>";
+			s += "<td>" + formatDouble(m.m03) + "</td>";
+			s += "<td>" + formatDouble(m.m13) + "</td>";
+			s += "<td>" + formatDouble(m.m23) + "</td>";
+			s += "<td>" + formatDouble(m.m33) + "</td>";
 			s += "</tr></table>";
 			return s;
 		});
@@ -181,10 +181,10 @@ public class Out extends Box {
 	}
 
 	private String formatDouble(double d) {
-		if (Math.abs(d)>0.01f)
-			return String.format("%.2f",d);
+		if (Math.abs(d) > 0.01f)
+			return String.format("%.2f", d);
 		else
-			return String.format("%6.3e",d);
+			return String.format("%6.3e", d);
 	}
 
 	public Object doOutput(Object x, boolean append) {
@@ -257,6 +257,16 @@ public class Out extends Box {
 		this.theLineOut = lineNumber;
 		return this;
 	}
+
+	public Consumer<Triple<Box, Integer, Boolean>> getLineOut() {
+		return theLineOut;
+	}
+
+	public Writer getWriter() {
+		return theWriter;
+	}
+
+
 
 	public String convert(Object x) {
 		return elideGroups(output.convert(x));

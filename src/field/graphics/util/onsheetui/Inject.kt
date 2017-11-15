@@ -18,9 +18,12 @@ import java.util.LinkedHashMap
 import java.util.function.BiConsumer
 import java.util.function.Function
 
+/**
+ * needed, a quick way of making these on demand
+ */
 class Inject(val r: Box) {
 
-    val width = 400.0
+    val width = 300.0
     val height = 14.0
 
     val code_slider = BoxDefaultCode.findSource(this.javaClass, "makeSlider")

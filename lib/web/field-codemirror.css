@@ -157,9 +157,9 @@ a {
 
 .CodeMirror
 {
-    font-family: "Fira Code", "Source Code Pro" !important;
     font-size:13px;
 
+    font-family: "Fira Code", "Source Code Pro" !important;
     -webkit-font-variant-ligatures: common-ligatures;
     font-variant-ligatures: common-ligatures;
     -webkit-font-feature-settings: "kern";
@@ -173,7 +173,8 @@ a {
 }
 
 .CodeMirror div.CodeMirror-cursor {
-    border: 2px solid rgba(255, 0, 0, 0.35);
+    border-left: 1px solid rgba(255, 0, 0, 0.5);
+    border-right: 2px solid rgba(255, 0, 0, 0.1);
     background: rgba(255, 0, 0, 0.35);
 }
 
@@ -363,6 +364,7 @@ a {
 .CodeMirror-linewidget {
     margin-left: -25px;
     z-index: 4;
+
 }
 
 .Field-remoteOutput {
@@ -438,6 +440,14 @@ a {
     overflow: hidden;
 }
 
+.Field-interventionMiddle
+{
+    background: rgba(255,205,155, 0.1);
+    padding: 2px;
+    border-radius: 4px;
+    border: 1px solid rgba(255,205,155,0.3);
+}
+
 .Field-remoteWidgetInline {
     display: inline-block;
     vertical-align: middle;
@@ -451,10 +461,60 @@ a {
     pointer-events: all;
     border: 1px solid rgba(0, 0, 0, 0.1);
 }
+.Field-specialMarkedText
+{
+    color: #f00 !important;
+    border: 1px solid rgba(255,205,155,0.3);
+    border-radius: 5px;
+    padding: 2px;
+    background: rgba(255,205,155,0.05);
+}
+
+.Field-remoteTextBoxInline {
+    display: inline-block;
+    vertical-align: middle;
+    background: #333;
+    border-radius: 3px;
+    padding: 3px;
+    padding-left: 3px;
+    margin-top: 2px;
+    margin-left: 2px;
+    white-space: pre;
+    pointer-events: all;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.Field-remoteWidgetOverlay {
+    display: inline-block;
+    vertical-align: middle;
+    background: rgba(128,118,108,0.6);
+    border-radius: 3px;
+    /* padding: 1px; */
+    margin-top: -33px;
+    margin-left: -3px;
+    white-space: pre;
+    pointer-events: all;
+    border: 1px solid rgba(220,120,20, 0.25);
+    /* overflow: visible; */
+    z-index: 4;
+    /* filter: invert() contrast(1  ) brightness(0.5); */
+}
 
 .Field-remoteColor form {
     display: inline;
 }
+
+.Field-interventionHiddenLeft
+{
+    padding:2px;
+}
+
+.Field-interventionHiddenRight
+{
+    padding:2px;
+
+}
+
 
 .Field-closeBox {
     font-size: 10px;
@@ -474,6 +534,7 @@ a {
 
     border-top: 2px solid #000;
     border-left: 2px solid #000;
+
 }
 
 .Field-expandBox {
@@ -980,7 +1041,7 @@ code {
 
 
 .cm-s-default span.cm-keyword {
-    color: #dba;
+    color: #f85;
     font-style: italic;
 }
 

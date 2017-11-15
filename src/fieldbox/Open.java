@@ -278,6 +278,9 @@ public class Open {
 
 		new Pads(boxes.root()).connect(boxes.root());
 
+		new Interventions(boxes.root()).connect(boxes.root());
+
+
 		if (ThreadSync.enabled) new ThreadSyncFeedback(boxes.root()).connect(boxes.root());
 		if (ThreadSync2.getEnabled()) new ThreadSync2Feedback(boxes.root()).connect(boxes.root());
 

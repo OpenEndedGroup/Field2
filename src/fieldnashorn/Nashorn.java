@@ -175,7 +175,7 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 	}
 
 	static public Animatable.AnimationElement noop() {
-		return isEnding -> null;
+		return new Animatable.AnimationElement() {};
 	}
 
 	static public Animatable.AnimationElement interpretReturn(Animatable.AnimationElement was, Object next) {

@@ -25,6 +25,8 @@ public class EditorUtils {
 	};
 	int suffix = 0;
 	private RemoteEditor editor;
+	public  int lastLine;
+	public int lastCh;
 
 	public EditorUtils(RemoteEditor editor) {
 		this.editor = editor;
@@ -86,6 +88,10 @@ public class EditorUtils {
 		String t = getCurrentText();
 		int ch = o.getInt("ch");
 		int ln = o.getInt("line");
+
+		lastLine = ln;
+		lastCh = ch;
+
 		int q = 0;
 		int ql = 0;
 		for (int i = 0; i < t.length(); i++) {

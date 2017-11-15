@@ -4,6 +4,7 @@ package field.graphics;
 import field.CanonicalModifierKeys;
 import field.app.RunLoop;
 import field.app.ThreadSync;
+import field.app.ThreadSync2;
 import field.graphics.util.KeyEventMapping;
 import field.linalg.Vec2;
 import field.utility.*;
@@ -244,9 +245,9 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 
 		if (Main.os == Main.OS.mac) {
 			int finalW = w;
-//			RunLoop.main.delayTicks(() -> {
+			RunLoop.main.delayTicks(() -> {
 				setBounds(x, y, finalW + 1, h);
-//			}, 2);
+			}, 2);
 		}
 
 
@@ -484,9 +485,16 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 	}
 
 	public void setBounds(int x, int y, int w, int h) {
-		glfwSetWindowSize(window, w, h);
-		glfwSetWindowPos(window, x, y);
-		currentBounds = new Rect(x, y, w, h);
+		try {
+			ThreadSync2.callInMainThreadAndWait( () -> {
+                glfwSetWindowSize(window, w, h);
+                glfwSetWindowPos(window, x, y);
+                currentBounds = new Rect(x, y, w, h);
+                return null;
+            });
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 

@@ -1,7 +1,7 @@
 
 .cm-s-default { background: #2d3133; color:#2d3133; }
 
-.cm-s-default span.cm-bracket {color: #aaa;}
+.cm-s-default span.cm-bracket {color: #aaa; font-weight: bold;}
 .cm-s-default span.cm-bracket1 {color: #aaa; }
 .cm-s-default span.cm-bracket2 {color: #0f0;}
 .cm-s-default span.cm-bracket3 {color: #00ff7f;}
@@ -14,9 +14,9 @@
 .cm-s-default span.cm-bracket10 {color: #836FFF;}
 .cm-s-default span.cm-bracket11 {color: #FF00FF;}
 .cm-s-default span.cm-bracket12 {color: #9B30FF;}
-.cm-s-default span.cm-bracket0, .cm-s-default span.cm-bracket-mismatched { color:#f88; background:#733; }
+.cm-s-default span.cm-bracket0, .cm-s-default span.cm-bracket-mismatched { color:#f88; background:#f33; }
 
-.cm-s-default span.cm-symbol {color: #ccc;}
+.cm-s-default span.cm-symbol {color: #ccc; font-weight: bold;}
 .cm-s-default span.cm-variable {color: #dcb;}
 .cm-s-default span.cm-variable-2 {color: #acf}
 .cm-s-default span.cm-string {color: #add}
@@ -26,8 +26,8 @@
 .cm-s-default span.cm-builtin {color: #aec;}
 .cm-s-default span.cm-header {color: #aec;}
 .cm-s-default span.cm-property {color: #aab; }
-.cm-s-default span.cm-operator {color: #cba; }
-.cm-s-default span.cm-keyword {color: #dba; }
+.cm-s-default span.cm-operator {color: #fff; font-weight: bold; }
+.cm-s-default span.cm-keyword {color: #fa0; }
 .cm-s-default span.cm-qualifier {color: #aec; }
 .cm-s-default span.cm-attribute {color: #aef; }
 .cm-s-default span.cm-meta {color: #aec; }

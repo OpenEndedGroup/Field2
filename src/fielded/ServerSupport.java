@@ -31,9 +31,9 @@ public class ServerSupport {
 	static public final Dict.Prop<Server> server = new Dict.Prop<Server>("server").type().toCanon().doc("The internal websocket-capable server");
 
 	static public List<String> playlist = Arrays
-		    .asList("messagebus.js", "instantiate.js", "kill.js", "changehooks.js", "status.js", "helpbox.js", "modal.js", "brackets.js", "output.js", "doubleshift.js", "JSHotkeyFunctions.js", "colorPicker.js", "drags.js", "taps.js");
+		.asList("messagebus.js", "instantiate.js", "kill.js", "changehooks.js", "status.js", "helpbox.js", "modal.js", "brackets.js", "output.js", "doubleshift.js", "JSHotkeyFunctions.js", "colorPicker.js", "drags.js", "taps.js", "interventions.js");
 
-	private  RemoteEditor ed;
+	private RemoteEditor ed;
 	private Server s;
 
 
@@ -42,44 +42,44 @@ public class ServerSupport {
 //		new BridgeToTextEditor(root).connect(root);
 
 		Watches watches = root.first(Watches.watches)
-			    .orElseThrow(() -> new IllegalArgumentException(" need Watches for server support"));
+			.orElseThrow(() -> new IllegalArgumentException(" need Watches for server support"));
 		MessageQueue<Quad<Dict.Prop, Box, Object, Object>, String> queue = watches.getQueue();
 
 
-		Log.log("startup", ()->" server support is initializing ");
+		Log.log("startup", () -> " server support is initializing ");
 		try {
 
 			int a = Ports.nextAvailable(8080);
-			int b = Ports.nextAvailable(a+1);
+			int b = Ports.nextAvailable(a + 1);
 			s = new Server(a, b);
 
 			root.properties.put(server, s);
 //			s.setFixedResource("/init", readFile(fieldagent.Main.app + "/modules/fieldcore/resources//init.html"));
-			s.setFixedResource("/init", readFile(Main.app+"/lib/web/init.html"));
+			s.setFixedResource("/init", readFile(Main.app + "/lib/web/init.html"));
 
 //			s.addDocumentRoot(fieldagent.Main.app + "/modules/fieldcore/resources/");
-			s.addDocumentRoot(Main.app+"/lib/web/");
+			s.addDocumentRoot(Main.app + "/lib/web/");
 
 
 			s.addHandlerLast(x -> x.equals("alive"), (server, socket, address, payload) -> {
-				Log.log("remote.general", ()->" alive :" + payload);
+				Log.log("remote.general", () -> " alive :" + payload);
 				return payload;
 			});
 
 			s.addHandlerLast(x -> x.equals("log"), (server, socket, address, payload) -> {
-				Log.log("remote.general", ()->"-\n" + payload + "\n-");
+				Log.log("remote.general", () -> "-\n" + payload + "\n-");
 				return payload;
 			});
 
 			s.addHandlerLast(x -> x.equals("error"), (server, socket, address, payload) -> {
-				Log.log("remote.general", ()->"-e-\n" + payload + "\n-e-");
+				Log.log("remote.general", () -> "-e-\n" + payload + "\n-e-");
 
 				return payload;
 			});
 
 			s.addHandlerLast(x -> x.equals("initialize"), (server, socket, address, payload) -> {
 //				s.send(socket, readFile(fieldagent.Main.app + "/modules/fieldcore/resources/include.js"));
-				s.send(socket, readFile(Main.app+"/lib/web/include.js"));
+				s.send(socket, readFile(Main.app + "/lib/web/include.js"));
 
 				return payload;
 			});
@@ -91,15 +91,15 @@ public class ServerSupport {
 					s.send(socket, readFile(fieldagent.Main.app + "/lib/web/" + n));
 				}
 
-				Log.log("remote.trace", ()->" payload is :" + payload);
+				Log.log("remote.trace", () -> " payload is :" + payload);
 
 				String name = payload + "";
 
-				Log.log("remote.trace", ()->" naming socket " + name + " = " + socket);
+				Log.log("remote.trace", () -> " naming socket " + name + " = " + socket);
 
 				s.nameSocket(name, socket);
 
-				Log.log("startup", ()->" initializing remote editor ");
+				Log.log("startup", () -> " initializing remote editor ");
 
 				ed = new RemoteEditor(s, name, watches, queue);
 				ed.connect(root);
@@ -122,10 +122,10 @@ public class ServerSupport {
 
 				for (String line : contents.toString().split("\n")) {
 					String[] splitLine = line.split(":");
-					Log.log("hotkeys.debug",()-> " line is :" + splitLine.length + " <" + line + ">");
+					Log.log("hotkeys.debug", () -> " line is :" + splitLine.length + " <" + line + ">");
 					if (splitLine.length > 1) {
 						ed.sendJavaScript("extraKeys[\"" + splitLine[0].trim() + "\"] = function (cm) {" + splitLine[1]
-							    .trim() + ";}");
+							.trim() + ";}");
 					}
 				}
 
@@ -141,7 +141,7 @@ public class ServerSupport {
 	public static String readFile(String s) {
 		try (BufferedReader r = new BufferedReader(new FileReader(new File(s)))) {
 //			String line = "//# sourceURL="+s+"\n";
-			String line= s.endsWith(".js") ? ("//# sourceURL="+s+"\n") : "";
+			String line = s.endsWith(".js") ? ("//# sourceURL=" + s + "\n") : "";
 			while (r.ready()) {
 				line += r.readLine() + "\n";
 			}
@@ -184,21 +184,19 @@ public class ServerSupport {
 //
 //	}
 
-	public Server getServer()
-	{
+	public Server getServer() {
 		return s;
 	}
 
 
-	public Future<RemoteEditor> getRemoteEditor()
-	{
+	public Future<RemoteEditor> getRemoteEditor() {
 		CompletableFuture<RemoteEditor> c = new CompletableFuture<RemoteEditor>();
 
-		if (ed!=null)
+		if (ed != null)
 			c.complete(ed);
 		else
 			RunLoop.main.getLoop().attach(pass -> {
-				if (ed!=null) {
+				if (ed != null) {
 					c.complete(ed);
 					return false;
 				}

@@ -50,7 +50,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 		.toCanon()
 		.doc("Functions that compute lines to be drawn along with this box")
 		.set(IO.dontCopy, true)
-		.set(Dict.readOnly, true);
+		.set(Dict.readOnly, true).autoConstructs( () -> new IdempotencyMap<Function<Box, FLine>>(Function.class));
 
 	static public final Dict.Prop<IdempotencyMap<Supplier<FLine>>> lines = new Dict.Prop<>("lines").type()
 		.toCanon()
@@ -105,10 +105,17 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 		return new Cached<Box, Object, FLine>((box, previously) -> {
 			Rect frame = box.properties.get(Box.frame);
 			if (frame == null) return null;
-
 			return wrap.apply(box)
-				.byTransforming((pos) -> new Vec3(frame.x + pos.x * frame.w, frame.y + pos.y * frame.h, pos.z));
+					.byTransforming((pos) -> new Vec3(frame.x + pos.x * frame.w, frame.y + pos.y * frame.h, pos.z));
 		}, (box) -> new Pair<>(box.properties.get(frame), box.properties.isTrue(Mouse.isSelected, false)));
+	}
+	static public Supplier<FLine> boxScale(Supplier<FLine> wrap,  Box inside) {
+		return new Cached<Box, Object, FLine>((box, previously) -> {
+			Rect frame = box.properties.get(Box.frame);
+			if (frame == null) return null;
+			return wrap.get()
+					.byTransforming((pos) -> new Vec3(frame.x + pos.x * frame.w, frame.y + pos.y * frame.h, pos.z));
+		}, (box) -> new Pair<>(box.properties.get(frame), box.properties.isTrue(Mouse.isSelected, false))).toSupplier(() -> inside);
 	}
 
 	static public Function<Box, FLine> windowOrigin(Function<Box, FLine> wrap) {

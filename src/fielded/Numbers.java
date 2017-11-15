@@ -62,6 +62,51 @@ public class Numbers {
 			return null;
 		}
 	}
+
+	static public Quad<Integer, Integer, String, Double> extractNameAt(String code, int cursor) {
+		code = code+" ";
+		if (!Character.isJavaIdentifierPart(code.charAt(cursor)) && Character.isJavaIdentifierPart(code.charAt(cursor-1)))
+			cursor--;
+		int first = cursor;
+		int second = cursor;
+
+
+		String a = "" + code.charAt(cursor);
+
+		for (int i = cursor + 1; i < code.length(); i++) {
+			if (Character.isWhitespace(code.charAt(i))) break;
+			if (!Character.isJavaIdentifierPart(code.charAt(i))) break;
+
+
+			a += code.charAt(i);
+			second = i + 1;
+
+		}
+		for (int i = cursor - 1; i >= 1; i--) {
+			if (Character.isWhitespace(code.charAt(i))) break;
+			if (!Character.isJavaIdentifierPart(code.charAt(i))) break;
+			first = i;
+
+			a = code.charAt(i) + a;
+			first = i;
+
+		}
+
+
+		try {
+
+			int indexOfPoint = a.contains(".") ? a.lastIndexOf(".") : a.length()-1;
+			int indexOfCursor = cursor-first;
+
+			double exp = (double)(indexOfPoint-indexOfCursor);
+
+			if (code.charAt(cursor+1)=='.') exp=0;
+
+			return new Quad<>(first, first+a.length(), a, exp);
+		} catch (NumberFormatException e) {
+			return null;
+		}
+	}
 //
 //	static public Triple<Integer, Integer, String> extractNumberAt(String code, int cursor) {
 //		int first = cursor;

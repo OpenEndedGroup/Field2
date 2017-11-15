@@ -4,10 +4,12 @@ import field.graphics.FLine;
 import field.linalg.Vec4;
 import field.utility.*;
 import fieldbox.boxes.plugins.Chorder;
+import fieldbox.boxes.plugins.Delete;
 import fieldbox.boxes.plugins.Initiators;
 import fieldbox.boxes.plugins.Planes;
 import fieldbox.execution.Execution;
 import fieldlinker.Linker;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.Collections;
@@ -43,6 +45,7 @@ public class TimeSlider extends Box {
 
         properties.put(frame, new Rect(0, 0, width, 5000));
 
+        this.properties.put(Delete.undeletable, true);
         this.properties.put(FrameManipulation.lockWidth, true);
         this.properties.put(FrameManipulation.lockHeight, true);
         this.properties.put(Boxes.dontSave, true);
@@ -286,4 +289,8 @@ public class TimeSlider extends Box {
     }
 
 
+    /* localtime will complicate this */
+    public double getTime( Box box) {
+        return this.properties.get(Box.frame).x;
+    }
 }

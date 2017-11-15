@@ -2,6 +2,7 @@ package fieldbox.boxes.plugins;
 
 import field.app.RunLoop;
 import field.app.ThreadSync;
+import field.app.ThreadSync2;
 import field.utility.Conversions;
 import field.utility.Dict;
 import field.utility.IdempotencyMap;
@@ -311,7 +312,7 @@ public class Pseudo extends Box {
 			if (q == null)
 				throw new IllegalArgumentException(" can't convert " + val + " to something I can call");
 			try {
-				Object m = ThreadSync.callInMainThreadAndWait((Callable<Object>) q::get);
+				Object m = ThreadSync2.callInMainThreadAndWait((Callable<Object>) q::get);
 				on.properties.put(new Dict.Prop<>(p), m);
 				return m;
 			} catch (Exception e) {
