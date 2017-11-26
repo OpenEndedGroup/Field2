@@ -58,7 +58,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 	static public final ThreadLocal<ScriptEngine> currentEngine = new ThreadLocal<>();
 	private Dict.Prop<String> originProperty;
-
+	private boolean all = false;
 
 	final String prefix = "" + (uniq++);
 
@@ -156,7 +156,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 			for (int i = 0; i < lineOffset; i++)
 				prefix.append('\n');
 
-			textFragment = prefix + textFragment + (filename == null ? "" : ("//# sourceURL=" + filename));
+			textFragment = prefix + textFragment + (filename == null ? "" : ("/*# sourceURL=" + filename + "*/"));
 
 			//TODO: should be find?
 			SourceTransformer st = box.properties.get(sourceTransformer);
@@ -164,7 +164,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 			if (st != null) {
 				try {
-					Pair<String, Function<Integer, Integer>> transformation = st.transform(textFragment);
+					Pair<String, Function<Integer, Integer>> transformation = st.transform(textFragment, !all);
 					textFragment = transformation.first;
 					lineTransform = transformation.second;
 				} catch (SourceTransformer.TranslationFailedException t) {
@@ -300,8 +300,13 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	@Override
 	public void executeAll(String allText, Consumer<field.utility.Pair<Integer, String>> lineErrors, Consumer<String> success) {
 		lineOffset = 0;
-		executeAndReturn(allText, lineErrors, success, true);
-		lineOffset = 0;
+		all = true;
+		try {
+			executeAndReturn(allText, lineErrors, success, true);
+			lineOffset = 0;
+		} finally {
+			all = false;
+		}
 	}
 
 	@Override
@@ -351,7 +356,13 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 		String allText = DisabledRangeHelper.getStringWithDisabledRanges(box, property, "/* -- start -- ", "-- end -- */");
 
-		executeAndReturn(allText, lineErrors, success, true);
+		try {
+			all = true;
+			executeAndReturn(allText, lineErrors, success, true);
+		} finally {
+			all = false;
+		}
+
 		Object _r = context.getBindings(ScriptContext.ENGINE_SCOPE)
 			.get("_r");
 

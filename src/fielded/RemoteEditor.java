@@ -21,6 +21,8 @@ import fielded.boxbrowser.TransientCommands;
 import fielded.webserver.RateLimitingQueue;
 import fielded.webserver.Server;
 import fielded.windowmanager.LinuxWindowTricks;
+import fieldnashorn.NashornExecution;
+import fieldnashorn.babel.SourceTransformer;
 import org.java_websocket.WebSocket;
 import org.json.JSONObject;
 import org.json.JSONStringer;
@@ -300,6 +302,13 @@ public class RemoteEditor extends Box {
 
 			int c = p.getInt("ch");
 			int ln = p.getInt("line");
+
+			if (prop.equals(Execution.code.getName())) {
+				SourceTransformer st = box.get().properties.get(NashornExecution.sourceTransformer);
+				if (st != null) {
+					st.incrementalUpdate(text);
+				}
+			}
 
 			int v = current_ln.incrementAndGet();
 			RunLoop.main.workerPool.submit(() -> {
