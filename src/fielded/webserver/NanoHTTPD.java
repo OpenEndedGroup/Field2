@@ -231,6 +231,9 @@ public abstract class NanoHTTPD {
 
 		Map<String, String> parms = session.getParms();
 		parms.put(QUERY_STRING_PARAMETER, session.getQueryParameterString());
+
+		if (session.getUri().toString().equals("/favicon.ico")) return  new Response(Response.Status.NOT_FOUND, null, "");
+
 		return serve(session.getUri(), method, session.getHeaders(), parms, files);
 	}
 
