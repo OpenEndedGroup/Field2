@@ -376,7 +376,7 @@ public class Callbacks {
 		return ret;
 	}
 
-	private static Object callFunction(Box box, Dict.Prop<IdempotencyMap<Function<Object, Object>>> main, Object argMap) {
+	public static Object callFunction(Box box, Dict.Prop<IdempotencyMap<Function<Object, Object>>> main, Object argMap) {
 		Map<String, Object> undoMap = new LinkedHashMap<>();
 
 
