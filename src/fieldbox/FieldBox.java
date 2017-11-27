@@ -45,6 +45,10 @@ public class FieldBox {
 
 		new Open(Options.getString("file", () -> "testIB.field2"));
 
+		SplashScreen splash = SplashScreen.getSplashScreen();
+		if (splash!=null)
+			splash.close();
+
 		fieldBox.go();
 	}
 
