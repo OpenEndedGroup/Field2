@@ -11,6 +11,7 @@ import jdk.nashorn.api.scripting.ScriptUtils;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Area;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -42,9 +43,9 @@ import static fieldbox.boxes.Box.format;
  * <p>
  * The caching of the flattening of this line into MeshBuilder data (ready for OpenGL) cascades into MeshBuilder's cache structure. Thus, we have three levels of caching in total: FLine caches whether or not the geometry has changed at all, MeshBuilder caches whether or not there's any point sending anything to the OpenGL
  * underlying Buffers or whether this piece of geometry can be skipped, and finally individual ArrayBuffers can elect to skip the upload to OpenGL. This means that static geometry is extremely cheap
- * to draw
+ * to draw.
  */
-public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesCompletion, Serializable_safe {
+public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesCompletion, Serializable_safe, OverloadedMath {
 
 	public List<Node> nodes = new ArrayList<>();
 	public Dict attributes = new Dict();
@@ -247,11 +248,11 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		Vec2 c2 = new Vec2(d).mul(-r2 / 3);
 
 		c1 = new Quat().setAngleAxis(theta1, new Vec3(0, 0, 1))
-			       .transform(c1.toVec3())
-			       .toVec2();
+			.transform(c1.toVec3())
+			.toVec2();
 		c2 = new Quat().setAngleAxis(theta2, new Vec3(0, 0, 1))
-			       .transform(c2.toVec3())
-			       .toVec2();
+			.transform(c2.toVec3())
+			.toVec2();
 
 		Vec2.add(c1, a, c1);
 		Vec2.add(c2, destination, c2);
@@ -1109,7 +1110,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		Vec3 t = new Vec3(center2).sub(center);
 
 		Vec3 cD = new Vec3(cEnd).sub(cStart)
-					.normalize();
+			.normalize();
 		Vec3 d = new Vec3(end).sub(start);
 
 		Quat q = cD.isNaN() || d.isNaN() ? new Quat() : new Quat().rotateTo(d, cD);
@@ -1121,9 +1122,9 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		double fs = s;
 
 		return byTransforming(x -> q.transform(new Vec3(x).sub(center))
-					    .mul(fs)
-					    .add(center)
-					    .add(t));
+			.mul(fs)
+			.add(center)
+			.add(t));
 
 	}
 
@@ -1170,11 +1171,11 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	protected Set<String> computeKnownNonProperties() {
 		Set<String> r = new LinkedHashSet<>();
 		Method[] m = this.getClass()
-				 .getMethods();
+			.getMethods();
 		for (Method mm : m)
 			r.add(mm.getName());
 		Field[] f = this.getClass()
-				.getFields();
+			.getFields();
 		for (Field ff : f)
 			r.add(ff.getName());
 		return r;
@@ -1284,8 +1285,8 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	@HiddenInAutocomplete
 	public Object asMap_call(Object a, Object b) {
 		System.err.println(" call called :" + a + " " + b + " " + (b instanceof Map ? ((Map) b).keySet() : b.getClass()
-														    .getSuperclass() + " " + Arrays.asList(b.getClass()
-																			    .getInterfaces())));
+			.getSuperclass() + " " + Arrays.asList(b.getClass()
+			.getInterfaces())));
 		boolean success = false;
 		try {
 			Map<?, ?> m = (Map<?, ?>) ScriptUtils.convert(b, Map.class);
@@ -1341,10 +1342,10 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	public List<Completion> getCompletionsFor(String prefix) {
 
 		List<Completion> l1 = Dict.canonicalProperties().filter(x -> x.getAttributes().has(Dict.domain))
-					  .filter(x -> x.getAttributes().get(Dict.domain).contains("fline"))
-					  .filter(x -> x.getName().startsWith(prefix))
-					  .map(q -> new Completion(-1, -1, q.getName(), " = <span class='type'>" + Conversions.fold(q.getTypeInformation(), t -> compress(
-						  t)) + "</span> " + possibleToString(q) + " &mdash; <span class='doc'>" + format(q.getDocumentation()) + "</span>")).collect(Collectors.toList());
+			.filter(x -> x.getAttributes().get(Dict.domain).contains("fline"))
+			.filter(x -> x.getName().startsWith(prefix))
+			.map(q -> new Completion(-1, -1, q.getName(), " = <span class='type'>" + Conversions.fold(q.getTypeInformation(), t -> compress(
+				t)) + "</span> " + possibleToString(q) + " &mdash; <span class='doc'>" + format(q.getDocumentation()) + "</span>")).collect(Collectors.toList());
 
 
 		l1.forEach(x -> {
@@ -1353,9 +1354,9 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		});
 
 		List<Completion> l1b = attributes.getMap().keySet().stream()
-						 .filter(x -> x.getName().startsWith(prefix))
-						 .map(q -> new Completion(-1, -1, q.getName(), " = <span class='type'>" + Conversions.fold(q.getTypeInformation(), t -> compress(
-							 t)) + "</span> " + possibleToString(q) + " &mdash; <span class='doc'>" + format(q.getDocumentation()) + "</span>")).collect(Collectors.toList());
+			.filter(x -> x.getName().startsWith(prefix))
+			.map(q -> new Completion(-1, -1, q.getName(), " = <span class='type'>" + Conversions.fold(q.getTypeInformation(), t -> compress(
+				t)) + "</span> " + possibleToString(q) + " &mdash; <span class='doc'>" + format(q.getDocumentation()) + "</span>")).collect(Collectors.toList());
 
 
 		l1b.stream().filter(x -> {
@@ -1371,12 +1372,12 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		List<Completion> l2 = JavaSupport.javaSupport.getOptionCompletionsFor(this, prefix);
 
 		l1.addAll(l2.stream()
-			    .filter(x -> {
-				    for (Completion c : l1)
-					    if (c.replacewith.equals(x.replacewith)) return false;
-				    return true;
-			    })
-			    .collect(Collectors.toList()));
+			.filter(x -> {
+				for (Completion c : l1)
+					if (c.replacewith.equals(x.replacewith)) return false;
+				return true;
+			})
+			.collect(Collectors.toList()));
 
 		return l1;
 
@@ -1402,6 +1403,149 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 			e.printStackTrace();
 		}
 		return "";
+	}
+
+	@Override
+	public Object __sub__(Object b) {
+		if (b instanceof Vec2) {
+			Vec3 finalB = ((Vec2) b).toVec3();
+			return byTransforming(x -> new Vec3(x).sub(finalB));
+		} else if (b instanceof Vec3) {
+			Vec3 finalB = (Vec3) b;
+			return byTransforming(x -> new Vec3(x).sub(finalB));
+		} else if (b instanceof Quat) {
+			Quat finalB = (Quat) b;
+			return byTransforming(x -> finalB.invert(new Quat()).transform(x, new Vec3()));
+		} else if (b instanceof FLine) {
+			Shape s1 = FLinesAndJavaShapes.flineToJavaShape(this);
+			Shape s2 = FLinesAndJavaShapes.flineToJavaShape((FLine) b);
+
+			Area a1 = new Area(s1);
+			Area a2 = new Area(s2);
+			a1.subtract(a2);
+			return FLinesAndJavaShapes.javaShapeToFLine(a1);
+		} else if (b instanceof OverloadedMath) return ((OverloadedMath) b).__rsub__(this);
+		throw new ClassCastException(" can't subtract '" + b + "' from this FLine");
+	}
+
+	@Override
+	public Object __rsub__(Object b) {
+		if (b instanceof Vec2) {
+			Vec3 finalB = ((Vec2) b).toVec3();
+			return byTransforming(x -> new Vec3(x).sub(finalB));
+		} else if (b instanceof Vec3) {
+			Vec3 finalB = (Vec3) b;
+			return byTransforming(x -> new Vec3(x).sub(finalB));
+		} else if (b instanceof Quat) {
+			Quat finalB = (Quat) b;
+			return byTransforming(x -> finalB.invert(new Quat()).transform(x, new Vec3()));
+		} else if (b instanceof FLine) {
+			Shape s1 = FLinesAndJavaShapes.flineToJavaShape(this);
+			Shape s2 = FLinesAndJavaShapes.flineToJavaShape((FLine) b);
+
+			Area a1 = new Area(s1);
+			Area a2 = new Area(s2);
+			a1.subtract(a2);
+			return FLinesAndJavaShapes.javaShapeToFLine(a1);
+		}
+		throw new ClassCastException(" can't subtract '" + b + "' from this FLine");
+	}
+
+	@Override
+	public Object __add__(Object b) {
+		if (b instanceof Vec2) {
+			Vec3 finalB = ((Vec2) b).toVec3();
+			return byTransforming(x -> new Vec3(x).add(finalB));
+		} else if (b instanceof Vec3) {
+			Vec3 finalB = (Vec3) b;
+			return byTransforming(x -> new Vec3(x).add(finalB));
+		} else if (b instanceof Quat) {
+			Quat finalB = (Quat) b;
+			return byTransforming(x -> finalB.transform(x, new Vec3()));
+		} else if (b instanceof FLine) {
+			Shape s1 = FLinesAndJavaShapes.flineToJavaShape(this);
+			Shape s2 = FLinesAndJavaShapes.flineToJavaShape((FLine) b);
+
+			Area a1 = new Area(s1);
+			Area a2 = new Area(s2);
+			a1.add(a2);
+			return FLinesAndJavaShapes.javaShapeToFLine(a1);
+		} else if (b instanceof OverloadedMath) return ((OverloadedMath) b).__radd__(this);
+		throw new ClassCastException(" can't add '" + b + "' to this FLine");
+	}
+
+	@Override
+	public Object __radd__(Object b) {
+
+		if (b instanceof Vec2) {
+			Vec3 finalB = ((Vec2) b).toVec3();
+			return byTransforming(x -> new Vec3(x).add(finalB));
+		} else if (b instanceof Vec3) {
+			Vec3 finalB = (Vec3) b;
+			return byTransforming(x -> new Vec3(x).add(finalB));
+		} else if (b instanceof Quat) {
+			Quat finalB = (Quat) b;
+			return byTransforming(x -> finalB.transform(x, new Vec3()));
+		} else if (b instanceof FLine) {
+			Shape s1 = FLinesAndJavaShapes.flineToJavaShape(this);
+			Shape s2 = FLinesAndJavaShapes.flineToJavaShape((FLine) b);
+
+			Area a1 = new Area(s1);
+			Area a2 = new Area(s2);
+			a1.add(a2);
+			return FLinesAndJavaShapes.javaShapeToFLine(a1);
+		}
+		throw new ClassCastException(" can't add '" + b + "' to this FLine");
+	}
+
+	@Override
+	public Object __mul__(Object b) {
+		if (b instanceof Number) {
+			return byTransforming(x -> new Vec3(x).scale(((Number) b).doubleValue()));
+		} else if (b instanceof Vec2) {
+			Vec3 finalB = ((Vec2) b).toVec3();
+			return byTransforming(x -> new Vec3(x).mul(finalB));
+		} else if (b instanceof Vec3) {
+			Vec3 finalB = (Vec3) b;
+			return byTransforming(x -> new Vec3(x).mul(finalB));
+		} else if (b instanceof Quat) {
+			Quat finalB = (Quat) b;
+			return byTransforming(x -> finalB.transform(x, new Vec3()));
+		} else if (b instanceof FLine) {
+			Shape s1 = FLinesAndJavaShapes.flineToJavaShape(this);
+			Shape s2 = FLinesAndJavaShapes.flineToJavaShape((FLine) b);
+
+			Area a1 = new Area(s1);
+			Area a2 = new Area(s2);
+			a1.intersect(a2);
+			return FLinesAndJavaShapes.javaShapeToFLine(a1);
+		} else if (b instanceof OverloadedMath) return ((OverloadedMath) b).__rmul__(this);
+		throw new ClassCastException(" can't multiply '" + b + "' to this FLine");
+	}
+
+	@Override
+	public Object __rmul__(Object b) {
+		if (b instanceof Number) {
+			return byTransforming(x -> new Vec3(x).scale(((Number) b).doubleValue()));
+		} else if (b instanceof Vec2) {
+			Vec3 finalB = ((Vec2) b).toVec3();
+			return byTransforming(x -> new Vec3(x).mul(finalB));
+		} else if (b instanceof Vec3) {
+			Vec3 finalB = (Vec3) b;
+			return byTransforming(x -> new Vec3(x).mul(finalB));
+		} else if (b instanceof Quat) {
+			Quat finalB = (Quat) b;
+			return byTransforming(x -> finalB.transform(x, new Vec3()));
+		} else if (b instanceof FLine) {
+			Shape s1 = FLinesAndJavaShapes.flineToJavaShape(this);
+			Shape s2 = FLinesAndJavaShapes.flineToJavaShape((FLine) b);
+
+			Area a1 = new Area(s1);
+			Area a2 = new Area(s2);
+			a1.intersect(a2);
+			return FLinesAndJavaShapes.javaShapeToFLine(a1);
+		}
+		throw new ClassCastException(" can't multiply '" + b + "' to this FLine");
 	}
 
 
@@ -1543,8 +1687,8 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		@Override
 		public Object asMap_call(Object a, Object b) {
 			System.err.println(" call called :" + a + " " + b + " " + (b instanceof Map ? ((Map) b).keySet() : b.getClass()
-															    .getSuperclass() + " " + Arrays.asList(b.getClass()
-																				    .getInterfaces())));
+				.getSuperclass() + " " + Arrays.asList(b.getClass()
+				.getInterfaces())));
 			boolean success = false;
 			try {
 				Map<?, ?> m = (Map<?, ?>) ScriptUtils.convert(b, Map.class);
@@ -1603,11 +1747,11 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		protected Set<String> computeKnownNonProperties() {
 			Set<String> r = new LinkedHashSet<>();
 			Method[] m = this.getClass()
-					 .getMethods();
+				.getMethods();
 			for (Method mm : m)
 				r.add(mm.getName());
 			Field[] f = this.getClass()
-					.getFields();
+				.getFields();
 			for (Field ff : f)
 				r.add(ff.getName());
 			return r;
