@@ -66,8 +66,8 @@
                 _messageBus.publish("status", "<span class='error'>Disconnected from Field</span>");
                 document.title = "Field / Disconnected";
 
-                // start it up again
-                _field.evalRequestWS(///ID///)
+                // start it up again ?
+                // _field.evalRequestWS(///ID///)
             };
 
             _field.socket.onerror = function (e) {
@@ -75,8 +75,7 @@
                 document.title = "Field / Disconnected";
 
                 // start it up again
-
-                _field.evalRequestWS(///ID///)
+                // _field.evalRequestWS(///ID///)
             }
         };
 
