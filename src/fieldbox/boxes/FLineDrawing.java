@@ -8,6 +8,7 @@ import field.linalg.Vec3;
 import field.linalg.Vec4;
 import field.utility.*;
 import fieldbox.boxes.plugins.FileBrowser;
+import fieldbox.boxes.plugins.Missing;
 import fieldbox.boxes.plugins.Planes;
 import fieldbox.io.IO;
 
@@ -58,6 +59,13 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 		.autoConstructs(() -> new IdempotencyMap<>(Supplier.class))
 		.set(IO.dontCopy, true)
 		.set(Dict.readOnly, true);
+
+	static {
+		// accessing 'lines' causes a redraw to happen
+		lines.getAttributes().putToMap(Missing.watchRead, "drawOnLines", (box, v) -> {
+			Drawing.dirty(box);
+		});
+	}
 
 	static public final Dict.Prop<IdempotencyMap<Supplier<Collection<? extends Supplier<FLine>>>>> bulkLines = new Dict.Prop<>("bulkLines").type()
 		.toCanon()
