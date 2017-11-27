@@ -8,7 +8,11 @@ import java.util.function.Function;
  * Created by marc on 6/13/15.
  */
 public interface SourceTransformer {
-	Pair<String, Function<Integer, Integer>> transform(String c) throws TranslationFailedException;
+	Pair<String, Function<Integer, Integer>> transform(String c, boolean fragment) throws TranslationFailedException;
+
+	default void incrementalUpdate(String now)
+	{
+	}
 
 	class TranslationFailedException extends Exception
 	{

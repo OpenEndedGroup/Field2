@@ -70,7 +70,7 @@ public class Translate implements SourceTransformer {
 	}
 
 	@Override
-	public Pair<String, Function<Integer, Integer>> transform(String c) throws TranslationFailedException {
+	public Pair<String, Function<Integer, Integer>> transform(String c, boolean isFragment) throws TranslationFailedException {
 		String t = codeCache.get(c);
 		Function<Integer, Integer> f = mapCache.get(c);
 		if (t == null || f == null) {

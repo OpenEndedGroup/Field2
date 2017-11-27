@@ -1,0 +1,20 @@
+<component name="libraryTable">
+  <library name="gumtree">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/jars/gumtree/client-2.1.0-SNAPSHOT.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jars/gumtree/commons-codec-1.10.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jars/gumtree/core-2.1.0-SNAPSHOT.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jars/gumtree/gen.js-2.1.0-SNAPSHOT.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jars/gumtree/gson-2.8.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jars/gumtree/guava-20.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jars/gumtree/javassist-3.21.0-GA.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jars/gumtree/jgrapht-core-1.0.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jars/gumtree/reflections-0.9.11.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jars/gumtree/rhino-1.7.7.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jars/gumtree/simmetrics-core-3.2.3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jars/gumtree/trove4j-3.0.3.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

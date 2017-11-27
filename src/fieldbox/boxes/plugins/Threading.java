@@ -1,64 +1,60 @@
 package fieldbox.boxes.plugins;
 
-import field.app.ThreadSync;
+import field.app.ThreadSync2;
 import field.utility.Dict;
 import fieldbox.boxes.Box;
 import jdk.nashorn.api.scripting.AbstractJSObject;
 
-import java.util.stream.Stream;
+import java.util.List;
 
 /**
  * Created by marc on 5/24/16.
  */
 public class Threading extends Box {
 
-    static public final Dict.Prop<AbstractJSObject> yield = new Dict.Prop<>("yield").toCanon().doc("`_.yield()` waits for one whole animation cycle before continuing on from here");
-    static public final Dict.Prop<FunctionOfBoxValued<Threads>> threads = new Dict.Prop<>("threads").toCanon().doc("`_.threads` returns a thread control object that provides a high-level interface to the fibre threading of a box");
+	static public final Dict.Prop<AbstractJSObject> wait = new Dict.Prop<>("wait").toCanon().doc("`_.wait()` waits for one whole animation cycle before continuing on from here");
+	static public final Dict.Prop<FunctionOfBoxValued<Threads>> threads = new Dict.Prop<>("threads").toCanon().doc("`_.threads` returns a thread control object that provides a high-level interface to the fibre threading of a box");
 
-    // high-level information and control over thre threads in a box
-    static public final class Threads {
-        public final boolean enabled = ThreadSync.enabled;
+	// high-level information and control over the threads in a box
+	static public final class Threads {
+		public final boolean enabled = ThreadSync2.getEnabled();
 
-        public final long numRunning;
-        private final Box on;
+		public final long numRunning;
+		private final Box on;
 
-        protected Threads(Box on) {
-            this.on = on;
-            Stream<ThreadSync.Fiber> q = ThreadSync.get().findByTag(on);
-            numRunning = q.filter(x -> !x.runner.isDone()).count();
-        }
+		protected Threads(Box on) {
+			this.on = on;
+			List<ThreadSync2.Fibre> q = ThreadSync2Feedback.fibresFor(on);
+			numRunning = q.stream().filter(x -> !x.finished).count();
+		}
 
-        public void kill() {
-            ThreadSyncFeedback.kill(on);
-        }
+		public void kill() {
+			ThreadSync2Feedback.kill(on);
+		}
 
-        public void pause() {
-            ThreadSyncFeedback.pause(on);
-        }
+		public void pause() {
+			ThreadSync2Feedback.pause(on);
+		}
 
-        public void step() {
-            ThreadSyncFeedback.step(on);
-        }
+		public void step() {
+			ThreadSync2Feedback.step(on);
+		}
 
-        public void play() {
-            ThreadSyncFeedback.cont(on);
-        }
-    }
+		public void play() {
+			ThreadSync2Feedback.cont(on);
+		}
+	}
 
 
-    public Threading() {
+	public Threading() {
 
-        this.properties.put(threads, (x) -> new Threads(x));
-        this.properties.put(yield, new AbstractJSObject() {
-            @Override
-            public Object call(Object o, Object... objects) {
-                try {
-
-                    return ThreadSync.yield(objects);
-                } catch (InterruptedException e) {
-                }
-                return null;
-            }
-        });
-    }
+		this.properties.put(threads, (x) -> new Threads(x));
+		this.properties.put(wait, new AbstractJSObject() {
+			@Override
+			public Object call(Object o, Object... objects) {
+				ThreadSync2.yield();
+				return null;
+			}
+		});
+	}
 }

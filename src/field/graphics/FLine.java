@@ -11,6 +11,7 @@ import jdk.nashorn.api.scripting.ScriptUtils;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Area;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -42,9 +43,9 @@ import static fieldbox.boxes.Box.format;
  * <p>
  * The caching of the flattening of this line into MeshBuilder data (ready for OpenGL) cascades into MeshBuilder's cache structure. Thus, we have three levels of caching in total: FLine caches whether or not the geometry has changed at all, MeshBuilder caches whether or not there's any point sending anything to the OpenGL
  * underlying Buffers or whether this piece of geometry can be skipped, and finally individual ArrayBuffers can elect to skip the upload to OpenGL. This means that static geometry is extremely cheap
- * to draw
+ * to draw.
  */
-public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesCompletion, Serializable_safe {
+public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesCompletion, Serializable_safe, OverloadedMath {
 
     public List<Node> nodes = new ArrayList<>();
     public Dict attributes = new Dict();
@@ -1238,7 +1239,6 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
     @Override
     @HiddenInAutocomplete
     public Object asMap_get(String m) {
-
         if (m.equals("n")) return last();
 
         Dict.Prop canon = new Dict.Prop(m).findCanon();
@@ -1474,6 +1474,149 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
     private void writeObject(ObjectOutputStream out) throws IOException {
 //		FLineSerializationHelper.writeObject(this, out);
     }
+
+	@Override
+	public Object __sub__(Object b) {
+		if (b instanceof Vec2) {
+			Vec3 finalB = ((Vec2) b).toVec3();
+			return byTransforming(x -> new Vec3(x).sub(finalB));
+		} else if (b instanceof Vec3) {
+			Vec3 finalB = (Vec3) b;
+			return byTransforming(x -> new Vec3(x).sub(finalB));
+		} else if (b instanceof Quat) {
+			Quat finalB = (Quat) b;
+			return byTransforming(x -> finalB.invert(new Quat()).transform(x, new Vec3()));
+		} else if (b instanceof FLine) {
+			Shape s1 = FLinesAndJavaShapes.flineToJavaShape(this);
+			Shape s2 = FLinesAndJavaShapes.flineToJavaShape((FLine) b);
+
+			Area a1 = new Area(s1);
+			Area a2 = new Area(s2);
+			a1.subtract(a2);
+			return FLinesAndJavaShapes.javaShapeToFLine(a1);
+		} else if (b instanceof OverloadedMath) return ((OverloadedMath) b).__rsub__(this);
+		throw new ClassCastException(" can't subtract '" + b + "' from this FLine");
+	}
+
+	@Override
+	public Object __rsub__(Object b) {
+		if (b instanceof Vec2) {
+			Vec3 finalB = ((Vec2) b).toVec3();
+			return byTransforming(x -> new Vec3(x).sub(finalB));
+		} else if (b instanceof Vec3) {
+			Vec3 finalB = (Vec3) b;
+			return byTransforming(x -> new Vec3(x).sub(finalB));
+		} else if (b instanceof Quat) {
+			Quat finalB = (Quat) b;
+			return byTransforming(x -> finalB.invert(new Quat()).transform(x, new Vec3()));
+		} else if (b instanceof FLine) {
+			Shape s1 = FLinesAndJavaShapes.flineToJavaShape(this);
+			Shape s2 = FLinesAndJavaShapes.flineToJavaShape((FLine) b);
+
+			Area a1 = new Area(s1);
+			Area a2 = new Area(s2);
+			a1.subtract(a2);
+			return FLinesAndJavaShapes.javaShapeToFLine(a1);
+		}
+		throw new ClassCastException(" can't subtract '" + b + "' from this FLine");
+	}
+
+	@Override
+	public Object __add__(Object b) {
+		if (b instanceof Vec2) {
+			Vec3 finalB = ((Vec2) b).toVec3();
+			return byTransforming(x -> new Vec3(x).add(finalB));
+		} else if (b instanceof Vec3) {
+			Vec3 finalB = (Vec3) b;
+			return byTransforming(x -> new Vec3(x).add(finalB));
+		} else if (b instanceof Quat) {
+			Quat finalB = (Quat) b;
+			return byTransforming(x -> finalB.transform(x, new Vec3()));
+		} else if (b instanceof FLine) {
+			Shape s1 = FLinesAndJavaShapes.flineToJavaShape(this);
+			Shape s2 = FLinesAndJavaShapes.flineToJavaShape((FLine) b);
+
+			Area a1 = new Area(s1);
+			Area a2 = new Area(s2);
+			a1.add(a2);
+			return FLinesAndJavaShapes.javaShapeToFLine(a1);
+		} else if (b instanceof OverloadedMath) return ((OverloadedMath) b).__radd__(this);
+		throw new ClassCastException(" can't add '" + b + "' to this FLine");
+	}
+
+	@Override
+	public Object __radd__(Object b) {
+
+		if (b instanceof Vec2) {
+			Vec3 finalB = ((Vec2) b).toVec3();
+			return byTransforming(x -> new Vec3(x).add(finalB));
+		} else if (b instanceof Vec3) {
+			Vec3 finalB = (Vec3) b;
+			return byTransforming(x -> new Vec3(x).add(finalB));
+		} else if (b instanceof Quat) {
+			Quat finalB = (Quat) b;
+			return byTransforming(x -> finalB.transform(x, new Vec3()));
+		} else if (b instanceof FLine) {
+			Shape s1 = FLinesAndJavaShapes.flineToJavaShape(this);
+			Shape s2 = FLinesAndJavaShapes.flineToJavaShape((FLine) b);
+
+			Area a1 = new Area(s1);
+			Area a2 = new Area(s2);
+			a1.add(a2);
+			return FLinesAndJavaShapes.javaShapeToFLine(a1);
+		}
+		throw new ClassCastException(" can't add '" + b + "' to this FLine");
+	}
+
+	@Override
+	public Object __mul__(Object b) {
+		if (b instanceof Number) {
+			return byTransforming(x -> new Vec3(x).scale(((Number) b).doubleValue()));
+		} else if (b instanceof Vec2) {
+			Vec3 finalB = ((Vec2) b).toVec3();
+			return byTransforming(x -> new Vec3(x).mul(finalB));
+		} else if (b instanceof Vec3) {
+			Vec3 finalB = (Vec3) b;
+			return byTransforming(x -> new Vec3(x).mul(finalB));
+		} else if (b instanceof Quat) {
+			Quat finalB = (Quat) b;
+			return byTransforming(x -> finalB.transform(x, new Vec3()));
+		} else if (b instanceof FLine) {
+			Shape s1 = FLinesAndJavaShapes.flineToJavaShape(this);
+			Shape s2 = FLinesAndJavaShapes.flineToJavaShape((FLine) b);
+
+			Area a1 = new Area(s1);
+			Area a2 = new Area(s2);
+			a1.intersect(a2);
+			return FLinesAndJavaShapes.javaShapeToFLine(a1);
+		} else if (b instanceof OverloadedMath) return ((OverloadedMath) b).__rmul__(this);
+		throw new ClassCastException(" can't multiply '" + b + "' to this FLine");
+	}
+
+	@Override
+	public Object __rmul__(Object b) {
+		if (b instanceof Number) {
+			return byTransforming(x -> new Vec3(x).scale(((Number) b).doubleValue()));
+		} else if (b instanceof Vec2) {
+			Vec3 finalB = ((Vec2) b).toVec3();
+			return byTransforming(x -> new Vec3(x).mul(finalB));
+		} else if (b instanceof Vec3) {
+			Vec3 finalB = (Vec3) b;
+			return byTransforming(x -> new Vec3(x).mul(finalB));
+		} else if (b instanceof Quat) {
+			Quat finalB = (Quat) b;
+			return byTransforming(x -> finalB.transform(x, new Vec3()));
+		} else if (b instanceof FLine) {
+			Shape s1 = FLinesAndJavaShapes.flineToJavaShape(this);
+			Shape s2 = FLinesAndJavaShapes.flineToJavaShape((FLine) b);
+
+			Area a1 = new Area(s1);
+			Area a2 = new Area(s2);
+			a1.intersect(a2);
+			return FLinesAndJavaShapes.javaShapeToFLine(a1);
+		}
+		throw new ClassCastException(" can't multiply '" + b + "' to this FLine");
+	}
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         nodes = new ArrayList<>();

@@ -278,7 +278,14 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 
 				}
 			}
-		} else {
+		} else if (linkRequest.getCallSiteDescriptor()
+				.getOperation().toString().startsWith("CALL")) {
+
+				Object rec = linkRequest.getReceiver();
+
+				System.out.println(" rec for CALL is "+rec+" "+(rec!=null ? rec.getClass() : null));
+			}
+		else {
 			if (debug) {
 				System.out.println(" don't know what to do with that :" + linkRequest.getCallSiteDescriptor().getOperation()
 					.toString()+" "+linkRequest.getReceiver());

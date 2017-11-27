@@ -201,6 +201,13 @@ a {
     display: none;
 }
 
+.Codemirror-lint-tooltip {
+    background: #a00;
+    color: #fff;
+    font-size: 80%;
+}
+
+
 .maptable {
     font-family: "Fira Code";
     background-color: rgba(0, 0, 0, 0.2);
