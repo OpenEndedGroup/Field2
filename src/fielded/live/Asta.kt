@@ -4,8 +4,10 @@ import field.linalg.Vec2
 import field.linalg.Vec3
 import field.linalg.Vec4
 import field.utility.OverloadedMath
+import field.utility.PerThread
 import field.utility.Vec2
 import field.utility.Vec3
+import fieldbox.boxes.Box
 import fieldnashorn.babel.SourceTransformer
 import jdk.nashorn.api.tree.*
 import java.lang.reflect.Method
@@ -16,6 +18,14 @@ import java.util.function.Function
     AST based rewriting
  */
 class Asta {
+
+    class Options {
+        var overloads = false
+        var numbers = false
+        fun on(): Boolean = overloads || numbers
+    }
+
+    var options by PerThread { Options() }
 
     var currentMapping = mutableMapOf<Pair<Int, Int>, Pair<Int, Int>>()
     var lastReturn = mutableMapOf<Pair<Int, Int>, Double>()
@@ -45,7 +55,6 @@ class Asta {
                     if (debug) println(" couldn't find mapping for number, structural change? ")
                     return lastReturn.getOrDefault(start to end, def)
                 }
-
             }
         }
         return def
@@ -54,7 +63,7 @@ class Asta {
     companion object {
 
         @JvmStatic
-        var debug = false
+        var debug = true
 
         @JvmStatic
         fun __MINUS__(a: Any?, b: Any?): Any? {
@@ -352,10 +361,14 @@ class Asta {
 
     }
 
-    fun transformer(): SourceTransformer {
+    fun transformer(box: Box): SourceTransformer {
 
         val r = object : SourceTransformer {
             override fun transform(c: String, fragment: Boolean): field.utility.Pair<String, Function<Int, Int>> {
+
+                options.numbers = box.properties.isTrue(OverloadedMath.withLiveNumbers, false)
+                options.overloads = box.properties.isTrue(OverloadedMath.withOverloading, false)
+
                 val v = parseAndReconstruct(c, {
                     if (it.kind.ordinal < Diagnostic.Kind.WARNING.ordinal) {
                         throw SourceTransformer.TranslationFailedException(it.message + " on line " + it.lineNumber + " at col " + it.columnNumber)
@@ -363,10 +376,15 @@ class Asta {
                     print("Diagnostic: $it")
                 })
 
-                if (!fragment) {
+                if (!fragment && options.on()) {
                     currentContents = c
                     baseContents = c
                     currentMapping = mutableMapOf()
+                }
+
+                if (debug)
+                {
+                    println("final transform -> $v")
                 }
 
                 return field.utility.Pair(v, Function { x: Int -> x })
@@ -386,16 +404,10 @@ class Asta {
         return r
     }
 
-    var withOverloading = false
-    var withLiveNumbers = false
-
-
     @JvmOverloads
     fun parseAndReconstruct(v: String, d: (Diagnostic) -> Unit = { print("diagnostic: $it") }): String {
 
-        if (Regex("//(?:(?!\\n|\\r)\\s)aster").find(v) != null) return v
-        withOverloading = (Regex("//(?:(?!\\n|\\r)\\s)aster(.*)overload").find(v) != null)
-        withLiveNumbers = (Regex("//(?:(?!\\n|\\r)\\s)aster(.*)live").find(v) != null)
+        if (!options.on()) return v
 
         val p = Parser.create("--language=es6")
         val r = p.parse("<<internal>>", v + "\n", d)
@@ -403,8 +415,6 @@ class Asta {
         var actions = mutableListOf<() -> Unit>()
 
         var replaced = v
-
-        var on = false;
 
         r.sourceElements.forEach {
             print("\n\n sourceElement: $it\n\n")
@@ -415,8 +425,6 @@ class Asta {
         }
 
         actions.reversed().forEach { it() }
-
-//        if (debug) println(" final text:\n$replaced\n------")
 
         return replaced
     }
@@ -461,7 +469,7 @@ class Asta {
 
         if (debug) println("${indent(i)} node covers ${start} -> ${end} = $text")
 
-        if (withOverloading && tree is BinaryTree && tree.kind in trapKinds) {
+        if (options.overloads && tree is BinaryTree && tree.kind in trapKinds) {
             if (debug) println(" ** binary operator :" + tree)
 
             val left = children.get(0)
@@ -479,29 +487,9 @@ class Asta {
             return "__" + tree.kind + "__((" + leftR + "),(" + rightR + "))"
         }
 
-        if (withLiveNumbers && tree is LiteralTree && tree.kind.equals(Tree.Kind.NUMBER_LITERAL)) {
+        if (options.numbers && tree is LiteralTree && tree.kind.equals(Tree.Kind.NUMBER_LITERAL)) {
             return "__NUMBER_LITERAL__(" + start + ", " + end + ", " + text + ")"
         }
-
-
-//        if (tree is CompoundAssignmentTree && tree.kind in trapKinds) {
-//            if (debug) println(" ** binary operator :" + tree);
-//
-//            val left = children.get(0)
-//            val right = children.get(1)
-//
-//            val (sr, er) = startAndEndPositionFor(right);
-//            val rightR = reconstructOver(right, i + 5, v);//text.replaceRange((sr - start).toInt()..(er - start - 1).toInt(), )
-//
-//
-//            val (sc, ec) = startAndEndPositionFor(left);
-//            val leftR = reconstructOver(left, i + 5, v);//rightR.replaceRange((sc - start).toInt()..(ec - start - 1).toInt())
-//
-//            if (debug) println(" -> leftR : $leftR")
-//
-//            return "__" + tree.kind + "__((" + leftR + "),(" + rightR + "))"
-//        }
-
 
         var n = children.size - 1
         for (c in children.asReversed()) {
@@ -510,12 +498,10 @@ class Asta {
 
             if (debug) println("${indent(i + 2)} replace range ${(s - start).toInt()..(e - start - 1).toInt()}  : '" + text.substring((s - start).toInt()..(e - start - 1).toInt()) + "'")
 
-
 //            text = text.replaceRange((c.startPosition - start).toInt()..(c.endPosition - start - 1).toInt(), reconstructOver(c, i + 5, v))
             text = text.replaceRange((s - start).toInt()..(e - start - 1).toInt(), reconstructOver(c, i + 5, v))
             n--
         }
-
 
         if (debug) println("${indent(i)} becomes = '" + text + "'")
 
@@ -551,14 +537,17 @@ class Asta {
     private fun startAndEndPositionFor(c: Tree, correct: Boolean = true): Pair<Int, Int> {
         var start = c.startPosition.toInt()
         var end = c.endPosition.toInt()
-        if (start == end && correct) {
+
+        // Nashorn appears to just lie about the start and end position of some parts of the tree.
+
+        if (/*start == end &&*/ correct) {
             val cc = childrenFor(c)
             if (cc.size == 0) return start to end
 
             val ccSE = cc.map { startAndEndPositionFor(it) }.toList()
             val min = ccSE.minBy { it.first }!!.first
             val max = ccSE.maxBy { it.second }!!.second
-            return min to max
+            return Math.min(min, start) to Math.max(max, end)
         }
         return start to end
     }
@@ -567,5 +556,9 @@ class Asta {
         var q = ""
         while (q.length < i) q = q + " "
         return q
+    }
+
+    fun options(): Options {
+        return options
     }
 }
