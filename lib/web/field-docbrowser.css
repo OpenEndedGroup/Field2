@@ -1,0 +1,24 @@
+
+.Field-codeFloatButton {
+    background: rgba(255, 255, 255, 0.5);
+    color: black;
+    border-radius: 5px;
+    display: inline;
+    float: right;
+    position: absolute;
+    width: 20px;
+    margin-top: -25px;
+    height: 20px;
+    text-align: center;
+    vertical-align: middle;
+    z-index:4;
+}
+
+.Field-codeFloatButton:hover {
+    background: rgba(255, 255, 0, 0.5);
+}
+
+.Field-codeFloatButton:active {
+    background: rgba(255, 0, 0, 0.5);
+}
+

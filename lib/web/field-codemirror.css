@@ -67,6 +67,10 @@ html {
 body {
     -webkit-font-variant-ligatures: common-ligatures;
     font-variant-ligatures: common-ligatures;
+    -webkit-font-smoothing: subpixel-antialiased;
+    font-kerning: normal;
+    /*-webkit-text-stroke: 1px rgba(255,255,255,0.1);*/
+
     background: rgba(0, 0, 0, 0);
     color: #aaa;
     font-size: 12px;
@@ -1105,8 +1109,17 @@ div#hbox.Field-status span.doc
 
 div#hbox.Field-status span.doc span.type
 {
-//    display: inline;
     font-size:70%;
+}
+
+span.type
+{
+    color:rgba(148,188,255,1);
+}
+
+span.doc code
+{
+    color:rgba(148,188,255,1);
 }
 
 div#hbox.Field-status .comp-space {
