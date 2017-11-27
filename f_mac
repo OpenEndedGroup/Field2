@@ -2,7 +2,10 @@
 pushd $(dirname `which "$0"`) >/dev/null; fieldhome="$PWD"; popd >/dev/null
 
 out=$fieldhome/build/classes
-java=/Library/Java/JavaVirtualMachines/jdk-9.jdk/Contents/Home/bin/java
+java=/Library/Java/JavaVirtualMachines/jdk-9.0.1.jdk/Contents/Home/bin/java
+java=$fieldhome/jdk/osx/jdk-9.0.1.jdk/Contents/Home/bin/java
+
+export FIELD2_LAUNCH=$fieldhome/$(basename $0)
 
 $java \
     -Xdebug \
