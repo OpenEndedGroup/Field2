@@ -121,18 +121,30 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
         mod++;
     }
 
+    /**
+     * moves the draw position to a new place `x,y` without drawing anything on the way there.
+     */
     public FLine moveTo(double x, double y) {
         return add(new MoveTo(x, y, 0));
     }
 
-    public FLine moveTo(Vec2 x) {
-        return add(new MoveTo(x.x, x.y, 0));
+    /**
+     * moves the draw position to `position` without drawing anything on the way there.
+     */
+    public FLine moveTo(Vec2 position) {
+        return add(new MoveTo(position.x, position.y, 0));
     }
 
-    public FLine moveTo(Vec3 x) {
-        return add(new MoveTo(x.x, x.y, x.z));
+    /**
+     * moves the draw position to `position` without drawing anything on the way there.
+     */
+    public FLine moveTo(Vec3 position) {
+        return add(new MoveTo(position.x, position.y, position.z));
     }
 
+    /**
+     * moves the draw position to a new place that is `dx, dy` away from where the line currently is without drawing anything on the way there.
+     */
     public FLine moveToRel(float dx, float dy) {
         if (nodes.size() == 0)
             return moveTo(dx, dy);
@@ -142,19 +154,28 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
     }
 
 
+    /**
+     * draws a line from the current position to `x, y`
+     */
     public FLine lineTo(double x, double y) {
         if (nodes.size() == 0) return moveTo(x, y);
         return add(new LineTo(x, y, 0));
     }
 
-    public FLine lineTo(Vec2 x) {
-        if (nodes.size() == 0) return moveTo(x);
-        return add(new LineTo(x.x, x.y, 0));
+    /**
+     * draws a line from the current position to `position`
+     */
+    public FLine lineTo(Vec2 position) {
+        if (nodes.size() == 0) return moveTo(position);
+        return add(new LineTo(position.x, position.y, 0));
     }
 
-    public FLine lineTo(Vec3 x) {
-        if (nodes.size() == 0) return moveTo(x);
-        return add(new LineTo(x.x, x.y, x.z));
+    /**
+     * draws a line from the current position to `position`
+     */
+    public FLine lineTo(Vec3 position) {
+        if (nodes.size() == 0) return moveTo(position);
+        return add(new LineTo(position.x, position.y, position.z));
     }
 
     public FLine lineToRel(float dx, float dy) {
@@ -164,19 +185,30 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
     }
 
 
+    /**
+     * moves the draw position to a new place `x, y, z` without drawing anything on the way there.
+     */
     public FLine moveTo(double x, double y, double z) {
         return add(new MoveTo(x, y, z));
     }
+
+    /**
+     * draws a line from the current position to `x, y, z`
+     */
 
     public FLine lineTo(double x, double y, double z) {
         if (nodes.size() == 0) return moveTo(x, y, z);
         return add(new LineTo(x, y, z));
     }
 
+    /**
+     * draws a curve from the current position, towards (but not through) `c1x, c1y`, then towards (but not through) `c2x, c2y` ending up at `x, y`
+     */
     public FLine cubicTo(double c1x, double c1y, double c2x, double c2y, double x, double y) {
         if (nodes.size() == 0) return moveTo(x, y);
         return add(new CubicTo(c1x, c1y, 0, c2x, c2y, 0, x, y, 0));
     }
+
 
     public FLine quadTo(double q1x, double q1y, double x, double y) {
         if (nodes.size() == 0) return moveTo(x, y);
@@ -941,6 +973,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
             auxProperties.put(k, n -> n.attributes.get(pv));
         });
     }
+
     public void setAuxPropertiesFunctions(Map<Integer, Function<Node, Object>> propertiesToAuxChannels) {
         auxProperties = new LinkedHashMap<>();
         auxProperties.putAll(propertiesToAuxChannels);
@@ -1183,9 +1216,9 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
         if (knownNonProperties == null)
             knownNonProperties = computeKnownNonProperties();
 
-		if (knownNonProperties.contains(p)) return false;
-		return (Dict.Canonical.findCanon(p) != null);
-	}
+        if (knownNonProperties.contains(p)) return false;
+        return (Dict.Canonical.findCanon(p) != null);
+    }
 
     @HiddenInAutocomplete
     protected Set<String> computeKnownNonProperties() {
@@ -1208,9 +1241,9 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 
         if (m.equals("n")) return last();
 
-		Dict.Prop canon = new Dict.Prop(m).findCanon();
+        Dict.Prop canon = new Dict.Prop(m).findCanon();
 
-		Object ret = attributes.getOrConstruct(canon);
+        Object ret = attributes.getOrConstruct(canon);
 
 
         if (ret instanceof Box.FunctionOfBox) {
@@ -1228,18 +1261,18 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 //		if (value instanceof ConsString) value = value.toString(); //jdk9 module security breaks this
         if (value != null && value.getClass().getName().endsWith("ConsString")) value = "" + value;
 
-		Dict.Prop canon = new Dict.Prop(name).toCanon();
+        Dict.Prop canon = new Dict.Prop(name).toCanon();
 
-		if (canon.getAttributes().isTrue(Dict.readOnly, false))
-			throw new IllegalArgumentException("can't write to property " + name);
+        if (canon.getAttributes().isTrue(Dict.readOnly, false))
+            throw new IllegalArgumentException("can't write to property " + name);
 
-		Function<Object, Object> c = canon.getAttributes().get(Dict.customCaster);
-		if (c != null)
-			value = c.apply(value);
+        Function<Object, Object> c = canon.getAttributes().get(Dict.customCaster);
+        if (c != null)
+            value = c.apply(value);
 
-		Object converted = convert(value, canon.getTypeInformation());
+        Object converted = convert(value, canon.getTypeInformation());
 
-		attributes.put(canon, converted);
+        attributes.put(canon, converted);
 
 
         modify();
@@ -1433,6 +1466,24 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
         return "";
     }
 
+    @Override
+    public String toString() {
+        return "FLine (with " + nodes.size() + " node" + (nodes.size() == 1 ? "" : "s") + ")";
+    }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+//		FLineSerializationHelper.writeObject(this, out);
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        nodes = new ArrayList<>();
+        attributes = new Dict();
+        cache = new WeakHashMap<>();
+        cache_thickening = new WeakHashMap<>();
+
+//		FLineSerializationHelper.readObject(this, in);
+
+    }
 
     public class Node implements fieldlinker.AsMap {
         public final Vec3 to;
@@ -1462,9 +1513,9 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
         @HiddenInAutocomplete
         public Object asMap_get(String m) {
 
-			Dict.Prop canon = new Dict.Prop(m).findCanon();
+            Dict.Prop canon = new Dict.Prop(m).findCanon();
 
-			Object ret = attributes.getOrConstruct(canon);
+            Object ret = attributes.getOrConstruct(canon);
 
 
             if (ret instanceof Box.FunctionOfBox) {
@@ -1489,13 +1540,13 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 
 
 //			Log.log("underscore.debug", " underscore box set :" + name + " to " + value.getClass() + " <" + Function.class.getName() + ">");
-			Dict.Prop canon = new Dict.Prop(name).toCanon();
+            Dict.Prop canon = new Dict.Prop(name).toCanon();
 
 //			Log.log("underscore.debug", " canonical type information " + canon.getTypeInformation());
 
-			Object converted = convert(value, canon.getTypeInformation());
+            Object converted = convert(value, canon.getTypeInformation());
 
-			attributes.put(canon, converted);
+            attributes.put(canon, converted);
 
 //			Log.log("underscore.debug", () -> {
 //				Log.log("underscore.debug", " PROPERTIES NOW :");
@@ -1568,225 +1619,206 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 //
 //			return value;
 
-		}
+        }
 
-		@Override
-		public Object asMap_call(Object a, Object b) {
-			System.err.println(" call called :" + a + " " + b + " " + (b instanceof Map ? ((Map) b).keySet() : b.getClass()
-															    .getSuperclass() + " " + Arrays.asList(b.getClass()
-																				    .getInterfaces())));
-			boolean success = false;
-			try {
-				Map<?, ?> m = (Map<?, ?>) ScriptUtils.convert(b, Map.class);
-				for (Map.Entry<?, ?> e : m.entrySet()) {
-					asMap_set("" + e.getKey(), e.getValue());
-				}
-				success = true;
-			} catch (UnsupportedOperationException e) {
+        @Override
+        public Object asMap_call(Object a, Object b) {
+            System.err.println(
+                    " call called :" + a + " " + b + " " + (b instanceof Map ? ((Map) b).keySet() : b.getClass()
+                            .getSuperclass() + " " + Arrays.asList(b.getClass()
+                                                                           .getInterfaces())));
+            boolean success = false;
+            try {
+                Map<?, ?> m = (Map<?, ?>) ScriptUtils.convert(b, Map.class);
+                for (Map.Entry<?, ?> e : m.entrySet()) {
+                    asMap_set("" + e.getKey(), e.getValue());
+                }
+                success = true;
+            } catch (UnsupportedOperationException e) {
 
-			}
-			if (!success) {
-				throw new IllegalArgumentException(" can't understand parameter :" + b);
-			}
-			return this;
-		}
+            }
+            if (!success) {
+                throw new IllegalArgumentException(" can't understand parameter :" + b);
+            }
+            return this;
+        }
 
-		@Override
-		public Object asMap_new(Object b) {
-			boolean success = false;
-			try {
-				Map<?, ?> m = (Map<?, ?>) ScriptUtils.convert(b, Map.class);
+        @Override
+        public Object asMap_new(Object b) {
+            boolean success = false;
+            try {
+                Map<?, ?> m = (Map<?, ?>) ScriptUtils.convert(b, Map.class);
 
-				Node o = this.duplicate();
+                Node o = this.duplicate();
 
-				for (Map.Entry<?, ?> e : m.entrySet()) {
-					o.asMap_set("" + e.getKey(), e.getValue());
-				}
-				success = true;
-				return o;
-			} catch (UnsupportedOperationException e) {
-				throw new IllegalArgumentException(" can't understand parameter :" + b);
-			}
-		}
+                for (Map.Entry<?, ?> e : m.entrySet()) {
+                    o.asMap_set("" + e.getKey(), e.getValue());
+                }
+                success = true;
+                return o;
+            } catch (UnsupportedOperationException e) {
+                throw new IllegalArgumentException(" can't understand parameter :" + b);
+            }
+        }
 
-		@Override
-		public Object asMap_getElement(int element) {
-			throw new Error();
-		}
+        @Override
+        public Object asMap_getElement(int element) {
+            throw new Error();
+        }
 
-		@Override
-		public Object asMap_setElement(int element, Object v) {
-			throw new Error();
-		}
+        @Override
+        public Object asMap_setElement(int element, Object v) {
+            throw new Error();
+        }
 
-		@Override
-		@HiddenInAutocomplete
-		public boolean asMap_isProperty(String p) {
-			if (Dict.Canonical.findCanon(p) != null) return true;
+        @Override
+        @HiddenInAutocomplete
+        public boolean asMap_isProperty(String p) {
+            if (Dict.Canonical.findCanon(p) != null) return true;
 
-			if (knownNonProperties == null) knownNonProperties = computeKnownNonProperties();
+            if (knownNonProperties == null) knownNonProperties = computeKnownNonProperties();
 
-			return !knownNonProperties.contains(p);
+            return !knownNonProperties.contains(p);
 
-		}
+        }
 
-		protected Set<String> computeKnownNonProperties() {
-			Set<String> r = new LinkedHashSet<>();
-			Method[] m = this.getClass()
-					 .getMethods();
-			for (Method mm : m)
-				r.add(mm.getName());
-			Field[] f = this.getClass()
-					.getFields();
-			for (Field ff : f)
-				r.add(ff.getName());
-			return r;
-		}
+        protected Set<String> computeKnownNonProperties() {
+            Set<String> r = new LinkedHashSet<>();
+            Method[] m = this.getClass()
+                    .getMethods();
+            for (Method mm : m)
+                r.add(mm.getName());
+            Field[] f = this.getClass()
+                    .getFields();
+            for (Field ff : f)
+                r.add(ff.getName());
+            return r;
+        }
 
-		public Node toMoveTo() {
-			MoveTo m = new MoveTo(new Vec3(this.to));
-			m.attributes.putAll(attributes.duplicate());
-			return m;
-		}
+        public Node toMoveTo() {
+            MoveTo m = new MoveTo(new Vec3(this.to));
+            m.attributes.putAll(attributes.duplicate());
+            return m;
+        }
 
-		public void modify() {
-			FLine.this.modify();
-		}
+        public void modify() {
+            FLine.this.modify();
+        }
 
-		public void setZ(float z) {
-			this.to.z = z;
-		}
-	}
+        public void setZ(float z) {
+            this.to.z = z;
+        }
+    }
 
-	public class BookmarkCache {
-		MeshBuilder.Bookmark start;
-		MeshBuilder.Bookmark end;
+    public class BookmarkCache {
+        MeshBuilder.Bookmark start;
+        MeshBuilder.Bookmark end;
 
-		public BookmarkCache(MeshBuilder on) {
-			start = on.bookmark();
-			end = on.bookmark();
-		}
-	}
+        public BookmarkCache(MeshBuilder on) {
+            start = on.bookmark();
+            end = on.bookmark();
+        }
+    }
 
-	public class MoveTo extends Node {
+    public class MoveTo extends Node {
 
-		public MoveTo(Vec3 to) {
-			super(to);
-		}
+        public MoveTo(Vec3 to) {
+            super(to);
+        }
 
-		public MoveTo(double x, double y, double z) {
-			super(new Vec3(x, y, z));
-		}
+        public MoveTo(double x, double y, double z) {
+            super(new Vec3(x, y, z));
+        }
 
-		public MoveTo(Vec2 to) {
-			super(new Vec3(to.x, to.y, 0));
-		}
+        public MoveTo(Vec2 to) {
+            super(new Vec3(to.x, to.y, 0));
+        }
 
-		@Override
-		public Node duplicate() {
-			MoveTo l = new MoveTo(to);
-			l.attributes.putAll(attributes.duplicate());
-			return l;
-		}
+        @Override
+        public Node duplicate() {
+            MoveTo l = new MoveTo(to);
+            l.attributes.putAll(attributes.duplicate());
+            return l;
+        }
 
-		@Override
-		public String toString() {
-			return "m[" + to.x + "," + to.y + "," + to.z + "]";
-		}
-	}
+        @Override
+        public String toString() {
+            return "m[" + to.x + "," + to.y + "," + to.z + "]";
+        }
+    }
 
-	public class LineTo extends Node {
-		public LineTo(Vec3 to) {
-			super(to);
-		}
+    public class LineTo extends Node {
+        public LineTo(Vec3 to) {
+            super(to);
+        }
 
-		public LineTo(Vec2 to) {
-			super(to.x, to.y, 0);
-		}
+        public LineTo(Vec2 to) {
+            super(to.x, to.y, 0);
+        }
 
-		public LineTo(double x, double y, double z) {
-			super(x, y, z);
-		}
+        public LineTo(double x, double y, double z) {
+            super(x, y, z);
+        }
 
-		@Override
-		public Node duplicate() {
-			LineTo l = new LineTo(to);
-			l.attributes.putAll(attributes.duplicate());
-			return l;
-		}
+        @Override
+        public Node duplicate() {
+            LineTo l = new LineTo(to);
+            l.attributes.putAll(attributes.duplicate());
+            return l;
+        }
 
-		@Override
-		public String toString() {
-			return "l[" + to.x + "," + to.y + "," + to.z + "]";
-		}
-	}
+        @Override
+        public String toString() {
+            return "l[" + to.x + "," + to.y + "," + to.z + "]";
+        }
+    }
 
-	public class CubicTo extends Node {
-		public final Vec3 c1;
-		public final Vec3 c2;
+    public class CubicTo extends Node {
+        public final Vec3 c1;
+        public final Vec3 c2;
 
-		public CubicTo(Vec3 c1, Vec3 c2, Vec3 to) {
-			super(to);
-			this.c1 = new Vec3(c1);
-			this.c2 = new Vec3(c2);
-		}
+        public CubicTo(Vec3 c1, Vec3 c2, Vec3 to) {
+            super(to);
+            this.c1 = new Vec3(c1);
+            this.c2 = new Vec3(c2);
+        }
 
-		public CubicTo(Vec2 c1, Vec2 c2, Vec2 to) {
-			super(to.x, to.y, 0);
-			this.c1 = new Vec3(c1.x, c1.y, 0);
-			this.c2 = new Vec3(c2.x, c2.y, 0);
-		}
+        public CubicTo(Vec2 c1, Vec2 c2, Vec2 to) {
+            super(to.x, to.y, 0);
+            this.c1 = new Vec3(c1.x, c1.y, 0);
+            this.c2 = new Vec3(c2.x, c2.y, 0);
+        }
 
-		public CubicTo(double c1x, double c1y, double c1z, double c2x, double c2y, double c2z, double x, double y, double z) {
-			super(x, y, z);
-			this.c1 = new Vec3(c1x, c1y, c1z);
-			this.c2 = new Vec3(c2x, c2y, c2z);
-		}
+        public CubicTo(double c1x, double c1y, double c1z, double c2x, double c2y, double c2z, double x, double y, double z) {
+            super(x, y, z);
+            this.c1 = new Vec3(c1x, c1y, c1z);
+            this.c2 = new Vec3(c2x, c2y, c2z);
+        }
 
-		@Override
-		public void transform(Function<Vec3, Vec3> by) {
-			super.transform(by);
-			this.c1.set(by.apply(c1));
-			this.c2.set(by.apply(c2));
-		}
+        @Override
+        public void transform(Function<Vec3, Vec3> by) {
+            super.transform(by);
+            this.c1.set(by.apply(c1));
+            this.c2.set(by.apply(c2));
+        }
 
-		@Override
-		public Node duplicate() {
-			CubicTo l = new CubicTo(c1, c2, to);
-			l.attributes.putAll(attributes.duplicate());
-			return l;
-		}
+        @Override
+        public Node duplicate() {
+            CubicTo l = new CubicTo(c1, c2, to);
+            l.attributes.putAll(attributes.duplicate());
+            return l;
+        }
 
-		@Override
-		public String toString() {
-			return "c[" + c1.x + "," + c1.y + "," + c1.z + ";" + c2.x + "," + c2.y + "," + c2.z + ";" + to.x + "," + to.y + "," + to.z + "]";
-		}
+        @Override
+        public String toString() {
+            return "c[" + c1.x + "," + c1.y + "," + c1.z + ";" + c2.x + "," + c2.y + "," + c2.z + ";" + to.x + "," + to.y + "," + to.z + "]";
+        }
 
-		public void setZ(float z) {
-			this.to.z = z;
-			this.c1.z = z;
-			this.c2.z = z;
-		}
+        public void setZ(float z) {
+            this.to.z = z;
+            this.c1.z = z;
+            this.c2.z = z;
+        }
 
-	}
-
-	@Override
-	public String toString() {
-		return "FLine (with " + nodes.size() + " node" + (nodes.size() == 1 ? "" : "s") + ")";
-	}
-
-
-	private void writeObject(ObjectOutputStream out) throws IOException {
-//		FLineSerializationHelper.writeObject(this, out);
-	}
-
-	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-		nodes = new ArrayList<>();
-		attributes = new Dict();
-		cache = new WeakHashMap<>();
-		cache_thickening = new WeakHashMap<>();
-
-//		FLineSerializationHelper.readObject(this, in);
-
-	}
+    }
 }
