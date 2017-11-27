@@ -13,6 +13,7 @@ import field.utility.Log;
 import field.utility.MarkdownToHTML;
 import field.utility.Pair;
 import fieldagent.Trampoline;
+import fielded.boxbrowser.TransientCommands;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 import fieldnashorn.annotations.JavaDocOnly;
 import fieldnashorn.annotations.SafeToToString;
@@ -52,7 +53,7 @@ public class JavaSupport {
 
     Map<String, String> allClassNames = new LinkedHashMap<>();
 
-    Set<String> srcZipsDeltWith = new LinkedHashSet<>();
+    static public Set<String> srcZipsDeltWith = new LinkedHashSet<>();
 
     public JavaSupport() {
         javaSupport = this;
@@ -210,7 +211,6 @@ public class JavaSupport {
         DirectoryScanner scanner = new DirectoryScanner(new File(p));
         scanner.addFilter(new SuffixFilter(".java"));
 
-
         scanner.scan(new com.thoughtworks.qdox.directorywalker.FileVisitor() {
             public void visitFile(File currentFile) {
                 try {
@@ -241,7 +241,10 @@ public class JavaSupport {
         signature = signature.replace(" public ", " ");
         signature = signature.replace(" final ", " ");
         signature = signature.replace(" static ", " ");
-//		signature = signature.replace(" void ", " ");
+        signature = signature.replace("double ",  "");
+        signature = signature.replace("float ", "");
+
+        //		signature = signature.replace(" void ", " ");
 
         signature = signature.trim();
         String[] leader = signature.split(" ");
@@ -504,6 +507,8 @@ public class JavaSupport {
                                 String comment = ((classComment == null ? "" : classComment) + " " + (constructorComment == null ? "" : constructorComment))
                                         .trim();
 
+                                comment = MarkdownToHTML.convert(comment);
+
                                 Completion cc = new Completion(-1, -1, m.getName(),
                                                                val + "<span class=type>" + compress(m.getName(),
                                                                                                     "(" + m.getParameters()
@@ -560,8 +565,7 @@ public class JavaSupport {
                                                            val + "<span class=type>" + compress(m.getName(),
                                                                                                 m.getDeclarationSignature(
                                                                                                         true)) + "</span>" + (annotationDoc != null ? ("<span class=type>&nbsp;&mdash;</span> <span class=doc>" + annotationDoc + "</span>") : (m
-                                                                   .getComment() != null ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + m
-                                                                   .getComment() + "</span>" : "")));
+                                                                   .getComment() != null ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + MarkdownToHTML.unwrapFirstParagraph(MarkdownToHTML.convert(m.getComment())) + "</span>" : "")));
                             add(val.length() > 0, r, cc);
                             cc.rank += tostring ? 100 : 0;
                             cc.rank += m.getComment() != null ? 10 : 0;
@@ -603,8 +607,7 @@ public class JavaSupport {
                             Completion cc = new Completion(-1, -1, m.getName(),
                                                            val + "<span class=type>" + getDeclarationSignature(c,
                                                                                                                m) + "</span>" + (annotationDoc != null ? ("<span class=type>&nbsp;&mdash;</span> <span class=doc>" + annotationDoc + "</span>") : (m
-                                                                   .getComment() != null ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + m
-                                                                   .getComment() + "</span>" : "")));
+                                                                   .getComment() != null ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + MarkdownToHTML.unwrapFirstParagraph(MarkdownToHTML.convert(m.getComment())) + "</span>" : "")));
                             add(val.length() > 0, r, cc);
                             cc.rank += tostring ? 100 : 0;
                             cc.rank += m.getComment() != null ? 10 : 0;
