@@ -19,6 +19,13 @@ import java.util.function.Supplier;
 
 public class Conversions {
 
+    static SetMultimap<List<Class>, Conversion> inputs = MultimapBuilder.linkedHashKeys()
+            .linkedHashSetValues()
+            .build();
+    static SetMultimap<List<Class>, Conversion> outputs = MultimapBuilder.linkedHashKeys()
+            .linkedHashSetValues()
+            .build();
+
     /**
      * note: this doesn't do interfaces right now
      * <p>
@@ -193,7 +200,6 @@ public class Conversions {
         return true;
     }
 
-
     static public <A, B> Pair<List<Class>, List<Class>> function(Function<A, B> f) {
         Type inter = f.getClass()
                 .getGenericInterfaces()[0];
@@ -205,27 +211,6 @@ public class Conversions {
 
         return new Pair<>(linearize(at[0]), linearize(at[1]));
     }
-
-    public static class Conversion {
-        List<Class> input;
-        List<Class> output;
-        float length;
-        String name;
-
-        Function converter;
-
-        @Override
-        public String toString() {
-            return "c<" + name + ">" + length;
-        }
-    }
-
-    static SetMultimap<List<Class>, Conversion> inputs = MultimapBuilder.linkedHashKeys()
-            .linkedHashSetValues()
-            .build();
-    static SetMultimap<List<Class>, Conversion> outputs = MultimapBuilder.linkedHashKeys()
-            .linkedHashSetValues()
-            .build();
 
     static public <A, B> void provideConversion(float length, Function<A, B> c, String name) {
         Conversion conversion = new Conversion();
@@ -347,7 +332,6 @@ public class Conversions {
         return alt;
     }
 
-
     static public Object convert(Object value, List<Class> fit) {
         String[] ei = {null};
 
@@ -376,11 +360,9 @@ public class Conversions {
         return o;
     }
 
-
     static public Object convert(Object value, Class fit) {
         return convert(value, Collections.singletonList(fit));
     }
-
 
     static protected Object _convert(Object value, List<Class> fit, Consumer<String> extraInfo) {
 
@@ -432,9 +414,26 @@ public class Conversions {
                                           (InvocationHandler) value);
         }
 
+        if (value instanceof ScriptObjectMirror && ((ScriptObjectMirror)value).isArray() && Supplier.class.isAssignableFrom(fit.get(0)) && fit.size() > 1) {
+
+            Object[] a = new Object[((ScriptObjectMirror)value).size()];
+            for(int i=0;i<((ScriptObjectMirror)value).size();i++)
+            {
+                a[i] = ((ScriptObjectMirror)value).getSlot(i);
+            }
+
+            Object newValue = _convert(a, fit.subList(1, fit.size()), extraInfo);
+            if (newValue != null && fit.get(1).isAssignableFrom(newValue.getClass()))
+                return new Supplier() {
+                    @Override
+                    public Object get() {
+                        return newValue;
+                    }
+                };
+        }
+
 
         if (value instanceof ScriptObjectMirror) return convert(ScriptUtils.unwrap(value), fit);
-
 
         if (value != null && value.getClass().getName().endsWith(".ScriptFunction")) {
 
@@ -490,6 +489,25 @@ public class Conversions {
 			}*/
         }
 
+        if (value instanceof Object[] && !fit.get(0).isInterface())
+        {
+            try {
+                Constructor c = fit.get(0).getDeclaredConstructor(new Class[]{Object[].class});
+                c.setAccessible(true);
+                if(c.isVarArgs())
+                    return c.newInstance(value);
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InstantiationException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
+        }
+
+
 
         return value;
     }
@@ -518,6 +536,20 @@ public class Conversions {
                 throw e;
             }
         };
+    }
+
+    public static class Conversion {
+        List<Class> input;
+        List<Class> output;
+        float length;
+        String name;
+
+        Function converter;
+
+        @Override
+        public String toString() {
+            return "c<" + name + ">" + length;
+        }
     }
 
 
