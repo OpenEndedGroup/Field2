@@ -396,6 +396,8 @@ public class Open {
 			new TextEditor(boxes.root()).connect(boxes.root());
 			new GlassBrowser(boxes.root()).connect(boxes.root());
 			new OutputBox(boxes.root()).connect(boxes.root());
+			new DocumentationBrowser(boxes.root()).connect(boxes.root());
+
 //			new NotificationBox(boxes.root()).connect(boxes.root());
 
 //			if (Main.os != Main.OS.windows)
