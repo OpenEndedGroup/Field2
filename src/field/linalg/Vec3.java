@@ -90,6 +90,20 @@ public class Vec3 implements Externalizable, Supplier<Vec3>, Mutable, Serializab
 		this.z = z;
 	}
 
+	protected Vec3(Object... args) {
+		if (args.length == 0) {
+		} else if (args.length == 1) {
+			this.x = this.y = this.z = ((Number) args[0]).floatValue();
+		} else if (args.length == 2) {
+			this.x = ((Number) args[0]).floatValue();
+			this.y = ((Number) args[1]).floatValue();
+		} else if (args.length > 2) {
+			this.x = ((Number) args[0]).floatValue();
+			this.y = ((Number) args[1]).floatValue();
+			this.z = ((Number) args[2]).floatValue();
+		}
+	}
+
 	/**
 	 * Create a new {@link Vec3} with the first two components from the given <code>v</code> and the given <code>z</code>
 	 *
@@ -1206,6 +1220,9 @@ public class Vec3 implements Externalizable, Supplier<Vec3>, Mutable, Serializab
 		out.writeDouble(z);
 	}
 
+	/**
+	 * checking _formatting_ of *comments*
+	 */
 	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
 		x = in.readDouble();
 		y = in.readDouble();
