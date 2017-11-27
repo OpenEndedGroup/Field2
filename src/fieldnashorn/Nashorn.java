@@ -7,6 +7,7 @@ import field.utility.Log;
 import field.utility.Pair;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Boxes;
+import fieldbox.boxes.plugins.BoxDefaultCode;
 import fielded.Animatable;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
@@ -26,6 +27,9 @@ import java.util.function.Supplier;
 public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecution> {
 
 	final public static Dict.Prop<ScriptContext> boxBindings = new Dict.Prop<ScriptContext>("_boxBindings");
+
+	final public String _stdlib = BoxDefaultCode.findSource(this.getClass(), "stdlib");
+
 	private TernSupport ternSupport;
 
 	NashornScriptEngineFactory factory = new NashornScriptEngineFactory();
@@ -206,6 +210,13 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 		en.setBindings(global, ScriptContext.GLOBAL_SCOPE);
 
 		setupInitialBindings(b, next.first);
+
+		try {
+			en.eval(_stdlib);
+		} catch (ScriptException e) {
+			System.err.println(" _stdlib threw an exception, can't be a good thing ");
+			e.printStackTrace();
+		}
 
 		NashornExecution ex = new NashornExecution(this, next.first, next.second, b, en);
 		ex.setTernSupport(ternSupport);
