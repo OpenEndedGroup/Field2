@@ -79,8 +79,6 @@ public class ErrorHelper {
 						EditorUtils ed = box.first(RemoteEditor.editorUtils, box.both()).orElseThrow(() -> new IllegalStateException(" no editortools ? "));
 						RunLoop.workerPool.submit(() -> {
 
-							int s = ed.getCursorPosition();
-
 							String[] f = p.first.split("[\\.$]");
 							String typeName = p.first.replaceAll("$", ".");
 							if (typeName.endsWith(".")) typeName = typeName.substring(0, typeName.length()-1);
