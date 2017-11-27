@@ -37,6 +37,11 @@ public class Taps extends Box implements IO.Loaded {
     static public final Dict.Prop<Binding> tapBinding = new Dict.Prop<>("tapBinding").type()
             .toCanon(); //doc!
 
+    // used by interventions
+
+        static public final Dict.Prop<Function<Double, Double>> evalInterpolation = new Dict.Prop<Function<Double, Double>>("evalInterpolation").toCanon().type();
+
+
 
     boolean selectionHasChanged = false;
     Box selectionWas = null;
