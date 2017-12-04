@@ -309,7 +309,7 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 
 
 		public List<Class> getTypeInformation() {
-			return typeInformation == null ? null : new ArrayList<Class>(typeInformation);
+			return typeInformation == null ? null : new ArrayList<>(typeInformation);
 		}
 
 		public Prop<T> findCanon() {

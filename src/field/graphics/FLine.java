@@ -1,5 +1,6 @@
 package field.graphics;
 
+import field.app.ThreadSync2;
 import field.linalg.*;
 import field.utility.*;
 import fieldbox.boxes.Box;
@@ -8,6 +9,7 @@ import fieldbox.execution.HandlesCompletion;
 import fieldbox.execution.JavaSupport;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 import jdk.nashorn.api.scripting.ScriptUtils;
+import kotlin.jvm.functions.Function1;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
@@ -26,6 +28,7 @@ import java.util.stream.Collectors;
 import static field.graphics.FLinesAndJavaShapes.flineToJavaShape;
 import static field.graphics.FLinesAndJavaShapes.javaShapeToFLine;
 import static field.graphics.StandardFLineDrawing.hint_noDepth;
+import static field.utility.Util.safeEq;
 import static fieldbox.boxes.Box.compress;
 import static fieldbox.boxes.Box.depth;
 import static fieldbox.boxes.Box.format;
@@ -1213,6 +1216,29 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		if (canon.getAttributes().isTrue(Dict.readOnly, false))
 			throw new IllegalArgumentException("can't write to property " + name);
 
+		if (value instanceof ThreadSync2.TrappedSet) {
+			Object firstValue = ((ThreadSync2.TrappedSet) value).next();
+
+			Object r = asMap_set(name, firstValue);
+
+			new Drivers().provokeCurrentFibre(System.identityHashCode(this) + "_" + name, new Function1<Object, Object>() {
+
+				Object was = null;
+
+				@Override
+				public Object invoke(Object o) {
+					if (o != null && !safeEq(was, o)) {
+						was = o;
+						modify();
+						asMap_set(name, o);
+					}
+					return o;
+				}
+			}, ((ThreadSync2.TrappedSet) value));
+
+			return r;
+		}
+
 		Function<Object, Object> c = canon.getAttributes().get(Dict.customCaster);
 		if (c != null)
 			value = c.apply(value);
@@ -1602,32 +1628,37 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 //			if (value instanceof ConsString) value = value.toString();
 			if (value != null && value.getClass().getName().endsWith("ConsString")) value = "" + value;
 
-
-//			Log.log("underscore.debug", " underscore box set :" + name + " to " + value.getClass() + " <" + Function.class.getName() + ">");
 			Dict.Prop canon = new Dict.Prop(name).toCanon();
-
-//			Log.log("underscore.debug", " canonical type information " + canon.getTypeInformation());
 
 			Object converted = convert(value, canon.getTypeInformation());
 
 			attributes.put(canon, converted);
 
-//			Log.log("underscore.debug", () -> {
-//				Log.log("underscore.debug", " PROPERTIES NOW :");
-//				for (Map.Entry<Dict.Prop, Object> q : attributes.getMap()
-//										.entrySet()) {
-//					try {
-//						Log.log("underscore.debug", "     " + q.getKey() + " = " + q.getValue());
-//					} catch (NullPointerException e) {
-//						//JDK bug JDK-8035426 --- sometimes Nashorn lambdas throw NPE's when they are .toString'd
-//					}
-//				}
-//				return null;
-//			});
+			if (value instanceof ThreadSync2.TrappedSet) {
+				Object firstValue = ((ThreadSync2.TrappedSet) value).next();
+
+				Object r = asMap_set(name, firstValue);
+
+				Drivers.provokeCurrentFibre(System.identityHashCode(this) + "_" + name, new Function1<Object, Object>() {
+
+					Object was = null;
+
+					@Override
+					public Object invoke(Object o) {
+						if (o != null && !safeEq(was, o)) {
+							was = o;
+							modify();
+							asMap_set(name, o);
+						}
+						return o;
+					}
+				}, ((ThreadSync2.TrappedSet) value));
+
+				return r;
+			}
 
 			modify();
 
-//			Log.log("node", attributes+" on "+System.identityHashCode(this)+" / "+System.identityHashCode(FLine.this));
 
 			return this;
 		}
