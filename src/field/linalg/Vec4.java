@@ -23,6 +23,7 @@
 package field.linalg;
 
 import field.utility.Mutable;
+import field.utility.OverloadedMath;
 import field.utility.Serializable_safe;
 import fieldnashorn.annotations.SafeToToString;
 
@@ -45,7 +46,7 @@ import java.util.function.Supplier;
  * with modifications and additions for Field
  */
 @SafeToToString
-public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializable_safe {
+public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializable_safe, OverloadedMath {
 
 	private static final long serialVersionUID = 1L;
 
@@ -151,7 +152,7 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 	 */
 	public Vec4(ByteBuffer buffer) {
 		this(buffer.position(), buffer);
-		buffer.position(buffer.position()+8*4);
+		buffer.position(buffer.position() + 8 * 4);
 	}
 
 	/**
@@ -181,7 +182,7 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 	 */
 	public Vec4(DoubleBuffer buffer) {
 		this(buffer.position(), buffer);
-		buffer.position(buffer.position()+4);
+		buffer.position(buffer.position() + 4);
 	}
 
 	/**
@@ -211,7 +212,7 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 	 */
 	public Vec4(FloatBuffer buffer) {
 		this(buffer.position(), buffer);
-		buffer.position(buffer.position()+4);
+		buffer.position(buffer.position() + 4);
 	}
 
 	/**
@@ -736,7 +737,7 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 			dest.w = mat.m03 * x + mat.m13 * y + mat.m23 * z + mat.m33 * w;
 		} else {
 			dest.set(mat.m00 * x + mat.m10 * y + mat.m20 * z + mat.m30 * w, mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31 * w, mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32 * w,
-				 mat.m03 * x + mat.m13 * y + mat.m23 * z + mat.m33 * w);
+				mat.m03 * x + mat.m13 * y + mat.m23 * z + mat.m33 * w);
 		}
 		return dest;
 	}
@@ -1004,7 +1005,7 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 	}
 
 	public String toString() {
-		return "["+x+", "+y+", "+z+", "+w+"]";
+		return "[" + x + ", " + y + ", " + z + ", " + w + "]";
 	}
 
 	/**
@@ -1015,7 +1016,7 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 	 */
 	public String toString(NumberFormat formatter) {
 		return "(" + formatter.format(x) + " " + formatter.format(y) + " " + formatter.format(z) + " " + formatter.format(
-			    w) + ")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+			w) + ")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 	}
 
 	public void writeExternal(ObjectOutput out) throws IOException {
@@ -1112,7 +1113,7 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 	 *
 	 * @param a the first vector
 	 * @param b the second vector
-	 * @param t     the interpolation factor between 0.0 and 1.0
+	 * @param t the interpolation factor between 0.0 and 1.0
 	 * @return this
 	 */
 	public Vec4 lerp(Vec4 a, Vec4 b, double t) {
@@ -1360,13 +1361,142 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 		return this;
 	}
 
-	/** adds a uniformly distributed random number from -amount to amount to each dimension */
-	public void noise(float amount)
-	{
-		x+= 2*amount*(Math.random()-0.5f);
-		y+= 2*amount*(Math.random()-0.5f);
-		z+= 2*amount*(Math.random()-0.5f);
-		w+= 2*amount*(Math.random()-0.5f);
+	/**
+	 * adds a uniformly distributed random number from -amount to amount to each dimension
+	 */
+	public void noise(float amount) {
+		x += 2 * amount * (Math.random() - 0.5f);
+		y += 2 * amount * (Math.random() - 0.5f);
+		z += 2 * amount * (Math.random() - 0.5f);
+		w += 2 * amount * (Math.random() - 0.5f);
 	}
 
+
+	@Override
+	public Object __sub__(Object b) {
+		Vec4 c = convertToVec4(b);
+		if (c != null)
+			return new Vec4(this.x - c.x, this.y - c.y, this.z - c.z, this.w - c.w);
+
+		if (b instanceof Quat) {
+			return ((Quat) b).invert(new Quat()).transform(this, new Vec4());
+		}
+		if (b instanceof Vec4) {
+			return this.sub((Vec4) b);
+		}
+		if (b instanceof OverloadedMath)
+			return ((OverloadedMath) b).__rsub__(this);
+
+		throw new ClassCastException(" can't subtract '" + b + "' by a Vec3 (" + this + ")");
+
+	}
+
+	@Override
+	public Object __rsub__(Object b) {
+		Vec4 c = convertToVec4(b);
+		if (c != null)
+			return new Vec4(c.x - this.x, c.y - this.y, c.z - this.z, c.w - this.w);
+
+		if (b instanceof Quat) {
+			return ((Quat) b).transform(this, new Vec4());
+		}
+		if (b instanceof Vec4) {
+			return this.mul(-1).add((Vec4) b);
+		}
+
+
+		throw new ClassCastException(" can't subtract '" + b + "' by a Vec3 (" + this + ")");
+
+	}
+
+	@Override
+	public Object __add__(Object b) {
+		Vec4 c = convertToVec4(b);
+		if (c != null)
+			return new Vec4(this.x + c.x, this.y + c.y, this.z + c.z, this.w + c.w);
+
+		if (b instanceof Quat) {
+			return ((Quat) b).transform(this, new Vec4());
+		}
+		if (b instanceof Vec4) {
+			return this.add((Vec4) b);
+		}
+
+		if (b instanceof OverloadedMath)
+			return ((OverloadedMath) b).__radd__(this);
+
+		throw new ClassCastException(" can't add '" + b + "' by a Vec3 (" + this + ")");
+
+	}
+
+	@Override
+	public Object __radd__(Object b) {
+		Vec4 c = convertToVec4(b);
+		if (c != null)
+			return new Vec4(this.x + c.x, this.y + c.y, this.z + c.z, this.w + c.w);
+
+		if (b instanceof Quat) {
+			return ((Quat) b).invert(new Quat()).transform(this, new Vec4());
+		}
+
+		if (b instanceof Vec4) {
+			return this.add((Vec4) b);
+		}
+
+		throw new ClassCastException(" can't add '" + b + "' by a Vec3 (" + this + ")");
+
+	}
+
+	@Override
+	public Object __mul__(Object b) {
+		if (b instanceof Number)
+			return new Vec4(this.x * ((Number) b).doubleValue(), this.y * ((Number) b).doubleValue(), this.z * ((Number) b).doubleValue(), this.w);
+
+		Vec4 c = convertToVec4(b);
+		if (c != null)
+			return new Vec4(this.x * c.x, this.y * c.y, this.z * c.z, this.w * c.w);
+
+		if (b instanceof Quat) {
+			return ((Quat) b).transform(this, new Vec4());
+		}
+
+		if (b instanceof Vec4) {
+			return this.mul((Vec4) b);
+		}
+
+		if (b instanceof OverloadedMath)
+			return ((OverloadedMath) b).__rmul__(this);
+
+		throw new ClassCastException(" can't multiply '" + b + "' by a Vec3 (" + this + ")");
+	}
+
+	@Override
+	public Object __rmul__(Object b) {
+		if (b instanceof Number)
+			return new Vec4(this.x * ((Number) b).doubleValue(), this.y * ((Number) b).doubleValue(), this.z * ((Number) b).doubleValue(), this.w);
+
+		Vec4 c = convertToVec4(b);
+		if (c != null)
+			return new Vec4(this.x * c.x, this.y * c.y, this.z * c.z, this.w * c.w);
+
+		if (b instanceof Quat) {
+			return ((Quat) b).invert(new Quat()).transform(this, new Vec4());
+		}
+
+		if (b instanceof Vec4) {
+			return this.mul((Vec4) b);
+		}
+
+		throw new ClassCastException(" can't multiply '" + b + "' by a Vec3 (" + this + ")");
+
+	}
+
+	private Vec4 convertToVec4(Object b) {
+		if (b instanceof Vec4) return (Vec4) b;
+		if (b instanceof Vec3) return ((Vec3) b).toVec4();
+		if (b instanceof Vec2) return ((Vec2) b).toVec4();
+		if (b instanceof Number)
+			return new Vec4(((Number) b).doubleValue(), ((Number) b).doubleValue(), ((Number) b).doubleValue(), 1);
+		return null;
+	}
 }

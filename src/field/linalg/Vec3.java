@@ -23,6 +23,7 @@
 package field.linalg;
 
 import field.utility.Mutable;
+import field.utility.OverloadedMath;
 import field.utility.Serializable_safe;
 import fieldnashorn.annotations.SafeToToString;
 
@@ -45,7 +46,7 @@ import java.util.function.Supplier;
  * with modifications and additions for Field
  */
 @SafeToToString
-public class Vec3 implements Externalizable, Supplier<Vec3>, Mutable, Serializable_safe {
+public class Vec3 implements Externalizable, Supplier<Vec3>, Mutable, Serializable_safe, OverloadedMath {
 
 	private static final long serialVersionUID = 1L;
 
@@ -1691,4 +1692,132 @@ public class Vec3 implements Externalizable, Supplier<Vec3>, Mutable, Serializab
 	}
 
 
+	// todo: matrix?
+
+	@Override
+	public Object __sub__(Object b) {
+		Vec3 c = convertToVec3(b);
+		if (c != null)
+			return new Vec3(this.x - c.x, this.y - c.y, this.z - c.z);
+
+		if (b instanceof Quat) {
+			return ((Quat) b).invert(new Quat()).transform(this, new Vec3());
+		}
+		if (b instanceof Vec4) {
+			return this.toVec4().sub((Vec4) b);
+		}
+		if (b instanceof OverloadedMath)
+			return ((OverloadedMath)b).__rsub__(this);
+
+		throw new ClassCastException(" can't subtract '"+b+"' by a Vec3 ("+this+")");
+
+	}
+
+	@Override
+	public Object __rsub__(Object b) {
+		Vec3 c = convertToVec3(b);
+		if (c != null)
+			return new Vec3(c.x - this.x, c.y - this.y, c.z - this.z);
+		if (b instanceof Quat) {
+			return ((Quat) b).transform(this, new Vec3());
+		}
+		if (b instanceof Vec4) {
+			return this.toVec4().mul(-1).add((Vec4) b);
+		}
+
+
+		throw new ClassCastException(" can't subtract '" + b + "' by a Vec3 (" + this + ")");
+
+	}
+
+	@Override
+	public Object __add__(Object b) {
+		Vec3 c = convertToVec3(b);
+		if (c != null)
+			return new Vec3(this.x + c.x, this.y + c.y, this.z + c.z);
+
+		if (b instanceof Quat) {
+			return ((Quat) b).transform(this, new Vec3());
+		}
+		if (b instanceof Vec4) {
+			return this.toVec4().add((Vec4) b);
+		}
+
+		if (b instanceof OverloadedMath)
+			return ((OverloadedMath) b).__radd__(this);
+
+		throw new ClassCastException(" can't add '" + b + "' by a Vec3 (" + this + ")");
+
+	}
+
+	@Override
+	public Object __radd__(Object b) {
+		Vec3 c = convertToVec3(b);
+		if (c != null)
+			return new Vec3(this.x + c.x, this.y + c.y, this.z + c.z);
+
+		if (b instanceof Quat) {
+			return ((Quat) b).invert(new Quat()).transform(this, new Vec3());
+		}
+
+		if (b instanceof Vec4) {
+			return this.toVec4().add((Vec4) b);
+		}
+
+		throw new ClassCastException(" can't add '" + b + "' by a Vec3 (" + this + ")");
+
+	}
+
+	@Override
+	public Object __mul__(Object b) {
+		if (b instanceof Number)
+			return new Vec3(this).mul(((Number) b).doubleValue());
+
+		Vec3 c = convertToVec3(b);
+		if (c != null)
+			return new Vec3(this.x * c.x, this.y * c.y, this.z * c.z);
+
+		if (b instanceof Quat) {
+			return ((Quat) b).transform(this, new Vec3());
+		}
+
+		if (b instanceof Vec4) {
+			return this.toVec4().mul((Vec4) b);
+		}
+
+		if (b instanceof OverloadedMath)
+			return ((OverloadedMath) b).__rmul__(this);
+
+		throw new ClassCastException(" can't multiply '" + b + "' by a Vec3 (" + this + ")");
+	}
+
+	@Override
+	public Object __rmul__(Object b) {
+		if (b instanceof Number)
+			return new Vec3(this).mul(((Number) b).doubleValue());
+
+		Vec3 c = convertToVec3(b);
+		if (c != null)
+			return new Vec3(this.x * c.x, this.y * c.y, this.z * c.z);
+
+		if (b instanceof Quat) {
+			return ((Quat) b).invert(new Quat()).transform(this, new Vec3());
+		}
+
+		if (b instanceof Vec4) {
+			return this.toVec4().mul((Vec4) b);
+		}
+
+		throw new ClassCastException(" can't multiply '" + b + "' by a Vec3 (" + this + ")");
+
+	}
+
+	private Vec3 convertToVec3(Object b) {
+		if (b instanceof Vec3) return (Vec3) b;
+		if (b instanceof Vec2) return ((Vec2) b).toVec3();
+		if (b instanceof Number)
+			return new Vec3(((Number) b).doubleValue(), ((Number) b).doubleValue(), ((Number) b).doubleValue());
+		// Vec4 — ??
+		return null;
+	}
 }
