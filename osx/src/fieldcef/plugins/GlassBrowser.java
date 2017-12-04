@@ -42,8 +42,8 @@ public class GlassBrowser extends Box implements IO.Loaded {
 	String styleSheet = "field-codemirror.css";
 
 	// we'll need to make sure that this is centered on larger screens
-	int maxw = 500-25;
-	int maxh = 550-25;
+	int maxw = 500 - 25;
+	int maxh = 550 - 25;
 	public Browser browser;
 	public String styles;
 
@@ -100,15 +100,13 @@ public class GlassBrowser extends Box implements IO.Loaded {
 			.attach(x -> {
 				boolean is = keyboardFocus.isFocused(browser);
 
-				if (wasFocus[0] && !is)
-				{
+				if (wasFocus[0] && !is) {
 					System.out.println(" hiding on negative edge of keyboard focus");
 					hide();
 				}
 				wasFocus[0] = is;
 				return true;
 			});
-
 
 
 		// I've been looking forward to this for a while
@@ -141,18 +139,17 @@ public class GlassBrowser extends Box implements IO.Loaded {
 
 
 		tick = 0;
-		RunLoop.main.getLoop()
-			.attach(x -> {
-				tick++;
-				if (browser.browser.getURL()
-					.equals("http://localhost:" + s.port + "/" + res)) {
-					inject2();
-					return false;
-				}
-				Log.log("glassBrowser.boot", () -> "WAITING url:" + browser.browser.getURL());
-				Drawing.dirty(this);
-				return true;
-			});
+		RunLoop.main.getLoop().attach(x -> {
+			tick++;
+			if (browser.browser.getURL()
+				.equals("http://localhost:" + s.port + "/" + res)) {
+				RunLoop.main.delayTicks(() -> inject2(), 5);
+				return false;
+			}
+			Log.log("glassBrowser.boot", () -> "WAITING url:" + browser.browser.getURL());
+			Drawing.dirty(this);
+			return true;
+		});
 
 		Drawing.dirty(this);
 	}
@@ -204,8 +201,6 @@ public class GlassBrowser extends Box implements IO.Loaded {
 			}
 			ret.accept("OK");
 		});
-
-
 
 
 		browser.addHandler(x -> x.equals("call.alternative"), (address, payload, ret) -> {
@@ -288,19 +283,16 @@ public class GlassBrowser extends Box implements IO.Loaded {
 		Runnable found = null;
 		Set<Map.Entry<String, String>> e = commandHelper.callTableName.entrySet();
 		for (Map.Entry<String, String> ee : e) {
-			if (ee.getValue().toLowerCase().equals(rename.toLowerCase()))
-			{
+			if (ee.getValue().toLowerCase().equals(rename.toLowerCase())) {
 				found = commandHelper.callTable.get(ee.getKey());
 				break;
 			}
 		}
-		if (found==null)
-		{
+		if (found == null) {
 			return false;
 		}
 
-		if (!(found instanceof RemoteEditor.ExtendedCommand))
-		{
+		if (!(found instanceof RemoteEditor.ExtendedCommand)) {
 			found.run();
 			return false;
 		}
@@ -349,11 +341,11 @@ public class GlassBrowser extends Box implements IO.Loaded {
 
 	private String findAndLoad(String f, boolean append) {
 
-		String[] roots = {Main.app + "/modules/fieldcore/resources/", Main.app + "/modules/fieldcef_macosx/resources/", Main.app+"/lib/web/", Main.app+"/osx/lib/web/"};
+		String[] roots = {Main.app + "/modules/fieldcore/resources/", Main.app + "/modules/fieldcef_macosx/resources/", Main.app + "/lib/web/", Main.app + "/osx/lib/web/"};
 		for (String s : roots) {
 			if (new File(s + "/" + f).exists()) return readFile(s + "/" + f, append);
 		}
-		Log.log("glassbrowser.error", () -> this.getClass()+" Couldnt' find file in playlist :" + f);
+		Log.log("glassbrowser.error", () -> this.getClass() + " Couldnt' find file in playlist :" + f);
 		return null;
 	}
 
