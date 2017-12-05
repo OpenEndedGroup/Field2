@@ -21,5 +21,6 @@
     <orderEntry type="library" name="rt" level="application" />
     <orderEntry type="library" name="lwjgl-openvr" level="project" />
     <orderEntry type="library" name="lwjgl-tinyfd" level="project" />
+    <orderEntry type="library" name="gumtree (2)" level="project" />
   </component>
 </module>
