@@ -198,6 +198,21 @@ public class TimeSlider extends Box {
 	}
 
 	/**
+	 * returns the list of boxes that this Time Slider could intersect with at time 't'
+	 *
+	 * @return
+	 */
+	public List<Box> intersectsWith(double t) {
+		List<Box> nx = population().filter(x -> !x.properties.isTrue(Chorder.nox, false))
+				.filter(x -> x.properties.get(frame)
+						.intersectsX(t))
+				.collect(Collectors.toList());
+
+		return nx;
+	}
+
+
+	/**
 	 * builds the initiator object for this "begin" call. This can be used to get at the object that caused this "animation" to begin.
 	 *
 	 * @param b
