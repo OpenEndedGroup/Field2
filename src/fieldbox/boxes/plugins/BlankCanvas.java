@@ -28,7 +28,7 @@ public class BlankCanvas extends Box {
 
 			if (RunLoop.tick<1) return new FLine();
 
-			if (root.children().stream().filter(x -> x.properties.has(Box.frame)).count()>2) return new FLine();
+			if (root.children().stream().filter(x -> x.properties.has(Box.frame)).count()>1) return new FLine();
 
 
 			Rect m = this.find(Drawing.drawing, this.both()).findFirst().map(x -> x.getCurrentViewBounds(this)).orElseGet(() -> new Rect(0,0,100,100));
@@ -54,7 +54,7 @@ public class BlankCanvas extends Box {
 
 			if (RunLoop.tick<1) return new FLine();
 
-			if (root.children().stream().filter(x -> x.properties.has(Box.frame)).count()>2) return new FLine();
+			if (root.children().stream().filter(x -> x.properties.has(Box.frame)).count()>1) return new FLine();
 
 			Rect m = this.find(Drawing.drawing, this.both()).findFirst().map(x -> x.getCurrentViewBounds(this)).orElseGet(() -> new Rect(0,0,100,100));
 
@@ -79,7 +79,7 @@ public class BlankCanvas extends Box {
 
 			if (RunLoop.tick<1) return new FLine();
 
-			if (root.children().stream().filter(x -> x.properties.has(Box.frame)).count()>2) return new FLine();
+			if (root.children().stream().filter(x -> x.properties.has(Box.frame)).count()>1) return new FLine();
 
 			Rect m = this.find(Drawing.drawing, this.both()).findFirst().map(x -> x.getCurrentViewBounds(this)).orElseGet(() -> new Rect(0,0,100,100));
 

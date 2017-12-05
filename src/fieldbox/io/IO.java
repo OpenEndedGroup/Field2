@@ -697,11 +697,14 @@ public class IO {
 	}
 
 	static private File sanitizeName(File filename) {
-
-		String f = filename.getAbsolutePath();
+		String f = filename.getName();
 		f = f.replaceAll(">", "_");
-		f = f.replaceAll("\\?", "_");
-		return new File(f);
+		f = f.replaceAll("\\?", "_query_");
+		f = f.replaceAll("\\*", "_star_");
+		f = f.replaceAll("\\:", "_colon_");
+		f = f.replaceAll("\\\\", "_backslash_");
+		f = f.replaceAll("\\/", "_slash_");
+		return new File(filename.getParent(), f);
 	}
 
 	public File filenameFor(String value) {
@@ -718,14 +721,14 @@ public class IO {
 
 	public File filenameFor(String defaultPrefix, String value) {
 		if (value.startsWith(TEMPLATES)) {
-			return new File(templateDirectory,
-					/*safe*/(value.substring(TEMPLATES.length())));
+			return sanitizeName(new File(templateDirectory,
+					/*safe*/(value.substring(TEMPLATES.length()))));
 		}
 		if (value.startsWith(WORKSPACE)) {
-			return new File(defaultDirectory,
-					/*safe*/(value.substring(WORKSPACE.length())));
+			return sanitizeName(new File(defaultDirectory,
+					/*safe*/(value.substring(WORKSPACE.length()))));
 		}
-		return filenameFor(defaultPrefix + "/" + value);
+		return sanitizeName(filenameFor(defaultPrefix + "/" + value));
 	}
 
 	private String safe(String filename) {

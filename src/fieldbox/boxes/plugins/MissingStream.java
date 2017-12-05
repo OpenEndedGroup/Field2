@@ -4,7 +4,6 @@ import field.utility.Conversions;
 import field.utility.Dict;
 import field.utility.Util;
 import fieldbox.boxes.Box;
-import fieldlinker.Linker;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -98,7 +97,7 @@ public class MissingStream extends Box {
 		@Override
 		public Object asMap_get(String p) {
 			Dict.Prop<FilteredLogStream> pp = new Dict.Prop<>("__filteredLogStreamMap_" + prefix + "_" + p);
-			try (Util.ExceptionlessAutoCloasable $ = Missing.pause()) {
+			try (Util.ExceptionlessAutoClosable $ = Missing.pause()) {
 				Object o = at.asMap_get(pp.getName());
 				if (o == null) {
 					if (suppliesPredicate == null) at.properties.put(pp, ((FilteredLogStream) (o = new FilteredLogStream())));

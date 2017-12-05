@@ -178,6 +178,9 @@ public class SimpleCanvas extends Box implements IO.Loaded {
 		this.drawingToCanvas = x -> new Vec2(x).sub(new Vec2(properties.get(Box.frame).x, properties.get(Box.frame).y));
 
 		this.properties.putToMap(FLineDrawing.frameDrawing, "__canvas__", FrameChangedHash.getCached(this, (a, b) -> {
+
+			if (noFrame) return new FLine();
+
 			FLine m = new FLine().rect(this.properties.get(Box.frame));
 			m.attributes.put(StandardFLineDrawing.filled, true);
 			m.attributes.put(StandardFLineDrawing.fillColor, new Vec4(0, 0, 0, 0.1));
@@ -211,9 +214,13 @@ public class SimpleCanvas extends Box implements IO.Loaded {
 		Optional<Triple<Object, java.util.List<String>, List<Pair<Integer, String>>>> ret
 			= this.find(Exec.exec, this.upwards()).findFirst().map(x -> x.apply(this, m));
 
+		System.out.println(" ran preamble and got :"+ret);
+
 		this.properties.put(FrameManipulation.lockHeight, true);
 		this.properties.put(FrameManipulation.lockWidth, true);
 	}
+
+	public boolean noFrame = false;
 
 
 	static public SimpleCanvas makeNewCanvas(String name, Box parent, Rect canvas) {
@@ -239,6 +246,9 @@ public class SimpleCanvas extends Box implements IO.Loaded {
 		cc.properties.put(Box.frame, canvas);
 
 		cc.properties.putToMap(FLineDrawing.frameDrawing, "__canvas__", FrameChangedHash.getCached(parent, (a, b) -> {
+
+			if (cc.noFrame) return new FLine();
+
 			FLine m = new FLine().rect(cc.properties.get(Box.frame));
 			m.attributes.put(StandardFLineDrawing.filled, true);
 			m.attributes.put(StandardFLineDrawing.fillColor, new Vec4(0, 0, 0, 0.1));

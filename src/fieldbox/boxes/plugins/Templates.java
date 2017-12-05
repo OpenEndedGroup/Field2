@@ -81,6 +81,8 @@ public class Templates extends Box implements IO.Loaded {
 				Set<Box> c = loadBox(path, box.properties.get(Box.frame)
 					.convert(0.9, 0.9));
 
+				if (c.size()==0) return null;
+
 				c.iterator().next().properties.put(Box.name, name);
 
 				c.forEach(cc -> IO.uniqifyIfNecessary(root, cc));

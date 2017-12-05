@@ -46,6 +46,34 @@ public class SimpleVoronoi {
 		return site;
 	}
 
+	public Pnt[] getContourForSite(Vec2 center, Pnt sitex) {
+		HashSet<Pnt> done = new HashSet<Pnt>(initialTriangle);
+		for (Triangle triangle : dt)
+			for (Pnt site : triangle) {
+				if (done.contains(site))
+					continue;
+				done.add(site);
+				List<Triangle> list = dt.surroundingTriangles(site, triangle);
+				Pnt[] vertices = new Pnt[list.size()];
+				int i = 0;
+				for (Triangle tri : list)
+					vertices[i++] = tri.getCircumcenter();
+				// draw(vertices, withFill ? getColor(site) :
+				// null);
+				if (site == sitex)
+				{
+					Pnt[] pp = new Pnt[vertices.length];
+					for(int ii=0;ii<vertices.length;ii++)
+					{
+						pp[ii] = new Pnt(vertices[ii].coordinates[0]+center.x, vertices[ii].coordinates[1]+center.y);
+					}
+					return pp;
+				}
+			}
+		return null;
+	}
+
+
 	public Pnt[] getContourForSite(Pnt sitex) {
 		HashSet<Pnt> done = new HashSet<Pnt>(initialTriangle);
 		for (Triangle triangle : dt)
@@ -115,7 +143,9 @@ public class SimpleVoronoi {
 		return f;
 	}
 
-	static public class ArraySet<E> extends AbstractSet<E> {
+
+
+    static public class ArraySet<E> extends AbstractSet<E> {
 
 		private ArrayList<E> items; // Items of the set
 

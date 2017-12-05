@@ -21,7 +21,7 @@ import java.util.function.Supplier;
 /**
  *
  */
-public class Linker extends GuardingDynamicLinkerExporter implements GuardingDynamicLinker, GuardingTypeConverterFactory {
+public class Linker extends GuardingDynamicLinkerExporter implements GuardingDynamicLinker/*, GuardingTypeConverterFactory*/ {
 
 	@Override
 	public List<GuardingDynamicLinker> get() {
@@ -278,7 +278,14 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 
 				}
 			}
-		} else {
+		} else if (linkRequest.getCallSiteDescriptor()
+				.getOperation().toString().startsWith("CALL")) {
+
+				Object rec = linkRequest.getReceiver();
+
+				System.out.println(" rec for CALL is "+rec+" "+(rec!=null ? rec.getClass() : null));
+			}
+		else {
 			if (debug) {
 				System.out.println(" don't know what to do with that :" + linkRequest.getCallSiteDescriptor().getOperation()
 					.toString()+" "+linkRequest.getReceiver());
@@ -297,10 +304,10 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 		return implementingClassFor(aClass.getSuperclass());
 	}
 
-	@Override
-	public GuardedInvocation convertToType(Class<?> sourceType, Class<?> targetType, Supplier<MethodHandles.Lookup> lookupSupplier) throws Exception {
-		if (debug) System.err.println("LINKER convertToType :" + sourceType + " " + targetType);
-		return null;
-	}
+//	@Override
+//	public GuardedInvocation convertToType(Class<?> sourceType, Class<?> targetType, Supplier<MethodHandles.Lookup> lookupSupplier) throws Exception {
+//		if (debug) System.err.println("LINKER convertToType :" + sourceType + " " + targetType);
+//		return null;
+//	}
 
 }

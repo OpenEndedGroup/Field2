@@ -8,6 +8,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * Created by marc on 3/25/14.
@@ -17,7 +18,7 @@ public class RunLoop {
 	static public final RunLoop main = new RunLoop();
 	static public final ReentrantLock lock = new ReentrantLock(true);
 	static public final ExecutorService workerPool = Executors.newFixedThreadPool(Runtime.getRuntime()
-											     .availableProcessors() + 2);
+											     .availableProcessors()*2 + 2);
 	static public long tick = 0;
 	protected final Thread shutdownThread;
 	public Scene mainLoop = new Scene();
@@ -62,50 +63,24 @@ public class RunLoop {
 			ThreadSync2.setSync(new ThreadSync2());
 
 		while (true) {
-			try {
-				tick++;
+            try {
+                tick++;
 
-				long a = System.nanoTime();
-				boolean didWork = false;
-				if (lock.tryLock(1, TimeUnit.DAYS)) {
-					long b = System.nanoTime();
+                long a = System.nanoTime();
+                boolean didWork = false;
+                if (lock.tryLock(1, TimeUnit.DAYS)) {
+                    long b = System.nanoTime();
 
-					mainLoop.updateAll();
+                    mainLoop.updateAll();
 
-					long c = System.nanoTime();
-					didWork = ThreadSync.get()
-							    .serviceAndCull();
-
+                    long c = System.nanoTime();
+                    didWork = ThreadSync.get()
+                            .serviceAndCull();
 					if (ThreadSync2.getEnabled()) {
 						didWork |= ThreadSync2.getSync()
-							   .service();
+								.service();
 					}
 
-					long d = System.nanoTime();
-
-					getLock += b - a;
-					hasLock += d - b;
-					service += d - c;
-					mainloop += c - b;
-				} else {
-					locksMissed++;
-				}
-
-				if (shouldSleep.size() == 0 && !didWork) {
-					Thread.sleep(2);
-					sleepsTaken++;
-				}
-
-				if (tick % interval == 0) {
-
-					if (printTelemetry) {
-						System.out.println(
-							" a" + (getLock / (double) interval) + " b" + (hasLock / (double) interval) + " c" + (service / (double) interval) + " d" + (mainloop / (double) interval) + " m" + locksMissed + " s" + sleepsTaken);
-						System.out.println(" f" + (System.nanoTime() - intervalIn) / interval);
-						System.out.println(" m" + (Runtime.getRuntime()
-										  .freeMemory() - freeMemIn) / interval);
-
-					}
 					getLock = 0;
 					hasLock = 0;
 					service = 0;
@@ -247,6 +222,5 @@ public class RunLoop {
 		// we add this to the start of the list, it will be run before anything that's already there.
 		onExit.add(0, r);
 	}
-
 
 }

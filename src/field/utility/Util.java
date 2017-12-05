@@ -113,7 +113,7 @@ public class Util {
 	/**
 	 * An autoclosable that doesn't throw an exception
 	 */
-	public interface ExceptionlessAutoCloasable extends AutoCloseable {
+	public interface ExceptionlessAutoClosable extends AutoCloseable {
 		@Override
 		void close();
 	}

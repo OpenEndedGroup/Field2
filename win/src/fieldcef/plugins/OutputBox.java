@@ -220,7 +220,7 @@ public class OutputBox extends Box implements IO.Loaded {
 
 			return new Execution.ExecutionSupport() {
 
-				protected Util.ExceptionlessAutoCloasable previousPush = null;
+				protected Util.ExceptionlessAutoClosable previousPush = null;
 
 				@Override
 				public Object getBinding(String name) {
@@ -241,7 +241,7 @@ public class OutputBox extends Box implements IO.Loaded {
 				}
 
 				@Override
-				public String begin(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success, Map<String, Object> initiator) {
+				public String begin(Consumer<Pair<Integer, String>> lineErrors, Consumer<String> success, Map<String, Object> initiator, boolean killCurrent) {
 					//TODO
 /*
 					System.out.println(" WRAPPED (begin)");

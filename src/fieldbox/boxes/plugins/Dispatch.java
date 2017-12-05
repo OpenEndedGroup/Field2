@@ -160,7 +160,7 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 						.sorted((a, b) -> Float.compare(order(frame(a)), order(frame(b))))
 						.findFirst();
 
-					if (hit.isPresent()) {
+					if (hit.isPresent() && hit.get()!=origin) {
 						showCompleteDrag(origin, hit.get());
 						if (termination) {
 							completeDrag(origin, hit.get());

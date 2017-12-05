@@ -77,12 +77,33 @@ class UniformVec4Object : BaseScene<UniformVec4Object.State> {
         return data
     }
 
+    override fun upload(s: State?): Int {
+        val e1 = GL11.glGetError()
+        GL15.glBindBuffer(GL31.GL_UNIFORM_BUFFER, s!!.buffer);
+        GL15.glBufferSubData(GL31.GL_UNIFORM_BUFFER, 0, data);
+        GL15.glBindBuffer(GL31.GL_UNIFORM_BUFFER, 0);
+        val e2 = GL11.glGetError()
+        if (e1!=0 || e2!=0)
+            println(" error on upload $e1 $e2")
+
+        return mod
+    }
 
     override fun perform0(): Boolean {
         val s = GraphicsContext.get<State>(this) { setup() }
 
+        val e1 = GL11.glGetError()
         GL30.glBindBufferBase(GL31.GL_UNIFORM_BUFFER, binding, s.buffer)
+        val e2 = GL11.glGetError()
+
+        if (e1!=0 || e2!=0)
+            println(" error on bind $e1 $e2")
+
         return true;
+    }
+
+    override fun getPasses(): IntArray {
+        return intArrayOf(-1,1)
     }
 
     override fun perform1(): Boolean {

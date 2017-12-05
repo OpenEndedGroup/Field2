@@ -114,6 +114,8 @@ public class Browser extends Box implements IO.Loaded {
 
         float Z = now.properties.getOr(depth, () -> 0f).floatValue();
 
+        System.out.println(" frame for textedit geometry is "+r.x+" -> "+r.w);
+
         for (int x = 0; x < ns; x++) {
             for (int y = 0; y < ns; y++) {
                 float ax = (0.f+x) / (float)(ns - 1);
@@ -138,7 +140,7 @@ public class Browser extends Box implements IO.Loaded {
     private ByteBuffer sourceView;
     private FieldBoxWindow window;
     private Box root;
-    private Rect damage = new Rect(0, 0, 0, 0);
+    private volatile Rect damage = new Rect(0, 0, 0, 0);
     public Runnable callbackOnNextReload = null;
     private Object outCached;
 
@@ -263,11 +265,11 @@ public class Browser extends Box implements IO.Loaded {
                 "void main()\n" +
                 "{\n" +
                 "float g = 1.6;\n"+
-                "\tvec4 current = pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+vec2(0.5,0.5)), 0), vec4(g,g,g,1));\n" +
-                "\tcurrent += 0.25*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+vec2(0.5,0.5))+ivec2(1.0,0), 0), vec4(g,g,g,1));\n" +
-                "\tcurrent += 0.25*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+vec2(0.5,0.5))+ivec2(0,1.), 0), vec4(g,g,g,1));\n" +
-                "\tcurrent += 0.25*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+vec2(0.5,0.5))+ivec2(-1.,0), 0), vec4(g,g,g,1));\n" +
-                "\tcurrent += 0.25*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+vec2(0.5,0.5))+ivec2(0,-1.), 0), vec4(g,g,g,1));\n" +
+                "\tvec4 current = pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+0*vec2(0.5,0.5)), 0), vec4(g,g,g,1));\n" +
+                "\tcurrent += 0.25*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+0*vec2(0.5,0.5))+ivec2(1.0,0), 0), vec4(g,g,g,1));\n" +
+                "\tcurrent += 0.25*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+0*vec2(0.5,0.5))+ivec2(0,1.), 0), vec4(g,g,g,1));\n" +
+                "\tcurrent += 0.25*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+0*vec2(0.5,0.5))+ivec2(-1.,0), 0), vec4(g,g,g,1));\n" +
+                "\tcurrent += 0.25*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+0*vec2(0.5,0.5))+ivec2(0,-1.), 0), vec4(g,g,g,1));\n" +
                 "current = current/2;\n" +
                 "current = pow(current, vec4(1/g, 1/g, 1/g, 1));" +
                 "\tfloat m = min(current.x, min(current.y, current.z));\n" +
@@ -276,10 +278,11 @@ public class Browser extends Box implements IO.Loaded {
                 "float d = (current.x+current.y+current.z)/3;\n" +
                 "current.xyz = pow(current.xyz, vec3(1.1));\n" +
                 "\t_output  = vec4(current.zyx,max(0.6, min(1, d*3))*current.w*vtc.z);\n" +
-                "\t if (vtc.x==0 || vtc.x==1 || vtc.y==0 || vtc.y==1) _output.w=0;\n" +
+                "float e = 0.005;\n" +
+                "\t if (vtc.x<e || vtc.x>1-e || vtc.y<e || vtc.y>1-e*2) _output.w=0;\n" +
                 "\t int ccx = ivec2(vtc.xy*textureSize(te,0)).x;\n" +
                 "\t int ccy = ivec2(vtc.xy*textureSize(te,0)).y;\n" +
-//    			"\t _output+=vec4((ccx%5<1 ? 1 : 0)*1,(ccy%5<1 ? 1 : 0)*1,0,1)*0.5;\n" +
+//    			"\t _output+=vec4((ccx%5<2 ? 1 : 0)*1,0,0,1)*0.5;\n" +
                 "}");
 
         shader.attach(new Uniform<Vec2>("translation", () -> drawing.getTranslationRounded()));
@@ -350,6 +353,10 @@ public class Browser extends Box implements IO.Loaded {
 //			if (!intersects(r, e)) return null;
 
             if (!intersects(r.inset(10), e)) return null;
+
+            float gutterWidth = 50;
+            if (intersects(new Rect(r.x, r.y, gutterWidth, r.h), e)) return null;
+
 
             if (properties.isTrue(Box.hidden, false)) return null;
 
@@ -647,6 +654,7 @@ public class Browser extends Box implements IO.Loaded {
         int y1 = 0;
 
         for (Rectangle r : dirty) {
+//            System.out.println(" -- "+r);
 
             if (r.x==0 && r.y==0 && r.width==w && r.height == h)
             {
@@ -666,6 +674,17 @@ public class Browser extends Box implements IO.Loaded {
                     sourceView.limit(r.x * 4 + y * 4 * w + r.width * 4);
                     sourceView.position(r.x * 4 + y * 4 * w);
                     sourceView.put(buffer);
+
+                    sourceView.clear();
+                    buffer.clear();
+
+//                    for(int x=0;x<w;x++)
+//                    {
+//                        if (x%5==0)
+//                            sourceView.put(y*4*w+x*4+1, (byte) 255);
+//                    }
+
+
                 }
 //                System.out.println("r= " + r);
                 x0 = Math.min(x0, r.x);
@@ -679,7 +698,6 @@ public class Browser extends Box implements IO.Loaded {
         sourceView.clear();
         buffer.clear();
 
-        this.dirty.set(true);
 
         // threading ?
         Drawing.dirty(Browser.this);
@@ -691,6 +709,10 @@ public class Browser extends Box implements IO.Loaded {
         else damage = damage.union(new Rect(x0, y0, x1 - x0, y1 - y0));
 
 //        System.out.println(" damage :"+damage);
+
+        this.dirty.set(true);
+
+//        System.out.println(" clean exit :"+damage+" "+this.dirty.get());
 
     }
 
@@ -759,6 +781,7 @@ public class Browser extends Box implements IO.Loaded {
             }
             Log.log("cef.debug", () -> " texture was dirty, uploading ");
 
+//            System.out.println(" calling upload on the texture 1 ");
 
             texture.upload(source, false, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (1 + damage.h + damage.y));
 
@@ -769,6 +792,8 @@ public class Browser extends Box implements IO.Loaded {
             RunLoop.main.shouldSleep.add(this);
         } else if (again > 0 && damage != null) {
             Log.log("cef.debug", () -> " texture was dirty " + again + " call, uploading ");
+
+//            System.out.println(" calling upload on the texture 2 ");
 
             texture.upload(source, false, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (1 + damage.h + damage.y));
 //			texture.forceUploadNow(source);

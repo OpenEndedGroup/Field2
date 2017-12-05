@@ -169,6 +169,7 @@ public class Image2 extends Box {
 
         public void reload(String s)
         {
+            if (filename!=null && filename.equals(s)) return; //todo check timestamp
             this.filename = s;
             if (!new File(filename).exists())
             {
@@ -275,10 +276,16 @@ public class Image2 extends Box {
         protected TextureLoader massage(Object vraw, Object previously) {
             if (previously == null)
                 return massage(vraw);
-            else
-            {
-                ((TextureLoader)previously).reload(""+vraw);
-                return ((TextureLoader)previously);
+            else {
+                try {
+                    ((TextureLoader) previously).reload("" + vraw);
+                    return ((TextureLoader) previously);
+                }
+                catch(IllegalArgumentException e)
+                {
+                    ((TextureLoader) previously).delete();
+                    return massage(vraw);
+                }
             }
         }
 

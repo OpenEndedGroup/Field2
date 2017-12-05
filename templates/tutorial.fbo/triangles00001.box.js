@@ -18,8 +18,8 @@ shader.myMesh = mesh
 _.fboScene.shader = shader
 
 // we'll need some matrices
-shader.P = ()=>_.fboCamera.projectionMatrix(0)
-shader.V = ()=>_.fboCamera.view(0)
+shader.P = () => _.fboCamera.projectionMatrix(0)
+shader.V = () => _.fboCamera.view(0)
 
 // and other boxes might be interested in the builder and the mesh
 _.mesh = mesh

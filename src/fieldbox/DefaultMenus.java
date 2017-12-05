@@ -22,10 +22,10 @@ import java.util.*;
 public class DefaultMenus extends Box {
 
 	static public final Dict.Prop<FunctionOfBox<Box>> newBox = new Dict.Prop<FunctionOfBox<Box>>("newBox").toCanon()
-		.doc("`_.newBox()` will create a new box that's a peer of this one");
+		.doc("`_.newBox()` will create a new box that's a child of this one");
 
 	static public final Dict.Prop<BiFunctionOfBoxAnd<Class, Box>> newBoxOfClass = new Dict.Prop<BiFunctionOfBoxAnd<Class, Box>>("newBoxOfClass").toCanon()
-		.doc("`_.newBoxOfClass(c)` create a new box that's a peer of this one, with a custom class `c`");
+		.doc("`_.newBoxOfClass(c)` create a new box that's a child of this one, with a custom class `c`");
 
 	static public final Dict.Prop<BiFunctionOfBoxAnd<String, Box>> ensureChild = new Dict.Prop<FunctionOfBox<Box>>("ensureChild").toCanon()
 		.doc("`_.ensureChild('name')` creates a new box that's a child of this one, if there already isn't one with this `name`");
@@ -98,7 +98,7 @@ public class DefaultMenus extends Box {
 			Set<Box> p = new LinkedHashSet<>(box.parents());
 
 			try {
-				Box newBox = DragToCopy.duplicateBox(box, clazz);
+				Box newBox = DragToCopy.duplicateBox(box, clazz, Collections.emptyList());
 
 				for (Box cc : c)
 					newBox.connect(cc);
@@ -126,8 +126,7 @@ public class DefaultMenus extends Box {
 		properties.put(newBox, (box) -> newBox(box.find(Box.frame, box.both())
 			.findFirst()
 			.map(x -> new Vec2(x.x + x.w + 5, x.y + x.h + 5))
-			.orElseGet(() -> new Vec2(0, 0)), box.parents()
-			.toArray(new Box[]{})));
+			.orElseGet(() -> new Vec2(0, 0)), new Box[]{box}));
 
 		properties.put(ensureChild, (box, name) -> {
 			Optional<Box> f = box.children()
@@ -152,8 +151,7 @@ public class DefaultMenus extends Box {
 			return newBoxOfClass(cz, box.find(Box.frame, box.both())
 				.findFirst()
 				.map(x -> new Vec2(x.x + x.w + 5, x.y + x.h + 5))
-				.orElseGet(() -> new Vec2(0, 0)), box.parents()
-				.toArray(new Box[]{}));
+				.orElseGet(() -> new Vec2(0, 0)), new Box[]{box});
 		});
 
 

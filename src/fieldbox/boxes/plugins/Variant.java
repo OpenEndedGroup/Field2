@@ -13,7 +13,6 @@ import fieldbox.io.IO;
 import fielded.Commands;
 import fielded.RemoteEditor;
 import fielded.boxbrowser.BoxBrowser;
-import fieldlinker.Linker;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -130,7 +129,7 @@ public class Variant extends Box implements IO.Loaded {
 		}
 	}
 
-	static public class Memo implements Util.ExceptionlessAutoCloasable {
+	static public class Memo implements Util.ExceptionlessAutoClosable {
 		Map<Box, Boolean> state = new LinkedHashMap<>();
 
 		@Override

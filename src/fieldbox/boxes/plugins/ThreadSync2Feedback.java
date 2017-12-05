@@ -284,7 +284,6 @@ public class ThreadSync2Feedback extends Box {
 
 	public static List<ThreadSync2.Fibre> fibresFor(Box box) {
 		if (!ThreadSync2.getEnabled()) return Collections.emptyList();
-
 		List<ThreadSync2.Fibre> live = ThreadSync2.getSync()
 			.getFibres();
 

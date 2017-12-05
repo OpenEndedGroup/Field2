@@ -2,8 +2,8 @@ var SimpleCanvas = Java.type('field.graphics.util.onsheetui.SimpleCanvas')
 _.setClass(SimpleCanvas.class)
 _.clear()
 
-get = () => { return (_.${property} - ${startRange}) /(${endRange} - ${startRange}) }
-set = (originally, previously, now) => {
+var get = () => { return (_.${property} - ${startRange}) /(${endRange} - ${startRange}) }
+var set = (originally, previously, now) => {
     if (now<0) now = 0
     if (now>1) now = 1
     var v = ${startRange} + (${endRange} - ${startRange})*now

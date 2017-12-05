@@ -249,6 +249,76 @@ class ThreadSync2 {
         fun fibre(): Fibre? {
             return thisFibre.get()
         }
+
+        @JvmStatic
+        @Throws(Exception::class)
+        fun <T> callInMainThreadAndWait(c: Callable<T>): T {
+            if (Thread.currentThread() === RunLoop.main.mainThread) {
+                println("||||||||||||||||||||||||||||||| already main thread")
+                return c.call()
+            } else {
+
+                println(" current thread :" + Thread.currentThread() + " " + RunLoop.main.mainThread)
+
+                val f = CompletableFuture<T>()
+                println("||||||||||||||||||||||||||||||| call once ")
+                RunLoop.main.once {
+                    try {
+                        f.complete(c.call())
+                    } catch (t: Throwable) {
+                        f.completeExceptionally(t)
+                    }
+                }
+
+                // should be rejoin?
+                println("||||||||||||||||||||||||||||||| begin wait ")
+                while (!f.isDone) {
+                    println("||||||||||||||||||||||||||||||| yield to main loop")
+                    yield()
+                    println("||||||||||||||||||||||||||||||| back from main loop")
+                }
+                println("||||||||||||||||||||||||||||||| f is :" + f)
+
+                return f.get()
+            }
+        }
+
+        // kotlin interface
+        @JvmStatic
+        fun <T> inMainThread(c: () -> T): T {
+            if (Thread.currentThread() === RunLoop.main.mainThread) {
+                println("||||||||||||||||||||||||||||||| already main thread")
+                return c()
+            } else {
+
+                println(" current thread :" + Thread.currentThread() + " " + RunLoop.main.mainThread)
+
+                val f = CompletableFuture<T>()
+                println("||||||||||||||||||||||||||||||| call once ")
+                RunLoop.main.once {
+                    try {
+                        f.complete(c())
+                    } catch (t: Throwable) {
+                        f.completeExceptionally(t)
+                    }
+                }
+
+                // should be rejoin?
+                println("||||||||||||||||||||||||||||||| begin wait ")
+                while (!f.isDone) {
+                    println("||||||||||||||||||||||||||||||| yield to main loop")
+                    yield()
+                    println("||||||||||||||||||||||||||||||| back from main loop")
+                }
+                println("||||||||||||||||||||||||||||||| f is :" + f)
+
+                return f.get()
+            }
+        }
+
+
     }
+
+
 
 }

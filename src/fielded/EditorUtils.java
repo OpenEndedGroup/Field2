@@ -36,7 +36,7 @@ public class EditorUtils {
 			      if (!a.startsWith(prefix)) return p;
 
 			      Consumer<JSONObject> c = messageTable.remove(a);
-			      if (c == null) Log.log("editorUtils.error", ()->"no handler for message :" + a);
+			      if (c == null) Log.log("editorUtils.error", ()->"no handler for message :" + a +" "+p);
 			      else {
 				      c.accept((JSONObject) p);
 			      }

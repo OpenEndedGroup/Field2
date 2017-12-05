@@ -41,4 +41,12 @@ public class TransientCommands {
 		return "<a href='#' onclick=\"_field.send('" + u + "', {})\">" + body + "</a>";
 	}
 
+	public String onclickForCommand(Runnable r) {
+
+		String u = register((a, p, rr) -> {
+			r.run();
+		});
+		return " onclick=\"_field.send('" + u + "', {})\" ";
+	}
+
 }

@@ -271,7 +271,13 @@ public class Open {
 
 		new AsEditable(boxes.root()).connect(boxes.root());
 
+		new TimeHelper(boxes.root()).connect(boxes.root());
+
 		new Label(boxes.root()).connect(boxes.root());
+
+		new Pads(boxes.root()).connect(boxes.root());
+
+		new Interventions(boxes.root()).connect(boxes.root());
 
 
 		if (ThreadSync.enabled) new ThreadSyncFeedback(boxes.root()).connect(boxes.root());
@@ -390,10 +396,12 @@ public class Open {
 			new TextEditor(boxes.root()).connect(boxes.root());
 			new GlassBrowser(boxes.root()).connect(boxes.root());
 			new OutputBox(boxes.root()).connect(boxes.root());
-			new NotificationBox(boxes.root()).connect(boxes.root());
+			new DocumentationBrowser(boxes.root()).connect(boxes.root());
 
-			if (Main.os != Main.OS.windows) {
+//			new NotificationBox(boxes.root()).connect(boxes.root());
 
+//			if (Main.os != Main.OS.windows)
+			{
 				new BoxBrowser(boxes.root()).connect(boxes.root());
 				new TextEditor_boxBrowser2(boxes.root()).connect(boxes.root());
 			}

@@ -4,15 +4,24 @@ pushd $(dirname `which "$0"`) >/dev/null; fieldhome="$PWD"; popd >/dev/null
 out=$fieldhome/build/classes
 out=`cygpath -w $out`
 fieldhome=`cygpath -w $fieldhome`
-JDK="/cygdrive/c/Program Files\Java\jdk-9\bin/"
+JDK=$fieldhome/jdk/win/jdk-9.0.1/bin/
 java="$JDK"/java
 
 echo $fieldhome
+ls $fieldhome/win/lib
+
+if [ ! -f $JDK/field2/jdk/win/jdk-9.0.1/bin/server/classes.dsa ] ; then
+	$java -Xshare:dump
+fi
+
 
 "$java" \
+    -Xshare:on \
+    -splash:$fieldhome/lib/images/f.png \
+    -DdebugLinker=true \
     --add-opens java.base/sun.nio.ch=ALL-UNNAMED \
-	-Xdebug \
-    -Xrunjdwp:server=y,transport=dt_socket,address=5005,suspend=n -Dorg.lwjgl.util.Debug=true \
+    -Xdebug \
+    -Xrunjdwp:server=y,transport=dt_socket,address=5005,suspend=n -Dorg.lwjgl.util.Debug=false \
     -DappDir=$fieldhome \
     -Xmx6g \
     -Xms2g \

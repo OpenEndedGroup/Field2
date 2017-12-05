@@ -15,7 +15,7 @@ public class FieldBox {
 
 	static public final FieldBox fieldBox = new FieldBox();
 	static public String[] args;
-	public static final String workspace = Options.getDirectory("workspace", () -> System.getProperty("user.home") + "/Documents/FirstNewFieldWorkspace/");
+	public static String workspace;
 
 	public IO io;
 
@@ -26,6 +26,10 @@ public class FieldBox {
 
 	static public void main(String[] s) {
 		args = s;
+		Options.parseCommandLine(s);
+
+		// needs to be initialized after 'args'
+		workspace = Options.getDirectory("workspace", () -> System.getProperty("user.home") + "/Documents/FirstNewFieldWorkspace/");
 
 		System.err.println(" lauching toolkit");
 		if (Main.os == Main.OS.mac)
@@ -46,8 +50,6 @@ public class FieldBox {
 		}
 		System.err.println(" finished hanging out");
 
-		// TODO --- get from command line / previous
-		Options.parseCommandLine(s);
 
 		LoggingDefaults.initialize();
 
@@ -55,6 +57,10 @@ public class FieldBox {
 		fieldBox.io.addFilespec("code", IO.EXECUTION, IO.EXECUTION);
 
 		new Open(Options.getString("file", () -> "testIB.field2"));
+
+		SplashScreen splash = SplashScreen.getSplashScreen();
+		if (splash!=null)
+			splash.close();
 
 		fieldBox.go();
 	}

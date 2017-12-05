@@ -18,6 +18,7 @@ import fieldbox.boxes.plugins.FileBrowser
 import fieldbox.boxes.plugins.xw
 import fieldbox.boxes.plugins.yh
 import java.awt.BasicStroke
+import java.util.function.Consumer
 import java.util.function.Supplier
 
 /* reusable FLineInteraction things that do things
@@ -126,7 +127,28 @@ class Gizmos() {
     }
 
     @JvmOverloads
-    fun makeButton(box: Box, label: String? = null, name: String = "__button__", relative: Vec2 = Vec2(0, 0), frame: Rect = Rect(0.0, 0.0, 10.0, 10.0), go: Runnable) {
+    fun makeToggleBox(box: Box, labelOne: String? = null, labelTwo: String? = null, name: String = "__button__", relative: Vec2 = Vec2(0, 0), frame: Rect = Rect(0.0, 0.0, 10.0, 10.0), oneToTwo: Runnable, twoToOne: Runnable) {
+
+        var state = 1
+        var b: Consumer<String>? = null
+
+        b = makeButton(box, labelOne, name, relative, frame, Runnable {
+            if (state == 1) {
+                state = 2
+                oneToTwo.run()
+                if (labelTwo != null)
+                    b!!.accept(labelTwo)
+            } else {
+                state = 1
+                twoToOne.run()
+                if (labelOne != null)
+                    b!!.accept(labelOne)
+            }
+        });
+    }
+
+    @JvmOverloads
+    fun makeButton(box: Box, label: String? = null, name: String = "__button__", relative: Vec2 = Vec2(0, 0), frame: Rect = Rect(0.0, 0.0, 10.0, 10.0), go: Runnable): Consumer<String> {
 
         val r = mutableListOf<FLine>()
 
@@ -134,7 +156,9 @@ class Gizmos() {
         val fs = text.getFontSupport("source-sans-pro-regular-92.fnt")
 
 
-        val inset = 4.0;
+        val inset = 0.0;
+
+        var ret: Consumer<String> = Consumer<String> {}
 
         val frame2 = if (label == null) {
             frame
@@ -153,17 +177,24 @@ class Gizmos() {
 
             f.nodes[f.nodes.size - 1].attributes.put(StandardFLineDrawing.text, label)
 
+            ret = Consumer<String> { n ->
+                f.nodes[f.nodes.size - 1].attributes.put(StandardFLineDrawing.text, n)
+                f.modify()
+                Drawing.dirty(box)
+//                Drawing.dirty(box, "__main__")
+            }
+
             r += f
             frame
         }
 
         FLine().roundedRect(frame2.x.toDouble(), frame2.y.toDouble(), frame2.w.toDouble(), frame2.h.toDouble(), 7.0).apply {
-            this += StandardFLineDrawing.color to Vec4(1.0, 1.0, 1.0, 0.1)
+            this += StandardFLineDrawing.color to Vec4(0.25, 0.25, 0.25, 0.5)
             this += StandardFLineDrawing.filled to true
             this += StandardFLineDrawing.stroked to false
             r += this
-            FLineButton.attach(box, this, mapOf(StandardFLineDrawing.color.name to Vec4(1.0, 0.9, 0.0, 0.25)), mapOf(StandardFLineDrawing.color.name to Vec4(1.0, 0.0, 0.0, 0.25)), { up, _, e ->
-                go.run()
+            FLineButton.attach(box, this, mapOf(StandardFLineDrawing.color.name to Vec4(1.0, 0.9, 0.0, 0.1)), mapOf(StandardFLineDrawing.color.name to Vec4(1.0, 0.0, 0.0, 0.25)), { up, _, e ->
+                if (up) go.run()
             }).setUpSemantics(true)
         }
 
@@ -172,11 +203,10 @@ class Gizmos() {
             this += StandardFLineDrawing.thicken to BasicStroke(1f)
             r += this
 
-            FLineButton.attach(box, this, mapOf(StandardFLineDrawing.color.name to Vec4(1.0, 0.9, 0.0, 0.15)), mapOf(StandardFLineDrawing.color.name to Vec4(1.0, 0.0, 0.0, 0.5)), { up, _, _ ->
+            FLineButton.attach(box, this, mapOf(StandardFLineDrawing.color.name to Vec4(1.0, 0.9, 0.0, 0.5)), mapOf(StandardFLineDrawing.color.name to Vec4(1.0, 0.0, 0.0, 0.5)), { up, _, _ ->
 
             })
         }
-
 
         val c1 = l1.cursor().setT(FLinesAndJavaShapes.closestT(l1, Vec3(0.0, 0.0, 0.0))).position()
 
@@ -188,24 +218,29 @@ class Gizmos() {
         val c3 = l1.cursor().setT(FLinesAndJavaShapes.closestT(l1, Vec3(c2.x, c2.y, 0.0))).position()
 
 
-        FLine().moveTo(c3).lineTo(c2).apply {
-            this += StandardFLineDrawing.color to Vec4(1.0, 1.0, 1.0, 0.1)
-            this += StandardFLineDrawing.thicken to BasicStroke(1f)
-            r += this
-        }
+        if (c2.distance(c3)>30) {
+            FLine().moveTo(c3).lineTo(c2).apply {
+                this += StandardFLineDrawing.color to Vec4(1.0, 1.0, 1.0, 0.1)
+                this += StandardFLineDrawing.thicken to BasicStroke(1f)
+                r += this
+            }
 
-        FLine().circle(c3.x, c3.y, 2.0).circle(c2.x, c2.y, 4.0).apply {
-            this += StandardFLineDrawing.fillColor to Vec4(0.55, 0.55, 0.55, 1)
-            this += StandardFLineDrawing.filled to true
-            this += StandardFLineDrawing.stroked to false
-            r += this
+            FLine().circle(c3.x, c3.y, 2.0).circle(c2.x, c2.y, 4.0).apply {
+                this += StandardFLineDrawing.fillColor to Vec4(0.55, 0.55, 0.55, 1)
+                this += StandardFLineDrawing.filled to true
+                this += StandardFLineDrawing.stroked to false
+                r += this
+            }
         }
-
 
         var id = 0
 
-        r.map { FLineDrawing.boxOrigin(it, relative, box) }.forEach {
-
+        r.map {
+//            it += FLineDrawing.layer to "__main__"
+            it
+        }.map {
+            FLineDrawing.boxOrigin(it, relative, box)
+        }.forEach {
             println(" adding ${name} + ${id}")
 
             box.properties.putToMap(FLineDrawing.lines, name + (id), it)
@@ -213,6 +248,10 @@ class Gizmos() {
 
             id++
         }
+
+        return ret
+
+
     }
 
 }

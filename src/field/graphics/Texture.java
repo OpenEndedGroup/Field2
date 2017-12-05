@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
 import static org.lwjgl.opengl.GL12.GL_TEXTURE_3D;
+import static org.lwjgl.opengl.GL12.glTexSubImage3D;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL15.*;
@@ -154,7 +155,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
             Log.log("graphics.trace", () -> "uploading ");
             glBindBuffer(GL_PIXEL_UNPACK_BUFFER, isDoubleBuffered ? (stream ? s.pboA : s.pboB) : s.pbo);
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
             glPixelStorei(GL_UNPACK_ROW_LENGTH, specification.width);
             s.old = GL15.glMapBuffer(GL21.GL_PIXEL_UNPACK_BUFFER, GL15.GL_WRITE_ONLY, s.old);
             s.old.rewind();
@@ -170,7 +171,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
             GL15.glBindBuffer(GL21.GL_PIXEL_UNPACK_BUFFER, 0);
             Log.log("graphics.trace", () -> "uploaded part 1");
             s.mod++;
-        }, -2).setOnceOnly().setAllContextsFor(this));
+        }, -200).setOnceOnly().setAllContextsFor(this));
     }
 
     /**
@@ -280,7 +281,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
     protected State setup() {
 
-        GraphicsContext.checkError(() -> "setting up texture " + specification);
+        GraphicsContext.checkError(() -> "setting up texture, entry " + specification);
 
         State s = new State();
         s.name = glGenTextures();
@@ -291,34 +292,47 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
         glActiveTexture(GL_TEXTURE0 + specification.unit);
         glBindTexture(specification.target, s.name);
-        GraphicsContext.checkError(() -> "setting up texture " + specification);
+        GraphicsContext.checkError(() -> "setting up texture, bound " + specification);
 
 
         if (!specification.highQuality) {
-            glTexParameteri(specification.target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(specification.target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(specification.target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(specification.target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(specification.target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(specification.target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(specification.target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         } else {
 
             glTexParameteri(specification.target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
             glTexParameteri(specification.target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(specification.target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(specification.target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         }
 
-        GraphicsContext.checkError(() -> "setting up texture " + specification);
+        GraphicsContext.checkError(() -> "setting up texture, params " + specification);
 
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
         glPixelStorei(GL_UNPACK_ROW_LENGTH, specification.width);
 
-        GraphicsContext.checkError(() -> "setting up texture " + specification);
+        GraphicsContext.checkError(() -> "setting up texture, pixel store " + specification);
 
-        ARBTextureStorage.glTexStorage2D(specification.target,
-                specification.highQuality ? (int) (Math.floor(Math.log(Math.max(specification.width, specification.height)) / Math.log(2)) + 1) : 1,
-                specification.internalFormat, specification.width, specification.height);
-
-        GraphicsContext.checkError(() -> "setting up texture " + specification);
+        if (specification.target==GL_TEXTURE_1D) {
+            ARBTextureStorage.glTexStorage1D(specification.target,
+                                             specification.highQuality ? (int) (Math.floor(Math.log(Math.max(specification.width, specification.height)) / Math.log(2)) + 1) : 1,
+                                             specification.internalFormat, specification.width);
+        }
+        else
+        if (specification.target==GL_TEXTURE_3D) {
+            ARBTextureStorage.glTexStorage3D(specification.target,
+                                             specification.highQuality ? (int) (Math.floor(Math.log(Math.max(specification.width, specification.height)) / Math.log(2)) + 1) : 1,
+                                             specification.internalFormat, specification.width, specification.height, specification.depth);
+        }
+        else {
+            ARBTextureStorage.glTexStorage2D(specification.target,
+                    specification.highQuality ? (int) (Math.floor(Math.log(Math.max(specification.width, specification.height)) / Math.log(2)) + 1) : 1,
+                    specification.internalFormat, specification.width, specification.height);
+        }
+        GraphicsContext.checkError(() -> "setting up texture, storage " + specification);
 
 
         if (specification.compressed) {
@@ -326,13 +340,24 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
             throw new IllegalArgumentException(" not implemented ");
         } else {
             if (specification.pixels != null) {
-                glTexSubImage2D(specification.target, 0, 0, 0, specification.width, specification.height, specification.format, specification.type, specification.pixels);
+
+                if (specification.target==GL_TEXTURE_1D) {
+                    glTexSubImage1D(specification.target, 0, 0, specification.width, specification.format, specification.type, specification.pixels);
+                }
+                else
+                if (specification.target==GL_TEXTURE_3D) {
+                    glTexSubImage3D(specification.target, 0, 0, 0,0, specification.width, specification.height, specification.depth, specification.format, specification.type, specification.pixels);
+                }
+                else
+                {
+                    glTexSubImage2D(specification.target, 0, 0, 0, specification.width, specification.height, specification.format, specification.type, specification.pixels);
+                }
                 if (specification.highQuality) {
                     glGenerateMipmap(specification.target);
                 }
             }
         }
-        GraphicsContext.checkError(() -> "setting up texture " + specification);
+        GraphicsContext.checkError(() -> "setting up texture, initial upload " + specification);
 
 
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, s.pbo);
@@ -343,7 +368,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
         glBufferData(GL_PIXEL_UNPACK_BUFFER, specification.elementSize * specification.width * specification.height, GL15.GL_STREAM_DRAW);
 
-        GraphicsContext.checkError(() -> "setting up texture " + specification);
+        GraphicsContext.checkError(() -> "setting up texture, pbo " + specification);
 
         if (isDoubleBuffered) {
             glBindBuffer(GL_PIXEL_UNPACK_BUFFER, s.pboB);
@@ -353,7 +378,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
         }
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-        GraphicsContext.checkError(() -> "setting up texture " + specification);
+        GraphicsContext.checkError(() -> "setting up texture,finished " + specification);
 
         if (bindless) {
             s.textureHandle = NVBindlessTexture.glGetTextureHandleNV(s.name);
@@ -371,7 +396,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
         glActiveTexture(GL_TEXTURE0 + specification.unit);
         glBindTexture(specification.target, s.name);
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, isDoubleBuffered ? s.pboB : s.pbo);
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
         glPixelStorei(GL_UNPACK_ROW_LENGTH, specification.width);
 
         GraphicsContext.checkError(() -> " after some setup ");
@@ -408,7 +433,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
     public int forceUploadNow(ByteBuffer from) {
 
-        State s = GraphicsContext.getContext().lookup(this);
+        State s = GraphicsContext.get(this, () -> setup());
 
 //		glFinish();
         glBindTexture(specification.target, s.name);
@@ -471,9 +496,8 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
         public final int width;
         public final int height;
         public final int format;
-        public int depth;
-
         public final int type;
+        public int depth;
         public final int elementSize;
         public final boolean highQuality;
         public final ByteBuffer pixels;
@@ -510,9 +534,9 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
             this.compressed = compressed;
         }
 
-        public TextureSpecification depth(int d)
+        public TextureSpecification depth(int depth)
         {
-            this.depth = d;
+            this.depth = depth;
             return this;
         }
 
@@ -526,6 +550,14 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
         static public TextureSpecification byte1(int unit, int width, int height, ByteBuffer source, boolean mips) {
             return new TextureSpecification(unit, GL_TEXTURE_2D, GL_R8, width, height, GL_RED, GL_UNSIGNED_BYTE, 1, source, mips);
+        }
+
+        static public TextureSpecification uint4_1d(int unit, int width,  ByteBuffer source, boolean mips) {
+            return new TextureSpecification(unit, GL_TEXTURE_1D, GL_RGBA32UI, width, 1, GL_RGBA_INTEGER, GL_UNSIGNED_INT, 16, source, mips);
+        }
+
+        static public TextureSpecification uint1_1d(int unit, int width,  ByteBuffer source, boolean mips) {
+            return new TextureSpecification(unit, GL_TEXTURE_1D, GL_R32UI, width, 1, GL_RED_INTEGER, GL_UNSIGNED_INT, 4, source, mips);
         }
 
         static public TextureSpecification fromJpeg(int unit, String filename, boolean mips) {
@@ -597,8 +629,6 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
             return new TextureSpecification(unit, GL_TEXTURE_3D, GL30.GL_RGBA32F, width, height, GL_RGBA, GL_FLOAT, 16, source, mips).depth(depth);
         }
 
-
-
         @Override
         public String toString() {
             return "TextureSpecification{" +
@@ -612,6 +642,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
                     ", elementSize=" + elementSize +
                     ", highQuality=" + highQuality +
                     ", pixels=" + pixels +
+                    ", depth=" + depth+
                     '}';
         }
     }
@@ -641,7 +672,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
             ato = ByteBuffer.allocateDirect(sz);
         } else ato = to;
 
-        CompletableFuture<ByteBuffer> c = new CompletableFuture<ByteBuffer>() {
+        CompletableFuture<ByteBuffer> c = new CompletableFuture<>() {
             @Override
             public ByteBuffer get() throws InterruptedException, ExecutionException {
                 if (!isDone()) return ato;
@@ -668,7 +699,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
     /**
      * this operates asynchronously if we are not currently inside the draw loop (that is, if there is no valid context for our thread). only one debug download can be pending at a time. You can
-     * pass in null to this routine and you'll get a correctly sized ByteByffer back that you can reuse for subsequent calls. Regardless of the original format of the FBO this always returns
+     * pass in null to this routine and you'll get a correctly sized ByteBuffer back that you can reuse for subsequent calls. Regardless of the original format of the FBO this always returns
      * something that's RGBA / byte,.
      */
     public Future<ByteBuffer> asyncDebugDownloadRGB8(ByteBuffer to) {

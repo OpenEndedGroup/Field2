@@ -43,7 +43,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 	@Override
 	@HiddenInAutocomplete
 	public Integer getUniform() {
-		try (Util.ExceptionlessAutoCloasable st = GraphicsContext.getContext().stateTracker.save()) {
+		try (Util.ExceptionlessAutoClosable st = GraphicsContext.getContext().stateTracker.save()) {
 			return specification.unit;
 		}
 	}
@@ -164,6 +164,10 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 
 		static public FBOSpecification singleFloat(int unit, int width, int height) {
 			return new FBOSpecification(unit, GL_RGBA32F, width, height, GL_RGBA, GL_FLOAT, 32, false, 1, false, false, 1);
+		}
+
+		static public FBOSpecification singleFloat16(int unit, int width, int height) {
+			return new FBOSpecification(unit, GL_RGBA16F, width, height, GL_RGBA, GL_HALF_FLOAT, 16, false, 1, false, false, 1);
 		}
 
 		static public FBOSpecification layeredFloat(int unit, int width, int height, int layers) {
@@ -305,7 +309,6 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, s.text[i], 0);
 
 					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
 					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -335,7 +338,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 					glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, s.text[i], 0);
 					glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-					glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+					glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
 					glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 
@@ -390,7 +393,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 	public boolean draw() {
 		drawCount++;
 		GraphicsContext.checkError(() -> "on FBO draw entry, specification " + specification);
-		try (Util.ExceptionlessAutoCloasable st = GraphicsContext.getContext().stateTracker.save()) {
+		try (Util.ExceptionlessAutoClosable st = GraphicsContext.getContext().stateTracker.save()) {
 
 			State s = GraphicsContext.get(this, this::setup);
 

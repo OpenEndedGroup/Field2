@@ -709,7 +709,7 @@ public class MeshBuilder implements MeshAcceptor, Bracketable, Scene.ContainsPer
 		IntBuffer e = ensureElementSize(target.elements.getDimension(), elementCursor + source.elementCursor);
 		IntBuffer e2 = source.target.elements(true);
 		for (int i = 0; i < source.elementCursor * target.elements.getDimension(); i++)
-			e.put(e2.get() + elementCursor + 1);
+			e.put(e2.get() + vertexCursor);
 
 
 		Set<Integer> auxes = new LinkedHashSet<>();

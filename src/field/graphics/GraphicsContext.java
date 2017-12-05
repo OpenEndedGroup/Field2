@@ -34,128 +34,134 @@ import java.util.function.Supplier;
  */
 public class GraphicsContext {
 
-	public final ReentrantLock lock = new ReentrantLock(true);
+    public final ReentrantLock lock = new ReentrantLock(true);
 
-	static protected final ThreadLocal<GraphicsContext> currentGraphicsContext = new ThreadLocal<>();
-	static List<GraphicsContext> allGraphicsContexts = new ArrayList<GraphicsContext>();
+    static protected final ThreadLocal<GraphicsContext> currentGraphicsContext = new ThreadLocal<>();
+    static List<GraphicsContext> allGraphicsContexts = new ArrayList<GraphicsContext>();
 
-	public final StateTracker stateTracker = new StateTracker();
-	public final UniformCache uniformCache = new UniformCache();
+    public final StateTracker stateTracker = new StateTracker();
+    public final UniformCache uniformCache = new UniformCache();
 
-	protected WeakHashMap<Object, Object> context = new WeakHashMap<>();
+    protected WeakHashMap<Object, Object> context = new WeakHashMap<>();
 
-	static public GraphicsContext getContext() {
-		return currentGraphicsContext.get();
-	}
+    static public GraphicsContext getContext() {
+        return currentGraphicsContext.get();
+    }
 
-	static public boolean isResizing = false;
+    static public boolean isResizing = false;
 
-	public final BlockingQueue<Runnable> preQueue = new LinkedBlockingQueue<>();
-	public final BlockingQueue<Runnable> postQueue = new LinkedBlockingQueue<>();
+    /** the preQueue is a list of things that run every time that the context is entered */
+    public final BlockingQueue<Runnable> preQueue = new LinkedBlockingQueue<>();
 
-	static public GraphicsContext newContext() {
-		GraphicsContext c = new GraphicsContext();
-		allGraphicsContexts.add(c);
-		currentGraphicsContext.set(c);
-		return c;
-	}
+    /** the postQueue is a list of things that run _once_ when the context is exited --- it is cleared every exit (although it is safe to add additional items to this during the exit) */
+    public final BlockingQueue<Runnable> postQueue = new LinkedBlockingQueue<>();
 
-	static public void enterContext(GraphicsContext c) {
-		Log.log("graphics.trace", () -> ">> graphics context begin ");
+    static public GraphicsContext newContext() {
+        GraphicsContext c = new GraphicsContext();
+        allGraphicsContexts.add(c);
+        currentGraphicsContext.set(c);
+        return c;
+    }
 
-//		System.out.println(" setting context :"+currentGraphicsContext+" to "+c+" in thread "+Thread.currentThread());
+    static public void enterContext(GraphicsContext c) {
+        Log.log("graphics.trace", () -> ">> graphics context begin ");
+        currentGraphicsContext.set(c);
 
-		currentGraphicsContext.set(c);
-		for (Runnable r : currentGraphicsContext.get().preQueue) {
-			r.run();
-		}
-	}
+        ArrayList<Runnable> q = new ArrayList<>(currentGraphicsContext.get().preQueue);
+//        currentGraphicsContext.get().preQueue.clear();
 
-	static public void exitContext(GraphicsContext c) {
-		if (currentGraphicsContext.get() != c) throw new Error();
-		for (Runnable r : currentGraphicsContext.get().postQueue)
-			r.run();
-		currentGraphicsContext.get().postQueue.clear();
-		currentGraphicsContext.set(null);
-		Log.log("graphics.trace", () -> "<< graphics context end");
-	}
+        for (Runnable r : q)
+            r.run();
+    }
 
-	static public <T> T get(Object o) {
-		return (T) currentGraphicsContext.get().context.get(o);
-	}
+    static public void exitContext(GraphicsContext c) {
+        if (currentGraphicsContext.get() != c) throw new Error();
+        ArrayList<Runnable> q = new ArrayList<>(currentGraphicsContext.get().postQueue);
+        currentGraphicsContext.get().postQueue.clear();
 
-	public <T> T lookup(Object o) {
-		return (T) context.get(o);
-	}
+        for (Runnable r : q)
+            r.run();
 
-	static public <T> T get(Object o, Supplier<T> initializer) {
-		T t = (T) currentGraphicsContext.get().context.get(o);
-		if (t == null) currentGraphicsContext.get().context.put(o, t = initializer.get());
-		return t;
-	}
+        currentGraphicsContext.set(null);
+        Log.log("graphics.trace", () -> "<< graphics context end");
+    }
 
-	static public void invalidateInThisContext(Object o) {
-		currentGraphicsContext.get().context.remove(o);
-	}
+    static public <T> T get(Object o) {
+        return (T) currentGraphicsContext.get().context.get(o);
+    }
 
-	static public void invalidateInAllContexts(Object o) {
-		for (GraphicsContext cc : GraphicsContext.allGraphicsContexts)
-			cc.context.remove(o);
-	}
+    public <T> T lookup(Object o) {
+        return (T) context.get(o);
+    }
 
-	public boolean exists(Object o) {
-		return context.containsKey(o);
-	}
+    static public <T> T get(Object o, Supplier<T> initializer) {
+        T t = (T) currentGraphicsContext.get().context.get(o);
+        if (t == null) currentGraphicsContext.get().context.put(o, t = initializer.get());
+        return t;
+    }
 
-	static public <T> void put(Object o, T val) {
-		currentGraphicsContext.get().context.put(o, val);
-	}
+    static public void invalidateInThisContext(Object o) {
+        currentGraphicsContext.get().context.remove(o);
+    }
 
-	static public void postQueueInAllContexts(Runnable c) {
-		allGraphicsContexts.stream()
-				   .map(x -> x.postQueue.add(c));
-	}
+    static public void invalidateInAllContexts(Object o) {
+        for (GraphicsContext cc : GraphicsContext.allGraphicsContexts)
+            cc.context.remove(o);
+    }
 
-	static public void preQueueInAllContexts(Supplier<Boolean> c) {
-		allGraphicsContexts.stream()
-				   .map(x -> x.preQueue.add(new Sticky(x.preQueue, c)));
-	}
+    public boolean exists(Object o) {
+        return context.containsKey(o);
+    }
 
-	static public void preQueueInAllContexts(Runnable c) {
-		allGraphicsContexts.stream()
-				   .map(x -> x.preQueue.add(c));
-	}
+    static public <T> void put(Object o, T val) {
+        currentGraphicsContext.get().context.put(o, val);
+    }
 
-	public static <T> T remove(Object key) {
-		return (T) currentGraphicsContext.get().context.remove(key);
-	}
+    static public void postQueueInAllContexts(Runnable c) {
+        allGraphicsContexts.stream()
+                .map(x -> x.postQueue.add(c));
+    }
 
-	static public final boolean noChecks = Options.dict().isTrue(new Dict.Prop("noChecks"), false);
+    static public void preQueueInAllContexts(Supplier<Boolean> c) {
+        allGraphicsContexts.stream()
+                .map(x -> x.preQueue.add(new Sticky(x.preQueue, c)));
+    }
 
-	public static void checkError() {
-		if (noChecks) return;
-		if (currentGraphicsContext == null) return;
-		checkError(() -> "");
-	}
+    static public void preQueueInAllContexts(Runnable c) {
+        allGraphicsContexts.stream()
+                .map(x -> x.preQueue.add(c));
+    }
 
-	static protected ThreadLocal<IntBuffer> p = new ThreadLocal<IntBuffer>(){
-		@Override
-		protected IntBuffer initialValue() {
-			return ByteBuffer.allocateDirect(4 * 4)
-				  .order(ByteOrder.nativeOrder())
-				  .asIntBuffer();
-		}
-	};
+    public static <T> T remove(Object key) {
+        return (T) currentGraphicsContext.get().context.remove(key);
+    }
 
-	static public String containsDebug = null;
+    static public final boolean noChecks = Options.dict().isTrue(new Dict.Prop("noChecks"), false);
 
-	public static void checkError(Supplier<String> message) {
+    public static void checkError() {
+        if (noChecks) return;
+        if (currentGraphicsContext == null) return;
+        checkError(() -> "");
+    }
+
+    static protected ThreadLocal<IntBuffer> p = new ThreadLocal<IntBuffer>() {
+        @Override
+        protected IntBuffer initialValue() {
+            return ByteBuffer.allocateDirect(4 * 4)
+                    .order(ByteOrder.nativeOrder())
+                    .asIntBuffer();
+        }
+    };
+
+    static public String containsDebug = null;
+
+    public static void checkError(Supplier<String> message) {
 
 
-		if (noChecks) return;
-		if (currentGraphicsContext.get() == null) return;
+        if (noChecks) return;
+        if (currentGraphicsContext.get() == null) return;
 
-		int e = GL11.glGetError();
+        int e = GL11.glGetError();
 
 //		GL11.glGetIntegerv(GL11.GL_VIEWPORT, p.get());
 //		String debugString = Thread.currentThread() + " " + currentGraphicsContext.get() + " " + p.get().get(2)+" "+ GL.getCapabilities();
@@ -165,37 +171,38 @@ public class GraphicsContext {
 //			new Exception().printStackTrace();
 //		}
 
-		if (e != 0) {
-			System.err.println(
-				    "GLERROR:" + /*GLUtil.getErrorString(*/e/*)*/ + " -- " + message.get() + "\nState tracker is:" + GraphicsContext.getContext().stateTracker.dumpOutput());
+        if (e != 0) {
+            System.err.println(
+                    "GLERROR:" + /*GLUtil.getErrorString(*/e/*)*/ + " -- " + message.get() + "\nState tracker is:" + GraphicsContext.getContext().stateTracker.dumpOutput());
 //			System.exit(0);
-		}
-	}
+        }
+    }
 
-	static public class Sticky implements Runnable {
-		private final Supplier<Boolean> target;
-		private final Collection<Runnable> queue;
+    static public class Sticky implements Runnable {
+        private final Supplier<Boolean> target;
+        private final Collection<Runnable> queue;
 
-		public Sticky(Collection<Runnable> queue, Supplier<Boolean> target) {
-			this.target = target;
-			this.queue = queue;
-		}
+        public Sticky(Collection<Runnable> queue, Supplier<Boolean> target) {
+            this.target = target;
+            this.queue = queue;
+        }
 
-		public void run() {
-			if (target.get()) queue.add(this);
-		}
-	}
+        public void run() {
+            if (target.get()) queue.add(this);
+        }
+    }
 
 
-	static public class InDraw {
-		private final Method m;
+    static public class InDraw {
+        private final Method m;
 
-		public InDraw(Method m) {
-			this.m = m;
-		}
+        public InDraw(Method m) {
+            this.m = m;
+        }
 
-		public void begin(Object source, Object[] args) {
-			if (GraphicsContext.currentGraphicsContext.get() == null) throw new IllegalStateException(" Not in graphics context");
-		}
-	}
+        public void begin(Object source, Object[] args) {
+            if (GraphicsContext.currentGraphicsContext.get() == null)
+                throw new IllegalStateException(" Not in graphics context");
+        }
+    }
 }

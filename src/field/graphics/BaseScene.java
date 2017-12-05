@@ -2,7 +2,8 @@ package field.graphics;
 
 
 import field.utility.Util;
-import fieldbox.execution.Errors;
+
+import java.util.function.Supplier;
 
 /**
  * this Base class codifies a general pattern for Scene.Perform classes:
@@ -20,8 +21,8 @@ public abstract class BaseScene<t_state extends BaseScene.Modifiable> extends Sc
 
 	protected BaseScene() {
 		// its generally important that things get initialized as early as possible (and, furthermore, not in some random spot in the Scene update)
-		GraphicsContext.preQueueInAllContexts(() -> {
-			try(Util.ExceptionlessAutoCloasable st = GraphicsContext.getContext().stateTracker.save()) {
+		GraphicsContext.postQueueInAllContexts(() -> {
+			try(Util.ExceptionlessAutoClosable st = GraphicsContext.getContext().stateTracker.save()) {
 				GraphicsContext.put(this, setup());
 			}
 		});
@@ -32,6 +33,8 @@ public abstract class BaseScene<t_state extends BaseScene.Modifiable> extends Sc
 
 	@Override
 	public boolean perform(int pass) {
+
+		if (disabled.get()) return true;
 
 		if (pass == getPasses()[0]) {
 			t_state s = GraphicsContext.get(this, () -> setup());
@@ -73,5 +76,21 @@ public abstract class BaseScene<t_state extends BaseScene.Modifiable> extends Sc
 	}
 
 	protected abstract void deallocate(t_state s);
+
+	public Supplier<Boolean> disabled = () -> false;
+
+	public void disable()
+	{
+		disabled = () -> true;
+	}
+
+	public void enable()
+	{
+		disabled = () -> false;
+	}
+	public void disable(Supplier<Boolean> when)
+	{
+		disabled = when;
+	}
 
 }

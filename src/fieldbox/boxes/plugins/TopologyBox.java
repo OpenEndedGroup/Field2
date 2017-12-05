@@ -49,7 +49,7 @@ public class TopologyBox extends Box
 	/**
 	 * custom constructor, call init after you are done
 	 */
-	protected TopologyBox() {
+	public TopologyBox() {
 	}
 
 	public void loaded() {
@@ -63,6 +63,7 @@ public class TopologyBox extends Box
 		this.properties.put(FrameManipulation.lockY, true);
 
 		this.properties.put(Box.name, head().properties.get(Box.name) + "->" + tail().properties.get(Box.name));
+		this.properties.put(DragToCopy._ownedByParent, true);
 	}
 
 

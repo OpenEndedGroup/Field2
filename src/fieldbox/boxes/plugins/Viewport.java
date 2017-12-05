@@ -15,7 +15,6 @@ import java.awt.*;
 import java.nio.IntBuffer;
 import java.util.*;
 import java.util.List;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -350,7 +349,7 @@ public class Viewport extends Box implements IO.Loaded, ProvidesGraphicsContext 
 			});
 		}
 
-		try (Util.ExceptionlessAutoCloasable s = GraphicsContext.getContext().stateTracker.save()) {
+		try (Util.ExceptionlessAutoClosable s = GraphicsContext.getContext().stateTracker.save()) {
 
 			Rect f = this.properties.get(Box.frame);
 

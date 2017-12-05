@@ -2,11 +2,13 @@ package fieldbox.boxes.plugins;
 
 import field.app.RunLoop;
 import field.app.ThreadSync;
+import field.app.ThreadSync2;
 import field.utility.Conversions;
 import field.utility.Dict;
 import field.utility.IdempotencyMap;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Boxes;
+import fieldbox.boxes.ListProxy;
 import fieldbox.execution.Completion;
 import fieldbox.execution.HandlesCompletion;
 import fieldbox.io.IO;
@@ -30,9 +32,8 @@ public class Pseudo extends Box {
 														      .toCanon()
 														      .type();
 
-	static public Dict.Prop<FunctionOfBoxValued<All>> all = new Dict.Prop<FunctionOfBoxValued<All>>("all").doc(" `_.all.x` returns all values of `x` above this box and at this box")
-													      .toCanon()
-													      .type();
+	static public Dict.Prop<FunctionOfBoxValued<All>> allUp = new Dict.Prop<FunctionOfBoxValued<All>>("allUp").doc(" `_.allUp.x` returns all values of `x` above this box _and at this box_")
+													      .toCanon().type();
 
 	static public Dict.Prop<FunctionOfBoxValued<Up>> up = new Dict.Prop<FunctionOfBoxValued<Up>>("up").doc(" `_.up.x` returns _a_ first value of `x` above this box, or `null` if there isn't one")
 													  .toCanon()
@@ -133,7 +134,7 @@ public class Pseudo extends Box {
 
 	public Pseudo(Box r) {
 		this.properties.put(where, First::new);
-		this.properties.put(all, All::new);
+		this.properties.put(allUp, All::new);
 		this.properties.put(up, Up::new);
 		this.properties.put(down, Down::new);
 		this.properties.put(allDown, AllDown::new);
@@ -311,7 +312,7 @@ public class Pseudo extends Box {
 			if (q == null)
 				throw new IllegalArgumentException(" can't convert " + val + " to something I can call");
 			try {
-				Object m = ThreadSync.callInMainThreadAndWait((Callable<Object>) q::get);
+				Object m = ThreadSync2.callInMainThreadAndWait((Callable<Object>) q::get);
 				on.properties.put(new Dict.Prop<>(p), m);
 				return m;
 			} catch (Exception e) {
@@ -677,10 +678,10 @@ public class Pseudo extends Box {
 		@Override
 		public Object asMap_get(String s) {
 			Dict.Prop<?> p = new Dict.Prop(s);
-			return on.breadthFirst(on.upwards())
+			return new ListProxy(on.breadthFirst(on.upwards())
 				 .filter(x -> x.properties.has(p))
 				 .map(x -> x.properties.get(p))
-				 .collect(Collectors.toList());
+				 .collect(Collectors.toList()));
 		}
 
 	}

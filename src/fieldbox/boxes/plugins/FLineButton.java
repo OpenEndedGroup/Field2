@@ -73,6 +73,7 @@ public class FLineButton {
 		was = target.attributes.putAll(d);
 		target.modify();
 		Drawing.dirty(box);
+		Drawing.dirty(box, "__main__");
 
 		return null;
 	}
@@ -85,6 +86,7 @@ public class FLineButton {
 		target.attributes.putAll(was);
 		target.modify();
 		Drawing.dirty(box);
+		Drawing.dirty(box, "__main__");
 
 		return null;
 	}
@@ -126,7 +128,6 @@ public class FLineButton {
 					System.out.println(" interaction is in ");
 					target.attributes.putAll(dp);
 					target.modify();
-					Drawing.dirty(box);
 
 				} else {
 					if (!upSemantics)
@@ -135,10 +136,10 @@ public class FLineButton {
 					System.out.println(" interaction is out, point :" + e.after.x + " " + e.after.y + " not in " + interaction.projectFLineToArea(ongoingTarget).getBounds());
 					target.attributes.putAll(original, x -> implicated.contains(x.getName()));
 					target.modify();
-					Drawing.dirty(box);
 				}
 
 				Drawing.dirty(box);
+				Drawing.dirty(box, "__main__");
 			}
 
 			e.properties.put(Window.consumed, true);
@@ -158,6 +159,7 @@ public class FLineButton {
 				}
 
 				Drawing.dirty(box);
+				Drawing.dirty(box, "__main__");
 			}
 
 			return !t;

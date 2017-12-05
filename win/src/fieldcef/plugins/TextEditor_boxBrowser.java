@@ -29,7 +29,7 @@ public class TextEditor_boxBrowser extends Box implements IO.Loaded {
 
 	static public final Dict.Prop<TextEditor_boxBrowser> textEditor_boxBrowser = new Dict.Prop<>("textEditor_boxBrowser").toCanon()
 		.type()
-		.doc("The TextEditor browser variant  that is stuck in front of the window, in window coordinates");
+		.doc("The TextEditor browser variant that is stuck in front of the window, in window coordinates");
 	private final Box root;
 	@HiddenInAutocomplete
 	public Browser browser;

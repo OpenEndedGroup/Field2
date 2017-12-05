@@ -23,8 +23,6 @@ public class ShaderPreprocessor {
 	public String preprocess(Box inside, String s, Map<String, Function<String, String>> extra) {
 		Box.BiFunctionOfBoxAnd<String, Triple<Object, List<String>, List<Pair<Integer, String>>>> e = inside.find(Exec.exec, inside.upwardsOrDownwards()).findFirst().get();
 
-		System.out.println(" preprocess :" + s);
-
 		Matcher q = p.matcher(s);
 		return q.replaceAll(x -> {
 			String g = q.group(2);

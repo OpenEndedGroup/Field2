@@ -7,7 +7,6 @@ import fieldbox.boxes.Box;
 
 import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -18,6 +17,7 @@ import java.util.stream.Collectors;
 public class Missing {
 
 	static public Dict.Prop<IdempotencyMap<BiConsumer<Box, Object>>> watch = new Dict.Prop<Boolean>("watch").toCanon().set(Dict.domain, "*/attributes").type().autoConstructs(() -> new IdempotencyMap<>(BiConsumer.class));
+	static public Dict.Prop<IdempotencyMap<BiConsumer<Box, Object>>> watchRead = new Dict.Prop<Boolean>("watchRead").toCanon().set(Dict.domain, "*/attributes").type().autoConstructs(() -> new IdempotencyMap<>(BiConsumer.class));
 
 	// we need this open for now and Nashorn's enum stuff is a little in flux
 	static public final String read = "READ";
@@ -29,7 +29,7 @@ public class Missing {
 
 	static public boolean suspended = false;
 
-	static public Util.ExceptionlessAutoCloasable pause() {
+	static public Util.ExceptionlessAutoClosable pause() {
 		suspended = true;
 		return Missing::play;
 	}
@@ -90,6 +90,12 @@ public class Missing {
 
 
 	private static <T> void recordGet(Box b, Dict.Prop<T> what, Box box, T r) {
+
+		IdempotencyMap<BiConsumer<Box, Object>> watch = what.getAttribute(Missing.watchRead);
+		if (watch != null) {
+			watch.values().forEach(x -> x.accept(box, r));
+		}
+
 		if (suspended) return;
 		synchronized (log) {
 			log.add(new Log(read, b, what, box, r));

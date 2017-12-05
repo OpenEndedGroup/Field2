@@ -79,10 +79,10 @@ public class ErrorHelper {
 						EditorUtils ed = box.first(RemoteEditor.editorUtils, box.both()).orElseThrow(() -> new IllegalStateException(" no editortools ? "));
 						RunLoop.workerPool.submit(() -> {
 
-							int s = ed.getCursorPosition();
-
 							String[] f = p.first.split("[\\.$]");
-							String insert = "var " + f[f.length - 1] + " = Java.type('" + p.first.replaceAll("$", ".") + "')\\n";
+							String typeName = p.first.replaceAll("$", ".");
+							if (typeName.endsWith(".")) typeName = typeName.substring(0, typeName.length()-1);
+							String insert = "var " + f[f.length - 1] + " = Java.type('" + typeName+ "')\\n";
 							ed.insertAtStart(insert);
 
 						});
@@ -120,7 +120,9 @@ public class ErrorHelper {
 				return new Pair<Integer, String>(line.first, text);
 			}
 
-			return new Pair<Integer, String>(line.first, line.second);
+			text = line.second+ "<br><div class='advice'><div style='margin-bottom:0px'>Did you mean to declare this ? If so, use <i>var</i></div></div>";
+
+			return new Pair<Integer, String>(line.first, text);
 
 		}
 		return line;

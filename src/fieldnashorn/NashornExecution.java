@@ -90,6 +90,8 @@ public class NashornExecution implements Execution.ExecutionSupport {
 		Callbacks.call(box, Callbacks.onExecute);
 		try {
 
+			Execution.context.get().push(box);
+
 			Writer writer = null;
 			boolean[] written = {false};
 			if (success != null) {
@@ -209,7 +211,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 		} finally {
 			lineOffset = 0;
-
+			Execution.context.get().pop();
 		}
 		return null;
 	}
@@ -293,7 +295,15 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 
 		} else {
-			return engine.eval(textFragment, context);
+			Object ret = engine.eval(textFragment, context);
+
+//			System.out.println(" executed "+box+" in executor "+this+", bindings are : "+System.identityHashCode(context.getBindings(ScriptContext.ENGINE_SCOPE))+"/"+System.identityHashCode(context.getBindings(ScriptContext.GLOBAL_SCOPE)));
+//			System.out.println(" -- engine --");
+//			context.getBindings(ScriptContext.ENGINE_SCOPE).entrySet().forEach(x -> System.out.println(x.getKey()+" = "+x.getValue()));
+//			System.out.println(" -- global --");
+//			context.getBindings(ScriptContext.GLOBAL_SCOPE).entrySet().forEach(x -> System.out.println(x.getKey()+" = "+x.getValue()));
+
+			return ret;
 		}
 	}
 

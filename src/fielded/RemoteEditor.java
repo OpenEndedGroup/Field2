@@ -134,8 +134,6 @@ public class RemoteEditor extends Box {
 //			} else {
 
 
-			System.out.println(" message :" + socketName + " -> " + value);
-
 			for (Pair<String, String> v : value)
 				server.send(socketName, "_messageBus.publish('" + key + "', " + v.second + ")");
 //			}
@@ -328,13 +326,18 @@ public class RemoteEditor extends Box {
 
 						CompletionStats.stats.autosuggest(cc);
 
-						// Tern just loves decodeURIComponent
+						// Tern just loves some things
 						if (cc.size() > 20 && cc.get(0).replacewith.equals("decodeURIComponent"))
+							return;
+
+						if (cc.size() > 20 && cc.get(0).replacewith.equals("Map"))
 							return;
 
 						String also = "";
 						if (cc.size() < 20 && cc.size() > 1) {
 							for (int i = 1; i < cc.size(); i++) {
+								if (cc.get(i).replacewith.equals(cc.get(i-1).replacewith)) continue;
+
 								also += "<b>" + cc.get(i).replacewith + "</b>, ";
 								if (also.length() > 60) {
 									also = also.substring(0, also.length() - 2) + "...";
@@ -1284,7 +1287,7 @@ public class RemoteEditor extends Box {
 		return server;
 	}
 
-	public Util.ExceptionlessAutoCloasable pushToLogStack(Consumer<String> log, Consumer<String> error) {
+	public Util.ExceptionlessAutoClosable pushToLogStack(Consumer<String> log, Consumer<String> error) {
 		this.logStack.add(log);
 		this.errorStack.add(error);
 		return () -> {

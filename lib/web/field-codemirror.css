@@ -67,6 +67,10 @@ html {
 body {
     -webkit-font-variant-ligatures: common-ligatures;
     font-variant-ligatures: common-ligatures;
+    -webkit-font-smoothing: subpixel-antialiased;
+    font-kerning: normal;
+    /*-webkit-text-stroke: 1px rgba(255,255,255,0.1);*/
+
     background: rgba(0, 0, 0, 0);
     color: #aaa;
     font-size: 12px;
@@ -353,6 +357,21 @@ a {
     width: 48px;
 }
 
+.CodeMirror-gutters {
+    /*background : #2d3133;*/
+    /*border-color: #2d3133;*/
+    /*background: rgba(0, 0, 0, 0);*/
+    /*border-color: rgba(255, 255, 255, 0.1);*/
+
+    background : #444;
+    border : None;
+
+}
+.CodeMirror-linenumber {
+    color:#777;
+    font-weight: 100;
+}
+
 .CodeMirror-linewidget {
     margin-left: -25px;
     z-index: 4;
@@ -479,7 +498,7 @@ a {
 .Field-remoteWidgetOverlay {
     display: inline-block;
     vertical-align: middle;
-    background: rgba(128,108,78,0.9);
+    background: rgba(128,118,108,0.6);
     border-radius: 3px;
     /* padding: 1px; */
     margin-top: -33px;
@@ -489,15 +508,27 @@ a {
     border: 1px solid rgba(220,120,20, 0.25);
     /* overflow: visible; */
     z-index: 4;
-    /* filter: invert() contrast(1) brightness(0.5); */
+    /* filter: invert() contrast(1  ) brightness(0.5); */
 }
 
 .Field-remoteColor form {
     display: inline;
 }
 
+.Field-interventionHiddenLeft
+{
+    padding:2px;
+}
+
+.Field-interventionHiddenRight
+{
+    padding:2px;
+
+}
+
+
 .Field-closeBox {
-    font-size: 12px;
+    font-size: 10px;
     font-family: "Source Code Pro";
     position: absolute;
     border-radius: 6px 0 0 0;
@@ -518,7 +549,7 @@ a {
 }
 
 .Field-expandBox {
-    font-size: 12px;
+    font-size: 9px;
     position: absolute;
     font-family: "Source Code Pro";
     border-radius: 0 0 0 6px;
@@ -907,6 +938,7 @@ code {
 
 .CodeMirror-scroll {
     border-radius: 5px;
+    border: None;
     background: #222;
 }
 
@@ -917,14 +949,10 @@ code {
 .CodeMirror {
     border-radius: 5px;
     color: #aaa;
+    border: None;
 }
 
-.CodeMirror-gutters {
-    background : #2d3133;
-    border-color: #2d3133;
-    background: rgba(0, 0, 0, 0);
-    border-color: rgba(255, 255, 255, 0.1);
-}
+
 
 .CodeMirror-gutter-wrapper {
     pointer-events: none;
@@ -1024,7 +1052,7 @@ code {
 
 
 .cm-s-default span.cm-keyword {
-    color: #f95;
+    color: #f85;
     font-style: italic;
 }
 
@@ -1088,8 +1116,17 @@ div#hbox.Field-status span.doc
 
 div#hbox.Field-status span.doc span.type
 {
-//    display: inline;
     font-size:70%;
+}
+
+span.type
+{
+    color:rgba(148,188,255,1);
+}
+
+span.doc code
+{
+    color:rgba(148,188,255,1);
 }
 
 div#hbox.Field-status .comp-space {

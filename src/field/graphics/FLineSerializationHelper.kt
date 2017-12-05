@@ -5,9 +5,8 @@ import field.linalg.Vec3
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 
-object FLineSerializationHelper
+class FLineSerializationHelper
 {
-    @JvmStatic
     fun writeObject(f : FLine, oos : ObjectOutputStream)
     {
         val i = ArrayList<Vec3>()
@@ -37,7 +36,6 @@ object FLineSerializationHelper
         oos.writeObject(instructions to i)
     }
 
-    @JvmStatic
     fun readObject(f : FLine, ois : ObjectInputStream)
     {
         val p = ois.readObject()
