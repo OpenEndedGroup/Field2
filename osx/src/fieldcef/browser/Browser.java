@@ -492,6 +492,7 @@ public class Browser extends Box implements IO.Loaded {
 					KeyEvent ke2 = new KeyEvent(component, KeyEvent.KEY_RELEASED, 0, fmod, fk, KeyEvent.CHAR_UNDEFINED);
 					browser.sendKeyEvent(ke2);
 					e2.properties.put(Window.consumed, true);
+					System.out.print("<");
 					Drawing.dirty(this);
 				}
 				return !term;
@@ -559,6 +560,7 @@ public class Browser extends Box implements IO.Loaded {
 				ke = new KeyEvent(component, KeyEvent.KEY_RELEASED, 0, mod, found, KeyEvent.CHAR_UNDEFINED);
 				browser.sendKeyEvent(ke);
 			}
+			System.out.print("<");
 			Drawing.dirty(this);
 		});
 
@@ -646,6 +648,7 @@ public class Browser extends Box implements IO.Loaded {
 		this.dirty.set(true);
 
 		// threading ?
+		System.out.print("<");
 		Drawing.dirty(Browser.this);
 		root.properties.put(Drawing.needRepaint, true);
 		window.requestRepaint();
@@ -729,6 +732,7 @@ public class Browser extends Box implements IO.Loaded {
 //			else
 			texture.upload(source, false, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (1 + damage.h + damage.y));
 
+			System.out.print("<");
 			Drawing.dirty(this);
 			again = 1;
 			hasRepainted = true;
@@ -740,6 +744,7 @@ public class Browser extends Box implements IO.Loaded {
 //			else
 			texture.upload(source, false, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (1 + damage.h + damage.y));
 
+			System.out.print("<");
 			Drawing.dirty(this);
 			RunLoop.main.shouldSleep.add(this);
 			again--;
@@ -856,7 +861,10 @@ public class Browser extends Box implements IO.Loaded {
 	}
 
 	public void setFocus(boolean f) {
-		if (f != getFocus()) Drawing.dirty(this);
+		if (f != getFocus()) {
+			System.out.print("<");
+			Drawing.dirty(this);
+		}
 
 		browser.setFocus(f);
 		if (f) {

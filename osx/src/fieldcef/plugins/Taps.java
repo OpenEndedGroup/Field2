@@ -28,9 +28,9 @@ import java.util.stream.Stream;
 public class Taps extends Box implements IO.Loaded {
 
 	static public final Dict.Prop<BiFunctionOfBoxAnd<String, Box /*Function<Object, Object>*/>> tap = new Dict.Prop<>("tap").type()
-																.toCanon(); //doc!
+		.toCanon(); //doc!
 	static public final Dict.Prop<Binding> tapBinding = new Dict.Prop<>("tapBinding").type()
-											 .toCanon(); //doc!
+		.toCanon(); //doc!
 
 
 	boolean selectionHasChanged = false;
@@ -47,8 +47,8 @@ public class Taps extends Box implements IO.Loaded {
 		properties.put(tap, (x, string) -> {
 
 			Box c = x.first(Templates.ensureChildTemplated)
-				 .get()
-				 .apply(x, "tap-" + string.substring(0, string.lastIndexOf(":")), string);
+				.get()
+				.apply(x, "tap-" + string.substring(0, string.lastIndexOf(":")), string);
 
 			// do something with 'c' -> function
 
@@ -58,7 +58,7 @@ public class Taps extends Box implements IO.Loaded {
 				Optional<RemoteEditor> first = this.first(RemoteEditor.editor, both());
 				if (first.isPresent()) {
 					binding.server = first.get()
-							      .getServer();
+						.getServer();
 					binding.lastSocket = Server.currentWebSocket.get();
 				}
 				c.properties.put(tapBinding, binding);
@@ -85,7 +85,7 @@ public class Taps extends Box implements IO.Loaded {
 
 			if (selection().count() == 1) {
 				Box next = selection().findFirst()
-						      .get();
+					.get();
 				Binding nextBinding = next.properties.get(tapBinding);
 				if (nextBinding != null) {
 					activate(nextBinding);
@@ -102,65 +102,65 @@ public class Taps extends Box implements IO.Loaded {
 
 		if (!editorLoaded && first(Watches.watches, both()).isPresent()) {
 			Optional<RemoteEditor> first = this.first(RemoteEditor.editor, both());
-			Log.log("tap", ()->"is the editor loaded yet ? " + first);
+			Log.log("tap", () -> "is the editor loaded yet ? " + first);
 
 			if (first.isPresent()) {
 				editorLoaded = true;
 				RemoteEditor editor = first.get();
 
 				editor.getServer()
-				      .addHandlerLast(Predicate.isEqual("taps.activeset"), (s, socket, address, payload) -> {
+					.addHandlerLast(Predicate.isEqual("taps.activeset"), (s, socket, address, payload) -> {
 
-					      Log.log("tap", ()->"tap.activeset recieved ");
+						Log.log("tap", () -> "tap.activeset recieved ");
 
-					      // the list of the active taps inside:
-					      Box e = editor.getCurrentlyEditing();
-					      if (e == null) {
-						      Log.log("tap", ()->"nothing being edited");
-						      return payload;
-					      }
+						// the list of the active taps inside:
+						Box e = editor.getCurrentlyEditing();
+						if (e == null) {
+							Log.log("tap", () -> "nothing being edited");
+							return payload;
+						}
 
-					      queue.put("updateTapsFrom", () -> {
+						queue.put("updateTapsFrom", () -> {
 
-						      // clean these out on demand
+							// clean these out on demand
 
-						      List<Box> collect = e.children()
-									   .stream()
-									   .filter(x -> x.properties.has(tapBinding))
-									   .collect(Collectors.toList());
+							List<Box> collect = e.children()
+								.stream()
+								.filter(x -> x.properties.has(tapBinding))
+								.collect(Collectors.toList());
 
-						      JSONObject p = (JSONObject) payload;
-						      JSONArray active = p.getJSONArray("active");
-						      Map<String, Rect> names = new LinkedHashMap<>();
-						      for (int i = 0; i < active.length(); i++) {
-							      JSONObject o = (JSONObject) active.get(i);
-							      String name = o.getString("name");
-							      names.put(name, new Rect(o.getDouble("x"), o.getDouble("y"), o.getDouble("w"), o.getDouble("h")));
-						      }
+							JSONObject p = (JSONObject) payload;
+							JSONArray active = p.getJSONArray("active");
+							Map<String, Rect> names = new LinkedHashMap<>();
+							for (int i = 0; i < active.length(); i++) {
+								JSONObject o = (JSONObject) active.get(i);
+								String name = o.getString("name");
+								names.put(name, new Rect(o.getDouble("x"), o.getDouble("y"), o.getDouble("w"), o.getDouble("h")));
+							}
 
 
-						      List<Box> toDelete = collect.stream()
-										  .filter(x -> !names.containsKey(x.properties.get(tapBinding).canvasId))
-										  .collect(Collectors.toList());
+							List<Box> toDelete = collect.stream()
+								.filter(x -> !names.containsKey(x.properties.get(tapBinding).canvasId))
+								.collect(Collectors.toList());
 
-						      Log.log("tap", ()->"collected :" + collect + " / " + toDelete);
+							Log.log("tap", () -> "collected :" + collect + " / " + toDelete);
 
-					      for (Box b : toDelete) {
-						      Callbacks.delete(b);
-						      b.disconnectFromAll();
-					      }
+							for (Box b : toDelete) {
+								Callbacks.delete(b);
+								b.disconnectFromAll();
+							}
 
-						      collect.removeAll(toDelete);
+							collect.removeAll(toDelete);
 
-						      collect.stream()
-							     .forEach(x -> {
-								     Binding b = x.properties.get(tapBinding);
-								     updatePosition(b, names.get(b.canvasId));
-								     b.lastSocket = Server.currentWebSocket.get();
-							     });
-					      });
-					      return payload;
-				      });
+							collect.stream()
+								.forEach(x -> {
+									Binding b = x.properties.get(tapBinding);
+									updatePosition(b, names.get(b.canvasId));
+									b.lastSocket = Server.currentWebSocket.get();
+								});
+						});
+						return payload;
+					});
 
 				// snoop editor changed to set active / unactive.
 				Watches watches = first(Watches.watches, both()).orElseThrow(() -> new IllegalArgumentException(" need Watches for server support"));
@@ -170,7 +170,6 @@ public class Taps extends Box implements IO.Loaded {
 				});
 
 			}
-
 
 		}
 
@@ -193,7 +192,8 @@ public class Taps extends Box implements IO.Loaded {
 
 
 	private void updatePosition(Binding binding, Rect at) {
-		if (binding.editorPosition == null || !binding.editorPosition.equals(at) && binding.target != null) Drawing.dirty(binding.target);
+		if (binding.editorPosition == null || !binding.editorPosition.equals(at) && binding.target != null)
+			Drawing.dirty(binding.target);
 
 		binding.editorPosition = new Rect(at.x, at.y, at.w, at.h);
 
@@ -234,8 +234,8 @@ public class Taps extends Box implements IO.Loaded {
 
 		public Function<Box, FLine> connective() {
 			TextEditor t = inside.find(TextEditor.textEditor, inside.both())
-					     .findFirst()
-					     .get();
+				.findFirst()
+				.get();
 
 			return (x) -> {
 
@@ -244,12 +244,12 @@ public class Taps extends Box implements IO.Loaded {
 				if (t.browser_.properties.isTrue(Box.hidden, false)) return new FLine();
 
 				List<Box> c = selection().collect(Collectors.toList());
-				if (c.size()!=1) return new FLine();
-				if (c.get(0)!=inside) return new FLine();
+				if (c.size() != 1) return new FLine();
+				if (c.get(0) != inside) return new FLine();
 
 
 				Rect f0 = t.browser_.properties.get(Box.frame)
-							      .duplicate();
+					.duplicate();
 				Rect f1 = target.properties.get(Box.frame);
 
 				f0.x += editorPosition.x;
