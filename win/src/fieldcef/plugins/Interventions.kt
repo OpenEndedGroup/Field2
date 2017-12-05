@@ -5,27 +5,33 @@ import field.graphics.util.onsheetui.SimpleCanvas
 import field.graphics.util.onsheetui.get
 import field.utility.*
 import fieldbox.DefaultMenus
-import fieldbox.boxes.Box
-import fieldbox.boxes.Boxes
-import fieldbox.boxes.Callbacks
-import fieldbox.boxes.TimeSlider
+import fieldbox.boxes.*
+import fieldbox.boxes.FrameManipulation.selection
 import fieldbox.boxes.plugins.BoxDefaultCode
 import fieldbox.boxes.plugins.Chorder
+import fieldbox.boxes.plugins.Chorder.begin
 import fieldbox.boxes.plugins.DragToCopy
 import fieldbox.execution.Execution
 import fieldbox.io.IO
 import fielded.RemoteEditor
 import fielded.webserver.Server
 import org.json.JSONObject
+import java.math.RoundingMode
+import java.text.DecimalFormat
 import java.util.*
 import java.util.function.Predicate
 import java.util.function.Function
+import java.util.function.Supplier
+import java.util.stream.Collectors
+import java.util.stream.Stream
 
 class Interventions(val root: Box) : Box(), IO.Loaded {
     private var editorLoaded: Boolean = false
 
     internal var code_trackFactory = BoxDefaultCode.findSource(Interventions::class.java, "track")
     internal var code_keyframe = BoxDefaultCode.findSource(Interventions::class.java, "keyframe")
+
+    var editor : RemoteEditor? = null;
 
     override fun loaded() {
 
@@ -35,9 +41,9 @@ class Interventions(val root: Box) : Box(), IO.Loaded {
 
             if (first.isPresent) {
                 editorLoaded = true
-                val editor = first.get()
+                editor = first.get()
 
-                editor.server.addHandlerLast({ x -> x == "interventions.changed" }, { s, socket, address, payload ->
+                editor!!.server.addHandlerLast({ x -> x == "interventions.changed" }, { s, socket, address, payload ->
                     val p = payload as JSONObject
 
                     val newlyAdded = p.getBoolean("newlyAdded")
@@ -64,23 +70,62 @@ class Interventions(val root: Box) : Box(), IO.Loaded {
                 true
         }
 
-        root.properties.put(Dict.Prop<TriFunctionOfBoxAnd<String, Double, Double>>("intervention"), TriFunctionOfBoxAnd<String, Double, Double> { box, name, cv->
+        timeSlider = (this both TimeSlider.time)
+
+        properties.putToMap(Boxes.insideRunLoop, "main.__updateTimeSlider__", Supplier<Boolean> {
+
+            val tn = time(this);
+            val sel = selection()
+            if (tn != timeWas || sel != selectionWas) {
+                timeWas = tn
+                selectionWas = sel
+
+                if (sel.size==1)
+                    updateInterventionsForBox(sel.first())
+            }
+
+
+            true
+        });
+
+        root.properties.put(Dict.Prop<TriFunctionOfBoxAnd<String, Number, Double>>("intervention"), TriFunctionOfBoxAnd<String, Number, Double> { box, name, cv ->
 
             val b = box.children().find { ("intervention." + name).equals(it.properties.get(Box.name)) }
 
             if (b != null)
-                eval(b, cv)
+                eval(b, cv.toDouble())
             else
-                cv
+                cv.toDouble()
         })
     }
 
-    private fun time(box: Box): Double = (box both TimeSlider.time)!!.getTime(box)
+    private fun updateInterventionsForBox(first: Box) {
+        first.children.filter { (it get name)!!.startsWith("intervention.") }.forEach {
+            val uid = (it get name)!!.split(Regex("\\."))[2]
+            val value = eval(it, time(first))
+
+            val df = DecimalFormat("#.###")
+            val name = df.format(value)
+
+            // throttle!!
+            editor!!.sendJavaScript("setIntervention('"+uid+"', '"+name+"')")
+        }
+    }
+
+    private fun selection(): Set<Box> {
+        return breadthFirst(both()).filter { x -> x.properties.isTrue(Mouse.isSelected, false) }.collect(Collectors.toSet())
+    }
+
+
+    var timeWas = -1.0;
+    var selectionWas: Set<Box> = Collections.emptySet();
+
+    var timeSlider: TimeSlider? = null;
+
+    private fun time(box: Box): Double = timeSlider!!.getTime(box)
 
 
     fun setKeyframeBox(parent: Box, time: Double, trackName: String, typeName: String, key: String) {
-
-
 
         val trac = parent.first(DefaultMenus.ensureChild)
                 .get()
@@ -88,11 +133,12 @@ class Interventions(val root: Box) : Box(), IO.Loaded {
 
         if (trac.properties.isTrue(DefaultMenus.wasNew, false)) {
             trac.properties.put(Execution.code, code_trackFactory)
-
-            // todo, layout group
-
             root.disconnect(trac)
             trac.properties.put(DragToCopy._ownedByParent, true)
+
+            // todo: layout
+
+            (trac up begin)!!.apply(trac)
         }
 
         val box = ensureChildAtTime(trac, time)
@@ -118,9 +164,9 @@ class Interventions(val root: Box) : Box(), IO.Loaded {
 
     }
 
-    private fun eval(box: Box, cv : Double): Double {
+    private fun eval(box: Box, cv: Double): Double {
         val t = time(box)
-        return box.properties.getOr(Taps.evalInterpolation, { Function<Double, Double>{ cv }}).apply(t)
+        return box.properties.getOr(Taps.evalInterpolation, { Function<Double, Double> { cv } }).apply(t)
     }
 
     fun ensureChildAtTime(box: Box, time: Double): Box {
@@ -156,6 +202,7 @@ private inline infix fun <T> Box.up(next: Dict.Prop<T>): T? {
 private inline infix fun <T> Box.down(next: Dict.Prop<T>): T? {
     return this.find(next, this.downwards()).findFirst().orElseGet { null }
 }
+
 private inline infix fun <T> Box.both(next: Dict.Prop<T>): T? {
     return this.find(next, this.both()).findFirst().orElseGet { null }
 }
