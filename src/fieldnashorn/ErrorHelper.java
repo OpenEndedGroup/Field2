@@ -120,7 +120,9 @@ public class ErrorHelper {
 				return new Pair<Integer, String>(line.first, text);
 			}
 
-			return new Pair<Integer, String>(line.first, line.second);
+			text = line.second+ "<br><div class='advice'><div style='margin-bottom:0px'>Did you mean to declare this ? If so, use <i>var</i></div></div>";
+
+			return new Pair<Integer, String>(line.first, text);
 
 		}
 		return line;
