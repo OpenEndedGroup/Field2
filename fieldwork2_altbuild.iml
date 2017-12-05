@@ -20,5 +20,7 @@
     <orderEntry type="library" name="lwjgl-assimp" level="project" />
     <orderEntry type="library" name="lwjgl-nfd" level="project" />
     <orderEntry type="library" name="openvr" level="project" />
+    <orderEntry type="library" name="gumtree" level="project" />
+    <orderEntry type="library" name="lwjgl-tinyfd" level="project" />
   </component>
 </module>
