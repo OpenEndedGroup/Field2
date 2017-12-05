@@ -1,6 +1,8 @@
 package fieldbox.boxes;
 
 import field.app.RunLoop;
+import field.app.ThreadSync;
+import field.app.ThreadSync2;
 import field.utility.*;
 import fieldbox.DefaultMenus;
 import fieldbox.boxes.plugins.BoxDefaultCode;
@@ -8,6 +10,7 @@ import fieldbox.boxes.plugins.Missing;
 import fieldbox.execution.*;
 import fieldbox.io.IO;
 import fieldnashorn.annotations.HiddenInAutocomplete;
+import kotlin.jvm.functions.Function1;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -38,7 +41,7 @@ public class Box implements fieldlinker.AsMap, HandlesCompletion {
 	static public final Dict.Prop<Rect> frame = new Dict.Prop<>("frame").type()
 		.toCanon()
 		.doc("the rectangle that this box occupies").set(IO.persistent, true).set(IO.perDocument, true);
-	static public final Dict.Prop<Number> depth= new Dict.Prop<>("depth").type()
+	static public final Dict.Prop<Number> depth = new Dict.Prop<>("depth").type()
 		.toCanon()
 		.doc("provides a completely cosmetic 'z' coordinate for this box. Visible in VR and on stereo displays.").set(IO.persistent, true).set(IO.perDocument, true);
 	static public final Dict.Prop<Boolean> hidden = new Dict.Prop<>("hidden").type()
@@ -511,8 +514,37 @@ public class Box implements fieldlinker.AsMap, HandlesCompletion {
 		if (canon.getAttributes().isTrue(Dict.readOnly, false))
 			throw new IllegalArgumentException("can't write to property " + name);
 
+/*
+		if (value instanceof Iterable && canon.getTypeInformation()!=null && !Iterable.class.isAssignableFrom((Class<?>) canon.getTypeInformation().get(0)))
+		{
+			value = Drivers.iterableAsTrappedSet((Iterable)value);
+		}
+*/
+		if (value instanceof Iterator && canon.getTypeInformation()!=null && !Iterable.class.isAssignableFrom((Class<?>) canon.getTypeInformation().get(0)))
+		{
+			value = Drivers.iteratorAsTrappedSet((Iterator)value);
+		}
+
+		if (value instanceof ThreadSync2.TrappedSet) {
+			Object firstValue = ((ThreadSync2.TrappedSet) value).next();
+
+			Object r = asMap_set(name, firstValue);
+
+			Drivers.provokeCurrentFibre(System.identityHashCode(this) + "_" + name, new Function1<Object, Object>() {
+				@Override
+				public Object invoke(Object o) {
+					if (o != null) {
+						asMap_set(name, o);
+					}
+					return o;
+				}
+			}, ((ThreadSync2.TrappedSet) value));
+
+			return r;
+		}
+
 		Function<Object, Object> c = canon.getAttributes().get(Dict.customCaster);
-		if (c!=null)
+		if (c != null)
 			value = c.apply(value);
 
 		Object converted = Conversions.convert(value, canon.getTypeInformation());

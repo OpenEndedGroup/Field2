@@ -381,6 +381,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 				return;
 			}
 
+			System.err.print("^");
 
 			needsRepainting = false;
 			glfwMakeContextCurrent(window);

@@ -2,6 +2,7 @@ package field.app
 
 import field.utility.AsMapDelegator
 import field.utility.Dict
+import field.utility.IdempotencyMap
 import field.utility.Options
 import fieldlinker.AsMap
 
@@ -13,6 +14,19 @@ import java.util.function.*
  * Created by marc on 7/23/17.
  */
 class ThreadSync2 {
+
+    // _.p = line( ... , ... , ...)   // trap that on asMap_set( ... )
+
+    interface TrappedSet<T> : Iterator<T?>, Iterable<T?> {
+        fun reset()
+
+        override fun iterator(): Iterator<T?> {
+            reset()
+            return this
+        }
+    }
+
+
     var mainThread: Thread
 
     init {
@@ -33,6 +47,8 @@ class ThreadSync2 {
         var debugText: String? = null
         var errorHandler: Consumer<Throwable>? = null
         var thisThread: Thread? = null
+
+        var also = IdempotencyMap<TrappedSet<*>>(TrappedSet::class.java)
 
         var onExit: Runnable? = null
 
@@ -65,6 +81,8 @@ class ThreadSync2 {
 
             if (killed) throw KilledException()
 
+            serviceAlso(also)
+
             try {
                 license = input.take()
             } catch (e: InterruptedException) {
@@ -86,6 +104,8 @@ class ThreadSync2 {
 
                 try {
                     lastReturn = r.call()
+                    while (serviceAlso(also))
+                        yield()
                 } catch (t: KilledException) {
 
                 } catch (t: Throwable) {
@@ -116,6 +136,34 @@ class ThreadSync2 {
 
                 thisFibre.set(null)
             }
+        }
+
+        private fun serviceAlso(also: IdempotencyMap<ThreadSync2.TrappedSet<*>>): Boolean {
+
+            if (also.size == 0) return false
+
+            val vv = also.entries
+            for (n in ArrayList(vv)) {
+                try {
+                    if (!n.value.hasNext()) {
+                        vv.remove(n)
+                    } else {
+                        val v = n.value.next()
+                        if (v == null) {
+                            vv.remove(n)
+                        }
+                    }
+                } catch (t: Throwable) {
+                    println(" exception throw in fibre running also ${n.key} (will be removed)")
+                    vv.remove(n)
+                }
+            }
+
+            return also.size > 0
+        }
+
+        fun addAlso(name: String, t: TrappedSet<*>) {
+            also.put(name, t)
         }
     }
 

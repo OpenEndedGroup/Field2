@@ -4,6 +4,8 @@
       <root url="jar://$PROJECT_DIR$/lib/jars/lwjgl-tinyfd.jar!/" />
     </CLASSES>
     <JAVADOC />
-    <SOURCES />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/lib/jars/lwjgl-tinyfd-sources.jar!/" />
+    </SOURCES>
   </library>
 </component>

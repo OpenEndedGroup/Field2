@@ -53,6 +53,11 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 		.set(IO.dontCopy, true)
 		.set(Dict.readOnly, true).autoConstructs( () -> new IdempotencyMap<Function<Box, FLine>>(Function.class));
 
+	static public final Dict.Prop<Map<String, Function<Box, FLine>>> appearance = new Dict.Prop<>("frameDrawing").type()
+		.toCanon()
+		.doc("set this to a function that returns a list of FLines; it will be called whenever the box is selected or when its frame changes. Boxes with `_.appearance` set don't get the default grey box treatment")
+		.set(Dict.readOnly, true);
+
 	static public final Dict.Prop<IdempotencyMap<Supplier<FLine>>> lines = new Dict.Prop<>("lines").type()
 		.toCanon()
 		.doc("Geometry to be drawn along with this box")
@@ -342,7 +347,6 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 
 	protected Map<String, Function<Box, FLine>> defaultdrawsLines(Dict.Prop<Map<String, Function<Box, FLine>>> k) {
 		Map<String, Function<Box, FLine>> r = new IdempotencyMap<>(Function.class);
-
 
 		r.put("__outlineFill__", new Cached<Box, Object, FLine>((box, previously) -> {
 			Rect rect = box.properties.get(frame);

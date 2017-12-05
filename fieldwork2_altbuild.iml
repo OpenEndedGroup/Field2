@@ -18,9 +18,13 @@
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="library" name="tools" level="application" />
     <orderEntry type="library" name="lwjgl-assimp" level="project" />
-    <orderEntry type="library" name="rt" level="application" />
+
+    <orderEntry type="library" name="lwjgl-nfd" level="project" />
+    <orderEntry type="library" name="openvr" level="project" />
+    <orderEntry type="library" name="gumtree" level="project" />
+    <orderEntry type="library" name="lwjgl-tinyfd" level="project" />
     <orderEntry type="library" name="lwjgl-openvr" level="project" />
     <orderEntry type="library" name="lwjgl-tinyfd" level="project" />
-    <orderEntry type="library" name="gumtree (2)" level="project" />
+
   </component>
 </module>
