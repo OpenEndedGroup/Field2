@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <component name="libraryTable">
   <library name="lwjgl-tinyfd">
     <CLASSES>
@@ -9,14 +8,4 @@
       <root url="jar://$PROJECT_DIR$/lib/jars/lwjgl-tinyfd-sources.jar!/" />
     </SOURCES>
   </library>
-=======
-<component name="libraryTable">
-  <library name="lwjgl-tinyfd">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/lib/jars/lwjgl-tinyfd.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
->>>>>>> 74c325c71e6c0d724855e334b24a6cab300c3081
 </component>
