@@ -34,7 +34,6 @@ public class ThreadSync2Feedback extends Box {
 
 	public ThreadSync2Feedback(Box root) {
 
-
 		if (ThreadSync2.getEnabled()) {
 			this.properties.putToMap(Boxes.insideRunLoop, "main.threadsync2feedback", this::run);
 			this.properties.put(MarkingMenus.menuSpecs, (event) -> {
@@ -71,6 +70,17 @@ public class ThreadSync2Feedback extends Box {
 	}
 
 	static public boolean yield(Box x) {
+		if (ThreadSync2.getEnabled()) {
+			ThreadSync2.Fibre f = ThreadSync2.fibre();
+			if (f != null) {
+				f.yield();
+				return true;
+			}
+		}
+		return false;
+	}
+
+	static public boolean yield() {
 		if (ThreadSync2.getEnabled()) {
 			ThreadSync2.Fibre f = ThreadSync2.fibre();
 			if (f != null) {

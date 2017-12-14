@@ -233,7 +233,7 @@ class ThreadSync2 {
 
     companion object {
         @JvmStatic
-        val enabled = Options.dict().isTrue(Dict.Prop<Boolean>("thread2"), false)
+        val enabled = Options.dict().isTrue(Dict.Prop<Boolean>("thread2"), true)
         @JvmStatic
         var sync: ThreadSync2? = null
         var thisFibre = ThreadLocal<Fibre>()
