@@ -198,8 +198,8 @@ class MeshBuilder_tesselationSupport implements MeshAcceptor{
 
 	protected void v(VInfo info) {
 		if (info.vertex == null) {
-			info.vertex = v(info.position);
 			decorateVertex(info.vertex, info.properties);
+			info.vertex = v(info.position);
 		}
 	}
 
