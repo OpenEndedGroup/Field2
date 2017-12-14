@@ -18,7 +18,7 @@ import java.util.List;
  */
 public class BoxDefaultCode {
 
-	static public List<String> extensions = new ArrayList<>(Arrays.asList("js", "html", "css", "txt", "md", ""));
+	static public List<String> extensions = new ArrayList<>(Arrays.asList("js", "html", "css", "txt", "md", "", "glslf", "glslv", "glslg"));
 
 	static public final Dict.Prop<Boolean> _configured = new Dict.Prop<Boolean>("_configured").toCanon().set(Dict.domain, "*/attributes");
 
