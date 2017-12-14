@@ -382,8 +382,7 @@ class Asta {
                     currentMapping = mutableMapOf()
                 }
 
-                if (debug)
-                {
+                if (debug) {
                     println("final transform -> $v")
                 }
 
@@ -409,12 +408,15 @@ class Asta {
 
         if (!options.on()) return v
 
+        val (trimmed, suffix) = trimSrcURL(v)
+
+
         val p = Parser.create("--language=es6")
-        val r = p.parse("<<internal>>", v + "\n", d)
+        val r = p.parse("<<internal>>", trimmed + "\n", d)
 
         var actions = mutableListOf<() -> Unit>()
 
-        var replaced = v
+        var replaced = trimmed
 
         r.sourceElements.forEach {
             print("\n\n sourceElement: $it\n\n")
@@ -426,7 +428,7 @@ class Asta {
 
         actions.reversed().forEach { it() }
 
-        return replaced
+        return replaced+"\n"+suffix
     }
 
     private fun recurOver(tree: Tree, i: Int, v: String) {
@@ -561,4 +563,18 @@ class Asta {
     fun options(): Options {
         return options
     }
+
+    // Field source urls look like:
+    //  //# sourceURL=bx[Untitled]/_d5b9fda0_5d2b_40a3_96c8_7926a9fb56cb
+
+    var srcURL = Regex("(\\/\\/# sourceURL=bx\\[.*\\]\\/_........_...._...._...._............)")
+
+    fun trimSrcURL(src: String): Pair<String, String> {
+        val res = srcURL.find(src)
+        if (res != null) {
+            return srcURL.replace(src, "") to res.groups[0]!!.value
+        }
+        return src to ""
+    }
+
 }
