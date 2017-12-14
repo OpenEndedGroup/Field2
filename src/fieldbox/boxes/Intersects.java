@@ -4,6 +4,7 @@ import field.graphics.Window;
 import field.linalg.Vec2;
 import field.utility.Rect;
 import fieldbox.boxes.plugins.Planes;
+import fieldcef.plugins.TextEditor;
 
 import java.util.Optional;
 
@@ -21,7 +22,7 @@ public class Intersects {
 			.filter(b -> point == null || frame(b).intersects(point))
 			.filter(x -> !x.properties.isTrue(Mouse.isSticky, false))
 			.filter(x -> Planes.on(root, x)>=1)
-			.sorted((a, b) -> Float.compare(order(frame(a)), order(frame(b))))
+			.sorted((a, b) -> Float.compare(order(frame(a), a instanceof TextEditor), order(frame(b), b instanceof TextEditor)))
 			.findFirst();
 
 		Box startAt = hit.orElseGet(() -> root.breadthFirst(root.both())
@@ -38,8 +39,8 @@ public class Intersects {
 		return hitBox.properties.get(Box.frame);
 	}
 
-	static protected float order(Rect r) {
-		return Math.abs(r.w) + Math.abs(r.h);
+	static protected float order(Rect r, boolean textEditor) {
+		return Math.abs(r.w) + Math.abs(r.h) - (textEditor ? 1000 : 0);
 	}
 
 
