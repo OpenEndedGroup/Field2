@@ -73,21 +73,19 @@ public class Compositor {
 	private FBO newFBO(int unit) {
 		if (Options.dict()
 			   .isTrue(new Dict.Prop<Boolean>("multisample"), Main.os != Main.OS.mac))
-			return new FBO(FBO.FBOSpecification.rgbaMultisampleAndDepth(unit, window.getFrameBufferWidth(), window.getFrameBufferHeight()));
+			return new FBO(FBO.FBOSpecification.rgbaMultisample(unit, window.getFrameBufferWidth(), window.getFrameBufferHeight()));
 
-		return new FBO(FBO.FBOSpecification.rgbaAndDepth(unit, window.getFrameBufferWidth(), window.getFrameBufferHeight()));
+		return new FBO(FBO.FBOSpecification.rgba(unit, window.getFrameBufferWidth(), window.getFrameBufferHeight()));
 	}
 
 	private FBO newFBO(int unit, int res) {
-
 		if (res > 1) {
-			return new FBO(FBO.FBOSpecification.rgbaAndDepth(unit, window.getFrameBufferWidth() / res, window.getFrameBufferHeight() / res));
-
+			return new FBO(FBO.FBOSpecification.rgba(unit, window.getFrameBufferWidth() / res, window.getFrameBufferHeight() / res));
 		} else {
 			if (Options.dict()
 				   .isTrue(new Dict.Prop<Boolean>("multisample"), Main.os != Main.OS.mac))
-				return new FBO(FBO.FBOSpecification.rgbaMultisampleAndDepth(unit, window.getFrameBufferWidth() / res, window.getFrameBufferHeight() / res));
-			return new FBO(FBO.FBOSpecification.rgbaAndDepth(unit, window.getFrameBufferWidth() / res, window.getFrameBufferHeight() / res));
+				return new FBO(FBO.FBOSpecification.rgbaMultisample(unit, window.getFrameBufferWidth() / res, window.getFrameBufferHeight() / res));
+			return new FBO(FBO.FBOSpecification.rgba(unit, window.getFrameBufferWidth() / res, window.getFrameBufferHeight() / res));
 		}
 	}
 
