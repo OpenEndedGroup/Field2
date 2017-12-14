@@ -371,8 +371,6 @@ public class MarkingMenus extends Box {
 
 			textLine.node().attributes.put(text, lab);
 			textLine.attributes.put(layer, "glass2");
-			textLine.attributes.put(color, new Vec4(0, 0, 0, 0.75f));
-
 			textLine.attributes.put(color, new Vec4(1, 1, 1, 0.9f));
 			textLine.node().attributes.put(textScale, 1.2f);
 
@@ -405,22 +403,11 @@ public class MarkingMenus extends Box {
 			toLabels.put(f, textLine);
 
 			f.attributes.putToMap(Mouse.onMouseEnter, "__markingmenu__", (event) -> {
-//				FLine fm = v.makeFLine(v.getContourForSite(sites.get(e.getKey())));
-//
-////				fm = FLinesAndJavaShapes.insetShape(fm, 16);
-//
-//				f.nodes.clear();
-//				f.nodes.addAll(fm.nodes);
-
-//				f.attributes.put(fillColor, new Vec4(1.14f, 0.195f, 0.145f, 0.85f));
-//				f.attributes.put(thicken, new BasicStroke(16, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-//				f.attributes.put(strokeColor, new Vec4(0, 0.5f, 0, -0.15f));
-
 				f.attributes.put(filled, true);
 				f.attributes.put(stroked, false);
 
-				f.attributes.put(fillColor, new Vec4(Colors.executionColor, 0.15f));
-				f.attributes.put(strokeColor, new Vec4(Colors.executionColor, 0.15f));
+				f.attributes.put(fillColor, new Vec4(Colors.boxBackground1.toVec3(), 0.2f));
+				f.attributes.put(strokeColor, new Vec4(Colors.boxBackground1.toVec3(), 0.4f));
 
 				toBoxes.entrySet().forEach(x -> {
 					if (x.getKey() != f) {
@@ -429,19 +416,23 @@ public class MarkingMenus extends Box {
 //						x.getKey().attributes.put(StandardFLineDrawing.opacity, 0.5f);
 //						x.getKey().modify();
 					} else {
-						x.getValue().attributes.put(fillColor, new Vec4(Colors.executionColor, 0.45f));
-						x.getValue().attributes.put(strokeColor, new Vec4(1.0f, 1.0f, 1.0f, 0.5f));
-						x.getValue().attributes.put(stroked, true);
+						x.getValue().attributes.put(fillColor, new Vec4(Colors.boxBackground1.toVec3(), 0.65f));
+						x.getValue().attributes.put(strokeColor, new Vec4(Colors.boxBackground1.toVec3(),1f));
+//						x.getValue().attributes.put(thicken, new BasicStroke(2));
+//						x.getValue().attributes.put(stroked, true);
 						x.getValue().modify();
 					}
 				});
 
 				toLabels.entrySet().forEach(x -> {
 					if (x.getKey() != f) {
-//						x.getValue().attributes.put(StandardFLineDrawing.opacity, 0.5f);
-//						x.getValue().modify();
+						x.getValue().attributes.put(color, new Vec4(1, 1, 1, 0.9f));
+						x.getValue().attributes.put(StandardFLineDrawing.opacity, 0.5f);
+						x.getValue().modify();
 					} else {
-
+						x.getValue().attributes.put(color, new Vec4(0,0,0, 0.9f));
+						x.getValue().modify();
+						x.getValue().attributes.put(StandardFLineDrawing.opacity, 1.0f);
 					}
 				});
 
@@ -546,7 +537,7 @@ public class MarkingMenus extends Box {
 
 			connective2.attributes.put(stroked, false);
 			connective2.attributes.put(filled, true);
-			connective2.attributes.put(fillColor, new Vec4(0.07f, 0.07f, 0.07f, 0.95f));
+			connective2.attributes.put(fillColor, new Vec4(0.27f, 0.26f, 0.25f, 0.95f));
 			connective2.attributes.put(layer, "glass2");
 
 		}
