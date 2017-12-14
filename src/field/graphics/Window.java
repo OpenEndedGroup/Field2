@@ -107,7 +107,8 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 
 		// work around OS X window opening issue
 		if (Main.os == Main.OS.mac) {
-			w = w - 1;
+//			w = w - 1;
+//			h = h - 1;
 		}
 
 		Configuration.GLFW_CHECK_THREAD0.set(false);
@@ -124,7 +125,9 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 
 
 		glfwWindowHint(GLFW_DEPTH_BITS, 24);
-		glfwWindowHint(GLFW_SAMPLES, 8);
+//		glfwWindowHint(GLFW_SAMPLES, 8);
+//		glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, 1);
+		glfwWindowHint(GLFW_COCOA_GRAPHICS_SWITCHING, 1);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, 1);
 		if (Main.os.equals(Main.OS.mac)) {
@@ -155,7 +158,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 //	try {
 //			ThreadSync.callInMainThreadAndWait(() -> {
 
-		window = glfwCreateWindow(w, h, title==null ? "" : title, 0, shareContext == this ? 0 : shareContext.window);
+		window = glfwCreateWindow(w, h, title == null ? "" : title, 0, shareContext == this ? 0 : shareContext.window);
 
 		this.title = title;
 
@@ -171,8 +174,6 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 //				glfwSwapInterval(1);
 
 		glfwSwapInterval(0);
-
-		glfwWindowShouldClose(window);
 
 		if (shareContext == this) {
 			glcontext = GL.createCapabilities(true);
@@ -191,8 +192,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 
 		glfwSwapBuffers(window);
 
-		RunLoop.main.getLoop()
-			.attach(0, perform);
+		RunLoop.main.getLoop().attach(0, perform);
 
 
 		glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS, GL11.GL_TRUE);
@@ -245,9 +245,27 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 
 		if (Main.os == Main.OS.mac) {
 			int finalW = w;
+			int finalH = h;
 			RunLoop.main.delayTicks(() -> {
-				setBounds(x, y, finalW + 1, h);
-			}, 2);
+//				System.out.println("\n\n -- resize -- \n\n");
+//				setBounds(x, y, finalW , finalH);
+
+//				RunLoop.main.mainLoop.attach("__tada__", new Scene.Perform() {
+//					int t = 0;
+//
+//					@Override
+//					public boolean perform(int pass) {
+//						float alpha = t++ / 20f;
+//						if (alpha > 1) alpha = 1;
+//
+//						System.out.println(" opacity :"+alpha);
+//
+//						glfwSetWindowOpacity(window, alpha);
+//						return alpha < 1;
+//					}
+//				});
+
+			}, 20);
 		}
 
 
@@ -326,7 +344,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 	@Override
 	public String generateMarkdown(Box inside, Dict.Prop property) {
 
-		return "Window <code>'"+title+"'</code> of dimensions <code>"+getBounds()+"</code> has been drawn <code>"+frame+"</code> time"+(frame==1 ? "" : "s")+". Average, recent framerate is <code>"+String.format("%.2f",frameRate)+"</code> fps";
+		return "Window <code>'" + title + "'</code> of dimensions <code>" + getBounds() + "</code> has been drawn <code>" + frame + "</code> time" + (frame == 1 ? "" : "s") + ". Average, recent framerate is <code>" + String.format("%.2f", frameRate) + "</code> fps";
 
 	}
 
@@ -342,6 +360,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 
 	public RenderControl renderControl = () -> false;
 
+	int r = 0;
 
 	public void loop() {
 
@@ -350,6 +369,12 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 			if (onlyThread != null && Thread.currentThread() != onlyThread)
 				throw new Error();
 
+			if (glfwWindowShouldClose(window))
+			{
+				RunLoop.main.getLoop().detach(perform);
+				glfwDestroyWindow(window);
+				return;
+			}
 
 			if (Main.os == Main.OS.mac && false) {
 
@@ -371,6 +396,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 					setBounds((int) r.x, (int) r.y, (int) r.w, (int) r.h - 1);
 				}
 			}
+
 			if (!needsRepainting()) {
 				if (!isThreaded) glfwPollEvents();
 				return;
@@ -478,6 +504,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 
 	/**
 	 * Change the title of this window. Note that this won't do anything to a window that was created without a title.
+	 *
 	 * @param title
 	 */
 	public void setTitle(String title) {
@@ -487,12 +514,12 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 
 	public void setBounds(int x, int y, int w, int h) {
 		try {
-			ThreadSync2.callInMainThreadAndWait( () -> {
-                glfwSetWindowSize(window, w, h);
-                glfwSetWindowPos(window, x, y);
-                currentBounds = new Rect(x, y, w, h);
-                return null;
-            });
+			ThreadSync2.callInMainThreadAndWait(() -> {
+				glfwSetWindowSize(window, w, h);
+				glfwSetWindowPos(window, x, y);
+				currentBounds = new Rect(x, y, w, h);
+				return null;
+			});
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
