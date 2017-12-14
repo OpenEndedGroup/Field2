@@ -226,7 +226,7 @@ public class TernSupport {
 				} else {
 					Object directlyBound = engine.get(left);
 					if (directlyBound != null && !directlyBound.getClass().getName().toLowerCase().endsWith("staticclass")) {
-						Completion direct = new Completion(-1, -1, left + " = " + noSourceForFunctions(directlyBound), "<span class=type>" + (directlyBound.getClass().getName()) + "</span><span class=doc> value from this box</span>");
+						Completion direct = new Completion(-1, -1, left + " = " + noSourceForFunctions(directlyBound), "<span class=type>" + suppressScriptObjectMirror(directlyBound.getClass().getName()) + "</span><span class=doc>" + MarkdownToHTML.unwrapFirstParagraph(MarkdownToHTML.convert(docOutOfFunction(directlyBound, "value from this box"))) + "</span>");
 						direct.rank = -1000;
 						r.add(direct);
 					}
@@ -300,7 +300,7 @@ public class TernSupport {
 				t.printStackTrace();
 			}
 		} catch (ScriptException e) {
-			Log.log("completion.errors", () -> "Completion throw an exception "+e.getMessage());
+			Log.log("completion.errors", () -> "Completion throw an exception " + e.getMessage());
 		}
 		Collections.sort(r, (a, b) -> {
 			return String.CASE_INSENSITIVE_ORDER.compare(a.replacewith, b.replacewith);
@@ -337,15 +337,31 @@ public class TernSupport {
 		return r;
 	}
 
+	private String suppressScriptObjectMirror(String name) {
+		if (name.toLowerCase().endsWith("ScriptObjectMirror".toLowerCase())) return "";
+		return name;
+	}
+
+	private String docOutOfFunction(Object directlyBound, String defau) {
+		if (directlyBound instanceof ScriptObjectMirror) {
+			Object doc = ((ScriptObjectMirror) directlyBound).get("__doc__");
+			if (doc != null)
+				return "" + doc;
+		}
+		return defau;
+	}
+
 	private String noSourceForFunctions(Object directlyBound) {
-		if (directlyBound instanceof ScriptObjectMirror && ((ScriptObjectMirror)directlyBound).isFunction()) return "[function]";
-		return ""+directlyBound;
+
+		if (directlyBound instanceof ScriptObjectMirror && ((ScriptObjectMirror) directlyBound).isFunction())
+			return "[function]";
+		return "" + directlyBound;
 	}
 
 	private List<Completion> getQuoteCompletionsForFileSystems(String name) {
 		File f;
 		File[] ff;
-		if (name.equals("")) name =".";
+		if (name.equals("")) name = ".";
 
 		if (new File(name).exists()) {
 			f = new File(name);
@@ -532,7 +548,8 @@ public class TernSupport {
 					Completion ex = new Completion(c - left.length(), c, p.first.substring(tail + 1), p.second);
 					String typeName = p.first.replaceAll("\\$", ".");
 
-					if (typeName.endsWith(".")) typeName = typeName.substring(0, typeName.length()-1);
+					if (typeName.endsWith("."))
+						typeName = typeName.substring(0, typeName.length() - 1);
 
 					ex.header = "var " + p.first.substring(tail + 1) + " = Java.type('" + typeName + "')";
 					r.add(ex);
