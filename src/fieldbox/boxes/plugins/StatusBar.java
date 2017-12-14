@@ -8,9 +8,7 @@ import field.utility.*;
 import fieldbox.boxes.*;
 import fieldbox.ui.FieldBoxWindow;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -22,18 +20,19 @@ import static field.graphics.StandardFLineDrawing.*;
 public class StatusBar extends Box {
 
 	static public Dict.Prop<StatusBar> statusBar = new Dict.Prop<StatusBar>("statusBar").type()
-											    .toCanon()
-											    .doc("The status-bar plugin");
+		.toCanon()
+		.doc("The status-bar plugin");
 	static public Dict.Prop<IdempotencyMap<Supplier<String>>> statuses = new Dict.Prop<>("statuses").type()
-												     .toCanon()
-												     .autoConstructs(() -> new IdempotencyMap<>(Supplier.class))
-												     .doc("Add things here to the status bar, and call `_.statusBar.update()` to update/repaint");
+		.toCanon()
+		.autoConstructs(() -> new IdempotencyMap<>(Supplier.class))
+		.doc("Add things here to the status bar, and call `_.statusBar.update()` to update/repaint");
 	int insetW = 10;
 	int insetH = 10;
 	int height = 25;
 
 	public StatusBar(Box b) {
 
+		this.properties.put(Planes.plane, "__always__");
 		this.properties.put(statusBar, this);
 
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__updateStatusBarWidth__", () -> {
@@ -41,9 +40,9 @@ public class StatusBar extends Box {
 			float w = this.properties.get(Box.frame).w;
 
 			FieldBoxWindow window = find(Boxes.window, both()).findFirst()
-									  .get();
+				.get();
 			Drawing drawing = find(Drawing.drawing, both()).findFirst()
-								       .get();
+				.get();
 
 
 			float w2 = window.getWidth() - insetW * 2;
@@ -57,10 +56,9 @@ public class StatusBar extends Box {
 			float h = this.properties.get(Box.frame).h;
 
 
-			double y2 = window.getHeight()-insetH-h-drawing.getTranslation().y;
+			double y2 = window.getHeight() - insetH - h - drawing.getTranslation().y;
 
-			if (Math.abs(y-y2)>1)
-			{
+			if (Math.abs(y - y2) > 1) {
 				this.properties.get(Box.frame).y = (float) y2;
 				Drawing.dirty(this);
 			}
@@ -68,7 +66,7 @@ public class StatusBar extends Box {
 			return true;
 		});
 
-		this.properties.put(Drawing.windowSpace, new Vec2(0,1));
+		this.properties.put(Drawing.windowSpace, new Vec2(0, 0.5));
 
 		this.properties.put(Box.frame, new Rect(insetW, 0, 10, height));
 
@@ -76,15 +74,21 @@ public class StatusBar extends Box {
 			Rect rect = box.properties.get(frame);
 			if (rect == null) return null;
 
-			boolean selected = box.properties.isTrue(Mouse.isSelected, false);
-
 			FLine f = new FLine();
 			f.moveTo(rect.x + rect.w / 2, rect.y + rect.h / 2 + 25 / 5.0f);
 
 			f.attributes.put(hasText, true);
 			f.attributes.put(color, new Vec4(1, 1, 1, 0.25f));
-			f.nodes.get(f.nodes.size() - 1).attributes.put(text, statusText());
-
+			List<String> spans = Arrays.asList(statusText().split(" "));
+			f.nodes.get(f.nodes.size() - 1).attributes.put(textSpans, spans);
+			List<Vec4> colors = new ArrayList<>();
+			for (int i = 0; i < spans.size(); i++) {
+				if (i % 2 == 0)
+					colors.add(new Vec4(1, 0.9, 0.8, 0.3f));
+				else
+					colors.add(new Vec4(1, 0.9, 0.8, 0.4f));
+			}
+			f.nodes.get(f.nodes.size() - 1).attributes.put(textColorSpans, colors);
 			return f;
 		}, (box) -> new Pair(box.properties.get(frame), statusText())));
 
@@ -102,7 +106,7 @@ public class StatusBar extends Box {
 			f.nodes.get(f.nodes.size() - 1).attributes.put(text, statusText());
 
 			float dd = this.properties.getFloat(depth, 0f);
-			if (dd==0)
+			if (dd == 0)
 				f.attributes.put(StandardFLineDrawing.hint_noDepth, true);
 			else
 				f.nodes.forEach(x -> x.setZ(dd));
@@ -112,11 +116,11 @@ public class StatusBar extends Box {
 
 
 		b.find(Watches.watches, both()).findFirst()
-					     .ifPresent(x -> x.addWatch(statuses, q -> {
-						     update();
-					     }));
+			.ifPresent(x -> x.addWatch(statuses, q -> {
+				update();
+			}));
 
-		this.properties.putToMap(statuses, "_default_", () -> "[ctrl] menus [alt] execution [command-space] commands [g] attach [n] new");
+		this.properties.putToMap(statuses, "_default_", () -> " control / right-click menus option / alt execution command-space commands g attach n new");
 
 	}
 
@@ -130,17 +134,17 @@ public class StatusBar extends Box {
 	public void update() {
 		String s = "";
 		List<Map<String, Supplier<String>>> maps = breadthFirst(both()).filter(x -> x.properties.get(statuses) != null)
-									       .map(x -> x.properties.get(statuses))
-									       .collect(Collectors.toList());
+			.map(x -> x.properties.get(statuses))
+			.collect(Collectors.toList());
 		for (Map<String, Supplier<String>> m : maps) {
 			Iterator<Map.Entry<String, Supplier<String>>> ii = m.entrySet()
-									    .iterator();
+				.iterator();
 			while (ii.hasNext()) {
 				String q = ii.next()
-					     .getValue()
-					     .get();
+					.getValue()
+					.get();
 				if (q == null) ii.remove();
-				else s += (s.length()>0 ? " | " : "")+ q;
+				else s += (s.length() > 0 ? " | " : "") + q;
 			}
 		}
 
