@@ -105,12 +105,25 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		return nodes.get(nodes.size() - 1);
 	}
 
+	/**
+	 * returns the position of the end of this line
+	 */
+	public Vec3 at() {
+		if (nodes.size() > 0)
+			return node().to;
+		return null;
+	}
+
+	@HiddenInAutocomplete
 	public FLine add(Node n) {
 		nodes.add(n);
 		mod++;
 		return this;
 	}
 
+	/**
+	 * adds a line `n` to the end of this line.
+	 */
 	public FLine add(FLine n) {
 
 		for (Node nn : n.nodes) {
@@ -121,6 +134,9 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	}
 
 
+	/**
+	 * tells Field that you've modified the contents of a line in some way, so it might have to work harder to redraw it
+	 */
 	public void modify() {
 		mod++;
 	}
@@ -188,6 +204,22 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		return lineTo(dx + v.x, dy + v.y, v.z);
 	}
 
+	/**
+	 * returns the rough center of the box containing this line
+	 */
+	public Vec2 center() {
+		Rect bounds = bounds();
+		return new Vec2(bounds.x + bounds.w / 2, bounds.y + bounds.h / 2);
+	}
+
+
+	/**
+	 * returns the rectangle that this FLine fits in
+	 */
+	public Rect bounds() {
+		Rectangle bb = FLinesAndJavaShapes.flineToJavaShape(this).getBounds();
+		return new Rect(bb.x, bb.y, bb.width, bb.height);
+	}
 
 	/**
 	 * moves the draw position to a new place `x, y, z` without drawing anything on the way there.
@@ -206,14 +238,16 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	}
 
 	/**
-	 * draws a curve from the current position, towards (but not through) `c1x, c1y`, then towards (but not through) `c2x, c2y` ending up at `x, y`
+	 * draws a curve from the current position, towards (but not through) `c1x, c1y`, then towards (but not through) `c2x, c2y` ending up at `x, y`.
 	 */
 	public FLine cubicTo(double c1x, double c1y, double c2x, double c2y, double x, double y) {
 		if (nodes.size() == 0) return moveTo(x, y);
 		return add(new CubicTo(c1x, c1y, 0, c2x, c2y, 0, x, y, 0));
 	}
 
-
+	/**
+	 * draws a curve from the current position, towards (but not through) `q1x, q1y`, then onto `x, y`.
+	 */
 	public FLine quadTo(double q1x, double q1y, double x, double y) {
 		if (nodes.size() == 0) return moveTo(x, y);
 
@@ -227,6 +261,9 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		return cubicTo(c1x, c1y, c2x, c2y, x, y);
 	}
 
+	/**
+	 * draws a curve from the current position, towards (but not through) `q1x, q1y, q1z`, then onto `x, y`.
+	 */
 	public FLine quadTo(double q1x, double q1y, double q1z, double x, double y, double z) {
 		if (nodes.size() == 0) return moveTo(x, y);
 
@@ -242,36 +279,41 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		return cubicTo(c1x, c1y, c1z, c2x, c2y, c2z, x, y, z);
 	}
 
+	/**
+	 * draws a curve from the current position, towards (but not through) `at()+vec(c1x, c1y)`, then towards (but not through) `at()+vec(c2x, c2y)` ending up at `x, y`.
+	 */
 	public FLine cubicToRel(double c1x, double c1y, double c2x, double c2y, double x, double y) {
 		if (nodes.size() == 0) return moveTo(x, y);
 		Vec3 v = nodes.get(nodes.size() - 1).to;
 		return cubicTo(c1x + v.x, c1y + v.y, v.z, c2x + v.x, c2y + v.y, v.z, x + v.x, y + v.y, v.z);
 	}
 
+	/**
+	 * draws a curve towards `c1`, then towards `c2` then ending up at `x`
+	 */
 	public FLine cubicTo(Vec2 c1, Vec2 c2, Vec2 x) {
 		if (nodes.size() == 0) return moveTo(x);
 		return add(new CubicTo(c1.x, c1.y, 0, c2.x, c2.y, 0, x.x, x.y, 0));
 	}
 
+	/**
+	 * draws a curve towards `c1x, c1y, c1z`, then towards `c1x, c1y, c1z` ending up at `x, y, z`
+	 */
 	public FLine cubicTo(double c1x, double c1y, double c1z, double c2x, double c2y, double c2z, double x, double y, double z) {
 		if (nodes.size() == 0) return moveTo(x, y, z);
 		return add(new CubicTo(c1x, c1y, c1z, c2x, c2y, c2z, x, y, z));
 	}
 
+	/**
+	 * draws a curve towards `c1`, then towards `c2` then ending up at `x`
+	 */
 	public FLine cubicTo(Vec3 c1, Vec3 c2, Vec3 x) {
 		if (nodes.size() == 0) return moveTo(x);
 		return add(new CubicTo(c1.x, c1.y, c1.z, c2.x, c2.y, c2.z, x.x, x.y, x.z));
 	}
 
 	/**
-	 * A Cubic segment that's offset from the cubic segment that would give a straight line between the current position and 'destination'
-	 *
-	 * @param r1          -- 'radius' multiplier of first control point. 1 = 1/3 of the distance from the current position to the destination
-	 * @param theta1      -- 'angle' of the first control point. 0 = lies on the line between current position and the destination
-	 * @param r2          -- 'radius' multiplier of second control point. 1 = 1/3 of the distance from the current position to the destination
-	 * @param theta2      -- 'angle' of the second control point. 0 = lies on the line between current position and the destination
-	 * @param destination
-	 * @return
+	 * draws a curve that starts by heading in the `theta1` direction for a distance of roughly `r1` then ends up heading to `destination` coming in at angle `theta2` from roughly `r2` away
 	 */
 	public FLine polarCubicTo(float r1, float theta1, float r2, float theta2, Vec2 destination) {
 
@@ -297,25 +339,23 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	}
 
 	/**
-	 * A Cubic segment that's offset from the cubic segment that would give a straight line between the current position and 'destination'
-	 *
-	 * @param r1            -- 'radius' multiplier of first control point. 1 = 1/3 of the distance from the current position to the destination
-	 * @param theta1        -- 'angle' of the first control point. 0 = lies on the line between current position and the destination. Positive values are anti-clockwise around the current
-	 *                      position.
-	 * @param r2            -- 'radius' multiplier of second control point. 1 = 1/3 of the distance from the current position to the destination
-	 * @param theta2        -- 'angle' of the second control point. 0 = lies on the line between current position and the destination. Positive values are anti-clockwise around the 'destination'.
-	 * @param destinationx, destinationy
-	 * @return
+	 * draws a curve that starts by heading in the `theta1` direction for a distance of roughly `r1` then ends up heading to `x, y` coming in at angle `theta2` from roughly `r2` away
 	 */
-	public FLine polarCubicTo(float r1, float theta1, float r2, float theta2, float destinationx, float destinationy) {
-		Vec2 destination = new Vec2(destinationx, destinationy);
+	public FLine polarCubicTo(float r1, float theta1, float r2, float theta2, float x, float y) {
+		Vec2 destination = new Vec2(x, y);
 		return polarCubicTo(r1, theta1, r2, theta2, destination);
 	}
 
+	/**
+	 * draws a rectangle.
+	 */
 	public FLine rect(Rect r) {
 		return rect(r.x, r.y, r.w, r.h);
 	}
 
+	/**
+	 * draws a rectangle with corner `x, y` and width `w` and heght `h`
+	 */
 	public FLine rect(double x, double y, double w, double h) {
 		this.moveTo(x, y);
 		this.lineTo(x + w, y);
@@ -324,6 +364,9 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		return this.lineTo(x, y);
 	}
 
+	/**
+	 * draws a rounded rectangle with corner `x, y` and width `w` and heght `h` and corner radius `r`
+	 */
 	public FLine roundedRect(double x, double y, double w, double h, double r) {
 		FLinesAndJavaShapes.drawRoundedRectInto(this, x, y, w, h, r);
 		return this;
@@ -1083,10 +1126,18 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 
 	@HiddenInAutocomplete
 	public Node renderMoveTo(MeshAcceptor m, Node from, MoveTo to) {
+		boolean debugme = false;
 		if (to.flatAuxData != null) for (int i = 0; i < to.flatAuxData.length; i++) {
 			int channel = to.flatAux[i];
 			float[] value = to.flatAuxData[i];
-			if (value != null && channel > 0) m.aux(channel, value);
+			if (value != null && channel > 0)
+			{
+				if (channel==2)
+				{
+					debugme = true;
+				}
+				m.aux(channel, value);
+			}
 		}
 		Log.log("drawing.trace", () -> "moveTo " + to.to);
 		m.v(to.to.x, to.to.y, to.to.z);
@@ -1466,7 +1517,6 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 			.collect(Collectors.toList()));
 
 		return l1;
-
 	}
 
 	private String possibleToString(Dict.Prop q) {
@@ -1653,7 +1703,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 
 	}
 
-	public class Node implements fieldlinker.AsMap {
+	public class Node implements fieldlinker.AsMap, HandlesCompletion {
 		public final Vec3 to;
 		public Dict attributes = new Dict();
 		transient protected Set<String> knownNonProperties;
@@ -1676,6 +1726,60 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		public Node duplicate() {
 			throw new Error();
 		}
+
+		@HiddenInAutocomplete
+		@Override
+		public List<Completion> getCompletionsFor(String prefix) {
+
+			List<Completion> l1 = Dict.canonicalProperties().filter(x -> x.getAttributes().has(Dict.domain))
+				.filter(x -> x.getAttributes().get(Dict.domain).contains("fnode"))
+				.filter(x -> x.getName().startsWith(prefix))
+				.map(q -> new Completion(-1, -1, q.getName(),
+					" = <span class='type'>" + Conversions.fold(q.getTypeInformation(),
+						t -> compress(
+							t)) + "</span> " + possibleToString(
+						q) + " &mdash; <span class='doc'>" + format(
+						q.getDocumentation()) + "</span>")).collect(Collectors.toList());
+
+
+			l1.forEach(x -> {
+				if (!x.info.contains("(unset)"))
+					x.rank -= 200;
+			});
+
+			List<Completion> l1b = attributes.getMap().keySet().stream()
+				.filter(x -> x.getName().startsWith(prefix))
+				.map(q -> new Completion(-1, -1, q.getName(),
+					" = <span class='type'>" + Conversions.fold(q.getTypeInformation(),
+						t -> compress(
+							t)) + "</span> " + possibleToString(
+						q) + " &mdash; <span class='doc'>" + format(
+						q.getDocumentation()) + "</span>")).collect(Collectors.toList());
+
+
+			l1b.stream().filter(x -> {
+				x.rank += 100;
+				for (Completion cc : l1) {
+					if (cc.replacewith.equals(x.replacewith))
+						return false;
+				}
+				return true;
+			}).forEach(x -> l1.add(x));
+
+
+			List<Completion> l2 = JavaSupport.javaSupport.getOptionCompletionsFor(this, prefix);
+
+			l1.addAll(l2.stream()
+				.filter(x -> {
+					for (Completion c : l1)
+						if (c.replacewith.equals(x.replacewith)) return false;
+					return true;
+				})
+				.collect(Collectors.toList()));
+
+			return l1;
+		}
+
 
 		@Override
 		@HiddenInAutocomplete
