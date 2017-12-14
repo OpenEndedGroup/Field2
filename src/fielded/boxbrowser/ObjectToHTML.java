@@ -91,6 +91,9 @@ public class ObjectToHTML {
 	public String convert(Object o) {
 		if (o == null && nullHandler != null) return "" + nullHandler.apply(o);
 		if (o == null) return "[null]";
+		if (o.getClass().isPrimitive()) return ""+o;
+		if (o instanceof Number) return ""+o;
+		if (o instanceof String) return "'"+o+"'";
 
 		Set<Function<Object, Object>> found = new LinkedHashSet<>();
 		if (o instanceof MasqueradesAs)
