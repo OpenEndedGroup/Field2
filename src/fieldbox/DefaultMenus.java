@@ -237,39 +237,42 @@ public class DefaultMenus extends Box {
 			.orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
 	}
 
-	private void save() {
-//		if (filename.endsWith(".field2"))
-		{
+	static public void save(Box root, String filename) {
+		Log.println("io.debug", " saving .... ");
+		Map<Box, String> special = new LinkedHashMap<>();
+		special.put(root, ">>root<<");
 
-			Log.println("io.debug", " saving .... ");
-			Map<Box, String> special = new LinkedHashMap<>();
-			special.put(root, ">>root<<");
+		String path = "";
+		String fn = filename;
+		if (filename.contains("/")) {
 
-			String path = "";
-			String fn = filename;
-			if (filename.contains("/")) {
-
-				path = filename.substring(0, filename.lastIndexOf("/"));
-				fn = filename.substring(filename.lastIndexOf("/") + 1);
-			}
-
-			IO.Document doc = FieldBox.fieldBox.io.compileDocument(path, root, special);
-
-			boolean error = false;
-			try {
-				FieldBox.fieldBox.io.writeOutDocument(IO.WORKSPACE + "/" + path + "/" + fn, doc);
-			} catch (IOException e) {
-				e.printStackTrace();
-				Drawing.notify("Error saving " + e.getMessage(), this, 200);
-				error = true;
-			}
-
-			if (!error) {
-				Log.println("io.debug", " going to notify ...");
-				Drawing.notify("Saved to " + filename, this, 200);
-				Log.println("io.debug", " ... notified ");
-			}
+			path = filename.substring(0, filename.lastIndexOf("/"));
+			fn = filename.substring(filename.lastIndexOf("/") + 1);
 		}
+
+		IO.Document doc = FieldBox.fieldBox.io.compileDocument(path, root, special);
+
+		FieldBox.fieldBox.io.filesTouched.clear();
+
+		boolean error = false;
+		try {
+			FieldBox.fieldBox.io.writeOutDocument(IO.WORKSPACE + "/" + path + "/" + fn, doc);
+		} catch (IOException e) {
+			e.printStackTrace();
+			Drawing.notify("Error saving " + e.getMessage(), root, 200);
+			error = true;
+		}
+
+		if (!error) {
+			Log.println("io.debug", " going to notify ...");
+			Drawing.notify("Saved to " + filename, root, 200);
+			Log.println("io.debug", " ... notified ");
+		}
+
+	}
+
+	private void save() {
+		save(root, filename);
 	}
 
 	private boolean isNothingSelected() {
