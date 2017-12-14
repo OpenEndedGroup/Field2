@@ -61,7 +61,7 @@
 ***********************************************************/
 
 html {
-    background: rgba(0, 0, 0, 0);
+    background: #2d3133;
 }
 
 body {
@@ -71,7 +71,7 @@ body {
     font-kerning: normal;
     /*-webkit-text-stroke: 1px rgba(255,255,255,0.1);*/
 
-    background: rgba(0, 0, 0, 0);
+    background: #2d3133;
     color: #aaa;
     font-size: 12px;
     font-family: "Source Sans Pro";
@@ -83,7 +83,77 @@ a {
     color: #aaf;
 }
 
+.tabdown
+{
+    background: #405560 !important;
+    border: 1px solid #405560 !important;
+    opacity: 1 !important;
+}
+
+.tabtray
+{
+    position: absolute;
+    z-index: 10;
+    right: 0px;
+    top: 0px;
+    text-align: right;
+    direction: rtl;
+    border-bottom-left-radius: 5px;
+    border-top-right-radius: 5px;
+    /*border: 1px solid rgba(60,60,60,1);*/
+    padding: 5px;
+    background: rgba(60,70,80,1);
+}
+
+.tab
+{
+    /*display: none;*/
+    /*position: absolute;*/
+    /*top: 0px;*/
+    /*left: 0px;*/
+    /*right: 0px;*/
+    /*bottom: 0px;*/
+}
+
+.tabbutton
+{
+    opacity: 0.5;
+    display: inline-block;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    margin-left:2px;
+    margin-right:2px;
+    background: rgba(0,0,0,0.6);
+    border-radius: 5px;
+    border: 1px solid rgba(255,255,255,0);
+}
+
+iframe
+{
+    width:100%;
+    height:100%;
+    background: #2d3133;
+    border:none;
+}
+
+.tabbutton:hover
+{
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(25,150,255,0.2);
+}
+
 .outputbox {
+}
+
+.outputline {
+    white-space: pre-wrap;
+    margin-right: 5px;
+    display: inline;
+    padding: 2px;
+    margin: 2px;
+    line-height: 200%;
 }
 
 .outputbox ::-webkit-scrollbar {
@@ -212,6 +282,7 @@ a {
     font-family: "Fira Code";
     background-color: rgba(0, 0, 0, 0.2);
     border-radius: 2px;
+    border: 1px solid rgba(255,255,255,0.2);
 }
 
 .mattable {
@@ -240,24 +311,24 @@ a {
 }
 
 .smaller {
-    font-size: 85%;
-    opacity: 0.7;
+    font-size: 90%;
+    opacity: 0.6;
     padding-left: 0.2em;
     padding-right: 0.2em;
     padding-top: 0.35em;
-    font-weight: normal;
-    font-variant: small-caps;
+    font-weight: 600;
+    /*font-variant: small-caps;*/
     display: block;
 }
 
 .smaller-inframe {
-    font-size: 65%;
-    opacity: 0.5;
+    font-size: 85%;
+    opacity: 0.75;
     padding-left: 0.2em;
     padding-right: 0.2em;
     padding-top: 0.35em;
-    font-weight: normal;
-    font-variant: small-caps;
+    font-weight: 600;
+    /*font-variant: small-caps;*/
     float:right;
     margin-right: 0.35em;
 }
@@ -269,7 +340,7 @@ a {
     display:block;
     text-align:right;
     flex:1 auto;
-    border-right: 3px solid rgba(255,255,255,0.1);
+    border-right: 3px solid rgba(255,255,255,0.3);
     color: rgba(255,200,128, 0.7);
 }
 
@@ -363,7 +434,8 @@ a {
     /*background: rgba(0, 0, 0, 0);*/
     /*border-color: rgba(255, 255, 255, 0.1);*/
 
-    background : #444;
+    /*background : #444;*/
+    background: rgba(45,49,51,1);
     border : None;
 
 }
@@ -379,14 +451,14 @@ a {
 }
 
 .Field-remoteOutput {
-    background: #000;
+    background: #051015;
     border-radius: 6px;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
     padding: 3px;
     padding-left: 8px;
     margin-top: 2px;
-    margin-left: 24px;
+    margin-left: 25px;
     display: block;
     overflow: scroll;
     max-height: 180px;
@@ -399,14 +471,14 @@ a {
 }
 
 .Field-remoteOutput-error {
-    background: #ff1010;
+    background: #051015;
     border-radius: 6px;
     padding: 3px;
     margin-top: 2px;
     padding-top: 0;
     border-top: 3px solid #f00;
     padding-left: 10px;
-    margin-left: 24px;
+    margin-left: 25px;
     display: block;
     overflow: scroll;
     max-height: 150px;
@@ -416,6 +488,9 @@ a {
     margin-right:50px;
 	overflow-wrap: break-word;
     font-size:80%;
+}
+.Field-remoteOutput-error .outputline {
+    background:none;
 }
 
 .Field-remoteColor {
@@ -533,7 +608,7 @@ a {
     position: absolute;
     border-radius: 6px 0 0 0;
     top: 0;
-    left: 7px;
+    left: 8px;
     background: #000;
     margin-top: 2px;
     width: 15px;
@@ -554,7 +629,7 @@ a {
     font-family: "Source Code Pro";
     border-radius: 0 0 0 6px;
     top: 18px;
-    left: 7px;
+    left: 8px;
     margin-top: 0;
     background: #000;
     width: 15px;
@@ -934,12 +1009,15 @@ code {
     font-opacity:100% !important;
     font-size:80%;
     font-weight: bolder;
+    color:#b98;
 }
 
 .CodeMirror-scroll {
     border-radius: 5px;
     border: None;
-    background: #222;
+
+    /*background: #222;*/
+    background: #22272a;
 }
 
 .CodeMirror-sizer {
@@ -951,7 +1029,6 @@ code {
     color: #aaa;
     border: None;
 }
-
 
 
 .CodeMirror-gutter-wrapper {
@@ -1050,6 +1127,12 @@ code {
     text-indent: -20px;
 }
 
+.CodeMirror-foldGutter {
+    width: 0.7em;
+    left: 20px;
+    position: relative;
+    z-index: 0;
+}
 
 .cm-s-default span.cm-keyword {
     color: #f85;
@@ -1126,7 +1209,7 @@ span.type
 
 span.doc code
 {
-    color:rgba(148,188,255,1);
+    color:rgba(248,158,135,1);
 }
 
 div#hbox.Field-status .comp-space {
