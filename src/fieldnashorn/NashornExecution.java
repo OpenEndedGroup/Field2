@@ -158,7 +158,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 			for (int i = 0; i < lineOffset; i++)
 				prefix.append('\n');
 
-			textFragment = prefix + textFragment + (filename == null ? "" : ("/*# sourceURL=" + filename + "*/"));
+			textFragment = prefix + textFragment + (filename == null ? "" : ("//# sourceURL=" + filename + "\n"));
 
 			//TODO: should be find?
 			SourceTransformer st = box.properties.get(sourceTransformer);
