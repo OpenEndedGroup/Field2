@@ -111,10 +111,10 @@ public class Browser extends Box implements IO.Loaded {
 
 		for (int x = 0; x < ns; x++) {
 			for (int y = 0; y < ns; y++) {
-				float ax = (0.f+x) / (float)(ns - 1);
-				float ay = (0.f+y) / (float)(ns - 1);
+				float ax = (0.f + x) / (float) (ns - 1);
+				float ay = (0.f + y) / (float) (ns - 1);
 
-				builder.aux(5, ax * r.w / w, ay * (r.h+0.5f) / h, op);
+				builder.aux(5, ax * r.w / w, ay * (r.h + 0.5f) / h, op);
 				builder.v(r.x + ax * r.w, r.y + ay * r.h, 0);
 			}
 		}
@@ -137,6 +137,7 @@ public class Browser extends Box implements IO.Loaded {
 	private Rect damage = new Rect(0, 0, 0, 0);
 	public Runnable callbackOnNextReload = null;
 	private Object outCached;
+	private long charTypedAt;
 
 	public Browser() {
 	}
@@ -147,7 +148,7 @@ public class Browser extends Box implements IO.Loaded {
 			update(r.x, r.y, 1/*r.w/w*/);
 		});
 
-		s.attach(texture);
+		s.asMap_set("te", texture);
 		s.attach(q);
 
 //		this.properties.putToListMap(Callbacks.onDelete, (bx) -> {
@@ -202,7 +203,7 @@ public class Browser extends Box implements IO.Loaded {
 
 		float rsf = window.getRetinaScaleFactor();
 
-		System.out.println("CefSystem is initializing a browser at "+w+"x"+h);
+		System.out.println("CefSystem is initializing a browser at " + w + "x" + h);
 
 		browser = CefSystem.cefSystem.makeBrowser((int) (w * rsf), (int) (h * rsf), this::paint, this::message, () -> {
 			try {
@@ -257,7 +258,7 @@ public class Browser extends Box implements IO.Loaded {
 			"void main()\n" +
 			"{\n" +
 			"ivec2 TC = ivec2(vtc.xy*textureSize(te,0));\n" +
-			"float g = 1.6;\n"+
+			"float g = 1.6;\n" +
 			"\tvec4 current = pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+vec2(0.25,0.25)), 0), vec4(g,g,g,1));\n" +
 			"\tcurrent += 0.25*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+vec2(0.25,0.25))+ivec2(1.0,0), 0), vec4(g,g,g,1));\n" +
 			"\tcurrent += 0.25*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+vec2(0.25,0.25))+ivec2(0,1.), 0), vec4(g,g,g,1));\n" +
@@ -268,10 +269,11 @@ public class Browser extends Box implements IO.Loaded {
 			"\tfloat m = min(current.x, min(current.y, current.z));\n" +
 			"float sat = 0.2;\n" +
 			"\tcurrent.xyz = (current.xyz-vec3(m)*sat)/(1-sat);\n" +
-			"float d = (current.x+current.y+current.z)/3;\n"+
-			"current.xyz = pow(current.xyz, vec3(1.1));\n" +
-			"\t_output  = vec4(current.zyx,max(0.4, min(1, d*3))*current.w*vtc.z);\n" +
-			"\t if (vtc.x==0 || vtc.x==1 || vtc.y==0 || vtc.y==1) _output.w=0;\n" +
+			"float d = (current.x+current.y+current.z)/3;\n" +
+			"current.xyz = pow(current.xyz, vec3(1.25));\n" +
+			"\t_output  = vec4(current.zyx,max(0.4, min(1, d*8))*current.w*vtc.z);\n" +
+			"float ee = 0.001f;\n"+
+			"\t if (vtc.x<ee || vtc.x>1-ee || vtc.y<ee || vtc.y>1-ee) _output.w=0;\n" +
 //			"\t _output=vec4(current.xyz,1);\n" +
 //			"_output+=vec4(TC.x%15<1 ? 1 : 0, 0, 0, 1)*0.5;\n" +
 			"}");
@@ -346,18 +348,21 @@ public class Browser extends Box implements IO.Loaded {
 
 			if (!intersects(r.inset(10), e)) return null;
 
+			float gutterWidth = 50;
+
 			if (properties.isTrue(Box.hidden, false)) return null;
 
 			if (e.after.keyboardState.isSuperDown()) return null;
 
-			e.properties.put(Window.consumed, true);
+			if (intersects(new Rect(r.x, r.y, gutterWidth, r.h), e))
+				return null;
 
 			Optional<Drawing> drawing = this.find(Drawing.drawing, both())
 				.findFirst();
 			Vec2 point = new Vec2(e.after.mx, e.after.my);
 
 			if (isSelected() && properties.isTrue(Mouse.isSticky, false))
-				e.properties.put(Window.consumed, true);
+				e.properties.put(Window.consumed, !intersects(new Rect(r.x, r.y, gutterWidth, r.h), e));
 			else {
 //				setFocus(true);
 				if (!properties.isTrue(Mouse.isSticky, false)) return null;
@@ -375,7 +380,8 @@ public class Browser extends Box implements IO.Loaded {
 
 				Vec2 point2 = new Vec2(e2.after.mx, e2.after.my);
 
-				e2.properties.put(Window.consumed, true);
+				if (e2!=e)
+					e2.properties.put(Window.consumed, true);
 
 				if (!term) {
 					browser.sendMouseEvent(new MouseEvent(component, MouseEvent.MOUSE_DRAGGED, 0, MouseEvent.getMaskForButton(button + 1),
@@ -441,7 +447,11 @@ public class Browser extends Box implements IO.Loaded {
 			if (!getFocus()) return null;
 			if (properties.isTrue(Box.hidden, false)) return null;
 
-			if (true) return keyboardHacks.onKeyDown(e, k);
+			if (true) {
+				charTypedAt = System.currentTimeMillis();
+
+				return keyboardHacks.onKeyDown(e, k);
+			}
 
 //			Log.log("keyboard", "----- Key down :" + e + " " + k);
 
@@ -492,7 +502,6 @@ public class Browser extends Box implements IO.Loaded {
 					KeyEvent ke2 = new KeyEvent(component, KeyEvent.KEY_RELEASED, 0, fmod, fk, KeyEvent.CHAR_UNDEFINED);
 					browser.sendKeyEvent(ke2);
 					e2.properties.put(Window.consumed, true);
-					System.out.print("<");
 					Drawing.dirty(this);
 				}
 				return !term;
@@ -507,6 +516,7 @@ public class Browser extends Box implements IO.Loaded {
 			if (properties.isTrue(Box.hidden, false)) return;
 
 			if (true) {
+				charTypedAt = System.currentTimeMillis();
 				keyboardHacks.onCharDown(e, k);
 				return;
 			}
@@ -538,6 +548,7 @@ public class Browser extends Box implements IO.Loaded {
 //			Log.log("keyboard", "found translation?:"+found);
 			e.properties.put(Window.consumed, true);
 
+			charTypedAt = System.currentTimeMillis();
 			if (found == null) {
 //				if (mod==0)
 //				{
@@ -560,7 +571,7 @@ public class Browser extends Box implements IO.Loaded {
 				ke = new KeyEvent(component, KeyEvent.KEY_RELEASED, 0, mod, found, KeyEvent.CHAR_UNDEFINED);
 				browser.sendKeyEvent(ke);
 			}
-			System.out.print("<");
+			System.out.print("k");
 			Drawing.dirty(this);
 		});
 
@@ -613,10 +624,9 @@ public class Browser extends Box implements IO.Loaded {
 	 * called from some random thread, buffer only good for duration of call. ?
 	 */
 	protected void paint(boolean popup, Rectangle[] dirty, ByteBuffer buffer, int w, int h) {
+		System.out.println(" started copy to buffer 1 " + (System.currentTimeMillis() - charTypedAt) + "ms ");
 
-//		System.out.println(" paint :" + buffer + " " + w + " " + h);
-
-		if (dirty.length == 0) return;
+		System.out.println(" paint :" + buffer + " " + w + " " + h);
 
 		sourceView.clear();
 		buffer.clear();
@@ -627,28 +637,50 @@ public class Browser extends Box implements IO.Loaded {
 		int y1 = 0;
 
 		for (Rectangle r : dirty) {
-			buffer.limit(r.x * 4 + (r.y+r.height-1) * 4 * w + r.width * 4);
-			buffer.position(r.x * 4 + r.y * 4 * w);
-			sourceView.limit(r.x * 4 + (r.y+r.height-1) * 4 * w + r.width * 4);
-			sourceView.position(r.x * 4 + r.y * 4 * w);
-			sourceView.put(buffer);
+//            System.out.println(" -- "+r);
 
-//			for (int y = r.y; y < r.y + r.height; y++) {
-//			}
-			x0 = Math.min(x0, r.x);
-			x1 = Math.max(x1, r.width + r.x);
-			y0 = Math.min(y0, r.y);
-			y1 = Math.max(y1, r.height + r.y);
+			if (r.x == 0 && r.y == 0 && r.width == w && r.height == h) {
+				buffer.clear();
+				sourceView.clear();
+				sourceView.put(buffer);
+				x0 = 0;
+				y0 = 0;
+				x1 = w;
+				y1 = h;
+			} else {
+
+				for (int y = r.y; y < r.y + r.height; y++) {
+					buffer.limit(r.x * 4 + y * 4 * w + r.width * 4);
+					buffer.position(r.x * 4 + y * 4 * w);
+					sourceView.limit(r.x * 4 + y * 4 * w + r.width * 4);
+					sourceView.position(r.x * 4 + y * 4 * w);
+					sourceView.put(buffer);
+
+					sourceView.clear();
+					buffer.clear();
+
+//                    for(int x=0;x<w;x++)
+//                    {
+//                        if (x%5==0)
+//                            sourceView.put(y*4*w+x*4+1, (byte) 255);
+//                    }
+
+
+				}
+//                System.out.println("r= " + r);
+				x0 = Math.min(x0, r.x);
+				x1 = Math.max(x1, r.width + r.x);
+				y0 = Math.min(y0, r.y);
+				y1 = Math.max(y1, r.height + r.y);
+			}
 		}
 
 
 		sourceView.clear();
 		buffer.clear();
 
-		this.dirty.set(true);
 
 		// threading ?
-		System.out.print("<");
 		Drawing.dirty(Browser.this);
 		root.properties.put(Drawing.needRepaint, true);
 		window.requestRepaint();
@@ -657,7 +689,10 @@ public class Browser extends Box implements IO.Loaded {
 		if (damage == null) damage = new Rect(x0, y0, x1 - x0, y1 - y0);
 		else damage = damage.union(new Rect(x0, y0, x1 - x0, y1 - y0));
 
+		this.dirty.set(true);
 
+
+		System.out.println(" finished copy to buffer 1 " + (System.currentTimeMillis() - charTypedAt) + "ms ");
 	}
 
 	protected void message(long id, String message, Consumer<String> reply) {
@@ -720,31 +755,30 @@ public class Browser extends Box implements IO.Loaded {
 		if (this.dirty.getAndSet(false) && damage != null) {
 			if (check-- > 0) {
 				if (Main.os != Main.OS.windows)
-				browser.setZoomLevel(2 * window.getRetinaScaleFactor());
+					browser.setZoomLevel(2 * window.getRetinaScaleFactor());
 				else
 					browser.setZoomLevel(4);
 			}
 			Log.log("cef.debug", () -> " texture was dirty, uploading ");
 
-
-//			if (GraphicsContext.getContext()!=null)
+//			if (GraphicsContext.getContext() != null)
 //				texture.forceUploadNow(source);
 //			else
-			texture.upload(source, false, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (1 + damage.h + damage.y));
+				texture.upload(source, false, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (1 + damage.h + damage.y));
 
-			System.out.print("<");
+			System.out.print("<P1>");
 			Drawing.dirty(this);
 			again = 1;
 			hasRepainted = true;
 			RunLoop.main.shouldSleep.add(this);
 		} else if (again > 0 && damage != null) {
 			Log.log("cef.debug", () -> " texture was dirty " + again + " call, uploading ");
-//			if (GraphicsContext.getContext()!=null)
+//			if (GraphicsContext.getContext() != null)
 //				texture.forceUploadNow(source);
 //			else
-			texture.upload(source, false, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (1 + damage.h + damage.y));
+				texture.upload(source, false, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (1 + damage.h + damage.y));
 
-			System.out.print("<");
+			System.out.print("<p2>");
 			Drawing.dirty(this);
 			RunLoop.main.shouldSleep.add(this);
 			again--;
@@ -807,7 +841,7 @@ public class Browser extends Box implements IO.Loaded {
 
 
 	public void printHTML(String text) {
-		executeJavaScript_queued("$(document.body).append('" + TextUtils.quoteNoOuter(text.replace("'", "\""))+"');"  + scrollDown());
+		executeJavaScript_queued("$(document.body).append('" + TextUtils.quoteNoOuter(text.replace("'", "\"")) + "');" + scrollDown());
 	}
 
 	public void print(Object text) {
