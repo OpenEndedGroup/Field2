@@ -90,6 +90,7 @@ public class IO {
 	boolean lastWasNew = false;
 	EDN edn = new EDN();
 	private PluginList pluginList;
+	public Set<File> filesTouched = new LinkedHashSet<File>();
 
 
 	public IO(String defaultDirectory) {
@@ -690,6 +691,8 @@ public class IO {
 		Log.log("io.general", () -> " will write :" + text + " to " + finalFilename);
 
 		if (!filename.getParentFile().exists()) filename.getParentFile().mkdirs();
+
+		filesTouched.add(filename);
 
 		BufferedWriter w = new BufferedWriter(new FileWriter(filename));
 		w.append(text);
