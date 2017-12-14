@@ -13,6 +13,7 @@ public class LoggingDefaults {
 //		Log.on("auto", Log::green);
 //		Log.on("io.general", Log::green);
 //		Log.on("completion.debug", Log::green);
+		Log.on("completion.error", Log::red);
 		Log.on("watching.*", Log::green);
 //		Log.on(".*selection.*", Log::green);
 //		Log.on(".*serial.*", Log::green);
