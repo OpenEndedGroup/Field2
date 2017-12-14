@@ -49,8 +49,8 @@ import static org.lwjgl.opengl.GL11.*;
 public class Open {
 
 	static public final Dict.Prop<String> fieldFilename = new Dict.Prop<>("fieldFilename").toCanon()
-											      .type()
-											      .doc("the name of the field sheet that we are currently in");
+		.type()
+		.doc("the name of the field sheet that we are currently in");
 
 	private FieldBoxWindow window;
 	private final Boxes boxes;
@@ -102,24 +102,24 @@ public class Open {
 
 		window.scene.attach(-5, this::defaultGLPreambleBackground);
 		window.mainLayer()
-		      .attach(-5, this::defaultGLPreamble);
+			.attach(-5, this::defaultGLPreamble);
 
 		boxes = new Boxes();
 		boxes.root().properties.put(Boxes.window, window);
 
 		window.getCompositor()
-		      .newLayer("glass");
+			.newLayer("glass");
 		window.getCompositor()
-		      .getLayer("glass")
-		      .getScene()
-		      .attach(-5, this::defaultGLPreambleTransparent);
+			.getLayer("glass")
+			.getScene()
+			.attach(-5, this::defaultGLPreambleTransparent);
 
 		window.getCompositor()
-		      .newLayer("glass2");
+			.newLayer("glass2");
 		window.getCompositor()
-		      .getLayer("glass2")
-		      .getScene()
-		      .attach(-5, this::defaultGLPreambleTransparent);
+			.getLayer("glass2")
+			.getScene()
+			.attach(-5, this::defaultGLPreambleTransparent);
 
 		Watches watches = new Watches();
 		watches.connect(boxes.root());
@@ -210,7 +210,7 @@ public class Open {
 
 		new BoxPair(boxes.root()).connect(boxes.root());
 
-//		new StatusBar(boxes.root()).connect(boxes.root());
+		new StatusBar(boxes.root()).connect(boxes.root());
 
 //		new HotkeyMenus(boxes.root(), null).connect(boxes.root());
 
@@ -279,6 +279,9 @@ public class Open {
 
 		new Interventions(boxes.root()).connect(boxes.root());
 
+		new Welcome(boxes.root()).connect(boxes.root());
+
+		new Bundle(boxes.root()).connect(boxes.root());
 
 		if (ThreadSync.enabled) new ThreadSyncFeedback(boxes.root()).connect(boxes.root());
 		if (ThreadSync2.getEnabled()) new ThreadSync2Feedback(boxes.root()).connect(boxes.root());
@@ -288,44 +291,44 @@ public class Open {
 
 		/* cascade two blurs, a vertical and a horizontal together from the glass layer onto the base layer */
 		Compositor.Layer lx = window.getCompositor()
-					    .newLayer("__main__blurx", 0, 8);
+			.newLayer("__main__blurx", 0, 8);
 		Compositor.Layer ly = window.getCompositor()
-					    .newLayer("__main__blury", 1, 8);
+			.newLayer("__main__blury", 1, 8);
 		Compositor.Layer composited = window.getCompositor()
-						    .newLayer("__main__composited", 0);
+			.newLayer("__main__composited", 0);
 
 		composited.getScene()
-			  .attach(-10, this::defaultGLPreamble);
+			.attach(-10, this::defaultGLPreamble);
 
 		window.getCompositor()
-		      .getMainLayer()
-		      .blurYInto(5, lx.getScene());
+			.getMainLayer()
+			.blurYInto(5, lx.getScene());
 		lx.blurXInto(5, ly.getScene());
 
 		lx.addDependancy(window.getCompositor()
-				       .getMainLayer());
+			.getMainLayer());
 		ly.addDependancy(lx);
 
 		window.getCompositor()
-		      .getMainLayer()
-		      .drawInto(window.scene);
+			.getMainLayer()
+			.drawInto(window.scene);
 
 		window.getCompositor()
-		      .getLayer("glass")
-		      .compositeWith(ly, composited.getScene());
+			.getLayer("glass")
+			.compositeWith(ly, composited.getScene());
 
 		composited.addDependancy(window.getCompositor()
-					       .getLayer("glass"));
+			.getLayer("glass"));
 		composited.addDependancy(ly);
 
 		window.getCompositor()
-		      .getLayer("glass")
-		      .compositeWith(ly, window.scene);
+			.getLayer("glass")
+			.compositeWith(ly, window.scene);
 
 		lx = window.getCompositor()
-			   .newLayer("__main__gblurx", 0, 8);
+			.newLayer("__main__gblurx", 0, 8);
 		ly = window.getCompositor()
-			   .newLayer("__main__gblury", 1, 8);
+			.newLayer("__main__gblury", 1, 8);
 
 
 		composited.blurYInto(5, lx.getScene());
@@ -335,28 +338,28 @@ public class Open {
 		ly.addDependancy(lx);
 
 		window.getCompositor()
-		      .getLayer("glass2")
-		      .compositeWith(ly, window.scene);
+			.getLayer("glass2")
+			.compositeWith(ly, window.scene);
 
 
 		/* reports on how much data we're sending to OpenGL and how much the MeshBuilder caching system is getting us. This is useful for noticing when we're repainting excessively or our cache is suddenly blown completely */
 		RunLoop.main.getLoop()
-			    .attach(10, Scene.strobe((i) -> {
-				    if (MeshBuilder.cacheHits + MeshBuilder.cacheMisses_internalHash + MeshBuilder.cacheMisses_cursor + MeshBuilder.cacheMisses_externalHash > 0) {
-					    Log.println("graphics.stats",
-						    " meshbuilder cache h" + MeshBuilder.cacheHits + " | mc" + MeshBuilder.cacheMisses_cursor + " / meh" + MeshBuilder.cacheMisses_externalHash + " / mih" + MeshBuilder.cacheMisses_internalHash + " / mto" + MeshBuilder.cacheMisses_tooOld + " | tex" + Texture.bytesUploaded);
-					    MeshBuilder.cacheHits = 0;
-					    MeshBuilder.cacheMisses_cursor = 0;
-					    MeshBuilder.cacheMisses_externalHash = 0;
-					    MeshBuilder.cacheMisses_internalHash = 0;
-					    MeshBuilder.cacheMisses_tooOld = 0;
-					    Texture.bytesUploaded = 0;
-				    }
-				    if (SimpleArrayBuffer.uploadBytes > 0) {
-					    Log.println("graphics.stats", " uploaded " + SimpleArrayBuffer.uploadBytes + " bytes to OpenGL");
-					    SimpleArrayBuffer.uploadBytes = 0;
-				    }
-			    }, 600));
+			.attach(10, Scene.strobe((i) -> {
+				if (MeshBuilder.cacheHits + MeshBuilder.cacheMisses_internalHash + MeshBuilder.cacheMisses_cursor + MeshBuilder.cacheMisses_externalHash > 0) {
+					Log.println("graphics.stats",
+						" meshbuilder cache h" + MeshBuilder.cacheHits + " | mc" + MeshBuilder.cacheMisses_cursor + " / meh" + MeshBuilder.cacheMisses_externalHash + " / mih" + MeshBuilder.cacheMisses_internalHash + " / mto" + MeshBuilder.cacheMisses_tooOld + " | tex" + Texture.bytesUploaded);
+					MeshBuilder.cacheHits = 0;
+					MeshBuilder.cacheMisses_cursor = 0;
+					MeshBuilder.cacheMisses_externalHash = 0;
+					MeshBuilder.cacheMisses_internalHash = 0;
+					MeshBuilder.cacheMisses_tooOld = 0;
+					Texture.bytesUploaded = 0;
+				}
+				if (SimpleArrayBuffer.uploadBytes > 0) {
+					Log.println("graphics.stats", " uploaded " + SimpleArrayBuffer.uploadBytes + " bytes to OpenGL");
+					SimpleArrayBuffer.uploadBytes = 0;
+				}
+			}, 600));
 
 		//initializes window mgmt for linux
 //		if (Main.os == Main.OS.linux) new LinuxWindowTricks(boxes.root());
@@ -374,7 +377,7 @@ public class Open {
 		// add a red line time slider to the sheet (this isn't saved with the document, so we'll add it each time)
 		TimeSlider ts = new TimeSlider();
 		boxes.root()
-		     .connect(ts);
+			.connect(ts);
 
 		boxes.root().properties.put(TimeSlider.time, ts);
 
@@ -403,16 +406,16 @@ public class Open {
 //			if (Main.os != Main.OS.windows)
 			{
 				new BoxBrowser(boxes.root()).connect(boxes.root());
-				new TextEditor_boxBrowser2(boxes.root()).connect(boxes.root());
+//				new TextEditor_boxBrowser3(boxes.root()).connect(boxes.root());
 			}
 
 			// call loaded on everything above root
 			Log.log("startup", () -> "calling .loaded on plugins");
 			boxes.root()
-			     .breadthFirst(boxes.root()
-						.upwards())
-			     .filter(x -> x instanceof IO.Loaded)
-			     .forEach(x -> ((IO.Loaded) x).loaded());
+				.breadthFirst(boxes.root()
+					.upwards())
+				.filter(x -> x instanceof IO.Loaded)
+				.forEach(x -> ((IO.Loaded) x).loaded());
 
 		});
 
