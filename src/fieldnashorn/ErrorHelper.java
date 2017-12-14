@@ -11,6 +11,7 @@ import fielded.RemoteEditor;
 import fielded.boxbrowser.TransientCommands;
 import fielded.plugins.Out;
 
+import javax.script.Bindings;
 import javax.script.ScriptContext;
 import java.util.*;
 import java.util.function.Consumer;
@@ -30,6 +31,7 @@ public class ErrorHelper {
 	Pattern boxFinder = Pattern.compile("bx\\[(.+)\\]/([_0123456789abcdef]+)");
 	Pattern refFinder = Pattern.compile("ReferenceError: \"(.+)\" is not defined");
 	Pattern staticClassIssues = Pattern.compile("StaticClass cannot be cast to java.base/java.lang.Class");
+	Pattern notAFunction = Pattern.compile(" ([_a-zA-Z][_a-zA-Z0-9]*) is not a function");
 
 	public Consumer
 		<Pair<Integer, String>> errorHelper(Consumer<Pair<Integer, String>> wrap, Box box) {
@@ -39,6 +41,9 @@ public class ErrorHelper {
 			line = replaceBoxReferences(box, line);
 			line = replaceMissingRefs(box, line);
 			line = replaceStaticClassCasts(box, line);
+			line = replaceMissingNew(box, line);
+
+			line = new Pair<>(line.first, line.second.trim() + "\n");
 
 			wrap.accept(line);
 		};
@@ -49,6 +54,19 @@ public class ErrorHelper {
 		Matcher m = staticClassIssues.matcher(line.second);
 		if (m.find()) {
 			return new Pair<>(line.first, line.second + "<br>" + "Did you omit a <code>.class</code> suffix?");
+		}
+		return line;
+	}
+
+	private Pair<Integer, String> replaceMissingNew(Box box, Pair<Integer, String> line) {
+
+		Matcher m = notAFunction.matcher(line.second);
+		if (m.find()) {
+			ScriptContext bindings = box.properties.get(Nashorn.boxBindings);
+			Bindings b = bindings.getBindings(100);
+			Object found = b.get(m.group(1));
+			if (found != null)
+				return new Pair<>(line.first, line.second + "<br>" + "Did you mean to write <code>new " + m.group(1) + "</code>?");
 		}
 		return line;
 	}
@@ -81,8 +99,9 @@ public class ErrorHelper {
 
 							String[] f = p.first.split("[\\.$]");
 							String typeName = p.first.replaceAll("$", ".");
-							if (typeName.endsWith(".")) typeName = typeName.substring(0, typeName.length()-1);
-							String insert = "var " + f[f.length - 1] + " = Java.type('" + typeName+ "')\\n";
+							if (typeName.endsWith("."))
+								typeName = typeName.substring(0, typeName.length() - 1);
+							String insert = "var " + f[f.length - 1] + " = Java.type('" + typeName + "')\\n";
 							ed.insertAtStart(insert);
 
 						});
@@ -120,7 +139,7 @@ public class ErrorHelper {
 				return new Pair<Integer, String>(line.first, text);
 			}
 
-			text = line.second+ "<br><div class='advice'><div style='margin-bottom:0px'>Did you mean to declare this ? If so, use <i>var</i></div></div>";
+			text = line.second + "<br><div class='advice'><div style='margin-bottom:0px'>Did you mean to declare this ? If so, use <i>var</i></div></div>";
 
 			return new Pair<Integer, String>(line.first, text);
 
