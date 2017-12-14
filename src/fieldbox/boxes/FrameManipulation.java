@@ -14,6 +14,8 @@ import fieldbox.boxes.plugins.Scrolling;
 import fieldbox.boxes.plugins.SimpleSnapHelper;
 import fieldbox.boxes.plugins.UndoStack;
 import fieldbox.ui.Cursors;
+import fieldcef.browser.Browser;
+import fieldcef.plugins.TextEditor;
 
 import java.awt.*;
 import java.util.*;
@@ -90,7 +92,7 @@ public class FrameManipulation extends Box {
 				.filter(b -> !b.properties.isTrue(Box.hidden, false))
 				.filter(b -> Planes.on(root, b) >= 0.5f)
 				.filter(b -> frame(b).intersects(point))
-				.sorted((a, b) -> Float.compare(order(frame(a)), order(frame(b))))
+				.sorted((a, b) -> Float.compare(order(frame(a), a instanceof Browser), order(frame(b), b instanceof Browser)))
 				.findFirst();
 
 			if (hit.isPresent()) {
@@ -124,7 +126,7 @@ public class FrameManipulation extends Box {
 
 	static public void continueTranslationFeedback(Box b, boolean endNow) {
 
-		if (true) return;
+//		if (true) return;
 
 		Drawing q = b.find(Drawing.drawing, b.both())
 			.findFirst()
@@ -200,7 +202,7 @@ public class FrameManipulation extends Box {
 			.filter(b -> !b.properties.isTrue(Box.hidden, false))
 			.filter(b -> Planes.on(root, b) >= 0)
 			.filter(b -> frame(b).intersects(point))
-			.sorted((a, b) -> Float.compare(order(frame(a)), order(frame(b))))
+			.sorted((a, b) -> Float.compare(order(frame(a), a instanceof Browser), order(frame(b), b instanceof Browser)))
 			.findFirst();
 
 		startTranslationFeedback();
@@ -251,14 +253,15 @@ public class FrameManipulation extends Box {
 
 		Vec2 point = new Vec2(e.after.mx, e.after.my);
 
-		Optional<Box> hit = breadthFirst(both()).filter(b -> frame(b) != null)
+		List<Box> hitList = breadthFirst(both()).filter(b -> frame(b) != null)
 			.filter(b -> !b.properties.isTrue(Box.hidden, false))
 			//.filter(b -> !b.properties.isTrue(Mouse.isSticky, false))
 			.filter(b -> Planes.on(root, b) >= 0.5)
 			.filter(b -> frame(b).intersects(point))
-			.sorted((a, b) -> Float.compare(order(frame(a)), order(frame(b))))
-			.findFirst();
+			.sorted((a, b) -> Float.compare(order(frame(a), a instanceof Browser), order(frame(b), b instanceof Browser)))
+			.collect(Collectors.toList());
 
+		Optional<Box> hit = hitList.size()==0 ? Optional.empty() : Optional.of(hitList.get(0));
 
 		Log.log("selection", () -> "hit box is " + hit.orElse(null));
 
@@ -455,7 +458,8 @@ public class FrameManipulation extends Box {
 							if (f == null) return;
 
 							if (f.intersects(new Rect(Math.min(downAt.x, point.x), Math.min(downAt.y, point.y), Math.max(downAt.x, point.x) - Math.min(downAt.x, point.x),
-								Math.max(downAt.y, point.y) - Math.min(downAt.y, point.y))) && (!x.properties.isTrue(Box.hidden, false)) && Planes.on(root, x) >= 0.5) {
+								Math.max(downAt.y, point.y) - Math.min(downAt.y, point.y)))
+								&& (!x.properties.isTrue(Box.hidden, false)) && Planes.on(root, x) >= 0.5 && !(x instanceof Browser)) {
 								Callbacks.transition(x, Mouse.isSelected, true, false, Callbacks.onSelect, Callbacks.onDeselect);
 							} else {
 								if (b == null || !b)
@@ -596,8 +600,8 @@ public class FrameManipulation extends Box {
 		return r;
 	}
 
-	protected float order(Rect r) {
-		return Math.abs(r.w) + Math.abs(r.h);
+	protected float order(Rect r, boolean textEditor) {
+		return Math.abs(r.w) + Math.abs(r.h) - (textEditor ? 10000 : 0);
 	}
 
 	protected void feedback(Box b, Rect r0, Rect r, int exp) {
@@ -639,4 +643,8 @@ public class FrameManipulation extends Box {
 	public enum DragTarget {
 		translate, left, top, right, bottom
 	}
+
+
+
+
 }
