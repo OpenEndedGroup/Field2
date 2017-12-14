@@ -10,6 +10,7 @@ import field.message.MessageQueue;
 import field.utility.*;
 import fieldbox.FieldBox;
 import fieldbox.boxes.*;
+import fieldbox.boxes.plugins.Exec;
 import fieldbox.boxes.plugins.Initiators;
 import fieldbox.execution.Completion;
 import fieldbox.execution.CompletionStats;
@@ -33,6 +34,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static field.graphics.StandardFLineDrawing.filled;
 import static field.graphics.StandardFLineDrawing.stroked;
@@ -86,56 +88,17 @@ public class RemoteEditor extends Box {
 		protected void send(String key, Collection<Pair<String, String>> value) {
 
 //			if (value.size() == 0) return;
-//
-//			boolean unequal = false;
-//			for (Pair<String, String> v : value)
-//
-//				if (!Util.safeEq(v.second, lastSend)) {
-//					unequal = true;
-//					break;
-//				}
-//
-//			if (!unequal && RunLoop.tick - prevTick < 2) {
-//				prevTick = RunLoop.tick;
-//
-//
-//				if (!warned) {
-////					server.send(socketName, "_messageBuss.publish(" + key + ", 'message repeats')+");
-//					warned = true;
-//					return;
-//				} else return;
-//			}
-//			prevTick = RunLoop.tick;
-//			warned = false;
-//			lastSend = value.iterator()
-//				.next().second.toString();
-//
-//			Log.log("remote.trace", () -> " >> " + key + " " + value.size());
-//
-//			if (value.size() > 1) {
-//
-//				if (value.size() > 10) {
-//					overflowedAt.addLast(RunLoop.tick);
-//					if (overflowedAt.size() > 4) overflowedAt.removeFirst();
-//				}
-//
-//				if (overflowedAt.size() > 3 && overflowedAt.getLast() - overflowedAt.getFirst() < 10) {
-//					//TODO: tell somebody we've dropped something
-//					server.send(socketName, "_messageBus.publish('" + key + "', " + value.iterator()
-//						.next().second + ")");
-//				} else {
-//					String m = "";
-//					for (Pair<String, String> v : value) {
-//						m = m.concat((m.length() > 0 ? "," : "") + v.second);
-//					}
-//					server.send(socketName, "[" + m + "].forEach(function(q){ _messageBus.publish('" + key + "', q)})");
-//				}
-//
-//			} else {
 
-
-			for (Pair<String, String> v : value)
+			int index = 0;
+			for (Pair<String, String> v : value) {
+				System.out.println(" --> " + v.second);
 				server.send(socketName, "_messageBus.publish('" + key + "', " + v.second + ")");
+				if (index++ > 4) {
+					System.out.println(" limit exceeded (" + value.size() + ")");
+					//TODO, notify...
+					break;
+				}
+			}
 //			}
 		}
 	};
@@ -336,7 +299,8 @@ public class RemoteEditor extends Box {
 						String also = "";
 						if (cc.size() < 20 && cc.size() > 1) {
 							for (int i = 1; i < cc.size(); i++) {
-								if (cc.get(i).replacewith.equals(cc.get(i-1).replacewith)) continue;
+								if (cc.get(i).replacewith.equals(cc.get(i - 1).replacewith))
+									continue;
 
 								also += "<b>" + cc.get(i).replacewith + "</b>, ";
 								if (also.length() > 60) {
@@ -440,6 +404,24 @@ public class RemoteEditor extends Box {
 
 			return payload;
 		});
+
+		server.addHandlerLast(Predicate.isEqual("reverse.execution"), () -> socketName, (s, socket, address, payload) -> {
+			this.socketName = socketName;
+
+			JSONObject p = (JSONObject) payload;
+
+			String code = p.getString("code");
+
+			find(Boxes.root, both()).findFirst().ifPresent(root -> {
+				BiFunctionOfBoxAnd<String, Triple<Object, List<String>, List<Pair<Integer, String>>>> exec = root.find(Exec.exec, root.both()).findAny().get();
+				System.out.println(" -- executing code from browser ");
+				exec.apply(root, code);
+				System.out.println(" -- finished executing code from browser");
+			});
+
+			return payload;
+		});
+
 
 		server.addHandlerLast(x -> x.startsWith("execution.fragment"), () -> socketName, (s, socket, address, payload) -> {
 
