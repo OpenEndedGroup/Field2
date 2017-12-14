@@ -44,7 +44,7 @@ public class StandardFLineDrawing {
 
 	static public final Dict.Prop<Supplier<Vec4>> color = new Dict.Prop<>("color").type()
 		.toCanon()
-		.doc("the color for the line. Defaults to black = Vec4(0,0,0,0)").set(Dict.domain, "fline");
+		.doc("the color for the line. Defaults to black = Vec4(0,0,0,0)").set(Dict.domain, "fline fnode");
 	static public final Dict.Prop<Float> opacity = new Dict.Prop<>("opacity").type()
 		.toCanon()
 		.doc("the opacity to the line. Defaults to 1.0").set(Dict.domain, "fline");
@@ -57,26 +57,31 @@ public class StandardFLineDrawing {
 
 	static public final Dict.Prop<Supplier<Vec4>> strokeColor = new Dict.Prop<>("strokeColor").type()
 		.toCanon()
-		.doc("the color for the stroke of a line. Defaults to the value of 'color'").set(Dict.domain, "fline");
+		.doc("the color for the stroke of a line. Defaults to the value of 'color'").set(Dict.domain, "fline fnode");
 	static public final Dict.Prop<Supplier<Vec4>> fillColor = new Dict.Prop<>("fillColor").type()
 		.toCanon()
-		.doc("the color for the fill of a line. Defaults to the value of 'color'").set(Dict.domain, "fline");
+		.doc("the color for the fill of a line. Defaults to the value of 'color'").set(Dict.domain, "fline fnode");
+
 	static public final Dict.Prop<Supplier<Vec4>> pointColor = new Dict.Prop<>("pointColor").type()
 		.toCanon()
-		.doc("the color for the points on a line. Defaults to the value of 'color'").set(Dict.domain, "fline");
+		.doc("the color for the points on a line. Defaults to the value of 'color'").set(Dict.domain, "fline fnode");
+
+	static public final Dict.Prop<Supplier<Vec2>> texCoord = new Dict.Prop<>("texCoord").type()
+		.toCanon()
+		.doc("adds texture coordinates to a node along the line").set(Dict.domain, "fnode");
 
 	static public final Dict.Prop<Boolean> hasText = new Dict.Prop<>("hasText").type()
 		.toCanon()
 		.doc("does this line contain text?").set(Dict.domain, "fline");
 	static public final Dict.Prop<String> text = new Dict.Prop<>("text").type()
 		.toCanon()
-		.doc("NODE ATTRIBUTE. set this to be the text label centered on this node").set(Dict.domain, "fline");
+		.doc("set this to be the text label centered on this node").set(Dict.domain, "fnode");
 	static public final Dict.Prop<Number> textScale = new Dict.Prop<>("textScale").type()
 		.toCanon()
-		.doc("the scale of the text on this node. Defaults to 1, the size of the labels on the boxes in Field").set(Dict.domain, "fline");
+		.doc("the scale of the text on this node. Defaults to 1, the size of the labels on the boxes in Field").set(Dict.domain, "fnode");
 	static public final Dict.Prop<Number> textAlign = new Dict.Prop<>("textAlign").type()
 		.toCanon()
-		.doc("0.5 centers the text, 0 is left justified, 1 is right").set(Dict.domain, "fline");
+		.doc("0.5 centers the text, 0 is left justified, 1 is right").set(Dict.domain, "fnode");
 	static public final Dict.Prop<String> font = new Dict.Prop<>("font").type()
 		.toCanon()
 		.doc("the (distance bitmap) font for Field text").set(Dict.domain, "fline");
@@ -92,11 +97,11 @@ public class StandardFLineDrawing {
 
 	static public final Dict.Prop<Number> pointSize = new Dict.Prop<>("pointSize").type()
 		.toCanon()
-		.doc("sets the size of the point (if this line is drawn `.pointed=true`). This can be applied per vertex or per line.").set(Dict.domain, "fline");
+		.doc("sets the size of the point (if this line is drawn `.pointed=true`). This can be applied per-node or per-line.").set(Dict.domain, "fline fnode");
 
 	static public final Dict.Prop<IdempotencyMap<Supplier<FLine>>> subLines = new Dict.Prop<>("subLines").type()
 		.toCanon().autoConstructs(() -> new IdempotencyMap<Supplier<FLine>>(Supplier.class))
-		.doc("other, additional lines that are drawn along side this one. This can be applied per vertex or per line. Useful for decorations, annotations, selection marks etc.").set(Dict.domain, "fline");
+		.doc("other, additional lines that are drawn along side this one. This can be applied per-node or per-line. Useful for decorations, annotations, selection marks etc.").set(Dict.domain, "fline fnode");
 
 	static public final Dict.Prop<Boolean> noContours = new Dict.Prop<>("noContours").type()
 		.toCanon()
