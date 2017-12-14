@@ -235,7 +235,7 @@ public class Drawing extends Box implements DrawingInterface {
 			"{\n" +
 			"	float f = mod(gl_FragCoord.x-gl_FragCoord.y,20)/20.0;\n" +
 			"	f = (sin(f*3.14*2)+1)/2;" +
-			"	f = (smoothstep(0.45, 0.55, f)+1)/2;" +
+			"	f = (smoothstep(0.5, 0.55, f)+1)/2;" +
 			"	_output  = vec4(abs(vcolor.xyzw));\n" +
 			"	if (vcolor.w<0) _output.w *= f;" +
 			"	_output.w *= opacity;\n" +
