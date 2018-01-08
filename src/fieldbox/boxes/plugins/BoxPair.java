@@ -196,14 +196,14 @@ public class BoxPair extends Box {
 			FLine f = new FLine();
 			f.moveTo(0, -100);
 			f.lineTo(0, 100);
-			f.attributes.put(StandardFLineDrawing.color, new Vec4(0,0,0,0.2));
+			f.attributes.put(StandardFLineDrawing.color, new Vec4(0,0.1,0.2,0.2));
 			r.add(FLineDrawing.boxOrigin(() -> f, new Vec2(0, 0.5), bb));
 		}
 		{
 			FLine f = new FLine();
 			f.moveTo(0, -100);
 			f.lineTo(0, 100);
-			f.attributes.put(StandardFLineDrawing.color, new Vec4(0,0,0,0.2));
+			f.attributes.put(StandardFLineDrawing.color, new Vec4(0,0.1,0.2,0.2));
 			r.add(FLineDrawing.boxOrigin(() -> f, new Vec2(1, 0.5), bb));
 		}
 
@@ -216,14 +216,14 @@ public class BoxPair extends Box {
 			FLine f = new FLine();
 			f.moveTo(0, -100);
 			f.lineTo(0, 100);
-			f.attributes.put(StandardFLineDrawing.color, new Vec4(0,0,0,0.2));
+			f.attributes.put(StandardFLineDrawing.color, new Vec4(0,0.1,0.2,0.2));
 			r.add(FLineDrawing.boxOrigin(() -> f, new Vec2(0, 0.5), bb));
 		}
 		{
 			FLine f = new FLine();
 			f.moveTo(0, -100);
 			f.lineTo(0, 100);
-			f.attributes.put(StandardFLineDrawing.color, new Vec4(0,0,0,0.2));
+			f.attributes.put(StandardFLineDrawing.color, new Vec4(0,0.1,0.2,0.2));
 			r.add(FLineDrawing.boxOrigin(() -> f, new Vec2(1, 0.5), bb));
 		}
 
@@ -236,7 +236,7 @@ public class BoxPair extends Box {
 			FLine q = new FLine();
 			q.rect(f1.x, f2.y-gap/2, f1.w, f2.h+gap);
 			q.attributes.put(StandardFLineDrawing.filled, true);
-			q.attributes.put(StandardFLineDrawing.color, new Vec4(0,0,0,0.2));
+			q.attributes.put(StandardFLineDrawing.color, new Vec4(0,0.1,0.2,0.2));
 			return q;
 		});
 
