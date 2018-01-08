@@ -27,8 +27,8 @@ import static field.utility.Dict.readOnly;
  */
 public class Pseudo extends Box {
 
-	static public Dict.Prop<FunctionOfBoxValued<First>> where = new Dict.Prop<FunctionOfBoxValued<First>>("where").doc(
-		"`_.where.x` returns the box that contains the property `_.x`. This means that `_.where.x=someOtherBox` can be used to move properties around.")
+	static public Dict.Prop<FunctionOfBoxValued<First>> where = new Dict.Prop<FunctionOfBoxValued<First>>("where")
+		.doc("`_.where.x` returns the box that contains the property `_.x`. This means that `_.where.x=someOtherBox` can be used to move properties around.")
 														      .toCanon()
 														      .type();
 

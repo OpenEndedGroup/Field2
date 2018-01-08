@@ -29,6 +29,7 @@
     <SOURCES>
       <root url="jar://$PROJECT_DIR$/lib/jars/cassowary.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/srcjars/lwjgl-glfw-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/srcjars/lwjgl-opengl-sources.jar!/" />
     </SOURCES>
   </library>
 </component>

@@ -77,7 +77,7 @@ echo -- 1/3 compiling Kotlin --
 ../kotlinc/bin/kotlinc -jvm-target 1.8 -jdk-home $JDK_HOME -J--add-opens -Jjava.base/jdk.internal.misc=ALL-UNNAMED -J--add-opens -Jjava.desktop/sun.awt=ALL-UNNAMED -J--add-opens -Jjava.base/java.lang.reflect=ALL-UNNAMED -J--add-opens -Jjava.base/java.lang=ALL-UNNAMED -J--add-opens -Jjava.base/java.util=ALL-UNNAMED -J--add-opens -Jjava.base/java.util.concurrent.atomic=ALL-UNNAMED -J--add-opens -Jjava.desktop/sun.awt=ALL-UNNAMED -J--add-opens -Jjava.base/java.lang.reflect=ALL-UNNAMED -J--add-opens -Jjava.base/java.lang=ALL-UNNAMED -J--add-opens -Jjava.base/java.util=ALL-UNNAMED  -classpath field_agent.jar:field_linker.jar:$cp00:$cp01:$cp1 -d classes ../src ../osx/src
 
 echo -- 2/3 compiling Java -- 
-javac -Xlint:-deprecation -Xlint:-unchecked -XDignore.symbol.file -classpath "field_agent.jar:field_linker.jar:../lib/jars/*:../lib/jars/orientdb/*:../osx/lib/jars/*:classes/"  @source -d classes/
+javac -Xlint:-deprecation -Xlint:-unchecked -XDignore.symbol.file --add-opens java.desktop/com.apple.eawt=ALL-UNNAMED -classpath "field_agent.jar:field_linker.jar:../lib/jars/*:../lib/jars/orientdb/*:../osx/lib/jars/*:classes/"  @source -d classes/
 
 echo -- 3/3 copying other sources into build directory
 rsync --prune-empty-dirs --partial --progress --archive --exclude "*.java" --exclude "*.kt" ../src/* classes/

@@ -2,14 +2,16 @@
 pushd $(dirname `which "$0"`) >/dev/null; fieldhome="$PWD"; popd >/dev/null
 
 out=$fieldhome/build/classes
-java=/Library/Java/JavaVirtualMachines/jdk-9.0.1.jdk/Contents/Home/bin/java
-java=$fieldhome/jdk/osx/jdk-9.0.1.jdk/Contents/Home/bin/java
+java=$fieldhome/jdk/osx/jdk-10.jdk/Contents/Home/bin/java
+
+
 
 export FIELD2_LAUNCH=$fieldhome/$(basename $0)
 
 $java \
+    -splash:$fieldhome/lib/images/f.png \
     -Xdebug \
-    -Xrunjdwp:server=y,transport=dt_socket,address=5005,suspend=n -Dorg.lwjgl.util.Debug=false \
+    -Xrunjdwp:server=y,transport=dt_socket,address=5005,suspend=n -Dorg.lwjgl.util.Debug=true \
     -Xdock:icon=$fieldhome/lib/images/f.png \
     -DappDir=$fieldhome -Xdock:name=Field \
     -Xmx8g \
