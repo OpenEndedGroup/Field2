@@ -8,10 +8,7 @@ import com.thoughtworks.qdox.model.impl.DefaultJavaParameter;
 import com.thoughtworks.qdox.parser.ParseException;
 import field.app.RunLoop;
 import field.graphics.FLine;
-import field.utility.Documentation;
-import field.utility.Log;
-import field.utility.MarkdownToHTML;
-import field.utility.Pair;
+import field.utility.*;
 import fieldagent.Trampoline;
 import fielded.boxbrowser.TransientCommands;
 import fieldnashorn.annotations.HiddenInAutocomplete;
@@ -21,6 +18,7 @@ import fieldnashorn.annotations.StopAutocompleteHere;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -38,7 +36,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 /**
- * When Nashorn/Javascript completion bumps up against something that's actually a Java object, we can use Java reflection based completion. Better yet, if we have the source code fore that Java we
+ * When Nashorn/Javascript completion bumps up against something that's actually a Java object, we can use Java reflection based completion. Better yet, if we have the source code for that Java we
  * can get very good completion information with parameter names, generics and javadocs. We're using qdox to parse the Java sources.
  * <p>
  * This class also contains our class discovery mechanism for import help
@@ -292,7 +290,7 @@ public class JavaSupport {
 		signature = signature.trim();
 		String[] leader = signature.split(" ");
 		if (signature.contains(name)) {
-			signature = signature.replaceFirst(leader[0], "") + " -> " + leader[0];
+//			signature = signature.replaceFirst(leader[0], "") + " -> " + leader[0];
 			signature = signature.replaceFirst(name, "");
 		}
 
@@ -513,6 +511,13 @@ public class JavaSupport {
 
 		Class c = o instanceof Class ? (Class) o : o.getClass();
 
+		Annotation proy = c.getAnnotation(DocumentationProxyTo.class);
+		if (proy!=null)
+		{
+			c = ((DocumentationProxyTo)proy).value();
+		}
+
+
 		boolean wasJava = c.getName()
 			.startsWith("java");
 
@@ -564,8 +569,8 @@ public class JavaSupport {
 
 								comment = MarkdownToHTML.convert(comment);
 
-								Completion cc = new Completion(-1, -1, m.getName(),
-									val + "<span class=type>" + compress(m.getName(),
+								Completion cc = new Completion(-1, -1, rewriteName(m.getName()),
+									val + "<span class=type>" + compress(rewriteName(m.getName()),
 										"(" + m.getParameters()
 											.stream()
 											.map(x -> x.getType() + " " + x
@@ -614,7 +619,7 @@ public class JavaSupport {
 
 						if ((prefix.equals("") || m.getName()
 							.startsWith(prefix)) && m.getModifiers()
-							.contains("public") && (!staticsOnly || m.getModifiers()
+							.contains("public") && (staticsOnly==m.getModifiers()
 							.contains("static"))) {
 							Completion cc = new Completion(-1, -1, m.getName(),
 								val + "<span class=type>" + compress(m.getName(),
@@ -657,11 +662,11 @@ public class JavaSupport {
 
 						if ((prefix.equals("") || m.getName()
 							.startsWith(prefix)) && m.getModifiers()
-							.contains("public") && (!staticsOnly || m.getModifiers()
+							.contains("public") && (staticsOnly==m.getModifiers()
 							.contains("static"))) {
-							Completion cc = new Completion(-1, -1, m.getName(),
-								val + "<span class=type>" + getDeclarationSignature(c,
-									m) + "</span>" + (annotationDoc != null ? ("<span class=type>&nbsp;&mdash;</span> <span class=doc>" + MarkdownToHTML.unwrapFirstParagraph(MarkdownToHTML.convert(annotationDoc)) + "</span>") : (m
+							Completion cc = new Completion(-1, -1, rewriteName(m.getName()),
+								val + "<span class=type>" + getDeclarationSignature(c, m)
+									+ "</span>" + (annotationDoc != null ? ("<span class=type>&nbsp;&mdash;</span> <span class=doc>" + MarkdownToHTML.unwrapFirstParagraph(MarkdownToHTML.convert(annotationDoc)) + "</span>") : (m
 									.getComment() != null ? "<span class=type>&nbsp;&mdash;</span> <span class=doc>" + MarkdownToHTML.unwrapFirstParagraph(MarkdownToHTML.convert(m.getComment())) + "</span>" : "")));
 							add(val.length() > 0, r, cc);
 							cc.rank += tostring ? 100 : 0;
@@ -695,6 +700,21 @@ public class JavaSupport {
 		return r;
 	}
 
+	Map<String, String> overloadedNames = new LinkedHashMap<>();
+	{
+		overloadedNames.put("__add__", "+");
+		overloadedNames.put("__mul__", "*");
+		overloadedNames.put("__sub__", "-");
+		overloadedNames.put("__xor__", "^");
+		overloadedNames.put("__radd__", "+");
+		overloadedNames.put("__rmul__", "*");
+		overloadedNames.put("__rsub__", "-");
+		overloadedNames.put("__rxor__", "^");
+	}
+	private String rewriteName(String name) {
+		return overloadedNames.getOrDefault(name, name);
+	}
+
 
 	private String getDeclarationSignature(Class c, JavaMethod m) throws ClassNotFoundException {
 
@@ -714,7 +734,7 @@ public class JavaSupport {
 
 		}
 
-		String sig = compress(m.getName(), m.getDeclarationSignature(true));
+		String sig = compress(rewriteName(m.getName()), m.getDeclarationSignature(true));
 //		System.out.println(" sig for " + m.getClass() + " is " + sig);
 
 		// if sig has no names, qdox doesn't seem to introspect it at all
@@ -754,6 +774,16 @@ public class JavaSupport {
 		if (fullyQualifiedName.equals("byte")) return Byte.TYPE;
 		if (fullyQualifiedName.equals("short")) return Short.TYPE;
 		if (fullyQualifiedName.equals("boolean")) return Boolean.TYPE;
+
+		if (fullyQualifiedName.equals("int[]")) return int[].class;
+		if (fullyQualifiedName.equals("long[]")) return long[].class;
+		if (fullyQualifiedName.equals("double[]")) return double[].class;
+		if (fullyQualifiedName.equals("float[]")) return float[].class;
+		if (fullyQualifiedName.equals("char[]")) return char[].class;
+		if (fullyQualifiedName.equals("byte[]")) return byte[].class;
+		if (fullyQualifiedName.equals("short[]")) return short[].class;
+		if (fullyQualifiedName.equals("boolean[]")) return boolean[].class;
+
 		return this.getClass().getClassLoader().loadClass(fullyQualifiedName);
 	}
 
