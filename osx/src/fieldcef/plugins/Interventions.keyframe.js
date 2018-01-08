@@ -1,5 +1,5 @@
 // keyframe set by manipulating code
-_.value = ${value}
+_.value = 0.4
 
 // everything else below this concerns drawing this box
 
@@ -15,34 +15,31 @@ var Area = Java.type('java.awt.geom.Area')
 var FLinesAndJavaShapes = Java.type('field.graphics.FLinesAndJavaShapes')
 var Vec2 = Java.type('field.linalg.Vec2')
 var FLineDrawing = Java.type('fieldbox.boxes.FLineDrawing')
+var SimpleConnection = Java.type('field.graphics.util.onsheetui.SimpleConnection')
 
-var f = new FLine()
-f.moveTo(0,-20).lineTo(0,40)
-f.thicken=0.25
-
-f.color = new Vec4(1,1,1,0.5)
+_.withOverloading = true
 
 _.frameDrawing.clear()
 
-_.lines.left = FLineDrawing.boxOrigin(f, new Vec2(0,0), _)
-
-f = new FLine().circle(0,10,7)
-
 // this has got to be made simplier and more direct on FLine
-var s1 = new Area(FLinesAndJavaShapes.flineToJavaShape(f))
-var s2 = new Area(FLinesAndJavaShapes.flineToJavaShape(new FLine().rect(0,0,_.frame.w, _.frame.h)))
-s1.intersect(s2)
-var circ = FLinesAndJavaShapes.javaShapeToFLine(s1)
+var aCircle = new FLine().circle(0,10,7)
+var aRectangle = new FLine().rect(0,0,_.frame.w, _.frame.h)
 
+// intersect the circle with the rectangle to make a half-rectangle
+aCircle = aCircle * aRectangle
+aCircle.filled = true
 
-
-circ.filled = true
-circ.color = new Vec4(0.5,0.5,0.5,1)
-circ.thicken=1.5
-_.lines.circ = FLineDrawing.boxOrigin(circ, new Vec2(0,0), _)
+aCircle.color = new Vec4(0.5,0.4,0.15,1)
+aCircle.thicken=1.5
+_.lines.circ = FLineDrawing.boxOrigin(aCircle, new Vec2(0,0), _)
 
 _.redraw()
 
+// don't show connection decoration
 _.shyConnections = true
 
+// show this connection decoration instead
+new SimpleConnection().leftXToMiddleY("__toParent__", _, _.parents.first, new Vec4(0.5,0.45,0.15,1))
+
+// automatically execute this when the document is loaded
 _.auto = 1
