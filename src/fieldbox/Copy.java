@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  */
 public class Copy implements Runnable {
 
-	public final IO io = new IO(Options.getDirectory("workspace", () -> System.getProperty("user.home") + "/Documents/FirstNewFieldWorkspace/"));
+	public final IO io = new IO(Options.getDirectory("workspace", () -> System.getProperty("user.home") + "/Documents/FieldWorkspace/"));
 
 	@Override
 	public void run() {

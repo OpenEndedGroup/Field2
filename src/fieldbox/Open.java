@@ -21,6 +21,7 @@ import fieldcef.plugins.*;
 import fielded.ServerSupport;
 import fielded.boxbrowser.BoxBrowser;
 import fielded.boxbrowser.WebApps;
+import fielded.plugins.Launch;
 import fielded.plugins.MakeNewTextEditor;
 import fielded.plugins.Out;
 import fieldnashorn.Nashorn;
@@ -283,6 +284,12 @@ public class Open {
 
 		new Bundle(boxes.root()).connect(boxes.root());
 
+		new Launch(boxes.root()).connect(boxes.root());
+
+		new SimpleTweaks(boxes.root()).connect(boxes.root());
+
+
+
 		if (ThreadSync.enabled) new ThreadSyncFeedback(boxes.root()).connect(boxes.root());
 		if (ThreadSync2.getEnabled()) new ThreadSync2Feedback(boxes.root()).connect(boxes.root());
 
@@ -449,7 +456,7 @@ public class Open {
 
 		GraphicsContext.getContext().stateTracker.viewport.set(new int[]{0, 0, window.getFrameBufferWidth(), window.getFrameBufferHeight()});
 		GraphicsContext.getContext().stateTracker.scissor.set(new int[]{0, 0, window.getFrameBufferWidth(), window.getFrameBufferHeight()});
-		glClearColor((float) Colors.backgroundColor.x, (float) Colors.backgroundColor.y, (float) Colors.backgroundColor.z, 1);
+		glClearColor((float) window.background.x, (float) window.background.y, (float) window.background.z, 1);
 		glClear(GL11.GL_COLOR_BUFFER_BIT);
 		glEnable(GL11.GL_BLEND);
 		glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
@@ -476,7 +483,7 @@ public class Open {
 
 		GraphicsContext.getContext().stateTracker.viewport.set(new int[]{0, 0, window.getFrameBufferWidth(), window.getFrameBufferHeight()});
 		GraphicsContext.getContext().stateTracker.scissor.set(new int[]{0, 0, window.getFrameBufferWidth(), window.getFrameBufferHeight()});
-		glClearColor((float) Colors.backgroundColor.x, (float) Colors.backgroundColor.y, (float) Colors.backgroundColor.z, 0);
+		glClearColor((float) window.background.x, (float) window.background.y, (float) window.background.z, 0);
 		glClear(GL11.GL_COLOR_BUFFER_BIT);
 		glEnable(GL11.GL_BLEND);
 		glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
