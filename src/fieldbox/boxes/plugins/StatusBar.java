@@ -26,8 +26,8 @@ public class StatusBar extends Box {
 		.toCanon()
 		.autoConstructs(() -> new IdempotencyMap<>(Supplier.class))
 		.doc("Add things here to the status bar, and call `_.statusBar.update()` to update/repaint");
-	int insetW = 10;
-	int insetH = 10;
+	int insetW = 0;
+	int insetH = 0;
 	int height = 25;
 
 	public StatusBar(Box b) {
@@ -37,38 +37,19 @@ public class StatusBar extends Box {
 
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__updateStatusBarWidth__", () -> {
 
-			float w = this.properties.get(Box.frame).w;
-
-			FieldBoxWindow window = find(Boxes.window, both()).findFirst()
-				.get();
-			Drawing drawing = find(Drawing.drawing, both()).findFirst()
-				.get();
-
-
-			float w2 = window.getWidth() - insetW * 2;
-
-			if (Math.abs(w - w2) > 1) {
-				this.properties.get(Box.frame).w = w2;
-				Drawing.dirty(this);
-			}
-
-			float y = this.properties.get(Box.frame).y;
-			float h = this.properties.get(Box.frame).h;
-
-
-			double y2 = window.getHeight() - insetH - h - drawing.getTranslation().y;
-
-			if (Math.abs(y - y2) > 1) {
-				this.properties.get(Box.frame).y = (float) y2;
-				Drawing.dirty(this);
+			Optional<FieldBoxWindow> window = find(Boxes.window, both()).findFirst();
+			if (window.isPresent()) {
+				this.properties.put(frame, new Rect(0, window.get().getHeight() - height, window.get().getWidth(), height));
+				return false;
 			}
 
 			return true;
 		});
 
-		this.properties.put(Drawing.windowSpace, new Vec2(0, 0.5));
+		this.properties.put(Drawing.windowSpace, new Vec2(0, 1));
+		this.properties.put(Drawing.windowScale, new Vec2(1, 1));
 
-		this.properties.put(Box.frame, new Rect(insetW, 0, 10, height));
+		this.properties.put(Box.frame, new Rect(0, 0, 10, height));
 
 		this.properties.putToMap(FLineDrawing.frameDrawing, "__name__", new Cached<Box, Object, FLine>((box, previously) -> {
 			Rect rect = box.properties.get(frame);
