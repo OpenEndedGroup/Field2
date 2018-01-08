@@ -1,8 +1,10 @@
 package field.graphics;
 
+import com.google.common.collect.MapMaker;
 import field.app.RunLoop;
 import field.utility.Dict;
 import field.utility.Log;
+import field.utility.Pair;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Drawing;
 import fieldbox.execution.Errors;
@@ -14,8 +16,11 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
-import java.nio.file.Files;
+import java.nio.file.*;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.WeakHashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -54,8 +59,64 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 	public Texture(TextureSpecification specification) {
 		this.specification = specification;
 		if (this.specification.forceSingleBuffered) setIsDoubleBuffered(false);
+
+		if (specification.source != null) {
+			installReloadWatch(specification.source, this);
+		}
 	}
 
+	static WatchService ws = null;
+	static WeakHashMap<Texture, Pair<WatchKey, String>> keys = new WeakHashMap<>();
+	static Map<Path, Texture> resolvedTextures = new MapMaker().weakKeys().weakValues().makeMap();
+
+	private void installReloadWatch(String sourceFilename, Texture texture) {
+
+		try {
+			if (ws == null) {
+				ws = FileSystems.getDefault().newWatchService();
+				new Thread(() -> {
+					while (true) {
+						try {
+							Thread.sleep(1000);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+
+						synchronized (keys) {
+							keys.forEach((te, k) -> {
+								List<WatchEvent<?>> events = k.first.pollEvents();
+								if (events.size() > 0) {
+
+									events.forEach(x -> {
+										Texture tex = resolvedTextures.get(x);
+										tex.reloadFrom(((Path) x.context()).toFile().getAbsolutePath());
+									});
+								}
+							});
+						}
+					}
+				}).start();
+			}
+
+
+			WatchKey key = new File(sourceFilename).getParentFile().toPath().register(ws, StandardWatchEventKinds.ENTRY_MODIFY);
+
+			synchronized (keys) {
+				resolvedTextures.put(new File(sourceFilename).toPath(), texture);
+				keys.put(this, new Pair(key, sourceFilename));
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+
+	private void reloadFrom(String filename) {
+		int[] wh = FastJPEG.j.dimensions(filename);
+		if (wh[0] == specification.width && wh[1] == specification.height)
+			FastJPEG.j.decompress(filename, specification.pixels, wh[0], wh[1]);
+		upload(specification.pixels, false);
+	}
 
 	int boundCount = 0;
 	int uploadCount = 0;
