@@ -141,6 +141,10 @@ public class RunLoop {
 		});
 	}
 
+	public static long getTick() {
+		return tick;
+	}
+
 	public <T> void when(Future<T> f, Consumer<T> a) {
 		mainLoop.attach(i -> {
 			if (!f.isDone()) return true;

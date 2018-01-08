@@ -1,5 +1,6 @@
 package fieldbox.boxes.plugins;
 
+import field.app.RunLoop;
 import field.app.ThreadSync2;
 import field.graphics.FLine;
 import field.graphics.StandardFLineDrawing;
@@ -76,7 +77,7 @@ public class ThreadSync2Feedback extends Box {
 				f.yield();
 				return true;
 			}
-		}
+		} else throw new IllegalArgumentException("can't wait for a frame without running -threaded2 1");
 		return false;
 	}
 
@@ -87,8 +88,21 @@ public class ThreadSync2Feedback extends Box {
 				f.yield();
 				return true;
 			}
-		}
+		} else throw new IllegalArgumentException("can't wait for a frame without running -threaded2 1");
 		return false;
+	}
+
+	static public boolean maybeYield() {
+		if (ThreadSync2.getEnabled()) {
+			ThreadSync2.Fibre f = ThreadSync2.fibre();
+			long tick = f.d.computeIfAbsent(ThreadSync2.get__maybeYieldAtFrame(), (k) -> RunLoop.tick);
+			if (tick == RunLoop.tick) {
+				yield();
+				f.d.put(ThreadSync2.get__maybeYieldAtFrame(), RunLoop.tick);
+				return true;
+			}
+			return false;
+		} else throw new IllegalArgumentException("can't wait for a frame without running -threaded2 1");
 	}
 
 	static public ThreadSync2.Fibre fibre(Box x) {
