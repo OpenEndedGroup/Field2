@@ -94,6 +94,10 @@ public class DrawBitmapFont {
 	}
 
 	public void draw(String text, Vec3 origin, float scale, Object h) {
+		draw(text, origin, scale, h, origin);
+	}
+
+	public void draw(String text, Vec3 origin, float scale, Object h, Vec3 shaderOrigin) {
 
 		if (text.contains("\n"))
 		{
@@ -131,13 +135,19 @@ public class DrawBitmapFont {
 					at.x -= g.xoffset * scale;
 				}
 
+				float shim = 5f;
+
 				target.aux(3, g.srcX, g.srcY + g.height, smoothing);
+				target.aux(4, (float)shaderOrigin.x, (float)shaderOrigin.y-shim);
 				target.v(at.x + g.xoffset * scale, at.y - g.yoffset * scale, Z);
 				target.aux(3, g.srcX + g.width, g.srcY + g.height, smoothing);
+				target.aux(4, (float)shaderOrigin.x, (float)shaderOrigin.y-shim);
 				target.v(at.x + g.width * scale + g.xoffset * scale, at.y - g.yoffset * scale, Z);
 				target.aux(3, g.srcX + g.width, g.srcY, smoothing);
+				target.aux(4, (float)shaderOrigin.x, (float)shaderOrigin.y-shim);
 				target.v(at.x + g.width * scale + g.xoffset * scale, at.y - g.height * scale - g.yoffset * scale, Z);
 				target.aux(3, g.srcX, g.srcY, smoothing);
+				target.aux(4, (float)shaderOrigin.x, (float)shaderOrigin.y-shim);
 				target.v(at.x + g.xoffset * scale, at.y - g.height * scale - g.yoffset * scale, Z);
 				target.e_quad(0, 1, 2, 3);
 

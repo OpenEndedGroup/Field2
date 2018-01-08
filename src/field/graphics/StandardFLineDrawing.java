@@ -10,6 +10,7 @@ import fieldbox.boxes.TextDrawing;
 import java.awt.*;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
@@ -34,7 +35,8 @@ public class StandardFLineDrawing {
 			return v;
 		});
 
-	static public final Dict.Prop<Boolean> hint_noDepth = new Dict.Prop<>("hint_noDepth").type().toCanon().doc("set on a line to hint to the renderer that z=0 for all nodes in this line. At present this merely allows lines to be `thicken` faster.");
+	static public final Dict.Prop<Boolean> hint_noDepth = new Dict.Prop<>("hint_noDepth").type().toCanon().doc("set on a line to hint to the renderer that z=0 for all nodes in this line. At " +
+		"present this merely allows lines to be `thicken` faster.");
 	static public final Dict.Prop<Boolean> filled = new Dict.Prop<>("filled").type()
 		.toCanon()
 		.doc("should the line be filled and tessellated? defaults to false").set(Dict.domain, "fline");
@@ -95,17 +97,25 @@ public class StandardFLineDrawing {
 		.toCanon()
 		.doc("a list of color spans for doing multi-color, multi-font runs of text").set(Dict.domain, "fline");
 
+	static public final Dict.Prop<Vec3> textScaleCenter = new Dict.Prop<>("textScaleCenter").type().toCanon().doc("sets the center of a text label (where it scales around in response to the " +
+		"canvas being scaled");
+
 	static public final Dict.Prop<Number> pointSize = new Dict.Prop<>("pointSize").type()
 		.toCanon()
 		.doc("sets the size of the point (if this line is drawn `.pointed=true`). This can be applied per-node or per-line.").set(Dict.domain, "fline fnode");
 
 	static public final Dict.Prop<IdempotencyMap<Supplier<FLine>>> subLines = new Dict.Prop<>("subLines").type()
 		.toCanon().autoConstructs(() -> new IdempotencyMap<Supplier<FLine>>(Supplier.class))
-		.doc("other, additional lines that are drawn along side this one. This can be applied per-node or per-line. Useful for decorations, annotations, selection marks etc.").set(Dict.domain, "fline fnode");
+		.doc("other, additional lines that are drawn along side this one. This can be applied per-node or per-line. Useful for decorations, annotations, selection marks etc.").set(Dict
+			.domain, "fline fnode");
+
+	static public final Dict.Prop<IdempotencyMap<Consumer<FLine>>> hooks = new Dict.Prop<>("hooks").type()
+		.toCanon().autoConstructs(() -> new IdempotencyMap<Consumer<FLine>>(Supplier.class))
+		.doc("Hooks are functions executed on FLines just prior to drawing").set(Dict.domain, "fline fnode");
 
 	static public final Dict.Prop<Boolean> noContours = new Dict.Prop<>("noContours").type()
 		.toCanon()
-		.doc("setting `.noContours=true` turns off any smartness in the tesselator about how to fill FLines").set(Dict.domain, "fline");
+		.doc("setting `.noContours=true` turns off any smartness in the tessellator about how to fill FLines, speeding up tessellation considerably").set(Dict.domain, "fline");
 
 
 	static public void dispatchLine(FLine fline, MeshBuilder mesh, MeshBuilder line, MeshBuilder points, Optional<TextDrawing> ot, String layerName) {
@@ -114,13 +124,18 @@ public class StandardFLineDrawing {
 
 	static public void dispatchLine(FLine fline, MeshBuilder mesh, MeshBuilder line, MeshBuilder points, Optional<TextDrawing> ot, String layerName, float opacityMultiply) {
 
+		IdempotencyMap<Consumer<FLine>> hooksHere = fline.attributes.getOr(hooks, () -> null);
+		if (hooksHere != null) {
+			hooksHere.values().forEach(x -> x.accept(fline));
+		}
+
 		Vec4 sc = new Vec4(fline.attributes.getOr(strokeColor, () -> fline.attributes.getOr(color, () -> new Vec4(0, 0, 0, 1))).get());
 		Vec4 fc = new Vec4(fline.attributes.getOr(fillColor, () -> fline.attributes.getOr(color, () -> new Vec4(0, 0, 0, 1))).get());
 		Vec4 pc = new Vec4(fline.attributes.getOr(pointColor, () -> fline.attributes.getOr(color, () -> new Vec4(0, 0, 0, 1))).get());
 
-		float op = fline.attributes.getOr(opacity, () -> 1f)*opacityMultiply;
-		float sop = fline.attributes.getOr(strokeOpacity, () -> 1f)*opacityMultiply;
-		float fop = fline.attributes.getOr(fillOpacity, () -> 1f)*opacityMultiply;
+		float op = fline.attributes.getOr(opacity, () -> 1f) * opacityMultiply;
+		float sop = fline.attributes.getOr(strokeOpacity, () -> 1f) * opacityMultiply;
+		float fop = fline.attributes.getOr(fillOpacity, () -> 1f) * opacityMultiply;
 
 		sc.w *= op * sop;
 		fc.w *= op * fop;
@@ -137,27 +152,27 @@ public class StandardFLineDrawing {
 			mesh.aux(1, sc);
 		} else {
 			if (fline.attributes.isTrue(stroked, true) && line != null) {
-				if (opacityMultiply==1)
+				if (opacityMultiply == 1)
 					fline.addAuxProperties(1, color.getName());
 				else
 					fline.addAuxPropertiesFunctions(1, n -> {
 						Supplier<Vec4> qq = n.attributes.get(color);
-						if (qq==null) return null;
+						if (qq == null) return null;
 						Vec4 v = qq.get();
-						return new Vec4(v.x, v.y, v.z, v.w*opacityMultiply);
+						return new Vec4(v.x, v.y, v.z, v.w * opacityMultiply);
 					});
 				fline.renderToLine(line, 20);
 			}
 		}
 		if (fline.attributes.isTrue(filled, false) && mesh != null) {
-			if (opacityMultiply==1)
+			if (opacityMultiply == 1)
 				fline.addAuxProperties(1, color.getName());
 			else
 				fline.addAuxPropertiesFunctions(1, n -> {
 					Supplier<Vec4> qq = n.attributes.get(color);
-					if (qq==null) return null;
+					if (qq == null) return null;
 					Vec4 v = qq.get();
-					return new Vec4(v.x, v.y, v.z, v.w*opacityMultiply);
+					return new Vec4(v.x, v.y, v.z, v.w * opacityMultiply);
 				});
 			mesh.aux(1, fc);
 			fline.renderToMesh(mesh, 20);
@@ -172,7 +187,7 @@ public class StandardFLineDrawing {
 		}
 
 
-		IdempotencyMap<Supplier<FLine>> sl = fline.attributes.getOr(subLines, ()->null);
+		IdempotencyMap<Supplier<FLine>> sl = fline.attributes.getOr(subLines, () -> null);
 
 		if (sl != null) {
 			sl.values().stream().filter(n -> n != null).map(x -> x.get()).filter(x -> x != null).forEach(x -> {
@@ -195,7 +210,8 @@ public class StandardFLineDrawing {
 						.ifPresent(fs -> {
 							Vec2 v = fs.font.dimensions(textToDraw, textScale);
 							fs.mesh.aux(1, fc);
-							fs.font.draw(textToDraw, new Vec3(node.to.x - align * v.x, node.to.y, node.to.z), textScale, fline);
+							fs.font.draw(textToDraw, new Vec3(node.to.x - align * v.x, node.to.y, node.to.z), textScale, fline, node.attributes.getOr(textScaleCenter, ()
+								-> node.to));
 						});
 				});
 
@@ -230,7 +246,7 @@ public class StandardFLineDrawing {
 						ot.map(t -> t.getFontSupport(fline.attributes.getOr(font, () -> f)))
 							.ifPresent(fs -> {
 								fs.mesh.aux(1, new Vec4(fcHere).mul(op));
-								fs.font.draw(m, new Vec3(node.to.x - dim.x / 2 + o.x, node.to.y, node.to.z), textScale, fline);
+								fs.font.draw(m, new Vec3(node.to.x - dim.x / 2 + o.x, node.to.y, node.to.z), textScale, fline, node.to);
 								o.x += fs.font.dimensions(m, textScale).x;
 							});
 						prev = f;
