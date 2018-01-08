@@ -26,8 +26,9 @@ class Bundle(val root: Box) : Box() {
     }
 
     fun bundleNow() {
-        val v = Launch().getSaveFile()
+        var v = Launch(root).getSaveFile()
         if (v != null) {
+            if (!v.endsWith(".zip")) v = v+".zip"
             // TODO: notification and feedback
             val success = saveAndBundle(v);
             showInFinder(v)
