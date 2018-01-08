@@ -104,7 +104,7 @@ public class TextEditor extends Box implements IO.Loaded {
 
 		browser_ = new Browser();
 
-		Vec2 v = drawing.windowSystemToDrawingSystem(new Vec2(window.getWidth() - maxw - 0, -3));
+		Vec2 v = drawing.windowSystemToDrawingSystem(new Vec2(window.getWidth() - maxw - 0, -0));
 		Vec2 vd = drawing.windowSystemToDrawingSystemDelta(new Vec2(maxw, 1000));
 
 		frameLast = (int) vd.x;
