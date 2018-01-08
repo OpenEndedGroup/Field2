@@ -14,6 +14,7 @@ import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static fieldbox.boxes.Boxes.window;
 
@@ -21,7 +22,7 @@ public class KeyboardShortcuts extends Box {
 
 	static protected final Dict.Prop<Boolean> __deltwith = new Dict.Prop<>("__deltwith");
 
-	static public final Dict.Prop<Set<Integer>> keysDown = new Dict.Prop<>("keysDown")
+	static public final Dict.Prop<Set<String>> keysDown = new Dict.Prop<>("keysDown")
 		.type().toCanon()
 		.doc("A property that's set to all of the 'chars' that are currently being held down on the keyboard");
 
@@ -37,7 +38,7 @@ public class KeyboardShortcuts extends Box {
 		FieldBoxWindow window = root.find(Boxes.window, both()).findFirst().orElseThrow(() -> new IllegalStateException("can't find window"));
 
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__updatekeys", () -> {
-			this.properties.put(keysDown, new LinkedHashSet<>(window.getCurrentKeyboardState().keysDown));
+			this.properties.put(keysDown, new LinkedHashSet<>(window.getCurrentKeyboardState().keysDown.stream().map(this::keyToChar).filter(x -> x != null).collect(Collectors.toList())));
 			return true;
 		});
 
@@ -114,6 +115,14 @@ public class KeyboardShortcuts extends Box {
 
 			return null;
 		});
+	}
+
+	private String keyToChar(int key) {
+		String name = GLFW.glfwGetKeyName(key, 0);
+//		System.out.println(" name for key " + key + " = " + name);
+		if (name != null)
+			return name;
+		return null;
 	}
 
 	private boolean match(boolean should, String substring, String inside) {
