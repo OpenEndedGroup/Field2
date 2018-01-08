@@ -347,7 +347,7 @@ public class Scene extends Box implements fieldlinker.AsMap {
 
 	@Override
 	public String toString() {
-		return super.toString() + InverseDebugMapping.describe(this);
+		return super.toString() /*+ InverseDebugMapping.describe(this)*/;
 	}
 
 	@Override
