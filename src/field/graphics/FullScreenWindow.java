@@ -1,16 +1,34 @@
 package field.graphics;
 
 import fieldagent.Main;
+import org.lwjgl.PointerBuffer;
+import org.lwjgl.glfw.GLFW;
+import org.lwjgl.glfw.GLFWVidMode;
 
-/**
- * will contain logic for going fullscreen automatically, right now, it doesn't
- */
-public class FullScreenWindow extends Window {
+public class FullScreenWindow extends RenderWindow {
 
-	public FullScreenWindow(int x, int y, int w, int h, String title) {
-		super(x, y, w, h, title, true);
-
-
+	/**
+	 * opens a full screen window on `screen`
+	 * @param screen
+	 */
+	public FullScreenWindow(int screen) {
+		super(screen);
 	}
+
+	/**
+	 * opens a full screen window on `screen` with `title`
+	 * @param screen
+	 */
+	public FullScreenWindow(int screen, String title) {
+		super(screen, title);
+	}
+
+	/**
+	 * opens a window that, despite the name, is at x,y and has dimensions w,h
+	 */
+	public FullScreenWindow(int x, int y, int w, int h, String title) {
+		super(x, y, w, h, title);
+	}
+
 
 }

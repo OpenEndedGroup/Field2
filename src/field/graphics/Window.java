@@ -7,9 +7,12 @@ import field.app.ThreadSync;
 import field.app.ThreadSync2;
 import field.graphics.util.KeyEventMapping;
 import field.linalg.Vec2;
+import field.linalg.Vec3;
+import field.linalg.Vec4;
 import field.utility.*;
 import fieldagent.Main;
 import fieldbox.boxes.Box;
+import fieldbox.boxes.Colors;
 import fieldbox.boxes.Mouse;
 import fielded.boxbrowser.BoxBrowser;
 import fieldlinker.Linker;
@@ -48,10 +51,12 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 	};
 
 	static public final boolean glDebugging = Options.dict().isTrue(new Dict.Prop<>("gldebugging"), false);
-	public final GlfwCallback callback;
+	public GlfwCallback callback;
 	private String title;
 
 	private int retinaScaleFactor;
+
+	public Vec3 background = Colors.backgroundColor;
 
 	/**
 	 * the Scene associated with this window.
@@ -155,61 +160,72 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 		this.y = y;
 
 
-//	try {
-//			ThreadSync.callInMainThreadAndWait(() -> {
+		try {
+			ThreadSync2.callInMainThreadAndWait(() -> {
 
-		window = glfwCreateWindow(w, h, title == null ? "" : title, 0, shareContext == this ? 0 : shareContext.window);
+				window = glfwCreateWindow(w, h, title == null ? "" : title, 0, shareContext == this ? 0 : shareContext.window);
 
-		this.title = title;
+				this.title = title;
 
-		if (window == 0) {
-			System.err.println(" FAILED TO CREATE WINDOW :" + shareContext);
-		}
-		glfwSetWindowPos(window, x, y);
-		Windows.windows.register(window, callback = makeCallback());
+				if (window == 0) {
+					System.err.println(" FAILED TO CREATE WINDOW :" + shareContext);
+				}
+				glfwSetWindowPos(window, x, y);
+				Windows.windows.register(window, callback = makeCallback());
 
-		glfwShowWindow(window);
+				glfwShowWindow(window);
 
-		glfwMakeContextCurrent(window);
+				glfwMakeContextCurrent(window);
 //				glfwSwapInterval(1);
 
-		glfwSwapInterval(0);
+				glfwSwapInterval(0);
 
-		if (shareContext == this) {
-			glcontext = GL.createCapabilities(true);
-		} else {
-			glcontext = shareContext.glcontext;
-			GL.setCapabilities(glcontext);
+				if (shareContext == this) {
+					glcontext = GL.createCapabilities(true);
+				} else {
+					glcontext = shareContext.glcontext;
+					GL.setCapabilities(glcontext);
+				}
+
+
+				GL11.glClearColor(0.25f, 0.25f, 0.25f, 1);
+				GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
+				if (glDebugging) {
+					GL11.glEnable(GL43.GL_DEBUG_OUTPUT_SYNCHRONOUS);
+					c = GLUtil.setupDebugMessageCallback();
+				}
+
+				glfwSwapBuffers(window);
+
+				RunLoop.main.getLoop().attach(0, perform);
+
+
+				glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS, GL11.GL_TRUE);
+
+				retinaScaleFactor = permitRetina ? (int) (Options.dict()
+					.getFloat(new Dict.Prop<Number>("retina"), 0f) + 1) : 1;
+
+				windowOpenedAt = RunLoop.tick;
+
+				modifiers = new CanonicalModifierKeys(window);
+				System.out.println(" -- D");
+
+				return window;
+			});
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 
+		scene.attach(new Scene.Perform() {
+			int count = 0;
 
-		GL11.glClearColor(0.25f, 0.25f, 0.25f, 1);
-		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
-		if (glDebugging) {
-			GL11.glEnable(GL43.GL_DEBUG_OUTPUT_SYNCHRONOUS);
-			c = GLUtil.setupDebugMessageCallback();
-		}
-
-		glfwSwapBuffers(window);
-
-		RunLoop.main.getLoop().attach(0, perform);
-
-
-		glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS, GL11.GL_TRUE);
-
-		retinaScaleFactor = permitRetina ? (int) (Options.dict()
-			.getFloat(new Dict.Prop<Number>("retina"), 0f) + 1) : 1;
-
-		windowOpenedAt = RunLoop.tick;
-
-		modifiers = new CanonicalModifierKeys(window);
-		System.out.println(" -- D");
-
-//				return window;
-//			});
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
+			@Override
+			public boolean perform(int pass) {
+				GL11.glClearColor(0.2f, 0.2f, 0.2f, 1);
+				GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+				return count++ < 30;
+			}
+		});
 
 
 		new Thread() {
@@ -344,7 +360,8 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 	@Override
 	public String generateMarkdown(Box inside, Dict.Prop property) {
 
-		return "Window <code>'" + title + "'</code> of dimensions <code>" + getBounds() + "</code> has been drawn <code>" + frame + "</code> time" + (frame == 1 ? "" : "s") + ". Average, recent framerate is <code>" + String.format("%.2f", frameRate) + "</code> fps";
+		return "Window <code>'" + title + "'</code> of dimensions <code>" + getBounds() + "</code> has been drawn <code>" + frame + "</code> time" + (frame == 1 ? "" : "s") + ". Average, " +
+			"recent framerate is <code>" + String.format("%.2f", frameRate) + "</code> fps";
 
 	}
 
@@ -369,33 +386,27 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 			if (onlyThread != null && Thread.currentThread() != onlyThread)
 				throw new Error();
 
-			if (glfwWindowShouldClose(window))
-			{
+			if (glfwWindowShouldClose(window)) {
 				RunLoop.main.getLoop().detach(perform);
 				glfwDestroyWindow(window);
 				return;
 			}
 
-			if (Main.os == Main.OS.mac && false) {
-
-				// shenanegians required to order front a window on El Capitan
-				if (frameHack++ == 0) {
-					Rect r = getBounds();
-					setBounds((int) r.x + 1, (int) r.y + 1, (int) r.w + 1, (int) r.h + 10);
-				}
-				if (frameHack == 5) {
-					Rect r = getBounds();
-					setBounds((int) r.x - 1, (int) r.y - 1, (int) r.w - 1, (int) r.h - 10);
-				}
-				if (frameHack == 10) {
-					Rect r = getBounds();
-					setBounds((int) r.x, (int) r.y, (int) r.w, (int) r.h + 1);
-				}
-				if (frameHack == 15) {
-					Rect r = getBounds();
-					setBounds((int) r.x, (int) r.y, (int) r.w, (int) r.h - 1);
-				}
-			}
+//			if (Main.os == Main.OS.mac && true) {
+//
+////				if (frameHack++ == 2)
+////					glfwFocusWindow(window);
+//
+//				// shenanegians required to order front a window on El Capitan
+//				if (frameHack++ == 0) {
+//					Rect r = getBounds();
+//					setBounds((int) r.x + 1, (int) r.y + 1, (int) r.w + 1, (int) r.h + 10);
+//				}
+//				if (frameHack == 5) {
+//					Rect r = getBounds();
+//					setBounds((int) r.x - 1, (int) r.y - 1, (int) r.w - 1, (int) r.h - 10);
+//				}
+//			}
 
 			if (!needsRepainting()) {
 				if (!isThreaded) glfwPollEvents();
@@ -838,7 +849,8 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 
 			@Override
 			public void key(long window, int key, int scancode, int action, int mods) {
-				if (window == Window.this.window && RunLoop.tick > windowOpenedAt + 10) { // we ignore keyboard events from the first couple of updates; they can refer to key downs that we'll never receive
+				if (window == Window.this.window && RunLoop.tick > windowOpenedAt + 10) { // we ignore keyboard events from the first couple of updates; they can refer to key downs
+					// that we'll never receive
 
 					KeyboardState next = keyboardState.withKey(key, action != GLFW_RELEASE);
 
@@ -862,14 +874,12 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 					boolean meta = ((glfwGetKey(window, GLFW_KEY_LEFT_SUPER)) | (glfwGetKey(window, GLFW_KEY_RIGHT_SUPER))) != 0;
 					boolean ctrl = ((glfwGetKey(window, GLFW_KEY_LEFT_CONTROL)) | (glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL))) != 0;
 
-//					next = modifiers.cleanModifiers(next);
 					next = next.clean(window);
 
 					fireKeyboardTransition(keyboardState, next);
 					keyboardState = next;
-					next = keyboardState.withChar((char) character, false);
 
-//					next = modifiers.cleanModifiers(next);
+					next = keyboardState.withChar((char) character, false);
 					next = next.clean(window);
 					fireKeyboardTransition(keyboardState, next);
 					keyboardState = next;
@@ -1182,7 +1192,8 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 			while (ii.hasNext()) {
 				Integer m = ii.next();
 
-				if (m == GLFW_KEY_LEFT_SHIFT || m == GLFW_KEY_RIGHT_SHIFT || m == GLFW_KEY_LEFT_ALT || m == GLFW_KEY_RIGHT_ALT || m == GLFW_KEY_LEFT_SUPER || m == GLFW_KEY_RIGHT_SUPER || m == GLFW_KEY_LEFT_CONTROL || m == GLFW_KEY_RIGHT_CONTROL)
+				if (m == GLFW_KEY_LEFT_SHIFT || m == GLFW_KEY_RIGHT_SHIFT || m == GLFW_KEY_LEFT_ALT || m == GLFW_KEY_RIGHT_ALT || m == GLFW_KEY_LEFT_SUPER || m ==
+					GLFW_KEY_RIGHT_SUPER || m == GLFW_KEY_LEFT_CONTROL || m == GLFW_KEY_RIGHT_CONTROL)
 					continue;
 
 				boolean notReally = glfwGetKey(window, m) != 0;
