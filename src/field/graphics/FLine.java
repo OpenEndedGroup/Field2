@@ -8,6 +8,7 @@ import fieldbox.execution.Completion;
 import fieldbox.execution.HandlesCompletion;
 import fieldbox.execution.JavaSupport;
 import fieldnashorn.annotations.HiddenInAutocomplete;
+import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import jdk.nashorn.api.scripting.ScriptUtils;
 import kotlin.jvm.functions.Function1;
 
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 
 import static field.graphics.FLinesAndJavaShapes.flineToJavaShape;
 import static field.graphics.FLinesAndJavaShapes.javaShapeToFLine;
+import static field.graphics.FLinesAndJavaShapes.splitCubicFrame;
 import static field.graphics.StandardFLineDrawing.hint_noDepth;
 import static field.utility.Util.safeEq;
 import static fieldbox.boxes.Box.compress;
@@ -40,15 +42,22 @@ import static fieldbox.boxes.Box.format;
  * <p>
  * This is essentially the common postscript / pdf / java2d drawing model with a few key differences and refinements.
  * <p>
- * Firstly, the drawing instructions are in 3d. 2d (the z=0 plane) is a special case; secondly, attributes can be associated with both the line itself and with individual nodes; thirdly, per-node attributes that are
- * present in some places on the line and absent in others are interpolated; finally, the structure is freely mutable, although changes to attributes are not automatically tracked (call `line.modify()` to
+ * Firstly, the drawing instructions are in 3d. 2d (the z=0 plane) is a special case; secondly, attributes can be associated with both the line itself and with individual nodes; thirdly, per-node
+ * attributes that are
+ * present in some places on the line and absent in others are interpolated; finally, the structure is freely mutable, although changes to attributes are not automatically tracked (call `line
+ * .modify()` to
  * cause an explicit un-caching of this line).
  * <p>
- * The caching of the flattening of this line into MeshBuilder data (ready for OpenGL) cascades into MeshBuilder's cache structure. Thus, we have three levels of caching in total: FLine caches whether or not the geometry has changed at all, MeshBuilder caches whether or not there's any point sending anything to the OpenGL
+ * The caching of the flattening of this line into MeshBuilder data (ready for OpenGL) cascades into MeshBuilder's cache structure. Thus, we have three levels of caching in total: FLine caches
+ * whether or not the geometry has changed at all, MeshBuilder caches whether or not there's any point sending anything to the OpenGL
  * underlying Buffers or whether this piece of geometry can be skipped, and finally individual ArrayBuffers can elect to skip the upload to OpenGL. This means that static geometry is extremely cheap
  * to draw.
  */
 public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesCompletion, Serializable_safe, OverloadedMath {
+
+	static {
+		new StandardFLineDrawing(); // cause properties to be loaded
+	}
 
 	public List<Node> nodes = new ArrayList<>();
 	public Dict attributes = new Dict();
@@ -85,7 +94,8 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	}
 
 	@HiddenInAutocomplete
-	static public Vec3 evaluateCubicFrame(double ax, double ay, double az, double c1x, double c1y, double c1z, double c2x, double c2y, double c2z, double bx, double by, double bz, double alpha, Vec3 out) {
+	static public Vec3 evaluateCubicFrame(double ax, double ay, double az, double c1x, double c1y, double c1z, double c2x, double c2y, double c2z, double bx, double by, double bz, double alpha,
+					      Vec3 out) {
 		if (out == null) out = new Vec3();
 
 		double oma = 1 - alpha;
@@ -101,7 +111,21 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		return out;
 	}
 
+	/**
+	 * returns the current node — that is the object that represents the last drawing instruction that you have put in this FLine. This lets you set properties on a specific _node_ rather than
+	 * the line itself. Node properties are fairly rare, but, for example, you can do `line.node().pointSize = 20.0`
+	 */
 	public Node node() {
+		if (nodes.size() == 0) throw new NullPointerException(" can't call node() on a line with nothing in it");
+		return nodes.get(nodes.size() - 1);
+	}
+
+	/**
+	 * returns the current node, having set a map of properties on it. For example `line.node({pointSize:20, tL:5.2})`
+	 */
+	public Node node(Map m) {
+		if (nodes.size() == 0) throw new NullPointerException(" can't call node() on a line with nothing in it");
+		nodes.get(nodes.size() - 1).asMap_call(m, m);
 		return nodes.get(nodes.size() - 1);
 	}
 
@@ -124,11 +148,21 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	/**
 	 * adds a line `n` to the end of this line.
 	 */
-	public FLine add(FLine n) {
+	public FLine append(FLine n) {
 
 		for (Node nn : n.nodes) {
 			this.copyTo(nn);
 		}
+
+		return this;
+	}
+
+	/**
+	 * adds a List of lines `n` to the end of this line.
+	 */
+	public FLine append(List<FLine> n) {
+
+		n.stream().flatMap(x -> x.nodes.stream()).forEach(x -> this.copyTo(x));
 
 		return this;
 	}
@@ -313,7 +347,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	}
 
 	/**
-	 * draws a curve that starts by heading in the `theta1` direction for a distance of roughly `r1` then ends up heading to `destination` coming in at angle `theta2` from roughly `r2` away
+	 * draws a curve that starts by heading in the `theta1` angle for a distance of roughly `r1` then ends up heading to `destination` coming in at angle `theta2` from roughly `r2` away
 	 */
 	public FLine polarCubicTo(float r1, float theta1, float r2, float theta2, Vec2 destination) {
 
@@ -324,10 +358,10 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		Vec2 c1 = new Vec2(d).mul(r1 / 3);
 		Vec2 c2 = new Vec2(d).mul(-r2 / 3);
 
-		c1 = new Quat().setAngleAxis(theta1, new Vec3(0, 0, 1))
+		c1 = new Quat().setAngleAxis(Math.PI * theta1 / 180, new Vec3(0, 0, 1))
 			.transform(c1.toVec3())
 			.toVec2();
-		c2 = new Quat().setAngleAxis(theta2, new Vec3(0, 0, 1))
+		c2 = new Quat().setAngleAxis(Math.PI * theta2 / 180, new Vec3(0, 0, 1))
 			.transform(c2.toVec3())
 			.toVec2();
 
@@ -372,6 +406,9 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		return this;
 	}
 
+	/**
+	 * draws a circle at `x, y` with radius `r`.
+	 */
 	public FLine circle(double x, double y, double r) {
 		double k = 0.5522847498f * r;
 		this.moveTo(x, y - r);
@@ -381,6 +418,9 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		return this.cubicTo(x - r, y - k, x - k, y - r, x, y - r);
 	}
 
+	/**
+	 * draws a circle at `x, y, z` with radius `r` (*note* the funny order of parameters `x,y,r,z`).
+	 */
 	public FLine circle(double x, double y, double r, double z) {
 		double k = 0.5522847498f * r;
 		this.moveTo(x, y - r, z);
@@ -390,10 +430,65 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		return this.cubicTo(x - r, y - k, z, x - k, y - r, z, x, y - r, z);
 	}
 
+
+	/**
+	 * returns a list of `Vec3` (i.e. positions) by repeatedly moving along the line by 'distance' and recording those positions. Note that while the start of the line will be in this list the
+	 * end point will probably not (unless the length of the line just happens to be exactly divisible by `distance`)
+	 */
+	public List<Vec3> sampleByDistance(double distance) {
+		FLinesAndJavaShapes.Cursor c = cursor();
+		List<Vec3> r = new ArrayList<>();
+		float tol = 0.1f;
+		while (c.getD() <= c.lengthD()) {
+			r.add(c.position());
+			double was = c.getD();
+			c.setD(c.getD() + distance);
+			double now = c.getD();
+			if (now - was < distance - tol && Math.abs(now - c.lengthD()) < tol)
+				break;
+		}
+		return r;
+	}
+
+	/**
+	 * returns a new `FLine` by trimming this line at `distance`
+	 */
+	public FLine byTrimmingBefore(double distance) {
+		FLinesAndJavaShapes.Cursor c = cursor();
+		c.setD(distance);
+		Pair<FLine, FLine> m = c.split();
+		return m.first == null ? new FLine() : m.first;
+	}
+
+
+	/**
+	 * returns a new `FLine` by starting line `distance` into this line. This is the opposite of `.byTrimingBefore(distance)`
+	 */
+	public FLine byStartingAt(double distance) {
+		FLinesAndJavaShapes.Cursor c = cursor();
+		c.setD(distance);
+		Pair<FLine, FLine> m = c.split();
+		return m.second == null ? new FLine() : m.second;
+	}
+
+	/**
+	 * returns a list of `Vec3` (i.e. positions) by repeatedly moving along the line in `steps`; the beginning and end of the line will be in this list.
+	 */
+	public List<Vec3> sampleByNumber(int steps) {
+		FLinesAndJavaShapes.Cursor c = cursor();
+		List<Vec3> r = new ArrayList<>();
+		for (int i = 0; i < steps; i++) {
+			r.add(c.position());
+			c.setD(c.lengthD() * i / (steps - 1f));
+		}
+		return r;
+	}
+
+
 	/**
 	 * calls function 'fun' with a parameter that goes from 0 -> 1 (inclusive) in 'samples' steps. Then hands the results to `data('t*', ...)`
 	 */
-	public FLine sampleOver(Function<Double, Object> fun, int samples) {
+	public FLine fromSampling(Function<Double, Object> fun, int samples) {
 		List<Object> rr = new ArrayList<Object>();
 		for (int i = 0; i < samples; i++) {
 			double alpha = i / (samples - 1f);
@@ -485,8 +580,10 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	 * take 'many things' and turn them into a line based on the formatting string.
 	 * <p>
 	 * 'm' - moveTo, needs a Vec2 or a Vec3 'l' - lineTo, needs a Vec2 or a Vec3 'c' - cubicTo, needs 3 Vec2 or Vec3; 's' - smoothTo, needs 1 Vec2 or Vec3 '*' will loop the previous instruction;
-	 * '+' will loop the whole set of instructions 'd' will drop a Vec3; 'C' — is a cubic segment that consumes the next two instructions as well (e.g. you need to write 12C to do the same as 'c')
-	 * until you run out of Vec3 inputs; 't' — dispatches based on the tag of a TaggedVec3; 'b' pushes the previous 'm'oveTo onto the stack to be consumed again by futher instructions (e.g 'mlllbl' draws a closed quadrilateral)
+	 * '+' will loop the whole set of instructions 'd' will drop a Vec3; 'C' — is a cubic segment that consumes the next two instructions as well (e.g. you need to write 12C to do the same as
+	 * 'c')
+	 * until you run out of Vec3 inputs; 't' — dispatches based on the tag of a TaggedVec3; 'b' pushes the previous 'm'oveTo onto the stack to be consumed again by futher instructions (e.g
+	 * 'mlllbl' draws a closed quadrilateral)
 	 */
 	public FLine data(String format, Object... input) {
 		List<Vec3> f = flattenInput(input);
@@ -803,6 +900,9 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 
 	}
 
+	/**
+	 * transforms a line. Unlike `byTransforming` this works in place (i.e. `myLine.transform( x => x*2 )` changes `myLine` )
+	 */
 	public FLine transform(Function<Vec3, Vec3> by) {
 
 		// we are going to give this function (and Nashorn) a little help here
@@ -823,26 +923,37 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		return this;
 	}
 
+	/**
+	 * removes all the contents of this line
+	 */
 	public FLine clear() {
 		nodes.clear();
 		modify();
 		return this;
 	}
 
+	/**
+	 * returns the most recent node.
+	 */
 	public Node last() {
 		return nodes.size() == 0 ? null : nodes.get(nodes.size() - 1);
 	}
 
+	@HiddenInAutocomplete
 	public void clearCache() {
 		cache.clear();
 		cache_thickening.clear();
 	}
 
+	@HiddenInAutocomplete
 	public void clearCache(MeshBuilder m) {
 		cache.remove(m);
 		cache_thickening.remove(m);
 	}
 
+	/**
+	 * returns a copy of this line
+	 */
 	public FLine duplicate() {
 		FLine fLine = new FLine();
 		for (Node n : this.nodes) {
@@ -854,7 +965,9 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		return fLine;
 	}
 
-	public boolean renderToPoints(MeshBuilder m, Curry.Function3<MeshAcceptor, Node, MoveTo, Node> moveTo, Curry.Function3<MeshAcceptor, Node, LineTo, Node> lineTo, Curry.Function3<MeshAcceptor, Node, CubicTo, Node> cubicTo) {
+	@HiddenInAutocomplete
+	public boolean renderToPoints(MeshBuilder m, Curry.Function3<MeshAcceptor, Node, MoveTo, Node> moveTo, Curry.Function3<MeshAcceptor, Node, LineTo, Node> lineTo, Curry.Function3<MeshAcceptor,
+		Node, CubicTo, Node> cubicTo) {
 
 		BookmarkCache c = cache.computeIfAbsent(m, (k) -> new BookmarkCache(m));
 
@@ -881,11 +994,14 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		});
 	}
 
+	@HiddenInAutocomplete
 	public boolean renderToPoints(MeshBuilder m, int fixedSizeForCubic) {
 		return renderToPoints(m, this::renderMoveTo, this::renderLineTo, renderCubicTo(fixedSizeForCubic));
 	}
 
-	public boolean renderToLine(MeshBuilder m, Curry.Function3<MeshAcceptor, Node, MoveTo, Node> moveTo, Curry.Function3<MeshAcceptor, Node, LineTo, Node> lineTo, Curry.Function3<MeshAcceptor, Node, CubicTo, Node> cubicTo) {
+	@HiddenInAutocomplete
+	public boolean renderToLine(MeshBuilder m, Curry.Function3<MeshAcceptor, Node, MoveTo, Node> moveTo, Curry.Function3<MeshAcceptor, Node, LineTo, Node> lineTo, Curry.Function3<MeshAcceptor,
+		Node, CubicTo, Node> cubicTo) {
 
 		BookmarkCache c = cache.computeIfAbsent(m, (k) -> new BookmarkCache(m));
 
@@ -929,11 +1045,13 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		});
 	}
 
+	@HiddenInAutocomplete
 	public boolean renderToLine(MeshBuilder m, int fixedSizeForCubic) {
 		Log.log("drawing.trace", () -> "renderToLine");
 		return renderToLine(m, this::renderMoveTo, this::renderLineTo, renderCubicTo(fixedSizeForCubic));
 	}
 
+	@HiddenInAutocomplete
 	public boolean renderLineToMeshByStroking(MeshBuilder m, int fixedSizeForCubic, BasicStroke stroke) {
 		BookmarkCache c = cache_thickening.computeIfAbsent(m, (k) -> new BookmarkCache(m));
 
@@ -948,7 +1066,9 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 
 	}
 
-	public boolean renderToMesh(MeshBuilder m, Curry.Function3<MeshAcceptor, Node, MoveTo, Node> moveTo, Curry.Function3<MeshAcceptor, Node, LineTo, Node> lineTo, Curry.Function3<MeshAcceptor, Node, CubicTo, Node> cubicTo) {
+	@HiddenInAutocomplete
+	public boolean renderToMesh(MeshBuilder m, Curry.Function3<MeshAcceptor, Node, MoveTo, Node> moveTo, Curry.Function3<MeshAcceptor, Node, LineTo, Node> lineTo, Curry.Function3<MeshAcceptor,
+		Node, CubicTo, Node> cubicTo) {
 
 		BookmarkCache c = cache.computeIfAbsent(m, (k) -> new BookmarkCache(m));
 
@@ -1013,6 +1133,24 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		});
 	}
 
+	/**
+	 * returns a new line by insetting this shape. This is equivalent to stroking the shape with a line with a certain thickness and then removing that shape from this shape. Setting `amount`
+	 * to a negative number 'outset's the shape.
+	 */
+	public FLine byInsetting(float amount) {
+		if (amount > 0) {
+			FLine nn = FLinesAndJavaShapes.insetShape(this, amount);
+			nn.copyAttributesFrom(this);
+			return nn;
+		} else if (amount == 0) return duplicate();
+		else {
+			FLine nn = FLinesAndJavaShapes.javaShapeToFLine(FLinesAndJavaShapes.outsetShape(this, amount));
+			nn.copyAttributesFrom(this);
+			return nn;
+		}
+	}
+
+	@HiddenInAutocomplete
 	public void setAuxProperties(Map<Integer, String> propertiesToAuxChannels) {
 		auxProperties = new LinkedHashMap<>();
 		propertiesToAuxChannels.forEach((k, v) -> {
@@ -1021,12 +1159,14 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		});
 	}
 
+	@HiddenInAutocomplete
 	public void setAuxPropertiesFunctions(Map<Integer, Function<Node, Object>> propertiesToAuxChannels) {
 		auxProperties = new LinkedHashMap<>();
 		auxProperties.putAll(propertiesToAuxChannels);
 	}
 
 
+	@HiddenInAutocomplete
 	public FLine addAuxProperties(Map<Integer, String> propertiesToAuxChannels) {
 		if (auxProperties == null) auxProperties = new LinkedHashMap<>();
 		propertiesToAuxChannels.forEach((k, v) -> {
@@ -1036,6 +1176,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		return this;
 	}
 
+	@HiddenInAutocomplete
 	public FLine addAuxProperties(int i, String prop) {
 		if (auxProperties == null) auxProperties = new LinkedHashMap<>();
 		Dict.Prop pv = new Dict.Prop(prop);
@@ -1044,12 +1185,14 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	}
 
 
+	@HiddenInAutocomplete
 	public FLine addAuxPropertiesFunctions(int i, Function<Node, Object> f) {
 		if (auxProperties == null) auxProperties = new LinkedHashMap<>();
 		auxProperties.put(i, f);
 		return this;
 	}
 
+	@HiddenInAutocomplete
 	private void flattenAuxProperties() {
 		if (auxProperties == null || auxProperties.size() == 0) return;
 
@@ -1075,6 +1218,9 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 			node.flatAux = flatAux;
 			for (int i = 0; i < flatAux.length; i++) {
 				Object v = flatAuxNames[i] == null ? null : flatAuxNames[i].apply(node);
+				// rewriteToFloatArray doesn't handle integers (for good reason, they are shaders in OpenGL)
+				if (v instanceof Integer) v = ((Integer)v).doubleValue();
+				if (v instanceof Long) v = ((Long)v).doubleValue();
 				if (v != null) node.flatAuxData[i] = Uniform.rewriteToFloatArray(v);
 			}
 		}
@@ -1105,6 +1251,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 
 		for (int i = start; i < end + 1; i++) {
 			float alpha = (i - start) / ((float) end - start);
+			if (Float.isNaN(alpha)) alpha = 0;
 			float[] val = interpolate(alpha, a, b, dim);
 			target.get(i).flatAuxData[slot] = val;
 		}
@@ -1130,10 +1277,8 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		if (to.flatAuxData != null) for (int i = 0; i < to.flatAuxData.length; i++) {
 			int channel = to.flatAux[i];
 			float[] value = to.flatAuxData[i];
-			if (value != null && channel > 0)
-			{
-				if (channel==2)
-				{
+			if (value != null && channel > 0) {
+				if (channel == 2) {
 					debugme = true;
 				}
 				m.aux(channel, value);
@@ -1158,8 +1303,37 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		return to;
 	}
 
+	/**
+	 * returns a position on this line that's `alpha` along it: specifically when `alpha=0` then we're at the start of the line, when `alpha=0.5` then we are in the middle, when `alpha=1.0`
+	 * we're at the end.
+	 */
+	public Vec3 sampleAt(double alpha) {
+		FLinesAndJavaShapes.Cursor c = cursor();
+		c.setD(Math.max(0, Math.min(1, alpha)) * c.lengthD());
+		return c.position();
+	}
+
+	/**
+	 * returns the point on this line thats the closest to a particular point
+	 */
+	public Vec3 closestPointTo(Vec3 point) {
+		return cursorFromClosestPoint(point).position();
+	}
+
+	/**
+	 * returns a cursor that is at the position on this line that is as close to `point` as possible
+	 */
+	public field.graphics.FLinesAndJavaShapes.Cursor cursorFromClosestPoint(Vec3 point) {
+		double t = FLinesAndJavaShapes.closestT(this, point);
+		return cursor().setT(t);
+	}
+
 	/*
-	 * Everybody is taught in the textbooks that the way to draw a cubic spline segment is to recursively subdivide it until the sub-segments are flat enough that you can just draw them with straight lines. This is a great, efficient and beautiful idea. However, it suffers from a serious problem in the case where the geometry you are drawing is animated: the number of line segments that you emit is constantly changing. This completely destroys our caching strategy here. For after the first animated cubic spline segment that enters the meshbuilder all other segments will need to be completely remade and reuploaded to the GPU. It's better in most cases to burn through extra vertices to have a shot at a fixed geometry layout in most cases. If you want a recursive flattening renderCubicTo, add one here by all means, that's why you can pass in a different Function3 here.
+	 * Everybody is taught in the textbooks that the way to draw a cubic spline segment is to recursively subdivide it until the sub-segments are flat enough that you can just draw them with
+	 * straight lines. This is a great, efficient and beautiful idea. However, it suffers from a serious problem in the case where the geometry you are drawing is animated: the number of line
+	 * segments that you emit is constantly changing. This completely destroys our caching strategy here. For after the first animated cubic spline segment that enters the meshbuilder all other
+	 * segments will need to be completely remade and reuploaded to the GPU. It's better in most cases to burn through extra vertices to have a shot at a fixed geometry layout in most cases. If
+	 * you want a recursive flattening renderCubicTo, add one here by all means, that's why you can pass in a different Function3 here.
 	 */
 	@HiddenInAutocomplete
 	public Curry.Function3<MeshAcceptor, Node, CubicTo, Node> renderCubicTo(int fixedSize) {
@@ -1187,23 +1361,76 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 
 	}
 
+	/**
+	 * make a new line by transforming all of the positions of this line by a function.
+	 * <p>
+	 * For example `someLine.byTransforming( (p) => p + vec(10,0) )` will yield a line 10 units to the right of `someLine` (of course `someLine + vec(10,0)` does the same). You might need a
+	 * little more JavaScript syntax than usual here: `someLine.byTransforming( function(x) { ... return something ... } )` and `someLine.byTransforming( (x)=> { ... return something ... } ) `
+	 * are both valid.
+	 */
 	public FLine byTransforming(Function<Vec3, Vec3> spaceTransform) {
 
 		FLine f = new FLine();
 		f.attributes = attributes.duplicate();
 
 		for (Node n : nodes) {
-			if (n instanceof MoveTo) f.add(new MoveTo(spaceTransform.apply(n.to)));
-			else if (n instanceof LineTo) f.add(new LineTo(spaceTransform.apply(n.to)));
+			if (n instanceof MoveTo) f.add(new MoveTo(spaceTransform.apply(n.to.duplicate())));
+			else if (n instanceof LineTo) f.add(new LineTo(spaceTransform.apply(n.to.duplicate())));
 			else if (n instanceof CubicTo)
-				f.add(new CubicTo(spaceTransform.apply(((CubicTo) n).c1), spaceTransform.apply(((CubicTo) n).c2),
-					spaceTransform.apply(n.to)));
+				f.add(new CubicTo(spaceTransform.apply(((CubicTo) n).c1.duplicate()), spaceTransform.apply(((CubicTo) n).c2.duplicate()),
+					spaceTransform.apply(n.to.duplicate())));
 			f.nodes.get(f.nodes.size() - 1).attributes = n.attributes.duplicate();
 		}
 
 		if (auxProperties != null) f.setAuxPropertiesFunctions(new LinkedHashMap<>(auxProperties));
 		return f;
 	}
+
+	/**
+	 * make a new line by splitting every drawing `.lineTo` and `.cubicTo` in this line into two drawing instructions.
+	 */
+	public FLine bySubdividing() {
+
+		FLine f = new FLine();
+		f.attributes = attributes.duplicate(f);
+
+		for (Node n : nodes) {
+			if (n instanceof MoveTo) f.add(new MoveTo(n.to));
+			else if (n instanceof LineTo) {
+				Vec3 midpoint = Vec3.lerp(f.node().to, n.to, 0.5f, new Vec3());
+				f.lineTo(midpoint);
+				f.lineTo(n.to);
+			} else if (n instanceof CubicTo) {
+				Vec3 c12 = new Vec3();
+				Vec3 c21 = new Vec3();
+				Vec3 m = new Vec3();
+				Vec3 t = new Vec3();
+
+				Vec3 c11 = new Vec3(((CubicTo) n).c1);
+				Vec3 c22 = new Vec3(((CubicTo) n).c2);
+				splitCubicFrame(f.node().to, c11, c22, n.to, 0.5f, c12, m, c21, t);
+				f.cubicTo(c11, c12, m);
+				f.cubicTo(c21, c22, n.to);
+			}
+			f.nodes.get(f.nodes.size() - 1).attributes = n.attributes.duplicate();
+		}
+
+		if (auxProperties != null) f.setAuxPropertiesFunctions(new LinkedHashMap<>(auxProperties));
+		return f;
+	}
+
+	/**
+	 * returns a new version of this line by thickening it. This uses a different algorithm than `line.thicken = 4` that is usually (a lot) faster and less accurate. However, unlike `.thicken`
+	 * it can produce lines with variable thicknesses. Thickness is given by the property `t` on a line (e.g. `line.t = 3.0`) which sets the default thickness of the line. This can be
+	 * overridden by the properties `tL` and `tR` (for thickness 'left' and 'right' of the line gesture respectively). These defaults can, in turn, be overriden _per-node_ by writing things
+	 * like `line.node().tR=3.0`. Finally the standardThickness sets the overrall scale of the line (e.g. setting it to 0 will make the line, regardless of these properties zero width).
+	 */
+	public FLine byThickening(double standardThickness) {
+		FLine q = new FastThicken().apply(this, standardThickness);
+		q.attributes = this.attributes.duplicate(q);
+		return q;
+	}
+
 
 	/**
 	 * returns a new FLine by translating, rotating and scaling this line such that it's endpoints are 'start' and 'end'
@@ -1272,6 +1499,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 			knownNonProperties = computeKnownNonProperties();
 
 		if (knownNonProperties.contains(p)) return false;
+
 		return (Dict.Canonical.findCanon(p) != null);
 	}
 
@@ -1413,9 +1641,9 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	@Override
 	@HiddenInAutocomplete
 	public Object asMap_call(Object a, Object b) {
-		System.err.println(" call called :" + a + " " + b + " " + (b instanceof Map ? ((Map) b).keySet() : b.getClass()
-			.getSuperclass() + " " + Arrays.asList(b.getClass()
-			.getInterfaces())));
+//		System.err.println(" call called :" + a + " " + b + " " + (b instanceof Map ? ((Map) b).keySet() : b.getClass()
+//			.getSuperclass() + " " + Arrays.asList(b.getClass()
+//			.getInterfaces())));
 		boolean success = false;
 		try {
 			Map<?, ?> m = (Map<?, ?>) ScriptUtils.convert(b, Map.class);
@@ -1547,7 +1775,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	}
 
 	private void writeObject(ObjectOutputStream out) throws IOException {
-//		FLineSerializationHelper.writeObject(this, out);
+		new FLineSerializationHelper().writeObject(this, out);
 	}
 
 	@Override
@@ -1568,12 +1796,59 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 			Area a1 = new Area(s1);
 			Area a2 = new Area(s2);
 			a1.subtract(a2);
-			return FLinesAndJavaShapes.javaShapeToFLine(a1);
+			FLine ret = FLinesAndJavaShapes.javaShapeToFLine(a1);
+			ret.attributes = this.attributes.duplicate(ret);
+			return ret;
+		} else if (b instanceof ScriptObjectMirror && ((ScriptObjectMirror) b).isArray()) {
+			List b2 = ((ScriptObjectMirror) b).to(List.class);
+
+			if (b2 instanceof List && (((List) b2).size() > 0)) {
+
+				Object oo = ((List) b2).get(0);
+				if (oo instanceof Vec3) {
+					return new FLine().append((List<FLine>) ((List) b2).stream().map(x -> this.__sub__(x)).collect(Collectors.toList())).copyAttributesFrom(this);
+				} else if (oo instanceof Vec2) {
+					return new FLine().append((List<FLine>) ((List) b2).stream().map(x -> this.__sub__(x)).collect(Collectors.toList())).copyAttributesFrom(this);
+				} else if (oo instanceof OverloadedMath) {
+					List m = (List) ((List) b2).stream().map(x -> this.__add__(x)).collect(Collectors.toList());
+					if (m.size() > 0) {
+						if (m.get(0) instanceof FLine) {
+							return new FLine().append((List<FLine>) m);
+						}
+					}
+					return m;
+				}
+			}
+		} else if (b instanceof List && (((List) b).size() > 0)) {
+
+			Object oo = ((List) b).get(0);
+			if (oo instanceof Vec3) {
+				return new FLine().append((List<FLine>) ((List) b).stream().map(x -> this.__sub__(x)).collect(Collectors.toList())).copyAttributesFrom(this);
+			} else if (oo instanceof Vec2) {
+				return new FLine().append((List<FLine>) ((List) b).stream().map(x -> this.__sub__(x)).collect(Collectors.toList())).copyAttributesFrom(this);
+			} else if (oo instanceof OverloadedMath) {
+				List m = (List) ((List) b).stream().map(x -> this.__sub__(x)).collect(Collectors.toList());
+				if (m.size() > 0) {
+					if (m.get(0) instanceof FLine) {
+						return new FLine().append((List<FLine>) m);
+					}
+				}
+				return m;
+			}
+
+
 		} else if (b instanceof OverloadedMath) return ((OverloadedMath) b).__rsub__(this);
 		throw new ClassCastException(" can't subtract '" + b + "' from this FLine");
 	}
 
+	@HiddenInAutocomplete
+	private FLine copyAttributesFrom(FLine fLine) {
+		this.attributes = fLine.attributes.duplicate(this);
+		return this;
+	}
+
 	@Override
+	@HiddenInAutocomplete
 	public Object __rsub__(Object b) {
 		if (b instanceof Vec2) {
 			Vec3 finalB = ((Vec2) b).toVec3();
@@ -1591,7 +1866,9 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 			Area a1 = new Area(s1);
 			Area a2 = new Area(s2);
 			a1.subtract(a2);
-			return FLinesAndJavaShapes.javaShapeToFLine(a1);
+			FLine ret = FLinesAndJavaShapes.javaShapeToFLine(a1);
+			ret.attributes = this.attributes.duplicate(ret);
+			return ret;
 		}
 		throw new ClassCastException(" can't subtract '" + b + "' from this FLine");
 	}
@@ -1614,12 +1891,53 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 			Area a1 = new Area(s1);
 			Area a2 = new Area(s2);
 			a1.add(a2);
-			return FLinesAndJavaShapes.javaShapeToFLine(a1);
+			FLine ret = FLinesAndJavaShapes.javaShapeToFLine(a1);
+			ret.attributes = this.attributes.duplicate(ret);
+			return ret;
+		} else if (b instanceof ScriptObjectMirror && ((ScriptObjectMirror) b).isArray()) {
+			List b2 = ((ScriptObjectMirror) b).to(List.class);
+
+			if (b2 instanceof List && (((List) b2).size() > 0)) {
+
+				Object oo = ((List) b2).get(0);
+				if (oo instanceof Vec3) {
+					return new FLine().append((List<FLine>) ((List) b2).stream().map(x -> this.__add__(x)).collect(Collectors.toList())).copyAttributesFrom(this);
+				} else if (oo instanceof Vec2) {
+					return new FLine().append((List<FLine>) ((List) b2).stream().map(x -> this.__add__(x)).collect(Collectors.toList())).copyAttributesFrom(this);
+				} else if (oo instanceof OverloadedMath) {
+					List m = (List) ((List) b2).stream().map(x -> this.__add__(x)).collect(Collectors.toList());
+					if (m.size() > 0) {
+						if (m.get(0) instanceof FLine) {
+							return new FLine().append((List<FLine>) m);
+						}
+					}
+					return m;
+				}
+			}
+		} else if (b instanceof List && (((List) b).size() > 0)) {
+
+			Object oo = ((List) b).get(0);
+			if (oo instanceof Vec3) {
+				return new FLine().append((List<FLine>) ((List) b).stream().map(x -> this.__add__(x)).collect(Collectors.toList())).copyAttributesFrom(this);
+			} else if (oo instanceof Vec2) {
+				return new FLine().append((List<FLine>) ((List) b).stream().map(x -> this.__add__(x)).collect(Collectors.toList())).copyAttributesFrom(this);
+			} else if (oo instanceof OverloadedMath) {
+				List m = (List) ((List) b).stream().map(x -> this.__add__(x)).collect(Collectors.toList());
+				if (m.size() > 0) {
+					if (m.get(0) instanceof FLine) {
+						return new FLine().append((List<FLine>) m);
+					}
+				}
+				return m;
+			}
+
+
 		} else if (b instanceof OverloadedMath) return ((OverloadedMath) b).__radd__(this);
 		throw new ClassCastException(" can't add '" + b + "' to this FLine");
 	}
 
 	@Override
+	@HiddenInAutocomplete
 	public Object __radd__(Object b) {
 
 		if (b instanceof Vec2) {
@@ -1638,7 +1956,9 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 			Area a1 = new Area(s1);
 			Area a2 = new Area(s2);
 			a1.add(a2);
-			return FLinesAndJavaShapes.javaShapeToFLine(a1);
+			FLine ret = FLinesAndJavaShapes.javaShapeToFLine(a1);
+			ret.attributes = this.attributes.duplicate(ret);
+			return ret;
 		}
 		throw new ClassCastException(" can't add '" + b + "' to this FLine");
 	}
@@ -1656,6 +1976,26 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		} else if (b instanceof Quat) {
 			Quat finalB = (Quat) b;
 			return byTransforming(x -> finalB.transform(x, new Vec3()));
+		} else if (b instanceof ScriptObjectMirror && ((ScriptObjectMirror) b).isArray()) {
+			List b2 = ((ScriptObjectMirror) b).to(List.class);
+
+			if (b2 instanceof List && (((List) b2).size() > 0)) {
+
+				Object oo = ((List) b2).get(0);
+				if (oo instanceof Vec3) {
+					return new FLine().append((List<FLine>) ((List) b2).stream().map(x -> this.__mul__(x)).collect(Collectors.toList())).copyAttributesFrom(this);
+				} else if (oo instanceof Vec2) {
+					return new FLine().append((List<FLine>) ((List) b2).stream().map(x -> this.__mul__(x)).collect(Collectors.toList())).copyAttributesFrom(this);
+				} else if (oo instanceof OverloadedMath) {
+					List m = (List) ((List) b2).stream().map(x -> this.__mul__(x)).collect(Collectors.toList());
+					if (m.size() > 0) {
+						if (m.get(0) instanceof FLine) {
+							return new FLine().append((List<FLine>) m).copyAttributesFrom(this);
+						}
+					}
+					return m;
+				}
+			}
 		} else if (b instanceof FLine) {
 			Shape s1 = FLinesAndJavaShapes.flineToJavaShape(this);
 			Shape s2 = FLinesAndJavaShapes.flineToJavaShape((FLine) b);
@@ -1663,12 +2003,48 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 			Area a1 = new Area(s1);
 			Area a2 = new Area(s2);
 			a1.intersect(a2);
-			return FLinesAndJavaShapes.javaShapeToFLine(a1);
+			FLine ret = FLinesAndJavaShapes.javaShapeToFLine(a1);
+			ret.attributes = this.attributes.duplicate(ret);
+			return ret;
 		} else if (b instanceof OverloadedMath) return ((OverloadedMath) b).__rmul__(this);
 		throw new ClassCastException(" can't multiply '" + b + "' to this FLine");
 	}
 
 	@Override
+	public Object __xor__(Object b) {
+		if (b instanceof FLine) {
+			Shape s1 = FLinesAndJavaShapes.flineToJavaShape(this);
+			Shape s2 = FLinesAndJavaShapes.flineToJavaShape((FLine) b);
+
+			Area a1 = new Area(s1);
+			Area a2 = new Area(s2);
+			a1.exclusiveOr(a2);
+			FLine ret = FLinesAndJavaShapes.javaShapeToFLine(a1);
+			ret.attributes = this.attributes.duplicate(ret);
+			return ret;
+		} else if (b instanceof OverloadedMath) return ((OverloadedMath) b).__rxor__(this);
+		throw new ClassCastException(" can't xor '" + b + "' to this FLine");
+	}
+
+	@Override
+	@HiddenInAutocomplete
+	public Object __rxor__(Object b) {
+		if (b instanceof FLine) {
+			Shape s2 = FLinesAndJavaShapes.flineToJavaShape(this);
+			Shape s1 = FLinesAndJavaShapes.flineToJavaShape((FLine) b);
+
+			Area a1 = new Area(s1);
+			Area a2 = new Area(s2);
+			a1.exclusiveOr(a2);
+			FLine ret = FLinesAndJavaShapes.javaShapeToFLine(a1);
+			ret.attributes = this.attributes.duplicate(ret);
+			return ret;
+		}
+		throw new ClassCastException(" can't xor '" + b + "' to this FLine");
+	}
+
+	@Override
+	@HiddenInAutocomplete
 	public Object __rmul__(Object b) {
 		if (b instanceof Number) {
 			return byTransforming(x -> new Vec3(x).scale(((Number) b).doubleValue()));
@@ -1688,7 +2064,9 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 			Area a1 = new Area(s1);
 			Area a2 = new Area(s2);
 			a1.intersect(a2);
-			return FLinesAndJavaShapes.javaShapeToFLine(a1);
+			FLine ret = FLinesAndJavaShapes.javaShapeToFLine(a1);
+			ret.attributes = this.attributes.duplicate(ret);
+			return ret;
 		}
 		throw new ClassCastException(" can't multiply '" + b + "' to this FLine");
 	}
@@ -1699,8 +2077,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		cache = new WeakHashMap<>();
 		cache_thickening = new WeakHashMap<>();
 
-//		FLineSerializationHelper.readObject(this, in);
-
+		new FLineSerializationHelper().readObject(this, in);
 	}
 
 	public class Node implements fieldlinker.AsMap, HandlesCompletion {
