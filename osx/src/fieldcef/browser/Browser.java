@@ -95,6 +95,7 @@ public class Browser extends Box implements IO.Loaded {
 	Cached<Box, Object, Void> geometry = new Cached<>((now, nothing) -> {
 
 		Rect r = now.properties.get(Box.frame);
+
 		float op = now.properties.getFloat(StandardFLineDrawing.opacity, 1);
 
 		op = (float) Math.sqrt(op);
@@ -109,12 +110,15 @@ public class Browser extends Box implements IO.Loaded {
 
 		int ns = 30;
 
+		float sx = (float) drawing.getScale().x;
+		float sy = (float) drawing.getScale().y;
+
 		for (int x = 0; x < ns; x++) {
 			for (int y = 0; y < ns; y++) {
 				float ax = (0.f + x) / (float) (ns - 1);
 				float ay = (0.f + y) / (float) (ns - 1);
 
-				builder.aux(5, ax * r.w / w, ay * (r.h + 0.5f) / h, op);
+				builder.aux(5, ax * sx * r.w / w, ay * sy * (r.h + 0.5f) / h, op);
 				builder.v(r.x + ax * r.w, r.y + ay * r.h, 0);
 			}
 		}
@@ -348,7 +352,7 @@ public class Browser extends Box implements IO.Loaded {
 
 			if (!intersects(r.inset(10), e)) return null;
 
-			float gutterWidth = 50;
+			float gutterWidth = 0;
 
 			if (properties.isTrue(Box.hidden, false)) return null;
 
@@ -436,7 +440,7 @@ public class Browser extends Box implements IO.Loaded {
 				((int) ((int) (point.y - r.y) * rsf)), ((int) ((int) (point.x - r.x) * rsf * 4)),
 				((int) ((int) (point.y - r.y) * rsf)), 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, 1, (int) dy, dy));
 			float dx = e.after.dwheel * 8;
-			browser.sendMouseWheelEvent(new MouseWheelEvent(component, MouseWheelEvent.MOUSE_WHEEL, KeyEvent.SHIFT_DOWN_MASK, 0, ((int) ((int) (point.x - r.x) * rsf)),
+			browser.sendMouseWheelEvent(new MouseWheelEvent(component, MouseWheelEvent.MOUSE_WHEEL, 0, KeyEvent.SHIFT_DOWN_MASK, ((int) ((int) (point.x - r.x) * rsf)),
 				((int) ((int) (point.y - r.y) * rsf)), ((int) ((int) (point.x - r.x) * rsf)),
 				((int) ((int) (point.y - r.y) * rsf)), 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, 1, (int) dx, dx));
 		});
@@ -571,7 +575,7 @@ public class Browser extends Box implements IO.Loaded {
 				ke = new KeyEvent(component, KeyEvent.KEY_RELEASED, 0, mod, found, KeyEvent.CHAR_UNDEFINED);
 				browser.sendKeyEvent(ke);
 			}
-			System.out.print("k");
+//			System.out.print("k");
 			Drawing.dirty(this);
 		});
 
@@ -624,9 +628,9 @@ public class Browser extends Box implements IO.Loaded {
 	 * called from some random thread, buffer only good for duration of call. ?
 	 */
 	protected void paint(boolean popup, Rectangle[] dirty, ByteBuffer buffer, int w, int h) {
-		System.out.println(" started copy to buffer 1 " + (System.currentTimeMillis() - charTypedAt) + "ms ");
+//		System.out.println(" started copy to buffer 1 " + (System.currentTimeMillis() - charTypedAt) + "ms ");
 
-		System.out.println(" paint :" + buffer + " " + w + " " + h);
+//		System.out.println(" paint :" + buffer + " " + w + " " + h);
 
 		sourceView.clear();
 		buffer.clear();
@@ -692,7 +696,7 @@ public class Browser extends Box implements IO.Loaded {
 		this.dirty.set(true);
 
 
-		System.out.println(" finished copy to buffer 1 " + (System.currentTimeMillis() - charTypedAt) + "ms ");
+//		System.out.println(" finished copy to buffer 1 " + (System.currentTimeMillis() - charTypedAt) + "ms ");
 	}
 
 	protected void message(long id, String message, Consumer<String> reply) {
@@ -766,7 +770,7 @@ public class Browser extends Box implements IO.Loaded {
 //			else
 				texture.upload(source, false, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (1 + damage.h + damage.y));
 
-			System.out.print("<P1>");
+//			System.out.print("<P1>");
 			Drawing.dirty(this);
 			again = 1;
 			hasRepainted = true;
@@ -778,7 +782,7 @@ public class Browser extends Box implements IO.Loaded {
 //			else
 				texture.upload(source, false, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (1 + damage.h + damage.y));
 
-			System.out.print("<p2>");
+//			System.out.print("<p2>");
 			Drawing.dirty(this);
 			RunLoop.main.shouldSleep.add(this);
 			again--;
@@ -896,7 +900,7 @@ public class Browser extends Box implements IO.Loaded {
 
 	public void setFocus(boolean f) {
 		if (f != getFocus()) {
-			System.out.print("<");
+//			System.out.print("<");
 			Drawing.dirty(this);
 		}
 
