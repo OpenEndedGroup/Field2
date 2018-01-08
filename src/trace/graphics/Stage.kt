@@ -24,6 +24,7 @@ import java.util.function.Supplier
  */
 class Stage(val w: Int, val h: Int) {
     val fbo: FBO
+
     @JvmField
     @Documentation("The background color of the stage")
     var background = Vec4(0.5, 0.5, 0.5, 1.0)
@@ -52,6 +53,7 @@ class Stage(val w: Int, val h: Int) {
 
     val groups = mutableMapOf<String, ShaderGroup>()
 
+
     inner class ShaderGroup(val name: String, val shader: Shader) {
         val lines = BaseMesh.lineList(0, 0)
         val lineBuilder = MeshBuilder(lines)
@@ -62,13 +64,21 @@ class Stage(val w: Int, val h: Int) {
 
         var doTexture = false
 
+        @JvmField
+        @Documentation("Camera translation")
+        var translation = Vec2();
+
+        @JvmField
+        @Documentation("Camera 'scale'. Numbers >1 zoom in, Numbers <1 zoom out")
+        var scale = Vec2();
+
         init {
             shader.asMap_set("_line_", lines)
             shader.asMap_set("_planes_", planes)
 
             shader.asMap_set("translation", Supplier<Vec2> { Vec2(0.0, 0.0) })
             shader.asMap_set("bounds", Supplier<Vec2> { Vec2(100.0, 100.0) })
-            shader.asMap_set("scale", Supplier<Vec2> { Vec2(1.0, 1.0) })
+            shader.asMap_set("scale", Supplier<Vec2> { scale })
             shader.asMap_set("opacity", Supplier<Float> { 1.0f })
 
             fbo.scene.attach(name, shader)
@@ -212,6 +222,7 @@ class Stage(val w: Int, val h: Int) {
 
             showScene("default", window!!.scene, { false })
         })
+
 
     }
 
