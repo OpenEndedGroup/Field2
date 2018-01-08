@@ -1,5 +1,7 @@
 // standard library for Field
 
+_.withOverloading=true // controversial
+
 var Vec3 = Java.type('field.linalg.Vec3');
 var Vec4 = Java.type('field.linalg.Vec4')
 var Vec2 = Java.type('field.linalg.Vec2')
@@ -8,6 +10,7 @@ var FLine = Java.type('field.graphics.FLine')
 var System = Java.type('java.lang.System');
 var Asta = Java.type('fielded.live.Asta');
 var Transform2D = Java.type("field.linalg.Transform2D")
+var Anim = Java.type("field.utility.Drivers")
 
 var __h__ = new Asta();
 
@@ -37,7 +40,7 @@ var rotate = function (angle, pivotx, pivoty) {
     throw "can't make a rotation given this (" + arguments.length + ") number of arguments"
 }
 
-rotate.__doc__ = "shorthand for creating a transformation that rotates. `rotate(10)` rotates things 10 degrees clockwise. Other numbers of arguments are also accepted: `rotate(10, vec(50, -40))` will rotate 10 degrees around the point `50, 40`"
+rotate.__doc__ = "shorthand for creating a transformation that rotates. `rotate(10)` rotates things 10 degrees clockwise. Other numbers of arguments are also accepted: `rotate(10, vec(50, -40))` will rotate 10 degrees around the point `50, -40`"
 
 var scale = function (scale, pivot, pivoty, x) {
     if (arguments.length == 0) return Transform2D.scale(1)
@@ -48,7 +51,7 @@ var scale = function (scale, pivot, pivoty, x) {
     throw "can't make a scale given this (" + arguments.length + ") number of arguments"
 }
 
-scale.__doc__ = "shorthand for creating a transformation that scale. `scale(10)` scales things (up) by a factor of 10 . Other numbers of arguments are also accepted: `scale(10, vec(50, -40))` will scale 10x degrees around the point `50, 40`. `scale(10,20)` creates a non-uniform scale that scales 10x in the X direction and 20x in the Y direction."
+scale.__doc__ = "shorthand for creating a transformation that scale. `scale(10)` scales things (up) by a factor of 10 . Other numbers of arguments are also accepted: `scale(10, vec(50, -40))` will scale 10x degrees around the point `50, -40`. `scale(10,20)` creates a non-uniform scale that scales 10x in the X direction and 20x in the Y direction."
 
 var translate = function (x, y) {
     if (arguments.length == 0) return Transform2D.translate(0, 0)
@@ -57,5 +60,4 @@ var translate = function (x, y) {
     throw "can't make a translation given this (" + arguments.length + ") number of arguments"
 }
 
-rotate.__doc__ = "shorthand for creating a transformation that translates. `rotate(10)` rotates things 10 degrees clockwise. Other numbers of arguments are also accepted: `rotate(10, vec(50, -40))` will rotate 10 degrees around the point `50, 40`"
-
+rotate.__doc__ = "shorthand for creating a transformation that translates. `rotate(10)` rotates things 10 degrees clockwise. Other numbers of arguments are also accepted: `rotate(10, vec(50, -40))` or even `rotate(10, 50, -40)` will rotate 10 degrees around the point `50, -40`"

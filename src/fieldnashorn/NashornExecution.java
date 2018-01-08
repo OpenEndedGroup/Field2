@@ -297,12 +297,6 @@ public class NashornExecution implements Execution.ExecutionSupport {
 		} else {
 			Object ret = engine.eval(textFragment, context);
 
-//			System.out.println(" executed "+box+" in executor "+this+", bindings are : "+System.identityHashCode(context.getBindings(ScriptContext.ENGINE_SCOPE))+"/"+System.identityHashCode(context.getBindings(ScriptContext.GLOBAL_SCOPE)));
-//			System.out.println(" -- engine --");
-//			context.getBindings(ScriptContext.ENGINE_SCOPE).entrySet().forEach(x -> System.out.println(x.getKey()+" = "+x.getValue()));
-//			System.out.println(" -- global --");
-//			context.getBindings(ScriptContext.GLOBAL_SCOPE).entrySet().forEach(x -> System.out.println(x.getKey()+" = "+x.getValue()));
-
 			return ret;
 		}
 	}
@@ -376,7 +370,8 @@ public class NashornExecution implements Execution.ExecutionSupport {
 		Object _r = context.getBindings(ScriptContext.ENGINE_SCOPE)
 			.get("_r");
 
-		// if _r is null, but that executeAndReturn has launched fibres then we need a dummy _r that calls _.fkill() for 'end' and calls _.end at the end of the fiber to synchronize the two execution models we have here
+		// if _r is null, but that executeAndReturn has launched fibres then we need a dummy _r that calls _.fkill() for 'end' and calls _.end at the end of the fiber to synchronize the two
+		// execution models we have here
 
 		List<ThreadSync2.Fibre> fibres = ThreadSync2Feedback.fibresFor(box);
 		if (_r == null && ThreadSync2.getEnabled() && fibres.size() > 0) {
@@ -426,6 +421,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 		Map<String, Supplier<Boolean>> m = box.properties.get(Boxes.insideRunLoop);
 		if (m == null) return;
 
+
 		Pattern p = Pattern.compile(regex);
 
 		for (String s : new ArrayList<>(m.keySet())) {
@@ -437,6 +433,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 				}
 			}
 		}
+
 		Drawing.dirty(box);
 	}
 
@@ -449,6 +446,11 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	@Override
 	public void completion(String allText, int line, int ch, Consumer<List<Completion>> results, boolean explicitlyRequested) {
 		List<Completion> r1 = ternSupport.completion(engine, box.properties.get(IO.id), allText, line, ch, explicitlyRequested);
+
+		System.out.println(" completions are :" + r1.size());
+		r1.forEach(x -> {
+			System.out.println("   " + x);
+		});
 
 		if (r1 != null) {
 			results.accept(r1);
