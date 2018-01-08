@@ -91,7 +91,9 @@ p {
     padding-left: 58px;
     padding-right: 58px;
     font-size: 15px;
-    line-height: 150%;
+    line-height: 120%;
+    font-size: 110%;
+    margin-top: 40px;
 }
 
 
@@ -101,6 +103,7 @@ p {
     color:#eee;
     height: auto;
     font-size: 12px;
+    pointer-events: none;
 }
 
 .CodeMirror-scroll

@@ -1134,6 +1134,29 @@ code {
     z-index: 0;
 }
 
+.CodeMirror-foldmarker {
+    color: rgba(255,255,255,1);
+    background: rgba(256,108,55,0.3);
+    font-family: "fira code";
+    padding: 2px;
+    margin-top: -2px;
+    visibility: hidden;
+    font-size: 0px;
+}
+span.CodeMirror-foldmarker::before {
+    color: rgba(255,255,255,1);
+    content: "...";
+    display: inline;
+    visibility: visible;
+    background: rgba(256,108,55,0.5);
+    font-family: "fira code";
+    padding: 2px;
+    margin-top: -2px;
+    text-shadow: none;
+    font-size: 12px;
+}
+
+
 .cm-s-default span.cm-keyword {
     color: #f85;
     font-style: italic;

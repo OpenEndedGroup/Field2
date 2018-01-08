@@ -22,3 +22,57 @@
     background: rgba(255, 0, 0, 0.5);
 }
 
+
+
+.navdown
+{
+    background: #405560 !important;
+    border: 1px solid #405560 !important;
+    opacity: 1 !important;
+}
+
+.navtray
+{
+    position: absolute;
+    z-index: 10;
+    right: 10;
+    top: 26px;
+    text-align: right;
+    direction: rtl;
+    border-bottom-left-radius: 5px;
+    border-top-right-radius: 5px;
+    /*border: 1px solid rgba(60,60,60,1);*/
+    padding: 5px;
+    /*background: rgba(60,70,80,1);*/
+}
+
+.nav
+{
+    /*display: none;*/
+    /*position: absolute;*/
+    /*top: 0px;*/
+    /*left: 0px;*/
+    /*right: 0px;*/
+    /*bottom: 0px;*/
+}
+
+.navbutton
+{
+    opacity: 0.5;
+    display: inline-block;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    margin-left:2px;
+    margin-right:2px;
+    background: rgba(0,0,0,0.6);
+    border-radius: 5px;
+    border: 1px solid rgba(255,255,255,0);
+}
+
+.navbutton:hover
+{
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(25,150,255,0.2);
+}

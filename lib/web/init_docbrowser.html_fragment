@@ -61,6 +61,14 @@
 
 </head>
 
+<body>
 
+<div class="navtrayparent" style="position:absolute;width:100%;z-index:100">
+        <div class="navtray">
+            <div class="navbutton" onclick="iframe.contentWindow.history.back()">&larr;</div>
+            <div class="navbutton" onclick="iframe.contentWindow.history.forward()">&rarr;</div>
+            <div class="navbutton" onclick="iframe.contentWindow.location.href='http://localhost:8080/doc/HOME'">&#x2302;</div>
+        </div>
+</div>
 
 
