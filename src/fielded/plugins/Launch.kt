@@ -1,7 +1,10 @@
 package fielded.plugins
 
 import fieldbox.FieldBox
+import fieldbox.boxes.Box
+import fieldbox.boxes.Drawing
 import fieldbox.io.IO.pad
+import fielded.Commands
 import org.lwjgl.util.tinyfd.TinyFileDialogs
 import java.io.File
 import java.util.*
@@ -17,8 +20,26 @@ import java.io.IOException
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipEntry
 import java.io.FileInputStream
+import java.util.function.Supplier
 
-class Launch {
+class Launch(val root: Box) : Box() {
+
+    init {
+        properties.put(Commands.commands, Supplier<Map<field.utility.Pair<String, String>, Runnable>> {
+
+            val m = LinkedHashMap<field.utility.Pair<String, String>, Runnable>()
+
+            m.put(field.utility.Pair("Open", "Open a `.field2` file in a new Field"), Runnable {
+                if (openField2File())
+                {
+                    Drawing.notify("Opening...", root, 200);
+                }
+            })
+
+            m
+        })
+    }
+
 
     fun openField2File(): Boolean {
         return stackPush().use {
@@ -56,7 +77,7 @@ class Launch {
         val workspace = FieldBox.workspace
         val targetName = if (File(workspace, name).exists()) {
             var index = 0
-            while (File(workspace, stripSuffix(name).first + "_" + pad(index++)+stripSuffix(name).second).exists());
+            while (File(workspace, stripSuffix(name).first + "_" + pad(index++) + stripSuffix(name).second).exists());
 
             name + "_" + pad(index)
         } else name
@@ -68,7 +89,7 @@ class Launch {
             Files.copy(it, target, StandardCopyOption.REPLACE_EXISTING)
         })
 
-        UnzipUtility().unzip(target.toFile().absolutePath, target.toFile().absolutePath+".dir")
+        UnzipUtility().unzip(target.toFile().absolutePath, target.toFile().absolutePath + ".dir")
 
         val found = File(target.toFile().absolutePath + ".dir").listFiles { n ->
             println("${n} = ${n.endsWith(".field2")}")
@@ -79,9 +100,9 @@ class Launch {
         return true
     }
 
-    private fun stripSuffix(name: String): Pair<String,String> {
+    private fun stripSuffix(name: String): Pair<String, String> {
         val at = name.lastIndexOf(".")
-        if (at==-1) return name to ""
+        if (at == -1) return name to ""
         return name.substring(0, at) to name.substring(at, name.length)
     }
 
@@ -132,7 +153,7 @@ class Launch {
             var read = 0
             while (true) {
                 read = zipIn.read(bytesIn)
-                if (read<0) break;
+                if (read < 0) break;
                 bos.write(bytesIn, 0, read)
             }
             bos.close()
