@@ -1051,12 +1051,14 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 		out.writeDouble(x);
 		out.writeDouble(y);
 		out.writeDouble(z);
+		out.writeDouble(w);
 	}
 
 	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
 		x = in.readDouble();
 		y = in.readDouble();
 		z = in.readDouble();
+		w = in.readDouble();
 	}
 
 	public int hashCode() {
@@ -1520,6 +1522,17 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 
 	}
 
+	@Override
+	public Object __xor__(Object b) {
+		throw new ClassCastException(" can't multiply '" + b + "' by a Vec3 (" + this + ")");
+	}
+
+	@Override
+	public Object __rxor__(Object b) {
+		throw new ClassCastException(" can't multiply '" + b + "' by a Vec3 (" + this + ")");
+	}
+
+
 	private Vec4 convertToVec4(Object b) {
 		if (b instanceof Vec4) return (Vec4) b;
 		if (b instanceof Vec3) return ((Vec3) b).toVec4();
@@ -1554,7 +1567,7 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 	 * sets the `alpha` compenent of this Vec4 (i.e. `w`)
 	 */
 	public void setA(double a) {
-		this.x = a;
+		this.w = a;
 	}
 
 	/**

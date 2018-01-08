@@ -1829,6 +1829,16 @@ public class Vec3 implements Externalizable, Supplier<Vec3>, Mutable, Serializab
 
 	}
 
+	@Override
+	public Object __xor__(Object b) {
+		throw new ClassCastException(" can't multiply '" + b + "' by a Vec3 (" + this + ")");
+	}
+
+	@Override
+	public Object __rxor__(Object b) {
+		throw new ClassCastException(" can't multiply '" + b + "' by a Vec3 (" + this + ")");
+	}
+
 	private Vec3 convertToVec3(Object b) {
 		if (b instanceof Vec3) return (Vec3) b;
 		if (b instanceof Vec2) return ((Vec2) b).toVec3();
@@ -1837,4 +1847,6 @@ public class Vec3 implements Externalizable, Supplier<Vec3>, Mutable, Serializab
 		// Vec4 — ??
 		return null;
 	}
+
+
 }
