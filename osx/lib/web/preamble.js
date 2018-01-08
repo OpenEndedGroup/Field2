@@ -55,15 +55,19 @@
      }
  };
 
- function fuzzy(pat) {
-		 m = pat.split(" ");
-		 var s = "";
-		 for (var i = 0; i < m.length; i++) {
-				 s += "(" + m[i] + ")(.*)"
-		 }
-		 pattern = new RegExp(s, "i");
-		 return pattern
- }
+function fuzzy(pat) {
+    m = pat.split(" ");
+    var s = "";
+    for (var i = 0; i < m.length; i++) {
+        s += "(" + m[i] + ")([^\<\>]*)"
+    }
+    pattern = new RegExp(s, "i");
+    return pattern;
+}
+stripTags = function(n) {
+    a = new RegExp("<[^>]*>","ig")
+    return n.replace(a)
+}
 
  function replacer() {
 		 prefix = arguments[arguments.length - 1].substring(0, arguments[arguments.length - 1]);
@@ -100,7 +104,7 @@
 								 var fuzzyPattern = fuzzy(e);
 
 								 for (var i = 0; i < completions.length; i++) {
-										 if (completions[i].name.search(fuzzyPattern) != -1) {
+										 if (stripTags(completions[i].name).search(fuzzyPattern) != -1) {
 												 matched = completions[i].name.replace(fuzzyPattern, replacer);
 												 m.push({
 														 text: matched + " <span class=doc>" + completions[i].info + "</span>",
@@ -111,7 +115,7 @@
 														 })
 												 })
 										 }
-										 else if (completions[i].info.search(fuzzyPattern)!=-1)
+										 else if (stripTags(completions[i].info).search(fuzzyPattern)!=-1)
 										 {
 												 matched = completions[i].name;
 												 m.push({
@@ -159,7 +163,7 @@
 				 var fuzzyPattern = fuzzy(e);
 
 				 for (var i = 0; i < completions.length; i++) {
-						 if (completions[i].name.search(fuzzyPattern) != -1) {
+						 if (stripTags(completions[i].name).search(fuzzyPattern) != -1) {
 								 matched = completions[i].name.replace(fuzzyPattern, replacer);
 								 m.push({
 										 text: matched + " <span class=doc>" + completions[i].info + "</span>",
