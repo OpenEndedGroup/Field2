@@ -1,5 +1,6 @@
 package fieldbox.boxes;
 
+import field.app.ThreadSync2;
 import field.utility.*;
 import fieldbox.execution.Errors;
 import fieldbox.execution.Execution;
@@ -358,7 +359,7 @@ public class Callbacks {
 
 				return firstRet[0];
 
-			} finally {
+			} catch (ThreadSync2.KilledException e){} finally {
 
 				if (m != null) for (Map.Entry<?, ?> e : m.entrySet()) {
 					if (undoMap.containsKey("" + e.getKey()))
