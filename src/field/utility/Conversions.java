@@ -2,7 +2,6 @@ package field.utility;
 
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;
-import fieldbox.execution.Errors;
 import fieldbox.execution.InverseDebugMapping;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import jdk.nashorn.api.scripting.ScriptUtils;
@@ -12,6 +11,8 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+
+import static fieldbox.execution.InverseDebugMapping.*;
 
 //import jdk.nashorn.internal.runtime.ScriptFunction;
 //import jdk.nashorn.internal.runtime.ScriptObject;
@@ -340,7 +341,7 @@ public class Conversions {
         });
 
         if (ei[0] != null) {
-            InverseDebugMapping.provideExtraInformation(o, ei[0]);
+            provideExtraInformation(o, ei[0]);
         }
 
         // set error consumer on conversion
@@ -372,6 +373,7 @@ public class Conversions {
 
         // promote non-arrays to arrays
         if (List.class.isAssignableFrom(fit.get(0))) {
+
             if (!(value instanceof List)) {
                 return Collections.singletonList(_convert(value, fit.subList(1, fit.size()), extraInfo));
             } else {
@@ -414,12 +416,12 @@ public class Conversions {
                                           (InvocationHandler) value);
         }
 
-        if (value instanceof ScriptObjectMirror && ((ScriptObjectMirror)value).isArray() && Supplier.class.isAssignableFrom(fit.get(0)) && fit.size() > 1) {
+        if (value instanceof ScriptObjectMirror && ((ScriptObjectMirror) value).isArray()  && fit.size() > 1 && Supplier.class.isAssignableFrom(
+                fit.get(0))) {
 
-            Object[] a = new Object[((ScriptObjectMirror)value).size()];
-            for(int i=0;i<((ScriptObjectMirror)value).size();i++)
-            {
-                a[i] = ((ScriptObjectMirror)value).getSlot(i);
+            Object[] a = new Object[((ScriptObjectMirror) value).size()];
+            for (int i = 0; i < ((ScriptObjectMirror) value).size(); i++) {
+                a[i] = ((ScriptObjectMirror) value).getSlot(i);
             }
 
             Object newValue = _convert(a, fit.subList(1, fit.size()), extraInfo);
@@ -489,12 +491,11 @@ public class Conversions {
 			}*/
         }
 
-        if (value instanceof Object[] && !fit.get(0).isInterface())
-        {
+        if (value instanceof Object[] && !fit.get(0).isInterface()) {
             try {
                 Constructor c = fit.get(0).getDeclaredConstructor(new Class[]{Object[].class});
                 c.setAccessible(true);
-                if(c.isVarArgs())
+                if (c.isVarArgs())
                     return c.newInstance(value);
             } catch (NoSuchMethodException e) {
                 e.printStackTrace();
@@ -506,7 +507,6 @@ public class Conversions {
                 e.printStackTrace();
             }
         }
-
 
 
         return value;
