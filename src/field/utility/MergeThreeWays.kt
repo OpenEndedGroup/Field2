@@ -558,7 +558,7 @@ class MergeThreeWays {
         var text: StringBuilder
         for (diff in diffs) {
             text = StringBuilder()
-            for (y in 0..diff.text!!.length - 1) {
+            for (y in 0..diff.text.length - 1) {
                 text.append(lineArray[diff.text!![y].toInt()])
             }
             diff.text = text.toString()
@@ -589,7 +589,7 @@ class MergeThreeWays {
      * @return The number of characters common to the end of each string.
      */
     fun diff_commonSuffix(text1: String?, text2: String): Int {
-        // Performance analysis: http://neil.fraser.name/news/2007/10/09/
+        // Performance analysis: http://neil.fraser.name/news/2007/10/09/ 
         val text1_length = text1!!.length
         val text2_length = text2.length
         val n = Math.min(text1_length, text2_length)
