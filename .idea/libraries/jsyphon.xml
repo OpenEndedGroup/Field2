@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="jsyphon">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/osx/lib/jsyphon.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
