@@ -64,7 +64,7 @@ class Asta {
     companion object {
 
         @JvmStatic
-        var debug = true
+        var debug = false
 
         @JvmStatic
         fun __MINUS__(a: Any?, b: Any?): Any? {
@@ -456,9 +456,9 @@ class Asta {
                     currentMapping = mutableMapOf()
                 }
 
-                if (debug) {
-                    println("final transform -> $v")
-                }
+//                if (debug) {
+//                    println("final transform -> $v")
+//                }
 
                 return field.utility.Pair(v, Function { x: Int -> x })
             }
