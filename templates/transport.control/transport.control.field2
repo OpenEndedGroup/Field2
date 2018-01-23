@@ -1,0 +1,157 @@
+#field/document{
+  :externalList [
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/transport.control/play.box.js"
+      }
+      :dataFile "{{templates}}/transport.control/play.box"
+      :id "_2980a12e_ed16_4885_87dd_d7f4e316876c"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 59.802207946777344
+          :y 313.80548095703125
+          :w 100.0
+          :h 50.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/transport.control/stop.box.js"
+      }
+      :dataFile "{{templates}}/transport.control/stop.box"
+      :id "_d075d872_a150_49ab_a51c_339e42cb6d1e"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 59.802207946777344
+          :y 363.80548095703125
+          :w 100.0
+          :h 50.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/transport.control/replay.box.js"
+      }
+      :dataFile "{{templates}}/transport.control/replay.box"
+      :id "_287c162d_08aa_42fc_a157_a4ac6eb18600"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 59.802330017089844
+          :y 413.80548095703125
+          :w 99.7421875
+          :h 50.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/transport.control/reset.box.js"
+      }
+      :dataFile "{{templates}}/transport.control/reset.box"
+      :id "_45615133_eb35_43d3_b3c2_34f03d69f32b"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 59.802207946777344
+          :y 463.80548095703125
+          :w 100.0
+          :h 49.44921875
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/transport.control/shortcuts.box.js"
+      }
+      :dataFile "{{templates}}/transport.control/shortcuts.box"
+      :id "_0824600c_c3af_4645_bbe4_90682cf6c5c2"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 84.19140625
+          :y 513.254638671875
+          :w 76.47265625
+          :h 43.80078125
+        }
+      }
+    }
+  ]
+  :knownFiles {
+    "txt" #field/filespec{
+      :name "txt"
+    }
+    "fragment" #field/filespec{
+      :name "fragment"
+    }
+    "code" #field/filespec{
+      :name "code"
+    }
+    "vertex" #field/filespec{
+      :name "vertex"
+    }
+    "geometry" #field/filespec{
+      :name "geometry"
+    }
+    "html" #field/filespec{
+      :name "html"
+    }
+    "edn" #field/filespec{
+      :name "edn"
+    }
+  }
+  :knownProperties #{
+    "__id__"
+    "comment"
+    "classpath"
+    "perDocument"
+    "name"
+    "frame"
+    "lockHeight"
+    "lockWidth"
+    "tag"
+    "windowSpace"
+    "windowScale"
+    "isPaired"
+    "auto"
+    "defaultEditorProperty"
+    "_defaultEditorProperty_cookie"
+    "_code_cookie"
+    "head"
+    "tail"
+    "_theVariant"
+    "includes"
+    "excludes"
+    "__datafilename__"
+    "__filename__code"
+  }
+}
