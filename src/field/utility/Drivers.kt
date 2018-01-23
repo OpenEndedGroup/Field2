@@ -106,6 +106,43 @@ class Drivers {
 
         @JvmOverloads
         @JvmStatic
+        @Documentation("returns an integer sequence that goes smoothly from `start` to `end` (inclusive)")
+        fun intRange(start: Int, end: Int): ThreadSync2.TrappedSet<Int> {
+            return object : ThreadSync2.TrappedSet<Int> {
+                var tick = 0
+                var lastValue = start;
+
+                override fun next(): Int? {
+                    if (end>start) {
+                        val d = start + tick;
+                        lastValue = d
+                        tick++
+                        return if (d <= end) d else null
+                    }
+                    else
+                    {
+                        val d = end - tick;
+                        lastValue = d
+                        tick++
+                        return if (d >= start) d else null
+                    }
+                }
+
+
+                override fun hasNext(): Boolean {
+                    return tick < Math.abs(end-start) + 1
+                }
+
+                override fun reset() {
+                    tick = 0
+                }
+
+                override fun toString(): String = "intRange, $start -> $end; at $lastValue"
+            }
+        }
+
+        @JvmOverloads
+        @JvmStatic
         @Documentation("returns a number sequence that goes smoothly from `start` to `end` in `over` steps")
         fun vec2Range(start: Vec2, end: Vec2, over: Int = 100, ease : (Double) -> Double = {it}): ThreadSync2.TrappedSet<Vec2> {
             return object : ThreadSync2.TrappedSet<Vec2> {
