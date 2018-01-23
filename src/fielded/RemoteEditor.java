@@ -27,6 +27,7 @@ import fieldnashorn.babel.SourceTransformer;
 import org.java_websocket.WebSocket;
 import org.json.JSONObject;
 import org.json.JSONStringer;
+import org.json.JSONWriter;
 
 import java.io.*;
 import java.util.*;
@@ -169,22 +170,26 @@ public class RemoteEditor extends Box {
 			.endObject()
 			.toString()));
 
-		this.properties.put(outputErrorFactory, x -> newOutput(x, "box.error", (Function<Pair<Integer, String>, String>) (lineerror) -> new JSONStringer().object()
-			.key("type")
-			.value("error")
-			.key("line")
-			.value((int) lineerror.first)
-			.key("append")
-			.value(true)
-			.key("message")
-			.value(lineerror.second)
-			.endObject()
-			.toString()));
+		this.properties.put(outputErrorFactory, x -> newOutput(x, "box.error", (Function<Pair<Integer, String>, String>) (lineerror) -> {
+			JSONWriter m = new JSONStringer().object()
+				.key("type")
+				.value("error");
+
+
+			if (lineerror.first != null)
+				m.key("line")
+					.value((int) lineerror.first);
+
+			return m.key("append")
+				.value(true)
+				.key("message")
+				.value(lineerror.second)
+				.endObject()
+				.toString();
+		}));
 
 		this.properties.put(outputMessageFactory, x -> (address, payload) -> {
 			if (x != null) payload.put("box", x.properties.get(IO.id));
-
-
 			rater.add(new Pair<>(address, payload.toString()));
 		});
 
