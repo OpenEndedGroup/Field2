@@ -86,9 +86,9 @@ class TwinTextureCache(unit: Int, private val source: ImageCache) {
                     if (source.copy(right, b)) {
                         b.rewind()
                         cB = right
-                        if (ImageCache.synchronous)
-                            textureB.forceUploadNow(b)
-                        else
+//                        if (ImageCache.synchronous)
+//                            textureB.forceUploadNow(b)
+//                        else
                             textureB.upload(b, true)
 
 //                        q.compress("/var/tmp/RIGHT" + pad(RIGHT++) + ".jpg", b, source.width, source.height)
@@ -107,9 +107,9 @@ class TwinTextureCache(unit: Int, private val source: ImageCache) {
                     if (source.copy(left, b)) {
                         b.rewind()
                         cB = left
-                        if (ImageCache.synchronous)
-                            textureB.forceUploadNow(b)
-                        else
+//                        if (ImageCache.synchronous)
+//                            textureB.forceUploadNow(b)
+//                        else
                             textureB.upload(b, true)
 
 //                        q.compress("/var/tmp/RIGHT" + pad(RIGHT++) + ".jpg", b, source.width, source.height)
@@ -124,9 +124,9 @@ class TwinTextureCache(unit: Int, private val source: ImageCache) {
                 if (source.copy(right, a)) {
                     a.rewind()
                     cA = right
-                    if (ImageCache.synchronous)
-                        textureA.forceUploadNow(a)
-                    else
+//                    if (ImageCache.synchronous)
+//                        textureA.forceUploadNow(a)
+//                    else
                         textureA.upload(a, true)
 
 //                    q.compress("/var/tmp/LEFT" + pad(LEFT++) + ".jpg", a, source.width, source.height)
@@ -140,9 +140,9 @@ class TwinTextureCache(unit: Int, private val source: ImageCache) {
                 if (source.copy(left, a)) {
                     a.rewind()
                     cA = left
-                    if (ImageCache.synchronous)
-                        textureA.forceUploadNow(a)
-                    else
+//                    if (ImageCache.synchronous)
+//                        textureA.forceUploadNow(a)
+//                    else
                         textureA.upload(a, true)
                     isDirty = false
 
@@ -169,9 +169,9 @@ class TwinTextureCache(unit: Int, private val source: ImageCache) {
                     b.rewind()
                     cB = right
                     println(" scheduling upload of $cB to right")
-                    if (ImageCache.synchronous)
-                        textureB.forceUploadNow(b)
-                    else
+//                    if (ImageCache.synchronous)
+//                        textureB.forceUploadNow(b)
+//                    else
                         textureB.upload(b, true)
 
 //                    q.compress("/var/tmp/RIGHT" + pad(RIGHT++) + ".jpg", b, source.width, source.height)
@@ -186,9 +186,9 @@ class TwinTextureCache(unit: Int, private val source: ImageCache) {
                     a.rewind()
                     cA = left
                     println(" scheduling upload of $cA to left")
-                    if (ImageCache.synchronous)
-                        textureA.forceUploadNow(a)
-                    else
+//                    if (ImageCache.synchronous)
+//                        textureA.forceUploadNow(a)
+//                    else
                         textureA.upload(a, true)
 
 //                    q.compress("/var/tmp/LEFT" + pad(LEFT++) + ".jpg", a, source.width, source.height)
