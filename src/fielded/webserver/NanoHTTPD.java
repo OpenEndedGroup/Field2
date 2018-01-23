@@ -438,6 +438,8 @@ public abstract class NanoHTTPD {
 					pw.print("Content-Type: " + mime + "\r\n");
 				}
 
+				pw.print("Access-Control-Allow-Origin: *\r\n");
+
 				if (header == null || header.get("Date") == null) {
 					pw.print("Date: " + gmtFrmt.format(new Date()) + "\r\n");
 				}

@@ -134,7 +134,7 @@ class Versioning {
 
 }
 
-private val Rect.xw: Float
+val Rect.xw: Float
     get() {
         return this.x + this.w
     }

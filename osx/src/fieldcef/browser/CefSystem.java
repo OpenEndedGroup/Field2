@@ -33,7 +33,7 @@ public class CefSystem {
 	private final CefMessageRouter router;
 
 	protected CefSystem() {
-		cefApp = CefApp.getInstance(new String[]{"--overlay-scrollbars", "--off-screen-rendering-mode-enabled", "--enable-experimental-web-platform-features"});
+		cefApp = CefApp.getInstance(new String[]{"--overlay-scrollbars", "--disable-web-security", "--enable-gpu", "--off-screen-rendering-mode-enabled", "--enable-experimental-web-platform-features"});
 
 
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {

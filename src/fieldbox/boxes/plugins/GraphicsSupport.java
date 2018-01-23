@@ -76,22 +76,22 @@ public class GraphicsSupport extends Box {
 
             List<Shader> s = box.properties.get(_shaders);
             if (!cep.equals(fragment) && (box.first(fragment, box.upwards()).isPresent() || s != null))
-                m.put(new Pair<>("Edit <i>Fragment</i>", "Switch to editing fragment shader"), () -> {
+                m.put(new Pair<>("Edit Fragment", "Switch to editing fragment shader"), () -> {
                     ed.setCurrentlyEditingProperty(fragment);
                 });
 
             if (!cep.equals(vertex) && (box.first(vertex, box.upwards()).isPresent() || s != null))
-                m.put(new Pair<>("Edit <i>Vertex</i>", "Switch to editing vertex shader"), () -> {
+                m.put(new Pair<>("Edit Vertex", "Switch to editing vertex shader"), () -> {
                     ed.setCurrentlyEditingProperty(vertex);
                 });
 
             if (!cep.equals(geometry) && (box.first(geometry, box.upwards()).isPresent() || s != null))
-                m.put(new Pair<>("Edit <i>Geometry</i>", "Switch to editing geometry shader"), () -> {
+                m.put(new Pair<>("Edit Geometry", "Switch to editing geometry shader"), () -> {
                     ed.setCurrentlyEditingProperty(geometry);
                 });
 
             if (!cep.equals(Execution.code))
-                m.put(new Pair<>("Edit <i>Code</i>", "Switch to editing default code property"), () -> {
+                m.put(new Pair<>("Edit Code", "Switch to editing default code property"), () -> {
                     ed.setCurrentlyEditingProperty(Execution.code);
                 });
 

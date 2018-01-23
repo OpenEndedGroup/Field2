@@ -83,15 +83,18 @@ pre
 }
 a {
     text-decoration: none;
-    color: #aaa;
+    color: #58b;
+    border-bottom: 1px solid #58b;
 }
 
 p {
-    padding-left: 4px;
-    padding-right: 4px;
+    padding-left: 58px;
+    padding-right: 58px;
     font-size: 15px;
+    line-height: 120%;
+    font-size: 110%;
+    margin-top: 40px;
 }
-
 
 
 .CodeMirror
@@ -100,6 +103,7 @@ p {
     color:#eee;
     height: auto;
     font-size: 12px;
+    pointer-events: none;
 }
 
 .CodeMirror-scroll
@@ -109,17 +113,36 @@ p {
 }
 
 h1 {
-    padding-left:4px;
-    padding-right:4px;
-    padding-bottom: 5px;
-    margin-top:-5px;
-    margin-left:-5px;
-    margin-right:-5px;
-    margin-bottom: 4px;
+    padding-left: 4px;
+    padding-right: 4px;
+    padding-bottom: 10px;
+    padding-top: 10px;
+    margin-top: 30px;
+    margin-bottom: -5px;
     background: rgba(0,0,0,0.1);
     font-size: 20px;
     text-align: center;
+    border-radius:10px;
 }
+
+* > h1:first-child
+{
+    margin-top:0px;
+}
+
+h2 {
+    padding-left: 50px;
+    padding-right: 50px;
+    padding-bottom: 10px;
+    padding-top: 10px;
+    font-weight: lighter;
+    margin-bottom: -5px;
+    background: rgba(0,0,0,0.1);
+    font-size: 20px;
+    text-align: center;
+    border-radius:10px;
+}
+
 
 .grouped
 {

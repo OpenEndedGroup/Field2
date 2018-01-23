@@ -8,6 +8,7 @@ import field.linalg.Vec4;
 import field.utility.Dict;
 import field.utility.IdempotencyMap;
 import fieldbox.boxes.Box;
+import fieldbox.boxes.Mouse;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -119,7 +120,7 @@ public class HandlesForFLines extends Box {
 		private final DraggableCubicHandle prevCubicDrag;
 		private final Consumer<Handles.Draggable> description;
 
-		public DraggableNode(FLine source, FLine.Node on, Consumer<Handles.Draggable> description) {
+		public DraggableNode(Box container, FLine source, FLine.Node on, Consumer<Handles.Draggable> description) {
 			this.description = description;
 			this.source = source;
 
@@ -133,7 +134,7 @@ public class HandlesForFLines extends Box {
 				nextCubic.moveTo(c.c1.x, c.c1.y, c.c1.z);
 				nextCubic.lineTo(on.to.x, on.to.y, on.to.z);
 				nextCubic.attributes.put(StandardFLineDrawing.color, new Vec4(0, 0, 0, 0.5));
-				nextCubicDrag = new DraggableCubicHandle(source, nextCubic.nodes.get(0), c, 0, description);
+				nextCubicDrag = new DraggableCubicHandle(container, source, nextCubic.nodes.get(0), c, 0, description);
 				nextCubic.attributes.put(hasDraggables, true);
 				nextCubic.nodes.get(0).attributes.putToMap(draggables, "__cubic", nextCubicDrag);
 				if (source.attributes.has(inside))
@@ -149,7 +150,7 @@ public class HandlesForFLines extends Box {
 				prevCubic.moveTo(c.c2.x, c.c2.y, c.c2.z);
 				prevCubic.lineTo(on.to.x, on.to.y, on.to.z);
 				prevCubic.attributes.put(StandardFLineDrawing.color, new Vec4(0, 0, 0, 0.5));
-				prevCubicDrag = new DraggableCubicHandle(source, prevCubic.nodes.get(0), c, 1, description);
+				prevCubicDrag = new DraggableCubicHandle(container, source, prevCubic.nodes.get(0), c, 1, description);
 				prevCubic.attributes.put(hasDraggables, true);
 				prevCubic.nodes.get(0).attributes.putToMap(draggables, "__cubic", prevCubicDrag);
 				if (source.attributes.has(inside))
@@ -186,6 +187,8 @@ public class HandlesForFLines extends Box {
 			this.select = x -> x;
 			this.appearance = () -> {
 
+				if (!container.properties.isTrue(Mouse.isSelected, false)) return Collections.emptyList();
+
 				FLine f = new FLine();
 				f.moveTo(on.to.x, on.to.y, on.to.z);
 				f.attributes.put(StandardFLineDrawing.pointSize, isSelected() ? 10f : 5f);
@@ -196,7 +199,7 @@ public class HandlesForFLines extends Box {
 
 				List<FLine> ret = new ArrayList<>();
 				ret.add(f);
-				if (isSelected() || (prevCubic != null && prevCubicDrag.isSelected()) || (nextCubic != null && nextCubicDrag.isSelected())) {
+				if (isSelected() || (prevCubic != null /*&& prevCubicDrag.isSelected()*/) || (nextCubic != null /*&& nextCubicDrag.isSelected()*/)) {
 					if (nextCubic != null) ret.add(nextCubic);
 					if (prevCubic != null) ret.add(prevCubic);
 				}
@@ -235,7 +238,7 @@ public class HandlesForFLines extends Box {
 		private int c;
 		private Consumer<Handles.Draggable> description;
 
-		public DraggableCubicHandle(FLine source, FLine.Node vis, FLine.CubicTo on, int c, Consumer<Handles.Draggable> description) {
+		public DraggableCubicHandle(Box container, FLine source, FLine.Node vis, FLine.CubicTo on, int c, Consumer<Handles.Draggable> description) {
 			this.c = c;
 			this.description = description;
 			this.source = source;
@@ -266,6 +269,8 @@ public class HandlesForFLines extends Box {
 			};
 			this.select = x -> x;
 			this.appearance = () -> {
+
+				if (!container.properties.isTrue(Mouse.isSelected, false)) return Collections.emptyList();
 
 				FLine f = new FLine();
 				f.moveTo(vis.to.x, vis.to.y, vis.to.z);

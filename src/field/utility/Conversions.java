@@ -362,11 +362,13 @@ public class Conversions {
     }
 
     static public Object convert(Object value, Class fit) {
+        if (value == null) return null;
+
         return convert(value, Collections.singletonList(fit));
     }
 
     static protected Object _convert(Object value, List<Class> fit, Consumer<String> extraInfo) {
-
+        if (value == null) return null;
         if (fit == null) return value;
         if (fit.get(0)
                 .isInstance(value)) return value;
@@ -416,8 +418,9 @@ public class Conversions {
                                           (InvocationHandler) value);
         }
 
-        if (value instanceof ScriptObjectMirror && ((ScriptObjectMirror) value).isArray()  && fit.size() > 1 && Supplier.class.isAssignableFrom(
-                fit.get(0))) {
+        if (value instanceof ScriptObjectMirror && ((ScriptObjectMirror) value).isArray() && fit.size() > 1 && Supplier.class
+                .isAssignableFrom(
+                        fit.get(0))) {
 
             Object[] a = new Object[((ScriptObjectMirror) value).size()];
             for (int i = 0; i < ((ScriptObjectMirror) value).size(); i++) {
@@ -551,6 +554,4 @@ public class Conversions {
             return "c<" + name + ">" + length;
         }
     }
-
-
 }

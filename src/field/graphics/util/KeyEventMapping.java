@@ -48,6 +48,7 @@ public class KeyEventMapping {
 		keyCodes.put(KeyEvent.VK_0, GLFW_KEY_0);
 		keyCodes.put(KeyEvent.VK_Z, GLFW_KEY_Z);
 		keyCodes.put(KeyEvent.VK_C, GLFW_KEY_C);
+		keyCodes.put(KeyEvent.VK_G, GLFW_KEY_G);
 		keyCodes.put(KeyEvent.VK_A, GLFW_KEY_A);
 		keyCodes.put(KeyEvent.VK_V, GLFW_KEY_V);
 		keyCodes.put(KeyEvent.VK_X, GLFW_KEY_X);

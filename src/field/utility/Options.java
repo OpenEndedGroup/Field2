@@ -64,22 +64,20 @@ public class Options {
 					String v = arg[i + 1];
 
 					Number n = toNumber(v);
-					if (n!=null)
+					if (n != null)
 						options.o.put(new Dict.Prop<Number>(q), n);
 					else
 						options.o.put(new Dict.Prop<String>(q), v);
-					i+=1;
+					i += 1;
 				}
-				lastArg = i+1;
+				lastArg = i + 1;
 			}
 		}
 
-		if (lastArg<arg.length) {
+		if (lastArg < arg.length) {
 			remainingArgs = new String[arg.length - lastArg];
 			System.arraycopy(arg, lastArg, remainingArgs, 0, remainingArgs.length);
-		}
-		else
-		{
+		} else {
 			remainingArgs = new String[0];
 		}
 
@@ -136,15 +134,16 @@ public class Options {
 		Dict.Prop pp = new Dict.Prop(key);
 		boolean found = dict().has(pp);
 
-		String r = ""+dict().computeIfAbsent(pp, (k) -> def.get());
+		Object out = dict().computeIfAbsent(pp, (k) -> def.get());
+		String r = out == null ? null : ("" + out);
 
-		System.err.println("-"+key+" = "+r+(found ? "" : "(default)"));
+		System.err.println("-" + key + " = " + r + (found ? "" : "(default)"));
 
 		return r;
 	}
 
 	public static String getDirectory(String key, Supplier<String> def) {
 		String v = getString(key, def);
-		return v.endsWith("/") ? v : (v+"/");
+		return v.endsWith("/") ? v : (v + "/");
 	}
 }

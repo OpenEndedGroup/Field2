@@ -1,5 +1,6 @@
 package fieldbox.boxes.plugins;
 
+import field.app.RunLoop;
 import field.app.ThreadSync2;
 import field.graphics.FLine;
 import field.graphics.StandardFLineDrawing;
@@ -36,7 +37,6 @@ public class ThreadSync2Feedback extends Box {
 	Map<Box, Integer> lastRunning = new LinkedHashMap<>();
 
 	public ThreadSync2Feedback(Box root) {
-
 
 		if (ThreadSync2.getEnabled()) {
 			this.properties.putToMap(Boxes.insideRunLoop, "main.threadsync2feedback", this::run);
@@ -81,9 +81,21 @@ public class ThreadSync2Feedback extends Box {
 				f.yield();
 				return true;
 			}
-		}
+		} else throw new IllegalArgumentException("can't wait for a frame without running -threaded2 1");
 		return false;
 	}
+
+	static public boolean yield() {
+		if (ThreadSync2.getEnabled()) {
+			ThreadSync2.Fibre f = ThreadSync2.fibre();
+			if (f != null) {
+				f.yield();
+				return true;
+			}
+		} else throw new IllegalArgumentException("can't wait for a frame without running -threaded2 1");
+		return false;
+	}
+
 
 	static public boolean finish(Box x) {
 		if (ThreadSync2.getEnabled()) {
@@ -93,6 +105,20 @@ public class ThreadSync2Feedback extends Box {
 			}
 		}
 		return false;
+	}
+
+
+	static public boolean maybeYield() {
+		if (ThreadSync2.getEnabled()) {
+			ThreadSync2.Fibre f = ThreadSync2.fibre();
+			long tick = f.d.computeIfAbsent(ThreadSync2.get__maybeYieldAtFrame(), (k) -> RunLoop.tick);
+			if (tick == RunLoop.tick) {
+				yield();
+				f.d.put(ThreadSync2.get__maybeYieldAtFrame(), RunLoop.tick);
+				return true;
+			}
+			return false;
+		} else throw new IllegalArgumentException("can't wait for a frame without running -threaded2 1");
 	}
 
 	static public ThreadSync2.Fibre fibre(Box x) {

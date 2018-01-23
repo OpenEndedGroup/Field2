@@ -15,6 +15,7 @@ import java.util.function.*
  */
 class ThreadSync2 {
 
+
     // _.p = line( ... , ... , ...)   // trap that on asMap_set( ... )
 
     interface TrappedSet<T> : Iterator<T?>, Iterable<T?> {
@@ -52,6 +53,7 @@ class ThreadSync2 {
 
         var onExit: Runnable? = null
 
+        @JvmField
         var d = Dict()
 
         @Volatile
@@ -78,6 +80,8 @@ class ThreadSync2 {
         fun yield() {
             output.put(license)
             license = null
+
+            d.put(__yieldAtFrame, RunLoop.tick);
 
             if (killed) throw KilledException()
 
@@ -232,8 +236,19 @@ class ThreadSync2 {
 
 
     companion object {
+
         @JvmStatic
-        val enabled = Options.dict().isTrue(Dict.Prop<Boolean>("thread2"), false)
+        val __yieldAtFrame = Dict.Prop<Long>("__yieldAtFrame")
+        @JvmStatic
+        val __maybeYieldAtFrame = Dict.Prop<Long>("__maybeYieldAtFrame")
+
+        @JvmStatic
+        val enabled = Options.dict().isTrue(Dict.Prop<Boolean>("thread2"), true)
+
+        init {
+            println("\n\n -- thread2 :"+ enabled+" --\n\n")
+        }
+
         @JvmStatic
         var sync: ThreadSync2? = null
         var thisFibre = ThreadLocal<Fibre>()
@@ -243,6 +258,11 @@ class ThreadSync2 {
         @JvmStatic
         fun yield() {
             thisFibre.get().yield()
+        }
+
+        @JvmStatic
+        fun yieldIfPossible() {
+            thisFibre?.get()?.yield()
         }
 
         @JvmStatic
@@ -283,18 +303,20 @@ class ThreadSync2 {
             }
         }
 
+        var debug = false;
+
         // kotlin interface
         @JvmStatic
         fun <T> inMainThread(c: () -> T): T {
             if (Thread.currentThread() === RunLoop.main.mainThread) {
-                println("||||||||||||||||||||||||||||||| already main thread")
+                if (debug) println("||||||||||||||||||||||||||||||| already main thread")
                 return c()
             } else {
 
-                println(" current thread :" + Thread.currentThread() + " " + RunLoop.main.mainThread)
+                if (debug) println(" current thread :" + Thread.currentThread() + " " + RunLoop.main.mainThread)
 
                 val f = CompletableFuture<T>()
-                println("||||||||||||||||||||||||||||||| call once ")
+                if (debug) println("||||||||||||||||||||||||||||||| call once ")
                 RunLoop.main.once {
                     try {
                         f.complete(c())
@@ -304,13 +326,13 @@ class ThreadSync2 {
                 }
 
                 // should be rejoin?
-                println("||||||||||||||||||||||||||||||| begin wait ")
+                if (debug) println("||||||||||||||||||||||||||||||| begin wait ")
                 while (!f.isDone) {
-                    println("||||||||||||||||||||||||||||||| yield to main loop")
+                    if (debug) println("||||||||||||||||||||||||||||||| yield to main loop")
                     yield()
-                    println("||||||||||||||||||||||||||||||| back from main loop")
+                    if (debug) println("||||||||||||||||||||||||||||||| back from main loop")
                 }
-                println("||||||||||||||||||||||||||||||| f is :" + f)
+                if (debug) println("||||||||||||||||||||||||||||||| f is :" + f)
 
                 return f.get()
             }

@@ -9,7 +9,9 @@ import field.utility.Log;
 import fieldagent.Main;
 import org.lwjgl.opengl.GL11;
 
+import static org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose;
 import static org.lwjgl.glfw.GLFW.glfwShowWindow;
+import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
 
 
 /**
@@ -21,7 +23,6 @@ public class FieldBoxWindow extends Window {
 
 	public FieldBoxWindow(int x, int y, int w, int h, String filename) {
 		super(x, y, w - (Main.os == Main.OS.mac ? 1 : 0), h, "Field: "+filename, true);
-
 		if (Main.os==Main.OS.mac)
 		{
 			setBounds(x, y, w, h);
@@ -84,6 +85,7 @@ public class FieldBoxWindow extends Window {
 
 			@Override
 			public boolean windowClose(long l) {
+				glfwSetWindowShouldClose(window, false);
 				RunLoop.main.exit();
 				return false;
 			}

@@ -7,6 +7,9 @@ import fieldbox.io.IO;
 import fieldcef.browser.CefSystem;
 
 import java.awt.*;
+import java.awt.desktop.OpenFilesEvent;
+import java.awt.desktop.OpenFilesHandler;
+import java.awt.desktop.SystemEventListener;
 
 /**
  * The main entry-point for Field2.
@@ -29,11 +32,21 @@ public class FieldBox {
 		Options.parseCommandLine(s);
 
 		// needs to be initialized after 'args'
-		workspace = Options.getDirectory("workspace", () -> System.getProperty("user.home") + "/Documents/FirstNewFieldWorkspace/");
+		workspace = Options.getDirectory("workspace", () -> System.getProperty("user.home") + "/Documents/FieldWorkspace/");
 
 		System.err.println(" lauching toolkit");
-		if (Main.os == Main.OS.mac)
+		if (Main.os == Main.OS.mac) {
 			Toolkit.getDefaultToolkit();
+
+			// this possibly works on windows?
+
+//			Desktop.getDesktop().setOpenFileHandler(new OpenFilesHandler() {
+//				@Override
+//				public void openFiles(OpenFilesEvent e) {
+//					System.out.println("\n\n!! open files !! \n\n" + e);
+//				}
+//			});
+		}
 
 
 		// experimenting with moving this initialization first. Seems to remove the occasional crash on startup?
@@ -59,7 +72,7 @@ public class FieldBox {
 		new Open(Options.getString("file", () -> "testIB.field2"));
 
 		SplashScreen splash = SplashScreen.getSplashScreen();
-		if (splash!=null)
+		if (splash != null)
 			splash.close();
 
 		fieldBox.go();

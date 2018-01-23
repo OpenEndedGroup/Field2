@@ -49,7 +49,7 @@ public class AsEditable extends Box {
 				if (box == null) return m;
 
 				if (!cep.equals(p))
-					m.put(new Pair<>("Edit <i>" + p.getName() + "</i>", "Switch to editing the "+p.getName()+" property in this box"), () -> {
+					m.put(new Pair<>("Edit " + p.getName() + "", "Switch to editing the "+p.getName()+" property in this box"), () -> {
 						ed.setCurrentlyEditingProperty(p);
 					});
 

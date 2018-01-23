@@ -178,7 +178,7 @@ public class GraphicsContext {
         }
     }
 
-    static public class Sticky implements Runnable {
+	static public class Sticky implements Runnable {
         private final Supplier<Boolean> target;
         private final Collection<Runnable> queue;
 

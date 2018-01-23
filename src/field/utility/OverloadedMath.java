@@ -24,4 +24,8 @@ public interface OverloadedMath {
 	Object __mul__(Object b);
 
 	Object __rmul__(Object b);
+
+	Object __xor__(Object b);
+
+	Object __rxor__(Object b);
 }

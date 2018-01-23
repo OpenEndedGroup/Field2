@@ -5,6 +5,7 @@ import field.linalg.Vec2;
 import field.linalg.Vec3;
 import field.utility.*;
 import fieldbox.boxes.Box;
+import fieldnashorn.annotations.HiddenInAutocomplete;
 import org.apache.commons.math3.optim.MaxEval;
 import org.apache.commons.math3.optim.nonlinear.scalar.GoalType;
 import org.apache.commons.math3.optim.univariate.BrentOptimizer;
@@ -40,7 +41,9 @@ public class FLinesAndJavaShapes {
 	//         point = (x + v0 * w + v1 * arcWidth,
 	//                  y + v2 * h + v3 * arcHeight);
 	private static double ctrlpts[][]
-		= {{0.0, 0.0, 0.0, 0.5}, {0.0, 0.0, 1.0, -0.5}, {0.0, 0.0, 1.0, -acv, 0.0, acv, 1.0, 0.0, 0.0, 0.5, 1.0, 0.0}, {1.0, -0.5, 1.0, 0.0}, {1.0, -acv, 1.0, 0.0, 1.0, 0.0, 1.0, -acv, 1.0, 0.0, 1.0, -0.5}, {1.0, 0.0, 0.0, 0.5}, {1.0, 0.0, 0.0, acv, 1.0, -acv, 0.0, 0.0, 1.0, -0.5, 0.0, 0.0}, {0.0, 0.5, 0.0, 0.0}, {0.0, acv, 0.0, 0.0, 0.0, 0.0, 0.0, acv, 0.0, 0.0, 0.0, 0.5}, {},};
+		= {{0.0, 0.0, 0.0, 0.5}, {0.0, 0.0, 1.0, -0.5}, {0.0, 0.0, 1.0, -acv, 0.0, acv, 1.0, 0.0, 0.0, 0.5, 1.0, 0.0}, {1.0, -0.5, 1.0, 0.0}, {1.0, -acv, 1.0, 0.0, 1.0, 0.0, 1.0, -acv, 1.0,
+		0.0, 1.0, -0.5}, {1.0, 0.0, 0.0, 0.5}, {1.0, 0.0, 0.0, acv, 1.0, -acv, 0.0, 0.0, 1.0, -0.5, 0.0, 0.0}, {0.0, 0.5, 0.0, 0.0}, {0.0, acv, 0.0, 0.0, 0.0, 0.0, 0.0, acv, 0.0, 0.0, 0.0,
+		0.5}, {},};
 
 	static public Shape flineToJavaShape(FLine f) {
 
@@ -167,6 +170,8 @@ public class FLinesAndJavaShapes {
 		out.x = a.x * oma3 + 3 * c1.x * alphaoma2 + 3 * c2.x * alpha2oma + b.x * alpha3;
 		out.y = a.y * oma3 + 3 * c1.y * alphaoma2 + 3 * c2.y * alpha2oma + b.y * alpha3;
 		out.z = a.z * oma3 + 3 * c1.z * alphaoma2 + 3 * c2.z * alpha2oma + b.z * alpha3;
+
+		System.out.println(a + " " + c1 + " " + c2 + " " + b + " " + alpha + " == " + out);
 
 		return out;
 	}
@@ -386,14 +391,16 @@ public class FLinesAndJavaShapes {
 				}
 				if (n2 instanceof FLine.CubicTo) {
 					{
-						float dd = (float) ((((FLine.CubicTo) n2).c1.x - n.x) * (((FLine.CubicTo) n2).c1.x - n.x) + (((FLine.CubicTo) n2).c1.y - n.y) * (((FLine.CubicTo) n2).c1.y - n.y));
+						float dd = (float) ((((FLine.CubicTo) n2).c1.x - n.x) * (((FLine.CubicTo) n2).c1.x - n.x) + (((FLine.CubicTo) n2).c1.y - n.y) * (((FLine.CubicTo) n2)
+							.c1.y - n.y));
 						if (dd < d) {
 							d = dd;
 							z = (float) ((FLine.CubicTo) n2).c1.z;
 						}
 					}
 					{
-						float dd = (float) ((((FLine.CubicTo) n2).c2.x - n.x) * (((FLine.CubicTo) n2).c2.x - n.x) + (((FLine.CubicTo) n2).c2.y - n.y) * (((FLine.CubicTo) n2).c2.y - n.y));
+						float dd = (float) ((((FLine.CubicTo) n2).c2.x - n.x) * (((FLine.CubicTo) n2).c2.x - n.x) + (((FLine.CubicTo) n2).c2.y - n.y) * (((FLine.CubicTo) n2)
+							.c2.y - n.y));
 						if (dd < d) {
 							d = dd;
 							z = (float) ((FLine.CubicTo) n2).c2.z;
@@ -457,16 +464,20 @@ public class FLinesAndJavaShapes {
 	static public FLine drawRoundedRectInto(FLine into, double x, double y, double w, double h, double r) {
 		into.moveTo(x + ctrlpts[0][0] * w + ctrlpts[0][1] * r, y + ctrlpts[0][2] * h + ctrlpts[0][3] * r);
 		into.lineTo(x + ctrlpts[1][0] * w + ctrlpts[1][1] * r, y + ctrlpts[1][2] * h + ctrlpts[1][3] * r);
-		into.cubicTo(x + ctrlpts[2][0] * w + ctrlpts[2][1] * r, y + ctrlpts[2][2] * h + ctrlpts[2][3] * r, x + ctrlpts[2][4] * w + ctrlpts[2][5] * r, y + ctrlpts[2][6] * h + ctrlpts[2][7] * r,
+		into.cubicTo(x + ctrlpts[2][0] * w + ctrlpts[2][1] * r, y + ctrlpts[2][2] * h + ctrlpts[2][3] * r, x + ctrlpts[2][4] * w + ctrlpts[2][5] * r, y + ctrlpts[2][6] * h + ctrlpts[2][7]
+				* r,
 			x + ctrlpts[2][8] * w + ctrlpts[2][9] * r, y + ctrlpts[2][10] * h + ctrlpts[2][11] * r);
 		into.lineTo(x + ctrlpts[3][0] * w + ctrlpts[3][1] * r, y + ctrlpts[3][2] * h + ctrlpts[3][3] * r);
-		into.cubicTo(x + ctrlpts[4][0] * w + ctrlpts[4][1] * r, y + ctrlpts[4][2] * h + ctrlpts[4][3] * r, x + ctrlpts[4][4] * w + ctrlpts[4][5] * r, y + ctrlpts[4][6] * h + ctrlpts[4][7] * r,
+		into.cubicTo(x + ctrlpts[4][0] * w + ctrlpts[4][1] * r, y + ctrlpts[4][2] * h + ctrlpts[4][3] * r, x + ctrlpts[4][4] * w + ctrlpts[4][5] * r, y + ctrlpts[4][6] * h + ctrlpts[4][7]
+				* r,
 			x + ctrlpts[4][8] * w + ctrlpts[4][9] * r, y + ctrlpts[4][10] * h + ctrlpts[4][11] * r);
 		into.lineTo(x + ctrlpts[5][0] * w + ctrlpts[5][1] * r, y + ctrlpts[5][2] * h + ctrlpts[5][3] * r);
-		into.cubicTo(x + ctrlpts[6][0] * w + ctrlpts[6][1] * r, y + ctrlpts[6][2] * h + ctrlpts[6][3] * r, x + ctrlpts[6][4] * w + ctrlpts[6][5] * r, y + ctrlpts[6][6] * h + ctrlpts[6][7] * r,
+		into.cubicTo(x + ctrlpts[6][0] * w + ctrlpts[6][1] * r, y + ctrlpts[6][2] * h + ctrlpts[6][3] * r, x + ctrlpts[6][4] * w + ctrlpts[6][5] * r, y + ctrlpts[6][6] * h + ctrlpts[6][7]
+				* r,
 			x + ctrlpts[6][8] * w + ctrlpts[6][9] * r, y + ctrlpts[6][10] * h + ctrlpts[6][11] * r);
 		into.lineTo(x + ctrlpts[7][0] * w + ctrlpts[7][1] * r, y + ctrlpts[7][2] * h + ctrlpts[7][3] * r);
-		into.cubicTo(x + ctrlpts[8][0] * w + ctrlpts[8][1] * r, y + ctrlpts[8][2] * h + ctrlpts[8][3] * r, x + ctrlpts[8][4] * w + ctrlpts[8][5] * r, y + ctrlpts[8][6] * h + ctrlpts[8][7] * r,
+		into.cubicTo(x + ctrlpts[8][0] * w + ctrlpts[8][1] * r, y + ctrlpts[8][2] * h + ctrlpts[8][3] * r, x + ctrlpts[8][4] * w + ctrlpts[8][5] * r, y + ctrlpts[8][6] * h + ctrlpts[8][7]
+				* r,
 			x + ctrlpts[8][8] * w + ctrlpts[8][9] * r, y + ctrlpts[8][10] * h + ctrlpts[8][11] * r);
 		return into;
 	}
@@ -502,7 +513,7 @@ public class FLinesAndJavaShapes {
 					double dd = at.distance(point);
 					if (dd < best) {
 						best = dd;
-						tt = d/len + (i - 1);
+						tt = d / len + (i - 1);
 					}
 				}
 			} else {
@@ -707,6 +718,7 @@ public class FLinesAndJavaShapes {
 		for (FLine.Node n : f.nodes) {
 			if (n instanceof FLine.MoveTo) {
 				current = new FLine();
+				current.attributes = f.attributes.duplicate(current);
 				q.add(current);
 			}
 			current.copyTo(n);
@@ -731,7 +743,7 @@ public class FLinesAndJavaShapes {
 	}
 
 	/**
-	 * A class for navigating FLines either by distance "D" or by node "T". Incomplete, needs port of pathflattener3 for distance calculations.
+	 * A class for navigating FLines either by distance "D" or by node "T".
 	 */
 	static public class Cursor implements Iterator<Vec3[]> {
 		protected final FLine on;
@@ -750,22 +762,28 @@ public class FLinesAndJavaShapes {
 			pAt = on.getModCount();
 		}
 
+		/** returns whether the current segment is a .lineTo */
 		public boolean segmentIsLinear() {
 			return on.nodes.get(clamp(index + 1)) instanceof FLine.LineTo;
 		}
 
+		/** returns whether the current segment is a .cubicTo */
 		public boolean segmentIsCubic() {
 			return on.nodes.get(clamp(index + 1)) instanceof FLine.CubicTo;
 		}
 
+		/** returns whether the current segment is a .moveTo */
 		public boolean segmentIsMove() {
 			return on.nodes.get(clamp(index + 1)) instanceof FLine.MoveTo;
 		}
 
+		/** returns whether we are at the last segment of the line */
 		public boolean hasNext() {
 			return index < on.nodes.size() - 1;
 		}
 
+
+		@HiddenInAutocomplete
 		public Vec3[] next() {
 			try {
 				if (segmentIsCubic())
@@ -780,10 +798,17 @@ public class FLinesAndJavaShapes {
 			}
 		}
 
+		/**
+		 * resets the cursor to the start of its line
+		 */
 		public void reset() {
 			index = 0;
+			alpha = 0;
 		}
 
+		/**
+		 * returns the position of the cursor
+		 */
 		public Vec3 position() {
 			if (segmentIsMove()) {
 				if (alpha < 0.5) return new Vec3(on.nodes.get(clamp(index)).to);
@@ -796,7 +821,11 @@ public class FLinesAndJavaShapes {
 			} else throw new IllegalStateException(" segment not implemented ");
 		}
 
+		@HiddenInAutocomplete
 		public Vec3 tangentForward() {
+
+			if (index == on.nodes.size() - 1) return null;
+
 			if (segmentIsMove()) {
 				return null;
 			} else if (segmentIsLinear()) {
@@ -807,6 +836,7 @@ public class FLinesAndJavaShapes {
 			} else throw new IllegalStateException(" segment not implemented ");
 		}
 
+		@HiddenInAutocomplete
 		public Vec3 tangentBackward() {
 			if (alpha != 0) return tangentForward();
 			if (index == 0) return null;
@@ -821,6 +851,7 @@ public class FLinesAndJavaShapes {
 			}
 		}
 
+		@HiddenInAutocomplete
 		public Vec3 accelerationForward() {
 			if (segmentIsMove()) {
 				return null;
@@ -832,6 +863,7 @@ public class FLinesAndJavaShapes {
 			} else throw new IllegalStateException(" segment not implemented ");
 		}
 
+		@HiddenInAutocomplete
 		public Vec3 accelerationBackward() {
 			if (alpha != 0) return accelerationForward();
 			if (index == 0) return null;
@@ -846,6 +878,7 @@ public class FLinesAndJavaShapes {
 			}
 		}
 
+		@HiddenInAutocomplete
 		public Vec3 binormalForward() {
 			Vec3 a = accelerationForward();
 			Vec3 t = tangentForward();
@@ -856,6 +889,7 @@ public class FLinesAndJavaShapes {
 
 		}
 
+		@HiddenInAutocomplete
 		public Vec3 binormalBackward() {
 			Vec3 a = accelerationBackward();
 			Vec3 t = tangentBackward();
@@ -865,6 +899,9 @@ public class FLinesAndJavaShapes {
 			return Vec3.cross(t, a, new Vec3());
 		}
 
+		/**
+		 * returns the 'binormal' of the line, that is a vector that is perpendicular to both the tangent at this point and the acceleration. This is never interesting in the 2d case.
+		 */
 		public Vec3 binormal() {
 			Vec3 a = acceleration();
 			Vec3 t = tangent();
@@ -874,6 +911,7 @@ public class FLinesAndJavaShapes {
 			return Vec3.cross(t, a, new Vec3());
 		}
 
+		@HiddenInAutocomplete
 		public Vec3 normalForward() {
 			Vec3 a = binormalForward();
 			Vec3 t = tangentForward();
@@ -884,6 +922,7 @@ public class FLinesAndJavaShapes {
 
 		}
 
+		@HiddenInAutocomplete
 		public Vec3 normalBackward() {
 			Vec3 a = binormalBackward();
 			Vec3 t = tangentBackward();
@@ -893,16 +932,26 @@ public class FLinesAndJavaShapes {
 			return Vec3.cross(t, a, new Vec3());
 		}
 
+		/**
+		 * returns the normal at this point in the line. Note that this normal is parallel and in the direction of the acceleration. This means that, in the 2d case, it changes 'side' of
+		 * the line as the line changes curvature (the normal is always on the side that the line is curving towards). For a simpler 2d definition of normal, use `normal2()`
+		 */
 		public Vec3 normal() {
 			Vec3 a = binormal();
 			Vec3 t = tangent();
 
 			if (a == null || t == null) return null;
 
-			return Vec3.cross(t, a, new Vec3());
+			Vec3 n = Vec3.cross(t, a, new Vec3());
+			if (n.length() == 0) return n;
+			n.normalize().scale(t.length());
+			return n;
 		}
 
 
+		/**
+		 * returns the normal at this point in the line. This is always perpendicular to the line at the current point.
+		 */
 		public Vec2 normal2() {
 			Vec3 t = tangent();
 			Vec2 t2 = t == null ? null : new Vec2(t.y, -t.x);
@@ -914,7 +963,8 @@ public class FLinesAndJavaShapes {
 		}
 
 		/**
-		 * this is a vector along the normal of the right length. i.e, you can draw this circle and it will be tangent at this point
+		 * this is a vector along the normal of the right length. i.e, you can draw this circle and it will be tangent at this point. This doesn't exist at if the current point is on a
+		 * straight line.
 		 */
 		public Vec3 radiusOfCurvature() {
 			if (segmentIsCubic()) {
@@ -931,6 +981,7 @@ public class FLinesAndJavaShapes {
 		}
 
 
+		@HiddenInAutocomplete
 		public CubicSegment3 currentSegment() {
 			if (segmentIsCubic()) {
 				Vec3 p0 = on.nodes.get(clamp(index)).to;
@@ -944,6 +995,9 @@ public class FLinesAndJavaShapes {
 			} else return null;
 		}
 
+		/**
+		 * returns the 'acceleration' vector at this point in the line. This is the direction that the 'velocity' of the line is changing.
+		 */
 		public Vec3 acceleration() {
 			if (alpha != 0) return accelerationForward();
 			Vec3 t1 = accelerationBackward();
@@ -959,6 +1013,9 @@ public class FLinesAndJavaShapes {
 			return t.isNaN() ? null : t;
 		}
 
+		/**
+		 * returns the 'tangent' vecotr at this point in the line. This is the direction that the line is heading in.
+		 */
 		public Vec3 tangent() {
 			if (alpha != 0) return tangentForward();
 			Vec3 t1 = tangentBackward();
@@ -975,7 +1032,7 @@ public class FLinesAndJavaShapes {
 		}
 
 		/**
-		 * returns a list of points where dx, dy, or dz is zero, inside segments
+		 * returns a list of 't' positions where dx, dy, or dz is zero. These points only exist inside cubic segments.
 		 */
 		public List<Double> extremalInnerPoints() {
 			List<Double> q = new ArrayList<>();
@@ -1006,20 +1063,23 @@ public class FLinesAndJavaShapes {
 		}
 
 		/**
-		 * returns a list of places where tangentForward doesn't equal tangentBackward
+		 * returns a list of 't's where tangentForward doesn't equal tangentBackward
 		 */
 		public List<Double> tangentBreaks() {
 			return extremalOuterPoints(p -> p.first.distance(p.second) > 1e-3);
 		}
 
 		/**
-		 * returns a list of places where tangent's change dx, dy or dz
+		 * returns a list of 't's where tangent's change dx, dy or dz
 		 */
 		public List<Double> extremalOuterPoints() {
 			return this.extremalOuterPoints(
 				p -> Math.signum(p.first.x) != Math.signum(p.second.x) || Math.signum(p.first.y) != Math.signum(p.second.y) || Math.signum(p.first.z) != Math.signum(p.second.z));
 		}
 
+		/**
+		 * returns a list of 't's that are points of inflection (this only happens inside cubic segments)
+		 */
 		public List<Double> inflectionPointsXY() {
 			ArrayList<Double> q = new ArrayList<>();
 			for (int i = 1; i < on.nodes.size(); i++) {
@@ -1036,6 +1096,7 @@ public class FLinesAndJavaShapes {
 		}
 
 
+		@HiddenInAutocomplete
 		protected List<Double> extremalOuterPoints(Predicate<Pair<Vec3, Vec3>> p) {
 			double was = getT();
 			List<Double> q = new ArrayList<>();
@@ -1061,9 +1122,8 @@ public class FLinesAndJavaShapes {
 		}
 
 		/**
-		 * returns new FLine's one on each side of the current cursor
+		 * returns two new FLines: one on each side of the current cursor. For example `myLine.cursor().setD(20.3).split().first` is a line that is the first 20.3 units of `myLine`.
 		 */
-
 		public Pair<FLine, FLine> split() {
 
 			if (alpha == 0 && index == 0) return new Pair<>(null, on.duplicate());
@@ -1113,7 +1173,8 @@ public class FLinesAndJavaShapes {
 
 
 		/**
-		 * splits on a list of D positions
+		 * returns a list of new FLines that are this line split at an (ordered) list of points. For example `myLine.splitD([3.2,4,8])` returns a list of four FLines all pieces of `myLine`,
+		 * the first line runs from 0 to 3.2, the second from 3.2 to 4, the third from 4 to 8 and the fourth from 8 to the end of `myLine`.
 		 */
 		public List<FLine> splitD(List<Double> d) {
 			double was = getT();
@@ -1142,7 +1203,7 @@ public class FLinesAndJavaShapes {
 		}
 
 		/**
-		 * splits on a list of D positions
+		 * splits on a list of T positions
 		 */
 		public List<FLine> splitT(List<Double> t) {
 			double was = getT();
@@ -1159,8 +1220,8 @@ public class FLinesAndJavaShapes {
 		}
 
 		/**
-		 * mutates this line, introducing a node here. Note this will increment lengthT and possibly t, but this cursor will still be in the same actual .position() This returns the added node
-		 * or null if we are already at a control point or a break in the line
+		 * _modifies_ this line, to include a new node here. Note this will increment lengthT and possibly t, but this cursor will still be in the same actual .position() This returns the
+		 * added
 		 */
 		public FLine.Node segment() {
 			if (alpha == 0) return null;
@@ -1202,30 +1263,28 @@ public class FLinesAndJavaShapes {
 		}
 
 		/**
-		 * length in node units.
-		 *
-		 * @return
+		 * the overal length in 'node' aka 't' units. A line with 4 drawing instructions has a lengthT of 4.
 		 */
 		public int lengthT() {
 			return on.nodes.size() - 1;
 		}
 
 		/**
-		 * length in distance
+		 * length in actual units.
 		 */
 		public float lengthD() {
 			return (float) getPathFlattener().length();
 		}
 
 		/**
-		 * get current position as distance along line
+		 * get current position as distance along line.
 		 */
 		public double getD() {
 			return getPathFlattener().dotToLength(index + alpha);
 		}
 
 		/**
-		 * set the current position as a distance along this line. Returns position in node.t format
+		 * set the current position as a distance along this line.
 		 */
 		public Cursor setD(double d) {
 			double q = getPathFlattener().lengthToDot(d);
@@ -1252,11 +1311,13 @@ public class FLinesAndJavaShapes {
 			return this;
 		}
 
+		@HiddenInAutocomplete
 		protected PathFlattener getPathFlattener() {
 			if (p == null) return p = new PathFlattener(this.on, tol);
 			return p;
 		}
 
+		@HiddenInAutocomplete
 		private int clamp(int index) {
 			if (index >= on.nodes.size()) return on.nodes.size() - 1;
 			if (index < 0) return 0;

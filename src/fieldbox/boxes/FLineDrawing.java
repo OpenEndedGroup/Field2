@@ -51,7 +51,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 		.toCanon()
 		.doc("Functions that compute lines to be drawn along with this box")
 		.set(IO.dontCopy, true)
-		.set(Dict.readOnly, true).autoConstructs( () -> new IdempotencyMap<Function<Box, FLine>>(Function.class));
+		.set(Dict.readOnly, true).autoConstructs(() -> new IdempotencyMap<Function<Box, FLine>>(Function.class));
 
 	static public final Dict.Prop<Map<String, Function<Box, FLine>>> appearance = new Dict.Prop<>("frameDrawing").type()
 		.toCanon()
@@ -64,6 +64,9 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 		.autoConstructs(() -> new IdempotencyMap<>(Supplier.class))
 		.set(IO.dontCopy, true)
 		.set(Dict.readOnly, true);
+
+	static public final Dict.Prop<Vec4> boxBackground = new Dict.Prop<>("boxBackground").type().toCanon().doc("sets the background color of this box. Defaults to `" + Colors.boxBackground1 + "`").autoConstructs(() -> Colors.boxBackground1).set(IO.persistent, true);
+	static public final Dict.Prop<Vec4> boxOutline = new Dict.Prop<>("boxOutline").type().toCanon().doc("sets the outline color of this box. Defaults to `" + Colors.boxStroke + "`").autoConstructs(() -> Colors.boxStroke).set(IO.persistent, true);
 
 	static {
 		// accessing 'lines' causes a redraw to happen
@@ -119,15 +122,16 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 			Rect frame = box.properties.get(Box.frame);
 			if (frame == null) return null;
 			return wrap.apply(box)
-					.byTransforming((pos) -> new Vec3(frame.x + pos.x * frame.w, frame.y + pos.y * frame.h, pos.z));
+				.byTransforming((pos) -> new Vec3(frame.x + pos.x * frame.w, frame.y + pos.y * frame.h, pos.z));
 		}, (box) -> new Pair<>(box.properties.get(frame), box.properties.isTrue(Mouse.isSelected, false)));
 	}
-	static public Supplier<FLine> boxScale(Supplier<FLine> wrap,  Box inside) {
+
+	static public Supplier<FLine> boxScale(Supplier<FLine> wrap, Box inside) {
 		return new Cached<Box, Object, FLine>((box, previously) -> {
 			Rect frame = box.properties.get(Box.frame);
 			if (frame == null) return null;
 			return wrap.get()
-					.byTransforming((pos) -> new Vec3(frame.x + pos.x * frame.w, frame.y + pos.y * frame.h, pos.z));
+				.byTransforming((pos) -> new Vec3(frame.x + pos.x * frame.w, frame.y + pos.y * frame.h, pos.z));
 		}, (box) -> new Pair<>(box.properties.get(frame), box.properties.isTrue(Mouse.isSelected, false))).toSupplier(() -> inside);
 	}
 
@@ -236,10 +240,11 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 
 		this.breadthFirst(this.both())
 			.forEach(Util.wrap(x -> {
-				float ON = (float) Planes.on(root, x);
+				float ON = x == root ? 1 : (float) Planes.on(root, x);
 				if (ON <= 0) {
 					return;
 				}
+
 
 				Log.log("drawing.trace", () -> "lines for " + x);
 
@@ -257,7 +262,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 					Function<Box, FLine> f = it.next();
 					FLine fl = f.apply(x);
 					if (fl == null) it.remove();
-					else all.add(fl);
+					else if (fl.nodes.size() > 0) all.add(fl);
 				}
 
 				Log.log("drawing.trace", () -> " --> " + drawing);
@@ -267,7 +272,9 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 					.map(c -> c.apply(x))
 					.filter(fline -> fline != null)
 					.collect(Collectors.toList())
-					.forEach(fline -> dispatchLine(fline, context, text, defaultLayer, ON));
+					.forEach(fline -> {
+						dispatchLine(fline, context, text, defaultLayer, ON);
+					});
 				Map<String, Supplier<FLine>> ll = x.properties.computeIfAbsent(lines, (k) -> new IdempotencyMap<>(Supplier.class));
 
 				all = new ArrayList<>();
@@ -277,7 +284,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 					Supplier<FLine> f = it2.next();
 					FLine fl = f.get();
 					if (fl == null) it2.remove();
-					else all.add(fl);
+					else if (fl.nodes.size() > 0) all.add(fl);
 				}
 
 				Log.log("drawing.trace", () -> " --> " + ll);
@@ -286,7 +293,9 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 					.stream()
 					.map(c -> c.get())
 					.filter(fline -> fline != null)
-					.forEach(fline -> dispatchLine(fline, context, text, defaultLayer, ON));
+					.forEach(fline -> {
+						dispatchLine(fline, context, text, defaultLayer, ON);
+					});
 
 
 				Map<String, Supplier<Collection<? extends Supplier<FLine>>>> bl = x.properties.get(bulkLines);
@@ -353,14 +362,15 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 			if (rect == null) return new FLine();
 
 			boolean selected = box.properties.isTrue(Mouse.isSelected, false);
+			Vec4 C = box.properties.getOrConstruct(boxBackground);
 
-			float ar = (float) (selected ? Colors.boxBackground1Selected.x : Colors.boxBackground1.x);
-			float ag = (float) (selected ? Colors.boxBackground1Selected.y : Colors.boxBackground1.y);
-			float ab = (float) (selected ? Colors.boxBackground1Selected.z : Colors.boxBackground1.z);
-			float br = (float) (selected ? Colors.boxBackground2Selected.x : Colors.boxBackground2.x);
-			float bg = (float) (selected ? Colors.boxBackground2Selected.y : Colors.boxBackground2.y);
-			float bb = (float) (selected ? Colors.boxBackground2Selected.z : Colors.boxBackground2.z);
-			float s = (float) (selected ? Colors.boxBackground1Selected.w : Colors.boxBackground1.w);
+			float ar = (float) (selected ? C.x : C.x);
+			float ag = (float) (selected ? C.y : C.y);
+			float ab = (float) (selected ? C.z : C.z);
+			float br = (float) (selected ? C.x : C.x);
+			float bg = (float) (selected ? C.y : C.y);
+			float bb = (float) (selected ? C.z : C.z);
+			float s = (float) (selected ? C.w * 1.2 : C.w);
 
 			FLine f = new FLine();
 
@@ -385,7 +395,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 				f.attributes.put(hint_noDepth, true);
 
 			return f;
-		}, (box) -> new Pair(box.properties.get(frame), box.properties.get(Mouse.isSelected))));
+		}, (box) -> new Triple(box.properties.getOrConstruct(boxBackground), box.properties.get(frame), box.properties.get(Mouse.isSelected))));
 
 		r.put("__outline__", new Cached<Box, Object, FLine>((box, previously) -> {
 
@@ -407,9 +417,9 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 			//f.rect(rect);
 			FLinesAndJavaShapes.drawRoundedRectInto(f, rect.x, rect.y, rect.w, rect.h, 19 + (selected ? -8 : 1.0f));
 
-			f.attributes.put(strokeColor, selected ? Colors.boxStrokeSelected : Colors.boxStroke);
+			f.attributes.put(strokeColor, selected ? Colors.boxStrokeSelected : box.properties.getOrConstruct(boxOutline));
 
-			f.attributes.put(thicken, new BasicStroke(selected ? 16 : 0.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
+			f.attributes.put(thicken, new BasicStroke(selected ? 16 : 2.5f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER));
 
 			f.attributes.put(stroked, true);
 
@@ -422,7 +432,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 
 
 			return f;
-		}, (box) -> new Pair(box.properties.get(frame), box.properties.get(Mouse.isSelected))));
+		}, (box) -> new Triple(box.properties.getOrConstruct(boxOutline), box.properties.get(frame), box.properties.get(Mouse.isSelected))));
 
 		r.put("__name__", new Cached<Box, Object, FLine>((box, previously) -> {
 			Rect rect = box.properties.get(frame);

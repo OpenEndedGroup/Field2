@@ -495,7 +495,7 @@ public class SimpleCanvas extends Box implements IO.Loaded {
 				FLine c = new FLine().circle(out.x, out.y, cr);
 
 				this.sourceGeometry.clear();
-				this.sourceGeometry.add(c);
+				this.sourceGeometry.append(c);
 				this.sourceGeometry.modify();
 				return true;
 			}
@@ -506,7 +506,7 @@ public class SimpleCanvas extends Box implements IO.Loaded {
 				FLine c = new FLine().circle(out.x, out.y, cr);
 
 				this.sourceGeometry.clear();
-				this.sourceGeometry.add(c);
+				this.sourceGeometry.append(c);
 				this.sourceGeometry.modify();
 				return true;
 			}

@@ -267,8 +267,9 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 
 
 			}
-			if (f == null)
-				throw new IllegalStateException(" cannot type a Dict.Prop<T> that we can't find. Name is :" + name + " class is :" + c);
+			if (f == null) {
+					throw new IllegalStateException(" cannot type a Dict.Prop<T> that we can't find. Name is :" + name + " class is :" + c);
+			}
 
 			on.typeInformation = Conversions.linearize(f.getGenericType());
 
@@ -407,7 +408,7 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 	}
 
 	Map<Prop, Object> dictionary = new MapMaker().concurrencyLevel(2)
-			.makeMap();
+		.makeMap();
 //	Map<Prop, Object> dictionary = new LinkedHashMap<>();
 
 	Function<Prop, Object> failure = null;
@@ -756,7 +757,7 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 			throw new IllegalArgumentException("can't write to property " + name);
 
 		Function<Object, Object> c = cannon.getAttributes().get(Dict.customCaster);
-		if (c!=null)
+		if (c != null)
 			value = c.apply(value);
 
 		Object converted = Conversions.convert(value, cannon.getTypeInformation());

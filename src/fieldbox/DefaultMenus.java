@@ -1,6 +1,7 @@
 package fieldbox;
 
 import field.app.RunLoop;
+import field.app.ThreadSync2;
 import field.graphics.Window;
 import field.linalg.Vec2;
 import field.utility.Dict;
@@ -11,10 +12,14 @@ import fieldbox.boxes.*;
 import fieldbox.boxes.plugins.DragToCopy;
 import fieldbox.io.IO;
 import fielded.Commands;
+import fielded.RemoteEditor;
+import fielded.plugins.Launch;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Plugin: Adds Standard Menus and Shortcuts too basic not to have (new box, save etc.)
@@ -46,7 +51,7 @@ public class DefaultMenus extends Box {
 	static public volatile boolean safeToSave = false;
 
 	private final Box root;
-	private final String filename;
+	private String filename;
 	boolean saveOnExit = true;
 
 	public DefaultMenus(Box root, String filename) {
@@ -120,15 +125,37 @@ public class DefaultMenus extends Box {
 			Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
 			m.put(new Pair<>("Save all", "Saves this document"), DefaultMenus.this::save);
 
+			m.put(new Pair<>("Save as...", "Save this document under a new name (this makes all of the boxes here independent from any other files)."),
+				() -> {
+					String altWas = new Launch(root).getSaveFile();
+					try {
+						saveAsNewFile(root, altWas);
+
+						// change title
+
+						this.find(Boxes.window, both()).findFirst().ifPresent(window -> {
+							window.setTitle("Field - " + altWas);
+						});
+
+					} catch (IOException e) {
+
+						// notify
+						e.printStackTrace();
+					}
+				});
 			return m;
 		});
 
-		properties.put(newBox, (box) -> newBox(box.find(Box.frame, box.both())
-			.findFirst()
-			.map(x -> new Vec2(x.x + x.w + 5, x.y + x.h + 5))
-			.orElseGet(() -> new Vec2(0, 0)), new Box[]{box}));
+		properties.put(newBox, (box) ->
 
-		properties.put(ensureChild, (box, name) -> {
+			newBox(box.find(Box.frame, box.both())
+				.findFirst()
+				.map(x -> new Vec2(x.x + x.w + 5, x.y + x.h + 5))
+				.orElseGet(() -> new Vec2(0, 0)), new Box[]{box}));
+
+		properties.put(ensureChild, (box, name) ->
+
+		{
 			Optional<Box> f = box.children()
 				.stream()
 				.filter(x -> x.properties.equals(Box.name, name))
@@ -147,7 +174,9 @@ public class DefaultMenus extends Box {
 		});
 
 
-		properties.put(newBoxOfClass, (box, cz) -> {
+		properties.put(newBoxOfClass, (box, cz) ->
+
+		{
 			return newBoxOfClass(cz, box.find(Box.frame, box.both())
 				.findFirst()
 				.map(x -> new Vec2(x.x + x.w + 5, x.y + x.h + 5))
@@ -155,7 +184,9 @@ public class DefaultMenus extends Box {
 		});
 
 
-		properties.put(ensureChildOfClass, (box, name, cz) -> {
+		properties.put(ensureChildOfClass, (box, name, cz) ->
+
+		{
 			Optional<Box> f = box.children()
 				.stream()
 				.filter(x -> x.properties.equals(Box.name, name))
@@ -237,39 +268,112 @@ public class DefaultMenus extends Box {
 			.orElseThrow(() -> new IllegalArgumentException(" cant mouse around something without drawing support (to provide coordinate system)"));
 	}
 
-	private void save() {
-//		if (filename.endsWith(".field2"))
-		{
+	static public void save(Box root, String filename) {
+		Log.println("io.debug", " saving .... ");
+		Map<Box, String> special = new LinkedHashMap<>();
+		special.put(root, ">>root<<");
 
-			Log.println("io.debug", " saving .... ");
-			Map<Box, String> special = new LinkedHashMap<>();
-			special.put(root, ">>root<<");
+		String path = "";
+		String fn = filename;
+		if (filename.contains("/")) {
 
-			String path = "";
-			String fn = filename;
-			if (filename.contains("/")) {
-
-				path = filename.substring(0, filename.lastIndexOf("/"));
-				fn = filename.substring(filename.lastIndexOf("/") + 1);
-			}
-
-			IO.Document doc = FieldBox.fieldBox.io.compileDocument(path, root, special);
-
-			boolean error = false;
-			try {
-				FieldBox.fieldBox.io.writeOutDocument(IO.WORKSPACE + "/" + path + "/" + fn, doc);
-			} catch (IOException e) {
-				e.printStackTrace();
-				Drawing.notify("Error saving " + e.getMessage(), this, 200);
-				error = true;
-			}
-
-			if (!error) {
-				Log.println("io.debug", " going to notify ...");
-				Drawing.notify("Saved to " + filename, this, 200);
-				Log.println("io.debug", " ... notified ");
-			}
+			path = filename.substring(0, filename.lastIndexOf("/"));
+			fn = filename.substring(filename.lastIndexOf("/") + 1);
 		}
+
+		IO.Document doc = FieldBox.fieldBox.io.compileDocument(path, root, special);
+
+		FieldBox.fieldBox.io.filesTouched.clear();
+
+		boolean error = false;
+		try {
+			String finalPath = path;
+			String finalFn = fn;
+			ThreadSync2.callInMainThreadAndWait(() -> {
+
+				Drawing.notify("Saving...", root, 100);
+				ThreadSync2.yieldIfPossible();
+				FieldBox.fieldBox.io.writeOutDocument(IO.WORKSPACE + "/" + finalPath + "/" + finalFn, doc);
+				ThreadSync2.yieldIfPossible();
+//				if (!error)
+				{
+					Log.println("io.debug", " going to notify ...");
+					Drawing.notify("Saved to " + filename, root, 200);
+					Log.println("io.debug", " ... notified ");
+				}
+
+				return null;
+			});
+		} catch (Exception e) {
+			e.printStackTrace();
+			Drawing.notify("Error saving " + e.getMessage(), root, 200);
+			error = true;
+		}
+
+
+	}
+
+	private void save() {
+		save(root, filename);
+	}
+
+	public boolean saveAsNewFile(Box root, String absoluteFilename) throws IOException {
+
+		Map<Box, String> special = new LinkedHashMap<>();
+
+
+		String filename = new File(absoluteFilename).getName();
+		filename = filename + (filename.endsWith(".field2") ? "" : ".field2");
+		String tmpWorkspace = new File(absoluteFilename).getParentFile().getAbsolutePath();
+
+		String workspaceWas = FieldBox.fieldBox.io.getDefaultDirectory(); // no sure we reset that...
+
+		FieldBox.fieldBox.io.setDefaultDirectory(tmpWorkspace);
+
+
+		IO.uniqify(root);
+
+		String path = IO.WORKSPACE + "/" + filename + "/";
+
+		special.put(root, ">>root<<");
+
+		List<Runnable> undo = new LinkedList<>();
+
+		IO.Document doc = FieldBox.fieldBox.io.compileDocument("", root, x -> {
+			undo.add(IO.uniqify(x));
+			return true;
+		}, special);
+
+		Map<String, String> remap = new LinkedHashMap<String, String>();
+
+		doc.externalList.forEach(x -> {
+			String nid = Box.newID();
+			remap.put(x.id, nid);
+			x.id = nid;
+		});
+
+		doc.externalList.forEach(x -> {
+			x.children = x.children.stream().map(y -> remap.getOrDefault(y, y)).filter(y -> y != null).collect(Collectors.toList());
+			x.parents = x.parents.stream().map(y -> remap.getOrDefault(y, y)).filter(y -> y != null).collect(Collectors.toList());
+		});
+
+
+		boolean error = false;
+		try {
+			FieldBox.fieldBox.io.writeOutDocument(IO.WORKSPACE + "/" + filename, doc);
+		} catch (IOException e) {
+			e.printStackTrace();
+			Drawing.notify("Error saving " + e.getMessage(), root, 200);
+			error = true;
+		}
+
+		for (Runnable r : undo)
+			r.run();
+
+
+		this.filename = filename;
+
+		return true;
 	}
 
 	private boolean isNothingSelected() {

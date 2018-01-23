@@ -55,7 +55,7 @@ public class GenerateDocumentation implements Runnable {
 			JavaSource source = bu.addSource(input);
 
 			List<Pair<String, String>> ret = Documentation.renderStaticJava(source);
-			String m = BoxBrowser.preamble.replace("/field/filesystem/", "/")+ret.stream()
+			String m = new BoxBrowser(null).preamble.replace("/field/filesystem/", "/")+ret.stream()
 				.map(x -> "<div class='grouped'><h1 id='section_" + x.first + "'>" + x.first + "</h1><div id='section_" + x.first + "''>" + x.second + "</div></div>")
 				.reduce((a, b) -> a + "<BR>" + b).orElse("")+BoxBrowser.postamble;
 

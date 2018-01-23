@@ -10,10 +10,7 @@ import field.linalg.Vec4;
 import field.utility.Dict;
 import field.utility.Pair;
 import field.utility.Rect;
-import fieldbox.boxes.Box;
-import fieldbox.boxes.Drawing;
-import fieldbox.boxes.FLineDrawing;
-import fieldbox.boxes.Mouse;
+import fieldbox.boxes.*;
 import fieldbox.io.IO;
 
 import java.awt.*;
@@ -31,7 +28,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_KEY_G;
  * <p>
  * This is like Topology.java, but simpler, since the connections that it produces are not reified as new boxes.
  */
-public class Dispatch extends Box implements Mouse.OnMouseDown {
+public class Dispatch extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove, Keyboard.OnKeyDown {
 
 	static public final Dict.Prop<Boolean> shyConnections = new Dict.Prop<>("shyConnections").type()
 		.toCanon()
@@ -46,6 +43,8 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 		this.root = root;
 		this.properties.put(Planes.plane, "__always__");
 		this.properties.putToMap(Mouse.onMouseDown, "__dispatch__", this);
+		this.properties.putToMap(Mouse.onMouseMove, "__dispatch__", this);
+		this.properties.putToMap(Keyboard.onKeyDown, "__dispatch__", this);
 
 		this.properties.putToMap(FLineDrawing.frameDrawing, "__allTopology__", FrameChangedHash.getCached(this,
 			(b, was) -> {
@@ -94,7 +93,9 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 					int n = 0;
 					for (Box x2 : new ArrayList<>(x.children())) {
 						if (x2 instanceof DispatchBox) continue;
-						if (x2.properties.has(Box.frame) && x2.properties.has(Box.name) && x2.properties.get(Box.name).trim().length() > 0 && !x2.disconnected && Planes.on(root, x2) >= 1 && !x2.properties.isTrue(Box.hidden, false) && (x2.properties.isTrue(Mouse.isSelected, false) || !x2.properties.isTrue(shyConnections, false))) {
+						if (x2.properties.has(Box.frame) && x2.properties.has(Box.name) && x2.properties.get(Box.name).trim().length() > 0 && !x2.disconnected && Planes.on
+							(root, x2) >= 1 && !x2.properties.isTrue(Box.hidden, false) && (x2.properties.isTrue(Mouse.isSelected, false) || !x2.properties.isTrue
+							(shyConnections, false))) {
 							float d1 = x.properties.getFloat(Box.depth, 0f);
 							float d2 = x2.properties.getFloat(Box.depth, 0f);
 							FLine m = arc(x.properties.get(Box.frame), x2.properties.get(Box.frame), d1, d2, true).first;
@@ -107,7 +108,9 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 
 					for (Box x2 : new ArrayList<>(x.parents())) {
 						if (x2 instanceof DispatchBox) continue;
-						if (x2.properties.has(Box.frame) && x2.properties.has(Box.name) && x2.properties.get(Box.name).trim().length() > 0 && !x2.disconnected && Planes.on(root, x2) >= 1 && !x2.properties.isTrue(Box.hidden, false) && (x2.properties.isTrue(Mouse.isSelected, false) || !x2.properties.isTrue(shyConnections, false))) {
+						if (x2.properties.has(Box.frame) && x2.properties.has(Box.name) && x2.properties.get(Box.name).trim().length() > 0 && !x2.disconnected && Planes.on
+							(root, x2) >= 1 && !x2.properties.isTrue(Box.hidden, false) && (x2.properties.isTrue(Mouse.isSelected, false) || !x2.properties.isTrue
+							(shyConnections, false))) {
 							float d1 = x.properties.getFloat(Box.depth, 0f);
 							float d2 = x2.properties.getFloat(Box.depth, 0f);
 							FLine m = arc(x2.properties.get(Box.frame), x.properties.get(Box.frame), d2, d1, true).first;
@@ -124,17 +127,86 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 		}, () -> allFrameHashSalt));
 	}
 
+
 	@Override
 	public Mouse.Dragger onMouseDown(Window.Event<Window.MouseState> e, int button) {
 		if (button == 0) return button0(e);
 		return null;
 	}
 
+	@Override
+	public Keyboard.Hold onKeyDown(Window.Event<Window.KeyboardState> e, int key) {
+		System.out.println(" key down ");
+		if (!e.after.keysDown.contains(GLFW_KEY_G)) {
+			if (this.properties.removeFromMap(frameDrawing, "__ongoingDrag__") != null | this.properties.removeFromMap(frameDrawing, "__ongoingDrag__2") != null)
+				Drawing.dirty(this);
+			return null;
+		}
+
+		if (e.after.keysDown.equals(e.before.keysDown)) {
+			System.out.println(" -- nothing changed ");
+			return null;
+		}
+
+		if (e.after.mouseState.buttonsDown.size() > 0) return null;
+
+		Vec2 point = new Vec2(e.after.mouseState.mx, e.after.mouseState.my);
+		Optional<Box> hit = breadthFirst(both()).filter(b -> frame(b) != null)
+			.filter(x -> !x.properties.isTrue(Box.hidden, false))
+			.filter(b -> frame(b).intersects(point))
+			.sorted((a, b) -> Float.compare(order(frame(a)), order(frame(b))))
+			.findFirst();
+
+		if (!hit.isPresent()) {
+			System.out.println(" remove, no hit");
+			if (this.properties.removeFromMap(frameDrawing, "__ongoingDrag__") != null | this.properties.removeFromMap(frameDrawing, "__ongoingDrag__2") != null)
+				Drawing.dirty(this);
+			return null;
+		}
+
+		showIncompleteDrag(hit.get(), point, true);
+
+		return (e1, termination) -> {
+			if (termination)
+			if (this.properties.removeFromMap(frameDrawing, "__ongoingDrag__") != null | this.properties.removeFromMap(frameDrawing, "__ongoingDrag__2") != null)
+				Drawing.dirty(this);
+			return !termination;
+		};
+	}
+
+	@Override
+	public Mouse.Dragger onMouseMove(Window.Event<Window.MouseState> e) {
+
+		if (!e.after.keyboardState.keysDown.contains(GLFW_KEY_G)) {
+			if (this.properties.removeFromMap(frameDrawing, "__ongoingDrag__") != null | this.properties.removeFromMap(frameDrawing, "__ongoingDrag__2") != null)
+				Drawing.dirty(this);
+			return null;
+		}
+
+		if (e.after.buttonsDown.size() > 0) return null;
+
+		Vec2 point = new Vec2(e.after.mx, e.after.my);
+		Optional<Box> hit = breadthFirst(both()).filter(b -> frame(b) != null)
+			.filter(x -> !x.properties.isTrue(Box.hidden, false))
+			.filter(b -> frame(b).intersects(point))
+			.sorted((a, b) -> Float.compare(order(frame(a)), order(frame(b))))
+			.findFirst();
+
+		if (!hit.isPresent()) {
+			if (this.properties.removeFromMap(frameDrawing, "__ongoingDrag__") != null | this.properties.removeFromMap(frameDrawing, "__ongoingDrag__2") != null)
+				Drawing.dirty(this);
+			return null;
+		}
+
+		showIncompleteDrag(hit.get(), point, true);
+
+
+		return null;
+	}
+
 	protected Mouse.Dragger button0(Window.Event<Window.MouseState> e) {
 		if (!e.after.keyboardState.keysDown.contains(GLFW_KEY_G)) return null;
 
-		Optional<Drawing> drawing = this.find(Drawing.drawing, both())
-			.findFirst();
 		Vec2 point = new Vec2(e.after.mx, e.after.my);
 
 		Optional<Box> hit = breadthFirst(both()).filter(b -> frame(b) != null)
@@ -160,13 +232,13 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 						.sorted((a, b) -> Float.compare(order(frame(a)), order(frame(b))))
 						.findFirst();
 
-					if (hit.isPresent() && hit.get()!=origin) {
+					if (hit.isPresent() && hit.get() != origin) {
 						showCompleteDrag(origin, hit.get());
 						if (termination) {
 							completeDrag(origin, hit.get());
 						}
 					} else {
-						showIncompleteDrag(origin, point);
+						showIncompleteDrag(origin, point, false);
 						if (termination) {
 							Dispatch.this.properties.removeFromMap(frameDrawing, "__ongoingDrag__");
 						}
@@ -179,22 +251,36 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 
 			};
 		}
+		if (this.properties.removeFromMap(frameDrawing, "__ongoingDrag__") != null | this.properties.removeFromMap(frameDrawing, "__ongoingDrag__2") != null)
+			Drawing.dirty(this);
+
 		return null;
 	}
 
-	protected void showIncompleteDrag(Box start, Vec2 to) {
-		this.properties.putToMap(frameDrawing, "__ongoingDrag__", (box) -> {
+	protected void showIncompleteDrag(Box start, Vec2 to, boolean speculative) {
+		if (!speculative)
+			this.properties.putToMap(frameDrawing, "__ongoingDrag__", (box) -> {
 
-			Rect f1 = frame(start);
-			float d1 = start.properties.getFloat(depth, 0f);
+				Rect f1 = frame(start);
+				float d1 = start.properties.getFloat(depth, 0f);
 
-			FLine m = arc(f1, new Rect(to.x - 10, to.y - 10, 20, 20), d1, 0, true).first;
+				FLine m = arc(f1, new Rect(to.x - 10, to.y - 10, 20, 20), d1, 0, true).first;
 
-			boolean selected = false;
+				boolean selected = false;
 
-			float o = -0.5f;
+				float o = -0.5f;
 
-			m.attributes.put(StandardFLineDrawing.color, new Vec4(0, 0, 0, 0.4f));
+				m.attributes.put(StandardFLineDrawing.color, new Vec4(0, 0, 0, speculative ? 0.2f : 0.4f));
+
+				return m;
+			});
+		this.properties.putToMap(frameDrawing, "__ongoingDrag__2", (box) -> {
+
+			Rect f1 = frame(start).duplicate();
+			f1 = f1.inset(-10);
+			FLine m = new FLine().rect(f1);
+
+			m.attributes.put(StandardFLineDrawing.color, new Vec4(1, 1, 1, speculative ? 0.2f : 0.4f));
 
 			return m;
 		});
@@ -208,6 +294,7 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 
 	protected void completeDrag(Box start, Box box) {
 		this.properties.removeFromMap(frameDrawing, "__ongoingDrag__");
+		this.properties.removeFromMap(frameDrawing, "__ongoingDrag__2");
 
 		ArrayList<Box> s = new ArrayList<>(box.parents());
 		box.parents.clear();
@@ -270,10 +357,13 @@ public class Dispatch extends Box implements Mouse.OnMouseDown {
 //		}
 
 		float inset = 0;
-		Vec2[] a = new Vec2[]{new Vec2(f1.x + inset, f1.y + inset), new Vec2(f1.x + f1.w - inset, f1.y + f1.h - inset), new Vec2(f1.x + f1.w - inset, f1.y + inset), new Vec2(f1.x + inset, f1.y + f1.h - inset)};
+		Vec2[] a = new Vec2[]{new Vec2(f1.x + inset, f1.y + inset), new Vec2(f1.x + f1.w - inset, f1.y + f1.h - inset), new Vec2(f1.x + f1.w - inset, f1.y + inset), new Vec2(f1.x + inset,
+			f1.y + f1.h - inset)};
 		inset = 15;
-//		Vec2[] b = new Vec2[]{new Vec2(f2.x + f2.w - inset, f2.y + inset), new Vec2(f2.x + f2.w - inset, f2.y + f2.h - inset), new Vec2(f2.x + inset, f2.y + f2.h - inset), new Vec2(f2.x + inset, f2.y + inset)};
-		Vec2[] b = new Vec2[]{new Vec2(f2.x + f2.w / 2, f2.y + f2.h / 2 - inset), new Vec2(f2.x + f2.w / 2, f2.y + f2.h / 2 + inset)};//, new Vec2(f2.x + inset, f2.y + f2.h - inset), new Vec2(f2.x + inset, f2.y + inset)};
+//		Vec2[] b = new Vec2[]{new Vec2(f2.x + f2.w - inset, f2.y + inset), new Vec2(f2.x + f2.w - inset, f2.y + f2.h - inset), new Vec2(f2.x + inset, f2.y + f2.h - inset), new Vec2(f2.x +
+// inset, f2.y + inset)};
+		Vec2[] b = new Vec2[]{new Vec2(f2.x + f2.w / 2, f2.y + f2.h / 2 - inset), new Vec2(f2.x + f2.w / 2, f2.y + f2.h / 2 + inset)};//, new Vec2(f2.x + inset, f2.y + f2.h - inset), new
+		// Vec2(f2.x + inset, f2.y + inset)};
 
 		float d = Float.POSITIVE_INFINITY;
 		int[] da = {0, 0};

@@ -1,6 +1,7 @@
 package field.utility
 
 import field.app.ThreadSync2
+import field.linalg.Vec2
 
 class Drivers {
 
@@ -78,7 +79,8 @@ class Drivers {
 
         @JvmOverloads
         @JvmStatic
-        fun line(start: Double, end: Double, over: Int = 100, ease : (Double) -> Double = {it}): ThreadSync2.TrappedSet<Double> {
+        @Documentation("returns a number sequence that goes smoothly from `start` to `end` in `over` steps")
+        fun lineRange(start: Double, end: Double, over: Int = 100, ease : (Double) -> Double = {it}): ThreadSync2.TrappedSet<Double> {
             return object : ThreadSync2.TrappedSet<Double> {
                 var tick = 0
                 var lastValue = start;
@@ -99,6 +101,33 @@ class Drivers {
                 }
 
                 override fun toString(): String = "line, $start -> $end / $over frames; at $lastValue"
+            }
+        }
+
+        @JvmOverloads
+        @JvmStatic
+        @Documentation("returns a number sequence that goes smoothly from `start` to `end` in `over` steps")
+        fun vec2Range(start: Vec2, end: Vec2, over: Int = 100, ease : (Double) -> Double = {it}): ThreadSync2.TrappedSet<Vec2> {
+            return object : ThreadSync2.TrappedSet<Vec2> {
+                var tick = 0
+                var lastValue = start;
+
+                override fun next(): Vec2? {
+                    val d = start + (end - start) * ease(tick / over.toDouble())
+                    lastValue = d
+                    tick++
+                    return if (tick < over + 2) d else null
+                }
+
+                override fun hasNext(): Boolean {
+                    return tick < over + 1
+                }
+
+                override fun reset() {
+                    tick = 0
+                }
+
+                override fun toString(): String = "vec2 range, $start -> $end / $over frames; at $lastValue"
             }
         }
 

@@ -33,7 +33,7 @@ public class BoxChildHelper implements fieldlinker.AsMap, Collection<Box>, Objec
 
 	@Override
 	public boolean asMap_isProperty(String p) {
-		return t.containsKey(p) || p.equals("all") || c.stream().map(x -> x.asMap_get(p)).filter(x -> x != null).findAny().isPresent();
+		return t.containsKey(p) || p.equals("all") || p.equals("first") || c.stream().map(x -> x.asMap_get(p)).filter(x -> x != null).findAny().isPresent();
 	}
 
 	@Override
@@ -46,7 +46,14 @@ public class BoxChildHelper implements fieldlinker.AsMap, Collection<Box>, Objec
 		if (p.equals("all")) {
 			return new All();
 		}
+
+		if (p.equals("first")) {
+			if (c.size() == 0) return null;
+			return c.get(0);
+		}
+
 		if (t.containsKey(p)) return t.get(p);
+
 
 		Stream<Object> o = c.stream().map(x -> x.asMap_get(p)).filter(x -> x != null);
 		Optional val = null;
@@ -192,7 +199,7 @@ public class BoxChildHelper implements fieldlinker.AsMap, Collection<Box>, Objec
 
 	@Override
 	public Object asMap_getElement(Object element) {
-		return asMap_get(""+element);
+		return asMap_get("" + element);
 	}
 
 	@Override

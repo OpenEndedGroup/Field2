@@ -88,6 +88,7 @@ public class TextDrawing extends Box {
 			"layout(location=0) in vec3 position;\n" +
 			"layout(location=1) in vec4 color;\n" +
 			"layout(location=3) in vec4 tc;\n" +
+			"layout(location=4) in vec2 origin;\n" +
 			"out vec4 vertexColor;\n" +
 			"out vec4 vtc;\n" +
 
@@ -96,10 +97,13 @@ public class TextDrawing extends Box {
 			"uniform vec2 bounds;\n" +
 			"uniform float smoothing;\n" +
 			"uniform float displayZ;\n" +
+			"uniform float downAmount;\n" +
 
 			"void main()\n" +
 			"{\n" +
+			"	vec2 atO = (scale.xy*origin.xy+translation.xy)/bounds.xy;\n" +
 			"	vec2 at = (scale.xy*position.xy+translation.xy)/bounds.xy;\n" +
+			"	at = at*(downAmount)+ (1-downAmount)*atO;\n"+
 			"   gl_Position =  vec4(-1+at.x*2+displayZ*position.z, 1-at.y*2, 0.5, 1.0);\n" +
 			"   vertexColor = color;\n" +
 			"   vtc =tc;\n" +
@@ -131,6 +135,7 @@ public class TextDrawing extends Box {
 
 		layer.mainShader.attach(new Uniform<Vec2>("translation", () -> drawing.getTranslationRounded()));
 		layer.mainShader.attach(new Uniform<Vec2>("scale", () -> drawing.getScale()));
+		layer.mainShader.attach(new Uniform<Double>("downAmount", () -> 1/drawing.getScale().x));
 		layer.mainShader.attach(new Uniform<Vec2>("bounds", () -> new Vec2(Window.getCurrentWidth(), Window.getCurrentHeight())));
 		layer.mainShader.attach(new Uniform<Float>("smoothing", () -> smoothing));
 		layer.mainShader.attach(new Uniform<Float>("gamma", () -> gamma));

@@ -6,6 +6,6 @@
     <bytecodeTargetLevel target="9" />
   </component>
   <component name="JavacSettings">
-    <option name="ADDITIONAL_OPTIONS_STRING" value="-parameters" />
+    <option name="ADDITIONAL_OPTIONS_STRING" value="-parameters --add-exports java.desktop/com.apple.eawt=ALL-UNNAMED" />
   </component>
 </project>

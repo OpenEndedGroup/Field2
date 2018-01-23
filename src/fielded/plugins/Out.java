@@ -192,6 +192,7 @@ public class Out extends Box {
 		String uid = null;
 		int uidLine = 0;
 		for (StackTraceElement ee : st) {
+			System.out.println(ee.getFileName()+" "+ee.getClassName()+" "+ee.getMethodName()+" "+ee.getModuleName());
 			if (ee.getFileName() != null && ee.getFileName().startsWith("bx[")) {
 				Matcher m = c.matcher(ee.getFileName());
 				if (m.find()) {
@@ -202,13 +203,15 @@ public class Out extends Box {
 			}
 		}
 
+		System.out.println(" uid :"+uid);
 		if (uid != null) {
 			theLineOut.accept(new Triple<>(find(uid), uidLine, append));
 		} else theLineOut.accept(null);
 
 
 		try {
-			theWriter.append(convert(x));
+			String cc = convert(x);
+			theWriter.append(cc);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -249,6 +252,9 @@ public class Out extends Box {
 		String nn = c.getName();
 		String[] p = nn.split("\\.");
 		String shor = p[p.length - 1];
+
+		if (shor.equalsIgnoreCase("ScriptObjectMirror")) return "Object";
+
 		return shor;
 	}
 

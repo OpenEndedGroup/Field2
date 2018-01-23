@@ -1,11 +1,13 @@
 package fielded.boxbrowser;
 
 import com.google.common.collect.MapMaker;
+import com.google.common.io.Files;
 import com.thoughtworks.qdox.model.JavaClass;
 import field.utility.Dict;
 import field.utility.MarkdownToHTML;
 import field.utility.Pair;
 import fieldbox.boxes.Box;
+import fieldbox.boxes.plugins.BoxDefaultCode;
 import fieldbox.documentation.Documentation;
 import fieldbox.execution.Errors;
 import fieldbox.execution.Execution;
@@ -113,10 +115,11 @@ public class BoxBrowser extends Box implements IO.Loaded {
 
 	}
 
-	static public final String preamble = "<html xmlns='http://www.w3.org/1999/xhtml'> <meta charset='UTF-8'><head>" +
+	public final String preamble = "<html xmlns='http://www.w3.org/1999/xhtml'> <meta charset='UTF-8'><head>" +
 		"<script src='/field/filesystem/codemirror-5.25.2/lib/codemirror.js'></script>" +
 		"<link rel='stylesheet' href='/field/filesystem/codemirror-5.25.2/lib/codemirror.css'>" +
 		"<link rel='stylesheet' href='/field/filesystem/codemirror-5.25.2/theme/default.css'>" +
+		"<link rel='stylesheet' href='/field/filesystem/field-codemirror.css' type='text/css'>" +
 		"<link rel='stylesheet' href='/field/filesystem/field-boxbrowser.css' type='text/css'>" +
 		"<script src='/field/filesystem/codemirror-5.25.2/mode/javascript/javascript.js'></script>" +
 		"<script src='/field/filesystem/jquery-2.1.0.min.js'></script>" +
@@ -194,7 +197,7 @@ public class BoxBrowser extends Box implements IO.Loaded {
 				.get(toMarkdown)
 				.apply(box, source);
 
-			String html = "<p>" + Errors.INSTANCE.handle( () -> MarkdownToHTML.convert(md), t-> "A error was thrown while rendering this property as markdown: <code>"+t+"</code>") + "</p>";
+			String html = "<p>" + Errors.INSTANCE.handle(() -> MarkdownToHTML.convert(md), t -> "A error was thrown while rendering this property as markdown: <code>" + t + "</code>") + "</p>";
 			return html;
 		}
 		if (property.getAttributes()
@@ -226,7 +229,17 @@ public class BoxBrowser extends Box implements IO.Loaded {
 		for (int i = 0; i < ss.length; i++) {
 
 			String z = ss[i]/*.trim()*/;
-			if (z.equals(commentStart)) {
+			if (z.startsWith("//")) {
+				Section s2 = new Section();
+				s2.a = z.substring(2);
+				s2.comment = s.comment + 1;
+				sections.add(s2);
+				s2 = new Section();
+				s2.a = "";
+				s2.comment = s.comment;
+				sections.add(s2);
+				s = s2;
+			} else if (z.equals(commentStart)) {
 				Section s2 = new Section();
 				s2.a = "";
 				s2.comment = s.comment + 1;
@@ -254,6 +267,8 @@ public class BoxBrowser extends Box implements IO.Loaded {
 			.reduce((a, b) -> ("" + a) + ("" + b))
 			.get();
 
+		o = o.replaceAll("<p></p>", "");
+
 		return o;
 	}
 
@@ -261,14 +276,22 @@ public class BoxBrowser extends Box implements IO.Loaded {
 
 	private String render(Box box, Dict.Prop<Object> property, Section x) {
 		if (x.comment > 0) {
-			String h = MarkdownToHTML.convert(x.a);
+			String h = MarkdownToHTML.convert(ensureSentenceCase(x.a));
 
-			return "<p>" + h + "</p>";
+			return h;
 		} else {
 			cn++;
 			return "<textarea readonly class='ta_" + (cn) + "'>" + x.a.trim() + "</textarea>" +
-				"<script language='javascript'>CodeMirror.fromTextArea($('.ta_" + cn + "')[0], {viewportMargin:Infinity, mode:'javascript', readOnly:true})</script>";
+				"<script language='javascript'>CodeMirror.fromTextArea($('.ta_" + cn + "')[0], {lineNumbers:true, lineWrapping:true, viewportMargin:Infinity, mode:'javascript', readOnly:true})</script>";
 		}
+	}
+
+	private String ensureSentenceCase(String a) {
+		a = a.trim();
+		if (a.length() > 2) {
+			a = a.substring(0, 1).toUpperCase() + a.substring(1);
+		}
+		return a;
 	}
 
 }

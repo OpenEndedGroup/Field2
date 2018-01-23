@@ -173,7 +173,7 @@ public class Drawing extends Box implements DrawingInterface {
 			f.moveTo(view.x + view.w / 2, view.y + view.h / 2 - 10);
 			f.nodes.get(0).attributes.put(StandardFLineDrawing.text, text);
 			f.nodes.get(0).attributes.put(textScale, 4);
-			f.attributes.put(color, new Vec4(1, 1, 1, 1f));
+			f.attributes.put(color, new Vec4(0,0,0,1f));
 			f.attributes.put(hasText, true);
 			f.attributes.put(layer, "glass2");
 
@@ -187,8 +187,8 @@ public class Drawing extends Box implements DrawingInterface {
 			FLine f = new FLine();
 			int w = 20;
 			int h = 60;
-			f.rect(view.x - w, view.y + view.h / 2 - h - 10, view.w + w * 2, h + 25);
-			f.attributes.put(color, new Vec4(0, 0, 0, -0.8f));
+			f.rect(view.x - w, view.y /*+ view.h / 2 */- h - 10, view.w + w * 2, view.h + h + 25);
+			f.attributes.put(color, new Vec4(0.2, 0.2, 0.2, -0.2f));
 			f.attributes.put(layer, "glass2");
 			f.attributes.put(filled, true);
 			return f;
@@ -235,7 +235,7 @@ public class Drawing extends Box implements DrawingInterface {
 			"{\n" +
 			"	float f = mod(gl_FragCoord.x-gl_FragCoord.y,20)/20.0;\n" +
 			"	f = (sin(f*3.14*2)+1)/2;" +
-			"	f = (smoothstep(0.45, 0.55, f)+1)/2;" +
+			"	f = (smoothstep(0.5, 0.55, f)+1)/2;" +
 			"	_output  = vec4(abs(vcolor.xyzw));\n" +
 			"	if (vcolor.w<0) _output.w *= f;" +
 			"	_output.w *= opacity;\n" +

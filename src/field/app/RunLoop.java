@@ -18,7 +18,7 @@ public class RunLoop {
 	static public final RunLoop main = new RunLoop();
 	static public final ReentrantLock lock = new ReentrantLock(true);
 	static public final ExecutorService workerPool = Executors.newFixedThreadPool(Runtime.getRuntime()
-											     .availableProcessors()*2 + 2);
+		.availableProcessors() * 2 + 2);
 	static public long tick = 0;
 	protected final Thread shutdownThread;
 	public Scene mainLoop = new Scene();
@@ -31,7 +31,7 @@ public class RunLoop {
 	protected RunLoop() {
 		mainThread = Thread.currentThread();
 		Runtime.getRuntime()
-		       .addShutdownHook(shutdownThread = new Thread(() -> exit()));
+			.addShutdownHook(shutdownThread = new Thread(() -> exit()));
 	}
 
 	public Scene getLoop() {
@@ -63,24 +63,50 @@ public class RunLoop {
 			ThreadSync2.setSync(new ThreadSync2());
 
 		while (true) {
-            try {
-                tick++;
+			try {
+				tick++;
 
-                long a = System.nanoTime();
-                boolean didWork = false;
-                if (lock.tryLock(1, TimeUnit.DAYS)) {
-                    long b = System.nanoTime();
+				long a = System.nanoTime();
+				boolean didWork = false;
+				if (lock.tryLock(1, TimeUnit.DAYS)) {
+					long b = System.nanoTime();
 
-                    mainLoop.updateAll();
+					mainLoop.updateAll();
 
-                    long c = System.nanoTime();
-                    didWork = ThreadSync.get()
-                            .serviceAndCull();
+					long c = System.nanoTime();
+					didWork = ThreadSync.get()
+						.serviceAndCull();
+
 					if (ThreadSync2.getEnabled()) {
 						didWork |= ThreadSync2.getSync()
-								.service();
+							.service();
 					}
 
+					long d = System.nanoTime();
+
+					getLock += b - a;
+					hasLock += d - b;
+					service += d - c;
+					mainloop += c - b;
+				} else {
+					locksMissed++;
+				}
+
+				if (shouldSleep.size() == 0 && !didWork) {
+					Thread.sleep(2);
+					sleepsTaken++;
+				}
+
+				if (tick % interval == 0) {
+
+					if (printTelemetry) {
+						System.out.println(
+							" a" + (getLock / (double) interval) + " b" + (hasLock / (double) interval) + " c" + (service / (double) interval) + " d" + (mainloop / (double) interval) + " m" + locksMissed + " s" + sleepsTaken);
+						System.out.println(" f" + (System.nanoTime() - intervalIn) / interval);
+						System.out.println(" m" + (Runtime.getRuntime()
+							.freeMemory() - freeMemIn) / interval);
+
+					}
 					getLock = 0;
 					hasLock = 0;
 					service = 0;
@@ -89,7 +115,7 @@ public class RunLoop {
 					sleepsTaken = 0;
 					intervalIn = System.nanoTime();
 					freeMemIn = Runtime.getRuntime()
-							   .freeMemory();
+						.freeMemory();
 				}
 
 			} catch (Throwable t) {
@@ -113,6 +139,10 @@ public class RunLoop {
 			}
 
 		});
+	}
+
+	public static long getTick() {
+		return tick;
 	}
 
 	public <T> void when(Future<T> f, Consumer<T> a) {
@@ -169,7 +199,7 @@ public class RunLoop {
 
 			@Override
 			public boolean perform(int pass) {
-				if (System.currentTimeMillis()  > when) {
+				if (System.currentTimeMillis() > when) {
 					p0.run();
 					return false;
 				}

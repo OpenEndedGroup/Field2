@@ -11,7 +11,9 @@ import fieldbox.execution.QuoteCompletionHelpers;
 import fieldbox.io.IO;
 import fielded.Commands;
 import fielded.RemoteEditor;
+import fielded.plugins.Launch;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
@@ -101,7 +103,7 @@ public class Templates extends Box implements IO.Loaded {
 			long numSelected = selection().count();
 
 			if (numSelected > 0)
-				m.put(new Pair<>("Save as template", "Makes this " + (numSelected == 1 ? "box" : "selection of " + numSelected + " boxes") + " a reusable, easily imported template"),
+				m.put(new Pair<>("Save as template...", "Makes this " + (numSelected == 1 ? "box" : "selection of " + numSelected + " boxes") + " a reusable, easily imported template"),
 					new RemoteEditor.ExtendedCommand() {
 
 						public RemoteEditor.SupportsPrompt p;
@@ -135,6 +137,10 @@ public class Templates extends Box implements IO.Loaded {
 							});
 						}
 					});
+
+
+
+
 			return m;
 		});
 	}
@@ -201,6 +207,8 @@ public class Templates extends Box implements IO.Loaded {
 		return b.iterator()
 			.next();
 	}
+
+
 
 	private static String keepPrefix(String filename, String was) {
 		String[] parts = was.split("\\.");

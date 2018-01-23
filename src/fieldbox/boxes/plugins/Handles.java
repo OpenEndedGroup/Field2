@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 /**
  * Extends FLineInteraction to include, essentially, a node editor. Unlike Field1 this is going to be much more pluggable
  * <p>
- * Rather than add this as a plug-in globally, merely add this above the boxes that you want to add this functionality to.
  */
 public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove {
 
@@ -61,7 +60,8 @@ public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove
 
 		protected FLine source;
 
-		public Draggable(Supplier<Vec3> get, SetAndConstrain setAndConstrain, Function<Boolean, Boolean> select, Supplier<Collection<FLine>> appearance, Function<Vec3, Vec3> finisher, Runnable commit) {
+		public Draggable(Supplier<Vec3> get, SetAndConstrain setAndConstrain, Function<Boolean, Boolean> select, Supplier<Collection<FLine>> appearance, Function<Vec3, Vec3> finisher,
+				 Runnable commit) {
 			this.get = get;
 			this.setAndConstrain = setAndConstrain;
 			this.select = select;
@@ -71,7 +71,8 @@ public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove
 			init();
 		}
 
-		public Draggable(FLine.Node on, SetAndConstrain setAndConstrain, Function<Boolean, Boolean> select, Supplier<Collection<FLine>> appearance, Function<Vec3, Vec3> finisher, Runnable commit) {
+		public Draggable(FLine.Node on, SetAndConstrain setAndConstrain, Function<Boolean, Boolean> select, Supplier<Collection<FLine>> appearance, Function<Vec3, Vec3> finisher, Runnable
+			commit) {
 			this.get = () -> on.to;
 			this.setAndConstrain = (next, previous, initial) -> {
 				Vec3 v = setAndConstrain.apply(next, previous, initial);
@@ -230,7 +231,6 @@ public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove
 			.findFirst();
 		Vec2 pos = new Vec2(e.after.mx, e.after.my);
 
-
 		Log.log("handles", () -> "onMouseDown :" + pos);
 		Draggable selected = d.stream()
 			.filter(x -> hitTest(x, x.getPosition(), pos) < r)
@@ -258,15 +258,18 @@ public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove
 				// we commit on selected -> nothing selected edges
 				commit();
 			}
-			d.stream()
-				.forEach(x -> {
-					if (x != selected && x.selected) {
-						x.select(false);
-//						outgoingEdge[0] = true;
-					}
-				});
 
-			return null;
+			if (selected == null) {
+				d.stream()
+					.forEach(x -> {
+						if (x != selected && x.selected) {
+							x.select(false);
+//						outgoingEdge[0] = true;
+						}
+					});
+
+				return null;
+			}
 		}
 
 		if (e.after.keyboardState.isShiftDown()) {
@@ -298,8 +301,7 @@ public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove
 
 	private double hitTest(Draggable x, Vec3 nodePosition, Vec2 mousePosition) {
 
-		if (x.source!=null && x.source.attributes.has(inside))
-		{
+		if (x.source != null && x.source.attributes.has(inside)) {
 			Viewport v = x.source.attributes.get(inside);
 			Vec2 at = v.viewportToDrawingSpace(nodePosition);
 			return at.distance(mousePosition);
@@ -309,18 +311,18 @@ public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove
 	}
 
 	private Vec3 applyDrag(Draggable x, Vec2 mouseWas, Vec2 mouseNow, Vec3 initialPosition) {
-		if (x.source!=null && x.source.attributes.has(inside)) {
+		if (x.source != null && x.source.attributes.has(inside)) {
 			System.out.println(" this is 3d");
 			Viewport v = x.source.attributes.get(inside);
 
 			Vec2 ds = v.viewportToDrawingSpace(initialPosition);
 
-			System.out.println(" old drawing space "+ds);
+			System.out.println(" old drawing space " + ds);
 
-			ds.x += mouseNow.x-mouseWas.x;
-			ds.y += mouseNow.y-mouseWas.y;
+			ds.x += mouseNow.x - mouseWas.x;
+			ds.y += mouseNow.y - mouseWas.y;
 
-			System.out.println(" new drawing space "+ds);
+			System.out.println(" new drawing space " + ds);
 
 			Vec3 v1 = v.drawingSpaceToViewport(ds, 0.1f);
 			Vec3 v2 = v.drawingSpaceToViewport(ds, 0.9f);
@@ -331,7 +333,7 @@ public class Handles extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMove
 
 			Vec3 ret = n.scale(ll).add(v1);
 
-			System.out.println(" closest point to point "+initialPosition+" is "+ret+" ("+ll+" away)");
+			System.out.println(" closest point to point " + initialPosition + " is " + ret + " (" + ll + " away)");
 
 			return ret;
 		}

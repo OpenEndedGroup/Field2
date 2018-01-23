@@ -3,6 +3,7 @@ package fieldbox.boxes;
 import field.app.RunLoop;
 import field.graphics.Scene;
 import field.utility.Dict;
+import field.utility.IdempotencyMap;
 import fieldbox.boxes.plugins.Planes;
 import fieldbox.execution.InverseDebugMapping;
 import fieldbox.io.IO;
@@ -27,8 +28,7 @@ public class Boxes {
 	static public final Dict.Prop<FieldBoxWindow> window = new Dict.Prop<>("window")
 		.doc("the FieldBoxWindow that this graph is currently in")
 		.set(Dict.readOnly, true);
-	static public final Dict.Prop<Map<String, Supplier<Boolean>>> insideRunLoop = new Dict.Prop<>("_insideRunLoop");
-
+	static public final Dict.Prop<Map<String, Supplier<Boolean>>> insideRunLoop = new Dict.Prop<>("_insideRunLoop").set(Dict.readOnly).autoConstructs(() -> new IdempotencyMap<Supplier<Boolean>>(Supplier.class));
 
 	static public final Dict.Prop<Boolean> dontSave = new Dict.Prop<>("dontSave").type()
 		.toCanon()
@@ -84,13 +84,13 @@ public class Boxes {
 					while (r.hasNext()) {
 						Map.Entry<String, Supplier<Boolean>> n = r.next();
 						try {
-							if (n.getKey()
-								.startsWith("main.")) try {
-								if (!n.getValue()
-									.get()) r.remove();
-							} catch (Throwable t) {
-								t.printStackTrace();
-							}
+							if (n.getKey().startsWith("main.") || n.getKey().startsWith("main_"))
+								try {
+									if (!n.getValue()
+										.get()) r.remove();
+								} catch (Throwable t) {
+									t.printStackTrace();
+								}
 						} catch (Throwable t) {
 							t.printStackTrace();
 							try {

@@ -1051,12 +1051,14 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 		out.writeDouble(x);
 		out.writeDouble(y);
 		out.writeDouble(z);
+		out.writeDouble(w);
 	}
 
 	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
 		x = in.readDouble();
 		y = in.readDouble();
 		z = in.readDouble();
+		w = in.readDouble();
 	}
 
 	public int hashCode() {
@@ -1400,6 +1402,27 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 	}
 
 	@Override
+	public Object __sub__(Object b) {
+		Vec4 c = convertToVec4(b);
+		if (c != null)
+			return new Vec4(this.x - c.x, this.y - c.y, this.z - c.z, this.w - c.w);
+
+		if (b instanceof Quat) {
+			return ((Quat) b).invert(new Quat()).transform(this, new Vec4());
+		}
+		if (b instanceof Vec4) {
+			return this.sub((Vec4) b);
+		}
+
+		if (b instanceof OverloadedMath)
+			return ((OverloadedMath) b).__rsub__(this);
+
+		throw new ClassCastException(" can't sub '" + b + "' by a Vec4 (" + this + ")");
+
+	}
+
+
+	@Override
 	public Object __rsub__(Object b) {
 		Vec4 c = convertToVec4(b);
 		if (c != null)
@@ -1520,6 +1543,17 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 
 	}
 
+	@Override
+	public Object __xor__(Object b) {
+		throw new ClassCastException(" can't multiply '" + b + "' by a Vec3 (" + this + ")");
+	}
+
+	@Override
+	public Object __rxor__(Object b) {
+		throw new ClassCastException(" can't multiply '" + b + "' by a Vec3 (" + this + ")");
+	}
+
+
 	private Vec4 convertToVec4(Object b) {
 		if (b instanceof Vec4) return (Vec4) b;
 		if (b instanceof Vec3) return ((Vec3) b).toVec4();
@@ -1528,4 +1562,62 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 			return new Vec4(((Number) b).doubleValue(), ((Number) b).doubleValue(), ((Number) b).doubleValue(), 1);
 		return null;
 	}
+
+	/**
+	 * sets the `red` compenent of this Vec4 (i.e. `x`)
+	 */
+	public void setR(double r) {
+		this.x = r;
+	}
+
+	/**
+	 * sets the `green` compenent of this Vec4 (i.e. `y`)
+	 */
+	public void setG(double g) {
+		this.y = g;
+	}
+
+	/**
+	 * sets the `blue` compenent of this Vec4 (i.e. `z`)
+	 */
+	public void setB(double b) {
+		this.z = b;
+	}
+
+	/**
+	 * sets the `alpha` compenent of this Vec4 (i.e. `w`)
+	 */
+	public void setA(double a) {
+		this.w = a;
+	}
+
+	/**
+	 * gets the `red` compenent of this Vec4 (i.e. `x`)
+	 */
+	public double getR() {
+		return this.x;
+	}
+
+	/**
+	 * gets the `green` compenent of this Vec4 (i.e. `y`)
+	 */
+	public double getG() {
+		return this.y;
+	}
+
+	/**
+	 * gets the `blur` compenent of this Vec4 (i.e. `b`)
+	 */
+	public double getB() {
+		return this.z;
+	}
+
+	/**
+	 * gets the `alpha` compenent of this Vec4 (i.e. `w`)
+	 */
+	public double getA() {
+		return this.w;
+	}
+
+
 }
