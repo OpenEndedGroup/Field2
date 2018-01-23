@@ -22,6 +22,7 @@ import fielded.Commands
 import fielded.RemoteEditor
 import fielded.TextUtils
 import fielded.boxbrowser.TransientCommands
+import fielded.plugins.Launch
 import fielded.webserver.NanoHTTPD
 import fielded.webserver.Server
 import java.io.*
@@ -36,9 +37,11 @@ import java.util.stream.Collectors
 class DocumentationBrowser(val root: Box) : Box(), IO.Loaded {
 
     val DOCUMENTATION = "/doc/"
+    val LAUNCH= "/launch/"
+
 
     var cn = 0;
-    val preamble = Files.toString(File(fieldagent.Main.app + "lib/web/init_docbrowser.html_fragment"), Charset.defaultCharset())
+    var preamble = Files.toString(File(fieldagent.Main.app + "lib/web/init_docbrowser.html_fragment"), Charset.defaultCharset())
 
     val postamble = "</div></body>"
 
@@ -50,7 +53,8 @@ class DocumentationBrowser(val root: Box) : Box(), IO.Loaded {
         this.properties.put<Supplier<Map<Pair<String, String>, Runnable>>>(Commands.commands, Supplier<Map<Pair<String, String>, Runnable>> {
             val v = HashMap<Pair<String, String>, Runnable>()
 
-            val u = "http://localhost:8080/doc/field/graphics/FLine"
+//            val u = "http://localhost:8080/doc/field/graphics/FLine"
+            val u = "http://localhost:4000/index.html"
 
             v.put(Pair("New Documentation Browser", "Makes a new browser for reading documentation"), Runnable { makeNewDocumentationBrowesr(root, u) })
             v
@@ -60,6 +64,9 @@ class DocumentationBrowser(val root: Box) : Box(), IO.Loaded {
 
         s.addURIHandler({ uri, method, headers, params, files ->
             if (uri.startsWith(DOCUMENTATION)) {
+
+                preamble = Files.toString(File(fieldagent.Main.app + "lib/web/init_docbrowser.html_fragment"), Charset.defaultCharset())
+
                 var uu = uri.substring(DOCUMENTATION.length)
                 val pieces = uu.split("/".toRegex()).dropLastWhile({ it.isEmpty() }).toTypedArray()
 
@@ -99,12 +106,39 @@ class DocumentationBrowser(val root: Box) : Box(), IO.Loaded {
                                 preamble+"\n"+o+"\n"+postamble;
                             })
 
+                        if (response==null)
+                        {
+                            response = NanoHTTPD.Response(NanoHTTPD.Response.Status.OK, null,preamble+"\n(no document found)\n"+postamble )
+                        }
+
                         response
                     }
-                    else
-                        null
+                    else null
                 }.filter { it!=null }.first()
 
+            }
+            else
+                null
+        })
+
+        s.addURIHandler({ uri, method, headers, params, files ->
+            if (uri.startsWith(LAUNCH)) {
+
+                var uu = uri.substring(LAUNCH.length)
+
+                val pieces = uu.split("/");
+                val name = pieces[0];
+                val url = uu.substring(name.length+1);
+
+                preamble = Files.toString(File(fieldagent.Main.app + "lib/web/didLaunch.html"), Charset.defaultCharset())
+
+                val r = NanoHTTPD.Response(NanoHTTPD.Response.Status.OK, null,preamble+"Field is downloading and launching file "+name+" from "+url);
+
+                Thread{
+                    Launch(root).downloadDecompressAndOpen(name, "http://"+url);
+                }.start()
+
+                r
             }
             else
                 null
@@ -119,13 +153,14 @@ class DocumentationBrowser(val root: Box) : Box(), IO.Loaded {
 
         re.sendJavaScriptNow("var c = cm.getCursor()\n" +
                 "cm.setCursor({line:10000})\n" +
-                "cm.replaceRange(`\\n"+TextUtils.quoteNoOuter(all)+"\\n`, cm.getCursor())\n" +
+                "cm.replaceRange(\"\\n"+TextUtils.quoteNoOuter(all)+"\\n\", cm.getCursor())\n" +
                 "\n" +
+                "cm.execCommand(\"goCharLeft\")\n" +
                 "cm.setSelection(c, cm.getCursor())\n" +
                 "\n" +
                 "Run_Selection()\n" +
                 "\n" +
-                "cm.setCursor(c)\n")
+                "cm.setCursor(c);cm.refresh();selectTab('code');\n")
     }
 
 
