@@ -286,13 +286,20 @@ public class NashornExecution implements Execution.ExecutionSupport {
 		}
 		if (!box.properties.isTrue(ThreadSync2Feedback.mainThread, false) && ThreadSync2.getEnabled() && Thread.currentThread() == ThreadSync2.getSync().getMainThread()) {
 
-			ThreadSync2.Fibre f = ThreadSync2.getSync()
-				.launchAndServiceOnce("execution of {{" + textFragment + "}}", () -> engine.eval(textFragment, context), t -> {
-					if (seenBefore.add(t))
-						exception.accept(t);
-				});
+			try {
+				ThreadSync2.Fibre f = ThreadSync2.getSync()
+						.launchAndServiceOnce("execution of {{" + textFragment + "}}",
+											  () -> engine.eval(textFragment, context), t -> {
+									if (!(t instanceof ThreadSync2.KilledException))
+										if (seenBefore.add(t))
+											exception.accept(t);
+								});
 			f.tag = box;
 			return f.lastReturn;
+			}
+			catch(ThreadSync2.KilledException e)
+			{			return null;
+			}
 
 
 		} else {
