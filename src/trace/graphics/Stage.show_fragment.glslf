@@ -4,9 +4,21 @@ uniform sampler2D tex;
 uniform float disabled;
 in vec2 tc;
 
+vec2 remapTexture(vec2 src)
+{
+    vec2 dest = src;
+
+    return dest;
+}
+
 void main()
 {
-    _output  = texture(tex, tc);
+    _output  = texture(tex, remapTexture(tc));
+
+    _output.w = 1;
+
+    if (tc.x<0 || tc.x>1)
+        _output = vec4(0.03,0.03,0.03,1);
 
     if (disabled>0)
     {
