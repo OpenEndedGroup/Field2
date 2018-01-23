@@ -10,6 +10,7 @@ import fielded.EditorUtils;
 import fielded.RemoteEditor;
 import fielded.boxbrowser.TransientCommands;
 import fielded.plugins.Out;
+import jdk.dynalink.beans.StaticClass;
 
 import javax.script.Bindings;
 import javax.script.ScriptContext;
@@ -116,12 +117,19 @@ public class ErrorHelper {
 			List<Pair<String, Object>> possibleNames = new ArrayList<>();
 			if (bindings != null) {
 				List<String> q = editsOfString(missing.toLowerCase());
+
+				Map<String, String> mm = new LinkedHashMap<>();
+				bindings.getBindings(100).forEach((k, v) -> {
+					if (k != null && k instanceof String && v != null)
+						mm.put(k.toLowerCase(), k);
+				});
+
 				for (String qq : q) {
 					if (qq == null) continue;
 					try {
-						Object foundval = bindings.getBindings(100).get(qq);
-						if (foundval != null) {
-							possibleNames.add(new Pair<>(qq, foundval));
+						String foundKey = mm.get(qq);
+						if (foundKey != null) {
+							possibleNames.add(new Pair<>(foundKey, bindings.getBindings(100).get(foundKey)));
 						}
 					}
 					// Nashorn has started throwing this for some .get(qq)'s
@@ -148,6 +156,12 @@ public class ErrorHelper {
 	}
 
 	private String html(Box box, Object second) {
+
+		if (second instanceof StaticClass)
+		{
+			return "for example `new "+((StaticClass) second).getRepresentedClass().getSimpleName()+"`";
+		}
+
 		return box.first(Out.__out).map(x -> x.convert(second)).orElseGet(() -> "" + second);
 	}
 

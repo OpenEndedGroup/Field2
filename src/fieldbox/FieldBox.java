@@ -6,6 +6,7 @@ import fieldagent.Main;
 import fieldbox.io.IO;
 import fieldcef.browser.CefSystem;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.desktop.OpenFilesEvent;
 import java.awt.desktop.OpenFilesHandler;
@@ -28,17 +29,18 @@ public class FieldBox {
 
 
 	static public void main(String[] s) {
-		args = s;
-		Options.parseCommandLine(s);
+//		SwingUtilities.invokeLater(() -> {
+			args = s;
+			Options.parseCommandLine(s);
 
-		// needs to be initialized after 'args'
-		workspace = Options.getDirectory("workspace", () -> System.getProperty("user.home") + "/Documents/FieldWorkspace/");
+			// needs to be initialized after 'args'
+			workspace = Options.getDirectory("workspace", () -> System.getProperty("user.home") + "/Documents/FieldWorkspace/");
 
-		System.err.println(" lauching toolkit");
-		if (Main.os == Main.OS.mac) {
-			Toolkit.getDefaultToolkit();
+			System.err.println(" lauching toolkit");
+			if (Main.os == Main.OS.mac) {
+				Toolkit.getDefaultToolkit();
 
-			// this possibly works on windows?
+				// this possibly works on windows?
 
 //			Desktop.getDesktop().setOpenFileHandler(new OpenFilesHandler() {
 //				@Override
@@ -46,36 +48,37 @@ public class FieldBox {
 //					System.out.println("\n\n!! open files !! \n\n" + e);
 //				}
 //			});
-		}
+			}
 
 
-		// experimenting with moving this initialization first. Seems to remove the occasional crash on startup?
-		new Thread(() -> {
-			System.err.println(" building the CefSystem");
-			CefSystem sys = CefSystem.cefSystem;
-			System.err.println(" finished building the CefSystem");
-		}).start();
+			// experimenting with moving this initialization first. Seems to remove the occasional crash on startup?
+			new Thread(() -> {
+				System.err.println(" building the CefSystem");
+				CefSystem sys = CefSystem.cefSystem;
+				System.err.println(" finished building the CefSystem");
+			}).start();
 
-		try {
-			Thread.sleep(5000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		System.err.println(" finished hanging out");
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			System.err.println(" finished hanging out");
 
 
-		LoggingDefaults.initialize();
+			LoggingDefaults.initialize();
 
-		fieldBox.io = new IO(workspace);
-		fieldBox.io.addFilespec("code", IO.EXECUTION, IO.EXECUTION);
+			fieldBox.io = new IO(workspace);
+			fieldBox.io.addFilespec("code", IO.EXECUTION, IO.EXECUTION);
 
-		new Open(Options.getString("file", () -> "testIB.field2"));
+			new Open(Options.getString("file", () -> "testIB.field2"));
 
-		SplashScreen splash = SplashScreen.getSplashScreen();
-		if (splash != null)
-			splash.close();
+			SplashScreen splash = SplashScreen.getSplashScreen();
+			if (splash != null)
+				splash.close();
 
-		fieldBox.go();
+			fieldBox.go();
+//		});
 	}
 
 

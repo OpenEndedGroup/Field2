@@ -221,7 +221,7 @@ public class GraphicsSupport extends Box {
         return s;
     }
 
-    private Shader.iErrorHandler errorHandler(Box b, String shader) {
+    static public Shader.iErrorHandler errorHandler(Box b, String shader) {
         return new Shader.iErrorHandler() {
             @Override
             public void beginError() {

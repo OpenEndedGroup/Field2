@@ -6,4 +6,5 @@ void main()
 {
 	_output  = vcolor.xyzw;
 	_output.w *= opacity;
+
 }

@@ -53,7 +53,7 @@ public class Threading extends Box {
 			@Override
 			public Object call(Object o, Object... objects) {
 				ThreadSync2.yield();
-				return null;
+				return true;
 			}
 		});
 	}

@@ -289,7 +289,6 @@ public class Open {
 		new SimpleTweaks(boxes.root()).connect(boxes.root());
 
 
-
 		if (ThreadSync.enabled) new ThreadSyncFeedback(boxes.root()).connect(boxes.root());
 		if (ThreadSync2.getEnabled()) new ThreadSync2Feedback(boxes.root()).connect(boxes.root());
 
@@ -349,12 +348,14 @@ public class Open {
 			.compositeWith(ly, window.scene);
 
 
-		/* reports on how much data we're sending to OpenGL and how much the MeshBuilder caching system is getting us. This is useful for noticing when we're repainting excessively or our cache is suddenly blown completely */
+		/* reports on how much data we're sending to OpenGL and how much the MeshBuilder caching system is getting us. This is useful for noticing when we're repainting excessively or our
+		cache is suddenly blown completely */
 		RunLoop.main.getLoop()
 			.attach(10, Scene.strobe((i) -> {
 				if (MeshBuilder.cacheHits + MeshBuilder.cacheMisses_internalHash + MeshBuilder.cacheMisses_cursor + MeshBuilder.cacheMisses_externalHash > 0) {
 					Log.println("graphics.stats",
-						" meshbuilder cache h" + MeshBuilder.cacheHits + " | mc" + MeshBuilder.cacheMisses_cursor + " / meh" + MeshBuilder.cacheMisses_externalHash + " / mih" + MeshBuilder.cacheMisses_internalHash + " / mto" + MeshBuilder.cacheMisses_tooOld + " | tex" + Texture.bytesUploaded);
+						" meshbuilder cache h" + MeshBuilder.cacheHits + " | mc" + MeshBuilder.cacheMisses_cursor + " / meh" + MeshBuilder.cacheMisses_externalHash + " / mih"
+							+ MeshBuilder.cacheMisses_internalHash + " / mto" + MeshBuilder.cacheMisses_tooOld + " | tex" + Texture.bytesUploaded);
 					MeshBuilder.cacheHits = 0;
 					MeshBuilder.cacheMisses_cursor = 0;
 					MeshBuilder.cacheMisses_externalHash = 0;
@@ -403,17 +404,20 @@ public class Open {
 
 			System.err.println(" booting up text editor ");
 
-			new TextEditor(boxes.root()).connect(boxes.root());
-			new GlassBrowser(boxes.root()).connect(boxes.root());
-			new OutputBox(boxes.root()).connect(boxes.root());
-			new DocumentationBrowser(boxes.root()).connect(boxes.root());
+//			if (false)
+			{
+				new TextEditor(boxes.root()).connect(boxes.root());
+				new GlassBrowser(boxes.root()).connect(boxes.root());
+				new OutputBox(boxes.root()).connect(boxes.root());
+				new DocumentationBrowser(boxes.root()).connect(boxes.root());
 
 //			new NotificationBox(boxes.root()).connect(boxes.root());
 
 //			if (Main.os != Main.OS.windows)
-			{
-				new BoxBrowser(boxes.root()).connect(boxes.root());
+				{
+					new BoxBrowser(boxes.root()).connect(boxes.root());
 //				new TextEditor_boxBrowser3(boxes.root()).connect(boxes.root());
+				}
 			}
 
 			// call loaded on everything above root

@@ -196,7 +196,7 @@ class ImageCache(val width: Int, val height: Int, maxBuffer: Int, private val lo
         var synchronous = Options.dict().isTrue(Dict.Prop<Int>("offline"), false)
 
 
-        fun mapFromDirectory(dir: String, match: String): Function<Int, String> {
+        fun mapFromDirectory(dir: String, match: String): FileMap {
 
             val f = File(dir)
             val ff = f.listFiles { dir, name -> name.matches(match.toRegex()) }
@@ -206,7 +206,7 @@ class ImageCache(val width: Int, val height: Int, maxBuffer: Int, private val lo
             return FileMap(ff)
         }
 
-        fun mapFromDirectory(dir: String, match: String, dec: Int): Function<Int, String> {
+        fun mapFromDirectory(dir: String, match: String, dec: Int): FileMap {
 
             val f = File(dir)
             val ff = f.listFiles { dir, name -> name.matches(match.toRegex()) }

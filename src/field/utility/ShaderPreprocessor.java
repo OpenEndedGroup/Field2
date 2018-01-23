@@ -17,20 +17,28 @@ public class ShaderPreprocessor {
 	Pattern p = Pattern.compile("(\\$\\{(.*?)\\})");
 
 	public String preprocess(Box inside, String s) {
-		return preprocess(inside, s, Collections.emptyMap());
+		return preprocess(inside, s, Collections.emptyMap(), Collections.emptyMap());
 	}
 
 	public String preprocess(Box inside, String s, Map<String, Function<String, String>> extra) {
-		Box.BiFunctionOfBoxAnd<String, Triple<Object, List<String>, List<Pair<Integer, String>>>> e = inside.find(Exec.exec, inside.upwardsOrDownwards()).findFirst().get();
+		return preprocess(inside, s, extra, Collections.emptyMap());
+	}
+
+	public String preprocess(Box inside, String s, Map<String, Function<String, String>> extra, Map<String, String> extraExtra) {
+		Box.BiFunctionOfBoxAnd<String, Triple<Object, List<String>, List<Pair<Integer, String>>>> e = inside == null ? null : inside.find(Exec.exec, inside.upwardsOrDownwards()).findFirst()
+			.get();
 
 		Matcher q = p.matcher(s);
 		return q.replaceAll(x -> {
 			String g = q.group(2);
-			Object z;
+			Object z = null;
 			if (extra.containsKey(g)) {
 				z = extra.get(g).apply(g);
-			} else
+			} else if (extraExtra.containsKey(g)) {
+				z = extraExtra.get(g);
+			} else if (inside!=null)
 				z = e.apply(inside, g).first;
+
 			if (z == null || ("" + z).toLowerCase().equals("undefined")) {
 				return "";
 			} else return "" + z;
@@ -42,10 +50,18 @@ public class ShaderPreprocessor {
 		private final String source;
 		private String evaluatedTo;
 		private final Box inside;
+		private Supplier<Map<String, String>> extra = () -> Collections.emptyMap();
+		private Map<String, String> was = null;
 
 		public Preprocess(Box inside, String source) {
 			this.inside = inside;
 			this.source = source;
+		}
+
+		public Preprocess(Box inside, String source, Supplier<Map<String, String>> m) {
+			this.inside = inside;
+			this.source = source;
+			this.extra = m;
 		}
 
 		public String getSource() {
@@ -54,9 +70,10 @@ public class ShaderPreprocessor {
 
 		@Override
 		public String get() {
-			if (evaluatedTo == null)
-				return evaluatedTo = preprocess(inside, source);
-			else return evaluatedTo;
+			if (was == null || !was.equals(extra.get())) {
+				was = extra.get();
+				return evaluatedTo = preprocess(inside, source, Collections.emptyMap(), was);
+			} else return evaluatedTo;
 		}
 	}
 

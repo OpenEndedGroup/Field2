@@ -11,6 +11,7 @@ var System = Java.type('java.lang.System');
 var Asta = Java.type('fielded.live.Asta');
 var Transform2D = Java.type("field.linalg.Transform2D")
 var Anim = Java.type("field.utility.Drivers")
+var Math = Java.type("java.lang.Math")
 
 var __h__ = new Asta();
 
@@ -61,3 +62,12 @@ var translate = function (x, y) {
 }
 
 rotate.__doc__ = "shorthand for creating a transformation that translates. `rotate(10)` rotates things 10 degrees clockwise. Other numbers of arguments are also accepted: `rotate(10, vec(50, -40))` or even `rotate(10, 50, -40)` will rotate 10 degrees around the point `50, -40`"
+
+var _ft = function() {
+    if (_.f)
+    {
+        return (_.frame.x + _t()*_.frame.w - _.f.frame.x)/_.f.frame.w
+    }
+    return 0.5
+}
+_ft.__doc__ = "for 'Box Pair' boxes, this gives you the value of `_t()` with respect to the footage box (the little one under the main box)"

@@ -53,7 +53,6 @@ public class MarkingMenus extends Box {
 			.autoConstructs(() -> new IdempotencyMap<>(FunctionOfBox.class)).doc("Callback that's called should nothing be selected in a right-click menu. Allows you to bind a right-click to a box.");
 
 
-
 	public MarkingMenus(Box root) {
 
 		this.properties.put(markingMenus, this);
