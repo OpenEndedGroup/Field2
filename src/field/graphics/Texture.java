@@ -9,6 +9,11 @@ import fieldbox.boxes.Box;
 import fieldbox.boxes.Drawing;
 import fieldbox.execution.Errors;
 import fielded.boxbrowser.BoxBrowser;
+import org.apache.commons.io.filefilter.NameFileFilter;
+import org.apache.commons.io.monitor.FileAlterationListener;
+import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
+import org.apache.commons.io.monitor.FileAlterationMonitor;
+import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.lwjgl.opengl.*;
 
 import java.io.File;
@@ -65,48 +70,40 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 		}
 	}
 
-	static WatchService ws = null;
-	static WeakHashMap<Texture, Pair<WatchKey, String>> keys = new WeakHashMap<>();
-	static Map<Path, Texture> resolvedTextures = new MapMaker().weakKeys().weakValues().makeMap();
+	static FileAlterationMonitor ws = null;
 
 	private void installReloadWatch(String sourceFilename, Texture texture) {
 
-		try {
-			if (ws == null) {
-				ws = FileSystems.getDefault().newWatchService();
-				new Thread(() -> {
-					while (true) {
-						try {
-							Thread.sleep(1000);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
+		if (ws == null) {
+			ws = new FileAlterationMonitor(2000);
+			try {
+				ws.start();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 
-						synchronized (keys) {
-							keys.forEach((te, k) -> {
-								List<WatchEvent<?>> events = k.first.pollEvents();
-								if (events.size() > 0) {
 
-									events.forEach(x -> {
-										Texture tex = resolvedTextures.get(x);
-										tex.reloadFrom(((Path) x.context()).toFile().getAbsolutePath());
-									});
-								}
-							});
-						}
+		synchronized (ws) {
+
+			String name = new File(sourceFilename).getName();
+
+			FileAlterationObserver o = new FileAlterationObserver(new File(sourceFilename).getParentFile(), new NameFileFilter(name));
+			try {
+				o.initialize();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			o.addListener(new FileAlterationListenerAdaptor() {
+				@Override
+				public void onFileChange(File file) {
+					if (file.getName().equals(name)) {
+						System.out.println(" automatic reload for texture :" + file);
+						texture.reloadFrom(file.getAbsolutePath());
 					}
-				}).start();
-			}
-
-
-			WatchKey key = new File(sourceFilename).getParentFile().toPath().register(ws, StandardWatchEventKinds.ENTRY_MODIFY);
-
-			synchronized (keys) {
-				resolvedTextures.put(new File(sourceFilename).toPath(), texture);
-				keys.put(this, new Pair(key, sourceFilename));
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
+				}
+			});
+			ws.addObserver(o);
 		}
 	}
 
@@ -131,7 +128,8 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 		});
 
 		String pre
-			= "Framebuffer object has dimensions <b>" + specification.width + "</b>x<b>" + specification.height + "</b> and is bound to texture unit <b>" + specification.unit + "</b><br>";
+			= "Framebuffer object has dimensions <b>" + specification.width + "</b>x<b>" + specification.height + "</b> and is bound to texture unit <b>" + specification.unit +
+			"</b><br>";
 		if (specification.forceSingleBuffered) pre += "Single-buffered updates are on; ";
 		if (specification.compressed) pre += "Target is compressed; ";
 		if (specification.highQuality)
@@ -140,7 +138,8 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 			pre += "This is a floating-point resolution texture; ";
 		pre = p(pre);
 		pre
-			+= p("This has been bound <b>" + warnIfZero(boundCount) + "</b> time" + (boundCount == 1 ? "" : "s") + " and modified <b>" + uploadCount + "</b> time" + (uploadCount == 1 ? "" : "s") + "<br>");
+			+= p("This has been bound <b>" + warnIfZero(boundCount) + "</b> time" + (boundCount == 1 ? "" : "s") + " and modified <b>" + uploadCount + "</b> time" + (uploadCount == 1 ?
+			"" : "s") + "<br>");
 
 		int tries = 0;
 		while (!m.isDone()) {
@@ -394,7 +393,8 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
 
 		if (specification.compressed) {
-//			glCompressedTexSubImage2D(specification.target, 0, 0, 0, specification.width, specification.height, specification.internalFormat, specification.pixels.capacity(), specification.pixels);
+//			glCompressedTexSubImage2D(specification.target, 0, 0, 0, specification.width, specification.height, specification.internalFormat, specification.pixels.capacity(),
+// specification.pixels);
 			throw new IllegalArgumentException(" not implemented ");
 		} else {
 			if (specification.pixels != null) {
@@ -402,7 +402,8 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 				if (specification.target == GL_TEXTURE_1D) {
 					glTexSubImage1D(specification.target, 0, 0, specification.width, specification.format, specification.type, specification.pixels);
 				} else if (specification.target == GL_TEXTURE_3D) {
-					glTexSubImage3D(specification.target, 0, 0, 0, 0, specification.width, specification.height, specification.depth, specification.format, specification.type, specification.pixels);
+					glTexSubImage3D(specification.target, 0, 0, 0, 0, specification.width, specification.height, specification.depth, specification.format, specification.type,
+						specification.pixels);
 				} else {
 					glTexSubImage2D(specification.target, 0, 0, 0, specification.width, specification.height, specification.format, specification.type, specification.pixels);
 				}
@@ -575,7 +576,8 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 			compressed = false;
 		}
 
-		public TextureSpecification(int unit, int target, int internalFormat, int width, int height, int format, int type, int elementSize, ByteBuffer pixels, boolean highQuality, boolean forceNotStreaming, boolean compressed) {
+		public TextureSpecification(int unit, int target, int internalFormat, int width, int height, int format, int type, int elementSize, ByteBuffer pixels, boolean highQuality, boolean
+			forceNotStreaming, boolean compressed) {
 			this.unit = unit;
 			this.target = target;
 			this.internalFormat = internalFormat;
@@ -671,7 +673,8 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 		}
 
 		static public TextureSpecification bptc(int unit, int width, int height, ByteBuffer source) {
-			return new TextureSpecification(unit, GL_TEXTURE_2D, ARBTextureCompressionBPTC.GL_COMPRESSED_RGBA_BPTC_UNORM_ARB, width, height, GL_NONE, GL_NONE, 0, source, false, false, true);
+			return new TextureSpecification(unit, GL_TEXTURE_2D, ARBTextureCompressionBPTC.GL_COMPRESSED_RGBA_BPTC_UNORM_ARB, width, height, GL_NONE, GL_NONE, 0, source, false, false,
+				true);
 		}
 
 		static public TextureSpecification float1(int unit, int width, int height, ByteBuffer source) {
