@@ -42,20 +42,30 @@ public class CefSystem {
 	{
 		System.out.println(" Cef system windows");
 		cefApp = CefApp.getInstance(new String[]{"--overlay-scrollbars", "--enable-direct-write",/* "--single-process",*/
-			"--off-screen-rendering-mode-enabled", /*"--enable-gpu",*/ "--enable-experimental-web-platform-features", "--disable-gpu", "--disable-gpu-compositing", "--enable-begin-frame-scheduling", "--off-screen-frame-rate=60", "--external-message-pump", "--multi-threaded-message-loop"});
+			"--off-screen-rendering-mode-enabled", /*"--enable-gpu",*/ "--enable-experimental-web-platform-features", "--disable-gpu", "--disable-gpu-compositing", "--enable-begin-frame-scheduling", "--off-screen-frame-rate=60", "--external-message-pump"/*, "--multi-threaded-message-loop" */});
 
-		if (false) // not needed in windows
+//		if (false) // not needed in windows
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-			System.out.println(" -- sleeping for 2 seconds, then killing");
+			System.out.println(" -- sleeping for 0.5 seconds, then killing");
 			try {
-				Thread.sleep(2000);
+				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 			long pid = new GetOwnPid().getPid();
-			System.err.println(" pid is :"+pid);
+
+
+			System.out.println(" current pid is :"+pid);
+
+			// lets try this first
+//			System.out.println(" halting ... ");
+//			Runtime.getRuntime().halt(0);
+//			System.out.println(" halted ?! ");
+
 			try {
-				SimpleCommand.go(new File("."), "/bin/kill", "-9", ""+pid);
+				System.out.println(" issued kill command ...");
+				SimpleCommand.go(new File("."), "c:/windows/system32/tskill", ""+pid);
+				System.out.println(" ... it didn't work");
 			} catch (IOException e) {
 				e.printStackTrace();
 			} catch (InterruptedException e) {
