@@ -48,7 +48,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
     static public boolean doubleBuffered = Options.dict()
             .isTrue(new Dict.Prop("doubleBuffered"), Main.os == Main.OS.mac);
     static public boolean dontShare = Options.dict()
-            .isTrue(new Dict.Prop("dontShare"), false);
+            .isTrue(new Dict.Prop("dontShare"), Main.os == Main.OS.windows);
     static public Window shareContext = null;
     static ThreadLocal<Window> currentWindow = new ThreadLocal<Window>() {
         @Override
@@ -58,7 +58,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
     };
     /**
      * the Scene associated with this window.
-     * <p>
+     * <p>f.bat
      * This is the principle entry point into this window
      */
 

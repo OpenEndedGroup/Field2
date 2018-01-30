@@ -397,12 +397,15 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 
 			State s = GraphicsContext.get(this, this::setup);
 
+			GraphicsContext.checkError(() -> "prior to fbo");
 			GraphicsContext.getContext().stateTracker.fbo.set(specification.multisample ? s.multisample : s.name);
 
 			int[] v = {(int) viewport.x, (int) viewport.y, (int) viewport.w, (int) viewport.h};
 
+			GraphicsContext.checkError(() -> "prior to scissor");
 			GraphicsContext.getContext().stateTracker.scissor.set(v);
 
+			GraphicsContext.checkError(() -> "prior to viewport");
 			GraphicsContext.getContext().stateTracker.viewport.set(v);
 
 			GraphicsContext.checkError(() -> "prior to debug red");
