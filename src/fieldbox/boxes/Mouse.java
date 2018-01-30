@@ -141,7 +141,7 @@ public class Mouse {
 		if (event.properties.getFloat(clickNumber, 0f)>1) {
 			pressed.stream()
 			       .forEach(p -> {
-				       startAt.find(onDoubleClick, startAt.both())
+				       startAt.find(onDoubleClick, startAt.upwards())
 					      .flatMap(x -> x.values()
 							     .stream())
 					      .forEach(x -> x.onDoubleClick(event));
