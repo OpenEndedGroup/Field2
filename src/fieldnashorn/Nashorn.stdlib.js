@@ -12,6 +12,8 @@ var Asta = Java.type('fielded.live.Asta');
 var Transform2D = Java.type("field.linalg.Transform2D")
 var Anim = Java.type("field.utility.Drivers")
 var Math = Java.type("java.lang.Math")
+var Mocap = Java.type("trace.mocap.Mocap")
+var Trackers = Java.type("fieldboof.Trackers")
 
 var __h__ = new Asta();
 
