@@ -379,7 +379,8 @@ class Stage(val w: Int, val h: Int) : AsMap {
         val cache = TwinTextureCache(0, ic)
         cache.setPlaying(true)
 
-        ImageCache.synchronous = true;
+        ImageCache.synchronous = false;
+
         cache.setTime(1.0)
 //        cache.update()
 
