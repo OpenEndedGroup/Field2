@@ -2,23 +2,24 @@
   :externalList [
     #field/external{
       :textFiles {
+        "fragment" "{{templates}}/graphics.stage/viewport.box.glslf"
         "code" "{{templates}}/graphics.stage/viewport.box.js"
+        "vertex" "{{templates}}/graphics.stage/viewport.box.glslv"
       }
       :dataFile "{{templates}}/graphics.stage/viewport.box"
-      :id "_171a8f7f_b254_4b1c_ab89_5a8bf0686fb8"
+      :id "_5218d71a_3080_4bce_baeb_54141accd131"
       :boxClass "fieldbox.boxes.plugins.Viewport"
       :parents [
         ">>root<<"
       ]
       :children [
-        "_f90f18a5_7ff8_4347_bbb4_bf390122a4ce"
       ]
       :overriddenProperties {
         "frame" #field/rect{
-          :x 96.958984375
-          :y 95.814453125
-          :w 320.5703125
-          :h 319.8359375
+          :x 170.396484375
+          :y 113.861328125
+          :w 513.5390625
+          :h 389.765625
         }
       }
     }
@@ -60,8 +61,6 @@
     "windowScale"
     "isPaired"
     "auto"
-    "head"
-    "tail"
     "defaultEditorProperty"
     "_defaultEditorProperty_cookie"
     "_code_cookie"
@@ -69,8 +68,8 @@
     "includes"
     "excludes"
     "__datafilename__"
+    "__filename__fragment"
     "__filename__code"
     "__filename__vertex"
-    "__filename__fragment"
   }
 }
