@@ -14,6 +14,9 @@ var Anim = Java.type("field.utility.Drivers")
 var Math = Java.type("java.lang.Math")
 var Mocap = Java.type("trace.mocap.Mocap")
 var Trackers = Java.type("fieldboof.Trackers")
+var SoundAnalysis = Java.type("trace.sound.SoundAnalysis")
+var Intersections = Java.type("trace.util.Intersections")
+
 
 var __h__ = new Asta();
 
@@ -73,3 +76,30 @@ var _ft = function() {
     return 0.5
 }
 _ft.__doc__ = "for 'Box Pair' boxes, this gives you the value of `_t()` with respect to the footage box (the little one under the main box)"
+
+// this is a dreadful hack
+
+_.intersectX = function(x) {
+    return new Intersections(_).x(x)
+};
+
+_.intersectX.__doc__ = "_.intersectX(55) returns all of the positions where there are `FLine` that intersect with a vertical line at x=55. Only lines that are marked as `.notation=true` are considered. You can write __.intersectX(55) if you want to cover all boxes."
+
+__.intersectX = function(x) {
+    return new Intersections(__).x(x)
+};
+
+__.intersectX.__doc__ = "_.intersectX(55) returns all of the positions where there are `FLine` that intersect with a vertical line at x=55. Only lines that are marked as `.notation=true` are considered. You can write __.intersectX(55) if you want to cover all boxes."
+
+_.intersectY = function(y) {
+    return new Intersections(_).y(y)
+};
+
+_.intersectY.__doc__ = "_.intersectY(55) returns all of the positions where there are `FLine` that intersect with a horizontal line at y=55. Only lines that are marked as `.notation=true` are considered. You can write _.intersectY(55) if you want to cover all boxes."
+
+__.intersectY = function(y) {
+    return new Intersections(__).y(y)
+};
+
+__.intersectY.__doc__ = "_.intersectY(55) returns all of the positions where there are `FLine` that intersect with a horizontal line at y=55. Only lines that are marked as `.notation=true` are considered. You can write __.intersectY(55) if you want to cover all boxes."
+
