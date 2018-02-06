@@ -91,6 +91,15 @@ public class Vec3 implements Externalizable, Supplier<Vec3>, Mutable, Serializab
 		this.z = z;
 	}
 
+	/**
+	 * Create a new {@link Vec3} with the given component values, text[index], text[index+1], text[index+@]
+	 */
+	public Vec3(String[] text, int index) {
+		this.x = Double.parseDouble(text[index + 0]);
+		this.y = Double.parseDouble(text[index + 1]);
+		this.z = Double.parseDouble(text[index + 2]);
+	}
+
 	protected Vec3(Object... args) {
 		if (args.length == 0) {
 		} else if (args.length == 1) {
@@ -1080,6 +1089,7 @@ public class Vec3 implements Externalizable, Supplier<Vec3>, Mutable, Serializab
 		return this;
 	}
 
+
 	/**
 	 * Compute the cross product of this vector and <tt>(x, y, z)</tt> and store the result in <code>dest</code>.
 	 *
@@ -1724,9 +1734,9 @@ public class Vec3 implements Externalizable, Supplier<Vec3>, Mutable, Serializab
 			return this.toVec4().sub((Vec4) b);
 		}
 		if (b instanceof OverloadedMath)
-			return ((OverloadedMath)b).__rsub__(this);
+			return ((OverloadedMath) b).__rsub__(this);
 
-		throw new ClassCastException(" can't subtract '"+b+"' by a Vec3 ("+this+")");
+		throw new ClassCastException(" can't subtract '" + b + "' by a Vec3 (" + this + ")");
 
 	}
 
