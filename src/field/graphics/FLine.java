@@ -351,6 +351,9 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	 */
 	public FLine polarCubicTo(float r1, float theta1, float r2, float theta2, Vec2 destination) {
 
+		if (nodes.size() == 0)
+			return moveTo(destination);
+
 		Vec2 a = last().to.toVec2();
 
 		Vec2 d = Vec2.sub(destination, a, new Vec2());
@@ -371,6 +374,44 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		cubicTo(c1, c2, destination);
 		return this;
 	}
+
+	/**
+	 * 'Blends' this line 'towards' 'target. This algorithm is very straightfoward, target should have the same number of nodes as this FLine otherwise nodes of this line will be dropped or
+	 * nodes of the target will be ignored
+	 */
+	public FLine blendTowards(FLine target, double amount) {
+		while (nodes.size() > target.nodes.size())
+			nodes.remove(nodes.size() - 1);
+		for (int i = 0; i < nodes.size(); i++) {
+			Node n1 = nodes.get(i);
+			Node n2 = target.nodes.get(i);
+			if (n1 instanceof MoveTo) {
+				n1.to.lerp(n2.to, amount);
+			} else if (n1 instanceof LineTo) {
+				if (n2 instanceof LineTo) {
+					n1.to.lerp(n2.to, amount);
+				} else {
+					Vec3 before = nodes.get(i - 1).to;
+					nodes.set(i, n1 = new CubicTo(new Vec3(before).lerp(n1.to, 1 / 3f), new Vec3(before).lerp(n1.to, 2 / 3f), n1.to));
+					n1.to.lerp(n2.to, amount);
+					((CubicTo) n1).c1.lerp(((CubicTo) n2).c1, amount);
+					((CubicTo) n1).c2.lerp(((CubicTo) n2).c2, amount);
+				}
+			} else if (n1 instanceof CubicTo) {
+				if (n2 instanceof LineTo) {
+					Vec3 before = target.nodes.get(i - 1).to;
+					n1.to.lerp(n2.to, amount);
+					((CubicTo) n1).c1.lerp(new Vec3(before).lerp(n2.to, 1 / 3), amount);
+					((CubicTo) n1).c2.lerp(new Vec3(before).lerp(n2.to, 2 / 3), amount);
+				} else {
+					n1.to.lerp(n2.to, amount);
+					((CubicTo) n1).c1.lerp(((CubicTo) n2).c1, amount);
+					((CubicTo) n1).c2.lerp(((CubicTo) n2).c2, amount);
+				}
+			}
+		}
+		return this;
+		}
 
 	/**
 	 * draws a curve that starts by heading in the `theta1` direction for a distance of roughly `r1` then ends up heading to `x, y` coming in at angle `theta2` from roughly `r2` away
@@ -1219,8 +1260,8 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 			for (int i = 0; i < flatAux.length; i++) {
 				Object v = flatAuxNames[i] == null ? null : flatAuxNames[i].apply(node);
 				// rewriteToFloatArray doesn't handle integers (for good reason, they are shaders in OpenGL)
-				if (v instanceof Integer) v = ((Integer)v).doubleValue();
-				if (v instanceof Long) v = ((Long)v).doubleValue();
+				if (v instanceof Integer) v = ((Integer) v).doubleValue();
+				if (v instanceof Long) v = ((Long) v).doubleValue();
 				if (v != null) node.flatAuxData[i] = Uniform.rewriteToFloatArray(v);
 			}
 		}
@@ -2009,6 +2050,58 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		} else if (b instanceof OverloadedMath) return ((OverloadedMath) b).__rmul__(this);
 		throw new ClassCastException(" can't multiply '" + b + "' to this FLine");
 	}
+
+	Vec3 heading = new Vec3(1, 0, 0);
+
+	public Vec3 forward() {
+		return forward(1);
+	}
+
+	public Vec3 forward(double stepSize) {
+		return new Vec3(heading).mul(stepSize).add(node().to);
+	}
+
+	public FLine lineForward() {
+		return lineTo(forward());
+	}
+
+	public FLine lineForward(double stepSize) {
+		return lineTo(forward(stepSize));
+	}
+
+	public FLine left(double degrees) {
+		new Quat().fromAxisAngleDeg(new Vec3(0, 0, 1), -degrees).transform(heading);
+		return this;
+	}
+
+	public FLine right(double degrees) {
+		return left(-degrees);
+	}
+
+	public class State {
+		int index;
+		Vec3 heading = new Vec3(1, 0, 0);
+	}
+
+	List<State> stateStack = new ArrayList<>();
+
+	public FLine push() {
+		State s = new State();
+		s.heading = heading.duplicate();
+		s.index = nodes.size() - 1;
+		stateStack.add(s);
+		return this;
+	}
+
+	public FLine pop() {
+
+		if (stateStack.size() == 0)
+			throw new IllegalArgumentException("pop() too many times");
+		State s = stateStack.remove(stateStack.size() - 1);
+		heading = heading.duplicate();
+		return moveTo(nodes.get(s.index).to);
+	}
+
 
 	@Override
 	public Object __xor__(Object b) {
