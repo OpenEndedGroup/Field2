@@ -117,6 +117,10 @@ public class StandardFLineDrawing {
 		.toCanon()
 		.doc("setting `.noContours=true` turns off any smartness in the tessellator about how to fill FLines, speeding up tessellation considerably").set(Dict.domain, "fline");
 
+	static public final Dict.Prop<Boolean> notation = new Dict.Prop<>("notation").type()
+		.toCanon()
+		.doc("setting `.notation=true` advertises this line as being notation, allowing it to be intersected by Intersections").set(Dict.domain, "fline");
+
 
 	static public void dispatchLine(FLine fline, MeshBuilder mesh, MeshBuilder line, MeshBuilder points, Optional<TextDrawing> ot, String layerName) {
 		dispatchLine(fline, mesh, line, points, ot, layerName, 1f);

@@ -762,22 +762,30 @@ public class FLinesAndJavaShapes {
 			pAt = on.getModCount();
 		}
 
-		/** returns whether the current segment is a .lineTo */
+		/**
+		 * returns whether the current segment is a .lineTo
+		 */
 		public boolean segmentIsLinear() {
 			return on.nodes.get(clamp(index + 1)) instanceof FLine.LineTo;
 		}
 
-		/** returns whether the current segment is a .cubicTo */
+		/**
+		 * returns whether the current segment is a .cubicTo
+		 */
 		public boolean segmentIsCubic() {
 			return on.nodes.get(clamp(index + 1)) instanceof FLine.CubicTo;
 		}
 
-		/** returns whether the current segment is a .moveTo */
+		/**
+		 * returns whether the current segment is a .moveTo
+		 */
 		public boolean segmentIsMove() {
 			return on.nodes.get(clamp(index + 1)) instanceof FLine.MoveTo;
 		}
 
-		/** returns whether we are at the last segment of the line */
+		/**
+		 * returns whether we are at the last segment of the line
+		 */
 		public boolean hasNext() {
 			return index < on.nodes.size() - 1;
 		}
@@ -1326,25 +1334,113 @@ public class FLinesAndJavaShapes {
 
 	}
 
-	static public Vec2 intersectTwoLineSegments(Vec2 l1a, Vec2 l1d, Vec2 l2a, Vec2 l2d) {
-		double c = l1d.x * l2d.y - l1d.y * l2d.x;
 
-		if (c == 0) return null; // colinear
+	static public Vec3 intersectTwoLineSegments(Vec3 a1, Vec3 a2, Vec3 b1, Vec3 b2) {
+		Vec3 da = new Vec3(a2).sub(a1);
+		Vec3 db = new Vec3(b2).sub(b1);
+		Vec3 dc = new Vec3(b1).sub(a1);
 
-		Vec2 across = new Vec2(l2a).sub(l1a);
+		if (Vec3.dot(dc, Vec3.cross(da, db, new Vec3())) != 0.0) // lines are not coplanar
+			return null;
 
-		double t = (across.x * l2d.y - across.y * l2d.x) / c;
-		double u = (across.x * l1d.y - across.y * l1d.x) / c;
+		double s = Vec3.dot(Vec3.cross(dc, db, new Vec3()), Vec3.cross(da, db, new Vec3())) / (Vec3.cross(da, db, new Vec3())).lengthSquared();
+		if (s >= 0.0 && s <= 1.0) {
+			return new Vec3(a1).fma(da, s);
+		}
 
-		if (t < 0 || t > 1 || u < 0 || u > 1) return null;
-
-		return new Vec2(l1a).fma((float) t, l1d);
-
+		return null;
 	}
 
-	/**
-	 * helper class for a 2d cubic segment, for the things that we can only reasonably do in 2d (like intersections).
-	 */
+
+	static public List<Vec3> intersect(FLine a, FLine b) {
+		List<Vec3> ret = new ArrayList<>();
+
+		for (int i = 0; i < a.nodes.size(); i++) {
+			FLine.Node ni = a.nodes.get(i);
+			if (ni instanceof FLine.CubicTo) {
+				CubicSegment3 ci = new CubicSegment3(a.nodes.get(i - 1).to, ((FLine.CubicTo) ni).c1, ((FLine.CubicTo) ni).c2, ni.to);
+				for (int j = 0; j < b.nodes.size(); j++) {
+					FLine.Node nj = b.nodes.get(j);
+					if (nj instanceof FLine.CubicTo) {
+						CubicSegment3 cj = new CubicSegment3(b.nodes.get(j - 1).to, ((FLine.CubicTo) nj).c1, ((FLine.CubicTo) nj).c2, nj.to);
+						List<Pair<CubicSegment3, CubicSegment3>> intersections = ci.intersection(cj, 1);
+						intersections.forEach(x -> ret.add(new Vec3(x.first.a).add(x.first.d).mul(0.5)));
+					} else if (nj instanceof FLine.LineTo) {
+						List<Pair<CubicSegment3, CubicSegment3>> intersections = ci.intersection(new CubicSegment3(b.nodes.get(j - 1).to, nj.to), 1);
+						intersections.forEach(x -> ret.add(new Vec3(x.first.a).add(x.first.d).mul(0.5)));
+					}
+				}
+			} else if (ni instanceof FLine.LineTo) {
+				for (int j = 0; j < b.nodes.size(); j++) {
+					FLine.Node nj = b.nodes.get(j);
+					if (nj instanceof FLine.CubicTo) {
+						CubicSegment3 cj = new CubicSegment3(b.nodes.get(j - 1).to, ((FLine.CubicTo) nj).c1, ((FLine.CubicTo) nj).c2, nj.to);
+						List<Pair<CubicSegment3, CubicSegment3>> intersections = cj.intersection(new CubicSegment3(a.nodes.get(i - 1).to, ni.to), 1);
+						intersections.forEach(x -> ret.add(new Vec3(x.first.a).add(x.first.d).mul(0.5)));
+					} else if (nj instanceof FLine.LineTo) {
+						Vec3 aa = intersectTwoLineSegments(b.nodes.get(j - 1).to, nj.to, a.nodes.get(i - 1).to, ni.to);
+						if (aa != null)
+							ret.add(aa);
+					}
+				}
+			}
+		}
+		return ret;
+	}
+
+	static public List<Vec3> intersectX(FLine a, double x) {
+		List<Vec3> ret = new ArrayList<>();
+
+		for (int i = 0; i < a.nodes.size(); i++) {
+			FLine.Node ni = a.nodes.get(i);
+			if (ni instanceof FLine.CubicTo) {
+				CubicSegment3 ci = new CubicSegment3(a.nodes.get(i - 1).to, ((FLine.CubicTo) ni).c1, ((FLine.CubicTo) ni).c2, ni.to, -x);
+				List<Double> roots = ci.findXZeroRoots();
+				roots.forEach(xx -> {
+					Vec3 vv = ci.evaluate(xx);
+					vv.x += x;
+					ret.add(vv);
+				});
+			} else if (ni instanceof FLine.LineTo) {
+				Vec3 aa = a.nodes.get(i - 1).to;
+				Vec3 bb = ni.to;
+				if (Math.min(aa.x, bb.x) <= x && Math.max(aa.x, bb.x) >= x) {
+					Vec3 ii = intersectTwoLineSegments(aa, bb, new Vec3(x, Math.max(aa.y, bb.y) + 1, 0), new Vec3(x, Math.min(aa.y, bb.y) - 1, 0));
+					if (ii != null)
+						ret.add(ii);
+				}
+			}
+		}
+		return ret;
+	}
+
+	static public List<Vec3> intersectY(FLine a, double x) {
+		List<Vec3> ret = new ArrayList<>();
+
+		for (int i = 0; i < a.nodes.size(); i++) {
+			FLine.Node ni = a.nodes.get(i);
+			if (ni instanceof FLine.CubicTo) {
+				CubicSegment3 ci = new CubicSegment3(a.nodes.get(i - 1).to, ((FLine.CubicTo) ni).c1, ((FLine.CubicTo) ni).c2, ni.to, 0.0, -x);
+				List<Double> roots = ci.findYZeroRoots();
+				roots.forEach(xx -> {
+					Vec3 vv = ci.evaluate(xx);
+					vv.x += x;
+					ret.add(vv);
+				});
+			} else if (ni instanceof FLine.LineTo) {
+				Vec3 aa = a.nodes.get(i - 1).to;
+				Vec3 bb = ni.to;
+				if (Math.min(aa.x, bb.x) <= x && Math.max(aa.x, bb.x) >= x) {
+					Vec3 ii = intersectTwoLineSegments(aa, bb, new Vec3(Math.max(aa.x, bb.x) + 1, x, 0), new Vec3(Math.min(aa.x, bb.x) - 1, x, 0));
+					if (ii != null)
+						ret.add(ii);
+				}
+			}
+		}
+		return ret;
+	}
+
+
 	public static class CubicSegment3 {
 		public Vec3 a, b, c, d;
 
@@ -1352,6 +1448,39 @@ public class FLinesAndJavaShapes {
 			this.a = new Vec3(a);
 			this.b = new Vec3(b);
 			this.c = new Vec3(c);
+			this.d = new Vec3(d);
+		}
+
+		public CubicSegment3(Vec3 a, Vec3 b, Vec3 c, Vec3 d, double dx) {
+			this.a = new Vec3(a);
+			this.b = new Vec3(b);
+			this.c = new Vec3(c);
+			this.d = new Vec3(d);
+			this.a.x += dx;
+			this.b.x += dx;
+			this.c.x += dx;
+			this.d.x += dx;
+		}
+
+		public CubicSegment3(Vec3 a, Vec3 b, Vec3 c, Vec3 d, double dx, double dy) {
+			this.a = new Vec3(a);
+			this.b = new Vec3(b);
+			this.c = new Vec3(c);
+			this.d = new Vec3(d);
+			this.a.x += dx;
+			this.b.x += dx;
+			this.c.x += dx;
+			this.d.x += dx;
+			this.a.y += dy;
+			this.b.y += dy;
+			this.c.y += dy;
+			this.d.y += dy;
+		}
+
+		public CubicSegment3(Vec3 a, Vec3 d) {
+			this.a = new Vec3(a);
+			this.b = new Vec3(a.x + (d.x - a.x) / 3, a.y + (d.y - a.y) / 3, a.z + (d.z - a.z) / 3);
+			this.c = new Vec3(a.x + 2 * (d.x - a.x) / 3, a.y + 2 * (d.y - a.y) / 3, a.z + 2 * (d.z - a.z) / 3);
 			this.d = new Vec3(d);
 		}
 
@@ -1381,8 +1510,8 @@ public class FLinesAndJavaShapes {
 			Vec3 dir = Vec3.sub(x2, x1, new Vec3());
 			Quat q = new Quat().rotateTo(new Vec3(1, 0, 0), dir);
 
-			x1 = q.transform(x1);
-			x2 = q.transform(x2);
+			x1 = q.transform(new Vec3(x1));
+			x2 = q.transform(new Vec3(x2));
 
 			Vec3 a2 = Vec3.sub(q.transform(a), x1, new Vec3());
 			Vec3 b2 = Vec3.sub(q.transform(b), x1, new Vec3());
@@ -1610,8 +1739,6 @@ public class FLinesAndJavaShapes {
 					}
 				}
 			}
-
-			// filter dd for repeated roots
 
 			return dd;
 		}
@@ -1969,6 +2096,9 @@ public class FLinesAndJavaShapes {
 
 		}
 
+		public Vec3 evaluate(double t) {
+			return evaluateCubicFrame(a, b, c, d, t, new Vec3());
+		}
 	}
 
 	/**

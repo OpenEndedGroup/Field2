@@ -20,51 +20,58 @@ import java.util.function.Supplier;
 public class Callbacks {
 
 	static public final Dict.Prop<IdempotencyMap<Box.FunctionOfBox>> onDelete = new Dict.Prop<>("onDelete").type()
-													       .toCanon()
-													       .doc("callback that's called when a box is deleted")
-													       .autoConstructs(() -> new IdempotencyMap<>(Box.FunctionOfBox.class));
+		.toCanon()
+		.doc("callback that's called when a box is deleted")
+		.autoConstructs(() -> new IdempotencyMap<>(Box.FunctionOfBox.class)).set(Dict
+			.readOnly, true);
 
 
 	static public final Dict.Prop<IdempotencyMap<Box.FunctionOfBox>> onLoad = new Dict.Prop<>("onLoad").type()
-													   .toCanon()
-													   .doc("callback that's called when a box is loaded")
-													   .autoConstructs(() -> new IdempotencyMap<>(Box.FunctionOfBox.class));
+		.toCanon()
+		.doc("callback that's called when a box is loaded")
+		.autoConstructs(() -> new IdempotencyMap<>(Box.FunctionOfBox.class)).set(Dict
+			.readOnly, true);
 
 	static public final Dict.Prop<IdempotencyMap<Box.FunctionOfBox>> onSelect = new Dict.Prop<>("onSelect").type()
-													       .toCanon()
-													       .doc("callback that's called when a box is selected")
-													       .autoConstructs(() -> new IdempotencyMap<>(Box.FunctionOfBox.class));
+		.toCanon()
+		.doc("callback that's called when a box is selected")
+		.autoConstructs(() -> new IdempotencyMap<>(Box.FunctionOfBox.class)).set(Dict
+			.readOnly, true);
 
 	static public final Dict.Prop<IdempotencyMap<Box.FunctionOfBox>> onDeselect = new Dict.Prop<>("onDeselect").type()
-														   .toCanon()
-														   .doc("callback that's called when a box is deselected")
-														   .autoConstructs(() -> new IdempotencyMap<>(Box.FunctionOfBox.class));
+		.toCanon()
+		.doc("callback that's called when a box is deselected")
+		.autoConstructs(() -> new IdempotencyMap<>(Box.FunctionOfBox.class)).set(Dict
+			.readOnly, true);
 
 	static public final Dict.Prop<IdempotencyMap<Box.FunctionOfBox>> onExecute = new Dict.Prop<>("onExecute").type()
-														 .toCanon()
-														 .doc("callback that's called when code in a box is executed")
-														 .autoConstructs(() -> new IdempotencyMap<>(Box.FunctionOfBox.class));
+		.toCanon()
+		.doc("callback that's called when code in a box is executed")
+		.autoConstructs(() -> new IdempotencyMap<>(Box.FunctionOfBox.class)).set(Dict
+			.readOnly, true);
 
 	static public final Dict.Prop<IdempotencyMap<Box.FunctionOfBox>> onEdit = new Dict.Prop<>("onEdit").type()
-													   .toCanon()
-													   .doc("callback that's called when code in a box is edited")
-													   .autoConstructs(() -> new IdempotencyMap<>(Box.FunctionOfBox.class));
+		.toCanon()
+		.doc("callback that's called when code in a box is edited")
+		.autoConstructs(() -> new IdempotencyMap<>(Box.FunctionOfBox.class)).set(Dict
+			.readOnly, true);
 
 
 	static public void call(Box from, Dict.Prop<IdempotencyMap<Box.FunctionOfBox>> prop) {
 		Set<String> seen = new LinkedHashSet<>();
 		from.breadthFirst(from.upwards())
-		    .map(x -> x.properties.get(prop))
-		    .filter(x -> x != null)
-		    .flatMap(x -> x.entrySet()
-				   .stream())
-		    .forEach(x -> {
-			    if (seen.add(x.getKey()))
-				    x.getValue().apply(from);
-		    });
+			.map(x -> x.properties.get(prop))
+			.filter(x -> x != null)
+			.flatMap(x -> x.entrySet()
+				.stream())
+			.forEach(x -> {
+				if (seen.add(x.getKey()))
+					x.getValue().apply(from);
+			});
 	}
 
-	static public void transition(Box on, Dict.Prop<Boolean> property, boolean transitionTo, boolean defaultState, Dict.Prop<IdempotencyMap<Box.FunctionOfBox>> toTrue, Dict.Prop<IdempotencyMap<Box.FunctionOfBox>> toFalse) {
+	static public void transition(Box on, Dict.Prop<Boolean> property, boolean transitionTo, boolean defaultState, Dict.Prop<IdempotencyMap<Box.FunctionOfBox>> toTrue, Dict
+		.Prop<IdempotencyMap<Box.FunctionOfBox>> toFalse) {
 		boolean currentState = on.properties.isTrue(property, defaultState);
 		if (currentState == transitionTo) return;
 
@@ -83,10 +90,10 @@ public class Callbacks {
 	}
 
 	static public final Dict.Prop<IdempotencyMap<Box.BiFunctionOfBoxAnd<Rect, Rect>>> onFrameChanged = new Dict.Prop<>("onFrameChanged").type()
-																	    .toCanon()
-																	    .doc("callback that's called when aa box is moved. Signature is .onFrameChanged(box, newRect) -> Rect ")
-																	    .autoConstructs(() -> new IdempotencyMap<>(
-																		    Box.BiFunctionOfBoxAnd.class));
+		.toCanon()
+		.doc("callback that's called when aa box is moved. Signature is .onFrameChanged(box, newRect) -> Rect ")
+		.autoConstructs(() -> new IdempotencyMap<>(
+			Box.BiFunctionOfBoxAnd.class));
 
 
 	static public Rect frameChange(Box from, Rect a) {
@@ -106,10 +113,10 @@ public class Callbacks {
 	}
 
 	static public final Dict.Prop<IdempotencyMap<Box.BiFunctionOfBoxAnd<String, String>>> onNameChange = new Dict.Prop<>("onNameChange").type()
-																	    .toCanon()
-																	    .doc("callback that's called when a boxes name is changed")
-																	    .autoConstructs(() -> new IdempotencyMap<>(
-																		    Box.BiFunctionOfBoxAnd.class));
+		.toCanon()
+		.doc("callback that's called when a boxes name is changed")
+		.autoConstructs(() -> new IdempotencyMap<>(
+			Box.BiFunctionOfBoxAnd.class));
 
 	static public String nameChange(Box from, String a) {
 		return thread(from, a, onNameChange);
@@ -132,32 +139,34 @@ public class Callbacks {
 
 		// this logic lets children override parents (you can use '_._' for a guarenteed unique namespace
 		from.find(prop, from.upwards())
-		    .reduce(new IdempotencyMap<>(Box.BiFunctionOfBoxAnd.class), (a, b) -> {
-			    IdempotencyMap<Box.BiFunctionOfBoxAnd<T, T>> i = new IdempotencyMap<>(Box.BiFunctionOfBoxAnd.class);
-			    i.putAll(a);
-			    i.putAll(b);
-			    return i;
-		    })
-		    .values()
-		    .stream()
-		    .forEachOrdered(x -> {
-			    try {
-				    az[0] = x.apply(from, (T) az[0]);
-			    } catch (Throwable t) {
-				    Errors.INSTANCE.tryToReportTo(t, "Inside call[" + prop + "]", x);
-			    }
-		    });
+			.reduce(new IdempotencyMap<>(Box.BiFunctionOfBoxAnd.class), (a, b) -> {
+				IdempotencyMap<Box.BiFunctionOfBoxAnd<T, T>> i = new IdempotencyMap<>(Box.BiFunctionOfBoxAnd.class);
+				i.putAll(a);
+				i.putAll(b);
+				return i;
+			})
+			.values()
+			.stream()
+			.forEachOrdered(x -> {
+				try {
+					az[0] = x.apply(from, (T) az[0]);
+				} catch (Throwable t) {
+					Errors.INSTANCE.tryToReportTo(t, "Inside call[" + prop + "]", x);
+				}
+			});
 		return (T) az[0];
 	}
 
 	static public final Dict.Prop<IdempotencyMap<Supplier<Object>>> main = new Dict.Prop<IdempotencyMap<Supplier<Object>>>("main").toCanon()
-																      .type()
-																      .doc("`_.main.name = function(){...}` defines what happens when a box is 'called' (e.g. _()). If this isn't defined or is empty, the whole box is executed instead (and, should that result in `_.main` being defined, then that's called")
-																      .autoConstructs(() -> new IdempotencyMap<>(Supplier.class));
+		.type()
+		.doc("`_.main.name = function(){...}` defines what happens when a box is 'called' (e.g. _()). If this isn't defined or is empty, the whole box is executed instead (and, should that " +
+			"result in `_.main` being defined, then that's called")
+		.autoConstructs(() -> new IdempotencyMap<>(Supplier.class));
 	static public final Dict.Prop<IdempotencyMap<Supplier<Object>>> run = new Dict.Prop<IdempotencyMap<Supplier<Object>>>("run").toCanon()
-																    .type()
-																    .doc("`_.run.name = function(){...}` defines what happens, each animation frame, when a box is 'run' (e.g. between _.begin() / _.end()). If this isn't defined or is empty, the whole box is executed instead (and, should that result in `_.run` being defined, then that's called")
-																    .autoConstructs(() -> new IdempotencyMap<>(Supplier.class));
+		.type()
+		.doc("`_.run.name = function(){...}` defines what happens, each animation frame, when a box is 'run' (e.g. between _.begin() / _.end()). If this isn't defined or is empty, the whole " +
+			"box is executed instead (and, should that result in `_.run` being defined, then that's called")
+		.autoConstructs(() -> new IdempotencyMap<>(Supplier.class));
 
 
 	public static Object call(Box box, Object b) {
@@ -184,8 +193,8 @@ public class Callbacks {
 			// let's proceed with root
 
 			Box root = box.find(Boxes.root, box.upwards())
-				      .findFirst()
-				      .orElseThrow(() -> new IllegalArgumentException("can't execute a box not connected to the graph"));
+				.findFirst()
+				.orElseThrow(() -> new IllegalArgumentException("can't execute a box not connected to the graph"));
 
 			if (argMap instanceof Map) {
 				m = (Map<?, ?>) Conversions.convert(argMap, Map.class);
@@ -211,33 +220,33 @@ public class Callbacks {
 			try {
 
 				if (evalIfNull && (!box.properties.has(main) || box.properties.get(main)
-											      .values()
-											      .size() == 0)) {
+					.values()
+					.size() == 0)) {
 					if (Execution.context.get()
-							     .stream()
-							     .filter(x -> x == box)
-							     .count() > 1 && !box.properties.isTrue(new Dict.Prop("recur"), false))
+						.stream()
+						.filter(x -> x == box)
+						.count() > 1 && !box.properties.isTrue(new Dict.Prop("recur"), false))
 						return;
 
 //					String code = box.properties.get(Execution.code);
 					String code = DisabledRangeHelper.getStringWithDisabledRanges(box, Execution.code, "/* -- start -- ", "-- end -- */");
 					if (code != null) box.first(Execution.execution)
-							     .map(x -> x.support(box, Execution.code))
-							     .filter(x -> x != null)
-							     .ifPresent(x -> x.executeAll(code, box));
+						.map(x -> x.support(box, Execution.code))
+						.filter(x -> x != null)
+						.ifPresent(x -> x.executeAll(code, box));
 
 				}
 
 				Log.log("calllogic", () -> "about to reduce starting from " + box);
 
 				IdempotencyMap<Runnable> map = box.find(main, direction)
-								  .reduce(new IdempotencyMap<Runnable>(Runnable.class), (a1, a2) -> {
-									  Log.log("calllogic", () -> "reducing " + a1 + " " + a2);
-									  IdempotencyMap<Runnable> q = new IdempotencyMap<>(Runnable.class);
-									  q.putAll(a1);
-									  q.putAll(a2);
-									  return q;
-								  });
+					.reduce(new IdempotencyMap<Runnable>(Runnable.class), (a1, a2) -> {
+						Log.log("calllogic", () -> "reducing " + a1 + " " + a2);
+						IdempotencyMap<Runnable> q = new IdempotencyMap<>(Runnable.class);
+						q.putAll(a1);
+						q.putAll(a2);
+						return q;
+					});
 
 
 				Log.log("calllogic", () -> "reduced upwards to get " + map);
@@ -245,13 +254,13 @@ public class Callbacks {
 
 				Object[] firstRet = {null};
 				map.values()
-				   .forEach(x -> {
-					   try {
-						   x.run();
-					   } catch (Throwable t) {
-						   Errors.INSTANCE.tryToReportTo(t, "Inside call[" + main + "]", x);
-					   }
-				   });
+					.forEach(x -> {
+						try {
+							x.run();
+						} catch (Throwable t) {
+							Errors.INSTANCE.tryToReportTo(t, "Inside call[" + main + "]", x);
+						}
+					});
 
 				return;
 
@@ -286,10 +295,10 @@ public class Callbacks {
 			// let's proceed with root
 
 			Box root = box.find(Boxes.root, box.upwards())
-				      .findFirst()
-				      .orElseThrow(() -> new IllegalArgumentException("can't execute a box not connected to the graph"));
+				.findFirst()
+				.orElseThrow(() -> new IllegalArgumentException("can't execute a box not connected to the graph"));
 
-			m = argMap==null ? null : (Map<?, ?>) Conversions.convert(argMap, Map.class);
+			m = argMap == null ? null : (Map<?, ?>) Conversions.convert(argMap, Map.class);
 
 			if (m instanceof Map) {
 				for (Map.Entry<?, ?> e : m.entrySet()) {
@@ -314,33 +323,33 @@ public class Callbacks {
 			try {
 
 				if (evalIfNull && (!box.properties.has(main) || box.properties.get(main)
-											      .values()
-											      .size() == 0)) {
+					.values()
+					.size() == 0)) {
 					if (Execution.context.get()
-							     .stream()
-							     .filter(x -> x == box)
-							     .count() > 1 && !box.properties.isTrue(new Dict.Prop("recur"), false))
+						.stream()
+						.filter(x -> x == box)
+						.count() > 1 && !box.properties.isTrue(new Dict.Prop("recur"), false))
 						return null;
 
 //					String code = box.properties.get(Execution.code);
 					String code = DisabledRangeHelper.getStringWithDisabledRanges(box, Execution.code, "/* -- start -- ", "-- end -- */");
 					if (code != null) box.first(Execution.execution)
-							     .map(x -> x.support(box, Execution.code))
-							     .filter(x -> x != null)
-							     .ifPresent(x -> x.executeAll(code, box));
+						.map(x -> x.support(box, Execution.code))
+						.filter(x -> x != null)
+						.ifPresent(x -> x.executeAll(code, box));
 
 				}
 
 				Log.log("calllogic", () -> "about to reduce starting from " + box);
 
 				IdempotencyMap<Supplier<Object>> map = box.find(main, direction)
-									  .reduce(new IdempotencyMap<Supplier<Object>>(Supplier.class), (a1, a2) -> {
-										  Log.log("calllogic", () -> "reducing " + a1 + " " + a2);
-										  IdempotencyMap<Supplier<Object>> q = new IdempotencyMap<>(Supplier.class);
-										  q.putAll(a1);
-										  q.putAll(a2);
-										  return q;
-									  });
+					.reduce(new IdempotencyMap<Supplier<Object>>(Supplier.class), (a1, a2) -> {
+						Log.log("calllogic", () -> "reducing " + a1 + " " + a2);
+						IdempotencyMap<Supplier<Object>> q = new IdempotencyMap<>(Supplier.class);
+						q.putAll(a1);
+						q.putAll(a2);
+						return q;
+					});
 
 
 				Log.log("calllogic", () -> "reduced upwards to get " + map);
@@ -348,14 +357,14 @@ public class Callbacks {
 
 				Object[] firstRet = {null};
 				map.values()
-				   .forEach(x -> {
-					   try {
-						   Object r = x.get();
-						   if (firstRet[0] == null) firstRet[0] = r;
-					   } catch (Throwable t) {
-						   Errors.INSTANCE.tryToReportTo(t, "Inside call[" + main + "]", x);
-					   }
-				   });
+					.forEach(x -> {
+						try {
+							Object r = x.get();
+							if (firstRet[0] == null) firstRet[0] = r;
+						} catch (Throwable t) {
+							Errors.INSTANCE.tryToReportTo(t, "Inside call[" + main + "]", x);
+						}
+					});
 
 				return firstRet[0];
 
@@ -399,36 +408,36 @@ public class Callbacks {
 			try {
 
 				if (!box.properties.has(main) || box.properties.get(main)
-									       .values()
-									       .size() == 0) {
+					.values()
+					.size() == 0) {
 					if (Execution.context.get()
-							     .stream()
-							     .filter(x -> x == box)
-							     .count() > 1 && !box.properties.isTrue(new Dict.Prop("recur"), false))
+						.stream()
+						.filter(x -> x == box)
+						.count() > 1 && !box.properties.isTrue(new Dict.Prop("recur"), false))
 						return null;
 
 //					String code = box.properties.get(Execution.code);
 					String code = DisabledRangeHelper.getStringWithDisabledRanges(box, Execution.code, "/* -- start -- ", "-- end -- */");
 					if (code != null) box.first(Execution.execution)
-							     .ifPresent(x -> x.support(box, Execution.code)
-									      .executeAll(code, box));
+						.ifPresent(x -> x.support(box, Execution.code)
+							.executeAll(code, box));
 
 				}
 
 				IdempotencyMap<Function<Object, Object>> map = box.find(main, box.upwards())
-										  .reduce(new IdempotencyMap<Function<Object, Object>>(Function.class), (a1, a2) -> {
-											  IdempotencyMap<Function<Object, Object>> q = new IdempotencyMap<>(Function.class);
-											  q.putAll(a1);
-											  q.putAll(a2);
-											  return q;
-										  });
+					.reduce(new IdempotencyMap<Function<Object, Object>>(Function.class), (a1, a2) -> {
+						IdempotencyMap<Function<Object, Object>> q = new IdempotencyMap<>(Function.class);
+						q.putAll(a1);
+						q.putAll(a2);
+						return q;
+					});
 
 
 				Object[] firstRet = {null};
 				map.values()
-				   .forEach(x -> {
-					   firstRet[0] = x.apply(firstRet[0]);
-				   });
+					.forEach(x -> {
+						firstRet[0] = x.apply(firstRet[0]);
+					});
 
 				return firstRet[0];
 
