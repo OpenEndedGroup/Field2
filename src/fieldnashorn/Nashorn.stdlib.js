@@ -12,10 +12,17 @@ var Asta = Java.type('fielded.live.Asta');
 var Transform2D = Java.type("field.linalg.Transform2D")
 var Anim = Java.type("field.utility.Drivers")
 var Math = Java.type("java.lang.Math")
+
+// specifically for UChicago Class
 var Mocap = Java.type("trace.mocap.Mocap")
 var Trackers = Java.type("fieldboof.Trackers")
 var SoundAnalysis = Java.type("trace.sound.SoundAnalysis")
 var Intersections = Java.type("trace.util.Intersections")
+var PhysicsSystem = Java.type("trace.physics.PhysicsSystem")
+var Boids = Java.type("trace.simulation.Boids")
+var Production = Java.type("trace.util.Production")
+var RandomCascade = Java.type("trace.random.RandomCascade")
+var Random = Java.type("trace.random.Random")
 
 
 var __h__ = new Asta();
