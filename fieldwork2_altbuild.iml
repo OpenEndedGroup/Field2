@@ -26,5 +26,6 @@
     <orderEntry type="library" name="lwjgl-tinyfd" level="project" />
     <orderEntry type="library" name="commons-io-2.6" level="project" />
     <orderEntry type="library" name="jsyphon" level="project" />
+    <orderEntry type="library" name="C3DViewer (2)" level="project" />
   </component>
 </module>
