@@ -13,8 +13,13 @@ class FakeOculusDrawTarget {
 
     var floatResolution = false
 
-    val wPerEye: Int = 4096*2
-    val hPerEye: Int = 2048*2
+    val wPerEye: Int = 1920
+    val hPerEye: Int = 1080
+
+    @JvmField
+    val textureW = wPerEye
+    @JvmField
+    val textureH = hPerEye
 
     val camera = Camera()
 
@@ -47,6 +52,10 @@ class FakeOculusDrawTarget {
             GL11.glEnable(GL11.GL_CLIP_PLANE0)
             true
         })
+
+        val s = camera.state
+        s.aspect = (wPerEye/hPerEye.toDouble()).toFloat()
+        camera.state = s
 
         scene.attach(0, "drawFakeOculus", { x: Int ->
 
