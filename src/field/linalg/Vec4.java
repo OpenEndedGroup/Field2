@@ -1401,26 +1401,6 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 		w += 2 * amount * (Math.random() - 0.5f);
 	}
 
-	@Override
-	public Object __sub__(Object b) {
-		Vec4 c = convertToVec4(b);
-		if (c != null)
-			return new Vec4(this.x - c.x, this.y - c.y, this.z - c.z, this.w - c.w);
-
-		if (b instanceof Quat) {
-			return ((Quat) b).invert(new Quat()).transform(this, new Vec4());
-		}
-		if (b instanceof Vec4) {
-			return this.sub((Vec4) b);
-		}
-
-		if (b instanceof OverloadedMath)
-			return ((OverloadedMath) b).__rsub__(this);
-
-		throw new ClassCastException(" can't sub '" + b + "' by a Vec4 (" + this + ")");
-
-	}
-
 
 	@Override
 	public Object __rsub__(Object b) {
@@ -1439,6 +1419,27 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 		throw new ClassCastException(" can't subtract '" + b + "' by a Vec3 (" + this + ")");
 
 	}
+
+	@Override
+	public Object __sub__(Object b) {
+		Vec4 c = convertToVec4(b);
+		if (c != null)
+			return new Vec4(this.x - c.x, this.y - c.y, this.z - c.z, this.w - c.w);
+
+		if (b instanceof Quat) {
+			return ((Quat) b).transform(this, new Vec4());
+		}
+		if (b instanceof Vec4) {
+			return this.add((Vec4) b);
+		}
+
+		if (b instanceof OverloadedMath)
+			return ((OverloadedMath) b).__rsub__(this);
+
+		throw new ClassCastException(" can't sub '" + b + "' by a Vec3 (" + this + ")");
+
+	}
+
 
 	@Override
 	public Object __add__(Object b) {

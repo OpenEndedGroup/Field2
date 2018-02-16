@@ -20,9 +20,9 @@ public class Saver {
 
     private final int numWorkers;
 
-    private final int width;
+    public final int width;
 
-    private final int height;
+    public final int height;
 
     private final ExecutorService pool;
 
@@ -114,7 +114,7 @@ public class Saver {
         hooks.values().stream().forEach(x -> x.accept(storage));
     }
 
-    private String pad(int i) {
+    static public String pad(int i) {
         String s = i + "";
         while (s.length() < 6) s = "0" + s;
         return s;

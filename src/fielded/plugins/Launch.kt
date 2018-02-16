@@ -1,10 +1,14 @@
 package fielded.plugins
 
+import field.utility.Dict
+import field.utility.Options
 import fieldbox.FieldBox
 import fieldbox.boxes.Box
 import fieldbox.boxes.Drawing
 import fieldbox.io.IO.pad
+import fieldagent.Main
 import fielded.Commands
+import fieldnashorn.Nashorn
 import org.lwjgl.util.tinyfd.TinyFileDialogs
 import java.io.File
 import java.util.*
@@ -109,13 +113,29 @@ class Launch(val root: Box) : Box() {
     fun openInNewProcess(fn: String, workspace: String = FieldBox.workspace) {
 
         var launcher = System.getenv("FIELD2_LAUNCH")
-        if (!launcher.endsWith("nodebug"))
-            launcher = launcher + "_nodebug"
+        if (Main.os == Main.OS.mac) {
+            if (!launcher.endsWith("nodebug"))
+                launcher = launcher + "_nodebug"
 
-        val u = UUID.randomUUID()
-        ProcessBuilder().command(launcher, "fieldbox.FieldBox", "-file", fn, "-workspace", workspace)
-                .redirectError(ProcessBuilder.Redirect.appendTo(File("/var/tmp/field_" + u + "." + fn + ".error.log")))
-                .redirectOutput(ProcessBuilder.Redirect.appendTo(File("/var/tmp/field_" + u + "." + fn + ".out.log"))).start()
+            val u = UUID.randomUUID()
+            ProcessBuilder().command(launcher, "fieldbox.FieldBox", "-file", fn, "-workspace", workspace)
+                    .redirectError(ProcessBuilder.Redirect.appendTo(File("/var/tmp/field_" + u + "." + fn + ".error.log")))
+                    .redirectOutput(ProcessBuilder.Redirect.appendTo(File("/var/tmp/field_" + u + "." + fn + ".out.log"))).start()
+        }
+        else if (Main.os == Main.OS.windows)
+        {
+            val u = UUID.randomUUID()
+
+            println(" does this file exist? ${File("c:\\windows\\system32\\cmd.exe").exists()}")
+
+            val e1 = File.createTempFile("field",".error.log")
+            val s1 = File.createTempFile("field",".out.log")
+
+            ProcessBuilder().command("c:\\windows\\system32\\cmd.exe", "/c", "start", "\"\"", launcher, "fieldbox.FieldBox", "-file", fn, "-strict", if (Options.dict().isTrue(Dict.Prop<Number>("strict"), false)) "1" else "0", "-workspace", workspace)
+                    .redirectError(ProcessBuilder.Redirect.appendTo(e1))
+                    .redirectOutput(ProcessBuilder.Redirect.appendTo(s1)).start()
+
+        }
     }
 
 

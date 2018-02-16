@@ -18,7 +18,6 @@ fi
 "$java" \
     -Xshare:on \
     -splash:$fieldhome/lib/images/f.png \
-    -DdebugLinker=true \
     --add-opens java.base/sun.nio.ch=ALL-UNNAMED \
     -Xdebug \
     -Xrunjdwp:server=y,transport=dt_socket,address=5005,suspend=n -Dorg.lwjgl.util.Debug=false \

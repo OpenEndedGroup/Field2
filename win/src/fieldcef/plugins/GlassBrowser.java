@@ -1,5 +1,6 @@
 package fieldcef.plugins;
 
+import static java.lang.Thread.*;
 import static org.lwjgl.glfw.GLFW.*;
 
 import field.app.RunLoop;
@@ -151,6 +152,11 @@ public class GlassBrowser extends Box implements IO.Loaded {
         for (String s : playlist) {
             Log.log("glassbrowser.debug", () -> "executing :" + s);
             browser.executeJavaScript(findAndLoad(s, true));
+            try {
+                sleep(200);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
         hide();
 

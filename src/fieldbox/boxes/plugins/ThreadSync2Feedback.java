@@ -27,6 +27,9 @@ public class ThreadSync2Feedback extends Box {
 	static public Dict.Prop<FunctionOfBox<Boolean>> fKill = new Dict.Prop<>("fKill").toCanon().type().doc(" kills all the fibers associated with a running box. Returns false if that box currently has no fibers. ");
 
 	static public Dict.Prop<FunctionOfBox<Boolean>> yield = new Dict.Prop<>("yield").toCanon().type().doc("call `_.yield()` to pause this code for one 'frame', allowing everything else (graphics, the rest of field) to update exactly once.");
+
+	static public Dict.Prop<FunctionOfBox<Boolean>> finish = new Dict.Prop<>("finish").toCanon().type().doc("call `_.finish()` to stop this code from running anymore (without error)");
+
 	static public Dict.Prop<FunctionOfBox<ThreadSync2.Fibre>> trace = new Dict.Prop<>("trace").toCanon().type().doc("call `_.trace()` to get an object that lives for this lifetime of this execution trace. Simultanous overlapping executions share the same namespace but different `_.trace()` objects");
 
 	static public Dict.Prop<Boolean> mainThread = new Dict.Prop<>("mainThread").toCanon().type().doc("set `_.mainThread==true` to execute everything inside this box in the main thread").set(IO.persistent, true);
@@ -56,6 +59,7 @@ public class ThreadSync2Feedback extends Box {
 		this.properties.put(fKill, ThreadSync2Feedback::kill);
 		this.properties.put(yield, ThreadSync2Feedback::yield);
 		this.properties.put(trace, ThreadSync2Feedback::fibre);
+		this.properties.put(finish, ThreadSync2Feedback::finish);
 	}
 
 	static public boolean isPaused(Box x) {
@@ -91,6 +95,18 @@ public class ThreadSync2Feedback extends Box {
 		} else throw new IllegalArgumentException("can't wait for a frame without running -threaded2 1");
 		return false;
 	}
+
+
+	static public boolean finish(Box x) {
+		if (ThreadSync2.getEnabled()) {
+			ThreadSync2.Fibre f = ThreadSync2.fibre();
+			if (f != null) {
+				throw new ThreadSync2.KilledException();
+			}
+		}
+		return false;
+	}
+
 
 	static public boolean maybeYield() {
 		if (ThreadSync2.getEnabled()) {

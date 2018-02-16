@@ -7,6 +7,7 @@ import field.utility.*;
 import fieldbox.DefaultMenus;
 import fieldbox.boxes.plugins.BoxDefaultCode;
 import fieldbox.boxes.plugins.Missing;
+import fieldbox.boxes.plugins.ThreadSync2Feedback;
 import fieldbox.execution.*;
 import fieldbox.io.IO;
 import fieldnashorn.annotations.HiddenInAutocomplete;
@@ -458,7 +459,10 @@ public class Box implements fieldlinker.AsMap, HandlesCompletion {
 	public Object asMap_get_interpret(Object ret) {
 		if (ret instanceof FunctionOfBox) {
 			final Object fret = ret;
-			return ((Supplier) (() -> ((FunctionOfBox) fret).apply(this)));
+			try {
+				return ((Supplier) (() -> ((FunctionOfBox) fret).apply(this)));
+			}
+			catch(ThreadSync2.KilledException e){}
 		}
 
 		if (ret instanceof BiFunctionOfBoxAnd) {

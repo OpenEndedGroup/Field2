@@ -96,6 +96,9 @@ public class Export extends Box {
 				fn = filename.substring(filename.lastIndexOf("/") + 1);
 			}
 
+			path = path.replace("\\\\", "/");
+			path = path.replace("\\\\", "/");
+
 			IO.Document doc = FieldBox.fieldBox.io.compileDocument(path, root, special);
 
 			boolean error = false;

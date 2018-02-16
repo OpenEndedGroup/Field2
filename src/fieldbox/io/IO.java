@@ -551,9 +551,12 @@ public class IO {
 		ex.box = box;
 
 		ex.dataFile = relativize(box.properties.computeIfAbsent(new Dict.Prop<String>("__datafilename__"), (k) -> relativize(makeDataFilenameFor(defaultSubDirectory, ex, box))));
+		ex.dataFile = ex.dataFile.replace("\\","/");
+		ex.dataFile = ex.dataFile.replace("\\\\","/");
+		ex.dataFile = ex.dataFile.replace("\\\\","/");
 		box.properties.put(new Dict.Prop<String>("__datafilename__"), ex.dataFile);
 
-		System.out.println(" set datafilename to be :" + ex.dataFile);
+		System.out.println(" set !datafilename to be :" + ex.dataFile);
 
 		knownProperties.add("__datafilename__");
 
