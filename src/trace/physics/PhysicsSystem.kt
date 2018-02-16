@@ -7,9 +7,11 @@ import org.jbox2d.collision.shapes.PolygonShape
 import org.jbox2d.common.Transform
 import org.jbox2d.common.Vec2
 import org.jbox2d.dynamics.*
+import org.jbox2d.dynamics.joints.DistanceJointDef
+import org.jbox2d.dynamics.joints.Joint
 import java.util.*
 
-class FLinesAndPhysics {
+class PhysicsSystem {
 
     val physics: Dict.Prop<FLineToPhysics> = Dict.Prop<Any>("physics")
             .toCanon<Any>().set(Dict.domain, "fline")
@@ -23,6 +25,8 @@ class FLinesAndPhysics {
         if (timeStep > 0.2) {
             System.err.println(" warning: large timestep :" + timeStep)
             timeStep = 0.2f
+        } else if (timeStep < 1e-8) {
+            timeStep = 1/30f;
         }
 
         val velocityIterations = 6
@@ -35,12 +39,32 @@ class FLinesAndPhysics {
         }
     }
 
-    fun addPhysics(f: FLine) {
-        allPhysicsLines.add(f.attributes.computeIfAbsent(physics, { FLineToPhysics(f, f.center(), 1.0) }))
+    var lastTime = -1L
+    fun update() {
+        if (lastTime == -1L) lastTime = System.currentTimeMillis()
+        update((System.currentTimeMillis() - lastTime).toFloat())
+        lastTime = System.currentTimeMillis()
+    }
+
+    fun addPhysics(f: FLine): FLineToPhysics {
+        val pp = f.attributes.computeIfAbsent(physics, { FLineToPhysics(f, f.center(), 1.0) })
+        allPhysicsLines.add(pp)
+        return pp
     }
 
     fun setGravity(g: field.linalg.Vec2) {
         world.gravity = convert(g)
+    }
+
+    fun distanceJoint(a : FLine, b : FLine): Joint {
+        val pa = addPhysics(a)
+        val pb = addPhysics(b)
+
+        val d = DistanceJointDef()
+        d.initialize(pa.body, pb.body, convert(field.linalg.Vec2(0.0,0.0)), convert(field.linalg.Vec2(0.0,0.0)))
+        d.dampingRatio = 0.2f
+        d.frequencyHz = 1f
+        return world.createJoint(d)
     }
 
     inner class FLineToPhysics(val fline: FLine, val center: field.linalg.Vec2? = null, density: Double = 1.0) {
@@ -94,8 +118,7 @@ class FLinesAndPhysics {
             }
         }
 
-        fun setFixed()
-        {
+        fun setFixed() {
             body.type = BodyType.STATIC
         }
 

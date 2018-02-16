@@ -1,6 +1,6 @@
 package trace.random
 
-class Random2 {
+class RandomCascade {
     val r = mutableListOf<Random>()
     val h = mutableListOf<Double>()
     val a = mutableListOf<Double>()
@@ -11,6 +11,29 @@ class Random2 {
         a.addAll(mutableListOf(1.0, 1 / 2.0, 1 / 4.0, 1 / 8.0))
         r.forEach { it.nextDouble(Math.random()) }
     }
+
+    constructor(num: Int) {
+        var o = 1.0
+        for (n in 0 until num) {
+            r.add(Random())
+            h.add(o)
+            a.add(1 / (Math.pow(2.0, o)))
+            o += 1
+        }
+        r.forEach { it.nextDouble(Math.random()) }
+    }
+
+    constructor(num: Int, seed: String) {
+        var o = 1.0
+        for (n in 0 until num) {
+            r.add(Random(seed, n.toDouble()))
+            h.add(o)
+            a.add(1 / (Math.pow(2.0, o)))
+            o += 1
+        }
+        r.forEach { it.nextDouble(Math.random()) }
+    }
+
 
     constructor(seed: String) {
         r.addAll(mutableListOf(Random(seed + "0"), Random(seed + "1"), Random(seed + "2"), Random(seed + "3")))
@@ -35,8 +58,8 @@ class Random2 {
         return r.mapIndexed { index, rr -> rr.nextGaussian(increment * h[index]) * a[index] }.sum()
     }
 
-    fun fork(): Random2 {
-        val ret = Random2()
+    fun fork(): RandomCascade {
+        val ret = RandomCascade()
 
         ret.r.clear()
         r.forEach { ret.r.add(it.fork()) }
