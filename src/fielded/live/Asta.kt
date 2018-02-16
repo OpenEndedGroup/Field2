@@ -7,6 +7,8 @@ import field.utility.OverloadedMath
 import field.utility.PerThread
 import field.utility.Vec2
 import field.utility.Vec3
+import field.utility.Dict
+import field.utility.Vec4
 import fieldbox.boxes.Box
 import fieldbox.boxes.plugins.DragToCopy.duplicate
 import fieldnashorn.babel.SourceTransformer
@@ -19,6 +21,8 @@ import java.util.function.Function
     AST based rewriting
  */
 class Asta {
+
+    val disabled = field.utility.Options.dict().isTrue(Dict.Prop<Number>("noOverloads"), false) == true;
 
     class Options {
         var overloads = false
@@ -438,7 +442,7 @@ class Asta {
         val r = object : SourceTransformer {
             override fun transform(c: String, fragment: Boolean): field.utility.Pair<String, Function<Int, Int>> {
 
-                if (c.contains("%%NO_OVERLOADS%%")) return field.utility.Pair(c, Function { x: Int -> x })
+                if (disabled || c.contains("%%NO_OVERLOADS%%")) return field.utility.Pair(c, Function { x: Int -> x })
 
                 options.numbers = box.properties.isTrue(OverloadedMath.withLiveNumbers, false)
                 options.overloads = box.properties.isTrue(OverloadedMath.withOverloading, false)
