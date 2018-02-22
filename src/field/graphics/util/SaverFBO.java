@@ -1,5 +1,6 @@
 package field.graphics.util;
 
+import field.graphics.FBO;
 import field.graphics.FastJPEG;
 import field.utility.IdempotencyMap;
 import field.utility.Pair;
@@ -21,7 +22,7 @@ import static org.lwjgl.opengl.GL30.*;
 /*
 Class to save out a canvas to a directory of .jpgs
  */
-public class Saver {
+public class SaverFBO {
 
 	private final int numWorkers;
 
@@ -31,12 +32,14 @@ public class Saver {
 	private final ExecutorService pool;
 
 	private final String prefix;
+	private FBO fbo;
 
-	public Saver(int width, int height, int numWorkers, String prefix) {
+	public SaverFBO(int width, int height, int numWorkers, String prefix, FBO fbo) {
 		this.width = width;
 		this.height = height;
 		this.numWorkers = numWorkers;
 		this.prefix = prefix;
+		this.fbo = fbo;
 
 		pool = Executors.newCachedThreadPool();
 	}
@@ -75,15 +78,6 @@ public class Saver {
 	}
 
 	/**
-	 * call to save exactly one jpg to disk and then stop
-	 */
-
-	public void drip() {
-		on = true;
-		drip = true;
-	}
-
-	/**
 	 * Opens the directory that this is saving to in the Finder (Mac Only)
 	 */
 	public void open()
@@ -91,6 +85,14 @@ public class Saver {
 		Desktop.getDesktop().browseFileDirectory(new File(prefix).getParentFile());
 	}
 
+	/**
+	 * call to save exactly one jpg to disk and then stop
+	 */
+
+	public void drip() {
+		on = true;
+		drip = true;
+	}
 
 	@HiddenInAutocomplete
 	public IdempotencyMap<Consumer<ByteBuffer>> hooks = new IdempotencyMap<Consumer<ByteBuffer>>(Consumer.class);
@@ -156,16 +158,23 @@ public class Saver {
 		int[] a = {0};
 		assert glGetError() == 0;
 
-//		glFinish();
 		storage.first.rewind();
 		a[0] = glGetInteger(GL_FRAMEBUFFER_BINDING);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-//		glFinish();
-//		GL11.glReadBuffer(GL11.GL_BACK);
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo.getOpenGLFrameBufferNameInCurrentContext());
 		glReadPixels(0, 0, width, height, GL11.GL_RGB, GL_UNSIGNED_BYTE, storage.first);
-//		glFinish();
 		glBindFramebuffer(GL_FRAMEBUFFER, a[0]);
 		storage.first.rewind();
+
+////		glFinish();
+//		storage.first.rewind();
+//		a[0] = glGetInteger(GL_FRAMEBUFFER_BINDING);
+//		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+////		glFinish();
+////		GL11.glReadBuffer(GL11.GL_BACK);
+//		glReadPixels(0, 0, width, height, GL11.GL_RGB, GL_UNSIGNED_BYTE, storage.first);
+////		glFinish();
+//		glBindFramebuffer(GL_FRAMEBUFFER, a[0]);
+//		storage.first.rewind();
 
 		assert glGetError() == 0;
 	}
@@ -176,19 +185,19 @@ public class Saver {
 		return new Callable<Pair<ByteBuffer, ByteBuffer>>() {
 			public Pair<ByteBuffer, ByteBuffer> call() throws Exception {
 
-				for(int y=0;y<height;y++)
-				{
-					storage.first.position(y*width*3);
-					storage.first.limit((y+1)*width*3);
-					storage.second.position((height-y-1)*width*3);
-					storage.second.limit((height-y-1+1)*width*3);
-					storage.second.put(storage.first);
-					storage.second.clear();
-					storage.first.clear();
-				}
+//				for(int y=0;y<height;y++)
+//				{
+//					storage.first.position(y*width*3);
+//					storage.first.limit((y+1)*width*3);
+//					storage.second.position((height-y-1)*width*3);
+//					storage.second.limit((height-y-1+1)*width*3);
+//					storage.second.put(storage.first);
+//					storage.second.clear();
+//					storage.first.clear();
+//				}
 
 				try {
-					j2.compress(filename, storage.second, width, height);
+					j2.compress(filename, storage.first, width, height);
 				} catch (Throwable t) {
 					System.err.println(" -- exception thrown in compress for :" + filename + " " + storage + " " + width + " " + height);
 					t.printStackTrace();
