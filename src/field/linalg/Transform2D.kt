@@ -25,7 +25,7 @@ class Transform2D : OverloadedMath {
             }
             is Quat -> {
                 val q = AffineTransform(a)
-                val t = AffineTransform.getRotateInstance(-b.angle()*DEGTORAD, 0.0, 0.0)
+                val t = AffineTransform.getRotateInstance(-b.angle() * DEGTORAD, 0.0, 0.0)
                 q.preConcatenate(t)
                 return Transform2D(q)
             }
@@ -73,7 +73,7 @@ class Transform2D : OverloadedMath {
             }
             is Quat -> {
                 val q = AffineTransform(a)
-                val t = AffineTransform.getRotateInstance(-b.angle()*DEGTORAD, 0.0, 0.0)
+                val t = AffineTransform.getRotateInstance(-b.angle() * DEGTORAD, 0.0, 0.0)
                 q.concatenate(t)
                 return Transform2D(q)
             }
@@ -116,7 +116,7 @@ class Transform2D : OverloadedMath {
             }
             is Quat -> {
                 val q = AffineTransform(a)
-                val t = AffineTransform.getRotateInstance(b.angle()*DEGTORAD, 0.0, 0.0)
+                val t = AffineTransform.getRotateInstance(b.angle() * DEGTORAD, 0.0, 0.0)
                 q.preConcatenate(t)
                 return Transform2D(q)
             }
@@ -161,7 +161,7 @@ class Transform2D : OverloadedMath {
             }
             is Quat -> {
                 val q = AffineTransform(a)
-                val t = AffineTransform.getRotateInstance(b.angle()*DEGTORAD, 0.0, 0.0)
+                val t = AffineTransform.getRotateInstance(b.angle() * DEGTORAD, 0.0, 0.0)
                 q.concatenate(t)
                 return Transform2D(q)
             }
@@ -203,7 +203,7 @@ class Transform2D : OverloadedMath {
             }
             is Quat -> {
                 val q = AffineTransform(a)
-                val t = AffineTransform.getRotateInstance(b.angle()*DEGTORAD, 0.0, 0.0)
+                val t = AffineTransform.getRotateInstance(b.angle() * DEGTORAD, 0.0, 0.0)
                 q.preConcatenate(t)
                 return Transform2D(q)
             }
@@ -231,6 +231,18 @@ class Transform2D : OverloadedMath {
             }
         }
 
+    }
+
+    override fun __div__(b: Any?): Any {
+        val aa = AffineTransform(a)
+        aa.invert()
+        return Transform2D(aa).__mul__(b)
+    }
+
+    override fun __rdiv__(b: Any?): Any {
+        val aa = AffineTransform(a)
+        aa.invert()
+        return Transform2D(aa).__rmul__(b)
     }
 
     private fun toVec3(pout: Point2D.Double): Vec3 {
@@ -268,7 +280,7 @@ class Transform2D : OverloadedMath {
             }
             is Quat -> {
                 val q = AffineTransform(a)
-                val t = AffineTransform.getRotateInstance(b.angle()*DEGTORAD, 0.0, 0.0)
+                val t = AffineTransform.getRotateInstance(b.angle() * DEGTORAD, 0.0, 0.0)
                 q.concatenate(t)
                 return Transform2D(q)
             }
@@ -295,7 +307,6 @@ class Transform2D : OverloadedMath {
     }
 
 
-
     constructor(q: AffineTransform) {
         this.a = AffineTransform(q)
     }
@@ -308,13 +319,13 @@ class Transform2D : OverloadedMath {
 
     companion object {
         @JvmStatic
-        fun rotate(angle: Double) = Transform2D(AffineTransform.getRotateInstance(angle*DEGTORAD, 0.0, 0.0)).describe("rotate by $angle (clockwise)")
+        fun rotate(angle: Double) = Transform2D(AffineTransform.getRotateInstance(angle * DEGTORAD, 0.0, 0.0)).describe("rotate by $angle (clockwise)")
 
         @JvmStatic
-        fun rotate(angle: Number, pivot: Vec2) = Transform2D(AffineTransform.getRotateInstance(angle.toDouble()*DEGTORAD, pivot.x, pivot.y)).describe("rotate by $angle (clockwise) around $pivot")
+        fun rotate(angle: Number, pivot: Vec2) = Transform2D(AffineTransform.getRotateInstance(angle.toDouble() * DEGTORAD, pivot.x, pivot.y)).describe("rotate by $angle (clockwise) around $pivot")
 
         @JvmStatic
-        fun rotate(angle: Number, pivotx: Number, pivoty: Number) = Transform2D(AffineTransform.getRotateInstance(angle.toDouble()*DEGTORAD, pivotx.toDouble(), pivoty.toDouble())).describe("rotate by $angle (clockwise) around $pivotx, $pivoty")
+        fun rotate(angle: Number, pivotx: Number, pivoty: Number) = Transform2D(AffineTransform.getRotateInstance(angle.toDouble() * DEGTORAD, pivotx.toDouble(), pivoty.toDouble())).describe("rotate by $angle (clockwise) around $pivotx, $pivoty")
 
         @JvmStatic
         fun translate(translate: Vec2) = Transform2D(AffineTransform.getTranslateInstance(translate.x, translate.y)).describe("translate by $translate")
@@ -340,7 +351,7 @@ class Transform2D : OverloadedMath {
         @JvmStatic
         fun scale(by: Vec2, pivot: Vec2) = Transform2D(AffineTransform.getScaleInstance(by.x, by.y)).pivot(pivot.x, pivot.y).describe("scale by $by around $pivot")
 
-        const val DEGTORAD = Math.PI/180
+        const val DEGTORAD = Math.PI / 180
     }
 
     //Mainly a wrapper around JavaFX's AffineTransform class
@@ -350,10 +361,9 @@ class Transform2D : OverloadedMath {
 
     override fun toString(): String = description ?: a.toString()
 
-    var description : String? = null
+    var description: String? = null
 
-    fun describe(s : String) : Transform2D
-    {
+    fun describe(s: String): Transform2D {
         description = s
         return this
     }

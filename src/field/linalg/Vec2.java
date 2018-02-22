@@ -23,6 +23,7 @@
 package field.linalg;
 
 import field.utility.Mutable;
+import field.utility.OverloadedMath;
 import field.utility.Serializable_safe;
 import fieldlinker.Linker;
 import fieldnashorn.annotations.SafeToToString;
@@ -47,7 +48,7 @@ import java.util.function.Supplier;
  * with modifications and additions for Field
  */
 @SafeToToString
-public class Vec2 implements Externalizable, Supplier<Vec2>, Mutable, Serializable_safe, fieldlinker.AsMap_callable {
+public class Vec2 implements OverloadedMath, Externalizable, Supplier<Vec2>, Mutable, Serializable_safe, fieldlinker.AsMap_callable {
 
     private static final long serialVersionUID = 1L;
 
@@ -1415,4 +1416,185 @@ public class Vec2 implements Externalizable, Supplier<Vec2>, Mutable, Serializab
     public Object asMap_call(Object a, Object b) {
         return this;
     }
+
+    private Vec2 convertToVec2(Object b) {
+        if (b instanceof Vec2) return ((Vec2) b);
+        if (b instanceof Number)
+            return new Vec2(((Number) b).doubleValue(), ((Number) b).doubleValue());
+        // Vec4 — ??
+        return null;
+    }
+
+    @Override
+    public Object __sub__(Object b) {
+        Vec2 c = convertToVec2(b);
+        if (c != null)
+            return new Vec3(this.x - c.x, this.y - c.y);
+
+        if (b instanceof Quat) {
+            return ((Quat) b).invert(new Quat()).transform(this, new Vec2());
+        }
+        if (b instanceof Vec4) {
+            return this.toVec4().sub((Vec4) b);
+        }
+        if (b instanceof OverloadedMath)
+            return ((OverloadedMath) b).__rsub__(this);
+
+        throw new ClassCastException(" can't subtract '" + b + "' by a Vec3 (" + this + ")");
+
+    }
+
+    @Override
+    public Object __rsub__(Object b) {
+        Vec2 c = convertToVec2(b);
+        if (c != null)
+            return new Vec3(c.x - this.x, c.y - this.y);
+        if (b instanceof Quat) {
+            return ((Quat) b).transform(this, new Vec2());
+        }
+        if (b instanceof Vec4) {
+            return this.toVec4().mul(-1).add((Vec4) b);
+        }
+
+
+        throw new ClassCastException(" can't subtract '" + b + "' by a Vec3 (" + this + ")");
+
+    }
+
+    @Override
+    public Object __add__(Object b) {
+        Vec2 c = convertToVec2(b);
+        if (c != null)
+            return new Vec2(this.x + c.x, this.y + c.y);
+
+        if (b instanceof Quat) {
+            return ((Quat) b).transform(this, new Vec2());
+        }
+        if (b instanceof Vec4) {
+            return this.toVec4().add((Vec4) b);
+        }
+
+        if (b instanceof OverloadedMath)
+            return ((OverloadedMath) b).__radd__(this);
+
+        throw new ClassCastException(" can't add '" + b + "' by a Vec3 (" + this + ")");
+
+    }
+
+    @Override
+    public Object __radd__(Object b) {
+        Vec2 c = convertToVec2(b);
+        if (c != null)
+            return new Vec2(this.x + c.x, this.y + c.y);
+
+        if (b instanceof Quat) {
+            return ((Quat) b).invert(new Quat()).transform(this, new Vec2());
+        }
+
+        if (b instanceof Vec4) {
+            return this.toVec4().add((Vec4) b);
+        }
+
+        throw new ClassCastException(" can't add '" + b + "' by a Vec2 (" + this + ")");
+
+    }
+
+    @Override
+    public Object __mul__(Object b) {
+        if (b instanceof Number)
+            return new Vec2(this).mul(((Number) b).doubleValue());
+
+        Vec2 c = convertToVec2(b);
+        if (c != null)
+            return new Vec2(this.x * c.x, this.y * c.y);
+
+        if (b instanceof Quat) {
+            return ((Quat) b).transform(this, new Vec2());
+        }
+
+        if (b instanceof Vec4) {
+            return this.toVec4().mul((Vec4) b);
+        }
+
+        if (b instanceof OverloadedMath)
+            return ((OverloadedMath) b).__rmul__(this);
+
+        throw new ClassCastException(" can't multiply '" + b + "' by a Vec2 (" + this + ")");
+    }
+
+    @Override
+    public Object __rmul__(Object b) {
+        if (b instanceof Number)
+            return new Vec2(this).mul(((Number) b).doubleValue());
+
+        Vec2 c = convertToVec2(b);
+        if (c != null)
+            return new Vec2(this.x * c.x, this.y * c.y);
+
+        if (b instanceof Quat) {
+            return ((Quat) b).invert(new Quat()).transform(this, new Vec2());
+        }
+
+        if (b instanceof Vec4) {
+            return this.toVec4().mul((Vec4) b);
+        }
+
+        throw new ClassCastException(" can't multiply '" + b + "' by a Vec2 (" + this + ")");
+
+    }
+    @Override
+    public Object __div__(Object b) {
+        if (b instanceof Number)
+            return new Vec2(this).mul(1.0/((Number) b).doubleValue());
+
+        Vec2 c = convertToVec2(b);
+        if (c != null)
+            return new Vec2(this.x / c.x, this.y / c.y);
+
+        if (b instanceof Quat) {
+            return ((Quat) b).transform(this, new Vec2());
+        }
+
+        if (b instanceof Vec4) {
+            return ((Vec4)b).div(this.toVec4());
+        }
+
+        if (b instanceof OverloadedMath)
+            return ((OverloadedMath) b).__rdiv__(this);
+
+        throw new ClassCastException(" can't divide'" + b + "' and a Vec2 (" + this + ")");
+    }
+
+    @Override
+    public Object __rdiv__(Object b) {
+        if (b instanceof Number)
+            return new Vec2(((Number) b).doubleValue()/this.x, ((Number) b).doubleValue()/this.y);
+
+        Vec2 c = convertToVec2(b);
+        if (c != null)
+            return new Vec2(c.x/this.x , c.y/this.y);
+
+        if (b instanceof Quat) {
+            return ((Quat) b).transform(this, new Vec2());
+        }
+
+        if (b instanceof Vec4) {
+            return this.toVec4().div((Vec4) b);
+        }
+
+        throw new ClassCastException(" can't divide '" + b + "' and a Vec2 (" + this + ")");
+
+    }
+
+
+    @Override
+    public Object __xor__(Object b) {
+        throw new ClassCastException(" can't xor '" + b + "' by a Vec2 (" + this + ")");
+    }
+
+    @Override
+    public Object __rxor__(Object b) {
+        throw new ClassCastException(" can't xor '" + b + "' by a Vec2 (" + this + ")");
+    }
+
 }
