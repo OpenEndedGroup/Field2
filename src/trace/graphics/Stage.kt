@@ -3,7 +3,10 @@ package trace.graphics
 import field.app.RunLoop
 import field.app.ThreadSync2
 import field.graphics.*
+import field.graphics.util.Saver
+import field.graphics.util.SaverFBO
 import field.graphics.util.onsheetui.get
+import field.linalg.Mat4
 import field.linalg.Vec2
 import field.linalg.Vec4
 import field.utility.Documentation
@@ -25,6 +28,7 @@ import org.lwjgl.opengl.GL11
 import trace.video.ImageCache
 import trace.video.Syphon
 import trace.video.TwinTextureCache
+import java.io.File
 import java.lang.reflect.Modifier
 import java.util.*
 import java.util.concurrent.Callable
@@ -56,7 +60,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
     }
 
     override fun asMap_set(p: String?, o: Any?): Any {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        throw IllegalArgumentException(" can't set '" + p + " on a stage")
     }
 
     override fun asMap_call(a: Any?, b: Any?): Any {
@@ -93,11 +97,11 @@ class Stage(val w: Int, val h: Int) : AsMap {
     }
 
     override fun asMap_get(p: String?): Any {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        throw IllegalArgumentException(" can't get '" + p + " from a stage")
     }
 
     override fun asMap_setElement(element: Int, o: Any?): Any {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        throw IllegalArgumentException(" can't set '" + element + " to a stage")
     }
 
     val fbo: FBO
@@ -121,10 +125,22 @@ class Stage(val w: Int, val h: Int) : AsMap {
     @HiddenInAutocomplete
     val clear_fragment = BoxDefaultCode.findSource(this.javaClass, "clear_fragment")
 
+    @HiddenInAutocomplete
+    val saver: SaverFBO;
 
     init {
         thisStageNum = stageNum++
         fbo = FBO(FBO.FBOSpecification.singleFloat16(thisStageNum, w, h))
+
+        val base = System.getProperty("user.home") + File.separatorChar + "Desktop"+File.separatorChar+"field_stage_recordings" + File.separatorChar
+
+        var x = 1
+        while (File(base + Saver.pad(x)).exists()) x++
+
+        val prefix = File(base + Saver.pad(x))
+        prefix.mkdirs()
+
+        saver = SaverFBO(w, h, 4, prefix.absolutePath + File.separatorChar + "s_", fbo)
 
         val s = Shader()
 
@@ -153,6 +169,11 @@ class Stage(val w: Int, val h: Int) : AsMap {
         fbo.scene.attach(-101, Scene.Perform {
             GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
             false
+        })
+
+        fbo.scene.attach(101, Scene.Perform {
+            saver.update()
+            true
         })
 
     }
@@ -201,7 +222,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
         @JvmField
         @Documentation("list of `FLine` to draw, just like `_.lines` but it will appear on this Stage")
-        val lines = IdempotencyMap<FLine>(FLine::class.java)
+        val lines = IdempotencyMap<FLine>(FLine::class.java).configureResourceLimits<IdempotencyMap<FLine>>(300, "too many lines on a stage layer")
 
         var doTexture = false
 
@@ -228,16 +249,28 @@ class Stage(val w: Int, val h: Int) : AsMap {
         var shader: Shader? = null;
 
         @JvmField
-        @Documentation("Sets any color remaping code that's applied to this layer")
+        @Documentation("Sets any color remapping code that's applied to this layer")
         var colorRemap = "";
 
         @JvmField
-        @Documentation("Sets any space remaping code that's applied to this layer")
+        @Documentation("Sets any space remapping code that's applied to this layer")
         var spaceRemap = "";
 
         @JvmField
         @Documentation("How much is the camera rotated (in degrees)")
         var rotation = 0.0
+
+        @JvmField
+        @Documentation("How much is the camera rotated around the Y axis (in degrees)")
+        var rotationY = 0.0
+
+        @JvmField
+        @Documentation("How much is the camera rotated around the Z axis (in degrees)")
+        var rotationZ = 0.0
+
+        var P = Mat4().identity()
+        var V = Mat4().identity()
+
 
         fun setShader(shader: Shader): ShaderGroup {
             shader.asMap_set("_line_", line)
@@ -245,6 +278,8 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
             shader.asMap_set("translation", Supplier<Vec2> { translation })
             shader.asMap_set("bounds", Supplier<Vec2> { bounds })
+            shader.asMap_set("P", Supplier<Mat4> { P })
+            shader.asMap_set("V", Supplier<Mat4> { V })
             shader.asMap_set("scale", Supplier<Vec2> { scale })
             shader.asMap_set("opacity", Supplier<Float> { opacity.toFloat() })
             shader.asMap_set("rotator", Supplier<Vec2> { Vec2(Math.cos(Math.PI * rotation / 180), Math.sin(Math.PI * rotation / 180)) })
@@ -370,7 +405,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
         val map = ImageCache.mapFromDirectory(filename, ".*.jpg")
 
         // todo image size
-        if (map.length()==0) throw IllegalArgumentException(" doesn't seem to be any .jpg files in directory $filename ?")
+        if (map.length() == 0) throw IllegalArgumentException(" doesn't seem to be any .jpg files in directory $filename ?")
 
         val fn = map.apply(0);
         val dim = FastJPEG.j.dimensions(fn);
@@ -564,7 +599,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
                 window!!.setBounds(0, 0, w, h)
             }
 
-            showScene("default", window!!.scene, { false }, { window!!.width.toDouble()/window!!.height })
+            showScene("default", window!!.scene, { false }, { window!!.width.toDouble() / window!!.height })
         })
     }
 
@@ -590,9 +625,9 @@ class Stage(val w: Int, val h: Int) : AsMap {
     /**
      * marks the spot in the code where we wait for anything we've drawn to appear on the screen. Effectively the same as `_redraw(); _.wait()`
      */
-    fun frame() {
+    fun frame() :Boolean {
         redraw()
-        ThreadSync2Feedback.yield(null);
+        return ThreadSync2Feedback.maybeYield();
     }
 
     fun errorHandler(b: Box, shader: String): Shader.iErrorHandler {
@@ -620,5 +655,15 @@ class Stage(val w: Int, val h: Int) : AsMap {
             }
         }
     }
+
+    fun startSaving(): String {
+        return saver.start()
+    }
+
+    fun stopSaving() {
+        saver.stop()
+    }
+
+
 }
 
