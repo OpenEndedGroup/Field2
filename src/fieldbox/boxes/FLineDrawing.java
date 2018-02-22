@@ -61,7 +61,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 	static public final Dict.Prop<IdempotencyMap<Supplier<FLine>>> lines = new Dict.Prop<>("lines").type()
 		.toCanon()
 		.doc("Geometry to be drawn along with this box")
-		.autoConstructs(() -> new IdempotencyMap<>(Supplier.class))
+		.autoConstructs(() -> new IdempotencyMap<>(Supplier.class).configureResourceLimits(1000, "too many lines in _.lines"))
 		.set(IO.dontCopy, true)
 		.set(Dict.readOnly, true);
 
@@ -275,7 +275,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 					.forEach(fline -> {
 						dispatchLine(fline, context, text, defaultLayer, ON);
 					});
-				Map<String, Supplier<FLine>> ll = x.properties.computeIfAbsent(lines, (k) -> new IdempotencyMap<>(Supplier.class));
+				Map<String, Supplier<FLine>> ll = x.properties.getOrConstruct(lines);
 
 				all = new ArrayList<>();
 				Iterator<Supplier<FLine>> it2 = ll.values()

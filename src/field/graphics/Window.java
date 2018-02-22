@@ -941,14 +941,13 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 
     public Saver getScreenshotter() {
         if (screenshotter != null) {
-            if (getWidth()!=screenshotter.width || getHeight()!=screenshotter.height)
+            if (getFrameBufferWidth()!=screenshotter.width || getFrameBufferHeight()!=screenshotter.height)
             {
                 screenshotter.stop();
             }
             else
             return screenshotter;
         }
-
 
         String base = System.getProperty("user.home") + File.separatorChar + "field_screenshots" + File.separatorChar;
 
@@ -958,7 +957,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
         File prefix = new File(base + Saver.pad(x));
         prefix.mkdirs();
 
-        return screenshotter = new Saver(getWidth(), getHeight(), 4, prefix.getAbsolutePath()+File.separatorChar + "w_");
+        return screenshotter = new Saver(getFrameBufferWidth(), getFrameBufferHeight(), 4, prefix.getAbsolutePath()+File.separatorChar + "w_");
     }
 
     public interface SwapControl {

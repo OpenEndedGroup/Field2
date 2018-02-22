@@ -24,12 +24,12 @@ var Production = Java.type("trace.util.Production")
 var RandomCascade = Java.type("trace.random.RandomCascade")
 var Random = Java.type("trace.random.Random")
 
-
 var __h__ = new Asta();
 
 var __MINUS__ = Asta.__MINUS__;
 var __PLUS__ = Asta.__PLUS__;
 var __MULTIPLY__ = Asta.__MULTIPLY__;
+var __DIVIDE__ = Asta.__DIVIDE__;
 var __NUMBER_LITERAL__ = (start, end, def) => __h__.__LNC__(start, end, def);
 
 _.sourceTransformer = __h__.transformer(_)
@@ -110,3 +110,8 @@ __.intersectY = function(y) {
 
 __.intersectY.__doc__ = "_.intersectY(55) returns all of the positions where there are `FLine` that intersect with a horizontal line at y=55. Only lines that are marked as `.notation=true` are considered. You can write __.intersectY(55) if you want to cover all boxes."
 
+__.noLimits = function() {
+    WaJava.type("fieldnashorn.Watchdog").limits=false
+}
+
+__.noLimits.__doc__ = "_.noLimit() removes all resource limit checking from Field. This means that loops can take longer than 5 seconds to complete, `_.lines` (and other places where you can put geometry) can take more than 1000 elements"

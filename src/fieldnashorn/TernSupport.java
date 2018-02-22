@@ -117,7 +117,9 @@ public class TernSupport {
 					".completions[i].type+'&nbsp;&mdash;&nbsp;</span><span class=doc>'+(r" +
 					".completions[i].doc==null ? '' : r.completions[i].doc)+'</span>'))" +
 					"	})");
-				r.addAll((ArrayList<Completion>) engine.get("__completions"));
+				ArrayList<Completion> aa = (ArrayList<Completion>) engine.getContext().getAttribute("__completions");
+				if (aa!=null)
+					r.addAll(aa);
 			} catch (ScriptException e) {
 				e.printStackTrace();
 			}
@@ -257,7 +259,7 @@ public class TernSupport {
 					left = s.substring(0, s.lastIndexOf('.'));
 					right = s.substring(s.lastIndexOf('.') + 1);
 				} else {
-					Object directlyBound = engine.get(left);
+					Object directlyBound = engine.getContext().getAttribute(left, ScriptContext.ENGINE_SCOPE);
 
 					if (directlyBound != null && !directlyBound.getClass().getName().toLowerCase()
 						.endsWith("staticclass")) {

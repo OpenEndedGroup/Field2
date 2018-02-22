@@ -179,7 +179,8 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 	}
 
 	static public Animatable.AnimationElement noop() {
-		return new Animatable.AnimationElement() {};
+		return new Animatable.AnimationElement() {
+		};
 	}
 
 	static public Animatable.AnimationElement interpretReturn(Animatable.AnimationElement was, Object next) {
@@ -194,12 +195,11 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 	Map<Box, NashornExecution> executionsPerBox = new WeakHashMap<Box, NashornExecution>();
 
 	static public final List<String> scriptArgs = new ArrayList(Arrays.asList("-scripting", "--language=es6"));
-	static
-	{
+
+	static {
 		if (Options.dict().isTrue(new Dict.Prop<Number>("strict"), false))
 			scriptArgs.add("-strict");
 	}
-
 
 
 	Cached<Pair<Box, Dict.Prop<String>>, Pair<Box, Dict.Prop<String>>, NashornExecution> cached = new Cached<>((next, was) -> {
@@ -243,8 +243,47 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 
 
 	void setupInitialBindings(ScriptContext context, Box first) {
+
+		if (Watchdog.getLimits()) {
+			SimpleBindings e = new SimpleBindings() {
+				Watchdog w = new Watchdog();
+
+				@Override
+				public Object get(Object key) {
+					w.tick();
+
+					Object v = super.get(key);
+					if (v != null)
+						return v;
+
+					ScriptObjectMirror mm = (ScriptObjectMirror) super.get("nashorn.global");
+					if (mm != null) {
+						Object mmm = mm.get(key);
+						return mmm;
+					}
+					return null;
+
+				}
+
+				@Override
+				public boolean containsKey(Object key) {
+					ScriptObjectMirror som = (ScriptObjectMirror) super.get("nashorn.global");
+					if (super.containsKey(key)) return true;
+					if (som != null) {
+						return som.containsKey(key);
+					}
+					return false;
+				}
+			};
+			context.setBindings(e, ScriptContext.ENGINE_SCOPE);
+		}
+
 		context.setAttribute("_", first, ScriptContext.ENGINE_SCOPE);
-		first.find(Boxes.root, first.both()).findFirst().ifPresent(x -> context.setAttribute("__", x, ScriptContext.ENGINE_SCOPE));
+		first.find(Boxes.root, first.both()).
+
+			findFirst().
+
+			ifPresent(x -> context.setAttribute("__", x, ScriptContext.ENGINE_SCOPE));
 
 		first.properties.put(boxBindings, context);
 	}

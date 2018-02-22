@@ -7,6 +7,7 @@ import fieldbox.boxes.Box;
 import fieldbox.execution.Completion;
 import fieldbox.execution.HandlesCompletion;
 import fieldbox.execution.JavaSupport;
+import fieldnashorn.Watchdog;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import jdk.nashorn.api.scripting.ScriptUtils;
@@ -141,6 +142,11 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	@HiddenInAutocomplete
 	public FLine add(Node n) {
 		nodes.add(n);
+
+		if (Watchdog.getLimits())
+			if (nodes.size()>1000)
+				Watchdog.limit(nodes.size(), 1000, "too many drawing instructions in an FLine");
+
 		mod++;
 		return this;
 	}
@@ -2051,6 +2057,54 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		throw new ClassCastException(" can't multiply '" + b + "' to this FLine");
 	}
 
+	@Override
+	public Object __div__(Object b) {
+		if (b instanceof Number) {
+			return byTransforming(x -> new Vec3(x).scale(1/((Number) b).doubleValue()));
+		} else if (b instanceof Vec2) {
+			Vec3 finalB = ((Vec2) b).toVec3();
+			return byTransforming(x -> new Vec3(x).div(finalB));
+		} else if (b instanceof Vec3) {
+			Vec3 finalB = (Vec3) b;
+			return byTransforming(x -> new Vec3(x).div(finalB));
+		} else if (b instanceof Quat) {
+			Quat finalB = new Quat();
+			((Quat) b).invert(finalB);
+			return byTransforming(x -> finalB.transform(x, new Vec3()));
+		} else if (b instanceof ScriptObjectMirror && ((ScriptObjectMirror) b).isArray()) {
+			List b2 = ((ScriptObjectMirror) b).to(List.class);
+
+			if (b2 instanceof List && (((List) b2).size() > 0)) {
+
+				Object oo = ((List) b2).get(0);
+				if (oo instanceof Vec3) {
+					return new FLine().append((List<FLine>) ((List) b2).stream().map(x -> this.__div__(x)).collect(Collectors.toList())).copyAttributesFrom(this);
+				} else if (oo instanceof Vec2) {
+					return new FLine().append((List<FLine>) ((List) b2).stream().map(x -> this.__div__(x)).collect(Collectors.toList())).copyAttributesFrom(this);
+				} else if (oo instanceof OverloadedMath) {
+					List m = (List) ((List) b2).stream().map(x -> this.__div__(x)).collect(Collectors.toList());
+					if (m.size() > 0) {
+						if (m.get(0) instanceof FLine) {
+							return new FLine().append((List<FLine>) m).copyAttributesFrom(this);
+						}
+					}
+					return m;
+				}
+			}
+		} else if (b instanceof FLine) {
+			Shape s1 = FLinesAndJavaShapes.flineToJavaShape(this);
+			Shape s2 = FLinesAndJavaShapes.flineToJavaShape((FLine) b);
+
+			Area a1 = new Area(s1);
+			Area a2 = new Area(s2);
+			a1.intersect(a2);
+			FLine ret = FLinesAndJavaShapes.javaShapeToFLine(a1);
+			ret.attributes = this.attributes.duplicate(ret);
+			return ret;
+		} else if (b instanceof OverloadedMath) return ((OverloadedMath) b).__rdiv__(this);
+		throw new ClassCastException(" can't multiply '" + b + "' to this FLine");
+	}
+
 	Vec3 heading = new Vec3(1, 0, 0);
 
 	public Vec3 forward() {
@@ -2147,6 +2201,34 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		} else if (b instanceof Vec3) {
 			Vec3 finalB = (Vec3) b;
 			return byTransforming(x -> new Vec3(x).mul(finalB));
+		} else if (b instanceof Quat) {
+			Quat finalB = (Quat) b;
+			return byTransforming(x -> finalB.transform(x, new Vec3()));
+		} else if (b instanceof FLine) {
+			Shape s1 = FLinesAndJavaShapes.flineToJavaShape(this);
+			Shape s2 = FLinesAndJavaShapes.flineToJavaShape((FLine) b);
+
+			Area a1 = new Area(s1);
+			Area a2 = new Area(s2);
+			a1.intersect(a2);
+			FLine ret = FLinesAndJavaShapes.javaShapeToFLine(a1);
+			ret.attributes = this.attributes.duplicate(ret);
+			return ret;
+		}
+		throw new ClassCastException(" can't multiply '" + b + "' to this FLine");
+	}
+
+	@Override
+	@HiddenInAutocomplete
+	public Object __rdiv__(Object b) {
+		if (b instanceof Number) {
+			return byTransforming(x -> new Vec3(((Number) b).doubleValue()/x.x, ((Number) b).doubleValue()/x.y, ((Number) b).doubleValue()/x.z));
+		} else if (b instanceof Vec2) {
+			Vec3 finalB = ((Vec2) b).toVec3();
+			return byTransforming(x -> new Vec3(finalB).div(x));
+		} else if (b instanceof Vec3) {
+			Vec3 finalB = (Vec3) b;
+			return byTransforming(x -> new Vec3(finalB).div(x));
 		} else if (b instanceof Quat) {
 			Quat finalB = (Quat) b;
 			return byTransforming(x -> finalB.transform(x, new Vec3()));
