@@ -117,7 +117,7 @@ public class ThreadSync2Feedback extends Box {
 				f.d.put(ThreadSync2.get__maybeYieldAtFrame(), RunLoop.tick);
 				return b;
 			}
-			return false;
+			return true;
 		} else throw new IllegalArgumentException("can't wait for a frame without running -threaded2 1");
 	}
 

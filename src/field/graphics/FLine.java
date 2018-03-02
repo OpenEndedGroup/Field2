@@ -143,9 +143,9 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	public FLine add(Node n) {
 		nodes.add(n);
 
-		if (Watchdog.getLimits())
-			if (nodes.size()>1000)
-				Watchdog.limit(nodes.size(), 1000, "too many drawing instructions in an FLine");
+//		if (Watchdog.getLimits())
+//			if (nodes.size() > 40000)
+//				Watchdog.limit(nodes.size(), 40000, "too many drawing instructions in an FLine");
 
 		mod++;
 		return this;
@@ -302,6 +302,17 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	}
 
 	/**
+	 * draws a curve from the current position, towards (but not through) the relative position `q1x, q1y`, then onto + `x, y`.
+	 */
+	public FLine quadToRel(double q1x, double q1y, double x, double y) {
+		if (nodes.size() == 0) return moveTo(x, y);
+
+		Vec3 at = last().to;
+
+		return quadTo(at.x + q1x, at.y + q1y, at.x + x, at.y + y);
+	}
+
+	/**
 	 * draws a curve from the current position, towards (but not through) `q1x, q1y, q1z`, then onto `x, y`.
 	 */
 	public FLine quadTo(double q1x, double q1y, double q1z, double x, double y, double z) {
@@ -417,7 +428,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 			}
 		}
 		return this;
-		}
+	}
 
 	/**
 	 * draws a curve that starts by heading in the `theta1` direction for a distance of roughly `r1` then ends up heading to `x, y` coming in at angle `theta2` from roughly `r2` away
@@ -1240,7 +1251,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	}
 
 	@HiddenInAutocomplete
-	private void flattenAuxProperties() {
+	 void flattenAuxProperties() {
 		if (auxProperties == null || auxProperties.size() == 0) return;
 
 		int[] flatAux = new int[auxProperties.size()];
@@ -1547,7 +1558,8 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 
 		if (knownNonProperties.contains(p)) return false;
 
-		return (Dict.Canonical.findCanon(p) != null);
+//		return (Dict.Canonical.findCanon(p) != null);
+		return true;
 	}
 
 	@HiddenInAutocomplete
@@ -2060,7 +2072,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	@Override
 	public Object __div__(Object b) {
 		if (b instanceof Number) {
-			return byTransforming(x -> new Vec3(x).scale(1/((Number) b).doubleValue()));
+			return byTransforming(x -> new Vec3(x).scale(1 / ((Number) b).doubleValue()));
 		} else if (b instanceof Vec2) {
 			Vec3 finalB = ((Vec2) b).toVec3();
 			return byTransforming(x -> new Vec3(x).div(finalB));
@@ -2222,7 +2234,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	@HiddenInAutocomplete
 	public Object __rdiv__(Object b) {
 		if (b instanceof Number) {
-			return byTransforming(x -> new Vec3(((Number) b).doubleValue()/x.x, ((Number) b).doubleValue()/x.y, ((Number) b).doubleValue()/x.z));
+			return byTransforming(x -> new Vec3(((Number) b).doubleValue() / x.x, ((Number) b).doubleValue() / x.y, ((Number) b).doubleValue() / x.z));
 		} else if (b instanceof Vec2) {
 			Vec3 finalB = ((Vec2) b).toVec3();
 			return byTransforming(x -> new Vec3(finalB).div(x));
@@ -2648,5 +2660,29 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 			this.c2.z = z;
 		}
 
+	}
+
+
+	/**
+	 * for a line that has many moveTo's, split this up into lots of lines, each with one moveTo()
+	 * @return
+	 */
+	public List<FLine> pieces()
+	{
+		List<FLine> ff =new ArrayList<FLine>();
+
+		FLine d = null;
+		for(int i=0;i<this.nodes.size();i++)
+		{
+			if (this.nodes.get(i).getClass()==MoveTo.class)
+			{
+				d = new FLine();
+				d.attributes = this.attributes.duplicate(d);
+				ff.add(d);
+			}
+
+			d.nodes.add(this.nodes.get(i).duplicate());
+		}
+		return ff;
 	}
 }
