@@ -10,6 +10,8 @@ in vec2 ottc;
 in vec4 ovcolor;
 uniform float opacity;
 
+in vec2 pc;
+
 void main()
 {
 
@@ -37,5 +39,5 @@ void main()
 
     ${COLOR_REMAP};
 
-    _output = outColor;
+    _output = outColor *smoothstep(0.1, 0.2, (1-(length(pc.xy))));
 }
