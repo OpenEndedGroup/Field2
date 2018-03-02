@@ -84,11 +84,18 @@ class LoadMidi(val fn: String) {
     }
 
     var time = 0.0
+    var previouslyReturned = mutableSetOf<Note>()
+
     fun read(t: Double): List<Note> {
         if (t < time) {
             time = t
+            previouslyReturned.clear()
         }
-        val ret = notesBetweenTimes(time, t)
+        var ret = notesBetweenTimes(time, t)
+
+        ret = ret.filter { !previouslyReturned.contains(it) }
+        previouslyReturned.addAll(ret)
+
         time = t
         return ret
     }

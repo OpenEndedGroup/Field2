@@ -6,6 +6,8 @@ import java.util.*
 
 object ConcaveSeparator {
 
+    val SLOP = 0.5;
+
     fun separate(vertices: List<Vec2>): List<List<Vec2>> {
         return calcShapes(vertices)
     }
@@ -276,25 +278,25 @@ object ConcaveSeparator {
     }
 
     private fun isOnSegment(px: Double, py: Double, x1: Double, y1: Double, x2: Double, y2: Double): Boolean {
-        val b1 = x1 + 0.1 >= px && px >= x2 - 0.1 || x1 - 0.1 <= px && px <= x2 + 0.1
-        val b2 = y1 + 0.1 >= py && py >= y2 - 0.1 || y1 - 0.1 <= py && py <= y2 + 0.1
+        val b1 = x1 +SLOP >= px && px >= x2 -SLOP || x1 -SLOP <= px && px <= x2 +SLOP
+        val b2 = y1 +SLOP >= py && py >= y2 -SLOP || y1 -SLOP <= py && py <= y2 +SLOP
         return b1 && b2 && isOnLine(px, py, x1, y1, x2, y2)
     }
 
     private fun pointsMatch(x1: Double, y1: Double, x2: Double, y2: Double): Boolean {
         val dx = if (x2 >= x1) x2 - x1 else x1 - x2
         val dy = if (y2 >= y1) y2 - y1 else y1 - y2
-        return dx < 0.1 && dy < 0.1
+        return dx <SLOP && dy <SLOP
     }
 
     private fun isOnLine(px: Double, py: Double, x1: Double, y1: Double, x2: Double, y2: Double): Boolean {
-        if (x2 - x1 > 0.1 || x1 - x2 > 0.1) {
+        if (x2 - x1 >SLOP || x1 - x2 >SLOP) {
             val a = (y2 - y1) / (x2 - x1)
             val possibleY = a * (px - x1) + y1
             val diff = if (possibleY > py) possibleY - py else py - possibleY
-            return diff < 0.1
+            return diff <SLOP
         }
-        return px - x1 < 0.1 || x1 - px < 0.1
+        return px - x1 <SLOP || x1 - px <SLOP
     }
 
     private fun det(x1: Double, y1: Double, x2: Double, y2: Double, x3: Double, y3: Double): Double {
