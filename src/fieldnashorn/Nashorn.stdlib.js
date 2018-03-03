@@ -12,11 +12,11 @@ var Asta = Java.type('fielded.live.Asta');
 var Transform2D = Java.type("field.linalg.Transform2D")
 var Anim = Java.type("field.utility.Drivers")
 var Math = Java.type("java.lang.Math")
+
 var Mocap = Java.type("trace.mocap.Mocap")
 var Trackers = Java.type("fieldboof.Trackers")
 var SoundAnalysis = Java.type("trace.sound.SoundAnalysis")
 var Intersections = Java.type("trace.util.Intersections")
-
 
 var __h__ = new Asta();
 
@@ -102,4 +102,16 @@ __.intersectY = function(y) {
 };
 
 __.intersectY.__doc__ = "_.intersectY(55) returns all of the positions where there are `FLine` that intersect with a horizontal line at y=55. Only lines that are marked as `.notation=true` are considered. You can write __.intersectY(55) if you want to cover all boxes."
+
+var Math_max = function(a, b)
+{
+    return Math.max(0.0+a, 0.0+b)
+}
+Math_max.__doc__ = "work around Nashorn's inability to select between Math.max(int, int) and Math.max(double, double)"
+
+var Math_min = function(a, b)
+{
+    return Math.min(0.0+a, 0.0+b)
+}
+Math_min.__doc__ = "work around Nashorn's inability to select between Math.min(int, int) and Math.min(double, double)"
 
