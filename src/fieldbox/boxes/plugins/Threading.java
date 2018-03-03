@@ -1,9 +1,11 @@
 package fieldbox.boxes.plugins;
 
+import field.app.ThreadSync;
 import field.app.ThreadSync2;
 import field.utility.Dict;
 import fieldbox.boxes.Box;
 import jdk.nashorn.api.scripting.AbstractJSObject;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -52,9 +54,24 @@ public class Threading extends Box {
 		this.properties.put(wait, new AbstractJSObject() {
 			@Override
 			public Object call(Object o, Object... objects) {
-				ThreadSync2.yield();
-				return true;
+
+				return waitSafely();
 			}
 		});
+	}
+
+	@NotNull
+	static public boolean waitSafely() {
+		if (ThreadSync2.fibre().shouldEnd)
+		{
+			if (ThreadSync2.fibre().endingFor++>0)
+			{
+				ThreadSync2.fibre().killed = true;
+				ThreadSync2.yield(); // will kill this
+			}
+		}
+		else
+			ThreadSync2.yield();
+		return !ThreadSync2.fibre().shouldEnd;
 	}
 }

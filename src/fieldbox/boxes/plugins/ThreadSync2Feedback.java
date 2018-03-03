@@ -113,11 +113,11 @@ public class ThreadSync2Feedback extends Box {
 			ThreadSync2.Fibre f = ThreadSync2.fibre();
 			long tick = f.d.computeIfAbsent(ThreadSync2.get__maybeYieldAtFrame(), (k) -> RunLoop.tick);
 			if (tick == RunLoop.tick) {
-				yield();
+				boolean b = Threading.waitSafely();
 				f.d.put(ThreadSync2.get__maybeYieldAtFrame(), RunLoop.tick);
-				return true;
+				return b;
 			}
-			return false;
+			return true;
 		} else throw new IllegalArgumentException("can't wait for a frame without running -threaded2 1");
 	}
 
@@ -208,6 +208,20 @@ public class ThreadSync2Feedback extends Box {
 		Drawing.dirty(box, 3);
 		return done[0];
 	}
+	public static boolean shouldEnd(Box box) {
+
+		List<ThreadSync2.Fibre> live = ThreadSync2.getSync()
+			.getFibres();
+		boolean[] done = {false};
+		live.stream()
+			.filter(x -> x.tag == box)
+			.forEach(x -> {
+				x.shouldEnd = true;
+			});
+		Drawing.dirty(box, 3);
+		return done[0];
+	}
+
 
 	private Stream<Box> selection() {
 		return breadthFirst(both()).filter(x -> x.properties.isTrue(Mouse.isSelected, false))

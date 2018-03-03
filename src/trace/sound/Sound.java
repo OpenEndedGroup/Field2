@@ -153,6 +153,7 @@ public class Sound {
 
 	static public FloatBuffer floatsFromFile(String filename)
 		throws FileNotFoundException {
+
 		WaveData data = WaveData.create(new BufferedInputStream(
 			new FileInputStream(filename)));
 

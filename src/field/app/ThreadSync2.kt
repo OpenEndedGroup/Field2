@@ -35,7 +35,8 @@ class ThreadSync2 {
         sync = this
     }
 
-    class KilledException : RuntimeException()
+    open class KilledException : RuntimeException()
+    class TooLongKilledException(override val message : String) : RuntimeException()
 
     inner class Fibre : AsMapDelegator() {
         override fun delegateTo(): AsMap {
@@ -62,6 +63,15 @@ class ThreadSync2 {
         @Volatile
         @JvmField
         var killed = false
+
+        @Volatile
+        @JvmField
+        var shouldEnd = false
+
+        @Volatile
+        @JvmField
+        var endingFor = 0
+
         @Volatile
         @JvmField
         var paused = false
@@ -110,7 +120,12 @@ class ThreadSync2 {
                     lastReturn = r.call()
                     while (serviceAlso(also))
                         yield()
-                } catch (t: KilledException) {
+                } catch (t: TooLongKilledException)
+                {
+                    if (errorHandler != null)
+                        errorHandler!!.accept(t)
+                }
+                catch (t: KilledException) {
 
                 } catch (t: Throwable) {
                     System.err.println(" exception thrown in fibre '$debugText'")

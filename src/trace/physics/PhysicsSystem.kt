@@ -1,28 +1,116 @@
 package trace.physics
 
+import field.app.RunLoop
 import field.graphics.FLine
 import field.linalg.Vec3
 import field.utility.Dict
+import field.utility.IdempotencyMap
+import org.jbox2d.callbacks.ContactImpulse
+import org.jbox2d.callbacks.ContactListener
+import org.jbox2d.collision.Manifold
+import org.jbox2d.collision.WorldManifold
 import org.jbox2d.collision.shapes.PolygonShape
 import org.jbox2d.common.Transform
 import org.jbox2d.common.Vec2
 import org.jbox2d.dynamics.*
+import org.jbox2d.dynamics.contacts.Contact
+import org.jbox2d.dynamics.joints.DistanceJointDef
+import org.jbox2d.dynamics.joints.Joint
+import org.jbox2d.dynamics.joints.WeldJointDef
 import java.util.*
+import java.util.function.BiConsumer
+import java.util.function.Consumer
 
-class FLinesAndPhysics {
+class PhysicsSystem {
 
     val physics: Dict.Prop<FLineToPhysics> = Dict.Prop<Any>("physics")
             .toCanon<Any>().set(Dict.domain, "fline")
 
+    val onContactStart: Dict.Prop<IdempotencyMap<BiConsumer<FLine, List<field.linalg.Vec2>?>>> = Dict.Prop<Any>("onContactStart")
+            .toCanon<Any>().autoConstructs { IdempotencyMap<BiConsumer<FLine, List<field.linalg.Vec2>?>>(BiConsumer::class.java) }.set(Dict.domain, "fline")
+
+    val onContactEnd: Dict.Prop<IdempotencyMap<Consumer<FLine>>> = Dict.Prop<Any>("onContactEnd")
+            .toCanon<Any>().autoConstructs { IdempotencyMap<Consumer<FLine>>(Consumer::class.java) }.set(Dict.domain, "fline")
+
+
     val world = World(Vec2(0f, 0f))
 
     val allPhysicsLines = mutableSetOf<FLineToPhysics>();
+
+    var TICK = 0L;
+
+    class Contact(val tick: Long, val A: FLine, val B: FLine) {
+        var terminated = -1L
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Contact) return false
+
+            if (A != other.A) return false
+            if (B != other.B) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = A.hashCode()
+            result = 31 * result + B.hashCode()
+            return result
+        }
+
+        var points: List<field.linalg.Vec2>? = null
+    }
+
+    val contacts = mutableSetOf<Contact>();
+
+    init {
+        world.setContactListener(object : ContactListener {
+            override fun beginContact(contact: org.jbox2d.dynamics.contacts.Contact) {
+                val A = fixturesToFLines[contact.fixtureA]
+                val B = fixturesToFLines[contact.fixtureB]
+
+                println("contact begin $A $B")
+                if (A != null && B != null) {
+                    val c = Contact(tick = TICK, A = A, B = B)
+                    val wm = WorldManifold()
+                    contact.getWorldManifold(wm)
+                    c.points = wm.points.map { convert2(it) }
+
+                    contacts.remove(c)
+                    contacts.add(c)
+                }
+            }
+
+            override fun endContact(contact: org.jbox2d.dynamics.contacts.Contact) {
+                val A = fixturesToFLines[contact.fixtureA]
+                val B = fixturesToFLines[contact.fixtureB]
+
+                println("contact end $A $B")
+                if (A != null && B != null) {
+                    val c = contacts.filter { it.equals(Contact(-1, A, B)) }.getOrNull(0)
+                    if (c != null) {
+                        c.terminated = TICK
+                    }
+                }
+            }
+
+            override fun preSolve(p0: org.jbox2d.dynamics.contacts.Contact?, p1: Manifold?) {
+            }
+
+            override fun postSolve(p0: org.jbox2d.dynamics.contacts.Contact?, p1: ContactImpulse?) {
+            }
+
+        })
+    }
+
 
     fun update(delta: Float) {
         var timeStep = delta / 1000f
         if (timeStep > 0.2) {
             System.err.println(" warning: large timestep :" + timeStep)
             timeStep = 0.2f
+        } else if (timeStep < 1e-8) {
+            timeStep = 1 / 30f;
         }
 
         val velocityIterations = 6
@@ -33,15 +121,90 @@ class FLinesAndPhysics {
         allPhysicsLines.forEach {
             it.physicsToFLine()
         }
+
+        contacts.retainAll {
+            if (it.tick == TICK) {
+                fire<List<field.linalg.Vec2>>(it.A, onContactStart, it.points)
+                fire<List<field.linalg.Vec2>>(it.B, onContactStart, it.points)
+            }
+            if (it.terminated != -1L) {
+                fire(it.A, onContactEnd)
+                fire(it.B, onContactEnd)
+                false
+            }
+            true
+        }
+        TICK++
     }
 
-    fun addPhysics(f: FLine) {
-        allPhysicsLines.add(f.attributes.computeIfAbsent(physics, { FLineToPhysics(f, f.center(), 1.0) }))
+    private fun fire(b: FLine, prop: Dict.Prop<IdempotencyMap<Consumer<FLine>>>) {
+        b.attributes.getOrConstruct(prop).values.forEach {
+            it.accept(b)
+        }
+    }
+
+    private fun <T> fire(b: FLine, prop: Dict.Prop<IdempotencyMap<BiConsumer<FLine, T?>>>, arg: T?) {
+        b.attributes.getOrConstruct(prop).values.forEach {
+            it.accept(b, arg)
+        }
+    }
+
+    var lastTime = -1L
+    fun update() {
+        if (lastTime == -1L) lastTime = System.currentTimeMillis()
+        update((System.currentTimeMillis() - lastTime).toFloat())
+        lastTime = System.currentTimeMillis()
+    }
+
+    fun addPhysics(f: FLine): FLineToPhysics {
+        val pp = f.attributes.computeIfAbsent(physics, { FLineToPhysics(f, f.center(), 1.0) })
+        allPhysicsLines.add(pp)
+        return pp
     }
 
     fun setGravity(g: field.linalg.Vec2) {
         world.gravity = convert(g)
     }
+
+
+    fun distanceJoint(a: FLine, b: FLine): Joint {
+        val pa = addPhysics(a)
+        val pb = addPhysics(b)
+
+        val d = DistanceJointDef()
+        d.initialize(pa.body, pb.body, convert(field.linalg.Vec2(0.0, 0.0)), convert(field.linalg.Vec2(0.0, 0.0)))
+        d.dampingRatio = 0.2f
+        d.frequencyHz = 1f
+        val w = world.createJoint(d)
+        return w
+    }
+
+    fun distanceJoint(a: FLine, b: FLine, dampingRatio: Double, frequencyHz: Double): Joint {
+        val pa = addPhysics(a)
+        val pb = addPhysics(b)
+
+        val d = DistanceJointDef()
+        d.initialize(pa.body, pb.body, convert(field.linalg.Vec2(0.0, 0.0)), convert(field.linalg.Vec2(0.0, 0.0)))
+        d.dampingRatio = dampingRatio.toFloat()
+        d.frequencyHz = frequencyHz.toFloat()
+        val w = world.createJoint(d)
+        return w
+    }
+
+    fun weldJoint(a: FLine, b: FLine, dampingRatio: Double, frequencyHz: Double): Joint {
+        val pa = addPhysics(a)
+        val pb = addPhysics(b)
+
+        val d = WeldJointDef()
+        d.initialize(pa.body, pb.body, convert(field.linalg.Vec2(0.0, 0.0)));
+        d.dampingRatio = dampingRatio.toFloat()
+        d.frequencyHz = frequencyHz.toFloat()
+        val w = world.createJoint(d)
+        return w
+    }
+
+
+    private val fixturesToFLines = LinkedHashMap<Fixture, FLine>();
 
     inner class FLineToPhysics(val fline: FLine, val center: field.linalg.Vec2? = null, density: Double = 1.0) {
 
@@ -50,15 +213,13 @@ class FLinesAndPhysics {
 
         init {
 
+            ff = ArrayList<Fixture>()
             val shape = mutableListOf<field.linalg.Vec2>();
+
             fline.nodes.forEach {
                 if (!shape.contains(it.to.toVec2())) // O(N^2) !!
                     shape.add(it.to.toVec2())
             }
-
-            val v = ConcaveSeparator.validate(shape)
-            if (v == 2 || v == 3)
-                Collections.reverse(shape)
 
             val middle = field.linalg.Vec2()
             for (s in shape)
@@ -72,30 +233,45 @@ class FLinesAndPhysics {
             body = world.createBody(bd)
             body.isBullet = true
 
-            val groups = ConcaveSeparator.separate(shape)
+            val exploded = fline.pieces()
+            exploded.forEach {
 
-            val fd = FixtureDef()
-            ff = ArrayList<Fixture>()
-            for (g in groups) {
-                val sd = PolygonShape()
+                val shape2 = mutableListOf<field.linalg.Vec2>();
 
-                val vv = arrayOfNulls<org.jbox2d.common.Vec2>(g.size)
-                for (i in g.indices) {
-                    vv[i] = convert(g[i])
-                    vv[i]!!.x -= middle.x.toFloat()
-                    vv[i]!!.y -= middle.y.toFloat()
+                it.nodes.forEach {
+                    if (!shape2.contains(it.to.toVec2())) // O(N^2) !!
+                        shape2.add(it.to.toVec2())
                 }
+                val v = ConcaveSeparator.validate(shape2)
+                if (v == 2 || v == 3)
+                    Collections.reverse(shape)
 
-                sd.set(vv, vv.size)
-                fd.shape = sd
-                fd.restitution = 1f
-                fd.density = density.toFloat() / 100000
-                ff.add(body.createFixture(fd))
+                val groups = ConcaveSeparator.separate(shape2)
+
+                val fd = FixtureDef()
+                for (g in groups) {
+                    val sd = PolygonShape()
+
+                    val vv = arrayOfNulls<org.jbox2d.common.Vec2>(g.size)
+                    for (i in g.indices) {
+                        vv[i] = convert(g[i])
+                        vv[i]!!.x -= middle.x.toFloat()
+                        vv[i]!!.y -= middle.y.toFloat()
+                    }
+
+                    sd.set(vv, vv.size)
+                    fd.shape = sd
+                    fd.restitution = 1f
+                    fd.density = density.toFloat() / 100000
+                    val fixture = body.createFixture(fd)
+                    fixturesToFLines[fixture] = fline
+                    ff.add(fixture)
+                }
             }
+
         }
 
-        fun setFixed()
-        {
+        fun setFixed() {
             body.type = BodyType.STATIC
         }
 
@@ -115,6 +291,14 @@ class FLinesAndPhysics {
 
         fun applyForce(force: field.linalg.Vec2) {
             body.applyForceToCenter(convert(force))
+        }
+
+        fun setRestitution(r: Double) {
+            ff.forEach { it.restitution = r.toFloat() }
+        }
+
+        fun setFriction(r: Double) {
+            ff.forEach { it.friction = r.toFloat() }
         }
 
         fun limitVelocity(max: Float, forceLength: Float) {

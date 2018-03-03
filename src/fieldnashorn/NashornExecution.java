@@ -361,7 +361,8 @@ public class NashornExecution implements Execution.ExecutionSupport {
 		}
 
 		// otherwise, use the old system
-		context.setAttribute("_r", null, ScriptContext.ENGINE_SCOPE);
+		context.removeAttribute("_r", ScriptContext.ENGINE_SCOPE);
+		context.removeAttribute("_r", ScriptContext.GLOBAL_SCOPE);
 
 		initiator.entrySet()
 			.forEach(x -> context.setAttribute(x.getKey(), x.getValue(), ScriptContext.ENGINE_SCOPE));
@@ -375,8 +376,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
 			all = false;
 		}
 
-		Object _r = context.getBindings(ScriptContext.ENGINE_SCOPE)
-			.get("_r");
+		Object _r = context.getAttribute("_r");
 
 		// if _r is null, but that executeAndReturn has launched fibres then we need a dummy _r that calls _.fkill() for 'end' and calls _.end at the end of the fiber to synchronize the two
 		// execution models we have here
@@ -386,7 +386,8 @@ public class NashornExecution implements Execution.ExecutionSupport {
 			_r = new Animatable.AnimationElement() {
 				@Override
 				public Object end(boolean isEnding) {
-					ThreadSync2Feedback.kill(box);
+					ThreadSync2Feedback.shouldEnd(box);
+//					ThreadSync2Feedback.kill(box);
 					return this;
 				}
 			};
@@ -502,6 +503,6 @@ public class NashornExecution implements Execution.ExecutionSupport {
 	}
 
 	public Object getBinding(String name) {
-		return engine.get(name);
+		return engine.getContext().getAttribute(name);
 	}
 }

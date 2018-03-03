@@ -1503,6 +1503,31 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 	}
 
 	@Override
+	public Object __div__(Object b) {
+		if (b instanceof Number)
+			return new Vec4(this.x / ((Number) b).doubleValue(), this.y / ((Number) b).doubleValue(), this.z / ((Number) b).doubleValue(), this.w);
+
+		Vec4 c = convertToVec4(b);
+		if (c != null)
+			return new Vec4(this.x / c.x, this.y / c.y, this.z / c.z, this.w / c.w);
+
+		if (b instanceof Quat) {
+			Quat q = new Quat();
+			((Quat) b).invert(q);
+			return q.transform(this, new Vec4());
+		}
+
+		if (b instanceof Vec4) {
+			return this.div((Vec4) b);
+		}
+
+		if (b instanceof OverloadedMath)
+			return ((OverloadedMath) b).__rdiv__(this);
+
+		throw new ClassCastException(" can't divide '" + b + "' by a Vec4 (" + this + ")");
+	}
+
+	@Override
 	public Object __rmul__(Object b) {
 		if (b instanceof Number)
 			return new Vec4(this.x * ((Number) b).doubleValue(), this.y * ((Number) b).doubleValue(), this.z * ((Number) b).doubleValue(), this.w);
@@ -1520,6 +1545,27 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 		}
 
 		throw new ClassCastException(" can't multiply '" + b + "' by a Vec3 (" + this + ")");
+
+	}
+
+	@Override
+	public Object __rdiv__(Object b) {
+		if (b instanceof Number)
+			return new Vec4( ((Number) b).doubleValue() / this.x , ((Number) b).doubleValue() / this.y,  ((Number) b).doubleValue() / this.z, this.w);
+
+		Vec4 c = convertToVec4(b);
+		if (c != null)
+			return new Vec4( c.x / this.x, c.y / this.y, c.z / this.z,  c.w / this.w);
+
+		if (b instanceof Quat) {
+			return ((Quat) b).transform(this, new Vec4());
+		}
+
+		if (b instanceof Vec4) {
+			return this.div((Vec4) b);
+		}
+
+		throw new ClassCastException(" can't divide '" + b + "' by a Vec3 (" + this + ")");
 
 	}
 

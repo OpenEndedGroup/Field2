@@ -34,6 +34,12 @@ public class StandardFLineDrawing {
 				return new BasicStroke(((Number) v).floatValue(), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
 			return v;
 		});
+	static public final Dict.Prop<Float> fastThicken = new Dict.Prop<>("fastThicken").type()
+		.toCanon()
+		.doc("`line.fastThicken=4` thickens this line before drawing it to be 4 units wide. This is the fastest, least pretty, and least likely to be correct line thickening algorithm.").set
+			(Dict
+					.domain,
+				"fline");
 
 	static public final Dict.Prop<Boolean> hint_noDepth = new Dict.Prop<>("hint_noDepth").type().toCanon().doc("set on a line to hint to the renderer that z=0 for all nodes in this line. At " +
 		"present this merely allows lines to be `thicken` faster.");
@@ -154,21 +160,26 @@ public class StandardFLineDrawing {
 			mesh.aux(1, sc);
 			fline.renderLineToMeshByStroking(mesh, 20, s);
 			mesh.aux(1, sc);
-		} else {
-			if (fline.attributes.isTrue(stroked, true) && line != null) {
-				if (opacityMultiply == 1)
-					fline.addAuxProperties(1, color.getName());
-				else
-					fline.addAuxPropertiesFunctions(1, n -> {
-						Supplier<Vec4> qq = n.attributes.get(color);
-						if (qq == null) return null;
-						Vec4 v = qq.get();
-						return new Vec4(v.x, v.y, v.z, v.w * opacityMultiply);
-					});
-				fline.renderToLine(line, 20);
-			}
+
+		} else if (fline.attributes.has(fastThicken)) {
+			float t = fline.attributes.getFloat(fastThicken, 1f);
+			mesh.aux(1, sc);
+			new EvenFasterThicken(t).renderToMeshByThickening(fline, mesh);
+			mesh.aux(1, sc);
+		} else if (fline.attributes.isTrue(stroked, true) && line != null) {
+			if (opacityMultiply == 1)
+				fline.addAuxProperties(1, color.getName());
+			else
+				fline.addAuxPropertiesFunctions(1, n -> {
+					Supplier<Vec4> qq = n.attributes.get(color);
+					if (qq == null) return null;
+					Vec4 v = qq.get();
+					return new Vec4(v.x, v.y, v.z, v.w * opacityMultiply);
+				});
+			fline.renderToLine(line, 20);
 		}
-		if (fline.attributes.isTrue(filled, false) && mesh != null) {
+		if (fline.attributes.isTrue(filled, false) && mesh != null)
+		{
 			if (opacityMultiply == 1)
 				fline.addAuxProperties(1, color.getName());
 			else
@@ -182,7 +193,9 @@ public class StandardFLineDrawing {
 			fline.renderToMesh(mesh, 20);
 			mesh.aux(1, fc);
 		}
-		if (fline.attributes.isTrue(pointed, false) && points != null) {
+		if (fline.attributes.isTrue(pointed, false) && points != null)
+
+		{
 			float ps = fline.attributes.getFloat(pointSize, 0f);
 			points.aux(2, ps);
 			fline.addAuxProperties(2, pointSize.getName());
@@ -193,17 +206,37 @@ public class StandardFLineDrawing {
 
 		IdempotencyMap<Supplier<FLine>> sl = fline.attributes.getOr(subLines, () -> null);
 
-		if (sl != null) {
+		if (sl != null)
+
+		{
 			sl.values().stream().filter(n -> n != null).map(x -> x.get()).filter(x -> x != null).forEach(x -> {
 				dispatchLine(x, mesh, line, points, ot, layerName);
 			});
 		}
 
-		fline.nodes.stream().map(n -> n.attributes.get(subLines)).filter(n -> n != null).flatMap(n -> n.values().stream()).map(x -> x.get()).filter(x -> x != null).forEach(x -> {
-			dispatchLine(x, mesh, line, points, ot, layerName, opacityMultiply);
-		});
+		fline.nodes.stream().
 
-		if (fline.attributes.isTrue(hasText, false) && ot.isPresent()) {
+			map(n -> n.attributes.get(subLines)).
+
+			filter(n -> n != null).
+
+			flatMap(n -> n.values().
+
+				stream()).
+
+			map(x -> x.get()).
+
+			filter(x -> x != null).
+
+			forEach(x ->
+
+			{
+				dispatchLine(x, mesh, line, points, ot, layerName, opacityMultiply);
+			});
+
+		if (fline.attributes.isTrue(hasText, false) && ot.isPresent())
+
+		{
 			fline.nodes.stream()
 				.filter(node -> node.attributes.has(text))
 				.forEach(node -> {

@@ -82,3 +82,5 @@ _.onDoubleClick.crossH = (e) => {
 
 // automatically execute all this code when this box is loaded
 _.auto = 1
+
+_.windowSpace = vec(0,0)

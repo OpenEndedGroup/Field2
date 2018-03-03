@@ -6,14 +6,14 @@ uniform sampler2D T1;
 
 uniform float alpha;
 
-in vec2 ttc;
-in vec4 vcolor;
+in vec2 ottc;
+in vec4 ovcolor;
 uniform float opacity;
 
 void main()
 {
 
-    vec2 outTC = vec2(ttc.x, ttc.y);
+    vec2 outTC = vec2(ottc.x, ottc.y);
 
     vec2 tc = outTC;
     ${SPACE_REMAP};
@@ -23,13 +23,13 @@ void main()
 
 	vec4 C = C0*(1-alpha)+(alpha)*C1;
 
-	if (ttc.x<=0 || ttc.y<=0 || ttc.x>=1 || ttc.y>=1)
+	if (ottc.x<=0 || ottc.y<=0 || ottc.x>=1 || ottc.y>=1)
 	{
     	discard;
 	}
 
 	_output  = vec4(C.xyz,1);
-	_output  = _output*vcolor.xyzw;
+	_output  = _output*ovcolor.xyzw;
 
    	_output.w *= opacity;
 

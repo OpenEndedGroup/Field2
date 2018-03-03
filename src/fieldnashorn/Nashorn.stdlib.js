@@ -13,16 +13,23 @@ var Transform2D = Java.type("field.linalg.Transform2D")
 var Anim = Java.type("field.utility.Drivers")
 var Math = Java.type("java.lang.Math")
 
+// specifically for UChicago Class
 var Mocap = Java.type("trace.mocap.Mocap")
 var Trackers = Java.type("fieldboof.Trackers")
 var SoundAnalysis = Java.type("trace.sound.SoundAnalysis")
 var Intersections = Java.type("trace.util.Intersections")
+var PhysicsSystem = Java.type("trace.physics.PhysicsSystem")
+var Boids = Java.type("trace.simulation.Boids")
+var Production = Java.type("trace.util.Production")
+var RandomCascade = Java.type("trace.random.RandomCascade")
+var Random = Java.type("trace.random.Random")
 
 var __h__ = new Asta();
 
 var __MINUS__ = Asta.__MINUS__;
 var __PLUS__ = Asta.__PLUS__;
 var __MULTIPLY__ = Asta.__MULTIPLY__;
+var __DIVIDE__ = Asta.__DIVIDE__;
 var __NUMBER_LITERAL__ = (start, end, def) => __h__.__LNC__(start, end, def);
 
 _.sourceTransformer = __h__.transformer(_)
@@ -115,3 +122,8 @@ var Math_min = function(a, b)
 }
 Math_min.__doc__ = "work around Nashorn's inability to select between Math.min(int, int) and Math.min(double, double)"
 
+__.noLimits = function() {
+    WaJava.type("fieldnashorn.Watchdog").limits=false
+}
+
+__.noLimits.__doc__ = "_.noLimit() removes all resource limit checking from Field. This means that loops can take longer than 5 seconds to complete, `_.lines` (and other places where you can put geometry) can take more than 1000 elements"

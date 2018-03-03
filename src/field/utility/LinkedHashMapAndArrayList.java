@@ -1,6 +1,7 @@
 package field.utility;
 
 import com.google.common.collect.MapMaker;
+import fieldnashorn.Watchdog;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,6 +13,16 @@ public class LinkedHashMapAndArrayList<V> extends LinkedHashMap<String, V> {
 	protected int uniq = 0;
 
 	Map<Object, String> keys = new MapMaker().weakKeys().makeMap();
+
+	int resourceLimit = -1;
+	String resourceMessage = null;
+
+	public <M extends LinkedHashMapAndArrayList<V>> M configureResourceLimits(int max, String message)
+	{
+		resourceLimit = max;
+		resourceMessage = message;
+		return (M) this;
+	}
 
 	public void add(Object value)
 	{
@@ -39,6 +50,10 @@ public class LinkedHashMapAndArrayList<V> extends LinkedHashMap<String, V> {
 		{
 			_removed(displaced, v);
 		}
+
+		if (resourceLimit!=-1)
+			Watchdog.Companion.limit(size(), resourceLimit, resourceMessage);
+
 		return displaced;
 	}
 

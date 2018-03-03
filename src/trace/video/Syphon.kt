@@ -27,7 +27,7 @@ class Syphon(val unit : Int) : OffersUniform<Int>
 
         if (first)
         {
-            start();
+            start()
             first = false
         }
 

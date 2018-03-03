@@ -343,6 +343,99 @@ class Asta {
             }
         }
 
+
+        @JvmStatic
+        fun __DIVIDE__(a: Any?, b: Any?): Any? {
+
+            if (a is Number && b is Number) return a.toDouble() / b.toDouble()
+
+            if (a == null) throw NullPointerException("can't divide `$a` and `$b`")
+            if (b == null) throw NullPointerException("can't divide `$a` and `$b`")
+
+            return when (a) {
+                is Int -> return when (b) {
+                    is Int -> a / b
+                    is Float -> a / b
+                    is Double -> a / b
+                    is Long -> a / b
+                    is Vec2 -> Vec2(a, a).div(b)
+                    is Vec3 -> Vec3(a, a, a).div(b)
+                    is Vec4 -> Vec4(a.toDouble(), a.toDouble(), a.toDouble(), 1.0).div(b)
+                    is OverloadedMath -> b.__rdiv__(a)
+                    else -> throw NullPointerException("can't divide `$a` and `$b`")
+                }
+                is Float -> return when (b) {
+                    is Int -> a / b
+                    is Float -> a / b
+                    is Double -> a / b
+                    is Long -> a / b
+                    is Vec2 -> Vec2(a, a).div(b)
+                    is Vec3 -> Vec3(a, a, a).div(b)
+                    is Vec4 -> Vec4(a.toDouble(), a.toDouble(), a.toDouble(), 1.0).div(b)
+                    is OverloadedMath -> b.__rdiv__(a)
+                    else -> throw NullPointerException("can't divide `$a` and `$b`")
+                }
+                is Double -> return when (b) {
+                    is Int -> a / b
+                    is Float -> a / b
+                    is Double -> a / b
+                    is Long -> a / b
+                    is Vec2 -> Vec2(a, a).div(b)
+                    is Vec3 -> Vec3(a, a, a).div(b)
+                    is Vec4 -> Vec4(a.toDouble(), a.toDouble(), a.toDouble(), 1.0).div(b)
+                    is OverloadedMath -> b.__rdiv__(a)
+                    else -> throw NullPointerException("can't divide `$a` and `$b`")
+                }
+                is Long -> return when (b) {
+                    is Int -> a / b
+                    is Float -> a / b
+                    is Double -> a / b
+                    is Long -> a / b
+                    is Vec2 -> Vec2(a, a).div(b)
+                    is Vec3 -> Vec3(a, a, a).div(b)
+                    is Vec4 -> Vec4(a.toDouble(), a.toDouble(), a.toDouble(), 1.0).div(b)
+                    is OverloadedMath -> b.__rdiv__(a)
+                    else -> throw NullPointerException("can't divide `$a` and `$b`")
+                }
+                is Vec2 -> return when (b) {
+                    is Int -> Vec2(a).div(Vec2(b, b))
+                    is Float -> Vec2(a).div(Vec2(b, b))
+                    is Double -> Vec2(a).div(Vec2(b, b))
+                    is Long -> Vec2(a).div(Vec2(b, b))
+                    is Vec2 -> Vec2(a).div(b)
+                    is Vec3 -> a.toVec3().div(b)
+                    is Vec4 -> Vec4(a.x, a.y, 0.0, 1.0).div(b)
+                    is OverloadedMath -> b.__rdiv__(a)
+                    else -> throw NullPointerException("can't divide `$a` and `$b`")
+                }
+                is Vec3 -> return when (b) {
+                    is Int -> Vec3(a).div(Vec3(b, b, b))
+                    is Float -> Vec3(a).div(Vec3(b, b, b))
+                    is Double -> Vec3(a).div(Vec3(b, b, b))
+                    is Long -> Vec3(a).div(Vec3(b, b, b))
+                    is Vec2 -> Vec3(a).div(Vec3(b.x, b.y, 0))
+                    is Vec3 -> Vec3(a).div(b)
+                    is Vec4 -> Vec4(a.x, a.y, a.z, 1.0).div(b)
+                    is OverloadedMath -> b.__rdiv__(a)
+                    else -> throw NullPointerException("can't divide `$a` and `$b`")
+                }
+                is Vec4 -> return when (b) {
+                    is Int -> Vec4(a).div(Vec4(b.toDouble(), 0.0, 0.0, 0.0))
+                    is Float -> Vec4(a).div(Vec4(b.toDouble(), 0.0, 0.0, 0.0))
+                    is Double -> Vec4(a).div(Vec4(b.toDouble(), 0.0, 0.0, 0.0))
+                    is Long -> Vec4(a).div(Vec4(b.toDouble(), 0.0, 0.0, 0.0))
+                    is Vec2 -> Vec4(a).div(Vec4(b.x, b.y, 0.0, 0.0))
+                    is Vec3 -> Vec4(a).div(Vec4(b.x, b.y, b.z, 0.0))
+                    is Vec4 -> Vec4(a).div(b)
+                    is OverloadedMath -> b.__rdiv__(a)
+                    else -> throw NullPointerException("can't divide `$a` and `$b`")
+                }
+                is OverloadedMath -> a.__div__(b)
+                else -> throw NullPointerException("can't divide `$a` and `$b`")
+            }
+        }
+
+
         @JvmStatic
         fun __XOR__(a: Any?, b: Any?): Any? {
 
@@ -422,7 +515,7 @@ class Asta {
     }.toMap()
 
 
-    val trapKinds = setOf(Tree.Kind.PLUS, Tree.Kind.MINUS, Tree.Kind.MULTIPLY, Tree.Kind.XOR)
+    val trapKinds = setOf(Tree.Kind.PLUS, Tree.Kind.MINUS, Tree.Kind.DIVIDE, Tree.Kind.MULTIPLY, Tree.Kind.XOR)
 
     fun parse(v: String) {
         val p = Parser.create("--language=es6")
