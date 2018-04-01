@@ -2,9 +2,15 @@
 pushd $(dirname `which "$0"`) >/dev/null; fieldhome="$PWD"; popd >/dev/null
 
 out=$fieldhome/build/classes
-java=$fieldhome/jdk/osx/jdk-10.jdk/Contents/Home/bin/java
 
+# use this to set a jdk explicitly 
+#java=$fieldhome/jdk/osx/jdk-10.jdk/Contents/Home/bin/java
 
+# use this is you a happy with what `java` resolves to
+java=java
+
+echo Java Version is:
+echo `java -version`
 
 export FIELD2_LAUNCH=$fieldhome/$(basename $0)
 
