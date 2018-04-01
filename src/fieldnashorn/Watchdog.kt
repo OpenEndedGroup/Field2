@@ -41,7 +41,7 @@ class Watchdog
 
     companion object {
         @JvmStatic
-        val limits = Options.dict().isTrue(Dict.Prop<Number>("noLimits"), false)==false
+        var limits = Options.dict().isTrue(Dict.Prop<Number>("noLimits"), false)==false
 
         @JvmStatic
         fun limit(n : Int, max : Int, message : String?)

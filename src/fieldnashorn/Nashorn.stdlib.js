@@ -15,7 +15,7 @@ var Math = Java.type("java.lang.Math")
 
 // specifically for UChicago Class
 var Mocap = Java.type("trace.mocap.Mocap")
-var Trackers = Java.type("fieldboof.Trackers")
+//var Trackers = Java.type("fieldboof.Trackers")
 var SoundAnalysis = Java.type("trace.sound.SoundAnalysis")
 var Intersections = Java.type("trace.util.Intersections")
 var PhysicsSystem = Java.type("trace.physics.PhysicsSystem")
@@ -23,6 +23,7 @@ var Boids = Java.type("trace.simulation.Boids")
 var Production = Java.type("trace.util.Production")
 var RandomCascade = Java.type("trace.random.RandomCascade")
 var Random = Java.type("trace.random.Random")
+var Rect = Java.type('field.utility.Rect')
 
 var __h__ = new Asta();
 
@@ -111,7 +112,7 @@ __.intersectY = function(y) {
 __.intersectY.__doc__ = "_.intersectY(55) returns all of the positions where there are `FLine` that intersect with a horizontal line at y=55. Only lines that are marked as `.notation=true` are considered. You can write __.intersectY(55) if you want to cover all boxes."
 
 __.noLimits = function() {
-    WaJava.type("fieldnashorn.Watchdog").limits=false
+    Java.type("fieldnashorn.Watchdog").limits=false
 }
 
 __.noLimits.__doc__ = "_.noLimit() removes all resource limit checking from Field. This means that loops can take longer than 5 seconds to complete, `_.lines` (and other places where you can put geometry) can take more than 1000 elements"

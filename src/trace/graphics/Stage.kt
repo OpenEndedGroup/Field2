@@ -6,14 +6,8 @@ import field.graphics.*
 import field.graphics.util.Saver
 import field.graphics.util.SaverFBO
 import field.graphics.util.onsheetui.get
-import field.linalg.Mat4
-import field.linalg.Vec2
-import field.linalg.Vec3
-import field.linalg.Vec4
-import field.utility.Documentation
-import field.utility.IdempotencyMap
-import field.utility.Pair
-import field.utility.ShaderPreprocessor
+import field.linalg.*
+import field.utility.*
 import fieldbox.boxes.Box
 import fieldbox.boxes.Drawing
 import fieldbox.boxes.plugins.BoxDefaultCode
@@ -400,6 +394,39 @@ class Stage(val w: Int, val h: Int) : AsMap {
             }
         }
 
+        fun bakeTexture(f: FLine, rotate1 : Double, targetRect: Rect) {
+            val c = f.center()
+
+            val q = Quat().fromAxisAngleDeg(Vec3(0,0,1), rotate1)
+
+            val f2 = f.byTransforming { q.transform(Vec3(it)) }
+
+            val b = f2.bounds()
+
+            f2.nodes.forEachIndexed { index, f ->
+
+                val x0 = (Vec2(f.to.x - c.x, f.to.y - c.y))
+
+                val x = (x0.x - b.x) / b.w
+                val y = (x0.y - b.y) / b.h
+
+                f.asMap_set("texCoord", Vec2(x * targetRect.w + targetRect.x, y * targetRect.h + targetRect.y))
+            }
+        }
+        fun bakeTexture(f: FLine, sourceRect: Rect, targetRect: Rect) {
+            val c = f.center()
+
+            for (f in f.nodes) {
+
+                val x0 = Vec2(f.to.x - c.x, f.to.y - c.y)
+
+                val x = (x0.x - sourceRect.x) / sourceRect.w
+                val y = (x0.y - sourceRect.y) / sourceRect.h
+
+                f.asMap_set("texCoord", Vec2(x * targetRect.w + targetRect.x, y * targetRect.h + targetRect.y))
+            }
+        }
+
         var webcamDriver: WebcamDriver? = null
 
     }
@@ -496,7 +523,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
             s3.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"));
             s3.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"));
             s3.setOnError(errorHandler(box, "color_remap"));
-        } catch (e: IndexOutOfBoundsException) {
+        } catch (e: Throwable) {
             e.printStackTrace()
         }
 
@@ -562,7 +589,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
             s3.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"));
             s3.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"));
             s3.setOnError(errorHandler(box, "color_remap"));
-        } catch (e: IndexOutOfBoundsException) {
+        } catch (e: Throwable) {
             e.printStackTrace()
         }
 
