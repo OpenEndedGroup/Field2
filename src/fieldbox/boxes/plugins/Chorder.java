@@ -98,9 +98,12 @@ public class Chorder extends Box {
 		});
 
 		this.properties.put(begin, box -> {
-			box.first(Execution.execution)
-				.ifPresent(x -> x.support(box, Execution.code)
-					.begin(box, getInitiator(box)));
+			ThreadSync2.inMainThread( () -> {
+				box.first(Execution.execution)
+						.ifPresent(x -> x.support(box, Execution.code)
+								.begin(box, getInitiator(box)));
+				return null;
+			});
 			return () -> box.properties.computeIfAbsent(IsExecuting.executionCount, (k) -> 0) > 0;
 		});
 		this.properties.put(beginAgain, box -> {

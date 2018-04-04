@@ -15,7 +15,7 @@ var Math = Java.type("java.lang.Math")
 
 // specifically for UChicago Class
 var Mocap = Java.type("trace.mocap.Mocap")
-var Trackers = Java.type("fieldboof.Trackers")
+//var Trackers = Java.type("fieldboof.Trackers")
 var SoundAnalysis = Java.type("trace.sound.SoundAnalysis")
 var Intersections = Java.type("trace.util.Intersections")
 var PhysicsSystem = Java.type("trace.physics.PhysicsSystem")
