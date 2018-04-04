@@ -3,6 +3,8 @@ package field.utility;
 import com.google.common.collect.MapMaker;
 import com.thoughtworks.qdox.model.JavaClass;
 import com.thoughtworks.qdox.model.JavaField;
+import field.graphics.util.onsheetui.Inject;
+import fieldbox.boxes.Box;
 import fieldbox.boxes.plugins.BoxDefaultCode;
 import fieldbox.execution.Execution;
 import fieldbox.execution.JavaSupport;
@@ -62,7 +64,6 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 		static public <T> Prop<T> findCanon(String p) {
 			return canon.get(p);
 		}
-
 	}
 
 	/**
@@ -78,6 +79,16 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 	 * this lets you add to a property a function that massages values as they are set
 	 */
 	public static Prop<Function<Object, Object>> customCaster = new Prop<>("customCaster").toCanon().set(domain, "*/attributes");
+
+	/**
+	 * Range of for UI hint
+	 */
+	public static Prop<Collection<Number>> range = new Prop<>("range").toCanon().set(domain, "*/attributes").set(customCaster, new Function<Object, Object>() {
+		@Override
+		public Object apply(Object o) {
+			return Conversions.convert(o, Collection.class);
+		}
+	});
 
 	/**
 	 * this lets you add to a property that reduces pairs of T to a single T. This might be string concatenation, or addition, or something more complex
@@ -268,7 +279,7 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 
 			}
 			if (f == null) {
-					throw new IllegalStateException(" cannot type a Dict.Prop<T> that we can't find. Name is :" + name + " class is :" + c);
+				throw new IllegalStateException(" cannot type a Dict.Prop<T> that we can't find. Name is :" + name + " class is :" + c);
 			}
 
 			on.typeInformation = Conversions.linearize(f.getGenericType());
@@ -405,6 +416,14 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 			if (attributes == null) return null;
 			return attributes.get(watch);
 		}
+
+		/**
+		 * Build and add UI for editing this property
+		 */
+		public void edit(Box on) {
+			new Inject(on).edit(name, on);
+		}
+
 	}
 
 	Map<Prop, Object> dictionary = new MapMaker().concurrencyLevel(2)
@@ -792,5 +811,6 @@ public class Dict implements Serializable, fieldlinker.AsMap {
 	static public Stream<Prop> canonicalProperties() {
 		return Canonical.canon.values().stream();
 	}
+
 
 }

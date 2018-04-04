@@ -234,12 +234,19 @@ public class Directionality extends Box {
 						Callbacks.transition(s, Mouse.isSelected, false, false, Callbacks.onSelect, Callbacks.onDeselect);
 						Callbacks.transition(s2, Mouse.isSelected, true, false, Callbacks.onSelect, Callbacks.onDeselect);
 						Drawing.dirty(s);
+
+						drawDirectionHelper(s2);
+
 					}
 
 				}
 			}
 			return null;
 		});
+	}
+
+	private void drawDirectionHelper(Box s) {
+
 	}
 
 

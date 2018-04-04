@@ -22,6 +22,7 @@ import fieldlinker.Linker;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -98,15 +99,20 @@ public class Chorder extends Box {
 		});
 
 		this.properties.put(begin, box -> {
-			ThreadSync2.inMainThread( () -> {
-				box.first(Execution.execution)
-						.ifPresent(x -> x.support(box, Execution.code)
-								.begin(box, getInitiator(box)));
-				return null;
-			});
-			return () -> box.properties.computeIfAbsent(IsExecuting.executionCount, (k) -> 0) > 0;
+			try {
+				return ThreadSync2.callInMainThreadAndWait(() -> {
+					box.first(Execution.execution).ifPresent(x -> x.support(box, Execution.code).begin(box, getInitiator(box)));
+					return () -> box.properties.computeIfAbsent(IsExecuting.executionCount, (k) -> 0) > 0;
+				});
+			}
+			catch(Exception e)
+			{
+				return () -> false;
+			}
+
 		});
-		this.properties.put(beginAgain, box -> {
+		this.properties.put(beginAgain, box ->
+		{
 			Optional<String> name = box.first(Execution.execution).map(x -> x.support(box, Execution.code)
 				.begin(box, getInitiator(box), false));
 			if (name.isPresent()) {
@@ -122,7 +128,9 @@ public class Chorder extends Box {
 				return null;
 			}
 		});
-		this.properties.put(end, box -> {
+		this.properties.put(end, box ->
+
+		{
 			((Box) box).first(Execution.execution)
 				.ifPresent(x -> x.support(((Box) box), Execution.code)
 					.end(((Box) box)));

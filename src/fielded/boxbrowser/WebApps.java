@@ -185,7 +185,6 @@ public class WebApps extends Box implements IO.Loaded {
 
 				// now we wait for it to open a websocket with id 'uid' and grab that socket.
 
-
 				s.addHandlerLast((server, socket, address, payload) -> {
 
 					RunLoop.main.once(() -> {

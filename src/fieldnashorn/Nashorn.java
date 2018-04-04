@@ -53,7 +53,6 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 			engine.eval("__fieldglobal.field = Packages.field");
 			engine.eval("__fieldglobal.fieldnashorn = Packages.fieldnashorn");
 			engine.eval("__fieldglobal.fieldcef = Packages.fieldcef");
-
 		} catch (ScriptException e) {
 			e.printStackTrace();
 		}

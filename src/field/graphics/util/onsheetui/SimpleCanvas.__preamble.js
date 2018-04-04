@@ -10,9 +10,6 @@ var updateAllBrackets = function(){}
 var window = global
 
 var console = {
-    log:function(x){
-
-console = {
     log: function (x) {
         print(x)
     }

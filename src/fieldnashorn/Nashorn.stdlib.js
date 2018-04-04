@@ -23,6 +23,11 @@ var Boids = Java.type("trace.simulation.Boids")
 var Production = Java.type("trace.util.Production")
 var RandomCascade = Java.type("trace.random.RandomCascade")
 var Random = Java.type("trace.random.Random")
+var Rect = Java.type('field.utility.Rect')
+
+
+var Inject = Java.type("field.graphics.util.onsheetui.Inject")
+
 
 var __h__ = new Asta();
 
@@ -123,7 +128,7 @@ var Math_min = function(a, b)
 Math_min.__doc__ = "work around Nashorn's inability to select between Math.min(int, int) and Math.min(double, double)"
 
 __.noLimits = function() {
-    WaJava.type("fieldnashorn.Watchdog").limits=false
+    Java.type("fieldnashorn.Watchdog").limits=false
 }
 
 __.noLimits.__doc__ = "_.noLimit() removes all resource limit checking from Field. This means that loops can take longer than 5 seconds to complete, `_.lines` (and other places where you can put geometry) can take more than 1000 elements"

@@ -2,9 +2,11 @@ package trace.physics
 
 import field.app.RunLoop
 import field.graphics.FLine
+import field.graphics.StandardFLineDrawing.texCoord
 import field.linalg.Vec3
 import field.utility.Dict
 import field.utility.IdempotencyMap
+import field.utility.Rect
 import org.jbox2d.callbacks.ContactImpulse
 import org.jbox2d.callbacks.ContactListener
 import org.jbox2d.collision.Manifold
@@ -68,8 +70,6 @@ class PhysicsSystem {
             override fun beginContact(contact: org.jbox2d.dynamics.contacts.Contact) {
                 val A = fixturesToFLines[contact.fixtureA]
                 val B = fixturesToFLines[contact.fixtureB]
-
-                println("contact begin $A $B")
                 if (A != null && B != null) {
                     val c = Contact(tick = TICK, A = A, B = B)
                     val wm = WorldManifold()
@@ -84,8 +84,6 @@ class PhysicsSystem {
             override fun endContact(contact: org.jbox2d.dynamics.contacts.Contact) {
                 val A = fixturesToFLines[contact.fixtureA]
                 val B = fixturesToFLines[contact.fixtureB]
-
-                println("contact end $A $B")
                 if (A != null && B != null) {
                     val c = contacts.filter { it.equals(Contact(-1, A, B)) }.getOrNull(0)
                     if (c != null) {
@@ -102,7 +100,6 @@ class PhysicsSystem {
 
         })
     }
-
 
     fun update(delta: Float) {
         var timeStep = delta / 1000f
@@ -162,6 +159,16 @@ class PhysicsSystem {
         return pp
     }
 
+    fun removePhysics(f: FLine)
+    {
+        val pp = f.attributes.getOr(physics, {null})
+        if (pp!=null)
+        {
+            allPhysicsLines.remove(pp)
+            pp.remove()
+        }
+    }
+
     fun setGravity(g: field.linalg.Vec2) {
         world.gravity = convert(g)
     }
@@ -212,8 +219,8 @@ class PhysicsSystem {
         var body: Body
 
         init {
-
             ff = ArrayList<Fixture>()
+
             val shape = mutableListOf<field.linalg.Vec2>();
 
             fline.nodes.forEach {
@@ -235,13 +242,13 @@ class PhysicsSystem {
 
             val exploded = fline.pieces()
             exploded.forEach {
-
                 val shape2 = mutableListOf<field.linalg.Vec2>();
 
                 it.nodes.forEach {
                     if (!shape2.contains(it.to.toVec2())) // O(N^2) !!
                         shape2.add(it.to.toVec2())
                 }
+
                 val v = ConcaveSeparator.validate(shape2)
                 if (v == 2 || v == 3)
                     Collections.reverse(shape)
@@ -269,6 +276,15 @@ class PhysicsSystem {
                 }
             }
 
+        }
+
+        var removed = false
+        fun remove()
+        {
+            if (removed) return
+
+            world.destroyBody(body)
+            removed = true
         }
 
         fun setFixed() {
@@ -315,6 +331,8 @@ class PhysicsSystem {
             body.applyTorque((-Math.signum(v) * excess).toFloat())
         }
 
+        fun getRotation() = body.transform.q.angle
+
         fun applyTorque(rotation: Float) {
             body.applyTorque(rotation)
         }
@@ -340,12 +358,33 @@ class PhysicsSystem {
             body.resetMassData()
         }
 
+        var textureRect: Rect? = null
+
+
         fun physicsToFLine() {
+            if (removed) return
+
             var f: Fixture? = body.fixtureList
             val t = body.transform
             val vo = org.jbox2d.common.Vec2()
 
             fline.clear()
+
+            var r: Rect? = null
+
+            while (f != null) {
+                val sh = f.shape
+                if (sh is PolygonShape) {
+                    val v = sh.vertices
+                    val vcount = sh.vertexCount
+                    for (ii in 0..vcount - 1) {
+                        r = Rect.union(r, Rect(v[ii].x, v[ii].y, 0f, 0f))
+                    }
+                }
+                f = f.next
+            }
+
+            f = body.fixtureList
 
             while (f != null) {
                 val sh = f.shape
@@ -359,10 +398,22 @@ class PhysicsSystem {
                         else
                             fline.lineTo(convert2(vo))
 
+                        if (textureRect != null) {
+                            val tx = textureRect!!.x + textureRect!!.w * (v[ii].x - r!!.x) / r!!.w;
+                            val ty = textureRect!!.y + textureRect!!.h * (v[ii].y - r!!.y) / r!!.h;
+                            fline.node().attributes.put(texCoord, field.linalg.Vec2(tx.toDouble(), ty.toDouble()))
+                        }
+
                     }
                     if (v.size > 0) {
                         Transform.mulToOut(t, v[0], vo)
                         fline.lineTo(convert2(vo))
+                        if (textureRect != null) {
+                            val tx = textureRect!!.x + textureRect!!.w * (v[0].x - r!!.x) / r!!.w;
+                            val ty = textureRect!!.y + textureRect!!.h * (v[0].y - r!!.y) / r!!.h;
+                            fline.node().attributes.put(texCoord, field.linalg.Vec2(tx.toDouble(), ty.toDouble()))
+                        }
+
                     }
                 }
                 f = f.next
