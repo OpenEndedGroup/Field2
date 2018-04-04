@@ -23,8 +23,8 @@ public class Server {
 	Map<String, String> fixedResources = new HashMap<String, String>();
 	Set<String> documentRoots = new LinkedHashSet<String>();
 
-	private final NanoHTTPD server;
-	private final WebSocketServer webSocketServer;
+	public final NanoHTTPD server;
+	public final WebSocketServer webSocketServer;
 
 	Deque<Handler> handlers = new LinkedList<>();
 	List<URIHandler> uriHandlers = new ArrayList<>();
