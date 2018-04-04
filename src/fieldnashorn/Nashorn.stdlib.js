@@ -25,6 +25,10 @@ var RandomCascade = Java.type("trace.random.RandomCascade")
 var Random = Java.type("trace.random.Random")
 var Rect = Java.type('field.utility.Rect')
 
+
+var Inject = Java.type("field.graphics.util.onsheetui.Inject")
+
+
 var __h__ = new Asta();
 
 var __MINUS__ = Asta.__MINUS__;

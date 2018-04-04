@@ -29,6 +29,27 @@ class Inject(val r: Box) {
     val code_slider = BoxDefaultCode.findSource(this.javaClass, "makeSlider")
     val code_checkbox = BoxDefaultCode.findSource(this.javaClass, "makeCheckbox")
 
+    fun edit(propertyName: String, on: Box) {
+        val pp = Dict.Prop<Any>(propertyName).toCanon<Any>()
+        val v = (on up pp)
+        when (v) {
+            is Number -> {
+                val rng = pp.attributes.getOr(Dict.range, { null })
+                if (rng != null) {
+                    val i = rng.iterator()
+                    makeSlider(propertyName, on, (i.next() as Number).toFloat(), (i.next() as Number).toFloat())
+                } else
+                    makeSlider(propertyName, on, 0f, v.toFloat() * 2);
+            }
+            is Boolean -> {
+                makeCheckbox(propertyName, on)
+            }
+            else -> {
+                throw IllegalArgumentException("don't know how to edit " + propertyName + " with value " + v + " " + (if (v == null) null else v.javaClass))
+            }
+        }
+    }
+
     fun makeCheckbox(propertyName: String, on: Box) {
         val uigroup = UIGroup.getOrMake("propertiesUI", on)
 
@@ -40,7 +61,7 @@ class Inject(val r: Box) {
         val canvas = (on up DefaultMenus.ensureChildOfClass)!!.apply(on, "." + propertyName, SimpleCanvas::class.java)
 
         // TODO: suspend all this on window.disable ?
-        d.attributes.putToMap(Missing.watch, "__uiGroup__" + propertyName, BiConsumer<Box, Object> { inside, oldValue ->
+        d.attributes.putToMap(Missing.watch, "__uiGroup__" + propertyName, BiConsumer<Box, Any?> { inside, oldValue ->
             if (inside == on && !safeEq(oldValue, inside.properties.get(d)) && !inside.disconnected) {
                 (inside get Pseudo.next)!!["update_" + propertyName] = Runnable {
                     (canvas up Exec.exec)?.apply(canvas, (canvas get Execution.code))
@@ -49,7 +70,10 @@ class Inject(val r: Box) {
         })
 
         (canvas get Callbacks.onDelete)!!.put("__uiGroup__" + propertyName, Box.FunctionOfBox { box ->
-            if (box == canvas) d.attributes.removeFromMap(Missing.watch, "__uiGroup__" + propertyName)
+            if (box == canvas) {
+                d.attributes.removeFromMap(Missing.watch, "__uiGroup__" + propertyName)
+                uigroup.remove(canvas)
+            }
         })
 
         canvas += Box.name to "." + propertyName
@@ -95,7 +119,10 @@ class Inject(val r: Box) {
         })
 
         (canvas get Callbacks.onDelete)!!.put("__uiGroup__" + propertyName, Box.FunctionOfBox { box ->
-            if (box == canvas) d.attributes.removeFromMap(Missing.watch, "__uiGroup__" + propertyName)
+            if (box == canvas) {
+                d.attributes.removeFromMap(Missing.watch, "__uiGroup__" + propertyName)
+                uigroup.remove(canvas)
+            }
         })
 
         canvas += Box.name to "." + propertyName
@@ -105,7 +132,6 @@ class Inject(val r: Box) {
             val aa = uigroup.initialPositionDown()
             canvas += Box.frame to Rect(uigroup.spotx + uigroup.margin / 2 + 2, aa.toDouble(), width, height)
         }
-
 
         (canvas as IO.Loaded).loaded()
 
