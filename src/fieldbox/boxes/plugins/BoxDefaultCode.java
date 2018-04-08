@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * A mechanism for producing default entries in "_.code" for various plugin classes directly from the class-path
@@ -26,7 +27,7 @@ public class BoxDefaultCode {
 
 		Dict.canonicalProperties()
 			.filter(x -> x.getAttributes()
-			.isTrue(_configured, false))
+			.isTrue(_configured, false)).collect(Collectors.toList()) // needed to avoid CME
 			.forEach(x -> {
 
 			String c = find(a, x.getName());
