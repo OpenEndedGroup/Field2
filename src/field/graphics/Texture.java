@@ -796,6 +796,25 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 	}
 
 
+	public Future<FloatBuffer> asyncDebugDownloadRGBF32(FloatBuffer to)
+	{
+		CompletableFuture f = new CompletableFuture<>();
+		this.attach(new Scene.Transient(() -> {
+			glFinish();
+			int a = glGetInteger(GL_TEXTURE_BINDING_2D);
+			GraphicsContext.checkError(() -> "about to bind texture");
+			glBindTexture(this.specification.target, this.getOpenGLNameInCurrentContext());
+			GraphicsContext.checkError(() -> "bound texture");
+			glGetTexImage(this.specification.target, 0, GL_RGBA, GL_FLOAT, to);
+			GraphicsContext.checkError(() -> "get texture");
+			glBindTexture(this.specification.target, a);
+			GraphicsContext.checkError(() -> "unbound texture");
+			f.complete(to);
+		},-10).setOnceOnly());
+		return f;
+	}
+
+
 	public int forceGenerateMipmapNow() {
 		if (specification.highQuality) {
 			State s = GraphicsContext.getContext().lookup(this);

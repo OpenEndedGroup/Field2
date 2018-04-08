@@ -271,6 +271,26 @@ public class Mat4 implements Externalizable, Supplier<Mat4>, Mutable, Serializab
 		set(m);
 	}
 
+	public Mat4(Vec4 a,Vec4 b,Vec4 c,Vec4 d)
+	{
+		this.m00 = a.x;
+		this.m10 = a.y;
+		this.m20 = a.z;
+		this.m30 = a.w;
+		this.m01 = b.x;
+		this.m11 = b.y;
+		this.m21 = b.z;
+		this.m31 = b.w;
+		this.m02 = c.x;
+		this.m12 = c.y;
+		this.m22 = c.z;
+		this.m32 = c.w;
+		this.m03 = d.x;
+		this.m13 = d.y;
+		this.m23 = d.z;
+		this.m33 = d.w;
+	}
+
 	/**
 	 * Multiply the supplied <code>left</code> matrix by the <code>right</code> and store the result into <code>dest</code>.
 	 * <p>

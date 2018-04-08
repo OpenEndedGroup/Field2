@@ -1,6 +1,15 @@
 package field.graphics;
 
+import org.lwjgl.opengl.GL11;
+
+import java.nio.FloatBuffer;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
+
+import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL15.GL_READ_WRITE;
+import static org.lwjgl.opengl.GL30.GL_RGBA32F;
 import static org.lwjgl.opengl.GL42.glBindImageTexture;
 
 /**
@@ -28,13 +37,16 @@ public class Image implements Scene.Perform, OffersUniform<Integer> {
 		GraphicsContext.checkError(() -> " bound texture now binding image "+texture.specification.unit+" "+((Texture.State) GraphicsContext
 				.get(texture)).name);
 
-
-		glBindImageTexture(texture.specification.unit, ((Texture.State) GraphicsContext
-			    .get(texture)).name, 0, false, 0, GL_READ_WRITE, texture.specification.internalFormat);
+		int name = ((Texture.State) GraphicsContext
+				.get(texture)).name;
+//		System.out.println(" name is :"+name+" / "+texture.specification.unit);
+		glBindImageTexture(texture.specification.unit, name, 0, false, 0, GL_READ_WRITE, texture.specification.internalFormat);
 		GraphicsContext.checkError(() -> " after binding image ");
 
 		return true;
 	}
+
+
 
 	@Override
 	public Integer getUniform() {

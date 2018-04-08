@@ -5,6 +5,7 @@ import field.graphics.StandardFLineDrawing;
 import field.utility.Dict;
 import field.utility.Rect;
 import fieldbox.boxes.*;
+import fieldcef.browser.Browser;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -40,11 +41,15 @@ public class KeyboardFocus extends Box {
 			fr.attributes.put(FLineDrawing.layer, focused.get(focused.size() - 1).properties.getOr(FLineDrawing.layer, () -> "__main__"));
 
 			Number d = focused.get(focused.size() - 1).properties.get(depth);
-			if (d != null)
-				fr.nodes.forEach(v ->
-					v.setZ(d.floatValue()));
 
-			return fr;
+
+			if (d != null) {
+				Number finalD = d;
+				fr.nodes.forEach(v ->
+					v.setZ(finalD.floatValue()));
+			}
+
+			return fr.bySubdividing().bySubdividing();
 		});
 		this.properties.putToMap(FLineDrawing.frameDrawing, "__keyboardFocusRing2__", (x) ->
 
@@ -64,11 +69,15 @@ public class KeyboardFocus extends Box {
 			fr.attributes.put(StandardFLineDrawing.color, Colors.focusRing2);
 			fr.attributes.put(FLineDrawing.layer, focused.get(focused.size() - 1).properties.getOr(FLineDrawing.layer, () -> "__main__"));
 			Number d = focused.get(focused.size() - 1).properties.get(depth);
-			if (d != null)
-				fr.nodes.forEach(v ->
-					v.setZ(d.floatValue()));
 
-			return fr;
+
+			if (d != null) {
+				Number finalD = d;
+				fr.nodes.forEach(v ->
+					v.setZ(finalD.floatValue()));
+			}
+
+			return fr.bySubdividing().bySubdividing();
 		});
 
 		this.properties.putToMap(Callbacks.onDelete, "__keyboardFocusRing__", x ->

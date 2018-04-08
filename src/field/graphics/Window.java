@@ -238,7 +238,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
         });
 
         scene.attach(1000, "__screnshotter__", (k) -> {
-            if (screenshotter!=null)
+            if (screenshotter != null)
                 screenshotter.update();
         });
 
@@ -378,6 +378,8 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 
     }
 
+    boolean focused = false;
+
     public void loop() {
 
         currentWindow.set(this);
@@ -515,7 +517,6 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
             e.printStackTrace();
         }
     }
-
 
     public Rect getBounds() {
         if (currentBounds == null)
@@ -741,6 +742,10 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 
     }
 
+    public boolean isFocused() {
+        return focused;
+    }
+
     /**
      * post an event to this window
      *
@@ -806,6 +811,8 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 
             @Override
             public void windowFocus(long window, boolean focused) {
+                Window.this.focused = focused;
+
                 keyboardState.keysDown.clear();
             }
 
@@ -941,12 +948,10 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 
     public Saver getScreenshotter() {
         if (screenshotter != null) {
-            if (getFrameBufferWidth()!=screenshotter.width || getFrameBufferHeight()!=screenshotter.height)
-            {
+            if (getFrameBufferWidth() != screenshotter.width || getFrameBufferHeight() != screenshotter.height) {
                 screenshotter.stop();
-            }
-            else
-            return screenshotter;
+            } else
+                return screenshotter;
         }
 
         String base = System.getProperty("user.home") + File.separatorChar + "field_screenshots" + File.separatorChar;
@@ -957,7 +962,8 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
         File prefix = new File(base + Saver.pad(x));
         prefix.mkdirs();
 
-        return screenshotter = new Saver(getFrameBufferWidth(), getFrameBufferHeight(), 4, prefix.getAbsolutePath()+File.separatorChar + "w_");
+        return screenshotter = new Saver(getFrameBufferWidth(), getFrameBufferHeight(), 4,
+                                         prefix.getAbsolutePath() + File.separatorChar + "w_");
     }
 
     public interface SwapControl {

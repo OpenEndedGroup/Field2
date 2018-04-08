@@ -110,7 +110,7 @@ class Inject(val r: Box) {
         val canvas = (on up DefaultMenus.ensureChildOfClass)!!.apply(on, "." + propertyName, SimpleCanvas::class.java)
 
         // TODO: suspend all this on window.disable ?
-        d.attributes.putToMap(Missing.watch, "__uiGroup__" + propertyName, BiConsumer<Box, Object> { inside, oldValue ->
+        d.attributes.putToMap(Missing.watch, "__uiGroup__" + propertyName, BiConsumer<Box, Object?> { inside, oldValue ->
             if (inside == on && oldValue !== inside.properties.get(d) && !inside.disconnected) {
                 (inside get Pseudo.next)!!["update_" + propertyName] = Runnable {
                     (canvas up Exec.exec)?.apply(canvas, (canvas get Execution.code))

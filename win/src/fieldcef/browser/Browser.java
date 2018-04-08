@@ -232,7 +232,7 @@ public class Browser extends Box implements IO.Loaded {
         source.position(0)
                 .limit(source.capacity());
         sourceView = source.slice();
-        texture = new Texture(Texture.TextureSpecification.byte4(0, (int) (w * rsf), (int) (h * rsf), source, false)).setIsDoubleBuffered(false);
+        texture = new Texture(Texture.TextureSpecification.byte4(0, (int) (w * rsf), (int) (h * rsf), source, true)).setIsDoubleBuffered(false);
 
         q = BaseMesh.triangleList(0, 0);
         builder = new MeshBuilder(q);

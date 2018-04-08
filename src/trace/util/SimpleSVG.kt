@@ -26,12 +26,12 @@ class SimpleSVG(val filename: String) {
         val mm = Pattern.compile("style=\"fill:#(..)(..)(..);\" .*?d=\"([cqmzMLCQZ\\- ,\t0-9\\.]+)\"")
         (Files.readAllLines(File(filename).toPath())).joinToString(" ").split("/>").forEach {
 
-            println(it)
+//            println(it)
             //<path fill="rgb(60,108,146)" stroke="rgb(60,108,146)" stroke-width="1" opacity="1" d="M 153.5 0 L 153.5 1 L
             //<path fill="#9093a4" opacity="1.00" d=" M 189.78 174.70 C 191.07 174.31 192.38 173.97 193.69 173.65 C 194.20 173.77 195.23 174.00 195.74 174.12 C 198.42 174.70 201.22 174.78 203.95 175.10 C 203.78 176.67 201.33 175.58 200.73 176.98 C 202.31 176.99 205.46 177.01 207.03 177.02 L 207.99 177.02 C 207.99 177.53 208.00 178.56 208.00 179.07 C 207.18 179.13 205.56 179.25 204.74 179.30 C 203.57 179.17 202.39 179.05 201.21 178.95 L 200.29 178.83 C 199.77 178.56 198.74 178.00 198.22 177.73 C 195.62 176.18 192.62 175.61 189.78 174.70 Z" />
             val mmm = mm.matcher(it)
             if (mmm.find()) {
-                println("found")
+//                println("found")
                 val colorr = mmm.group(1)
                 val colorg = mmm.group(2)
                 val colorb = mmm.group(3)
@@ -80,7 +80,7 @@ class SimpleSVG(val filename: String) {
                 .trim()
         val pieces = p2.split(" ", ",")
 
-        println("looking at ::" + p2 + "::")
+//        println("looking at ::" + p2 + "::")
 
         var i = 0
         while (i < pieces.size) {

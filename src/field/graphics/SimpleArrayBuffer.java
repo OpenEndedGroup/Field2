@@ -21,8 +21,8 @@ public class SimpleArrayBuffer implements ArrayBuffer {
 
 	static public int uploadBytes = 0;
 	final int divisor;
-	private final FloatBuffer dataAsFloat;
-	private final IntBuffer dataAsInt;
+	private FloatBuffer dataAsFloat;
+	private IntBuffer dataAsInt;
 	private final int size;
 	private final int binding;
 	private final int attribute;
@@ -54,6 +54,8 @@ public class SimpleArrayBuffer implements ArrayBuffer {
 	public void setCustomStorage(FloatBuffer customStorage) throws NoSuchFieldException, IllegalAccessException {
 		this.customStorage = customStorage;
 		data = BufferUtils.asByteBuffer(customStorage);
+		dataAsFloat = customStorage;
+		dataAsInt = data.asIntBuffer();
 		mod++;
 	}
 
