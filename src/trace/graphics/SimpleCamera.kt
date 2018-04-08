@@ -113,10 +113,12 @@ class SimpleCamera(val camera: Camera) {
 
     fun update() {
 
+        /*
         val s = camera.state
         s.position = position
         s.target = target
         s.up = up
         camera.state = s
+        */
     }
 }

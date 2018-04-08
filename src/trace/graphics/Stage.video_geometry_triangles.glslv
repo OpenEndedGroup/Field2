@@ -8,6 +8,8 @@ out vec2 ottc;
 in vec4[] vcolor;
 in vec2[] ttc;
 
+in float[] CD;
+
 void main(void)
 {
     int i;
@@ -15,6 +17,7 @@ void main(void)
     for (i = 0; i < gl_in.length(); i++)
     {
         gl_Position = gl_in[i].gl_Position;
+        gl_ClipDistance[0] = CD[i];
         ovcolor = vcolor[i];
         ottc = ttc[i];
         EmitVertex();

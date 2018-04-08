@@ -106,6 +106,11 @@ public class KeyBinding {
 		{
 			return (matches(event.before) && !matches(event.after));
 		}
+
+		@Override
+		public String toString() {
+			return key+":"+shift+","+alt+","+control+","+supper;
+		}
 	}
 
 }

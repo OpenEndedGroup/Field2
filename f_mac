@@ -4,10 +4,10 @@ pushd $(dirname `which "$0"`) >/dev/null; fieldhome="$PWD"; popd >/dev/null
 out=$fieldhome/build/classes
 
 # use this to set a jdk explicitly 
-#java=$fieldhome/jdk/osx/jdk-10.jdk/Contents/Home/bin/java
+java=$fieldhome/jdk/osx/jdk-10.jdk/Contents/Home/bin/java
 
 # use this is you a happy with what `java` resolves to
-java=java
+#java=java
 
 echo Java Version is:
 echo `java -version`

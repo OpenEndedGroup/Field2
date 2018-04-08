@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
@@ -103,10 +104,14 @@ public class BaseMesh extends Scene implements Scene.Perform {
 		this.arrayBufferFactory = arrayBufferFactory;
 	}
 
-	int instances = 0;
+	Supplier<Integer> instances = () -> 0;
 
-	public BaseMesh setInstances(int num)
-	{
+	public BaseMesh setInstances(int num) {
+		this.instances = () -> num;
+		return this;
+	}
+
+	public BaseMesh setInstances(Supplier<Integer> num) {
 		this.instances = num;
 		return this;
 	}
@@ -114,8 +119,7 @@ public class BaseMesh extends Scene implements Scene.Perform {
 	/**
 	 * returns a builder that lets you dynamically add geometry to this mesh
 	 */
-	public MeshBuilder builder()
-	{
+	public MeshBuilder builder() {
 		return new MeshBuilder(this);
 	}
 
@@ -198,7 +202,9 @@ public class BaseMesh extends Scene implements Scene.Perform {
 		return limitVertex;
 	}
 
-	public int getElementDimension() { return elements==null ? 0 : elements.getDimension(); }
+	public int getElementDimension() {
+		return elements == null ? 0 : elements.getDimension();
+	}
 
 	public void setBuffer(int attribute, ArrayBuffer buffer) {
 		if (buffer.getSize() < limitVertex) buffers[attribute] = buffer.replaceWithSize(limitVertex);
@@ -218,11 +224,13 @@ public class BaseMesh extends Scene implements Scene.Perform {
 			return buffers[attribute];
 		}
 
-		if (dimension==0)
+		if (dimension == 0)
 			return buffers[attribute];
 
 		if (buffers[attribute].getDimension() != dimension)
-			throw new IllegalArgumentException(" dimension mismatch. Attribute " + attribute + " was previously declared to be of dimension " +  buffers[attribute] .getDimension()+ " not " +dimension);
+			throw new IllegalArgumentException(" dimension mismatch. Attribute " + attribute + " was previously declared to be of dimension " + buffers[attribute].getDimension() + " not" +
+				" " +
+				"" + dimension);
 
 		return buffers[attribute];
 	}
@@ -237,7 +245,7 @@ public class BaseMesh extends Scene implements Scene.Perform {
 	@Override
 	public boolean perform(int pass) {
 
-		Log.log("graphics.trace", ()->" perform pass :" + this + " / " + pass);
+		Log.log("graphics.trace", () -> " perform pass :" + this + " / " + pass);
 
 		if (pass == 0) {
 			Integer va = GraphicsContext.get(this);
@@ -245,11 +253,11 @@ public class BaseMesh extends Scene implements Scene.Perform {
 				va = glGenVertexArrays();
 				GraphicsContext.put(this, va);
 				Integer finalVa1 = va;
-				Log.log("graphics.trace", ()->" allocated new VA name for this " + finalVa1);
+				Log.log("graphics.trace", () -> " allocated new VA name for this " + finalVa1);
 			}
 
 			final Integer finalVa = va;
-			Log.log("graphics.trace", ()->" va name is " + finalVa);
+			Log.log("graphics.trace", () -> " va name is " + finalVa);
 			glBindVertexArray(va);
 
 			boolean work = false;
@@ -296,38 +304,40 @@ public class BaseMesh extends Scene implements Scene.Perform {
 		BaseMesh m = new BaseMesh() {
 			protected boolean performNow() {
 
-				if (GraphicsContext.getContext().stateTracker.shader.get()==0)
-				{
-					System.err.println("trying to draw geometry ("+this+") without a shader attached will draw nothing");
+				if (GraphicsContext.getContext().stateTracker.shader.get() == 0) {
+					System.err.println("trying to draw geometry (" + this + ") without a shader attached will draw nothing");
 					return true;
 				}
 
-				GraphicsContext.checkError(() -> "on entry "+this);
-				if (instances==0) {
+				GraphicsContext.checkError(() -> "on entry " + this);
+
+				int ii = instances.get();
+
+				if (ii == 0) {
 					if (primitiveSize == 0) {
 						glDrawArrays(primitiveType, 0, limitVertex);
 					} else {
-						Log.log("graphics.trace", () -> "drawing " + primitiveType + " " + limitElement + " " + primitiveSize + " " + GraphicsContext.getContext().stateTracker.fbo.get());
+						Log.log("graphics.trace", () -> "drawing " + primitiveType + " " + limitElement + " " + primitiveSize + " " + GraphicsContext.getContext()
+							.stateTracker.fbo.get());
 						Log.log("graphics.trace", () -> "target FBO is complete ? " + GL30.glCheckFramebufferStatus(GL30.GL_DRAW_FRAMEBUFFER));
 						GraphicsContext.checkError(() -> "before draw " + this);
 						glDrawElements(primitiveType, limitElement * primitiveSize, GL_UNSIGNED_INT, 0);
 						GraphicsContext.checkError(() -> "after draw " + this);
 					}
-				}
-				else
-				{
+				} else {
 					if (primitiveSize == 0) {
-						glDrawArraysInstanced(primitiveType, 0, limitVertex, instances);
+						glDrawArraysInstanced(primitiveType, 0, limitVertex, ii);
 					} else {
-						Log.log("graphics.trace", () -> "drawing " + primitiveType + " " + limitElement + " " + primitiveSize + " " + GraphicsContext.getContext().stateTracker.fbo.get());
+						Log.log("graphics.trace", () -> "drawing " + primitiveType + " " + limitElement + " " + primitiveSize + " " + GraphicsContext.getContext()
+							.stateTracker.fbo.get());
 						Log.log("graphics.trace", () -> "target FBO is complete ? " + GL30.glCheckFramebufferStatus(GL30.GL_DRAW_FRAMEBUFFER));
 						GraphicsContext.checkError(() -> "before draw " + this);
-						glDrawElementsInstanced(primitiveType, limitElement * primitiveSize, GL_UNSIGNED_INT, 0, instances);
+						glDrawElementsInstanced(primitiveType, limitElement * primitiveSize, GL_UNSIGNED_INT, 0, ii);
 						GraphicsContext.checkError(() -> "after draw " + this);
 					}
 
 				}
-				GraphicsContext.checkError(() -> "on exit "+this);
+				GraphicsContext.checkError(() -> "on exit " + this);
 				return true;
 			}
 		};
@@ -421,33 +431,29 @@ public class BaseMesh extends Scene implements Scene.Perform {
 	/**
 	 * checks the contents of this mesh for validity and prints out information
 	 */
-	public void debugContents(String channel)
-	{
-		Log.log(channel, ()->"debugContents for mesh "+this);
+	public void debugContents(String channel) {
+		Log.log(channel, () -> "debugContents for mesh " + this);
 		int vl = getVertexLimit();
 		int el = getElementLimit();
-		Log.log(channel,()-> "VL :"+vl+" | "+el+" "+this.buffers[0].floats(true)+" / "+this.elements(true));
-		for(ArrayBuffer a : this.buffers)
-		{
-			if (a==null) continue;
-			Log.log(channel,()-> "buffer "+a.getAttribute()+" "+a.getBinding()+" "+a.getDimension()+" "+a.getSize());
+		Log.log(channel, () -> "VL :" + vl + " | " + el + " " + this.buffers[0].floats(true) + " / " + this.elements(true));
+		for (ArrayBuffer a : this.buffers) {
+			if (a == null) continue;
+			Log.log(channel, () -> "buffer " + a.getAttribute() + " " + a.getBinding() + " " + a.getDimension() + " " + a.getSize());
 		}
 
 
-		if (this.buffers[0]!=null)
-		{
-			Log.log(channel,()-> "checking elements "+this);
+		if (this.buffers[0] != null) {
+			Log.log(channel, () -> "checking elements " + this);
 			IntBuffer a = this.elements(true);
 			FloatBuffer f = this.buffers[0].floats();
 
 			int st = this.elements.getDimension();
 
-			for(int q=0;q<el*st;q++)
-			{
+			for (int q = 0; q < el * st; q++) {
 				final int finalQ = q;
-				Log.log(channel, () -> (finalQ /st)+" | "+a.get(finalQ)+" -> "+(a.get(finalQ)<vl ? new Vec3((FloatBuffer) f.position(3*a.get(finalQ))) : "ILLEGAL"));
-				if ((q+1)%st==0)
-					Log.log(channel, ()->".");
+				Log.log(channel, () -> (finalQ / st) + " | " + a.get(finalQ) + " -> " + (a.get(finalQ) < vl ? new Vec3((FloatBuffer) f.position(3 * a.get(finalQ))) : "ILLEGAL"));
+				if ((q + 1) % st == 0)
+					Log.log(channel, () -> ".");
 			}
 		}
 	}
@@ -455,16 +461,16 @@ public class BaseMesh extends Scene implements Scene.Perform {
 	@Override
 	public String toString() {
 
-		if (this.elements==null)
-			return "Mesh("+this.vertex(true).limit()/3+" points)";
+		if (this.elements == null)
+			return "Mesh(" + this.vertex(true).limit() / 3 + " points)";
 
 		int d = this.elements.getDimension();
 		int num = this.elements.ints(true)
-				     .limit() / d;
-		if (d==2)
-			return "Mesh("+num+" lines / "+this.vertex(true).limit()/3+" vertices)";
+			.limit() / d;
+		if (d == 2)
+			return "Mesh(" + num + " lines / " + this.vertex(true).limit() / 3 + " vertices)";
 
-		return "Mesh("+num+" triangles / "+this.vertex(true).limit()/3+" vertices)";
+		return "Mesh(" + num + " triangles / " + this.vertex(true).limit() / 3 + " vertices)";
 
 //		return "Mesh:"+(this.elements==null ? null : d)+"/"+(this.elements==null ? null : (this.elements.ints(true).limit()/ d))+" "+(this.vertex(true).limit()/3);
 	}

@@ -3,8 +3,12 @@ layout(location=0) out vec4 _output;
 in vec4 ovcolor;
 uniform float opacity;
 in vec2 ottc;
+
 uniform sampler2D source;
+uniform sampler2D source2;
+
 in vec2 pc;
+flat in int oside;
 
 void main()
 {
@@ -13,7 +17,7 @@ void main()
     vec2 tc = outTC;
     ${SPACE_REMAP};
 
-    vec4 tex = texture(source, outTC);
+    vec4 tex = texture(oside==0 ? source : source2, outTC);
     vec4 color = ovcolor;
 
     vec4 outColor = tex*color;

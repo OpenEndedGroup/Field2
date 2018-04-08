@@ -24,6 +24,8 @@
     var frame = 0
     var lastUpdatedAt = -1
 
+    var thatImageBuffer
+
     _field.log = function (s) {
         _field.send("log", s);
     };
@@ -119,7 +121,7 @@
     _field.evalRequestWS(///ID///)
 
 
-    var newGeometry = function (numVertex, numElements, elementDim) {
+    var newGeometry = function (numVertex, numElements, elementDim, oldMaterial) {
 
         console.log(" new geometry "+numVertex+" "+numElements+" "+elementDim)
 
@@ -135,9 +137,10 @@
         geometry.attributes["color"].dynamic = true
         geometry.attributes["uv"].dynamic = true
 
-        var material = new THREE.MeshBasicMaterial({
+        var material = (oldMaterial!=null) ? oldMaterial : new THREE.MeshBasicMaterial({
             side: THREE.DoubleSide, vertexColors: THREE.VertexColors
         });
+
         if (elementDim == 3)
             mesh = new THREE.Mesh(geometry, material);
         else if (elementDim == 2)
@@ -158,10 +161,13 @@
 
         console.log(" finding geometry "+name+" "+dim+" "+elementDim)
 
+        var oldMaterial = 0
+
         if (meshes[name]) {
             var r = meshes[name].geometry
             if (r.attributes["position"].count < dim) {
 
+                oldMaterial = meshes[name].material
                 scene.remove(meshes[name])
 
                 // fallthrough
@@ -182,11 +188,35 @@
         else if (name.endsWith("_p"))
             d = 0
 
-        meshes[name] = newGeometry(Math.max(dim, default_maxVertex), default_maxElement, d)
+        meshes[name] = newGeometry(Math.max(dim, default_maxVertex), default_maxElement, d, oldMaterial)
         return meshes[name].geometry
     }
 
     var updateBuffer = function (rawdata, data, name, typeCode, dim, elementDim) {
+        if (typeCode === 'x') {
+            console.log(" got texture upgrade request")
+            // upgrade to texture if needs be
+
+            var a = new Image()
+            a.src = URL.createObjectURL(new Blob([rawdata.slice(128)]))
+            var tex = new THREE.Texture(a)
+            thatImageBuffer = tex
+            URL.revokeObjectURL(a.src)
+
+            console.log(" upgrading material ")
+            var material = new THREE.MeshBasicMaterial({map: tex, side: THREE.DoubleSide, vertexColors: THREE.VertexColors})
+
+            if (!meshes[name])
+                geometryForName(name, 10, 10)
+
+            meshes[name].material = material
+
+            tex.needsUpdate = true
+
+            return
+
+        }
+
         geometry = geometryForName(name, dim, elementDim)
 
         if (typeCode === 'V') {
@@ -230,7 +260,7 @@
         camera = new THREE.PerspectiveCamera(27, window.innerWidth / window.innerHeight, 1, 3500);
         camera.position.z = 64;
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x050505);
+        scene.background = new THREE.Color(0x252525);
         //
         renderer = new THREE.WebGLRenderer({antialias: true});
         renderer.setPixelRatio(window.devicePixelRatio);
