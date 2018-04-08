@@ -109,8 +109,7 @@ public class KeyboardCamera implements Function<Window.Event<KeyboardState>, Boo
 	KeyboardFocus cachedFocus = null;
 
 	private KeyboardFocus getKeyboardFocus(Box viewport) {
-		return cachedFocus == null ? cachedFocus = viewport.find(KeyboardFocus._keyboardFocus, viewport.both()).findFirst()
-			.get() : cachedFocus;
+		return cachedFocus == null ? cachedFocus = viewport.find(KeyboardFocus._keyboardFocus, viewport.both()).findFirst().get() : cachedFocus;
 	}
 
 	private boolean update() {

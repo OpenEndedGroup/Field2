@@ -9,10 +9,13 @@ in vec4[] vcolor;
 in vec2[] pc_q;
 out vec2 pc;
 
+in float[] CD;
+
 void main(void)
 {
         int i = 0;
 
+        gl_ClipDistance[0] = CD[0];
         gl_Position = gl_in[0].gl_Position;
         vec2 r = gl_Position.w*pc_q[0].x*vec2(1,1)/100;
 

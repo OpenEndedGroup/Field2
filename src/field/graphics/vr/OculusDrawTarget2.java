@@ -55,6 +55,7 @@ public class OculusDrawTarget2 {
 
     public Mat4 additionalView = new Mat4().identity();
 
+    static public boolean isVR = false;
 
     public final OVRPosef eyePoses[] = new OVRPosef[2];
     public Vec3 playerEyePos;
@@ -316,7 +317,6 @@ public class OculusDrawTarget2 {
                 System.err.println(" -- inside opengl --");
 
                 textureSetPB = memAllocPointer(1);
-
 
                 // BEEN ALL OVER THIS BIT
 
@@ -599,10 +599,14 @@ public class OculusDrawTarget2 {
                     glEnable(GL_CLIP_PLANE0);
                     if (eye == 1)
                         try {
+                            isVR = true;
                             fbuffers[currentTPEIndex].draw();
                         } catch (IllegalArgumentException e) {
                             e.printStackTrace();
                             System.exit(0);
+                        }
+                        finally {
+                            isVR = false;
                         }
 
 
