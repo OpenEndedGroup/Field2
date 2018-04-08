@@ -9,17 +9,9 @@ import org.lwjgl.opengl.GL13
 import org.lwjgl.opengl.GL32
 import org.lwjgl.ovr.OVRInputState
 
-class FakeOculusDrawTarget {
+class FakeOculusDrawTarget(val wPerEye : Int, val hPerEye : Int) {
 
     var floatResolution = false
-
-    val wPerEye: Int = 1920
-    val hPerEye: Int = 1080
-
-    @JvmField
-    val textureW = wPerEye
-    @JvmField
-    val textureH = hPerEye
 
     val camera = Camera()
 
