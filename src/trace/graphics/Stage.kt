@@ -157,7 +157,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
         planeBuilder.e(0, 2, 3)
         planeBuilder.close()
         s.asMap_set("geom", planes)
-        s.asMap_set("color", Supplier<Vec4> { background });
+        s.asMap_set("color", Supplier { background });
         fbo.scene.attach(-101, {
             if (STEREO)
                 GL11.glEnable(GL11.GL_CLIP_PLANE0);
@@ -180,6 +180,9 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
     @JvmField
     var STEREO: Boolean = false
+
+    @JvmField
+    var VR: Boolean = false
 
     @JvmField
     var remap = ""
@@ -240,11 +243,11 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
 
     inner class ShaderGroup(val name: String) {
-        val line = BaseMesh.lineList(0, 0).setInstances({ if (OculusDrawTarget2.isVR || STEREO) 2 else 1 })
+        val line = BaseMesh.lineList(0, 0).setInstances({ if (OculusDrawTarget2.isVR!=null || STEREO) 2 else 1 })
         val lineBuilder = MeshBuilder(line)
-        val planes = BaseMesh.triangleList(0, 0).setInstances({ if (OculusDrawTarget2.isVR || STEREO) 2 else 1 })
+        val planes = BaseMesh.triangleList(0, 0).setInstances({ if (OculusDrawTarget2.isVR!=null || STEREO) 2 else 1 })
         val planeBuilder = MeshBuilder(planes)
-        val points = BaseMesh.pointList(0).setInstances({ if (OculusDrawTarget2.isVR || STEREO) 2 else 1 })
+        val points = BaseMesh.pointList(0).setInstances({ if (OculusDrawTarget2.isVR!=null || STEREO) 2 else 1 })
         val pointBuilder = MeshBuilder(points)
         val post = IdempotencyMap<Runnable>(Runnable::class.java);
 
@@ -332,8 +335,8 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
             listOf(shader.first, shader.second, shader.third).filter { it != null }.forEachIndexed { index, it ->
 
-                it!!.asMap_set("translation", Supplier<Vec2> { translation })
-                it.asMap_set("bounds", Supplier<Vec2> { bounds })
+                it!!.asMap_set("translation", Supplier { translation })
+                it.asMap_set("bounds", Supplier { bounds })
                 it.asMap_set("P", Supplier<Mat4> {
                     if (!is3D) {
                         Mat4().identity()
@@ -352,6 +355,11 @@ class Stage(val w: Int, val h: Int) : AsMap {
                     if (!is3D) {
                         Mat4().identity()
                     } else {
+                        if (OculusDrawTarget2.isVR!=null)
+                        {
+                            OculusDrawTarget2.isVR!!.cameraInterface().projectionMatrix(-1f)
+                        }
+                        else
                         __camera.projectionMatrix(-1f)
                     }
                 })
@@ -359,6 +367,12 @@ class Stage(val w: Int, val h: Int) : AsMap {
                     if (!is3D) {
                         Mat4().identity()
                     } else {
+                        if (OculusDrawTarget2.isVR!=null)
+                        {
+                            OculusDrawTarget2.isVR!!.cameraInterface().view(-1f)
+
+                        }
+                        else
                         __camera.view(-1f)
                     }
                 })
@@ -366,6 +380,11 @@ class Stage(val w: Int, val h: Int) : AsMap {
                     if (!is3D) {
                         Mat4().identity()
                     } else {
+                        if (OculusDrawTarget2.isVR!=null)
+                        {
+                            OculusDrawTarget2.isVR!!.cameraInterface().projectionMatrix(1f)
+                        }
+                        else
                         __camera.projectionMatrix(1f)
                     }
                 })
@@ -373,15 +392,21 @@ class Stage(val w: Int, val h: Int) : AsMap {
                     if (!is3D) {
                         Mat4().identity()
                     } else {
+                        if (OculusDrawTarget2.isVR!=null)
+                        {
+                            OculusDrawTarget2.isVR!!.cameraInterface().view(1f)
+
+                        }
+                        else
                         __camera.view(1f)
                     }
                 })
-                it.asMap_set("scale", Supplier<Vec2> { scale })
-                it.asMap_set("opacity", Supplier<Float> { opacity.toFloat() })
-                it.asMap_set("rotator", Supplier<Vec2> { Vec2(Math.cos(Math.PI * rotation / 180), Math.sin(Math.PI * rotation / 180)) })
+                it.asMap_set("scale", Supplier { scale })
+                it.asMap_set("opacity", Supplier { opacity.toFloat() })
+                it.asMap_set("rotator", Supplier { Vec2(Math.cos(Math.PI * rotation / 180), Math.sin(Math.PI * rotation / 180)) })
 
-                it.asMap_set("isVR", Supplier<Float> {
-                    if (OculusDrawTarget2.isVR || STEREO) 1f else -1f
+                it.asMap_set("isVR", Supplier {
+                    if (OculusDrawTarget2.isVR!=null || STEREO) 1f else -1f
                 })
 
                 fbo.scene.attach(name + "_$index", it)
@@ -502,6 +527,11 @@ class Stage(val w: Int, val h: Int) : AsMap {
     val show_vertex_stereo = BoxDefaultCode.findSource(this.javaClass, "show_vertex_stereo")
     @HiddenInAutocomplete
     val show_fragment_stereo = BoxDefaultCode.findSource(this.javaClass, "show_fragment_stereo")
+
+    @HiddenInAutocomplete
+    val show_vertex_vr = BoxDefaultCode.findSource(this.javaClass, "show_vertex_vr")
+    @HiddenInAutocomplete
+    val show_fragment_vr = BoxDefaultCode.findSource(this.javaClass, "show_fragment_vr")
 
     // todo: filename mapping
 
@@ -874,24 +904,34 @@ class Stage(val w: Int, val h: Int) : AsMap {
     fun showScene(name: String, scene: Scene, disabled: () -> Boolean, asp: () -> Double, isFullscreen: Boolean): Shader {
         val s = Shader()
 
-        if (isFullscreen && STEREO) {
-            s.addSource(Shader.Type.vertex, ShaderPreprocessor().Preprocess(null, show_vertex_stereo, Supplier {
-                mutableMapOf<String, String>("REMAP" to remap)
+        if (isFullscreen && VR) {
+            s.addSource(Shader.Type.vertex, ShaderPreprocessor().Preprocess(null, show_vertex_vr, Supplier {
+                mutableMapOf("REMAP" to remap)
             }))
-            s.addSource(Shader.Type.fragment, ShaderPreprocessor().Preprocess(null, show_fragment_stereo, Supplier {
-                mutableMapOf<String, String>("REMAP" to remap)
+            s.addSource(Shader.Type.fragment, ShaderPreprocessor().Preprocess(null, show_fragment_vr, Supplier {
+                mutableMapOf("REMAP" to remap)
             }))
 
-        } else {
+        }
+        else
+        if (isFullscreen && STEREO) {
+            s.addSource(Shader.Type.vertex, ShaderPreprocessor().Preprocess(null, show_vertex_stereo, Supplier {
+                mutableMapOf("REMAP" to remap)
+            }))
+            s.addSource(Shader.Type.fragment, ShaderPreprocessor().Preprocess(null, show_fragment_stereo, Supplier {
+                mutableMapOf("REMAP" to remap)
+            }))
+
+        }  else {
             s.addSource(Shader.Type.vertex, ShaderPreprocessor().Preprocess(null, show_vertex, Supplier {
-                mutableMapOf<String, String>("REMAP" to remap)
+                mutableMapOf("REMAP" to remap)
             }))
             s.addSource(Shader.Type.fragment, ShaderPreprocessor().Preprocess(null, show_fragment, Supplier {
-                mutableMapOf<String, String>("REMAP" to remap)
+                mutableMapOf("REMAP" to remap)
             }))
         }
 
-        s.asMap_set("disabled", Supplier<Float> { if (disabled.invoke()) 1f else 0f })
+        s.asMap_set("disabled", Supplier { if (disabled.invoke()) 1f else 0f })
 
         val planes = BaseMesh.triangleList(0, 0)
         val planeBuilder = MeshBuilder(planes)
@@ -906,7 +946,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
         planeBuilder.close()
         s.asMap_set("tex", fbo);
         s.asMap_set("geom", planes);
-        s.asMap_set("aspect", Supplier<Double> { ((h) / w.toFloat()) * asp() });
+        s.asMap_set("aspect", Supplier { ((h) / w.toFloat()) * asp() });
 
         scene.asMap_set(name, s);
         scene.attach(-100, "__draw__" + name, Consumer<Int> {
@@ -944,7 +984,6 @@ class Stage(val w: Int, val h: Int) : AsMap {
                                 popIn()
                                 return true
                             }
-
                         }
                     }
                 }
@@ -994,7 +1033,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
             override fun errorOnLine(line: Int, error: String) {
                 b.first<java.util.function.Function<Box, Consumer<Pair<Int?, String>>>>(RemoteEditor.outputErrorFactory)
-                        .orElse(java.util.function.Function<Box, Consumer<Pair<Int?, String>>> { x -> Consumer<Pair<Int?, String>> { `is` -> System.err.println("error (without remote editor attached) :" + `is`) } })
+                        .orElse(java.util.function.Function { x -> Consumer { `is` -> System.err.println("error (without remote editor attached) :" + `is`) } })
                         .apply(b)
                         .accept(Pair(null, "Error on $shader reload: $error"))
             }
@@ -1005,7 +1044,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
             override fun noError() {
                 b.first<java.util.function.Function<Box, Consumer<String>>>(RemoteEditor.outputFactory)
-                        .orElse(java.util.function.Function<Box, Consumer<String>> { x -> Consumer<String> { `is` -> System.err.println("message (without remote editor attached) :" + `is`) } })
+                        .orElse(java.util.function.Function { x -> Consumer { `is` -> System.err.println("message (without remote editor attached) :" + `is`) } })
                         .apply(b)
                         .accept(shader + " reloaded correctly")
             }
