@@ -55,12 +55,12 @@ public class OculusDrawTarget2 {
 
     public Mat4 additionalView = new Mat4().identity();
 
-    static public boolean isVR = false;
+    static public OculusDrawTarget2 isVR = null;
 
     public final OVRPosef eyePoses[] = new OVRPosef[2];
     public Vec3 playerEyePos;
-    public int textureW;
-    public int textureH;
+    public int textureW =-1;
+    public int textureH =-1;
     private int texturesPerEyeCount = 1;
     public OVRLayerEyeFov layer0;
     public FBO[] fbuffers;
@@ -447,15 +447,8 @@ public class OculusDrawTarget2 {
                 if (!go) return true;
                 if (skip) return true;
 
-
                 OVRSessionStatus stat = OVRSessionStatus.create();
                 OVR.ovr_GetSessionStatus(hmd, stat);
-
-
-//                System.out.println(" status :"+stat.DisplayLost()+" "+stat.HmdMounted()+" "+stat.HmdPresent()+" "+stat.ShouldQuit()+" "+stat.ShouldRecenter());
-//                System.out.println(" status -- :"+stat.IsVisible());
-
-//				System.exit(0);
 
                 double ftiming = ovr_GetPredictedDisplayTime(hmd, 0);
                 OVRTrackingState hmdState = OVRTrackingState.malloc();
@@ -482,13 +475,10 @@ public class OculusDrawTarget2 {
                 OVR.ovr_GetTextureSwapChainCurrentIndex(hmd, textureSetPB.get(0), ce);
                 currentTPEIndex = ce[0];
 
-//				textureSetOne.CurrentIndex(currentTPEIndex);
-
                 double sensorSampleTime = ovr_GetTimeInSeconds();
 
                 IntBuffer texID = ByteBuffer.allocateDirect(4).order(ByteOrder.nativeOrder()).asIntBuffer();
                 OVRGL.ovr_GetTextureSwapChainBufferGL(hmd, textureSetPB.get(0), currentTPEIndex, texID);
-//				System.err.println(" texture id is now :"+texID.get(0)+" for index "+currentTPEIndex);
 
                 //Layers
                 layer0 = OVRLayerEyeFov.calloc();
@@ -524,14 +514,6 @@ public class OculusDrawTarget2 {
                 }
                 rightInputState = inputState;
 
-
-				/*
-                OVRPoseStatef handPose = hmdState.HandPoses(0);
-				OVRVector3f po = handPose.ThePose().Position();
-				OVRQuatf qo = handPose.ThePose().Orientation();
-				System.out.println(" handPose :"+po.x()+" "+po.y()+" "+po.z());
-				System.out.println(" handPose :"+qo.x()+" "+qo.y()+" "+qo.z()+" "+qo.w());
-*/
 
 
                 for (int eyeIndex = 0; eyeIndex < 2; eyeIndex++) {
@@ -599,14 +581,14 @@ public class OculusDrawTarget2 {
                     glEnable(GL_CLIP_PLANE0);
                     if (eye == 1)
                         try {
-                            isVR = true;
+                            isVR = OculusDrawTarget2.this;
                             fbuffers[currentTPEIndex].draw();
                         } catch (IllegalArgumentException e) {
                             e.printStackTrace();
                             System.exit(0);
                         }
                         finally {
-                            isVR = false;
+                            isVR = null;
                         }
 
 
