@@ -6,8 +6,15 @@ in vec2 ottc;
 
 uniform sampler2D source;
 uniform sampler2D source2;
+uniform vec3 leftOffset;
 
 flat in int oside;
+
+vec2 rot(vec2 a, float angle)
+{
+    mat2 m = mat2(cos(angle), sin(angle), -sin(angle), cos(angle));
+    return m*(a-vec2(0.5, 0.5))+vec2(0.5, 0.5);
+}
 
 void main()
 {
@@ -16,8 +23,8 @@ void main()
     vec2 tc = outTC;
     ${SPACE_REMAP};
 
-    vec4 tex0 = texture(source, outTC);
-    vec4 tex1 = texture(source2, outTC);
+    vec4 tex0 = texture(source, rot(outTC-leftOffset.xy, leftOffset.z));
+    vec4 tex1 = texture(source2, rot(outTC+leftOffset.xy, -leftOffset.z));
 
     vec4 tex = oside*tex0 + (1-oside)*tex1;
 

@@ -298,6 +298,11 @@ class Stage(val w: Int, val h: Int) : AsMap {
         @Documentation("How much is the camera rotated around the Z axis (in degrees)")
         var rotationZ = 0.0
 
+
+        @JvmField
+        @Documentation("How much is left stereo texture shifted with respect to the right")
+        var leftOffset = Vec3(0,0,0);
+
         var P = Mat4().identity()
         var V = Mat4().identity()
 
@@ -383,6 +388,8 @@ class Stage(val w: Int, val h: Int) : AsMap {
                 it.asMap_set("isVR", Supplier<Float> {
                     if (OculusDrawTarget2.isVR || STEREO) 1f else -1f
                 })
+
+                it.asMap_set("leftOffset", Supplier<Vec3> {leftOffset})
 
                 fbo.scene.attach(name + "_$index", it)
             }
@@ -525,9 +532,10 @@ class Stage(val w: Int, val h: Int) : AsMap {
         }))
 
         var tt = Texture(Texture.TextureSpecification.fromJpeg(3, filename, true))
+        var tt2 = Texture(Texture.TextureSpecification.fromJpeg(4, filename, true))
 
         s1.asMap_set("source", tt)
-        s1.asMap_set("source2", tt)
+        s1.asMap_set("source2", tt2)
 
         val s2 = Shader()
         s2.addSource(Shader.Type.vertex, texture_vertex)
@@ -537,7 +545,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
         }))
 
         s2.asMap_set("source", tt)
-        s2.asMap_set("source2", tt)
+        s2.asMap_set("source2", tt2)
 
         val s3 = Shader()
         s3.addSource(Shader.Type.vertex, texture_vertex)
@@ -547,7 +555,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
         }))
 
         s3.asMap_set("source", tt)
-        s3.asMap_set("source2", tt)
+        s3.asMap_set("source2", tt2)
 
         try {
             val box = Execution.context.get().peek()
@@ -932,7 +940,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
         return ThreadSync2.callInMainThreadAndWait(Callable {
             if (window == null) {
-                window = object : Window(0, 0, w - 1, h - 1, "Field / Stage $thisStageNum") {
+                window = object : Window(0, 0, w/2 - 1, h/2 - 1, "Field / Stage $thisStageNum") {
                     override fun makeCallback(): GlfwCallback {
 
                         return object : GlfwCallbackDelegate(super.makeCallback()) {
