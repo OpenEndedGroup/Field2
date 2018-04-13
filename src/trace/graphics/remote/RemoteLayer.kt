@@ -32,7 +32,7 @@ class RemoteLayer(val websocket: WebSocketServer, val max_vertex: Int, val max_e
     init {
 
         if (channel_name.length > 30) {
-            channel_name = channel_name.substring(0, 20) + channel_name.hashCode()
+            channel_name = channel_name.substring(0, 15) + channel_name.hashCode()  + channel_name.substring(channel_name.length-2)
         }
 
         vertexBufferB = ByteBuffer.allocateDirect(4 * max_vertex * 3 + 2 * 64).order(ByteOrder.nativeOrder())
@@ -75,12 +75,12 @@ class RemoteLayer(val websocket: WebSocketServer, val max_vertex: Int, val max_e
         vertexBufferF.rewind()
         for (i in 0 until m.vertexLimit) {
             val x = v.get(i * 3 + 0)
-            val y = v.get(i * 3 + 1)
+            val y = -v.get(i * 3 + 1)
             val z = v.get(i * 3 + 2)
 
             if (!vertexChanged) {
                 val x2 = vertexBufferF.get(i * 3 + 0)
-                val y2 = vertexBufferF.get(i * 3 + 1)
+                val y2 = vertexBufferF.get(i * 3 + 1) // left handed!
                 val z2 = vertexBufferF.get(i * 3 + 2)
 
                 if (x2 != x || y2 != y || z2 != z)
@@ -96,10 +96,12 @@ class RemoteLayer(val websocket: WebSocketServer, val max_vertex: Int, val max_e
         val color = m.aux(1, 4)
         colorBufferF.rewind()
         for (i in 0 until m.vertexLimit) {
-            val x = color.get(i * 4 + 0)
-            val y = color.get(i * 4 + 1)
-            val z = color.get(i * 4 + 2)
             val w = color.get(i * 4 + 3)
+
+
+            var x = color.get(i * 4 + 0)*w
+            val y = color.get(i * 4 + 1)*w
+            val z = color.get(i * 4 + 2)*w
 
             if (!colorChanged) {
                 val x2 = colorBufferF.get(i * 4 + 0)
@@ -121,7 +123,7 @@ class RemoteLayer(val websocket: WebSocketServer, val max_vertex: Int, val max_e
             textureBufferF.rewind()
             for (i in 0 until m.vertexLimit) {
                 val x = texture.get(i * 2 + 0)
-                val y = texture.get(i * 2 + 1)
+                val y = 1-texture.get(i * 2 + 1)
 
                 if (!textureChanged) {
                     val x2 = textureBufferF.get(i * 2 + 0)
@@ -149,6 +151,8 @@ class RemoteLayer(val websocket: WebSocketServer, val max_vertex: Int, val max_e
             elementBufferI.put(i, x)
 
         }
+
+        print("checking $channel_name for size change $numElement =?= ${m.elementLimit}")
 
         if (numElement != m.elementLimit)
             elementChanged = true

@@ -624,7 +624,7 @@ public class OculusDrawTarget2 {
                     glBindFramebuffer(GL_READ_FRAMEBUFFER,
                                       fbuffers[currentTPEIndex].getOpenGLFrameBufferNameInCurrentContext());
                     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-                    glBlitFramebuffer(0, 0, textureW * 2, textureH, 0, 0, textureW * 2, textureH, GL_COLOR_BUFFER_BIT,
+                    glBlitFramebuffer(0, 0, textureW * 2, textureH, 0, 0, textureW * 2 / 2, textureH / 2, GL_COLOR_BUFFER_BIT,
                                       GL_NEAREST);
                 }
                 if (debugFBO) {

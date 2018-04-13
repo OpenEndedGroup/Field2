@@ -50,8 +50,11 @@ class FakeOculusDrawTarget(val wPerEye : Int, val hPerEye : Int) {
         camera.state = s
 
         scene.attach(0, "drawFakeOculus", { x: Int ->
-
             fbo!!.draw()
+            if (debugBlit)
+            {
+                
+            }
         })
     }
 

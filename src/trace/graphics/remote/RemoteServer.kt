@@ -19,6 +19,8 @@ class RemoteServer
 
     var id = 0;
 
+    var hostname: String
+
     init {
         this.s = Server(8090, 8091)
 
@@ -27,6 +29,10 @@ class RemoteServer
         s.addDocumentRoot(fieldagent.Main.app + "/modules/fieldcore/resources/")
         s.addDocumentRoot(fieldagent.Main.app + "/lib/web/")
         s.addDocumentRoot(fieldagent.Main.app + "/win/lib/web/")
+
+        val addr = InetAddress.getLocalHost().address
+        val addrs = "${addr[0].toInt() and 255}.${addr[1].toInt() and 255}.${addr[2].toInt()and 255}.${addr[3].toInt()and 255}"
+        hostname = "http://"+addrs+":8090/boot"
 
         s.addURIHandler { uri, method, headers, params, files ->
             if (uri.startsWith(BOOT)) {
@@ -37,7 +43,8 @@ class RemoteServer
 
                 System.out.println(" canonical host name is :"+InetAddress.getLocalHost().getCanonicalHostName())
 
-                text = text.replace("///IP///", InetAddress.getLocalHost().getCanonicalHostName()) //!!
+
+                text = text.replace("///IP///", addrs) //!!
                 text = text.replace("///ID///", ""+(id++))
                 text = text.replace("///WSPORT///", "8091")
 

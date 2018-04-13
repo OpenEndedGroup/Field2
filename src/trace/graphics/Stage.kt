@@ -3,6 +3,7 @@ package trace.graphics
 import field.app.RunLoop
 import field.app.ThreadSync2
 import field.graphics.*
+import field.graphics.util.KeyboardCamera
 import field.graphics.util.Saver
 import field.graphics.util.SaverFBO
 import field.graphics.util.onsheetui.get
@@ -21,6 +22,8 @@ import fielded.RemoteEditor
 import fieldlinker.AsMap
 import fieldnashorn.annotations.HiddenInAutocomplete
 import org.lwjgl.opengl.GL11
+import trace.graphics.remote.RemoteServer
+import trace.graphics.remote.RemoteStageLayerHelper
 import trace.input.Buttons
 import trace.input.WebcamDriver
 import trace.video.ImageCache
@@ -113,6 +116,10 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
     companion object {
         var stageNum: Int = 0
+        var rs  = RemoteServer()
+        var max_vertex = 1000;
+        var max_element = 1000;
+        var doRemote = true;
     }
 
     val thisStageNum: Int;
@@ -162,7 +169,8 @@ class Stage(val w: Int, val h: Int) : AsMap {
             if (STEREO)
                 GL11.glEnable(GL11.GL_CLIP_PLANE0);
             GL11.glEnable(GL11.GL_BLEND);
-            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+//            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
             false
         })
         fbo.scene.attach("background_clear", s)
@@ -251,6 +259,8 @@ class Stage(val w: Int, val h: Int) : AsMap {
         val pointBuilder = MeshBuilder(points)
         val post = IdempotencyMap<Runnable>(Runnable::class.java);
 
+        val remoteHelper = if (doRemote) RemoteStageLayerHelper(rs.s.webSocketServer, max_vertex, max_element, -1, name) else null
+
         @JvmField
         @Documentation("list of `FLine` to draw, just like `_.lines` but it will appear on this Stage")
         val lines = IdempotencyMap<FLine>(FLine::class.java).configureResourceLimits<IdempotencyMap<FLine>>(300, "too many lines on a stage layer")
@@ -301,7 +311,6 @@ class Stage(val w: Int, val h: Int) : AsMap {
         @Documentation("How much is the camera rotated around the Z axis (in degrees)")
         var rotationZ = 0.0
 
-
         @JvmField
         @Documentation("How much is left stereo texture shifted with respect to the right")
         var leftOffset = Vec3(0,0,0);
@@ -313,7 +322,9 @@ class Stage(val w: Int, val h: Int) : AsMap {
         var camera: SimpleCamera
 
         @JvmField
-        var is3D = false;
+        var is3D = STEREO;
+
+        var keyboardCamera : KeyboardCamera? = null
 
         init {
             var s = __camera.state
@@ -325,6 +336,13 @@ class Stage(val w: Int, val h: Int) : AsMap {
             s.position = Vec3(0.0, 0.0, 2.0)
             __camera.state = s
             camera = SimpleCamera(__camera)
+
+            if (STEREO)
+            {
+                keyboardCamera  = KeyboardCamera(__camera, insideViewport!!)
+                keyboardCamera!!.standardMap()
+            }
+
         }
 
 
@@ -342,6 +360,13 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
                 it!!.asMap_set("translation", Supplier { translation })
                 it.asMap_set("bounds", Supplier { bounds })
+                it.asMap_set("reallyVR", Supplier<Float> {
+                    if (OculusDrawTarget2.isVR!=null) {
+                        1f
+                    } else {
+                        0f
+                    }
+                })
                 it.asMap_set("P", Supplier<Mat4> {
                     if (!is3D) {
                         Mat4().identity()
@@ -354,6 +379,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
                         Mat4().identity()
                     } else {
                         __camera.view()
+
                     }
                 })
                 it.asMap_set("Pl", Supplier<Mat4> {
@@ -362,7 +388,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
                     } else {
                         if (OculusDrawTarget2.isVR!=null)
                         {
-                            OculusDrawTarget2.isVR!!.cameraInterface().projectionMatrix(-1f)
+                            OculusDrawTarget2.isVR!!.leftProjectionMatrix()
                         }
                         else
                         __camera.projectionMatrix(-1f)
@@ -374,7 +400,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
                     } else {
                         if (OculusDrawTarget2.isVR!=null)
                         {
-                            OculusDrawTarget2.isVR!!.cameraInterface().view(-1f)
+                            OculusDrawTarget2.isVR!!.leftView()
 
                         }
                         else
@@ -387,7 +413,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
                     } else {
                         if (OculusDrawTarget2.isVR!=null)
                         {
-                            OculusDrawTarget2.isVR!!.cameraInterface().projectionMatrix(1f)
+                            OculusDrawTarget2.isVR!!.rightProjectionMatrix()
                         }
                         else
                         __camera.projectionMatrix(1f)
@@ -399,7 +425,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
                     } else {
                         if (OculusDrawTarget2.isVR!=null)
                         {
-                            OculusDrawTarget2.isVR!!.cameraInterface().view(1f)
+                            OculusDrawTarget2.isVR!!.rightView()
 
                         }
                         else
@@ -441,6 +467,8 @@ class Stage(val w: Int, val h: Int) : AsMap {
                 }
 
                 post.values.forEach { it.run() }
+
+                remoteHelper?.update(this)
 
             })
             groups[name] = this

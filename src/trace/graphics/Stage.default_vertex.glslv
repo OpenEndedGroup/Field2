@@ -26,6 +26,7 @@ uniform float isVR;
 
 out float CD;
 
+uniform float reallyVR;
 
 void main()
 {
@@ -36,21 +37,44 @@ void main()
     mat4 et = mat4(0);
     if (isVR>0)
     {
-        if (gl_InstanceID==0)
+        if (reallyVR>0)
         {
-            et = Pl*Vl;
+            if (gl_InstanceID==1)
+            {
+                et = transpose(Pl)*transpose(Vl)*V;
+            }
+            else
+            {
+                et = transpose(Pr)*transpose(Vr)*V;
+            }
         }
         else
         {
-            et = Pr*Vr;
+            if (gl_InstanceID==0)
+            {
+                et = (Pl)*(Vl);
+            }
+            else
+            {
+                et = (Pr)*(Vr);
+            }
         }
+
     }
     else
     {
         et = P*V;
     }
 
-    gl_Position = et*gl_Position;
+    vec4 ep = gl_Position;
+
+    if (reallyVR>0)
+    {
+        ep.y += 1.5;
+        ep.x += 0.0;
+    }
+
+    gl_Position = et*ep;
 
     if (isVR>0)
     {

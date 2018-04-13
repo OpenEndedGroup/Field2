@@ -11,15 +11,21 @@
     <script src='/field/filesystem/codemirror-5.25.2/mode/javascript/javascript.js'></script>
     <script src='/field/filesystem/jquery-2.1.0.min.js'></script>
     <script src='/field/filesystem/field-boxbrowser.js'></script>
+
+    <script src='/field/filesystem/WebVR.js'></script>
+    <script src='/field/filesystem/webvr-polyfill.js'></script>
+
+
     <script src='/field/filesystem/three.js'></script>
 
 
 </head>
 
 <body>
-(booted up)
-
 <script language="javascript">
+
+    var poly = new WebVRPolyfill()
+
     var _field = {};
     var frame = 0
     var lastUpdatedAt = -1
@@ -64,9 +70,11 @@
 
             if (ArrayBuffer.prototype.isPrototypeOf(e.data)) {
                 _field.arraybuffer = e.data
-                console.log(e.data)
-
+                // console.log(e.data)
                 var d = new DataView(e.data)
+                // console.log("-> d= ")
+                // console.log(d)
+                if (d.byteLength<64) return
                 var dim = d.getUint32(0, true)
                 var typeCode = String.fromCharCode(d.getUint16(4, true))
                 var nameLen = d.getUint8(6, true)
@@ -137,8 +145,8 @@
         geometry.attributes["color"].dynamic = true
         geometry.attributes["uv"].dynamic = true
 
-        var material = (oldMaterial!=null) ? oldMaterial : new THREE.MeshBasicMaterial({
-            side: THREE.DoubleSide, vertexColors: THREE.VertexColors
+        var material = (oldMaterial) ? oldMaterial : new THREE.MeshBasicMaterial({
+            side: THREE.DoubleSide, blending: THREE.AdditiveBlending, vertexColors: THREE.VertexColors, transparent: true, depthTest: false
         });
 
         if (elementDim == 3)
@@ -159,7 +167,7 @@
 
     var geometryForName = function (name, dim, elementDim) {
 
-        console.log(" finding geometry "+name+" "+dim+" "+elementDim)
+        // console.log(" finding geometry "+name+" "+dim+" "+elementDim)
 
         var oldMaterial = 0
 
@@ -193,6 +201,9 @@
     }
 
     var updateBuffer = function (rawdata, data, name, typeCode, dim, elementDim) {
+
+        // console.log(" TYPE "+typeCode+" / "+name)
+
         if (typeCode === 'x') {
             console.log(" got texture upgrade request")
             // upgrade to texture if needs be
@@ -204,7 +215,9 @@
             URL.revokeObjectURL(a.src)
 
             console.log(" upgrading material ")
-            var material = new THREE.MeshBasicMaterial({map: tex, side: THREE.DoubleSide, vertexColors: THREE.VertexColors})
+            var material = new THREE.MeshBasicMaterial({
+                map: tex, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, vertexColors: THREE.VertexColors, transparent: true, depthTest: false
+            })
 
             if (!meshes[name])
                 geometryForName(name, 10, 10)
@@ -257,15 +270,25 @@
 
     function init() {
         //
-        camera = new THREE.PerspectiveCamera(27, window.innerWidth / window.innerHeight, 1, 3500);
-        camera.position.z = 64;
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 3500);
+        // camera.position.z = 640;
+        // camera.position.x = 50;
+        // camera.position.y = -50;
+        // camera.up.x = 0;
+        // camera.up.y = 1;
+        // camera.up.z = 0;
+        // camera.lookAt(50,-50,0)
+
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x252525);
+        scene.background = new THREE.Color(0x0);
         //
         renderer = new THREE.WebGLRenderer({antialias: true});
-        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setPixelRatio(window.devicePixelRatio*2);
         renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setFaceCulling(false);
+        renderer.vr.enabled = true;
         document.body.appendChild(renderer.domElement);
+        document.body.appendChild(WEBVR.createButton(renderer));
 
         window.addEventListener('resize', onWindowResize, false);
     }

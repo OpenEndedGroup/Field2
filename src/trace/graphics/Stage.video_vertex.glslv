@@ -24,6 +24,7 @@ uniform mat4 Vl;
 uniform mat4 Pr;
 uniform mat4 Vr;
 uniform float isVR;
+uniform float reallyVR;
 
 in float[] CD;
 
@@ -34,38 +35,61 @@ void main()
     gl_Position =  vec4(scale.x*(-1+at.x*2)+displayZ*position.z, scale.y*(-1+at.y*2), position.z/25, 1.0);
     gl_Position.xy = vec2(rotator.x*gl_Position.x + rotator.y*gl_Position.y, -rotator.y*gl_Position.x + rotator.x*gl_Position.y);
 
-    mat4 et = mat4(0);
-    if (isVR>0)
-    {
-       if (gl_InstanceID==0)
-       {
-           et = Pl*Vl;
-       }
-       else
-       {
-           et = Pr*Vr;
-       }
-    }
-    else
-    {
-       et = P*V;
-    }
+     mat4 et = mat4(0);
+        if (isVR>0)
+        {
+            if (reallyVR>0)
+            {
+                if (gl_InstanceID==1)
+                {
+                    et = transpose(Pl)*transpose(Vl)*V;
+                }
+                else
+                {
+                    et = transpose(Pr)*transpose(Vr)*V;
+                }
+            }
+            else
+            {
+                if (gl_InstanceID==0)
+                {
+                    et = (Pl)*(Vl);
+                }
+                else
+                {
+                    et = (Pr)*(Vr);
+                }
+            }
 
-    gl_Position = et*gl_Position;
+        }
+        else
+        {
+            et = P*V;
+        }
 
-    if (isVR>0)
-    {
-       if (gl_InstanceID==0)
-       {
-           gl_Position.x = gl_Position.x/2 + 0.5*gl_Position.w;
-           CD = gl_Position.x;
-       }
-       else
-       {
-           gl_Position.x = gl_Position.x/2 - 0.5*gl_Position.w;
-           CD = -gl_Position.x;
-       }
-}
+        vec4 ep = gl_Position;
+
+        if (reallyVR>0)
+        {
+            ep.y += 1.5;
+            ep.x += 0.0;
+        }
+
+        gl_Position = et*ep;
+
+        if (isVR>0)
+        {
+            if (gl_InstanceID==0)
+            {
+                gl_Position.x = gl_Position.x/2 + 0.5*gl_Position.w;
+                CD = gl_Position.x;
+            }
+            else
+            {
+                gl_Position.x = gl_Position.x/2 - 0.5*gl_Position.w;
+                CD = -gl_Position.x;
+            }
+        }
 
     pc_q = pointControl;
     vcolor = color;

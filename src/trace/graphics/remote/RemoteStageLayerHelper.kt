@@ -21,14 +21,14 @@ class RemoteStageLayerHelper(val websocket: WebSocketServer, val max_vertex: Int
         if (s.planes.vertexLimit > 0) {
             if (fill == null)
                 fill = RemoteLayer(websocket, max_vertex, max_element, 3, channel_name + "_f")
-            stroke!!.copy(s.planes, s.doTexture)
-            stroke!!.send()
+            fill!!.copy(s.planes, s.doTexture)
+            fill!!.send()
         }
         if (s.points.vertexLimit > 0) {
             if (points == null)
                 points = RemoteLayer(websocket, max_vertex, max_element, 0, channel_name + "_p")
-            stroke!!.copy(s.points, s.doTexture)
-            stroke!!.send()
+            points!!.copy(s.points, s.doTexture)
+            points!!.send()
         }
 
         if (s.textureFilename!=null)
