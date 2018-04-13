@@ -74,9 +74,9 @@ class RemoteLayer(val websocket: WebSocketServer, val max_vertex: Int, val max_e
         val v = m.vertex(true)
         vertexBufferF.rewind()
         for (i in 0 until m.vertexLimit) {
-            val x = v.get(i * 3 + 0)
-            val y = -v.get(i * 3 + 1)
-            val z = v.get(i * 3 + 2)
+            val x = -v.get(i * 3 + 0)+25
+            val y = -v.get(i * 3 + 1)+25
+            val z = v.get(i * 3 + 2)+40
 
             if (!vertexChanged) {
                 val x2 = vertexBufferF.get(i * 3 + 0)

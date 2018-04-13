@@ -324,6 +324,9 @@ class Stage(val w: Int, val h: Int) : AsMap {
         @JvmField
         var is3D = STEREO;
 
+        @JvmField
+        var sides = 0;
+
         var keyboardCamera : KeyboardCamera? = null
 
         init {
