@@ -22,6 +22,9 @@ import fielded.RemoteEditor
 import fieldlinker.AsMap
 import fieldnashorn.annotations.HiddenInAutocomplete
 import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL12
+import org.lwjgl.opengl.GL13
+import org.lwjgl.opengl.GL32
 import trace.graphics.remote.RemoteServer
 import trace.graphics.remote.RemoteStageLayerHelper
 import trace.input.Buttons
@@ -169,8 +172,9 @@ class Stage(val w: Int, val h: Int) : AsMap {
             if (STEREO)
                 GL11.glEnable(GL11.GL_CLIP_PLANE0);
             GL11.glEnable(GL11.GL_BLEND);
-//            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
+            GL11.glEnable(GL32.GL_DEPTH_CLAMP)
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+//            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
             false
         })
         fbo.scene.attach("background_clear", s)
