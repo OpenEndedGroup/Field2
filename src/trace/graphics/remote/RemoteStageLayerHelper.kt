@@ -55,7 +55,6 @@ class RemoteStageLayerHelper(val websocket: WebSocketServer, val max_vertex: Int
 
         }
 
-
         if (s.textureFilename!=null)
         {
             websocket.connections().forEach {
@@ -67,7 +66,6 @@ class RemoteStageLayerHelper(val websocket: WebSocketServer, val max_vertex: Int
                 }
             }
         }
-
 
         seenConnections.clear()
         seenConnections.addAll(websocket.connections())
