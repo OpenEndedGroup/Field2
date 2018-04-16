@@ -3,6 +3,7 @@ package field.graphics;
 import field.linalg.Mat4;
 import field.linalg.Quat;
 import field.linalg.Vec3;
+import field.utility.Serializable_safe;
 
 import java.io.Serializable;
 import java.util.function.Function;
@@ -19,7 +20,7 @@ import java.util.function.Function;
  */
 public class Camera {
 
-	static public class State implements Serializable {
+	static public class State implements Serializable_safe {
 
 
 		/**
