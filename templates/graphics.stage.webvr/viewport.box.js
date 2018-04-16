@@ -50,11 +50,6 @@ _.stage = stage
 // export it globally as "_.stage"
 __.stage = stage
 
-// add a menu item to pop this out into its own window
-_.menu.pop_out_w = () => {
-	_.bindShader(stage.popOut())
-}
-
 // on double clicking this stage, set the clipboard to be the point double clicked
 _.onDoubleClick.crossH = (e) => {
 
@@ -84,3 +79,5 @@ _.onDoubleClick.crossH = (e) => {
 _.auto = 1
 
 _.windowSpace = vec(0,0)
+
+_.label.s = Stage.Companion.rs.getHostname()
