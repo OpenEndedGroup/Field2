@@ -43,6 +43,9 @@ public class TimeSlider extends Box {
 	private Map<Box, Double> currentMapping = new LinkedHashMap<>();
 	private float currentMappingAtTime = 0;
 
+	public float topLimit = Float.NEGATIVE_INFINITY;
+	public float bottomLimit = Float.POSITIVE_INFINITY;
+
 	public TimeSlider() {
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__force_onscreen__", this::forceOnscreen);
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__swipe__", this::swiper);
@@ -128,9 +131,9 @@ public class TimeSlider extends Box {
 */
 	protected void perform(Rect was, Rect now) {
 
-		Map<Box, Double> previousMapping = LocalTime.Companion.growTimeFor(null, population().filter(x -> x.properties.get(frame).intersectsX(was.x)).collect(Collectors.toSet()), was.x);
+		Map<Box, Double> previousMapping = LocalTime.Companion.growTimeFor(null, population().filter(x -> x.properties.get(frame).y>topLimit && x.properties.get(frame).y<bottomLimit).filter(x -> x.properties.get(frame).intersectsX(was.x)).collect(Collectors.toSet()), was.x);
 		previousMapping.entrySet().removeIf(m -> !m.getKey().properties.get(frame).intersectsX(m.getValue()));
-		Map<Box, Double> currentMapping = LocalTime.Companion.growTimeFor(null, population().filter(x -> x.properties.get(frame).intersectsX(now.x)).collect(Collectors.toSet()), now.x);
+		Map<Box, Double> currentMapping = LocalTime.Companion.growTimeFor(null, population().filter(x -> x.properties.get(frame).y>topLimit && x.properties.get(frame).y<bottomLimit).filter(x -> x.properties.get(frame).intersectsX(now.x)).collect(Collectors.toSet()), now.x);
 		currentMapping.entrySet().removeIf(m -> !m.getKey().properties.get(frame).intersectsX(m.getValue()));
 
 		Set<Box> off = new LinkedHashSet<>(previousMapping.keySet());

@@ -11,8 +11,13 @@ out vec2 pc;
 
 in float[] CD;
 
+in int[] id;
+uniform int sides;
+
 void main(void)
 {
+    if (sides==1 && id[0]!=1) return;
+    if (sides==2 && id[0]!=0) return;
         int i = 0;
 
         gl_ClipDistance[0] = CD[0];

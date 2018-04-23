@@ -152,7 +152,7 @@ class RemoteLayer(val websocket: WebSocketServer, val max_vertex: Int, val max_e
 
         }
 
-        print("checking $channel_name for size change $numElement =?= ${m.elementLimit}")
+//        print("checking $channel_name for size change $numElement =?= ${m.elementLimit}")
 
         if (numElement != m.elementLimit)
             elementChanged = true
@@ -171,7 +171,7 @@ class RemoteLayer(val websocket: WebSocketServer, val max_vertex: Int, val max_e
     val seenConnections = mutableSetOf<WebSocket>()
 
     fun send() {
-        println("$vertexChanged $textureChanged $colorChanged $elementChanged")
+//        println("$vertexChanged $textureChanged $colorChanged $elementChanged")
 
         send(vertexBufferB, numVertex * 3, vertexChanged)
         send(colorBufferB, numVertex * 4, colorChanged)

@@ -27,8 +27,12 @@ uniform float isVR;
 uniform float reallyVR;
 out float CD;
 
+out int id;
+
 void main()
 {
+    id = gl_InstanceID;
+
     vec2 at = ((position.xy+vec2(0.5,0.5))+translation.xy)/bounds.xy;
     gl_Position =  vec4(scale.x*(-1+at.x*2)+displayZ*position.z, scale.y*(-1+at.y*2), position.z/25, 1.0);
     gl_Position.xy = vec2(rotator.x*gl_Position.x + rotator.y*gl_Position.y, -rotator.y*gl_Position.x + rotator.x*gl_Position.y);
@@ -41,10 +45,12 @@ void main()
                 if (gl_InstanceID==1)
                 {
                     et = transpose(Pl)*transpose(Vl)*V;
+                    side=1;
                 }
                 else
                 {
                     et = transpose(Pr)*transpose(Vr)*V;
+                    side=0;
                 }
             }
             else
@@ -52,10 +58,12 @@ void main()
                 if (gl_InstanceID==0)
                 {
                     et = (Pl)*(Vl);
+                    side=0;
                 }
                 else
                 {
                     et = (Pr)*(Vr);
+                    side=1;
                 }
             }
 

@@ -105,6 +105,33 @@ public class KeyboardCamera implements Function<Window.Event<KeyboardState>, Boo
 
 	}
 
+	public KeyboardCamera(Camera target, Box viewport, String suffix) {
+		this.target = target;
+
+		viewport.properties.putToMap(Keyboard.onKeyDown, suffix+"keyboardcontrolledcamera", (k, c) -> {
+
+			if (!viewport.properties.isTrue(Mouse.isSelected, false) || !bindings.keySet().stream().filter(x -> x.matches(k.after)).findAny().isPresent())
+				return null;
+
+			if (!getKeyboardFocus(viewport).isFocused(viewport)) return null;
+
+			k.properties.put(Window.consumed, true);
+
+			currentState = k.after;
+			return (k2, t) -> {
+				currentState = k2.after;
+				return !t;
+			};
+		});
+		viewport.properties.putToMap(Boxes.insideRunLoop, "main._applyCamera"+suffix, () -> {
+			if (update()) {
+				Drawing.dirty(viewport);
+			}
+			return true;
+		});
+
+	}
+
 
 	KeyboardFocus cachedFocus = null;
 
