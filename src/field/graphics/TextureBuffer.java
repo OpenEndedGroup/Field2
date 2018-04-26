@@ -174,6 +174,10 @@ public class TextureBuffer extends BaseScene<TextureBuffer.State> implements Sce
 
 	}
 
+	public void setBuffer(SimpleArrayBuffer buffer) {
+		this.buffer = buffer;
+	}
+
 	@Override
 	public Integer getUniform() {
 		return specification.unit;

@@ -8,9 +8,15 @@ in vec4[] vcolor;
 
 in float[] CD;
 
+uniform int sides;
+in int[] id;
+
 void main(void)
 {
-    for (int i = 0; i < gl_in.length(); i++)
+    if (sides==1 && id[0]!=1) return;
+    if (sides==2 && id[0]!=0) return;
+
+   for (int i = 0; i < gl_in.length(); i++)
     {
         gl_Position = gl_in[i].gl_Position;
         gl_ClipDistance[0] = CD[i];

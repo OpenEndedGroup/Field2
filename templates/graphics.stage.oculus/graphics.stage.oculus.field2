@@ -1,0 +1,81 @@
+#field/document{
+  :externalList [
+    #field/external{
+      :textFiles {
+        "fragment" "{{templates}}/graphics.stage.oculus/viewport.box.glslf"
+        "code" "{{templates}}/graphics.stage.oculus/viewport.box.js"
+        "vertex" "{{templates}}/graphics.stage.oculus/viewport.box.glslv"
+      }
+      :dataFile "{{templates}}/graphics.stage.oculus/viewport.box"
+      :id "_e724d645_eeed_4a36_a45c_1e877a79f5eb"
+      :boxClass "fieldbox.boxes.plugins.Viewport"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+        "_b06321d8_3c23_476b_8f3f_4420a60b57f4"
+        "_192f59ee_7531_433e_8089_973ca552edc9"
+        "_d3e11a40_1c58_4870_96eb_8f6f829df4df"
+        "_fe1c91ce_ec24_4f8d_9904_74e4cf770eb0"
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 88.53173828125
+          :y 54.503509521484375
+          :w 951.5390625
+          :h 389.765625
+        }
+      }
+    }
+  ]
+  :knownFiles {
+    "txt" #field/filespec{
+      :name "txt"
+    }
+    "fragment" #field/filespec{
+      :name "fragment"
+    }
+    "code" #field/filespec{
+      :name "code"
+    }
+    "vertex" #field/filespec{
+      :name "vertex"
+    }
+    "geometry" #field/filespec{
+      :name "geometry"
+    }
+    "html" #field/filespec{
+      :name "html"
+    }
+    "edn" #field/filespec{
+      :name "edn"
+    }
+  }
+  :knownProperties #{
+    "__id__"
+    "comment"
+    "classpath"
+    "perDocument"
+    "name"
+    "frame"
+    "lockHeight"
+    "lockWidth"
+    "tag"
+    "windowSpace"
+    "windowScale"
+    "isPaired"
+    "auto"
+    "head"
+    "tail"
+    "defaultEditorProperty"
+    "_defaultEditorProperty_cookie"
+    "_code_cookie"
+    "_theVariant"
+    "includes"
+    "excludes"
+    "__datafilename__"
+    "__filename__fragment"
+    "__filename__code"
+    "__filename__vertex"
+  }
+}

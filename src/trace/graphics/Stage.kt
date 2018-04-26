@@ -346,7 +346,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
             if (STEREO)
             {
-                keyboardCamera  = KeyboardCamera(__camera, insideViewport!!)
+                keyboardCamera  = KeyboardCamera(__camera, insideViewport!!, ""+name)
                 keyboardCamera!!.standardMap()
             }
 
@@ -433,13 +433,13 @@ class Stage(val w: Int, val h: Int) : AsMap {
                         if (OculusDrawTarget2.isVR!=null)
                         {
                             OculusDrawTarget2.isVR!!.rightView()
-
                         }
                         else
                         __camera.view(1f)
                     }
                 })
                 it.asMap_set("scale", Supplier { scale })
+                it.asMap_set("sides", Supplier { sides })
                 it.asMap_set("opacity", Supplier { opacity.toFloat() })
                 it.asMap_set("rotator", Supplier { Vec2(Math.cos(Math.PI * rotation / 180), Math.sin(Math.PI * rotation / 180)) })
 
@@ -463,11 +463,9 @@ class Stage(val w: Int, val h: Int) : AsMap {
                     lines.values.forEach {
                         if (doTexture)
                             it.addAuxProperties(4, StandardFLineDrawing.texCoord.name)
-//                        System.out.println(">---")
                         StandardFLineDrawing.dispatchLine(it, planeBuilder, lineBuilder, pointBuilder, Optional.empty(), "")
-//                        System.out.println("--- > " + line)
                     }
-                } finally {
+                        } finally {
                     pointBuilder.close()
                     planeBuilder.close()
                     lineBuilder.close()

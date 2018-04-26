@@ -12,8 +12,13 @@ in float[] CD;
 in int[] side;
 flat out int oside;
 
+in int[] id;
+uniform int sides;
+
 void main(void)
 {
+    if (sides==1 && id[0]!=1) return;
+    if (sides==2 && id[0]!=0) return;
     int i;
 
     oside = side[0];
