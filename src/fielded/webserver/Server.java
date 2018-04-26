@@ -6,12 +6,14 @@ import field.app.RunLoop;
 import field.utility.Log;
 import field.utility.Util;
 import org.java_websocket.WebSocket;
+import org.java_websocket.WebSocketImpl;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 import org.json.JSONObject;
 
 import java.io.*;
 import java.net.InetSocketAddress;
+import java.net.SocketException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Predicate;
@@ -69,9 +71,9 @@ public class Server {
 			@Override
 			Response serve(String uri, Method method, Map<String, String> headers, Map<String, String> parms, Map<String, String> files) {
 
-				Log.log("server", ()->"Serving "+uri);
+				Log.log("server", () -> "Serving " + uri);
 
-				Log.log("server", ()->"will check:"+uriHandlers);
+				Log.log("server", () -> "will check:" + uriHandlers);
 
 				Object id = parms.get("id");
 
@@ -82,8 +84,8 @@ public class Server {
 				if (fixedResources.containsKey(uri)) {
 					String resource = fixedResources.get(uri);
 					resource = resource.replace("///ID///", "" + id);
-					resource = resource.replace("///PORT///", ""+port);
-					resource = resource.replace("///WSPORT///", ""+websocketPort);
+					resource = resource.replace("///PORT///", "" + port);
+					resource = resource.replace("///WSPORT///", "" + websocketPort);
 					return new Response(Response.Status.OK, null, resource);
 				}
 
@@ -94,20 +96,17 @@ public class Server {
 					for (String s : documentRoots) {
 						File ff = new File(s + "/" + e);
 						if (ff.exists()) {
-							try {
-								return new Response(Response.Status.OK, null, new BufferedInputStream(new FileInputStream(ff)));
-							} catch (FileNotFoundException e1) {
-								e1.printStackTrace();
-							}
+							//return new Response(Response.Status.OK, null, new BufferedInputStream(new FileInputStream(ff)));
+
+							return serveFile(uri, headers, ff, "application/octet-stream");
 						}
 					}
 					return new Response(Response.Status.NOT_FOUND, null, "couldn't find " + e);
 				}
 
-				for(URIHandler u : uriHandlers)
-				{
+				for (URIHandler u : uriHandlers) {
 					Response r = u.serve(uri, method, headers, parms, files);
-					if (r!=null)
+					if (r != null)
 						return r;
 				}
 
@@ -120,12 +119,12 @@ public class Server {
 		webSocketServer = new WebSocketServer(new InetSocketAddress(websocketPort)) {
 			@Override
 			public void onOpen(WebSocket webSocket, ClientHandshake clientHandshake) {
-				Log.log("remote.trace",()-> " websocket connected " + clientHandshake);
+				Log.log("remote.trace", () -> " websocket connected " + clientHandshake);
 			}
 
 			@Override
 			public void onClose(WebSocket webSocket, int i, String s, boolean b) {
-				Log.log("remote.trace", ()->" websocket closed " + i + " " + s + " " + b);
+				Log.log("remote.trace", () -> " websocket closed " + i + " " + s + " " + b);
 				synchronized (knownSockets) {
 					System.err.println(" WEBSOCKET CLOSED ");
 					knownSockets.values().remove(webSocket);
@@ -146,15 +145,16 @@ public class Server {
 						if (((HandlerInMainThread) h).will(Server.this, webSocket, address, payload)) {
 							final Object p = payload;
 //							try {
-								queue(() -> {
-									currentWebSocket.set(webSocket);
-									return h.handle(Server.this, webSocket, address, p);
-								});
+							queue(() -> {
+								currentWebSocket.set(webSocket);
+								return h.handle(Server.this, webSocket, address, p);
+							});
 
 							// not threading these all through the main thread means that we don't get backlogged nearly as easily
 
 //							} catch (InterruptedException | ExecutionException e) {
-//								Log.log("remote.error"," exception thrown by asynchronous websocket handler <" + h + "> while servicing <" + s + " / " + address + " -> " + originalPayload + " " + p, e);
+//								Log.log("remote.error"," exception thrown by asynchronous websocket handler <" + h + "> while servicing <" + s + " / " + address + "
+// -> " + originalPayload + " " + p, e);
 //							}
 						}
 					} else {
@@ -166,7 +166,7 @@ public class Server {
 
 			@Override
 			public void onError(WebSocket webSocket, Exception e) {
-				Log.log("remote.error", ()->" websocket error reported :" + e);
+				Log.log("remote.error", () -> " websocket error reported :" + e);
 				e.printStackTrace();
 			}
 		};
@@ -220,8 +220,7 @@ public class Server {
 		return this;
 	}
 
-	public Server addURIHandler(URIHandler h)
-	{
+	public Server addURIHandler(URIHandler h) {
 		uriHandlers.add(h);
 		return this;
 	}
@@ -231,8 +230,7 @@ public class Server {
 		handlers.add(h);
 	}
 
-	public void addDocumentRoot(String root)
-	{
+	public void addDocumentRoot(String root) {
 		documentRoots.add(root);
 	}
 
@@ -289,8 +287,7 @@ public class Server {
 		webSocketServer.connections().forEach(x -> x.send(message));
 	}
 
-	static public class ConnectionLost extends RuntimeException
-	{
+	static public class ConnectionLost extends RuntimeException {
 		public ConnectionLost(String s) {
 			super(s);
 		}

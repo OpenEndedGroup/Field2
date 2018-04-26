@@ -176,7 +176,7 @@ public class StandardFLineDrawing {
 					Vec4 v = qq.get();
 					return new Vec4(v.x, v.y, v.z, v.w * opacityMultiply);
 				});
-			fline.renderToLine(line, 20);
+			fline.renderToLine(line, 10);
 		}
 		if (fline.attributes.isTrue(filled, false) && mesh != null)
 		{
@@ -190,7 +190,7 @@ public class StandardFLineDrawing {
 					return new Vec4(v.x, v.y, v.z, v.w * opacityMultiply);
 				});
 			mesh.aux(1, fc);
-			fline.renderToMesh(mesh, 20);
+			fline.renderToMesh(mesh, 10);
 			mesh.aux(1, fc);
 		}
 		if (fline.attributes.isTrue(pointed, false) && points != null)
@@ -199,7 +199,7 @@ public class StandardFLineDrawing {
 			float ps = fline.attributes.getFloat(pointSize, 0f);
 			points.aux(2, ps);
 			fline.addAuxProperties(2, pointSize.getName());
-			fline.renderToPoints(points, 20);
+			fline.renderToPoints(points, 10);
 			points.aux(2, ps);
 		}
 

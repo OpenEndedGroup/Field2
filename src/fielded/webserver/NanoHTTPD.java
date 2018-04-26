@@ -397,6 +397,19 @@ public abstract class NanoHTTPD {
 			this.status = status;
 			this.mimeType = mimeType;
 			this.data = data;
+			this.length = -1;
+		}
+
+		public long length;
+
+		/**
+		 * Basic constructor.
+		 */
+		public Response(Status status, String mimeType, InputStream data, long length) {
+			this.status = status;
+			this.mimeType = mimeType;
+			this.data = data;
+			this.length = length;
 		}
 
 		/**
@@ -1217,4 +1230,114 @@ public abstract class NanoHTTPD {
 			}
 		}
 	}
+
+	Response serveFile(String uri, Map<String, String> header, File file, String mime) {
+		Response res;
+		try {
+			// Calculate etag
+			String etag = Integer.toHexString((file.getAbsolutePath() + file.lastModified() + "" + file.length()).hashCode());
+
+			// Support (simple) skipping:
+			long startFrom = 0;
+			long endAt = -1;
+			String range = header.get("range");
+			if (range != null) {
+				if (range.startsWith("bytes=")) {
+					range = range.substring("bytes=".length());
+					int minus = range.indexOf('-');
+					try {
+						if (minus > 0) {
+							startFrom = Long.parseLong(range.substring(0, minus));
+							endAt = Long.parseLong(range.substring(minus + 1));
+						}
+					} catch (NumberFormatException ignored) {
+					}
+				}
+			}
+
+			// get if-range header. If present, it must match etag or else we
+			// should ignore the range request
+			String ifRange = header.get("if-range");
+			boolean headerIfRangeMissingOrMatching = (ifRange == null || etag.equals(ifRange));
+
+			String ifNoneMatch = header.get("if-none-match");
+			boolean headerIfNoneMatchPresentAndMatching = ifNoneMatch != null && ("*".equals(ifNoneMatch) || ifNoneMatch.equals(etag));
+
+			// Change return code and add Content-Range header when skipping is
+			// requested
+			long fileLen = file.length();
+
+			if (headerIfRangeMissingOrMatching && range != null && startFrom >= 0 && startFrom < fileLen) {
+				// range request that matches current etag
+				// and the startFrom of the range is satisfiable
+				if (headerIfNoneMatchPresentAndMatching) {
+					// range request that matches current etag
+					// and the startFrom of the range is satisfiable
+					// would return range from file
+					// respond with not-modified
+					res = newFixedLengthResponse(Response.Status.NOT_MODIFIED, mime, "");
+					res.addHeader("ETag", etag);
+				} else {
+					if (endAt < 0) {
+						endAt = fileLen - 1;
+					}
+					long newLen = endAt - startFrom + 1;
+					if (newLen < 0) {
+						newLen = 0;
+					}
+
+					FileInputStream fis = new FileInputStream(file);
+					fis.skip(startFrom);
+
+					res = new Response(Response.Status.PARTIAL_CONTENT, mime, fis, newLen);
+					res.addHeader("Accept-Ranges", "bytes");
+					res.addHeader("Content-Length", "" + newLen);
+					res.addHeader("Content-Range", "bytes " + startFrom + "-" + endAt + "/" + fileLen);
+					res.addHeader("ETag", etag);
+				}
+			} else {
+
+				if (headerIfRangeMissingOrMatching && range != null && startFrom >= fileLen) {
+					// return the size of the file
+					// 4xx responses are not trumped by if-none-match
+					res = newFixedLengthResponse(Response.Status.RANGE_NOT_SATISFIABLE, NanoHTTPD.MIME_PLAINTEXT, "");
+					res.addHeader("Content-Range", "bytes */" + fileLen);
+					res.addHeader("ETag", etag);
+				} else if (range == null && headerIfNoneMatchPresentAndMatching) {
+					// full-file-fetch request
+					// would return entire file
+					// respond with not-modified
+					res = newFixedLengthResponse(Response.Status.NOT_MODIFIED, mime, "");
+					res.addHeader("ETag", etag);
+				} else if (!headerIfRangeMissingOrMatching && headerIfNoneMatchPresentAndMatching) {
+					// range request that doesn't match current etag
+					// would return entire (different) file
+					// respond with not-modified
+
+					res = newFixedLengthResponse(Response.Status.NOT_MODIFIED, mime, "");
+					res.addHeader("ETag", etag);
+				} else {
+					// supply the file
+					res = new Response(Response.Status.OK, mime, new FileInputStream(file), file.length());
+					res.addHeader("Content-Length", "" + fileLen);
+					res.addHeader("ETag", etag);
+				}
+			}
+		} catch (IOException ioe) {
+			res = getForbiddenResponse("Reading file failed.");
+		}
+
+		return res;
+	}
+
+	protected Response getForbiddenResponse(String s) {
+		return new Response(Response.Status.FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT, "FORBIDDEN: " + s);
+	}
+
+	public static Response newFixedLengthResponse(Response.Status status, String mimeType, String message) {
+		Response response = new Response(status, mimeType, message);
+		response.addHeader("Accept-Ranges", "bytes");
+		return response;
+	}
+
 }

@@ -17,7 +17,8 @@
 
 
     <script src='/field/filesystem/three.js'></script>
-
+    <script src='/field/filesystem/VREffect.js'></script>
+    <script src='/field/filesystem/VRControls.js'></script>
 
 </head>
 
@@ -60,7 +61,7 @@
         };
 
         _field.socket.onmessage = function (e) {
-            // console.log(" socket responding to message <" + e.data + ">");
+            console.log(" socket responding to message <" + e.data + ">");
 
             // this needs to be per geometry not globally and not per channel
             // if (lastUpdatedAt == frame)
@@ -74,7 +75,7 @@
                 var d = new DataView(e.data)
                 // console.log("-> d= ")
                 // console.log(d)
-                if (d.byteLength<64) return
+                if (d.byteLength < 64) return
                 var dim = d.getUint32(0, true)
                 var typeCode = String.fromCharCode(d.getUint16(4, true))
                 var nameLen = d.getUint8(6, true)
@@ -131,7 +132,7 @@
 
     var newGeometry = function (numVertex, numElements, elementDim, oldMaterial) {
 
-        console.log(" new geometry "+numVertex+" "+numElements+" "+elementDim)
+        console.log(" new geometry " + numVertex + " " + numElements + " " + elementDim)
 
         var geometry = new THREE.BufferGeometry();
         if (elementDim > 0)
@@ -145,9 +146,20 @@
         geometry.attributes["color"].dynamic = true
         geometry.attributes["uv"].dynamic = true
 
-        var material = (oldMaterial) ? oldMaterial : new THREE.MeshBasicMaterial({
-            side: THREE.DoubleSide, blending: THREE.AdditiveBlending, vertexColors: THREE.VertexColors, transparent: true, depthTest: false
-        });
+        var material = (oldMaterial) ? oldMaterial : (elementDim == 0 ? new THREE.PointsMaterial({
+            side: THREE.DoubleSide,
+            blending: THREE.AdditiveBlending,
+            vertexColors: THREE.VertexColors,
+            transparent: true,
+            depthTest: false,
+            size: 0.1
+        }) : new THREE.MeshBasicMaterial({
+            side: THREE.DoubleSide,
+            blending: THREE.AdditiveBlending,
+            vertexColors: THREE.VertexColors,
+            transparent: true,
+            depthTest: false
+        }));
 
         if (elementDim == 3)
             mesh = new THREE.Mesh(geometry, material);
@@ -182,7 +194,7 @@
                 scene.remove(meshes[name])
 
                 // fallthrough
-                console.log(" geometry is too small for name "+name+" resizing "+r.attributes["position"].count+" < "+dim)
+                console.log(" geometry is too small for name " + name + " resizing " + r.attributes["position"].count + " < " + dim)
             }
             else {
                 return r
@@ -205,7 +217,7 @@
 
     var updateBuffer = function (rawdata, data, name, typeCode, dim, elementDim) {
 
-        // console.log(" TYPE "+typeCode+" / "+name)
+        //console.log(" TYPE "+typeCode+" / "+name)
 
         if (typeCode === 'x') {
             console.log(" got texture upgrade request")
@@ -219,7 +231,12 @@
 
             console.log(" upgrading material ")
             var material = new THREE.MeshBasicMaterial({
-                map: tex, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, vertexColors: THREE.VertexColors, transparent: true, depthTest: false
+                map: tex,
+                side: THREE.DoubleSide,
+                blending: THREE.AdditiveBlending,
+                vertexColors: THREE.VertexColors,
+                transparent: true,
+                depthTest: false
             })
 
             if (!meshes[name])
@@ -236,42 +253,48 @@
         geometry = geometryForName(name, dim, elementDim)
 
         if (typeCode === 'V') {
+            console.log("vertex")
             geometry.attributes["position"].array.set(new Float32Array(rawdata, 128))
             geometry.attributes["position"].needsUpdate = true;
-            geometry.attributes["position"].updateRange = {offset: 0, count: dim * elementDim}
+            geometry.attributes["position"].updateRange = {offset: 0, count: dim * 3}
+
+            if (name.endsWith("_p"))
+                    geometry.setDrawRange(0, dim)
+
         } else if (typeCode === 'T') {
             geometry.attributes["uv"].array.set(new Float32Array(rawdata, 128))
             geometry.attributes["uv"].needsUpdate = true;
-            geometry.attributes["uv"].updateRange = {offset: 0, count: dim * elementDim}
+            geometry.attributes["uv"].updateRange = {offset: 0, count: dim * 2}
         }
         else if (typeCode === 'C') {
             geometry.attributes["color"].array.set(new Float32Array(rawdata, 128))
             geometry.attributes["color"].needsUpdate = true;
-            geometry.attributes["color"].updateRange = {offset: 0, count: dim * elementDim}
+            geometry.attributes["color"].updateRange = {offset: 0, count: dim * 4}
         }
-        else if (typeCode === 'E') {
+        else if (typeCode === 'E' && (elementDim > 0)) {
             var te = new Uint32Array(rawdata, 128)
-            console.log(" checking element size "+te.length+" "+(geometry.index.count)+" "+(geometry.index.itemSize))
-            if (geometry.index.count*geometry.index.itemSize<te.length)
-            {
-                console.log(" had to rebuild elements "+geometry.index.count+" * "+geometry.index.itemSize+" < "+te.length)
+            console.log(" checking element size " + te.length + " " + (geometry.index.count) + " " + (geometry.index.itemSize))
+            if (geometry.index.count * geometry.index.itemSize < te.length) {
+                console.log(" had to rebuild elements " + geometry.index.count + " * " + geometry.index.itemSize + " < " + te.length)
                 geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(te.length), elementDim));
             }
             geometry.index.array.set(te)
             geometry.index.needsUpdate = true;
             geometry.index.updateRange = {offset: 0, count: dim * elementDim}
-            console.log(" setting draw range to be "+dim+" * "+elementDim)
+            console.log(" setting draw range to be " + dim + " * " + elementDim)
             geometry.setDrawRange(0, dim * elementDim)
         }
+
     }
 
 
-    var camera, scene, renderer, stats;
+    var camera, scene, renderer, stats, effect, controls;
     var mesh;
     init();
     animate();
 
     function init() {
+        console.log(" ?hello")
         //
         camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 3500);
         // camera.position.z = 640;
@@ -283,13 +306,19 @@
         // camera.lookAt(50,-50,0)
 
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x0);
+        scene.background = new THREE.Color(0.04, 0.04, 0.04);
         //
-        renderer = new THREE.WebGLRenderer({antialias: true});
-        renderer.setPixelRatio(window.devicePixelRatio*2);
+        renderer = new THREE.WebGLRenderer({antialias: true, cullFace: THREE.CullFaceNone});
+        renderer.setPixelRatio(window.devicePixelRatio * 1/*2*/);
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setFaceCulling(false);
-        renderer.vr.enabled = true;
+        renderer.setFaceCulling(THREE.CullFaceNone);
+        console.log(" about to effect")
+
+        controls = new THREE.VRControls(camera);
+
+        effect = new THREE.VREffect(renderer)
+        effect.setSize(window.innerWidth, window.innerHeight);
+        //renderer.vr.enabled = true;
         document.body.appendChild(renderer.domElement);
         document.body.appendChild(WEBVR.createButton(renderer));
 
@@ -311,7 +340,11 @@
         var time = Date.now() * 0.001;
         // mesh.rotation.x = time * 0.25;
         // mesh.rotation.y = time * 0.5;
-        renderer.render(scene, camera);
+        //renderer.render(scene, camera);
+
+        controls.update()
+        effect.render(scene, camera);
+
         frame++
     }
 

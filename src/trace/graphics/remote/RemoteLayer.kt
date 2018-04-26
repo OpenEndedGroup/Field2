@@ -2,7 +2,9 @@ package trace.graphics.remote
 
 import field.graphics.BaseMesh
 import org.java_websocket.WebSocket
+import org.java_websocket.WebSocketImpl
 import org.java_websocket.server.WebSocketServer
+import java.net.SocketException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -32,7 +34,7 @@ class RemoteLayer(val websocket: WebSocketServer, val max_vertex: Int, val max_e
     init {
 
         if (channel_name.length > 30) {
-            channel_name = channel_name.substring(0, 15) + channel_name.hashCode()  + channel_name.substring(channel_name.length-2)
+            channel_name = channel_name.substring(0, 15) + channel_name.hashCode() + channel_name.substring(channel_name.length - 2)
         }
 
         vertexBufferB = ByteBuffer.allocateDirect(4 * max_vertex * 3 + 2 * 64).order(ByteOrder.nativeOrder())
@@ -73,10 +75,10 @@ class RemoteLayer(val websocket: WebSocketServer, val max_vertex: Int, val max_e
 
         val v = m.vertex(true)
         vertexBufferF.rewind()
-        for (i in 0 until m.vertexLimit) {
-            val x = -v.get(i * 3 + 0)+25
-            val y = -v.get(i * 3 + 1)+25
-            val z = v.get(i * 3 + 2)+40
+        for (i in 0 until Math.min(m.vertexLimit, max_vertex)) {
+            val x = v.get(i * 3 + 0)
+            val y = -v.get(i * 3 + 1)
+            val z = v.get(i * 3 + 2)
 
             if (!vertexChanged) {
                 val x2 = vertexBufferF.get(i * 3 + 0)
@@ -91,17 +93,23 @@ class RemoteLayer(val websocket: WebSocketServer, val max_vertex: Int, val max_e
             vertexBufferF.put(i * 3 + 2, z)
         }
 
-        numVertex = m.vertexLimit
+        val n = Math.min(m.vertexLimit, max_vertex)
+        if (n != numVertex) {
+            numVertex = n;
+            vertexChanged = true
+            textureChanged = doTexture
+            colorChanged = true
+        }
 
         val color = m.aux(1, 4)
         colorBufferF.rewind()
-        for (i in 0 until m.vertexLimit) {
+        for (i in 0 until Math.min(m.vertexLimit, max_vertex)) {
             val w = color.get(i * 4 + 3)
 
 
-            var x = color.get(i * 4 + 0)*w
-            val y = color.get(i * 4 + 1)*w
-            val z = color.get(i * 4 + 2)*w
+            var x = color.get(i * 4 + 0) * w
+            val y = color.get(i * 4 + 1) * w
+            val z = color.get(i * 4 + 2) * w
 
             if (!colorChanged) {
                 val x2 = colorBufferF.get(i * 4 + 0)
@@ -121,9 +129,9 @@ class RemoteLayer(val websocket: WebSocketServer, val max_vertex: Int, val max_e
         if (doTexture) {
             val texture = m.aux(4, 2)
             textureBufferF.rewind()
-            for (i in 0 until m.vertexLimit) {
+            for (i in 0 until Math.min(m.vertexLimit, max_vertex)) {
                 val x = texture.get(i * 2 + 0)
-                val y = 1-texture.get(i * 2 + 1)
+                val y = 1 - texture.get(i * 2 + 1)
 
                 if (!textureChanged) {
                     val x2 = textureBufferF.get(i * 2 + 0)
@@ -137,27 +145,37 @@ class RemoteLayer(val websocket: WebSocketServer, val max_vertex: Int, val max_e
             }
         }
 
-        val element = m.elements()
-        elementBufferI.rewind()
-        for (i in 0 until m.elementLimit * m.elementDimension) {
-            val x = element.get(i)
+        if (m.elementDimension > 0) {
+            val element = m.elements()
+            elementBufferI.rewind()
+            for (i in 0 until Math.min(elementBufferI.limit(), Math.min(0xffff / m.elementDimension, m.elementLimit * m.elementDimension))) {
+                val x = element.get(i)
 
-            if (!elementChanged) {
-                val x2 = elementBufferI.get(i)
+                if (!elementChanged) {
+                    val x2 = elementBufferI.get(i)
 
-                if (x2 != x)
-                    elementChanged = true;
+                    if (x2 != x)
+                        elementChanged = true;
+                }
+                elementBufferI.put(i, x)
+
             }
-            elementBufferI.put(i, x)
 
+            print("checking $channel_name for size change $numElement =?= ${m.elementLimit} max is ${max_element/m.elementDimension}")
+            val next = Math.min(max_element / m.elementDimension, Math.min(0xffff / m.elementDimension, m.elementLimit))
+
+            if (numElement != next)
+                elementChanged = true
+
+            numElement = next;
+
+        } else {
+            elementChanged = numElement != 0
+            numElement = 0
         }
 
-        print("checking $channel_name for size change $numElement =?= ${m.elementLimit}")
 
-        if (numElement != m.elementLimit)
-            elementChanged = true
 
-        numElement = m.elementLimit
 
         vertexBufferF.rewind()
         colorBufferF.rewind()
@@ -190,6 +208,15 @@ class RemoteLayer(val websocket: WebSocketServer, val max_vertex: Int, val max_e
 
 
     private fun send(v: ByteBuffer, mx: Int, realUpdate: Boolean) {
+
+        websocket.connections().forEach { x ->
+            try {
+                (x as WebSocketImpl).socket.tcpNoDelay = true
+            } catch (e: SocketException) {
+                e.printStackTrace()
+            }
+        }
+
 
         v.position(0)
         v.limit(mx * 4 + 2 * 64)

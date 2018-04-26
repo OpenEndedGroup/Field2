@@ -120,8 +120,8 @@ class Stage(val w: Int, val h: Int) : AsMap {
     companion object {
         var stageNum: Int = 0
         var rs  = RemoteServer()
-        var max_vertex = 1000;
-        var max_element = 1000;
+        var max_vertex = 60000;
+        var max_element = 60000;
         var doRemote = true;
     }
 
