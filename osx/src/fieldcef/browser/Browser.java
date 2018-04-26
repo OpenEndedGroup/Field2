@@ -752,16 +752,26 @@ public class Browser extends Box implements IO.Loaded {
 		bq.forEach(x -> x.run());
 	}
 
+	static public float baseZoomLevel = Options.dict().getFloat(new Dict.Prop<Number>("baseZoomLevel"), 2);
+
+	static public void setBaseZoomLevel(float z) {
+		baseZoomLevel = z;
+	}
+
+	float lastZoom = baseZoomLevel;
+
 	protected void update(float x, float y, float scale) {
 
 //		System.out.println(" inside update for browser ");
 
+
 		if (this.dirty.getAndSet(false) && damage != null) {
-			if (check-- > 0) {
+			if (check-- > 0 || lastZoom!=baseZoomLevel) {
 				if (Main.os != Main.OS.windows)
-					browser.setZoomLevel(2 * window.getRetinaScaleFactor());
+					browser.setZoomLevel(baseZoomLevel * window.getRetinaScaleFactor());
 				else
-					browser.setZoomLevel(4);
+					browser.setZoomLevel(baseZoomLevel*2);
+				lastZoom = baseZoomLevel;
 			}
 			Log.log("cef.debug", () -> " texture was dirty, uploading ");
 

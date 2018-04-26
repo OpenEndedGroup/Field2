@@ -13,7 +13,7 @@ vec2 remapTexture(vec2 src)
 
 void main()
 {
-    _output  = texture(tex, remapTexture(tc));
+    _output  = texture(tex, remapTexture(tc), 1);
 
     _output.w = 1;
 

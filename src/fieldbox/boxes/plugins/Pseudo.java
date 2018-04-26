@@ -592,6 +592,11 @@ public class Pseudo extends Box {
 		}
 
 		@Override
+		public Object asMap_getElement(Object element) {
+			return asMap_get(""+element);
+		}
+
+		@Override
 		public Object asMap_new(Object o) {
 			return null;
 		}

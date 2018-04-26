@@ -14,19 +14,19 @@ class RemoteStageLayerHelper(val websocket: WebSocketServer, val max_vertex: Int
     var previousSide = 0
 
     fun update(s: Stage.ShaderGroup) {
-        if (s.line.vertexLimit > 0) {
+        if (s.line.vertexLimit > 0 || stroke!=null) {
             if (stroke == null)
                 stroke = RemoteLayer(websocket, max_vertex, max_element, 2, channel_name + "_s")
             stroke!!.copy(s.line, s.doTexture)
             stroke!!.send()
         }
-        if (s.planes.vertexLimit > 0) {
+        if (s.planes.vertexLimit > 0 || fill!=null) {
             if (fill == null)
                 fill = RemoteLayer(websocket, max_vertex, max_element, 3, channel_name + "_f")
             fill!!.copy(s.planes, s.doTexture)
             fill!!.send()
         }
-        if (s.points.vertexLimit > 0) {
+        if (s.points.vertexLimit > 0 || points!=null) {
             if (points == null)
                 points = RemoteLayer(websocket, max_vertex, max_element, 0, channel_name + "_p")
             points!!.copy(s.points, s.doTexture)
@@ -75,7 +75,7 @@ class RemoteStageLayerHelper(val websocket: WebSocketServer, val max_vertex: Int
     private fun setSide(websocket: WebSocket, s: String, sides: Int) {
         println(" limiting side of $s to $sides")
         var s2 = mangleName(s)
-        websocket.send("meshes[\"${s2}\"].layers.set($sides)")
+        websocket.send("if (meshes[\"${s2}\"]) meshes[\"${s2}\"].layers.set($sides)")
     }
 
     private fun mangleName(channel_name: String): String{
