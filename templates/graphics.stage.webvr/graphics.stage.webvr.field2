@@ -2,22 +2,24 @@
   :externalList [
     #field/external{
       :textFiles {
-        "fragment" "{{templates}}/graphics.stage.webvr/viewport.box.glslf"
-        "code" "{{templates}}/graphics.stage.webvr/viewport.box.js"
-        "vertex" "{{templates}}/graphics.stage.webvr/viewport.box.glslv"
+        "fragment" "{{templates}}/graphics.stage.webvr/viewport00000.box.glslf"
+        "code" "{{templates}}/graphics.stage.webvr/viewport00000.box.js"
+        "vertex" "{{templates}}/graphics.stage.webvr/viewport00000.box.glslv"
       }
-      :dataFile "{{templates}}/graphics.stage.webvr/viewport.box"
-      :id "_ce9f819f_8535_4ec7_a4e1_e03ce4106589"
+      :dataFile "{{templates}}/graphics.stage.webvr/viewport00000.box"
+      :id "_c60c2d86_ee79_4ced_919b_9b696d7b809a"
       :boxClass "fieldbox.boxes.plugins.Viewport"
       :parents [
         ">>root<<"
       ]
       :children [
+        "_3e06f03a_d7b7_4424_af24_6fc651b6a6b3"
+        "_53b36973_4ad3_493c_a833_eb775a42da89"
       ]
       :overriddenProperties {
         "frame" #field/rect{
-          :x 792.53173828125
-          :y 99.5035400390625
+          :x 410.53173828125
+          :y 82.5035400390625
           :w 981.5390625
           :h 792.765625
         }
@@ -61,6 +63,8 @@
     "windowScale"
     "isPaired"
     "auto"
+    "head"
+    "tail"
     "defaultEditorProperty"
     "_defaultEditorProperty_cookie"
     "_code_cookie"
