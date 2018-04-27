@@ -1231,7 +1231,7 @@ public abstract class NanoHTTPD {
 		}
 	}
 
-	Response serveFile(String uri, Map<String, String> header, File file, String mime) {
+	public Response serveFile(String uri, Map<String, String> header, File file, String mime) {
 		Response res;
 		try {
 			// Calculate etag
