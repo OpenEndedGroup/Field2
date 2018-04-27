@@ -10,7 +10,7 @@ import java.awt.geom.Point2D
 import java.util.function.Function
 
 /**
- * represents an arbitrary 2d transformation.
+ * represents an arbitrary 2d transformations.
  */
 class Transform2D : OverloadedMath {
     override fun __sub__(b: Any?): Any {

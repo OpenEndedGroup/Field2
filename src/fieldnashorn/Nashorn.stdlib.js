@@ -10,6 +10,7 @@ var FLine = Java.type('field.graphics.FLine')
 var System = Java.type('java.lang.System');
 var Asta = Java.type('fielded.live.Asta');
 var Transform2D = Java.type("field.linalg.Transform2D")
+var T3D = Java.type("field.linalg.T3D")
 var Anim = Java.type("field.utility.Drivers")
 var Math = Java.type("java.lang.Math")
 
@@ -78,7 +79,35 @@ var translate = function (x, y) {
     throw "can't make a translation given this (" + arguments.length + ") number of arguments"
 }
 
-rotate.__doc__ = "shorthand for creating a transformation that translates. `rotate(10)` rotates things 10 degrees clockwise. Other numbers of arguments are also accepted: `rotate(10, vec(50, -40))` or even `rotate(10, 50, -40)` will rotate 10 degrees around the point `50, -40`"
+translate.__doc__ = "shorthand for creating a transformation that translates. "
+
+
+var rotate3 = function (angle, axis) {
+    if (arguments.length == 2) return T3D.rotate(angle, axis)
+    throw "can't make a rotation given this (" + arguments.length + ") number of arguments"
+}
+
+rotate3.__doc__ = "shorthand for creating a transformation that rotates in 3d. `rotate(10, vec(1,0,0))` rotates things 10 degrees clockwise around the x axis (that's vec(1,0,0)). "
+
+var scale3 = function (x,y,z) {
+    if (arguments.length == 0) return T3D.scale(1)
+    if (arguments.length == 1) return T3D.scale(x)
+    if (arguments.length == 2) return T3D.scale(x, y,0)
+    if (arguments.length == 3) return T3D.scale(x,y,z)
+    throw "can't make a scale given this (" + arguments.length + ") number of arguments"
+}
+
+scale3.__doc__ = "shorthand for creating a transformation that scale. `scale(10)` scales things (up) by a factor of 10 . Other numbers of arguments are also accepted: `scale(10, 5, 1)` will scale 10x in the x axis, 5x in the y axis and leave the z dimension unchanged"
+
+var translate3 = function (x, y,z) {
+    if (arguments.length == 0) return T3D.translate(0, 0)
+    if (arguments.length == 1) return T3D.translate(x,0,0)
+    if (arguments.length == 2) return T3D.translate(x, y,0)
+    if (arguments.length == 2) return T3D.translate(x, y,z)
+    throw "can't make a translation given this (" + arguments.length + ") number of arguments"
+}
+
+translate3.__doc__ = "shorthand for creating a transformation that translates. translate(1,2,3) will translate 1 in the x direction, 2 in y, and 3 in z for example"
 
 var _ft = function() {
     if (_.f)
