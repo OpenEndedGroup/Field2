@@ -1,0 +1,103 @@
+#field/document{
+  :externalList [
+    #field/external{
+      :textFiles {
+        "fragment" "{{templates}}/graphics.oculus.audio.vr/viewport.box.glslf"
+        "code" "{{templates}}/graphics.oculus.audio.vr/viewport.box.js"
+        "vertex" "{{templates}}/graphics.oculus.audio.vr/viewport.box.glslv"
+      }
+      :dataFile "{{templates}}/graphics.oculus.audio.vr/viewport.box"
+      :id "_0cf8af0a_5ac0_4fdd_b3f8_80057f662bb1"
+      :boxClass "fieldbox.boxes.plugins.Viewport"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+        "_b06321d8_3c23_476b_8f3f_4420a60b57f4"
+        "_192f59ee_7531_433e_8089_973ca552edc9"
+        "_d3e11a40_1c58_4870_96eb_8f6f829df4df"
+        "_fe1c91ce_ec24_4f8d_9904_74e4cf770eb0"
+        "_ccacffa3_b442_4ff6_9fda_16ac25768a55"
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 85.53173828125
+          :y 54.503509521484375
+          :w 951.5390625
+          :h 389.765625
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/graphics.oculus.audio.vr/send HMD to audio.box.js"
+      }
+      :dataFile "{{templates}}/graphics.oculus.audio.vr/send HMD to audio.box"
+      :id "_d2d4ae28_fef3_4d65_915f_94cdfb59eebe"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 100.0
+          :y 455.0
+          :w 100.0
+          :h 55.0
+        }
+      }
+    }
+  ]
+  :knownFiles {
+    "txt" #field/filespec{
+      :name "txt"
+    }
+    "fragment" #field/filespec{
+      :name "fragment"
+    }
+    "code" #field/filespec{
+      :name "code"
+    }
+    "vertex" #field/filespec{
+      :name "vertex"
+    }
+    "geometry" #field/filespec{
+      :name "geometry"
+    }
+    "html" #field/filespec{
+      :name "html"
+    }
+    "edn" #field/filespec{
+      :name "edn"
+    }
+  }
+  :knownProperties #{
+    "__id__"
+    "comment"
+    "classpath"
+    "perDocument"
+    "name"
+    "frame"
+    "lockHeight"
+    "lockWidth"
+    "tag"
+    "windowSpace"
+    "windowScale"
+    "isPaired"
+    "auto"
+    "head"
+    "tail"
+    "defaultEditorProperty"
+    "_defaultEditorProperty_cookie"
+    "_code_cookie"
+    "_theVariant"
+    "includes"
+    "excludes"
+    "__datafilename__"
+    "__filename__fragment"
+    "__filename__code"
+    "__filename__vertex"
+  }
+}
