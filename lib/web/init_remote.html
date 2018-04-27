@@ -15,10 +15,16 @@
     <script src='/field/filesystem/WebVR.js'></script>
     <script src='/field/filesystem/webvr-polyfill.js'></script>
 
+    <script src="/field/filesystem/space/omnitone.min.js"></script>
+    <script src="/field/filesystem/space/resonance-audio.js"></script>
+    <script src='/field/filesystem/space/space.js'></script>
+
+
 
     <script src='/field/filesystem/three.js'></script>
     <script src='/field/filesystem/VREffect.js'></script>
     <script src='/field/filesystem/VRControls.js'></script>
+    <script src='/field/filesystem/OrbitControls.js'></script>
 
 </head>
 
@@ -288,7 +294,7 @@
     }
 
 
-    var camera, scene, renderer, stats, effect, controls;
+    var camera, scene, renderer, stats, effect, controls, controls2;
     var mesh;
     init();
     animate();
@@ -296,7 +302,7 @@
     function init() {
         console.log(" ?hello")
         //
-        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 3500);
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 3500);
         // camera.position.z = 640;
         // camera.position.x = 50;
         // camera.position.y = -50;
@@ -315,6 +321,7 @@
         console.log(" about to effect")
 
         controls = new THREE.VRControls(camera);
+        controls2 = new THREE.OrbitControls(camera);
 
         effect = new THREE.VREffect(renderer)
         effect.setSize(window.innerWidth, window.innerHeight);
@@ -343,7 +350,13 @@
         //renderer.render(scene, camera);
 
         controls.update()
+        //controls2.update()
+
         effect.render(scene, camera);
+
+        camera_position = new THREE.Vector4(0,0,0,1).applyMatrix4(camera.matrix)
+
+        songbird.setListenerFromMatrix(camera.matrix)
 
         frame++
     }

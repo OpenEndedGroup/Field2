@@ -161,7 +161,7 @@ class RemoteLayer(val websocket: WebSocketServer, val max_vertex: Int, val max_e
 
             }
 
-            print("checking $channel_name for size change $numElement =?= ${m.elementLimit} max is ${max_element/m.elementDimension}")
+//            print("checking $channel_name for size change $numElement =?= ${m.elementLimit} max is ${max_element/m.elementDimension}")
             val next = Math.min(max_element / m.elementDimension, Math.min(0xffff / m.elementDimension, m.elementLimit))
 
             if (numElement != next)

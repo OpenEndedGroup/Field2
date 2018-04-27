@@ -13,7 +13,10 @@ import java.nio.charset.Charset
 
 class RemoteServer
 {
+    var initFile = "init_remote.html" // can swap this to go 'headless'
+
     val BOOT = "/boot"
+    val RESOURCE = "/resource-"
 
     var s: Server
 
@@ -39,7 +42,7 @@ class RemoteServer
 
                 println(" booting up... ")
 
-                var text = Files.toString(File(Main.app + "lib/web/init_remote.html"), Charset.defaultCharset())
+                var text = Files.toString(File(Main.app + "lib/web/$initFile"), Charset.defaultCharset())
 
                 System.out.println(" canonical host name is :"+InetAddress.getLocalHost().getCanonicalHostName())
 
@@ -50,8 +53,67 @@ class RemoteServer
 
                 return@addURIHandler NanoHTTPD.Response(NanoHTTPD.Response.Status.OK, "text/html", text)
             }
+            else if (uri.startsWith(RESOURCE))
+            {
+                var found = resourceMap.get(uri)
+
+                if (found==null)
+                {
+                    System.out.println("\n\n couldn't find "+uri+" in "+resourceMap+"\n\n");
+                    return@addURIHandler NanoHTTPD.Response(NanoHTTPD.Response.Status.NOT_FOUND, null, "not found")
+                }
+
+                return@addURIHandler s.server.serveFile(uri, headers, File(found!!), "audio/wav")
+            }
             null
         }
     }
+
+    fun nowHeadless()
+    {
+        initFile = "init_headless.html"
+    }
+
+    fun nowHeaded()
+    {
+        initFile = "init_remote.html"
+    }
+
+
+    var res : Int = 0
+
+    var resourceMap = mutableMapOf<String, String>()
+
+    fun declareResource(fn : String) : String
+    {
+
+        // check for backwards
+        resourceMap.entries.forEach {
+            if (it.value.equals(fn)) return it.key
+        }
+
+        var suffix = ""
+
+        if (!File(fn).exists()) throw IllegalArgumentException(" can't find the file "+fn+" are you sure it exists?")
+
+        if (File(fn).name.contains("."))
+            suffix = "."+File(fn).name.split(".").last()
+
+        res ++
+
+        var name =  "${RESOURCE}${res}${suffix}"
+
+        resourceMap[name] = fn
+
+        return name
+
+    }
+
+    fun execute(s: String) {
+        this.s.webSocketServer.connections().forEach {
+            it.send(s)
+        }
+    }
+
 
 }
