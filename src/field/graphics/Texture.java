@@ -231,7 +231,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 			GL15.glBindBuffer(GL21.GL_PIXEL_UNPACK_BUFFER, 0);
 			Log.log("graphics.trace", () -> "uploaded part 1");
 			s.mod++;
-		}, -200).setOnceOnly().setAllContextsFor(this));
+		}, -200)/*.setOnceOnly()*/.setAllContextsFor(this));
 	}
 
 	/**

@@ -82,7 +82,6 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, fi
 		protected int status;
 		public iErrorHandler onError = null;
 
-		protected Set<Integer> attachedTo = new LinkedHashSet<>();
 
 		public Source(Supplier<String> source, Type type) {
 			this.type = type;
@@ -103,6 +102,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, fi
 			String source;
 			int name = -1;
 			boolean good = false;
+			Set<Integer> attachedTo = new LinkedHashSet<>();
 		}
 
 		protected boolean clean() {
@@ -113,9 +113,12 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, fi
 			});
 
 			if (!s.source.equals(this.source.get())) {
-				for (Integer ii : attachedTo)
+
+				System.out.println(" shader ("+type+") needs recompilation in context "+GraphicsContext.getContext()+" detatching from "+s.attachedTo);
+
+				for (Integer ii : s.attachedTo)
 					GL20.glDetachShader(ii, s.name);
-				attachedTo.clear();
+				s.attachedTo.clear();
 				GL20.glDeleteShader(s.name);
 
 				s = new State();
@@ -128,9 +131,15 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, fi
 
 			if (s.name == -1) {
 				try {
+
+					System.out.println(" recompiling shader in context :"+GraphicsContext.getContext());
+
 					Log.log("graphics.trace", () -> " creating shader");
 					s.name = GL20.glCreateShader(type.gl);
 					GL20.glShaderSource(s.name, s.source);
+
+					System.out.println(" shader source is "+s.source+" for name "+s.name);
+
 					GL20.glCompileShader(s.name);
 					status = GL20.glGetShaderi(s.name, GL20.GL_COMPILE_STATUS);
 					Log.log("graphics.trace", () -> " shader compile status" + status);
@@ -234,6 +243,7 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, fi
 
 		Log.log("graphics.trace", () -> " checking :" + source.keySet());
 
+
 		for (Map.Entry<Type, Source> s : source.entrySet()) {
 			work |= s.getValue()
 					.clean();
@@ -245,12 +255,14 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, fi
 		name.work = false;
 
 		if (work) {
+			System.out.println(" -- shader has work to do in stage :"+name+" in context "+GraphicsContext.getContext());
+
 			name.valid = true;
 			for (Map.Entry<Type, Source> s : source.entrySet()) {
 				Source.State state = GraphicsContext.get(s.getValue());
-				if (s.getValue().status != 0 && state.name != -1 && !s.getValue().attachedTo.contains(name.name)) {
+				if (s.getValue().status != 0 && state.name != -1 && !state.attachedTo.contains(name.name)) {
 					GL20.glAttachShader(name.name, state.name);
-					s.getValue().attachedTo.add(name.name);
+					state.attachedTo.add(name.name);
 				}
 			}
 

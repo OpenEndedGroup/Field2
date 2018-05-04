@@ -57,7 +57,8 @@ public class PluginList {
 		}
 		catch(EdnSyntaxException syntax)
 		{
-			Log.log("startup.error", ()->"Syntax error in plugins.edn file"+syntax);
+			syntax.printStackTrace();
+			Log.log("startup.error", ()->"Syntax error in plugins.edn file "+syntax+" "+filename);
 			return null;
 		}
 	}

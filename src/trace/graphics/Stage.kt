@@ -380,6 +380,80 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
         private var vrOptIn = 0f;
 
+        val builders = mutableMapOf<String, kotlin.Pair<MeshBuilder, BaseMesh>>()
+        fun lineBuilder(name: String): kotlin.Pair<MeshBuilder, BaseMesh> {
+            return builders.computeIfAbsent(name, {
+
+                val geometry = BaseMesh.lineList(0, 0)
+                val builder = MeshBuilder(geometry)
+
+                shader!!.first!!.asMap_set(name, geometry)
+
+                builder to geometry
+            })
+        }
+
+        fun triangleBuilder(name: String): kotlin.Pair<MeshBuilder, BaseMesh> {
+            return builders.computeIfAbsent(name, {
+
+                val geometry = BaseMesh.triangleList(0, 0)
+                val builder = MeshBuilder(geometry)
+
+                shader!!.second!!.asMap_set(name, geometry)
+
+                builder to geometry
+            })
+        }
+
+        fun pointBuilder(name: String): kotlin.Pair<MeshBuilder, BaseMesh> {
+            return builders.computeIfAbsent(name, {
+
+                val geometry = BaseMesh.pointList(0)
+                val builder = MeshBuilder(geometry)
+
+                shader!!.third!!.asMap_set(name, geometry)
+
+                builder to geometry
+            })
+        }
+
+        fun vrGazeDirection(): Vec3 {
+
+            var m = Mat4(SimpleOculusTarget.o!!.rightView().get())
+            var m2 = Mat4(__camera.view().get())
+            m2 = m2.transpose()
+
+            m = Mat4.mul(m, m2, Mat4())
+            m.invert()
+
+            var a = m.transform(Vec4(0.0, 0.0, 0.0, 1.0))
+            var b = m.transform(Vec4(0.0, 0.0, -1.0, 1.0))
+            var a2 = Vec3(a.x, a.y, a.z) * (1 / a.w)
+            var b2 = Vec3(b.x, b.y, b.z) * (1 / b.w)
+
+            return b2 - a2
+
+        }
+
+        fun vrViewerPosition(): Vec3 {
+
+            var m = Mat4(SimpleOculusTarget.o!!.rightView().get())
+            var m2 = Mat4(__camera.view().get())
+            m2 = m2.transpose()
+
+            m = Mat4.mul(m, m2, Mat4())
+            m.invert()
+
+            var a = m.transform(Vec4(0.0, 0.0, 0.0, 1.0))
+            var b = m.transform(Vec4(0.0, 0.0, -1.0, 1.0))
+            var a2 = Vec3(a.x, a.y, a.z) * (1 / a.w)
+            var b2 = Vec3(b.x, b.y, b.z) * (1 / b.w)
+
+            return a2
+
+        }
+
+
         fun setShader(shader: Triple<Shader?, Shader?, Shader?>): ShaderGroup {
 
             this.shader = shader

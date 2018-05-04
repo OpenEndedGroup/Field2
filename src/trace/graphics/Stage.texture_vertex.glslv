@@ -26,6 +26,7 @@ uniform mat4 Vr;
 uniform float isVR;
 uniform float reallyVR;
 uniform float vrOptIn;
+
 out float CD;
 
 out int id;
@@ -79,11 +80,6 @@ void main()
 
         vec4 ep = gl_Position;
 
-        if (reallyVR>0)
-        {
-            ep.y += 1.5;
-            ep.x += 0.0;
-        }
 
         gl_Position = et*ep;
 
