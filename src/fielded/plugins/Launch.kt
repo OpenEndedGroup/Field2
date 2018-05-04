@@ -184,7 +184,7 @@ class Launch(val root: Box) : Box() {
 
 }
 
-private fun <T> MemoryStack.use(a: (MemoryStack) -> T): T {
+fun <T> MemoryStack.use(a: (MemoryStack) -> T): T {
     this.push()
     try {
         return a(this)
