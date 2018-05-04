@@ -23,7 +23,8 @@ class SimpleSVG(val filename: String) {
         val r = mutableListOf<FLine>()
 
 //        val mm = Pattern.compile("fill=\"rgb\\(([0-9]+),([0-9]+),([0-9]+)\\)\" .*? d=\"([MLCQZ\\- 0-9\\.]+)\"")
-        val mm = Pattern.compile("style=\"fill:#(..)(..)(..);\" .*?d=\"([cqmzMLCQZ\\- ,\t0-9\\.]+)\"")
+        val mm = Pattern.compile("style=\".*?fill:#(..)(..)(..);.*?\" .*?d=\"([cqmzMLCQZ\\- ,\t0-9\\.]+)\"")
+        val m2 = Pattern.compile("style=\".*?fill:none;.*?\" .*?d=\"([cqmzMLCQZ\\- ,\t0-9\\.]+)\"")
         (Files.readAllLines(File(filename).toPath())).joinToString(" ").split("/>").forEach {
 
 //            println(it)
@@ -38,6 +39,15 @@ class SimpleSVG(val filename: String) {
 
                 val path = mmm.group(4)
                 val qq = toFLine(path, colorStringToColor2(colorr, colorg, colorb), { 0.0 })
+                bounds = Rect.union(bounds, qq.bounds())
+                r += qq
+            }
+            val mmm2 = m2.matcher(it)
+            if (mmm2.find()) {
+//                println("found")
+
+                val path = mmm2.group(1)
+                val qq = toFLine(path, colorStringToColor2("00", "00", "00"), { 0.0 })
                 bounds = Rect.union(bounds, qq.bounds())
                 r += qq
             }

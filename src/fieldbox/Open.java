@@ -228,6 +228,8 @@ public class Open {
 
 		new FrameChangedHash(boxes.root()).connect(boxes.root());
 
+		new InsertPath().connect(boxes.root());
+
 		new Directionality(boxes.root()).connect(boxes.root());
 
 		new Handles(boxes.root()).connect(boxes.root());

@@ -119,7 +119,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
     companion object {
         var stageNum: Int = 0
-        var rs  = RemoteServer()
+        var rs = RemoteServer()
         var max_vertex = 60000;
         var max_element = 60000;
         var doRemote = true;
@@ -255,11 +255,11 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
 
     inner class ShaderGroup(val name: String) {
-        val line = BaseMesh.lineList(0, 0).setInstances({ if (OculusDrawTarget2.isVR!=null || STEREO) 2 else 1 })
+        val line = BaseMesh.lineList(0, 0).setInstances({ if (OculusDrawTarget2.isVR != null || STEREO) 2 else 1 })
         val lineBuilder = MeshBuilder(line)
-        val planes = BaseMesh.triangleList(0, 0).setInstances({ if (OculusDrawTarget2.isVR!=null || STEREO) 2 else 1 })
+        val planes = BaseMesh.triangleList(0, 0).setInstances({ if (OculusDrawTarget2.isVR != null || STEREO) 2 else 1 })
         val planeBuilder = MeshBuilder(planes)
-        val points = BaseMesh.pointList(0).setInstances({ if (OculusDrawTarget2.isVR!=null || STEREO) 2 else 1 })
+        val points = BaseMesh.pointList(0).setInstances({ if (OculusDrawTarget2.isVR != null || STEREO) 2 else 1 })
         val pointBuilder = MeshBuilder(points)
         val post = IdempotencyMap<Runnable>(Runnable::class.java);
 
@@ -271,7 +271,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
         var doTexture = false
         var textureFilename: String? = null
-        var textureDimensions = Vec2(1,1)
+        var textureDimensions = Vec2(1, 1)
 
         @JvmField
         @Documentation("Camera translation. Starts at vec(0,0)")
@@ -293,7 +293,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
         @Documentation("Sets the scale of this box. The origin is in the bottom left, and 'bounds' is in the top right. Defaults to vec(100,100")
         var bounds = Vec2(100.0, 100.0)
 
-        var shader: Shader? = null;
+        var shader: Triple<Shader?, Shader?, Shader?>? = null;
 
         @JvmField
         @Documentation("Sets any color remapping code that's applied to this layer")
@@ -317,7 +317,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
         @JvmField
         @Documentation("How much is left stereo texture shifted with respect to the right")
-        var leftOffset = Vec3(0,0,0);
+        var leftOffset = Vec3(0, 0, 0);
 
         var P = Mat4().identity()
         var V = Mat4().identity()
@@ -331,7 +331,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
         @JvmField
         var sides = 0;
 
-        var keyboardCamera : KeyboardCamera? = null
+        var keyboardCamera: KeyboardCamera? = null
 
         init {
             var s = __camera.state
@@ -344,30 +344,45 @@ class Stage(val w: Int, val h: Int) : AsMap {
             __camera.state = s
             camera = SimpleCamera(__camera)
 
-            if (STEREO)
-            {
-                keyboardCamera  = KeyboardCamera(__camera, insideViewport!!, ""+name)
+            if (STEREO) {
+                keyboardCamera = KeyboardCamera(__camera, insideViewport!!, "" + name)
                 keyboardCamera!!.standardMap()
             }
 
         }
 
-        fun vrDefaults()
-        {
+        fun vrDefaults() {
             this.vrOptIn = 1.0f
-            this.is3D=true
-            this.bounds=Vec2(1.0,1.0)
-            this.translation=Vec2(-0.5, -0.5)
+            this.is3D = true
+            this.bounds = Vec2(1.0, 1.0)
+            this.translation = Vec2(-0.5, -0.5)
             var s = this.__camera.getState()
             val y = 1.6
-            s.position = Vec3(0,y,-2)
-            s.target= Vec3(0,y,0)
+            s.position = Vec3(0, y, -2)
+            s.target = Vec3(0, y, 0)
             this.__camera.setState(s)
+        }
+
+        fun bindPointShader(box: Box): Shader? {
+            bindShaderToBox(name, box, 2)
+            return shader!!.third!!
+        }
+
+        fun bindLineShader(box: Box): Shader? {
+            bindShaderToBox(name, box, 1)
+            return shader!!.second!!
+        }
+
+        fun bindTriangleShader(box: Box): Shader? {
+            bindShaderToBox(name, box, 0)
+            return shader!!.first!!
         }
 
         private var vrOptIn = 0f;
 
         fun setShader(shader: Triple<Shader?, Shader?, Shader?>): ShaderGroup {
+
+            this.shader = shader
 
             if (shader.first != null)
                 shader.first!!.asMap_set("_planes_", planes)
@@ -376,13 +391,12 @@ class Stage(val w: Int, val h: Int) : AsMap {
             if (shader.third != null)
                 shader.third!!.asMap_set("_point_", points)
 
-
             listOf(shader.first, shader.second, shader.third).filter { it != null }.forEachIndexed { index, it ->
 
                 it!!.asMap_set("translation", Supplier { translation })
                 it.asMap_set("bounds", Supplier { bounds })
                 it.asMap_set("reallyVR", Supplier<Float> {
-                    if (OculusDrawTarget2.isVR!=null) {
+                    if (OculusDrawTarget2.isVR != null) {
                         1f
                     } else {
                         0f
@@ -410,49 +424,41 @@ class Stage(val w: Int, val h: Int) : AsMap {
                     if (!is3D) {
                         Mat4().identity()
                     } else {
-                        if (OculusDrawTarget2.isVR!=null)
-                        {
+                        if (OculusDrawTarget2.isVR != null) {
                             OculusDrawTarget2.isVR!!.leftProjectionMatrix()
-                        }
-                        else
-                        __camera.projectionMatrix(-1f)
+                        } else
+                            __camera.projectionMatrix(-1f)
                     }
                 })
                 it.asMap_set("Vl", Supplier<Mat4> {
                     if (!is3D) {
                         Mat4().identity()
                     } else {
-                        if (OculusDrawTarget2.isVR!=null)
-                        {
+                        if (OculusDrawTarget2.isVR != null) {
                             OculusDrawTarget2.isVR!!.leftView()
 
-                        }
-                        else
-                        __camera.view(-1f)
+                        } else
+                            __camera.view(-1f)
                     }
                 })
                 it.asMap_set("Pr", Supplier<Mat4> {
                     if (!is3D) {
                         Mat4().identity()
                     } else {
-                        if (OculusDrawTarget2.isVR!=null)
-                        {
+                        if (OculusDrawTarget2.isVR != null) {
                             OculusDrawTarget2.isVR!!.rightProjectionMatrix()
-                        }
-                        else
-                        __camera.projectionMatrix(1f)
+                        } else
+                            __camera.projectionMatrix(1f)
                     }
                 })
                 it.asMap_set("Vr", Supplier<Mat4> {
                     if (!is3D) {
                         Mat4().identity()
                     } else {
-                        if (OculusDrawTarget2.isVR!=null)
-                        {
+                        if (OculusDrawTarget2.isVR != null) {
                             OculusDrawTarget2.isVR!!.rightView()
-                        }
-                        else
-                        __camera.view(1f)
+                        } else
+                            __camera.view(1f)
                     }
                 })
                 it.asMap_set("scale", Supplier { scale })
@@ -461,10 +467,10 @@ class Stage(val w: Int, val h: Int) : AsMap {
                 it.asMap_set("rotator", Supplier { Vec2(Math.cos(Math.PI * rotation / 180), Math.sin(Math.PI * rotation / 180)) })
 
                 it.asMap_set("isVR", Supplier {
-                    if (OculusDrawTarget2.isVR!=null || STEREO) 1f else -1f
+                    if (OculusDrawTarget2.isVR != null || STEREO) 1f else -1f
                 })
 
-                it.asMap_set("leftOffset", Supplier<Vec3> {leftOffset})
+                it.asMap_set("leftOffset", Supplier<Vec3> { leftOffset })
 
                 fbo.scene.attach(name + "_$index", it)
             }
@@ -482,7 +488,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
                             it.addAuxProperties(4, StandardFLineDrawing.texCoord.name)
                         StandardFLineDrawing.dispatchLine(it, planeBuilder, lineBuilder, pointBuilder, Optional.empty(), "")
                     }
-                        } finally {
+                } finally {
                     pointBuilder.close()
                     planeBuilder.close()
                     lineBuilder.close()
@@ -566,10 +572,15 @@ class Stage(val w: Int, val h: Int) : AsMap {
         return Triple(s1, s2, s3);
     }
 
-    fun bindShaderToBox(name: String, box: Box) {
+    fun bindShaderToBox(name: String, box: Box, kind: Int) {
         if (groups[name] != null) {
             box.first(GraphicsSupport.bindShader, box.upwards()).ifPresent {
-                it.apply(box, groups[name]!!.shader)
+                if (kind == 0)
+                    it.apply(box, groups[name]!!.shader!!.first)
+                else if (kind == 1)
+                    it.apply(box, groups[name]!!.shader!!.second)
+                else if (kind == 2)
+                    it.apply(box, groups[name]!!.shader!!.third)
             }
         } else
             throw IllegalArgumentException(" can't find a ShaderGroup called '$name'")
@@ -959,6 +970,17 @@ class Stage(val w: Int, val h: Int) : AsMap {
     }
 
 
+    private var masterShader: Shader? = null
+
+    fun bindShowShaderToBox(box: Box): Shader {
+        if (masterShader == null) throw IllegalArgumentException(" can't bind a show shader if the box isn't being shown ")
+        box.first(GraphicsSupport.bindShader, box.upwards()).ifPresent {
+            it.apply(box, masterShader!!)
+        }
+
+        return masterShader!!;
+    }
+
     fun showScene(name: String, scene: Scene, disabled: () -> Boolean, asp: () -> Double, isFullscreen: Boolean): Shader {
         val s = Shader()
 
@@ -970,24 +992,23 @@ class Stage(val w: Int, val h: Int) : AsMap {
                 mutableMapOf("REMAP" to remap)
             }))
 
-        }
-        else
-        if (isFullscreen && STEREO) {
-            s.addSource(Shader.Type.vertex, ShaderPreprocessor().Preprocess(null, show_vertex_stereo, Supplier {
-                mutableMapOf("REMAP" to remap)
-            }))
-            s.addSource(Shader.Type.fragment, ShaderPreprocessor().Preprocess(null, show_fragment_stereo, Supplier {
-                mutableMapOf("REMAP" to remap)
-            }))
+        } else
+            if (isFullscreen && STEREO) {
+                s.addSource(Shader.Type.vertex, ShaderPreprocessor().Preprocess(null, show_vertex_stereo, Supplier {
+                    mutableMapOf("REMAP" to remap)
+                }))
+                s.addSource(Shader.Type.fragment, ShaderPreprocessor().Preprocess(null, show_fragment_stereo, Supplier {
+                    mutableMapOf("REMAP" to remap)
+                }))
 
-        }  else {
-            s.addSource(Shader.Type.vertex, ShaderPreprocessor().Preprocess(null, show_vertex, Supplier {
-                mutableMapOf("REMAP" to remap)
-            }))
-            s.addSource(Shader.Type.fragment, ShaderPreprocessor().Preprocess(null, show_fragment, Supplier {
-                mutableMapOf("REMAP" to remap)
-            }))
-        }
+            } else {
+                s.addSource(Shader.Type.vertex, ShaderPreprocessor().Preprocess(null, show_vertex, Supplier {
+                    mutableMapOf("REMAP" to remap)
+                }))
+                s.addSource(Shader.Type.fragment, ShaderPreprocessor().Preprocess(null, show_fragment, Supplier {
+                    mutableMapOf("REMAP" to remap)
+                }))
+            }
 
         s.asMap_set("disabled", Supplier { if (disabled.invoke()) 1f else 0f })
 
@@ -1011,6 +1032,8 @@ class Stage(val w: Int, val h: Int) : AsMap {
             fbo.draw()
         })
 
+        masterShader = s;
+
         return s;
     }
 
@@ -1030,7 +1053,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
         return ThreadSync2.callInMainThreadAndWait(Callable {
             if (window == null) {
-                window = object : Window(0, 0, w/2 - 1, h/2 - 1, "Field / Stage $thisStageNum") {
+                window = object : Window(0, 0, w / 2 - 1, h / 2 - 1, "Field / Stage $thisStageNum") {
                     override fun makeCallback(): GlfwCallback {
 
                         return object : GlfwCallbackDelegate(super.makeCallback()) {
