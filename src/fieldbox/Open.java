@@ -430,6 +430,8 @@ public class Open {
 
 		});
 
+		new Startup(boxes.root());
+
 		// start the runloop
 		boxes.start();
 

@@ -17,11 +17,8 @@ public class Main {
 
 	public static final String app = System.getProperty("appDir")+"/";
 
-
-
 //	static Set<String> whitelist_prefix = new LinkedHashSet<>(Arrays.asList("field/"));
 //	static Set<String> blacklist_prefix = new LinkedHashSet<>(Arrays.asList("--nothing--"));
-
 
 	public static void premain(String agentArgs, Instrumentation inst) {
 		//jdk1.8_20's instrumentation support is busted with respect to lambdas. Fortunately, now we have our own classloader we don't care.
