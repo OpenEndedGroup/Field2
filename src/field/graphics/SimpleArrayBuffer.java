@@ -164,13 +164,26 @@ public class SimpleArrayBuffer implements ArrayBuffer {
 		data.rewind();
 		data.limit(4 * limit * dimension);
 
+		System.out.println(" actually cleaning a simple buffer :"+data+" "+limit+" / "+s.limit+" / "+dimension+" to binding "+binding+" "+customStorage);
+
 		s.limit = limit;
 
 		if (customStorage != null) {
-			if (customStorage.limit() < (limit * dimension)) Log.log("graphics.error", ()->"ERROR: not enough data in bound storage, attribute " + attribute);
-			else glBufferSubData(binding, 0, customStorage);
+			if (customStorage.limit() < (limit * dimension)) {
+				System.out.println(" --- this is an error :"+customStorage.limit()+" "+limit+" * "+dimension+" = "+(limit*dimension));
+
+//				Log.log("graphics.error", ()->"ERROR: not enough data in bound storage, attribute " + attribute);
+				throw new IllegalArgumentException("ERROR: not enough data in bound storage, attribute "+attribute);
+			}
+			else
+			{
+				System.out.println(" customStorage :"+customStorage);
+
+				glBufferSubData(binding, 0, customStorage);
+			}
 		} else {
 			glBufferSubData(binding, 0, data);
+			System.out.println(" simple subdata :"+data);
 		}
 		uploadBytes += 4 * limit * dimension;
 

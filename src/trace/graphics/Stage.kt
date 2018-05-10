@@ -138,7 +138,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
     init {
         thisStageNum = stageNum++
-        fbo = FBO(FBO.FBOSpecification.singleFloat16(thisStageNum, w, h))
+        fbo = FBO(FBO.FBOSpecification.singleFloat16_depth(thisStageNum, w, h))
 
         val base = System.getProperty("user.home") + File.separatorChar + "Desktop" + File.separatorChar + "field_stage_recordings" + File.separatorChar
 
@@ -166,20 +166,24 @@ class Stage(val w: Int, val h: Int) : AsMap {
         planeBuilder.e(0, 1, 2)
         planeBuilder.e(0, 2, 3)
         planeBuilder.close()
+
         s.asMap_set("geom", planes)
         s.asMap_set("color", Supplier { background });
         fbo.scene.attach(-101, {
             if (STEREO)
                 GL11.glEnable(GL11.GL_CLIP_PLANE0);
             GL11.glEnable(GL11.GL_BLEND);
-            GL11.glEnable(GL32.GL_DEPTH_CLAMP)
+            GL11.glDisable(GL11.GL_DEPTH_TEST)
+            GL11.glDepthFunc(GL11.GL_LESS)
+//            GL11.glEnable(GL32.GL_DEPTH_CLAMP)
             GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 //            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
             false
         })
         fbo.scene.attach("background_clear", s)
         fbo.scene.attach(-101, Scene.Perform {
-            GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
+            GL11.glClearDepth(1.0)
+            GL11.glClear(GL11.GL_COLOR_BUFFER_BIT or GL11.GL_DEPTH_BUFFER_BIT);
             false
         })
 
@@ -381,40 +385,58 @@ class Stage(val w: Int, val h: Int) : AsMap {
         private var vrOptIn = 0f;
 
         val builders = mutableMapOf<String, kotlin.Pair<MeshBuilder, BaseMesh>>()
-        fun lineBuilder(name: String): kotlin.Pair<MeshBuilder, BaseMesh> {
+
+
+        fun lineBuilder(name: String): MeshBuilder {
             return builders.computeIfAbsent(name, {
 
-                val geometry = BaseMesh.lineList(0, 0)
-                val builder = MeshBuilder(geometry)
-
-                shader!!.first!!.asMap_set(name, geometry)
-
-                builder to geometry
-            })
-        }
-
-        fun triangleBuilder(name: String): kotlin.Pair<MeshBuilder, BaseMesh> {
-            return builders.computeIfAbsent(name, {
-
-                val geometry = BaseMesh.triangleList(0, 0)
+                val geometry = BaseMesh.lineList(0, 0).setInstances({ if (OculusDrawTarget2.isVR != null || STEREO) 2 else 1 })
                 val builder = MeshBuilder(geometry)
 
                 shader!!.second!!.asMap_set(name, geometry)
 
                 builder to geometry
-            })
+            }).first
         }
 
-        fun pointBuilder(name: String): kotlin.Pair<MeshBuilder, BaseMesh> {
+        fun triangleBuilder(name: String): MeshBuilder {
             return builders.computeIfAbsent(name, {
 
-                val geometry = BaseMesh.pointList(0)
+                val geometry = BaseMesh.triangleList(0, 0).setInstances({ if (OculusDrawTarget2.isVR != null || STEREO) 2 else 1 })
+                geometry.setInstances(2)
+                val builder = MeshBuilder(geometry)
+
+                shader!!.first!!.asMap_set(name, geometry)
+
+                geometry.attach(-100, {
+                    GL11.glEnable(GL11.GL_DEPTH_TEST)
+                    GL11.glDepthFunc(GL11.GL_LESS)
+                    GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT)
+                    true
+                })
+
+                geometry.attach(100, {
+                    GL11.glDisable(GL11.GL_DEPTH_TEST)
+                    GL11.glDepthFunc(GL11.GL_LESS)
+                    GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT)
+                    true
+                })
+
+                builder to geometry
+            }).first
+        }
+
+        fun pointBuilder(name: String): MeshBuilder {
+            return builders.computeIfAbsent(name, {
+
+                val geometry = BaseMesh.pointList(0).setInstances({ if (OculusDrawTarget2.isVR != null || STEREO) 2 else 1 })
+                geometry.setInstances(2)
                 val builder = MeshBuilder(geometry)
 
                 shader!!.third!!.asMap_set(name, geometry)
 
                 builder to geometry
-            })
+            }).first
         }
 
         fun vrGazeDirection(): Vec3 {

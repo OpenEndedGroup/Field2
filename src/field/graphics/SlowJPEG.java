@@ -1,6 +1,11 @@
 package field.graphics;
 
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.plugins.jpeg.JPEGImageWriteParam;
+import javax.imageio.stream.FileImageOutputStream;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.io.File;
@@ -54,7 +59,32 @@ public class SlowJPEG implements JPEGLoader{
 
 	public void compress(String filename, Buffer dest, int width, int height)
 	{
-		throw new IllegalArgumentException("not implemented");
+//		throw new IllegalArgumentException("not implemented");
+		BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);
+
+		ByteBuffer t = ByteBuffer.allocate(dest.limit());
+		dest.rewind();
+		t.put((ByteBuffer)dest);
+		t.rewind();
+		dest.rewind();
+
+//		image.getRaster().setDataElements(0,0, t.array());
+
+		byte[] ddd = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
+		System.arraycopy(t.array(), 0, ddd, 0, ddd.length);
+
+		try {
+		ImageWriter jj = ImageIO.getImageWritersByFormatName("jpg").next();
+			jj.setOutput(new FileImageOutputStream(new File(filename)));
+			JPEGImageWriteParam params = new JPEGImageWriteParam(null);
+			params.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+			params.setCompressionQuality(1f);
+			jj.write(null, new IIOImage(image, null, null), params);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+
 	}
 
 

@@ -1,6 +1,7 @@
 package field.graphics.util;
 
 import field.graphics.FastJPEG;
+import field.graphics.SlowJPEG;
 import field.utility.IdempotencyMap;
 import field.utility.Pair;
 import fieldnashorn.annotations.HiddenInAutocomplete;
@@ -16,6 +17,7 @@ import java.util.concurrent.*;
 import java.util.function.Consumer;
 
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL12.GL_BGR;
 import static org.lwjgl.opengl.GL30.*;
 
 /*
@@ -162,7 +164,7 @@ public class Saver {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 //		glFinish();
 //		GL11.glReadBuffer(GL11.GL_BACK);
-		glReadPixels(0, 0, width, height, GL11.GL_RGB, GL_UNSIGNED_BYTE, storage.first);
+		glReadPixels(0, 0, width, height, GL_BGR, GL_UNSIGNED_BYTE, storage.first);
 //		glFinish();
 		glBindFramebuffer(GL_FRAMEBUFFER, a[0]);
 		storage.first.rewind();
@@ -188,7 +190,11 @@ public class Saver {
 				}
 
 				try {
-					j2.compress(filename, storage.second, width, height);
+
+
+//					j2.compress(filename, storage.second, width, height);
+					System.out.println(" -- slow save --");
+					new SlowJPEG().compress(filename, storage.second, width, height);
 				} catch (Throwable t) {
 					System.err.println(" -- exception thrown in compress for :" + filename + " " + storage + " " + width + " " + height);
 					t.printStackTrace();

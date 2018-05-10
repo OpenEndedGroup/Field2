@@ -3,6 +3,7 @@ package trace.graphics
 import field.app.RunLoop
 import field.app.ThreadSync2
 import field.graphics.GlfwCallback
+import field.graphics.Scene
 import field.graphics.Window
 import field.graphics.vr.FakeOculusDrawTarget
 import field.graphics.vr.OculusDrawTarget2
@@ -16,11 +17,16 @@ class SimpleOculusTarget {
 
     companion object {
 
+        var disable = false
+
         val window: Window
         var o: OculusDrawTarget2? = null
         var fake: FakeOculusDrawTarget? = null
 
         val queue = mutableListOf<() -> Unit>()
+
+        @JvmField
+        val camera : SimpleCamera? = null
 
         init {
 
@@ -41,7 +47,8 @@ class SimpleOculusTarget {
 
             window!!.setBounds(0, 0, 1024, 512)
 
-            if (OS.isWindows()) {
+            if (!disable and OS.isWindows())
+            {
                 o = OculusDrawTarget2()
                 o!!.debugBlit = true
                 //        o.debugFBO = true
@@ -49,7 +56,9 @@ class SimpleOculusTarget {
             } else {
                 fake = FakeOculusDrawTarget(1344, 1600)
                 fake!!.debugBlit = true
+                fake!!.init(window.scene)
             }
+
 
             RunLoop.main.mainLoop.attach {
 
@@ -65,6 +74,25 @@ class SimpleOculusTarget {
                 }
                 return@attach true
             }
+        }
+
+        fun textureW(): Int {
+            if (o!=null)
+                return o!!.textureW
+            return 1344;
+        }
+
+        fun textureH(): Int {
+            if (o!=null)
+                return o!!.textureH
+            return 1600;
+        }
+
+        fun scene(): Scene {
+            if (o!=null)
+                return o!!.scene
+            else
+                return fake!!.scene!!
         }
 
         fun getTarget(): Any {
