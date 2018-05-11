@@ -14,6 +14,7 @@ class SimpleCamera(val camera: Camera) {
     @JvmField
     val up = camera.state.up
 
+
     fun orbitLeft(degrees: Double) {
         camera.advanceState {
             it.orbitLeft((Math.PI * degrees / 180).toFloat())

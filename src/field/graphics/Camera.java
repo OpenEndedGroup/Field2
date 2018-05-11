@@ -15,7 +15,7 @@ import java.util.function.Function;
  * can produce two Mat4's which were customarily multiplied together anyway. The view matrix, which rotates the world into the camera's
  * coordinate system and the projection matrix with projects that coordinate system into the screen's coordinate system. These are Mat4's not Mat3's,
  * even though we are 3d space because we can express projection matrices using homogeneous coordinates.
- *
+ * <p>
  * To tie this to OpenGL, conspire to load these matrices into shader uniforms.
  */
 public class Camera {
@@ -112,6 +112,7 @@ public class Camera {
 		public Vec3 up() {
 			return up;
 		}
+
 		public Vec3 target() {
 			return target;
 		}
@@ -232,6 +233,17 @@ public class Camera {
 			return new Vec3(position.x + left.x * s, position.y + left.y * s, position.z + left.z * s);
 		}
 
+		public State zoomIn(float amount) {
+			State s = copy();
+			s.fov = Math.max(2, Math.min(179, s.fov + amount));
+			return s;
+		}
+
+		public State zoomOut(float amount) {
+			State s = copy();
+			s.fov = Math.max(2, Math.min(179, s.fov - amount));
+			return s;
+		}
 	}
 
 	State state = new State();
@@ -270,26 +282,26 @@ public class Camera {
 
 	/**
 	 * Projection matrix that can blend between orthographic and projection
-	 *
+	 * <p>
 	 * here state.near and state.far are measured from the look at point with +ve z pointing towards us. Therefore state.near>state.far for almost all applications.
-	 *
+	 * <p>
 	 * Experimental
 	 */
 	public Mat4 projectionMatrix2(float half_width) {
 		float[] m = new float[16];
 
-		float hw = half_width*state.aspect;
+		float hw = half_width * state.aspect;
 		float hh = half_width;
 
 		float iez = (float) Math.tan((state.fov * Math.PI / 90) / Math.min(hw, hh));
 
-		m[0] = 1/hw;
-		m[5] = 1/hh;
-		m[8] = -state.sx/hw;
-		m[9] = -state.sy/hh;
-		m[10] = -(2-(state.near+state.far)*iez)/(state.near-state.far);
+		m[0] = 1 / hw;
+		m[5] = 1 / hh;
+		m[8] = -state.sx / hw;
+		m[9] = -state.sy / hh;
+		m[10] = -(2 - (state.near + state.far) * iez) / (state.near - state.far);
 		m[11] = -iez;
-		m[14] = ((state.near+state.far)-2*state.near*state.far*iez)/(state.near-state.far);
+		m[14] = ((state.near + state.far) - 2 * state.near * state.far * iez) / (state.near - state.far);
 		m[15] = 1;
 		return new Mat4(m);
 	}
@@ -337,18 +349,15 @@ public class Camera {
 		return q;
 	}
 
-	public Mat4 viewLeft()
-	{
+	public Mat4 viewLeft() {
 		return view(-1);
 	}
 
-	public Mat4 viewRight()
-	{
+	public Mat4 viewRight() {
 		return view(1);
 	}
 
-	public Mat4 viewCenter()
-	{
+	public Mat4 viewCenter() {
 		return view(0);
 	}
 

@@ -68,6 +68,14 @@ public class KeyboardCamera implements Function<Window.Event<KeyboardState>, Boo
 		bindings.put(new KeyBinding.KeyName(GLFW_KEY_DOWN, true, false, false, false), new Applicator(0, (state, amount) -> state
 			.dollyIn(-translationAmount * amount)));
 
+		bindings.put(new KeyBinding.KeyName(GLFW_KEY_LEFT_BRACKET, false, false, false, false), new Applicator(0, (state, amount) -> state
+			.roll(-rotationAmount * amount)));
+		bindings.put(new KeyBinding.KeyName(GLFW_KEY_RIGHT_BRACKET, false, false, false, false), new Applicator(0, (state, amount) -> state
+			.roll(rotationAmount * amount)));
+		bindings.put(new KeyBinding.KeyName(GLFW_KEY_LEFT_BRACKET, true, false, false, false), new Applicator(0, (state, amount) -> state
+			.zoomOut(amount)));
+		bindings.put(new KeyBinding.KeyName(GLFW_KEY_RIGHT_BRACKET, true, false, false, false), new Applicator(0, (state, amount) -> state
+			.zoomIn(amount)));
 
 	}
 
