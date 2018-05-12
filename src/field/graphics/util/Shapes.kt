@@ -22,9 +22,9 @@ import org.lwjgl.assimp.Assimp.*
  */
 class Shapes {
 
-    @JvmField var normals = 2;
+    @JvmField var normals = 4;
     @JvmField var textures = 3;
-    @JvmField var colors = 4;
+    @JvmField var colors = 1;
 
     @SafeToToString
     @Documentation("Set this field to rotate everything that this class appends to builders")

@@ -164,7 +164,7 @@ public class SimpleArrayBuffer implements ArrayBuffer {
 		data.rewind();
 		data.limit(4 * limit * dimension);
 
-		System.out.println(" actually cleaning a simple buffer :"+data+" "+limit+" / "+s.limit+" / "+dimension+" to binding "+binding+" "+customStorage);
+//		System.out.println(" actually cleaning a simple buffer :"+data+" "+limit+" / "+s.limit+" / "+dimension+" to binding "+binding+" "+customStorage);
 
 		s.limit = limit;
 
@@ -177,13 +177,13 @@ public class SimpleArrayBuffer implements ArrayBuffer {
 			}
 			else
 			{
-				System.out.println(" customStorage :"+customStorage);
+//				System.out.println(" customStorage :"+customStorage);
 
 				glBufferSubData(binding, 0, customStorage);
 			}
 		} else {
 			glBufferSubData(binding, 0, data);
-			System.out.println(" simple subdata :"+data);
+//			System.out.println(" simple subdata :"+data);
 		}
 		uploadBytes += 4 * limit * dimension;
 
