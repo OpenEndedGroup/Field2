@@ -137,6 +137,30 @@ public class Camera {
 			return s;
 		}
 
+		@Override
+		public String toString() {
+			String basic = "camera p:"+position+" t:"+target+" u:"+up+" aspect:"+aspect+" fov:"+fov+" far:"+far+" near:"+near;
+
+			if (io_disparity!=0)
+				basic += " io_disparity:"+io_disparity;
+			if (io_disparity_per_distance!=0)
+				basic += " io_disparity_per_distance:"+io_disparity_per_distance;
+			if (io_frustra!=0)
+				basic += " io_frustra:"+io_frustra;
+
+			if (rx!=1)
+				basic += " rx:"+rx;
+			if (ry!=1)
+				basic += " ry:"+ry;
+			if (sx!=0)
+				basic += " sx:"+sx;
+			if (sy!=0)
+				basic += " sy:"+sy;
+
+			return basic.trim();
+
+		}
+
 		public State orbitLeft(float r) {
 			State s = copy();
 			s.position = Vec3.add(target, new Quat().fromAxisAngleRad(up, r).transform(ray().mul(-1)), new Vec3());
