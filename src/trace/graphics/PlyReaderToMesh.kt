@@ -16,9 +16,10 @@ class PlyReaderToMesh {
 
         m.first.forEach {
 
-
             var color: Vec4? = null
             var normal: Vec3? = null
+
+//            println(" attributes at this vertex are? :"+it.attributes.keys)
 
             it.attributes.forEach {
 
@@ -39,13 +40,25 @@ class PlyReaderToMesh {
                     color!!.w = it.value.get(0).toDouble()
                 }
 
+                if (it.key.contains("nx")) {
+                    if (normal == null) normal = Vec3(0.0, 0.0, 0.0)
+                    normal!!.x = it.value.get(0).toDouble()
+                }
+                if (it.key.contains("ny")) {
+                    if (normal == null) normal = Vec3(0.0, 0.0, 0.0)
+                    normal!!.y = it.value.get(0).toDouble()
+                }
+                if (it.key.contains("nz")) {
+                    if (normal == null) normal = Vec3(0.0, 0.0, 0.0)
+                    normal!!.z = it.value.get(0).toDouble()
+                }
             }
 
             if (color != null) {
                 target.aux(1, color!! * 1/255.0)
             }
             if (normal != null) {
-                target.aux(2, normal)
+                target.aux(4, normal)
             }
 
             target.v(it.at)

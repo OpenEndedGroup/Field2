@@ -266,10 +266,11 @@ public final class PlyReader {
     private Element vertexElement=null;
     private int vertexXPropIndex=-1, vertexYPropIndex=-1, vertexZPropIndex=-1;
     private int vertexRedPropIndex=-1, vertexGreenPropIndex=-1, vertexBluePropIndex=-1;
+    private int normalXPropIndex=-1, normalYPropIndex=-1, normalZPropIndex=-1;
     private Element faceElement=null;
     private int vertexIndicesPropIndex=-1;
 
-    private final boolean hasVertices, hasVertexColors, hasFaces;
+    private final boolean hasVertices, hasVertexColors, hasFaces, hasNormals;
 
     /**
      * Creates a new instance that reads data from the specified file. The constructor parses the header of the PLY file,
@@ -388,6 +389,25 @@ public final class PlyReader {
                             if (vertexBluePropIndex!=-1) throw new InvalidPlyFormatException("Multiple vertex.blue properties");
                             vertexBluePropIndex=pi;
                             break;
+
+                        case "nx":
+                            if (p instanceof ListProperty) throw new InvalidPlyFormatException("Invalid normal.x property");
+                            if (normalXPropIndex!=-1) throw new InvalidPlyFormatException("Multiple normal.x properties");
+                            normalXPropIndex=pi;
+                            break;
+                        case "ny":
+                            if (p instanceof ListProperty) throw new InvalidPlyFormatException("Invalid normal.y property");
+                            if (normalYPropIndex!=-1) throw new InvalidPlyFormatException("Multiple normal.y properties");
+                            normalYPropIndex=pi;
+                            break;
+                        case "nz":
+                            if (p instanceof ListProperty) throw new InvalidPlyFormatException("Invalid normal.z property");
+                            if (normalZPropIndex!=-1) throw new InvalidPlyFormatException("Multiple normal.z properties");
+                            normalZPropIndex=pi;
+                            break;
+
+
+
                         case "diffuse_red":
                             if (p instanceof ListProperty) throw new InvalidPlyFormatException("Invalid vertex.red property");
                             if (vertexRedPropIndex!=-1) throw new InvalidPlyFormatException("Multiple vertex.red properties");
@@ -431,6 +451,12 @@ public final class PlyReader {
         if (hasVertexColors) {
             if (vertexRedPropIndex==-1 || vertexGreenPropIndex==-1 || vertexBluePropIndex==-1) throw new InvalidPlyFormatException("Incomplete vertex color");
         }
+
+        hasNormals = normalXPropIndex!=-1 || normalYPropIndex!=-1 || normalZPropIndex!=-1;
+        if (hasNormals) {
+            if (normalXPropIndex==-1 || normalYPropIndex==-1 || normalZPropIndex==-1) throw new InvalidPlyFormatException("Incomplete normals");
+        }
+
 
         hasFaces=faceElement!=null && faceElement.count>0;
         if (hasFaces) {
@@ -550,7 +576,7 @@ public final class PlyReader {
 
             for (Element currentElement: elements) {
                 if (currentElement==vertexElement) {
-					/* Parse vertices */
+                    /* Parse vertices */
                     int red=-1, green=-1, blue=-1;
                     for (int elemIndex=0; elemIndex<currentElement.count; elemIndex++) {
                         Vec3 v= new Vec3();
@@ -585,7 +611,7 @@ public final class PlyReader {
                         colors.add(new Vec4(red, green, blue, 1));
                     }
                 } else {
-					/* Parse anything else */
+                    /* Parse anything else */
                     for (int elemIndex=0; elemIndex<currentElement.count; elemIndex++) {
                         for (int propIndex=0; propIndex<currentElement.properties.size(); propIndex++) {
                             Property prop=currentElement.properties.get(propIndex);
@@ -607,6 +633,7 @@ public final class PlyReader {
 
         return new Pair<List<Vec3>, List<Vec4>>(vertices, colors);
     }
+
 
     public class Vertex
     {
