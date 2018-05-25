@@ -22,6 +22,7 @@ public class Camera {
 
 	static public class State implements Serializable_safe {
 
+		static final long serialVersionUID = -3003261492097861789L;
 
 		/**
 		 * the position of the camera
@@ -244,6 +245,33 @@ public class Camera {
 			s.fov = Math.max(2, Math.min(179, s.fov - amount));
 			return s;
 		}
+
+		public State interpolate(float amount, State towards)
+		{
+			State s = copy();
+
+			s.position.lerp(towards.position, amount);
+			s.target.lerp(towards.target, amount);
+			s.up.lerp(towards.up, amount);
+
+			s.fov = s.fov*(1-amount) + amount*towards.fov;
+			s.io_disparity = s.io_disparity*(1-amount) + amount*towards.io_disparity;
+			s.io_disparity_per_distance = s.io_disparity_per_distance*(1-amount) + amount*towards.io_disparity_per_distance;
+			s.io_frustra = s.io_frustra*(1-amount) + amount*towards.io_frustra;
+			s.aspect = s.aspect*(1-amount) + amount*towards.aspect;
+			s.far = s.far*(1-amount) + amount*towards.far;
+			s.near = s.near*(1-amount) + amount*towards.near;
+			s.rx = s.rx*(1-amount) + amount*towards.rx;
+			s.ry = s.ry*(1-amount) + amount*towards.ry;
+			s.sx = s.sx*(1-amount) + amount*towards.sx;
+			s.sy = s.sy*(1-amount) + amount*towards.sy;
+
+
+			return s;
+
+		}
+
+
 	}
 
 	State state = new State();
