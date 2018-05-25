@@ -967,7 +967,6 @@ public class MeshBuilder implements MeshAcceptor, Bracketable, Scene.ContainsPer
 
             Vec3 v = new Vec3(x, y, z);
             Object ret = transformer.apply(v);
-            System.out.println(" ret = " + ret);
             if (ret instanceof Vec3) {
                 vv.put(3 * i + 0, (float) ((Vec3) ret).x);
                 vv.put(3 * i + 1, (float) ((Vec3) ret).y);
