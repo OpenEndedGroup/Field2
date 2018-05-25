@@ -8,6 +8,7 @@ import field.linalg.Mat4;
 import field.linalg.Quat;
 import field.linalg.Vec3;
 import field.utility.IdempotencyMap;
+import field.utility.Pair;
 import field.utility.Rect;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.PointerBuffer;
@@ -99,6 +100,10 @@ public class OculusDrawTarget2 {
     public Vec3 translation;
     public OVRInputState leftInputState;
     public OVRInputState rightInputState;
+    public Vec3 leftPosition;
+    public Vec3 rightPosition;
+    public Quat leftOrientation;
+    public Quat rightOrientation;
 
     public Mat4 view() {
         if (thisModelView == null)
@@ -135,6 +140,7 @@ public class OculusDrawTarget2 {
             System.err.println(" warning : projectionMatrix called while we were not rendering to an oculus eye");
         return theseProjections == null ? new Mat4() : theseProjections[1];
     }
+
 
 
     public StereoCameraInterface cameraInterface() {
@@ -512,10 +518,24 @@ public class OculusDrawTarget2 {
                     System.out.println("== " + inputState.Thumbstick(0).x() + "/" + inputState.Thumbstick(0)
                             .y() + "   " + inputState.Thumbstick(1).x() + "/" + inputState.Thumbstick(1).y());
                 }
+
+
                 rightInputState = inputState;
 
 
+                OVRVector3f p1 = hmdState.HandPoses(0).ThePose().Position();
+                leftPosition = new Vec3(p1.x(), p1.y(), p1.z());
+                OVRVector3f p2 = hmdState.HandPoses(1).ThePose().Position();
+                rightPosition = new Vec3(p2.x(), p2.y(), p2.z());
 
+                OVRQuatf q1 = hmdState.HandPoses(0).ThePose().Orientation();
+                leftOrientation = new Quat(q1.x(), q1.y(), q1.z(), q1.w());
+                OVRQuatf q2 = hmdState.HandPoses(1).ThePose().Orientation();
+                rightOrientation = new Quat(q2.x(), q2.y(), q2.z(), q2.w());
+
+//                System.out.println(" left position is :"+leftPosition);
+
+             
                 for (int eyeIndex = 0; eyeIndex < 2; eyeIndex++) {
                     int eye = eyeIndex;
 
@@ -547,6 +567,10 @@ public class OculusDrawTarget2 {
                         orientation.invert();
                     }
                     mat.rotate(orientation);
+
+//                    System.out.println(" eyepose :"+eye+" = "+eyePose.Position().x()+" "+eyePose.Position().y()+" "+eyePose.Position().z());
+//                    System.out.println(" mat ("+eye+"):"+proj+" "+proj.m20);
+                   // matP.m20 /= 1.1;
 
                     Vec3 position = new Vec3(-eyePose.Position().x(), -eyePose.Position().y(),
                                              -eyePose.Position().z()).add(extraCameraTranslation);
