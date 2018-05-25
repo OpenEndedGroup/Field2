@@ -355,16 +355,21 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
         }
 
+        var vrDefaulted = false
+
         fun vrDefaults() {
-            this.vrOptIn = 1.0f
-            this.is3D = true
-            this.bounds = Vec2(1.0, 1.0)
-            this.translation = Vec2(-0.5, -0.5)
-            var s = this.__camera.getState()
-            val y = 1.6
-            s.position = Vec3(0, y, -2)
-            s.target = Vec3(0, y, 0)
-            this.__camera.setState(s)
+            if (!vrDefaulted) {
+                this.vrOptIn = 1.0f
+                this.is3D = true
+                this.bounds = Vec2(1.0, 1.0)
+                this.translation = Vec2(-0.5, -0.5)
+                var s = this.__camera.getState()
+                val y = 1.6
+                s.position = Vec3(0, y, -2)
+                s.target = Vec3(0, y, 0)
+                this.__camera.setState(s)
+                vrDefaulted = true
+            }
         }
 
         fun bindPointShader(box: Box): Shader? {
