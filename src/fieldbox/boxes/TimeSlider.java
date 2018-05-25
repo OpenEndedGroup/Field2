@@ -46,6 +46,8 @@ public class TimeSlider extends Box {
 	public float topLimit = Float.NEGATIVE_INFINITY;
 	public float bottomLimit = Float.POSITIVE_INFINITY;
 
+	public boolean disable = false;
+
 	public TimeSlider() {
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__force_onscreen__", this::forceOnscreen);
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__swipe__", this::swiper);
@@ -170,6 +172,7 @@ public class TimeSlider extends Box {
 	}
 
 	protected void off(Set<Box> off) {
+		if (disable) return;
 		off.forEach(b -> {
 			Log.log("debug.execution", () -> " -- END :" + b);
 			if (b != null)
@@ -178,6 +181,7 @@ public class TimeSlider extends Box {
 	}
 
 	protected void on(Set<Box> on, Map<Box, Double> mapping) {
+		if (disable) return;
 		on.forEach(b -> {
 			Log.log("debug.execution", () -> " -- BEGIN :" + b);
 			if (b != null)
@@ -237,6 +241,7 @@ public class TimeSlider extends Box {
 	 * by default things that we skip over backwards we _do_ run (and then immediately stop).
 	 */
 	protected void skipForward(Set<Box> skipForward, Map<Box, Double> times) {
+		if (disable) return;
 		skipForward.forEach(b -> {
 			Log.log("debug.execution", () -> " -- FORWARD :" + b);
 			b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).begin(b, initiator(b, times.get(b))));
