@@ -2,7 +2,10 @@ package trace.graphics
 
 import field.graphics.Camera
 import field.linalg.Vec3
+import field.utility.Dict
 import field.utility.remAssign
+import fieldbox.boxes.Box
+import fieldbox.io.IO
 
 class SimpleCamera(val camera: Camera) {
 
@@ -16,7 +19,7 @@ class SimpleCamera(val camera: Camera) {
     {
         camera.advanceState {
             val s = it.copy()
-            it.position %= v
+            s.position %= v
             s
         }
         updateState()
@@ -26,7 +29,7 @@ class SimpleCamera(val camera: Camera) {
     {
         camera.advanceState {
             val s = it.copy()
-            it.target %= v
+            s.target %= v
             s
         }
         updateState()
@@ -35,7 +38,7 @@ class SimpleCamera(val camera: Camera) {
     {
         camera.advanceState {
             val s = it.copy()
-            it.up %= v
+            s.up %= v
             s
         }
         updateState()
@@ -167,6 +170,35 @@ class SimpleCamera(val camera: Camera) {
         }
         updateState()
     }
+
+
+    fun remember(b : Box, name : String) : String
+    {
+        if (b.properties.has(Dict.Prop<Any>(name))) throw IllegalArgumentException(" you already have a camera state called $name, do you mean to say 'overwrite'? instead?")
+
+        var p = Dict.Prop<Camera.State>(name)
+        p = p.toCanon<Camera.State>()
+        p.attributes.put(IO.persistent, true)
+        b.properties.put(p, getState())
+
+        return "saved ${getState()} to $name"
+    }
+
+    fun overwrite(b : Box, name : String) : String
+    {
+        var p = Dict.Prop<Camera.State>(name)
+        p = p.toCanon<Camera.State>()
+        p.attributes.put(IO.persistent, true)
+        b.properties.put(p, getState())
+
+        return "saved ${getState()} to $name"
+    }
+
+    override fun toString(): String {
+        return getState().toString()
+    }
+
+
 
     fun update() {
 
