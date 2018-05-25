@@ -1,18 +1,58 @@
 package trace.graphics
 
 import field.graphics.Camera
+import field.linalg.Vec3
 import field.utility.remAssign
 
 class SimpleCamera(val camera: Camera) {
 
-    @JvmField
     val position = camera.state.position
 
-    @JvmField
     val target = camera.state.target
 
-    @JvmField
     val up = camera.state.up
+
+    fun setPosition(v : Vec3)
+    {
+        camera.advanceState {
+            val s = it.copy()
+            it.position %= v
+            s
+        }
+        updateState()
+    }
+
+    fun setTarget(v : Vec3)
+    {
+        camera.advanceState {
+            val s = it.copy()
+            it.target %= v
+            s
+        }
+        updateState()
+    }
+    fun setUp(v : Vec3)
+    {
+        camera.advanceState {
+            val s = it.copy()
+            it.up %= v
+            s
+        }
+        updateState()
+    }
+
+    fun getState() : Camera.State
+    {
+        return camera.state.copy()
+    }
+
+    fun setState(s : Camera.State)
+    {
+        camera.advanceState {
+            s
+        }
+        update()
+    }
 
 
     fun orbitLeft(degrees: Double) {
@@ -108,6 +148,22 @@ class SimpleCamera(val camera: Camera) {
     fun translateOut(d: Double) {
         camera.advanceState {
             it.translateIn(-d.toFloat())
+        }
+        updateState()
+    }
+
+    fun interpolate(amount : Float, s : Camera.State)
+    {
+        camera.advanceState {
+            it.copy().interpolate(amount, s)
+        }
+        updateState()
+    }
+
+    fun interpolate( from : Camera.State, amount : Float, to : Camera.State)
+    {
+        camera.advanceState {
+            from.copy().interpolate(amount, to)
         }
         updateState()
     }
