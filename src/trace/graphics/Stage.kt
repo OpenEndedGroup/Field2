@@ -399,6 +399,18 @@ class Stage(val w: Int, val h: Int) : AsMap {
             }).first
         }
 
+        fun lineAdjBuilder(name: String): MeshBuilder {
+            return builders.computeIfAbsent(name, {
+
+                val geometry = BaseMesh.lineAdjecencyList(0, 0).setInstances({ if (OculusDrawTarget2.isVR != null || STEREO) 2 else 1 })
+                val builder = MeshBuilder(geometry)
+
+                shader!!.second!!.asMap_set(name, geometry)
+
+                builder to geometry
+            }).first
+        }
+
         fun triangleBuilder(name: String): MeshBuilder {
             return builders.computeIfAbsent(name, {
 
@@ -472,6 +484,79 @@ class Stage(val w: Int, val h: Int) : AsMap {
             var b2 = Vec3(b.x, b.y, b.z) * (1 / b.w)
 
             return a2
+
+        }
+
+
+        fun vrLeftHandPosition(): Vec3 {
+
+            var at = SimpleOculusTarget.o!!.leftPosition + Vec3(0.0, 1.65, 0.0)
+            var m2 = Mat4(__camera.view().get())
+            m2 = m2.transpose()
+            m2 = m2.invert()
+            var al = m2.transform(Vec4(at, 1.0))
+
+            println(al)
+            return Vec3(al.x, al.y, al.z) * (1 / al.w)
+
+        }
+
+        fun vrLeftHandDirection(): Vec3 {
+
+            val m = Mat4();
+            m.identity()
+            val o = SimpleOculusTarget.o!!.leftOrientation
+
+            m.rotate(o)
+
+            val base = m.transform(Vec4(0, 0, 0, 1))
+            val end = m.transform(Vec4(0, 0, -1, 1))
+
+            val dir = Vec3(end.x, end.y, end.z) * (1 / end.w) - Vec3(base.x, base.y, base.z) * (1 / base.w)
+
+
+            var m2 = Mat4(__camera.view().get())
+            m2 = m2.transpose()
+            m2 = m2.invert()
+            var al = m2.transform(Vec4(dir, 0.0))
+
+            return Vec3(al.x, al.y, al.z);
+        }
+
+
+        fun vrRightHandDirection(): Vec3 {
+
+            val m = Mat4();
+            m.identity()
+            val o = SimpleOculusTarget.o!!.rightOrientation
+
+            m.rotate(o)
+
+            val base = m.transform(Vec4(0, 0, 0, 1))
+            val end = m.transform(Vec4(0, 0, -1, 1))
+
+            val dir = Vec3(end.x, end.y, end.z) * (1 / end.w) - Vec3(base.x, base.y, base.z) * (1 / base.w)
+
+
+            var m2 = Mat4(__camera.view().get())
+            m2 = m2.transpose()
+            m2 = m2.invert()
+            var al = m2.transform(Vec4(dir, 0.0))
+
+            return Vec3(al.x, al.y, al.z);
+        }
+
+
+        fun vrRightHandPosition(): Vec3 {
+
+            var at = SimpleOculusTarget.o!!.rightPosition + Vec3(0.0, 1.65, 0.0)
+            var m2 = Mat4(__camera.view().get())
+            m2 = m2.transpose()
+            m2 = m2.invert()
+            var al = m2.transform(Vec4(at, 1.0))
+
+            println(al)
+            return Vec3(al.x, al.y, al.z) * (1 / al.w)
 
         }
 
