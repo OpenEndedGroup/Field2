@@ -367,7 +367,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
                 val y = 1.6
                 s.position = Vec3(0, y, -2)
                 s.target = Vec3(0, y, 0)
-                this.__camera.setState(s)
+                this.camera.setState(s)
                 vrDefaulted = true
             }
         }

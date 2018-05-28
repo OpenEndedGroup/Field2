@@ -8,15 +8,7 @@ import fieldbox.boxes.Box
 import fieldbox.io.IO
 
 class SimpleCamera(val camera: Camera) {
-
-    val position = camera.state.position
-
-    val target = camera.state.target
-
-    val up = camera.state.up
-
-    fun setPosition(v : Vec3)
-    {
+    fun setPosition(v: Vec3) {
         camera.advanceState {
             val s = it.copy()
             s.position %= v
@@ -25,8 +17,7 @@ class SimpleCamera(val camera: Camera) {
         updateState()
     }
 
-    fun setTarget(v : Vec3)
-    {
+    fun setTarget(v: Vec3) {
         camera.advanceState {
             val s = it.copy()
             s.target %= v
@@ -34,8 +25,20 @@ class SimpleCamera(val camera: Camera) {
         }
         updateState()
     }
-    fun setUp(v : Vec3)
-    {
+
+    fun getUp(): Vec3 {
+        return Vec3(camera.state.up)
+    }
+
+    fun getPosition(): Vec3 {
+        return Vec3(camera.state.position)
+    }
+
+    fun getTarget(): Vec3 {
+        return Vec3(camera.state.target)
+    }
+
+    fun setUp(v: Vec3) {
         camera.advanceState {
             val s = it.copy()
             s.up %= v
@@ -44,13 +47,11 @@ class SimpleCamera(val camera: Camera) {
         updateState()
     }
 
-    fun getState() : Camera.State
-    {
+    fun getState(): Camera.State {
         return camera.state.copy()
     }
 
-    fun setState(s : Camera.State)
-    {
+    fun setState(s: Camera.State) {
         camera.advanceState {
             s
         }
@@ -66,9 +67,7 @@ class SimpleCamera(val camera: Camera) {
     }
 
     private fun updateState() {
-        position %= camera.state.position
-        target %= camera.state.target
-        up %= camera.state.up
+
     }
 
     fun orbitRight(degrees: Double) {
@@ -155,16 +154,14 @@ class SimpleCamera(val camera: Camera) {
         updateState()
     }
 
-    fun interpolate(amount : Float, s : Camera.State)
-    {
+    fun interpolate(amount: Float, s: Camera.State) {
         camera.advanceState {
             it.copy().interpolate(amount, s)
         }
         updateState()
     }
 
-    fun interpolate( from : Camera.State, amount : Float, to : Camera.State)
-    {
+    fun interpolate(from: Camera.State, amount: Float, to: Camera.State) {
         camera.advanceState {
             from.copy().interpolate(amount, to)
         }
@@ -172,8 +169,7 @@ class SimpleCamera(val camera: Camera) {
     }
 
 
-    fun remember(b : Box, name : String) : String
-    {
+    fun remember(b: Box, name: String): String {
         if (b.properties.has(Dict.Prop<Any>(name))) throw IllegalArgumentException(" you already have a camera state called $name, do you mean to say 'overwrite'? instead?")
 
         var p = Dict.Prop<Camera.State>(name)
@@ -184,8 +180,7 @@ class SimpleCamera(val camera: Camera) {
         return "saved ${getState()} to $name"
     }
 
-    fun overwrite(b : Box, name : String) : String
-    {
+    fun overwrite(b: Box, name: String): String {
         var p = Dict.Prop<Camera.State>(name)
         p = p.toCanon<Camera.State>()
         p.attributes.put(IO.persistent, true)
@@ -197,7 +192,6 @@ class SimpleCamera(val camera: Camera) {
     override fun toString(): String {
         return getState().toString()
     }
-
 
 
     fun update() {
