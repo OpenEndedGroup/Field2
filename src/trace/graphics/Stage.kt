@@ -565,6 +565,13 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
         }
 
+        var layerIsDone = false
+
+        fun finishLayer()
+        {
+            layerIsDone = true
+        }
+
 
         fun setShader(shader: Triple<Shader?, Shader?, Shader?>): ShaderGroup {
 
@@ -661,29 +668,31 @@ class Stage(val w: Int, val h: Int) : AsMap {
                 fbo.scene.attach(name + "_$index", it)
             }
 
+
             fbo.scene.attach(-100, "__doGeometry__" + name, Consumer<Int> {
 
-                camera.update()
+                if (!layerIsDone)
+                {
 
-                lineBuilder.open()
-                planeBuilder.open()
-                pointBuilder.open()
-                try {
-                    lines.values.forEach {
-                        if (doTexture)
-                            it.addAuxProperties(4, StandardFLineDrawing.texCoord.name)
-                        StandardFLineDrawing.dispatchLine(it, planeBuilder, lineBuilder, pointBuilder, Optional.empty(), "")
+                    camera.update()
+
+                    lineBuilder.open()
+                    planeBuilder.open()
+                    pointBuilder.open()
+                    try {
+                        lines.values.forEach {
+                            if (doTexture)
+                                it.addAuxProperties(4, StandardFLineDrawing.texCoord.name)
+                            StandardFLineDrawing.dispatchLine(it, planeBuilder, lineBuilder, pointBuilder, Optional.empty(), "")
+                        }
+                    } finally {
+                        pointBuilder.close()
+                        planeBuilder.close()
+                        lineBuilder.close()
                     }
-                } finally {
-                    pointBuilder.close()
-                    planeBuilder.close()
-                    lineBuilder.close()
+                    remoteHelper?.update(this)
                 }
-
                 post.values.forEach { it.run() }
-
-                remoteHelper?.update(this)
-
             })
             groups[name] = this
             return this

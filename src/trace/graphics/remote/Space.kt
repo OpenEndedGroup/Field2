@@ -40,6 +40,11 @@ class Space(val r : RemoteServer)
             r.execute("channelMap['$name'].LaudioElement.volume=$v")
         }
 
+        fun loop(b : Boolean)
+        {
+            r.execute("channelMap['$name'].LaudioElement.loop=$b")
+        }
+
     }
 
     /*
