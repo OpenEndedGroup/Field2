@@ -4,44 +4,35 @@ import field.linalg.Vec3
 import field.utility.Vec3
 import java.io.File
 
-class Space(val r : RemoteServer)
-{
+class Space(val r: RemoteServer) {
 
-    inner class Layer(val name : String)
-    {
+    inner class Layer(val name: String) {
 
-        fun play(time : Double)
-        {
+        fun play(time: Double) {
             r.execute("channelMap['$name'].LaudioElement.currentTime=$time; channelMap['$name'].LaudioElement.play()")
         }
 
-        fun play()
-        {
+        fun play() {
             r.execute(" channelMap['$name'].LaudioElement.play()")
         }
 
-        fun pause()
-        {
+        fun pause() {
             r.execute(" channelMap['$name'].LaudioElement.pause()")
         }
 
-        fun position(x : Double, y :Double, z:Double)
-        {
-            position(Vec3(x,y,z))
+        fun position(x: Double, y: Double, z: Double) {
+            position(Vec3(x, y, z))
         }
 
-        fun position(v : Vec3)
-        {
+        fun position(v: Vec3) {
             r.execute("channelMap['$name'].Lsource.setPosition(${v.x},${-v.y},${v.z})")
         }
 
-        fun volume(v : Double)
-        {
+        fun volume(v: Double) {
             r.execute("channelMap['$name'].LaudioElement.volume=$v")
         }
 
-        fun loop(b : Boolean)
-        {
+        fun loop(b: Boolean) {
             r.execute("channelMap['$name'].LaudioElement.loop=$b")
         }
 
@@ -76,16 +67,15 @@ _.send(`channels[${num}].RaudioElement.volume=${level};channels[${num}].LaudioEl
 }
      */
 
-    fun setRoomDimensions(width : Double, height : Double, depth :Double)
-    {
+    fun setRoomDimensions(width: Double, height: Double, depth: Double) {
         r.execute("var dimensions = {\n" +
                 "    width: $width,\n" +
                 "    height: $height,\n" +
                 "    depth: $depth\n" +
                 "};\nsongbird.setRoomProperties(dimensions, materials)")
     }
-    fun setRoomMaterial(mat : String)
-    {
+
+    fun setRoomMaterial(mat: String) {
         r.execute("var material = '$mat'\n" +
                 "var material2 = '$mat'\n" +
                 "\n" +
@@ -96,10 +86,10 @@ _.send(`channels[${num}].RaudioElement.volume=${level};channels[${num}].LaudioEl
                 "    back: material2,\n" +
                 "    down: material,\n" +
                 "    up: material\n" +
-                "};\n"+"songbird.setRoomProperties(dimensions, materials)")
+                "};\n" + "songbird.setRoomProperties(dimensions, materials)")
     }
 
-    fun withFile(s : String): Layer {
+    fun withFile(s: String): Layer {
         if (!File(s).exists()) return throw IllegalArgumentException(" can't find sound file $s")
 
         val url = r.declareResource(s)
@@ -107,6 +97,30 @@ _.send(`channels[${num}].RaudioElement.volume=${level};channels[${num}].LaudioEl
         r.execute("var _s = makeSource('$s', '$url')")
 
         return Layer(s)
+    }
+
+
+    fun playSoASet(prefix: String) {
+
+        var urlList = "["
+        for (i in 1 until 10) {
+            urlList += "'" + r.declareResource(prefix + "_$i.wav") + "', "
+        }
+        urlList += "]"
+
+        r.execute("Omnitone.createBufferList(audioContext, $urlList).then(function(v){ " +
+                "contentBuffer = Omnitone.mergeBufferListByChannel(audioContext, v)\n " +
+                "inputGain = audioContext.createGain()\n" +
+                "currentBufferSource = audioContext.createBufferSource();\n" +
+                "currentBufferSource.loop = true\n" +
+                "currentBufferSource.buffer = contentBuffer\n" +
+                "currentBufferSource.connect(inputGain)\n" +
+                "inputGain.connect(songbird.ambisonicInput)\n" +
+                "console.log(\'starting SoA source\')\n" +
+                "currentBufferSource.start()\n" +
+                "   })")
+
+
     }
 
 

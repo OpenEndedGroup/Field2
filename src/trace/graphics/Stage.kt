@@ -42,7 +42,6 @@ import java.util.function.Supplier
 /**
  * A stage is a place for drawing lines and planes that can quickly be put inside the canvas or in its own window
  *
- *
  * stage.withName("bob").lines.hello = hello // done
  * stage.lines.hello = hello // done
 
