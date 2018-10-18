@@ -103,16 +103,20 @@
 
                 updateBuffer(e.data, d, name, typeCode, dim, elementDim)
             } else {
+
+                _field.globalResponseTo = e.data.respondTo
+
                 try {
-                    window.eval.call(window, e.data);
+                    window.eval.call(window, e.data.execute);
                 } catch (e) {
                     console.log(e);
                     console.log(e.stack);
+                    _field.send("message", {respondTo: e.data.respondTo, message:e.message, kind:"ERROR", extra:e})
                     _field.error(e.message + " on line:" + e.stack);
                 }
             }
 
-            //		_field.send("alive", id)
+       		_field.send("alive", id)
         };
 
         _field.socket.onclose = function (e) {
@@ -265,7 +269,7 @@
             geometry.attributes["position"].updateRange = {offset: 0, count: dim * 3}
 
             if (name.endsWith("_p"))
-                    geometry.setDrawRange(0, dim)
+                geometry.setDrawRange(0, dim)
 
         } else if (typeCode === 'T') {
             geometry.attributes["uv"].array.set(new Float32Array(rawdata, 128))
