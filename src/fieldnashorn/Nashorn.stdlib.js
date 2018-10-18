@@ -25,6 +25,7 @@ var Production = Java.type("trace.util.Production")
 var RandomCascade = Java.type("trace.random.RandomCascade")
 var Random = Java.type("trace.random.Random")
 var Rect = Java.type('field.utility.Rect')
+var MersenneTwisterFast= Java.type('trace.random.MersenneTwisterFast')
 
 
 var Inject = Java.type("field.graphics.util.onsheetui.Inject")
@@ -144,20 +145,29 @@ __.intersectY = function(y) {
 
 __.intersectY.__doc__ = "_.intersectY(55) returns all of the positions where there are `FLine` that intersect with a horizontal line at y=55. Only lines that are marked as `.notation=true` are considered. You can write __.intersectY(55) if you want to cover all boxes."
 
-var Math_max = function(a, b)
-{
+var Math_max = function(a, b) {
     return Math.max(0.0+a, 0.0+b)
 }
 Math_max.__doc__ = "work around Nashorn's inability to select between Math.max(int, int) and Math.max(double, double)"
 
-var Math_min = function(a, b)
-{
+var Math_min = function(a, b) {
     return Math.min(0.0+a, 0.0+b)
 }
 Math_min.__doc__ = "work around Nashorn's inability to select between Math.min(int, int) and Math.min(double, double)"
 
+__randomSource__ = new MersenneTwisterFast(4321)
+
+var Math_random = function() {
+    return __randomSource__.nextDouble()
+}
+Math_random.__doc__ = "version of Math.random() that uses a random number generated with a fixed seed. call Math_random_seed(1312) to reset."
+
+var Math_random_seed = function(n) {
+    __randomSource__ = new MersenneTwisterFast(n.hashCode())
+}
+Math_random_seed.__doc__ = "call to reset the random number generator Math_random()"
+
 __.noLimits = function() {
     Java.type("fieldnashorn.Watchdog").limits=false
 }
-
 __.noLimits.__doc__ = "_.noLimit() removes all resource limit checking from Field. This means that loops can take longer than 5 seconds to complete, `_.lines` (and other places where you can put geometry) can take more than 1000 elements"

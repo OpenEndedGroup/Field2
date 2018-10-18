@@ -179,8 +179,9 @@ public class TextDrawing extends Box {
 
 	public FontSupport getFontSupport(String filename, String layer) {
 
-		if (layer.endsWith(".fast"))
-			layer = layer.substring(0, layer.length()-".fast".length());
+		if (layer.contains(".")) {
+			layer = layer.substring(0, layer.lastIndexOf("."));
+		}
 
 		String finalLayer = layer;
 		return layerLocal.get(layer).fontsLoaded.computeIfAbsent(filename, (k) -> new FontSupport(filename, finalLayer));

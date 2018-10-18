@@ -202,7 +202,7 @@ class OpenVRDrawTarget {
         inited = true
 
         println()
-        println(" OpenVR init time is here ----------------------------------------------------------------------------------------- ")
+        println("OpenVR init time is here ----------------------------------------------------------------------------------------- ")
         println("VR_IsRuntimeInstalled() = " + VR_IsRuntimeInstalled())
         println("VR_RuntimePath() = " + VR_RuntimePath())
         println("VR_IsHmdPresent() = " + VR_IsHmdPresent())

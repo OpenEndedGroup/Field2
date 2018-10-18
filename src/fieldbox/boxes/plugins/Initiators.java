@@ -5,6 +5,7 @@ import field.utility.Rect;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Boxes;
 import fieldlinker.Linker;
+import fieldnashorn.Nashorn;
 
 import java.util.function.Supplier;
 
@@ -12,7 +13,6 @@ import java.util.function.Supplier;
  * Class that's passed into .begin() methods to hook up timesliders and mouse presses to running boxes
  */
 public class Initiators {
-
 
 	static public fieldlinker.AsMap get(Box forBox, Supplier<Number> x) {
 		double xn = x.get()
@@ -129,10 +129,16 @@ public class Initiators {
 
 		@Override
 		public Object asMap_call(Object o) {
+
 			double d = x.get()
 				    .doubleValue();
 			Rect f = forBox.properties.get(Box.frame);
-			return Math.max(0, Math.min(1, (d - f.x) / f.w));
+			double ff = Math.max(0, Math.min(1, (d - f.x) / f.w));
+
+			if (Nashorn.isEnding) {
+				return ff>0.5 ? 1f : 0f;
+			}
+			return ff;
 		}
 
 		@Override

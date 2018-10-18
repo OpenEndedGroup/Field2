@@ -250,7 +250,7 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 								lastType = int[].class;
 							} else
 								throw new IllegalArgumentException(" bad dimension after conversion to int array " + t + " -> " + ti.length);
-							GraphicsContext.checkError(() -> "while setting (5):" + name + " / " + this.name);
+							GraphicsContext.checkError(() -> "while setting (5 (int array)):" + name + " / " + this.name+" = "+ti.length+" "+t);
 						} else {
 							float[][] tm = rewriteToFloatMatrix(t);
 

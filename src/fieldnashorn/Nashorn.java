@@ -23,6 +23,7 @@ import java.util.function.Supplier;
 public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecution> {
 
 	final public static Dict.Prop<ScriptContext> boxBindings = new Dict.Prop<ScriptContext>("_boxBindings");
+	public static boolean isEnding = false;
 
 	final public String _stdlib = BoxDefaultCode.findSource(this.getClass(), "stdlib");
 
@@ -131,6 +132,8 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 
 					@Override
 					public Object middle(boolean isEnding) {
+						Nashorn.isEnding = isEnding;
+
 						((Runnable) o).run();
 						return null;
 					}
@@ -157,6 +160,7 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 
 					@Override
 					public Object middle(boolean isEnding) {
+						Nashorn.isEnding = isEnding;
 						return ((Supplier) o).get();
 					}
 
@@ -167,7 +171,9 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 
 					@Override
 					public Object end(boolean isEnding) {
-						return null;/*return middle(isEnding);*/
+//						return null;/*return middle(isEnding);*/
+
+						return middle(isEnding);
 					}
 
 				};

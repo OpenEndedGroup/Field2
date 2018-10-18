@@ -173,7 +173,11 @@ public class TimeSlider extends Box {
 
 	protected void off(Set<Box> off) {
 		if (disable) return;
-		off.forEach(b -> {
+		List<Box> son = new ArrayList<>(off);
+		son.sort(Comparator.comparingDouble(a -> a.properties.get(frame).y));
+		son.sort(Comparator.comparingDouble(a -> a.properties.get(frame).x+a.properties.get(frame).w));
+
+		son.forEach(b -> {
 			Log.log("debug.execution", () -> " -- END :" + b);
 			if (b != null)
 				b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).end(b));
@@ -182,7 +186,12 @@ public class TimeSlider extends Box {
 
 	protected void on(Set<Box> on, Map<Box, Double> mapping) {
 		if (disable) return;
-		on.forEach(b -> {
+
+		List<Box> son = new ArrayList<>(on);
+		son.sort(Comparator.comparingDouble(a -> a.properties.get(frame).y));
+		son.sort(Comparator.comparingDouble(a -> a.properties.get(frame).x));
+
+		son.forEach(b -> {
 			Log.log("debug.execution", () -> " -- BEGIN :" + b);
 			if (b != null)
 				b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).begin(b, initiator(b, mapping.get(b))));
@@ -225,7 +234,16 @@ public class TimeSlider extends Box {
 	 * @param b
 	 */
 	public Map<String, Object> initiator(Box b, double t) {
-		fieldlinker.AsMap init = Initiators.get(b, () -> currentMapping.get(b).floatValue(), () -> this.properties.get(Box.frame).y);
+		fieldlinker.AsMap init = Initiators.get(b, () -> {
+			Double mapped = currentMapping.get(b);
+			if (mapped==null)
+			{
+				//this happens when a box is overrun
+				// t is the time when it was initiated not the current time
+				return currentMappingAtTime;
+			}
+			return mapped.floatValue();
+		}, () -> this.properties.get(Box.frame).y);
 		init.asMap_set("slider", this);
 		return Collections.singletonMap("_t", init);
 	}
@@ -242,7 +260,13 @@ public class TimeSlider extends Box {
 	 */
 	protected void skipForward(Set<Box> skipForward, Map<Box, Double> times) {
 		if (disable) return;
-		skipForward.forEach(b -> {
+
+		List<Box> son = new ArrayList<>(skipForward);
+		son.sort(Comparator.comparingDouble(a -> a.properties.get(frame).y));
+		son.sort(Comparator.comparingDouble(a -> a.properties.get(frame).x));
+
+
+		son.forEach(b -> {
 			Log.log("debug.execution", () -> " -- FORWARD :" + b);
 			b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).begin(b, initiator(b, times.get(b))));
 			b.first(Execution.execution).ifPresent(x -> x.support(b, Execution.code).end(b));

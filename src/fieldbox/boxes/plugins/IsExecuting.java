@@ -16,6 +16,7 @@ import java.util.function.Supplier;
 
 import static field.graphics.StandardFLineDrawing.*;
 import static fieldbox.boxes.FLineDrawing.frameDrawing;
+import static fieldbox.boxes.FLineDrawing.layer;
 
 /**
  * Adds: a default decorator for setting a drawer appropriately to give feedback (currently a stripey green frame
@@ -62,6 +63,8 @@ public class IsExecuting extends Box {
 				f.attributes.put(filled, true);
 				f.attributes.put(fillColor, new Vec4(Colors.executionColor, -0.2f));
 				f.attributes.put(color, new Vec4(Colors.executionColor, 0.8f));
+
+				f.attributes.put(layer, "__main__.fast");
 
 				return f;
 

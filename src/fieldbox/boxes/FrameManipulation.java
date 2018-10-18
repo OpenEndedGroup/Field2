@@ -35,6 +35,8 @@ import static org.lwjgl.glfw.GLFW.GLFW_KEY_TAB;
  */
 public class FrameManipulation extends Box {
 
+	static public boolean noDraggingUnlessShift = false;
+
 	static public final Dict.Prop<Boolean> lockWidth = new Dict.Prop<>("lockWidth").type()
 		.toCanon()
 		.doc("set to true to disable changes to the width of this box via the mouse");
@@ -300,6 +302,9 @@ public class FrameManipulation extends Box {
 				} else {
 					workingSet.add(hitBox);
 				}
+
+				if (noDraggingUnlessShift && !shift)
+					workingSet.clear();
 
 				Log.log("selection", () -> "working set is :" + workingSet);
 

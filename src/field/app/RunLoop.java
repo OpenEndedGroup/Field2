@@ -28,6 +28,9 @@ public class RunLoop {
 	List<Runnable> onExit = new LinkedList<>();
 	AtomicBoolean exitStarted = new AtomicBoolean(false);
 
+	static public Supplier<Double> time = () -> System.currentTimeMillis() + 0.0d;
+
+
 	protected RunLoop() {
 		mainThread = Thread.currentThread();
 		Runtime.getRuntime()
@@ -93,7 +96,7 @@ public class RunLoop {
 				}
 
 				if (shouldSleep.size() == 0 && !didWork) {
-					Thread.sleep(2);
+				//	Thread.sleep(2);
 					sleepsTaken++;
 				}
 

@@ -19,7 +19,7 @@ import static org.lwjgl.opengl.GL42.glBindImageTexture;
  */
 public class Image implements Scene.Perform, OffersUniform<Integer> {
 
-	private final Texture texture;
+	public final Texture texture;
 
 	public Image(Texture texture) {
 		this.texture = texture;

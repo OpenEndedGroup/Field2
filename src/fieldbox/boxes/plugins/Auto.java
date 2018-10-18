@@ -67,7 +67,7 @@ public class Auto extends Box implements IO.Loaded {
 				t.first.find(Chorder.begin, both())
 				       .findFirst().map( x -> x.apply(t.first));
 
-			}, 1000);
+			}, (int) (1000*t.third.floatValue()));
 
 		}
 	}

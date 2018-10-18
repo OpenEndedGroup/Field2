@@ -444,7 +444,7 @@ public class Quat implements Externalizable, Supplier<Quat> {
 	 */
 	public Quat fromAxisAngleRad(Vec3 axis, double angle) {
 		double hangle = angle / 2.0;
-		double sinAngle = Math.sin(hangle);
+		double sinAngle = Math.sin(hangle);  
 		double vLength = axis.length();
 
 		x = axis.x / vLength * sinAngle;

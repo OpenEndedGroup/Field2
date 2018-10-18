@@ -27,6 +27,8 @@ class FakeOculusDrawTarget(val wPerEye : Int, val hPerEye : Int) {
     var rightInputState: OVRInputState = OVRInputState.calloc()
     var pauseCamera = false
 
+    val textureW  = wPerEye
+    val textureH = hPerEye
 
     fun init(scene: Scene) {
         if(floatResolution)

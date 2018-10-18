@@ -420,12 +420,21 @@ public class ShaderIntrospection {
 						FBO fbo = findFBO((Integer) uniform.get());
 						if (fbo == null) {
 							errors
-								    += "&mdash; from this " + kind + ", Field can't find an FBO bound to the <b>GL_TEXTURE_2D_MULTISAMPLE_ARRAY</b> uniform called <b>" + un.name + "</b>\n";
+									+= "&mdash; from this " + kind + ", Field can't find an FBO bound to the <b>GL_TEXTURE_2D_MULTISAMPLE_ARRAY</b> uniform called <b>" + un.name + "</b>\n";
 						} else if (fbo.specification.layers == 1) {
 							errors += "&mdash; this " + kind + (kind.length() > 0 ? "'s" : "") + " has a FBO bound to unit <b>" + convert.apply(
 								    uniform.get()) + "</b> called <b>" + un.name + "</b> is of the wrong type. Shader expects a <b>GL_TEXTURE_2D_MULTISAMPLE_ARRAYffc ccc</b>, you've supplied a single layer FBO\n";
 						}
-					} else {
+					} else  if (un.type == GL42.GL_IMAGE_2D)
+					{
+						Image found = findImage(((Integer)uniform.get()));
+						if (found==null)
+						{
+							errors
+									+= "&mdash; from this " + kind + ", Field can't find an Imagebound to the <b>GL_IMAGE_2D</b> uniform called <b>" + un.name + "</b>\n";
+						}
+					} else
+						{
 						errors
 							    += "&mdash; this " + kind + (kind.length() > 0 ? "'s" : "") + " shader has a uniform called <b>" + un.name + "</b> is currently of a type that Field doesn't send (specifically <b>" + uniformTypeConstants_readable.getOrDefault(
 							    un.type, new Pair<>("" + un.type, "")).second + "</b>)\n";
@@ -476,9 +485,22 @@ public class ShaderIntrospection {
 			return ((Texture) x).specification.unit == i.intValue();
 		});
 		if (c.size() == 0) return null;
+
 		return (Texture) c.iterator()
-				  .next();
+				.next();
 	}
+
+	private Image findImage(Integer i) {
+		Collection<Scene.Perform> c = collect(s, x -> {
+			if (!(x instanceof Image)) return false;
+			return ((Image) x).texture.specification.unit == i.intValue();
+		});
+		if (c.size() == 0) return null;
+		return (Image) c.iterator()
+				.next();
+	}
+
+
 
 	private FBO findFBO(Integer i) {
 		Collection<Scene.Perform> c = collect(s, x -> {

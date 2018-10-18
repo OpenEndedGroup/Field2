@@ -1,9 +1,8 @@
 package field.graphics;
 
-import javax.imageio.IIOImage;
-import javax.imageio.ImageIO;
-import javax.imageio.ImageWriteParam;
-import javax.imageio.ImageWriter;
+
+import javax.imageio.*;
+import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.plugins.jpeg.JPEGImageWriteParam;
 import javax.imageio.stream.FileImageOutputStream;
 import java.awt.image.BufferedImage;
@@ -74,16 +73,24 @@ public class SlowJPEG implements JPEGLoader{
 		System.arraycopy(t.array(), 0, ddd, 0, ddd.length);
 
 		try {
-		ImageWriter jj = ImageIO.getImageWritersByFormatName("jpg").next();
+			ImageWriter jj = ImageIO.getImageWritersByFormatName("jpg").next();
 			jj.setOutput(new FileImageOutputStream(new File(filename)));
 			JPEGImageWriteParam params = new JPEGImageWriteParam(null);
 			params.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
 			params.setCompressionQuality(1f);
+            params.setSourceSubsampling(1,1,0,0);
 			jj.write(null, new IIOImage(image, null, null), params);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
+		try {
+			ImageWriter jj = ImageIO.getImageWritersByFormatName("png").next();
+			jj.setOutput(new FileImageOutputStream(new File(filename.replace(".jpg", ".png"))));
+			jj.write(null, new IIOImage(image, null, null), null);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
 	}
 
