@@ -418,7 +418,6 @@ public class Box implements fieldlinker.AsMap, HandlesCompletion {
 		if (knownNonProperties == null) knownNonProperties = computeKnownNonProperties();
 
 		return !knownNonProperties.contains(p);
-
 	}
 
 	protected Set<String> computeKnownNonProperties() {

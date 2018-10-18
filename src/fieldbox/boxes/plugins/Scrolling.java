@@ -44,8 +44,8 @@ public class Scrolling extends Box {
 
             t.x = t.y = t.y * Math.pow(2, e.after.dwheely / 50f);
 
-            t.x = Math.max(0.1f, Math.min(10, t.x));
-            t.y = Math.max(0.1f, Math.min(10, t.y));
+            t.x = Math.max(0.02f, Math.min(50, t.x));
+            t.y = Math.max(0.02f, Math.min(50, t.y));
 
             x.setScale(from, t);
 

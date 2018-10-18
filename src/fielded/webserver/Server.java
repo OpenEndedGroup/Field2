@@ -5,15 +5,21 @@ import com.google.common.collect.HashBiMap;
 import field.app.RunLoop;
 import field.utility.Log;
 import field.utility.Util;
+import fieldagent.Main;
 import org.java_websocket.WebSocket;
 import org.java_websocket.WebSocketImpl;
 import org.java_websocket.handshake.ClientHandshake;
+import org.java_websocket.server.DefaultSSLWebSocketServerFactory;
 import org.java_websocket.server.WebSocketServer;
 import org.json.JSONObject;
 
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
+import java.security.KeyStore;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Predicate;
@@ -63,6 +69,7 @@ public class Server {
 	public int getPort() {
 		return port;
 	}
+
 
 	public Server(int port, int websocketPort) throws IOException {
 		this.port = port;
@@ -119,6 +126,7 @@ public class Server {
 		webSocketServer = new WebSocketServer(new InetSocketAddress(websocketPort)) {
 			@Override
 			public void onOpen(WebSocket webSocket, ClientHandshake clientHandshake) {
+				System.out.println(" -- websocket opened -- "+clientHandshake);
 				Log.log("remote.trace", () -> " websocket connected " + clientHandshake);
 			}
 
@@ -170,6 +178,33 @@ public class Server {
 				e.printStackTrace();
 			}
 		};
+
+
+//		if (ssl) try {
+//			String STORETYPE = "JKS";
+//			String KEYSTORE = Main.app + "/lib/web/field_blank_keystore.jks";
+//			String STOREPASSWORD = "password";
+//			String KEYPASSWORD = "password";
+//
+//			KeyStore ks = KeyStore.getInstance(STORETYPE);
+//			File kf = new File(KEYSTORE);
+//			ks.load(new FileInputStream(kf), STOREPASSWORD.toCharArray());
+//
+//			KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+//			kmf.init(ks, KEYPASSWORD.toCharArray());
+//			TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
+//			tmf.init(ks);
+//
+//			SSLContext sslContext = null;
+//			sslContext = SSLContext.getInstance("TLS");
+//			sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+//
+//			webSocketServer.setWebSocketFactory(new DefaultSSLWebSocketServerFactory(sslContext));
+//		} catch (Throwable t) {
+//			System.err.println(":: inside ssl websock init ::");
+//			t.printStackTrace();
+//		}
+
 
 		webSocketServer.start();
 

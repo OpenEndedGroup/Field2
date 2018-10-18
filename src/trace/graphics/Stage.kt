@@ -118,6 +118,8 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
     companion object {
         var stageNum: Int = 0
+
+        @JvmStatic
         var rs = RemoteServer()
         var max_vertex = 60000;
         var max_element = 60000;
@@ -266,7 +268,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
         val pointBuilder = MeshBuilder(points)
         val post = IdempotencyMap<Runnable>(Runnable::class.java);
 
-        val remoteHelper = if (doRemote) RemoteStageLayerHelper(rs.s.webSocketServer, max_vertex, max_element, -1, name) else null
+        val remoteHelper = if (doRemote) RemoteStageLayerHelper(rs.s, max_vertex, max_element, -1, name) else null
 
         @JvmField
         @Documentation("list of `FLine` to draw, just like `_.lines` but it will appear on this Stage")

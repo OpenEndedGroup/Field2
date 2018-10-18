@@ -23,13 +23,15 @@ class SimpleSVG(val filename: String) {
         val r = mutableListOf<FLine>()
 
 //        val mm = Pattern.compile("fill=\"rgb\\(([0-9]+),([0-9]+),([0-9]+)\\)\" .*? d=\"([MLCQZ\\- 0-9\\.]+)\"")
-        val mm = Pattern.compile("style=\".*?fill:#(..)(..)(..);.*?\" .*?d=\"([cqmzMLCQZ\\- ,\t0-9\\.]+)\"")
-        val m2 = Pattern.compile("style=\".*?fill:none;.*?\" .*?d=\"([cqmzMLCQZ\\- ,\t0-9\\.]+)\"")
-        (Files.readAllLines(File(filename).toPath())).joinToString(" ").split("/>").forEach {
+        val mm = Pattern.compile("style=\".*?fill:#(..)(..)(..);.*?\".*?d=\"([cqmzVHvhMLlCQZ\\- ,\t0-9\\.]+)\"")
+        val mm2 = Pattern.compile("class=\".*?\".*?d=\"([cqmzVHvhMLlCQZ\\- ,\t0-9\\.]+)\"")
+        val m2 = Pattern.compile("style=\".*?fill:none;.*?\" .*?d=\"([cqmzVHvhMLlCQZ\\- ,\t0-9\\.]+)\"")
+        val m3 = Pattern.compile("d=\"([cqmzVHvhMLlCQZ\\- ,\t0-9\\.]+)\" .*?style=\".*?fill: #(..)(..)(..);.*?\"")
 
-//            println(it)
-            //<path fill="rgb(60,108,146)" stroke="rgb(60,108,146)" stroke-width="1" opacity="1" d="M 153.5 0 L 153.5 1 L
-            //<path fill="#9093a4" opacity="1.00" d=" M 189.78 174.70 C 191.07 174.31 192.38 173.97 193.69 173.65 C 194.20 173.77 195.23 174.00 195.74 174.12 C 198.42 174.70 201.22 174.78 203.95 175.10 C 203.78 176.67 201.33 175.58 200.73 176.98 C 202.31 176.99 205.46 177.01 207.03 177.02 L 207.99 177.02 C 207.99 177.53 208.00 178.56 208.00 179.07 C 207.18 179.13 205.56 179.25 204.74 179.30 C 203.57 179.17 202.39 179.05 201.21 178.95 L 200.29 178.83 C 199.77 178.56 198.74 178.00 198.22 177.73 C 195.62 176.18 192.62 175.61 189.78 174.70 Z" />
+        val p1 = Pattern.compile("style=\".*?fill:#(..)(..)(..);.*?\".*?points=\"([cqmzVHvhMLlCQZ\\- ,\t0-9\\.]+)\"")
+        (Files.readAllLines(File(filename).toPath())).joinToString(" ").split("</").forEach {
+            println("line: ${it}")
+
             val mmm = mm.matcher(it)
             if (mmm.find()) {
 //                println("found")
@@ -41,6 +43,16 @@ class SimpleSVG(val filename: String) {
                 val qq = toFLine(path, colorStringToColor2(colorr, colorg, colorb), { 0.0 })
                 bounds = Rect.union(bounds, qq.bounds())
                 r += qq
+                return@forEach
+            }
+            val mmmB = mm2.matcher(it)
+            if (mmmB.find()) {
+//                println("found")
+                val path = mmmB.group(1)
+                val qq = toFLine(path, colorStringToColor2("00","00","00"), { 0.0 })
+                bounds = Rect.union(bounds, qq.bounds())
+                r += qq
+                return@forEach
             }
             val mmm2 = m2.matcher(it)
             if (mmm2.find()) {
@@ -50,6 +62,35 @@ class SimpleSVG(val filename: String) {
                 val qq = toFLine(path, colorStringToColor2("00", "00", "00"), { 0.0 })
                 bounds = Rect.union(bounds, qq.bounds())
                 r += qq
+                return@forEach
+            }
+            val mmm3 = m3.matcher(it)
+            if (mmm3.find()) {
+//                println("found")
+
+                val path = mmm3.group(1)
+                val colorr = mmm3.group(2)
+                val colorg = mmm3.group(3)
+                val colorb = mmm3.group(4)
+
+                val qq = toFLine(path, colorStringToColor2(colorr, colorg, colorb), { 0.0 })
+                bounds = Rect.union(bounds, qq.bounds())
+                r += qq
+                return@forEach
+            }
+            val pp1 = p1.matcher(it)
+            if (pp1.find()) {
+//                println("found")
+
+                val colorr = pp1.group(1)
+                val colorg = pp1.group(2)
+                val colorb = pp1.group(3)
+
+                val path = pp1.group(4)
+                val qq = toFLine(path, colorStringToColor2(colorr, colorg, colorb), { 0.0 })
+                bounds = Rect.union(bounds, qq.bounds())
+                r += qq
+                return@forEach
             }
         }
 
@@ -84,19 +125,36 @@ class SimpleSVG(val filename: String) {
                 .replace("q", " q ")
                 .replace("Z", " Z ")
                 .replace("z", " z ")
+                .replace("v", " v ")
+                .replace("h", " h ")
+                .replace("V", " V ")
+                .replace("H", " H ")
                 .replace(Regex(" +"), " ")
                 .replace(Regex("\t+"), " ")
                 .replace(Regex(" +"), " ")
+                .replace(Regex("[ ,]+"), " ")
                 .trim()
         val pieces = p2.split(" ", ",")
 
 //        println("looking at ::" + p2 + "::")
 
         var i = 0
+        var was: Vec3? = null
+        var lastCommand = "M"
+
+        println("parsing ${Arrays.asList(pieces)}")
+
         while (i < pieces.size) {
-            when (pieces[i]) {
+            var command = pieces[i]
+            if (isNumber(command)) {
+                command = lastCommand
+                i--
+            }
+            when (command) {
                 "M" -> {
                     f.moveTo(pieces[++i].toDouble(), pieces[++i].toDouble())
+                    was = f.at()
+                    command = "L"
                 }
                 "L" -> {
                     f.lineTo(pieces[++i].toDouble(), pieces[++i].toDouble())
@@ -116,15 +174,30 @@ class SimpleSVG(val filename: String) {
                 "q" -> {
                     f.quadToRel(pieces[++i].toDouble(), pieces[++i].toDouble(), pieces[++i].toDouble(), pieces[++i].toDouble())
                 }
+                "V" -> {
+                    f.lineTo(f.at().x, pieces[++i].toDouble())
+                }
+                "v" -> {
+                    f.lineTo(f.at().x, f.at().y + pieces[++i].toDouble())
+                }
+                "H" -> {
+                    f.lineTo(pieces[++i].toDouble(), f.at().y)
+                }
+                "h" -> {
+                    f.lineTo(f.at().x + pieces[++i].toDouble(), f.at().y)
+                }
                 "Z" -> {
+                    f.lineTo(was!!)
                 }
                 "z" -> {
+                    f.lineTo(was!!)
                 }
                 else -> {
-                    throw IllegalArgumentException(">>" + pieces[i] + "<< " + f.nodes)
+                    throw IllegalArgumentException(">>" + pieces[i] + "<< " + f.nodes + " element $i of ${Arrays.asList(pieces)}")
                 }
             }
             i++
+            lastCommand = command
         }
 
 
@@ -137,6 +210,16 @@ class SimpleSVG(val filename: String) {
         for (o in f.nodes)
             o.setZ(zz.toFloat())
         return f
+    }
+
+    private fun isNumber(q: String): Boolean {
+        try {
+
+            q.toDouble()
+            return true
+        } catch (e: NumberFormatException) {
+            return false
+        }
     }
 
     private fun colorStringToColor(colorr: String, colorg: String, colorb: String): Vec4 {

@@ -167,6 +167,8 @@ public class RemoteEditor extends Box {
 			.value(m)
 			.key("append")
 			.value(true)
+			.key("tick")
+			.value(RunLoop.getTick())
 			.endObject()
 			.toString()));
 
@@ -184,6 +186,8 @@ public class RemoteEditor extends Box {
 				.value(true)
 				.key("message")
 				.value(lineerror.second)
+				.key("tick")
+				.value(RunLoop.getTick())
 				.endObject()
 				.toString();
 		}));
@@ -206,6 +210,8 @@ public class RemoteEditor extends Box {
 					.value(z.second)
 					.key("message")
 					.value(z.third)
+					.key("tick")
+					.value(RunLoop.getTick())
 					.endObject()
 					.toString()));
 			} else {
@@ -226,6 +232,8 @@ public class RemoteEditor extends Box {
 							.value(z.second)
 							.key("message")
 							.value(z.third)
+							.key("tick")
+							.value(RunLoop.getTick())
 							.endObject()
 							.toString()));
 					});
@@ -471,6 +479,8 @@ public class RemoteEditor extends Box {
 				.value("success")
 				.key("message")
 				.value(m)
+				.key("tick")
+				.value(RunLoop.getTick())
 				.endObject()
 				.toString()), newOutput(box.get(), returnAddress,
 				(Function<Pair<Integer, String>, String>) (lineerror) -> new JSONStringer().object()
@@ -480,6 +490,8 @@ public class RemoteEditor extends Box {
 					.value((int) lineerror.first)
 					.key("message")
 					.value(lineerror.second)
+					.key("tick")
+					.value(RunLoop.getTick())
 					.endObject()
 					.toString()));
 
@@ -527,6 +539,8 @@ public class RemoteEditor extends Box {
 					.value((int) lineerror.first)
 					.key("message")
 					.value(lineerror.second)
+					.key("tick")
+					.value(RunLoop.getTick())
 					.endObject()
 					.toString()),
 				newOutput(box.get(), returnAddress, (m) -> new JSONStringer().object()
@@ -534,6 +548,8 @@ public class RemoteEditor extends Box {
 					.value("success")
 					.key("message")
 					.value(m)
+					.key("tick")
+					.value(RunLoop.getTick())
 					.endObject()
 					.toString()));
 			boxFeedback(box, new Vec4(0, 0.5f, 0.3f, 0.5f));
@@ -574,6 +590,8 @@ public class RemoteEditor extends Box {
 					.value((int) lineerror.first)
 					.key("message")
 					.value(lineerror.second)
+					.key("tick")
+					.value(RunLoop.getTick())
 					.endObject()
 					.toString()), newOutput(box.get(), returnAddress,
 				(m) -> new JSONStringer().object()
@@ -581,6 +599,8 @@ public class RemoteEditor extends Box {
 					.value("success")
 					.key("message")
 					.value(m)
+					.key("tick")
+					.value(RunLoop.getTick())
 					.endObject()
 					.toString()),
 				Collections.singletonMap("_t", Initiators.constant(box.get(), 0.5)), true);
@@ -621,6 +641,8 @@ public class RemoteEditor extends Box {
 				.value((int) lineerror.first)
 				.key("message")
 				.value(lineerror.second)
+				.key("tick")
+				.value(RunLoop.getTick())
 				.endObject()
 				.toString()), newOutput(box.get(), returnAddress,
 				(m) -> new JSONStringer().object()
@@ -628,6 +650,8 @@ public class RemoteEditor extends Box {
 					.value("success")
 					.key("message")
 					.value(m)
+					.key("tick")
+					.value(RunLoop.getTick())
 					.endObject()
 					.toString()));
 

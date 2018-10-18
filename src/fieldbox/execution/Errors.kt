@@ -19,72 +19,71 @@ import java.util.regex.Pattern
  */
 object Errors {
 
+    @JvmStatic
+    fun tryToReportTo(e: Throwable, additionalMessage: String, offendingObject: Any?) {
 
-	@JvmStatic
-	fun tryToReportTo(e: Throwable, additionalMessage: String, offendingObject: Any?) {
-
-		val description = InverseDebugMapping.describe(offendingObject)
-		findResponsibleBox(InverseDebugMapping.defaultRoot, e, additionalMessage + (if (description != null) "\n" + description else ""))
-	}
+        val description = InverseDebugMapping.describe(offendingObject)
+        findResponsibleBox(InverseDebugMapping.defaultRoot, e, additionalMessage + (if (description != null) "\n" + description else ""))
+    }
 
 
-	fun <T> handle(o: Supplier<T>, message: Function<Throwable, T>): T {
-		try {
-			return o.get()
-		} catch (t: Throwable) {
-			return message.apply(t)
-		}
-	}
+    fun <T> handle(o: Supplier<T>, message: Function<Throwable, T>): T {
+        try {
+            return o.get()
+        } catch (t: Throwable) {
+            return message.apply(t)
+        }
+    }
 
-	internal var boxFinder = Pattern.compile("bx\\[(.+)\\]/([_0123456789abcdef]+)")
+    internal var boxFinder = Pattern.compile("bx\\[(.+)\\]/([_0123456789abcdef]+)")
 
-	private fun findResponsibleBox(root: Box, th: Throwable, additionalMessage: String) {
+    private fun findResponsibleBox(root: Box, th: Throwable, additionalMessage: String) {
 //		println("scouring stacktrace")
-		try {
-			for (t in th.stackTrace) {
-				//			println(t.fileName + " || " + t.lineNumber + " || " + t.className + " || " + t.methodName + " ||    " + t)
-				if (t.fileName != null) {
-					val m = boxFinder.matcher(t.fileName)
-					if (m.matches()) {
-						val uid = m.group(2)
-						val name = m.group(1)
-						reportError(root, uid, name, t, t.lineNumber, th, additionalMessage)
-						return
-					}
-				}
-			}
-		}
-		catch (tt : Throwable)
-		{
-			// not interested in exceptions thrown by reportError
-		}
+        try {
+            for (t in th.stackTrace) {
+                //			println(t.fileName + " || " + t.lineNumber + " || " + t.className + " || " + t.methodName + " ||    " + t)
+                if (t.fileName != null) {
+                    val m = boxFinder.matcher(t.fileName)
+                    if (m.matches()) {
+                        val uid = m.group(2)
+                        val name = m.group(1)
+                        reportError(root, uid, name, t, t.lineNumber, th, additionalMessage)
+                        return
+                    }
+                }
+            }
+        } catch (tt: Throwable) {
+            // not interested in exceptions thrown by reportError
+        }
 
-		System.err.println(" exception thrown and the responsible party cannot be found:")
-		System.err.println("*** "+additionalMessage+" ***")
-		th.printStackTrace()
+        System.err.println(" exception thrown and the responsible party cannot be found:")
+        System.err.println("*** " + additionalMessage + " ***")
+        th.printStackTrace()
 
-	}
+    }
 
-	private fun reportError(defaultRoot: Box, uid: String, name: String, t: StackTraceElement, lineNumber: Int, tr: Throwable, additionalMessage: String) {
+    fun reportError(defaultRoot: Box, uid: String, name: String?, t: StackTraceElement?, lineNumber: Int, tr: Throwable?, additionalMessage: String?) {
 
-		val target = defaultRoot.breadthFirst(defaultRoot.allDownwardsFrom()).filter { it.properties.get(IO.id)?.equals(uid) ?: false }.findFirst()
-		if (!target.isPresent) {
-			System.err.println(" Exception thrown in a box called ${name} which can't be found any more; full stacktrace below:")
-			if (additionalMessage != null) System.err.println(additionalMessage)
-			tr.printStackTrace()
-		} else {
-			val oef = target.get().first(RemoteEditor.outputErrorFactory)
-			if (!oef.isPresent) {
-				System.err.println(" Exception thrown in a box called ${name} which isn't editable; full stacktrace below:")
-				if (additionalMessage != null) System.err.println(additionalMessage)
-				tr.printStackTrace()
-			} else {
-				System.err.println(" Exception thrown in a box called ${name}, also reported to the editor")
-				if (additionalMessage != null) System.err.println(additionalMessage)
-				tr.printStackTrace()
-				oef.ifPresent { it.apply(target.get()).accept(Pair(lineNumber, (if (additionalMessage != null) additionalMessage.trim() + "\n" else "") + tr.message)) }
-			}
-		}
+        val target = defaultRoot.breadthFirst(defaultRoot.allDownwardsFrom()).filter {
+            it.properties.get(IO.id)?.equals(uid) ?: false
+        }.findFirst()
+        if (!target.isPresent) {
+            System.err.println(" Exception thrown in a box called ${name} which can't be found any more; full stacktrace below:")
+            if (additionalMessage != null) System.err.println(additionalMessage)
+            if (tr != null) tr.printStackTrace()
+        } else {
+            val oef = target.get().first(RemoteEditor.outputErrorFactory)
+            if (!oef.isPresent) {
+                System.err.println(" Exception thrown in a box called ${name} which isn't editable; full stacktrace below:")
+                if (additionalMessage != null) System.err.println(additionalMessage)
+                if (tr != null) tr.printStackTrace()
+            } else {
+                System.err.println(" Exception thrown in a box called ${name}, also reported to the editor")
+                if (additionalMessage != null) System.err.println(additionalMessage)
+                if (tr != null) tr.printStackTrace()
+                oef.ifPresent { it.apply(target.get()).accept(Pair(lineNumber, (if (additionalMessage != null) additionalMessage.trim() + "\n" else "") + if (tr != null) tr.message else "")) }
+            }
+        }
 
-	}
+    }
 }

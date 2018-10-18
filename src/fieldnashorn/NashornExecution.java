@@ -150,7 +150,6 @@ public class NashornExecution implements Execution.ExecutionSupport {
 			Log.log("nashorn.general", () -> "\n>>javascript in");
 			final String finalTextFragment = textFragment;
 			Log.log("nashorn.general", () -> finalTextFragment);
-			Log.log("nashorn.general", () -> "applying lineOffset of :" + lineOffset);
 
 			// we prefix the code with a sufficient number of \n's so that the line number of any error message actually refers to the correct line
 			// dreadful hack, but there's no other option right now in Nashorn (perhaps with sourceMaps?)

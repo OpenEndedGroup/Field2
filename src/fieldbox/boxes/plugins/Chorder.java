@@ -18,6 +18,7 @@ import fieldbox.boxes.Mouse;
 import fieldbox.execution.Execution;
 import fielded.RemoteEditor;
 import fieldlinker.Linker;
+import trace.graphics.remote.RemoteServer;
 
 import java.awt.*;
 import java.util.*;
@@ -31,6 +32,7 @@ import java.util.stream.Stream;
 
 import static field.graphics.StandardFLineDrawing.*;
 import static fieldbox.boxes.FLineDrawing.*;
+import static fielded.RemoteEditor.getExecution;
 
 /**
  * Created by marc on 4/16/14.
@@ -101,12 +103,14 @@ public class Chorder extends Box {
 		this.properties.put(begin, box -> {
 			try {
 				return ThreadSync2.callInMainThreadAndWait(() -> {
-					box.first(Execution.execution).ifPresent(x -> x.support(box, Execution.code).begin(box, getInitiator(box)));
+
+					Execution ex = getExecution(box, Execution.code);
+					if (ex!=null)
+						ex.support(box, Execution.code).begin(box, getInitiator(box));
+
 					return () -> box.properties.computeIfAbsent(IsExecuting.executionCount, (k) -> 0) > 0;
 				});
-			}
-			catch(Exception e)
-			{
+			} catch (Exception e) {
 				return () -> false;
 			}
 
@@ -163,6 +167,9 @@ public class Chorder extends Box {
 
 		int count0 = box.properties.computeIfAbsent(IsExecuting.executionCount, (k) -> 0);
 
+		// what if we also have fibres running?
+		List<ThreadSync2.Fibre> fibres = ThreadSync2Feedback.fibresFor(box);
+
 		if (count0 < 1) {
 
 			fieldlinker.AsMap i = Initiators.get(box, Initiators.mouseX(box, point.x), Initiators.mouseY(box, point.y));
@@ -180,11 +187,27 @@ public class Chorder extends Box {
 				menuSpec.items.put(MarkingMenus.Position.NH,
 					new MarkingMenus.MenuItem("Continue", () -> {
 					}));
+
+				if (fibres.size()>0)
+					menuSpec.items.put(MarkingMenus.Position.SH, new MarkingMenus.MenuItem("Stop", () -> {
+						if (ThreadSync2.getEnabled()) {
+							box.first(ThreadSync2Feedback.fKill)
+								.ifPresent(x -> x.apply(box));
+						}
+						box.first(Execution.execution)
+							.ifPresent(x -> x.support(box, Execution.code)
+								.end(box));
+						Drawing.dirty(this, 3);
+					}));
+
 				menuSpec.nothing = () -> {
+
 					box.first(Execution.execution)
 						.ifPresent(x -> x.support(box, Execution.code)
 							.end(box));
+
 					Drawing.dirty(this, 3);
+
 				};
 				return MarkingMenus.runMenu(box, point, menuSpec);
 			}
@@ -192,6 +215,10 @@ public class Chorder extends Box {
 			MarkingMenus.MenuSpecification menuSpec
 				= new MarkingMenus.MenuSpecification();
 			menuSpec.items.put(MarkingMenus.Position.SH, new MarkingMenus.MenuItem("Stop", () -> {
+				if (ThreadSync2.getEnabled()) {
+					box.first(ThreadSync2Feedback.fKill)
+						.ifPresent(x -> x.apply(box));
+				}
 				box.first(Execution.execution)
 					.ifPresent(x -> x.support(box, Execution.code)
 						.end(box));
@@ -382,7 +409,7 @@ public class Chorder extends Box {
 	public List<Triple<Vec2, Float, Box>> intersectionsFor(List<Pair<Box, Rect>> frames, Vec2 start, Vec2 end) {
 		List<Triple<Vec2, Float, Box>> ret = new ArrayList<>();
 
-		for (Pair<Box, Rect> br : frames) {
+		for (Pair<Box, Rect> br: frames) {
 			Rect r = br.second;
 
 			Vec2 v1 = getLineIntersection(new Vec2(r.x, r.y), new Vec2(r.x + r.w, r.y),

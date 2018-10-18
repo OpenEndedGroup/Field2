@@ -18,6 +18,10 @@ operator fun <T> AsMap.plusAssign(pair: Pair<Dict.Prop<T>, T>) {
     this.asMap_set(pair.first.name, pair.second)
 }
 
+operator fun <T> AsMap.plusAssign(pair: Dict.Prop<Boolean>) {
+    this.asMap_set(pair.name, true)
+}
+
 
 inline fun <R, T : Bracketable> T.use(b: (T) -> R): R {
     this.open()

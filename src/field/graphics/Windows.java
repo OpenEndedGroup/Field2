@@ -4,6 +4,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import field.app.RunLoop;
 import field.utility.Log;
+import fieldagent.Main;
 import org.lwjgl.glfw.*;
 
 import java.util.Deque;
@@ -162,6 +163,9 @@ public class Windows {
 				final int fbutton = button;
 				final int fmods = mods;
 
+
+				System.out.println(" -- mouse button "+window+" "+button+" "+pressed+" "+mods);
+
 				Runnable r = () -> {
 					checkClassLoader();
 
@@ -170,10 +174,18 @@ public class Windows {
 
 //					// added, because mouse down doesn't report the mouse location correctly on first click in os X
 					// removed, because El Capitan reports getCursorPos in screen coords
-//					if (Main.os == Main.OS.mac) {
-//						if (a != null)
-//							a.cursorPos(window, Glfw.glfwGetCursorPosX(window), Glfw.glfwGetCursorPosY(window));
-//					}
+					if (Main.os == Main.OS.mac) {
+
+						double[] xp = {0.0};
+						double[] yp = {0.0};
+						glfwGetCursorPos(window, xp, yp);
+
+						System.out.println(" fake cursor pos at down is "+xp[0]+" "+yp[0]);
+
+						if (a != null)
+							a.cursorPos(window, xp[0], yp[0]);
+					}
+
 
 
 					if (a != null)
@@ -209,6 +221,9 @@ public class Windows {
 			@Override
 			public void cursorPos(long window, double x, double y) {
 
+				System.out.println(" -- cursorPos "+window+" "+x+" "+y);
+
+
 				Runnable r = () -> {
 					checkClassLoader();
 					GlfwCallback a = adaptors.get(window);
@@ -227,7 +242,7 @@ public class Windows {
 			public void key(long window, int key, int scancode, int action, int mods) {
 
 				// we occasionally get a spurious 'a' (scancode 0) on command-tabbing to our application. If it's just a plain 'a' let's assume that the character callback will handle it
-				if (scancode == 0 && mods == 0) return;
+				//if (scancode == 0 && mods == 0) return;
 
 				Runnable r = () -> {
 					checkClassLoader();

@@ -72,7 +72,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	}
 
 	public FLine(Map<Object, Object> attributes) {
-		for (Map.Entry e : attributes.entrySet()) {
+		for (Map.Entry e: attributes.entrySet()) {
 			String name = (String) Conversions.convert(e.getKey(), String.class);
 			asMap_set(name, e.getValue());
 		}
@@ -156,7 +156,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	 */
 	public FLine append(FLine n) {
 
-		for (Node nn : n.nodes) {
+		for (Node nn: n.nodes) {
 			this.copyTo(nn);
 		}
 
@@ -572,7 +572,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 
 	private void doDataLines(Collection<Object> m) {
 		boolean first = true;
-		for (Object o : m) {
+		for (Object o: m) {
 			if (o instanceof Vec2) {
 				if (first) moveTo((Vec2) o);
 				else lineTo((Vec2) o);
@@ -607,7 +607,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 					o.add(qq);
 				} else {
 					boolean done = false;
-					for (Function<Object, Object> f : transformation) {
+					for (Function<Object, Object> f: transformation) {
 						try {
 							Object m = f.apply(q);
 							if (m != null) {
@@ -713,56 +713,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		return this;
 	}
 
-	/**
-	 * take 'many things' and turn them into a line based on the formatting string.
-	 * <p>
-	 * 'm' - moveTo, needs a Vec2 or a Vec3 'l' - lineTo, needs a Vec2 or a Vec3 'c' - cubicTo, needs 3 Vec2 or Vec3; 's' - smoothTo, needs 1 Vec2 or Vec3 '*' will loop the previous instruction
-	 * until you run out of Vec3 inputs
-	 */
-	public FLine data(String format, Iterator<Vec3> f) {
 
-		// FIXME, duplicative and out of date
-
-		int q = 0;
-
-		char[] cs = format.toCharArray();
-		boolean looping = false;
-		for (int i = 0; i < cs.length; i++) {
-			char c = cs[i];
-
-			if (c == '*') {
-				c = cs[i - 1];
-				c--;
-				looping = true;
-			}
-
-			try {
-				switch (c) {
-					case 'm':
-						moveTo(f.next());
-						break;
-					case 'l':
-						lineTo(f.next());
-						break;
-					case 's':
-						smoothTo(f.next());
-						break;
-					case 'd':
-						q++;
-						break;
-					case 'c':
-						cubicTo(f.next(), f.next(), f.next());
-						break;
-					default:
-						throw new IllegalArgumentException(" unknown format specification ");
-				}
-			} catch (ArrayIndexOutOfBoundsException e) {
-				if (looping) return this;
-				throw e;
-			}
-		}
-		return this;
-	}
 
 	/**
 	 * copies a node from (potentially some other) line to here. Also copies attributes
@@ -883,6 +834,12 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		List<Vec3> o = new ArrayList<>();
 
 
+		if (i instanceof Iterable) {
+			for (Object q: ((Iterable) i)) {
+				o.addAll(flattenInput(q));
+			}
+			return o;
+		}
 		if (i instanceof Vec2) o.add(((Vec2) i).toVec3());
 		else if (i instanceof Vec3) o.add((Vec3) i);
 		else if (i instanceof Vec4) o.add(((Vec4) i).toVec3());
@@ -890,7 +847,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 			Object ni = ((Supplier) i).get();
 			if (i != ni) o.addAll(flattenInput(ni));
 		} else if (i instanceof Object[]) {
-			for (Object ii : (Object[]) i)
+			for (Object ii: (Object[]) i)
 				o.addAll(flattenInput(ii));
 		} else if (i instanceof CubicTo) {
 			o.add(((CubicTo) i).c1);
@@ -939,7 +896,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 				}
 			}
 
-			for (Object ii : (Collection) i)
+			for (Object ii: (Collection) i)
 				o.addAll(flattenInput(ii));
 
 		} else if (i instanceof FLinesAndJavaShapes.CubicSegment3) {
@@ -974,7 +931,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 			return (Vec3) r;
 		};
 
-		for (Node n : nodes) {
+		for (Node n: nodes) {
 			n.transform(q);
 		}
 		modify();
@@ -1014,7 +971,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	 */
 	public FLine duplicate() {
 		FLine fLine = new FLine();
-		for (Node n : this.nodes) {
+		for (Node n: this.nodes) {
 			fLine.nodes.add(n.duplicate());
 		}
 		fLine.attributes.putAll(attributes.duplicate());
@@ -1251,14 +1208,14 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	}
 
 	@HiddenInAutocomplete
-	 void flattenAuxProperties() {
+	void flattenAuxProperties() {
 		if (auxProperties == null || auxProperties.size() == 0) return;
 
 		int[] flatAux = new int[auxProperties.size()];
 		Function<Node, Object>[] flatAuxNames = new Function[auxProperties.size()];
 		int n = 0;
 
-		for (Map.Entry<Integer, Function<Node, Object>> ii : auxProperties.entrySet()) {
+		for (Map.Entry<Integer, Function<Node, Object>> ii: auxProperties.entrySet()) {
 			// Surprise! Nashorn's map literals have string keys not integer keys
 			Object k = ii.getKey();
 			Integer kv = null;
@@ -1271,7 +1228,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 			flatAuxNames[n++] = ii.getValue();
 		}
 
-		for (Node node : nodes) {
+		for (Node node: nodes) {
 			node.flatAuxData = new float[flatAux.length][];
 			node.flatAux = flatAux;
 			for (int i = 0; i < flatAux.length; i++) {
@@ -1431,7 +1388,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		FLine f = new FLine();
 		f.attributes = attributes.duplicate();
 
-		for (Node n : nodes) {
+		for (Node n: nodes) {
 			if (n instanceof MoveTo) f.add(new MoveTo(spaceTransform.apply(n.to.duplicate())));
 			else if (n instanceof LineTo) f.add(new LineTo(spaceTransform.apply(n.to.duplicate())));
 			else if (n instanceof CubicTo)
@@ -1452,7 +1409,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		FLine f = new FLine();
 		f.attributes = attributes.duplicate(f);
 
-		for (Node n : nodes) {
+		for (Node n: nodes) {
 			if (n instanceof MoveTo) f.add(new MoveTo(n.to));
 			else if (n instanceof LineTo) {
 				Vec3 midpoint = Vec3.lerp(f.node().to, n.to, 0.5f, new Vec3());
@@ -1528,7 +1485,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 	 */
 	public void depthTo(Box of) {
 		float d = of.properties.getFloat(depth, 0f);
-		for (Node n : nodes)
+		for (Node n: nodes)
 			n.setZ(d);
 	}
 
@@ -1567,11 +1524,11 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		Set<String> r = new LinkedHashSet<>();
 		Method[] m = this.getClass()
 			.getMethods();
-		for (Method mm : m)
+		for (Method mm: m)
 			r.add(mm.getName());
 		Field[] f = this.getClass()
 			.getFields();
-		for (Field ff : f)
+		for (Field ff: f)
 			r.add(ff.getName());
 		return r;
 	}
@@ -1706,7 +1663,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		boolean success = false;
 		try {
 			Map<?, ?> m = (Map<?, ?>) ScriptUtils.convert(b, Map.class);
-			for (Map.Entry<?, ?> e : m.entrySet()) {
+			for (Map.Entry<?, ?> e: m.entrySet()) {
 				asMap_set("" + e.getKey(), e.getValue());
 			}
 			success = true;
@@ -1728,7 +1685,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 
 			FLine o = this.duplicate();
 
-			for (Map.Entry<?, ?> e : m.entrySet()) {
+			for (Map.Entry<?, ?> e: m.entrySet()) {
 				o.asMap_set("" + e.getKey(), e.getValue());
 			}
 			success = true;
@@ -1785,7 +1742,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 
 		l1b.stream().filter(x -> {
 			x.rank += 100;
-			for (Completion cc : l1) {
+			for (Completion cc: l1) {
 				if (cc.replacewith.equals(x.replacewith))
 					return false;
 			}
@@ -1797,7 +1754,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 
 		l1.addAll(l2.stream()
 			.filter(x -> {
-				for (Completion c : l1)
+				for (Completion c: l1)
 					if (c.replacewith.equals(x.replacewith)) return false;
 				return true;
 			})
@@ -2323,7 +2280,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 
 			l1b.stream().filter(x -> {
 				x.rank += 100;
-				for (Completion cc : l1) {
+				for (Completion cc: l1) {
 					if (cc.replacewith.equals(x.replacewith))
 						return false;
 				}
@@ -2335,7 +2292,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 
 			l1.addAll(l2.stream()
 				.filter(x -> {
-					for (Completion c : l1)
+					for (Completion c: l1)
 						if (c.replacewith.equals(x.replacewith)) return false;
 					return true;
 				})
@@ -2470,7 +2427,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 			boolean success = false;
 			try {
 				Map<?, ?> m = (Map<?, ?>) ScriptUtils.convert(b, Map.class);
-				for (Map.Entry<?, ?> e : m.entrySet()) {
+				for (Map.Entry<?, ?> e: m.entrySet()) {
 					asMap_set("" + e.getKey(), e.getValue());
 				}
 				success = true;
@@ -2491,7 +2448,7 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 
 				Node o = this.duplicate();
 
-				for (Map.Entry<?, ?> e : m.entrySet()) {
+				for (Map.Entry<?, ?> e: m.entrySet()) {
 					o.asMap_set("" + e.getKey(), e.getValue());
 				}
 				success = true;
@@ -2526,11 +2483,11 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 			Set<String> r = new LinkedHashSet<>();
 			Method[] m = this.getClass()
 				.getMethods();
-			for (Method mm : m)
+			for (Method mm: m)
 				r.add(mm.getName());
 			Field[] f = this.getClass()
 				.getFields();
-			for (Field ff : f)
+			for (Field ff: f)
 				r.add(ff.getName());
 			return r;
 		}
@@ -2665,17 +2622,15 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 
 	/**
 	 * for a line that has many moveTo's, split this up into lots of lines, each with one moveTo()
+	 *
 	 * @return
 	 */
-	public List<FLine> pieces()
-	{
-		List<FLine> ff =new ArrayList<FLine>();
+	public List<FLine> pieces() {
+		List<FLine> ff = new ArrayList<FLine>();
 
 		FLine d = null;
-		for(int i=0;i<this.nodes.size();i++)
-		{
-			if (this.nodes.get(i).getClass()==MoveTo.class)
-			{
+		for (int i = 0; i < this.nodes.size(); i++) {
+			if (this.nodes.get(i).getClass() == MoveTo.class) {
 				d = new FLine();
 				d.attributes = this.attributes.duplicate(d);
 				ff.add(d);

@@ -276,7 +276,7 @@ public class Browser extends Box implements IO.Loaded {
 			"float d = (current.x+current.y+current.z)/3;\n" +
 			"current.xyz = pow(current.xyz, vec3(1.25));\n" +
 			"\t_output  = vec4(current.zyx,max(0.4, min(1, d*8))*current.w*vtc.z);\n" +
-			"float ee = 0.001f;\n"+
+			"float ee = 0.001f;\n" +
 			"\t if (vtc.x<ee || vtc.x>1-ee || vtc.y<ee || vtc.y>1-ee) _output.w=0;\n" +
 //			"\t _output=vec4(current.xyz,1);\n" +
 //			"_output+=vec4(TC.x%15<1 ? 1 : 0, 0, 0, 1)*0.5;\n" +
@@ -372,9 +372,11 @@ public class Browser extends Box implements IO.Loaded {
 				if (!properties.isTrue(Mouse.isSticky, false)) return null;
 			}
 
+			Vec2 SC = drawing.get().getScale();
+
 			browser.sendMouseEvent(
 				new MouseEvent(component, MouseEvent.MOUSE_PRESSED, 0, MouseEvent.getMaskForButton(button + 1) | (e.after.keyboardState.isAltDown() ? KeyEvent.ALT_DOWN_MASK : 0),
-					(int) ((int) (point.x - r.x) * rsf), (int) ((int) (point.y - r.y) * rsf), 1, false, button + 1));
+					(int) ((int) (point.x - r.x) * rsf * SC.x), (int) ((int) (point.y - r.y) * rsf * SC.x), 1, false, button + 1));
 
 			dragOngoing = true;
 
@@ -384,16 +386,16 @@ public class Browser extends Box implements IO.Loaded {
 
 				Vec2 point2 = new Vec2(e2.after.mx, e2.after.my);
 
-				if (e2!=e)
+				if (e2 != e)
 					e2.properties.put(Window.consumed, true);
 
 				if (!term) {
 					browser.sendMouseEvent(new MouseEvent(component, MouseEvent.MOUSE_DRAGGED, 0, MouseEvent.getMaskForButton(button + 1),
-						((int) ((int) (point2.x - r.x) * rsf)), ((int) ((int) (point2.y - r.y) * rsf)), 1, false,
+						((int) ((int) (point2.x - r.x) * rsf * SC.x)), ((int) ((int) (point2.y - r.y) * rsf * SC.x)), 1, false,
 						button + 1));
 				} else browser.sendMouseEvent(
-					new MouseEvent(component, MouseEvent.MOUSE_RELEASED, 0, MouseEvent.getMaskForButton(button + 1), ((int) ((int) (point2.x - r.x) * rsf)),
-						((int) ((int) (point2.y - r.y) * rsf)), 1, false, button + 1));
+					new MouseEvent(component, MouseEvent.MOUSE_RELEASED, 0, MouseEvent.getMaskForButton(button + 1), ((int) ((int) (point2.x - r.x) * rsf * SC.x)),
+						((int) ((int) (point2.y - r.y) * rsf * SC.x)), 1, false, button + 1));
 
 				dragOngoing = !term;
 
@@ -415,10 +417,11 @@ public class Browser extends Box implements IO.Loaded {
 			Optional<Drawing> drawing = this.find(Drawing.drawing, both())
 				.findFirst();
 			Vec2 point = new Vec2(e.after.mx, e.after.my);
+			Vec2 SC = drawing.get().getScale();
 
 
-			browser.sendMouseEvent(new MouseEvent(component, MouseEvent.MOUSE_MOVED, 0, 0, ((int) ((int) (point.x - r.x) * rsf)),
-				((int) ((int) (point.y - r.y) * rsf)), 0, false));
+			browser.sendMouseEvent(new MouseEvent(component, MouseEvent.MOUSE_MOVED, 0, 0, ((int) ((int) (point.x - r.x) * rsf * SC.x)),
+				((int) ((int) (point.y - r.y) * rsf * SC.y)), 0, false));
 			return null;
 		});
 
@@ -640,7 +643,7 @@ public class Browser extends Box implements IO.Loaded {
 		int y0 = h;
 		int y1 = 0;
 
-		for (Rectangle r : dirty) {
+		for (Rectangle r: dirty) {
 //            System.out.println(" -- "+r);
 
 			if (r.x == 0 && r.y == 0 && r.width == w && r.height == h) {
@@ -766,11 +769,11 @@ public class Browser extends Box implements IO.Loaded {
 
 
 		if (this.dirty.getAndSet(false) && damage != null) {
-			if (check-- > 0 || lastZoom!=baseZoomLevel) {
+			if (check-- > 0 || lastZoom != baseZoomLevel) {
 				if (Main.os != Main.OS.windows)
 					browser.setZoomLevel(baseZoomLevel * window.getRetinaScaleFactor());
 				else
-					browser.setZoomLevel(baseZoomLevel*2);
+					browser.setZoomLevel(baseZoomLevel * 2);
 				lastZoom = baseZoomLevel;
 			}
 			Log.log("cef.debug", () -> " texture was dirty, uploading ");
@@ -778,7 +781,7 @@ public class Browser extends Box implements IO.Loaded {
 //			if (GraphicsContext.getContext() != null)
 //				texture.forceUploadNow(source);
 //			else
-				texture.upload(source, false, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (1 + damage.h + damage.y));
+			texture.upload(source, false, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (1 + damage.h + damage.y));
 
 //			System.out.print("<P1>");
 			Drawing.dirty(this);
@@ -790,7 +793,7 @@ public class Browser extends Box implements IO.Loaded {
 //			if (GraphicsContext.getContext() != null)
 //				texture.forceUploadNow(source);
 //			else
-				texture.upload(source, false, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (1 + damage.h + damage.y));
+			texture.upload(source, false, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (1 + damage.h + damage.y));
 
 //			System.out.print("<p2>");
 			Drawing.dirty(this);
@@ -816,7 +819,7 @@ public class Browser extends Box implements IO.Loaded {
 			messages.clear();
 		}
 
-		for (Pair<String, Consumer<String>> p : m) {
+		for (Pair<String, Consumer<String>> p: m) {
 			Log.log("cef.debug", () -> "dispatching message <" + p.first + ">");
 
 			JSONObject o = new JSONObject(p.first);
@@ -835,7 +838,7 @@ public class Browser extends Box implements IO.Loaded {
 			}
 
 			if (!TransientCommands.transientCommands.handle(address, (JSONObject) payload, p.second))
-				for (Pair<Predicate<String>, Handler> p2 : handlers) {
+				for (Pair<Predicate<String>, Handler> p2: handlers) {
 					if (p2.first.test(address)) {
 						Log.log("cef.debug", () -> "found handler");
 

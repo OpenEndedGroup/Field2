@@ -1,6 +1,7 @@
 package trace.graphics.remote
 
 import field.graphics.BaseMesh
+import fielded.webserver.NewNanoHTTPD
 import org.java_websocket.WebSocket
 import org.java_websocket.WebSocketImpl
 import org.java_websocket.server.WebSocketServer
@@ -10,7 +11,7 @@ import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
 
-class RemoteLayer(val websocket: WebSocketServer, val max_vertex: Int, val max_element: Int, val element_dim: Int, var channel_name: String) {
+class RemoteLayer(val websocket: NewNanoHTTPD, val max_vertex: Int, val max_element: Int, val element_dim: Int, var channel_name: String) {
 
     var vertexBufferB: ByteBuffer
     var vertexBufferF: FloatBuffer
@@ -37,16 +38,16 @@ class RemoteLayer(val websocket: WebSocketServer, val max_vertex: Int, val max_e
             channel_name = channel_name.substring(0, 15) + channel_name.hashCode() + channel_name.substring(channel_name.length - 2)
         }
 
-        vertexBufferB = ByteBuffer.allocateDirect(4 * max_vertex * 3 + 2 * 64).order(ByteOrder.nativeOrder())
+        vertexBufferB = ByteBuffer.allocate(4 * max_vertex * 3 + 2 * 64).order(ByteOrder.nativeOrder())
         vertexBufferF = vertexBufferB.position(2 * 64).asFloatBuffer()
 
-        colorBufferB = ByteBuffer.allocateDirect(4 * max_vertex * 4 + 2 * 64).order(ByteOrder.nativeOrder())
+        colorBufferB = ByteBuffer.allocate(4 * max_vertex * 4 + 2 * 64).order(ByteOrder.nativeOrder())
         colorBufferF = colorBufferB.position(2 * 64).asFloatBuffer()
 
-        textureBufferB = ByteBuffer.allocateDirect(4 * max_vertex * 2 + 2 * 64).order(ByteOrder.nativeOrder())
+        textureBufferB = ByteBuffer.allocate(4 * max_vertex * 2 + 2 * 64).order(ByteOrder.nativeOrder())
         textureBufferF = textureBufferB.position(2 * 64).asFloatBuffer()
 
-        elementBufferB = ByteBuffer.allocateDirect(4 * max_element * element_dim + 2 * 64).order(ByteOrder.nativeOrder())
+        elementBufferB = ByteBuffer.allocate(4 * max_element * element_dim + 2 * 64).order(ByteOrder.nativeOrder())
         elementBufferI = elementBufferB.position(2 * 64).asIntBuffer()
 
 
@@ -185,7 +186,7 @@ class RemoteLayer(val websocket: WebSocketServer, val max_vertex: Int, val max_e
 
     }
 
-    val seenConnections = mutableSetOf<WebSocket>()
+    val seenConnections = mutableSetOf<org.nanohttpd.protocols.websockets.WebSocket>()
 
     fun send() {
 //        println("$vertexChanged $textureChanged $colorChanged $elementChanged")
@@ -201,14 +202,14 @@ class RemoteLayer(val websocket: WebSocketServer, val max_vertex: Int, val max_e
         elementChanged = false
 
         seenConnections.clear()
-        seenConnections.addAll(websocket.connections())
+        seenConnections.addAll(websocket.openWebsockets)
 
     }
 
 
     private fun send(v: ByteBuffer, mx: Int, realUpdate: Boolean) {
 
-        websocket.connections().forEach { x ->
+        websocket.openWebsockets.forEach { x ->
             try {
                 (x as WebSocketImpl).socket.tcpNoDelay = true
             } catch (e: SocketException) {
@@ -220,14 +221,20 @@ class RemoteLayer(val websocket: WebSocketServer, val max_vertex: Int, val max_e
         v.position(0)
         v.limit(mx * 4 + 2 * 64)
         v.order(ByteOrder.BIG_ENDIAN)
+
+        //!!
+        // we've lost a lot of efficiency here with the .array()!!!
+        //!!
+
+
         if (realUpdate)
-            websocket.connections().forEach {
-                it.send(v)
+            websocket.openWebsockets.forEach {
+                it.send(v.array())
             }
         else {
-            websocket.connections().forEach {
+            websocket.openWebsockets.forEach {
                 if (!seenConnections.contains(it))
-                    it.send(v)
+                    it.send(v.array())
             }
         }
 

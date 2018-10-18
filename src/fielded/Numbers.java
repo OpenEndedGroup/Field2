@@ -24,7 +24,7 @@ public class Numbers {
 			if (!Character.isDigit(code.charAt(i)) && code.charAt(i)!='.') break;
 
 			try {
-				double z = Double.parseDouble(a + code.charAt(i));
+				var z = Double.parseDouble(a + code.charAt(i));
 			} catch (NumberFormatException e) {
 				break;
 			}

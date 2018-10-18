@@ -36,6 +36,7 @@ public class FieldBox {
 			// needs to be initialized after 'args'
 			workspace = Options.getDirectory("workspace", () -> System.getProperty("user.home") + "/Documents/FieldWorkspace/");
 
+
 			System.err.println(" lauching toolkit");
 			if (Main.os == Main.OS.mac) {
 				Toolkit.getDefaultToolkit();
