@@ -83,6 +83,23 @@ a {
     color: #aaf;
 }
 
+.string
+{
+    color:#eaa;
+}
+
+.key
+{
+    font-style: italic;
+    margin-right:5px;
+    color: #b92
+}
+
+.syntax
+{
+    font-weight: 700;
+}
+
 .tabdown
 {
     background: #405560 !important;
@@ -908,6 +925,34 @@ input {
     margin-left: 25px;
     margin-right: 10px;
     padding-top: 3px;
+}
+
+
+.Field-modal-positioned ol li div.providedDoc,
+.Field-modal ol li div.providedDoc {
+    opacity: 0.5;
+    /*text-height: 120%;*/
+    float: left;
+    font-weight:normal;
+    clear: both;
+    margin-left: 25px;
+    margin-right: 10px;
+    padding-top: 3px;
+}
+
+.return
+{
+    color: #fba
+}
+
+.inside
+{
+    font-weight: 700;
+}
+
+.extraDoc
+{
+    font-size:85%
 }
 
 .Field-modal-positioned ol li span.type,

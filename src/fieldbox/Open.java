@@ -29,9 +29,14 @@ import jdk.dynalink.linker.GuardingDynamicLinkerExporter;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 
+import java.awt.*;
+import java.awt.desktop.OpenFilesEvent;
+import java.awt.desktop.OpenFilesHandler;
+import java.awt.desktop.SystemEventListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.List;
 
 import static org.lwjgl.opengl.GL11.*;
 
@@ -436,6 +441,8 @@ public class Open {
 
 		// start the runloop
 		boxes.start();
+
+
 
 
 		DefaultMenus.safeToSave = true;

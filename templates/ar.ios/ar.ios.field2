@@ -1,0 +1,104 @@
+#field/document{
+  :externalList [
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/ar.ios/execute in iOS webbrowser.box.js"
+      }
+      :dataFile "{{templates}}/ar.ios/execute in iOS webbrowser.box"
+      :id "_743d55b8_b827_41d1_b031_07193f9fc97d"
+      :boxClass "trace.graphics.remote.RemoteServerExecution"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+        "_33d4944d_5fc0_4c41_8231_e01f7d95dcda"
+        "_e0fad656_580f_42a9_ad66_478e21fd9157"
+        "_ab2d7d07_cbc8_45e0_8213_b6132c369f1b"
+        "_08bc4a9b_57f7_4f62_a270_da5677278876"
+        "_2438e924_d5d6_43b4_82bb_3d7eb9d72503"
+        "_ba496469_35bf_4ab7_b146_2e4139774f99"
+        "_9419c9f9_1e3f_41a4_a4d5_3e84db868c1b"
+        "_6950979b_27ef_43ce_8777_9ff57b278d60"
+        "_62238abc_f13f_448c_b570_c405bc8df1a5"
+        "_16066de3_5640_4a6d_935d_eae0ec906eab"
+        "_ebb50f5c_f167_4f4c_83ea_fcfb922c8f61"
+        "_f02564f5_a361_4fa8_89ca_21fa8d51956c"
+        "_82114e0f_9f37_422e_92e1_c0066f459829"
+        "_9ae63484_02a9_4d6b_adff_edab8b6b6d9e"
+        "_a9dd6e05_aa13_4775_ac97_32ae1ee0de7f"
+        "_038b7f56_a91e_446b_b3bb_fd2957cbd348"
+        "_624de40c_d3b1_4106_9ceb_95f1e8f987a8"
+        "_96b0a847_5e51_45fa_98b6_8d0203f6b6bd"
+        "_e8354816_82ca_4cce_8476_aeebfc05c009"
+        "_933e32f6_ab04_4519_bc89_cea64ff4d52b"
+        "_32681336_3b23_49fa_a211_26dae6fb87b9"
+        "_5c25f952_bcb3_4012_b2ef_7446d26dabb4"
+        "_0311c483_3ff1_411c_8a39_39a75994ac20"
+        "_0eb4254e_815f_4175_af9e_d38d0d3424bf"
+        "_e153028a_e9fc_4536_a0ff_27a8247b7029"
+        "_44e36dc4_5275_4919_8377_a4b89bd96f4a"
+        "_f86a11f1_cbf3_4b58_aab9_1c0aa3daf520"
+        "_95f3e666_427f_4a9f_a7f1_b9d0788f0aba"
+        "_c8db18da_4dab_4d61_bf3f_e6c810aee813"
+        "_a17caab7_458c_4f2a_b3f9_5615e81e6171"
+        "_5401d430_ad83_4e0c_982f_cfc3e73289b5"
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 20.0
+          :y 20.0
+          :w 400.0
+          :h 100.0
+        }
+      }
+    }
+  ]
+  :knownFiles {
+    "txt" #field/filespec{
+      :name "txt"
+    }
+    "fragment" #field/filespec{
+      :name "fragment"
+    }
+    "code" #field/filespec{
+      :name "code"
+    }
+    "vertex" #field/filespec{
+      :name "vertex"
+    }
+    "geometry" #field/filespec{
+      :name "geometry"
+    }
+    "html" #field/filespec{
+      :name "html"
+    }
+    "edn" #field/filespec{
+      :name "edn"
+    }
+  }
+  :knownProperties #{
+    "__id__"
+    "comment"
+    "classpath"
+    "perDocument"
+    "name"
+    "frame"
+    "lockHeight"
+    "lockWidth"
+    "tag"
+    "windowSpace"
+    "windowScale"
+    "isPaired"
+    "auto"
+    "head"
+    "tail"
+    "defaultEditorProperty"
+    "_defaultEditorProperty_cookie"
+    "_code_cookie"
+    "_theVariant"
+    "includes"
+    "excludes"
+    "__datafilename__"
+    "__filename__code"
+  }
+}

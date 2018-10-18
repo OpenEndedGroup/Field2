@@ -769,8 +769,10 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
         after.mouseState = mouseState;
         Iterator<Function<Event<KeyboardState>, Boolean>> i = keyboardHandlers.iterator();
         Event<KeyboardState> event = new Event<>(before, after);
-        while (i.hasNext()) if (!i.next()
-                .apply(event)) i.remove();
+
+        debugKeyboardTransition(event);
+
+        while (i.hasNext()) if (!i.next().apply(event)) i.remove();
     }
 
     private void fireDrop(Drop drop) {
@@ -854,12 +856,16 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
                 if (window == Window.this.window && RunLoop.tick > windowOpenedAt + 10) { // we ignore keyboard events from the first couple of updates; they can refer to key downs
                     // that we'll never receive
 
+                    System.out.println("key> "+key+"/"+scancode+"/"+action);
+
                     KeyboardState next = keyboardState.withKey(key, action != GLFW_RELEASE);
 
                     modifiers.event(key, scancode, action, mods, next.keysDown);
 
 //					next = modifiers.cleanModifiers(next);
                     next = next.clean(window);
+
+
 
                     fireKeyboardTransition(keyboardState, next);
                     keyboardState = next;
@@ -879,6 +885,8 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
                                                                                             GLFW_KEY_RIGHT_SUPER))) != 0;
                     boolean ctrl = ((glfwGetKey(window, GLFW_KEY_LEFT_CONTROL)) | (glfwGetKey(window,
                                                                                               GLFW_KEY_RIGHT_CONTROL))) != 0;
+
+                    System.out.println("char> "+character);
 
                     next = next.clean(window);
 

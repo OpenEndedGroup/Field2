@@ -4,12 +4,21 @@ import com.google.common.io.Files
 import fieldagent.Main
 import fieldbox.boxes.Box
 import fieldbox.boxes.Callbacks
+import fieldbox.execution.Completion
+import fieldbox.execution.Errors
+import fielded.live.Asta
 import fielded.webserver.NanoHTTPD
+import fielded.webserver.NewNanoHTTPD
 import fielded.webserver.Server
 import org.json.JSONObject
+import org.json.JSONArray
+import org.json.JSONObject
+import org.nanohttpd.protocols.http.response.Response.*
+import org.nanohttpd.protocols.http.response.Status
 import java.io.File
 import java.io.FileInputStream
 import java.net.InetAddress
+import java.net.NetworkInterface
 import java.nio.charset.Charset
 import java.util.*
 import java.util.function.Consumer
@@ -22,28 +31,30 @@ class RemoteServer {
     val LOG = "log"
     val ERROR = "error"
 
-    var s: Server
+    var s: NewNanoHTTPD
 
     var id = 0;
 
     var hostname: String
 
     var responseMap = mutableMapOf<String, (JSONObject) -> Boolean>();
+    var errorRoot: Box? = null
 
     init {
-        this.s = Server(8090, 8091)
+        this.s = NewNanoHTTPD(8090)
 
-        s.addDocumentRoot(fieldagent.Main.app + "/modules/fieldbox/resources/")
-        s.addDocumentRoot(fieldagent.Main.app + "/modules/fielded/resources/")
-        s.addDocumentRoot(fieldagent.Main.app + "/modules/fieldcore/resources/")
-        s.addDocumentRoot(fieldagent.Main.app + "/lib/web/")
-        s.addDocumentRoot(fieldagent.Main.app + "/win/lib/web/")
+//        s.addDocumentRoot(fieldagent.Main.app + "/modules/fieldbox/resources/")
+//        s.addDocumentRoot(fieldagent.Main.app + "/modules/fielded/resources/")
+//        s.addDocumentRoot(fieldagent.Main.app + "/modules/fieldcore/resources/")
+//        s.addDocumentRoot(fieldagent.Main.app + "/lib/web/")
+//        s.addDocumentRoot(fieldagent.Main.app + "/win/lib/web/")
+
 
         val addr = InetAddress.getLocalHost().address
         val addrs = "${addr[0].toInt() and 255}.${addr[1].toInt() and 255}.${addr[2].toInt() and 255}.${addr[3].toInt() and 255}"
         hostname = "http://" + addrs + ":8090/boot"
 
-        s.addURIHandler { uri, method, headers, params, files ->
+        s.handlers.add { uri, method, headers, params, files ->
             if (uri.startsWith(BOOT)) {
 
                 println(" booting up... ")
@@ -57,45 +68,59 @@ class RemoteServer {
                 text = text.replace("///ID///", "" + (id++))
                 text = text.replace("///WSPORT///", "8091")
 
-                return@addURIHandler NanoHTTPD.Response(NanoHTTPD.Response.Status.OK, "text/html", text)
+                return@add newFixedLengthResponse(Status.OK, "text/html", text)
             } else if (uri.startsWith(RESOURCE)) {
                 var found = resourceMap.get(uri)
 
                 if (found == null) {
                     System.out.println("\n\n couldn't find " + uri + " in " + resourceMap + "\n\n");
-                    return@addURIHandler NanoHTTPD.Response(NanoHTTPD.Response.Status.NOT_FOUND, null, "not found")
+                    return@add newFixedLengthResponse(Status.NOT_FOUND, "text/html", "not found")
                 }
 
-                return@addURIHandler s.server.serveFile(uri, headers, File(found!!), "audio/wav")
+                return@add s.serveFile(File(found!!))
             }
             null
         }
 
-        s.addHandlerLast { server, from, address, payload ->
+        s.messageHandlers.add { server, address, payload ->
 
-            if (address.equals(MESSAGE)) {
-                println(" recieved message from $address to $payload")
+            if (address.equals("log")) {
+                println("LOG::(from browser):: $payload")
+                return@add true
+            } else if (address.equals("error")) {
+                println("ERROR::(from browser):: $payload")
+                return@add true
+            } else if (address.equals("(handler error)")) {
+                // need general panic out
+                println("general handler error $payload")
 
-                val a = (payload as JSONObject).get("respondTo")
-                val hand = responseMap.remove(a)
-                if (hand!=null)
-                {
-                    if (hand.invoke(payload as JSONObject))
-                        responseMap.put(a as String, hand)
+                val p = payload as JSONObject
+                val line = p.getInt("line");
+                var fn = p.getString("filename").replace("box_", "")
+
+                val (name, uid) = fn.split("|")
+
+                errorRoot?.let {
+                    Errors.reportError(it, uid, name, null, line, null, """Error thrown in remote event handler: ${p.getString("message")}""")
                 }
-            }
-        }
 
-        s.addHandlerLast { server, from, address, payload ->
-            if (address.equals(LOG)) {
-                println(" log message from $address to $payload")
-            }
-        }
+                return@add true
+            } else {
+                println("HANDLE:: $address / $payload")
 
-        s.addHandlerLast { server, from, address, payload ->
-            if (address.equals(ERROR)) {
-                println(" error message from $address to $payload")
+                val o = handlers.remove(address)
+                if (o != null) {
+                    if (o.invoke(payload as JSONObject)) {
+                        println("::: WILL CALL AGAIN :::")
+                        handlers.put(address, o)
+                    }
+                } else {
+                    println("::: UNHANDLED ::: ${handlers.keys}")
+                }
+                return@add true
             }
+
+            false
         }
 
     }
@@ -137,29 +162,81 @@ class RemoteServer {
 
     }
 
-    fun execute(s: String) {
-        execute(s, null)
+
+
+    val handlers = mutableMapOf<String, (JSONObject) -> Boolean>()
+
+
+    @JvmOverloads
+    fun execute(s: String,
+                filename: String = "unknown", launchable: Boolean = false,
+                requiresSandbox: Boolean = true,
+                timeStart: Double? = null, timeEnd: Double? = null, handleTo: ((JSONObject) -> Boolean)? = null
+                ): Boolean {
+
+        val u = UUID.randomUUID().toString()
+        if (handleTo != null)
+            handlers.put(u, handleTo)
+
+        val q = JSONObject()
+        q.put("code", s)
+        q.put("returnTo", u)
+        q.put("codeName", filename)
+        q.put("launchable", launchable)
+
+        if (!requiresSandbox)
+            q.put("noSandbox", true)
+
+        if (timeStart != null)
+            q.put("timeStart", timeStart)
+        if (timeEnd != null)
+            q.put("timeEnd", timeEnd)
+
+        this.s.openWebsockets.forEach {
+            it.send(q.toString())
+        }
+
+        return this.s.openWebsockets.size>0
     }
 
-    fun execute(s: String, res : ((JSONObject) -> Boolean)? ) {
-        this.s.webSocketServer.connections().forEach {
+    fun complete(file: String, index: Int, allowExecution: Boolean, success: (List<Completion>) -> Unit) {
+        val u = UUID.randomUUID().toString()
+        handlers.put(u, {
+            println(" return from completion")
 
-            var c = UUID.randomUUID().toString()
+            var s = it.getString("message").trim()
+            if (s.startsWith("<json>")) s = s.substring("<json>".length);
 
-            var m = JSONObject()
-            m.put("execute", s)
-            m.put("respondTo", c)
+            var j = JSONArray(s)
+            println(j)
 
+            success(j.map {
+                println(" recieved " + it)
+                println(" of class " + if (it == null) null else it.javaClass)
+                val o = it as JSONObject
+                val extra = o.getString("title").length - o.getString("add").length
 
-            responseMap.put(c, {
-                println(" got response $it")
-                if (res!=null)
-                    return@put res.invoke(it)
+                val extraDoc = o.getString("extraDoc") ?: ""
+                println("extraDoc $extraDoc")
 
-                false
-            })
+                println(extra)
+                Completion(index + 1 - extra, index + 1, o.getString("title"), o.getString("from")+" "+(extraDoc));
 
-            it.send(s)
+            }.toList())
+
+            false
+        })
+
+        var quoted = JSONObject.quote(file)
+
+        val q = JSONObject()
+        q.put("__var0", file)
+        q.put("code", "window.completeMe($index, _field.__var0, $allowExecution)")
+        q.put("codeName", "((internal))")
+        q.put("returnTo", u)
+
+        this.s.openWebsockets.forEach {
+            it.send(q.toString())
         }
     }
 

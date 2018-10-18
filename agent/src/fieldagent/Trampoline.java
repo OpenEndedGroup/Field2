@@ -5,6 +5,9 @@ import com.google.common.io.ByteStreams;
 import fieldagent.asm.ClassReader;
 import fieldagent.asm.tree.ClassNode;
 
+import java.awt.*;
+import java.awt.desktop.OpenFilesEvent;
+import java.awt.desktop.OpenFilesHandler;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -20,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.nio.file.NoSuchFileException;
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -245,6 +249,16 @@ public class Trampoline {
 	static public void main(String[] a) {
 		originalArguments = a;
 
+//		System.out.println(" -- installing open handler early --");
+//		Desktop.getDesktop().setOpenFileHandler(new OpenFilesHandler() {
+//			@Override
+//			public void openFiles(OpenFilesEvent e) {
+//				System.out.println(":: open ::" + e);
+//			}
+//		});
+//		System.out.println(" -- installed open handler early --");
+
+
 		Set<File> jarsToAdd = new LinkedHashSet<>();
 		Set<File> roots = new LinkedHashSet<>();
 		String[] classBuildStyles = {"/out/production", "/build/classes", "/lib/jars"};
@@ -286,6 +300,8 @@ public class Trampoline {
 								}
 
 							} catch (IOException e) {
+							} catch (IllegalArgumentException e) {
+								System.err.println("class bytecode version mismatch");
 							}
 						}
 					}

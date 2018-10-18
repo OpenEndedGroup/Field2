@@ -1,15 +1,16 @@
 package trace.graphics.remote
 
+import fielded.webserver.NewNanoHTTPD
 import org.java_websocket.WebSocket
 import org.java_websocket.server.WebSocketServer
 import trace.graphics.Stage
 
-class RemoteStageLayerHelper(val websocket: WebSocketServer, val max_vertex: Int, val max_element: Int, val element_dim: Int, var channel_name: String) {
+class RemoteStageLayerHelper(val websocket: NewNanoHTTPD, val max_vertex: Int, val max_element: Int, val element_dim: Int, var channel_name: String) {
     var fill: RemoteLayer? = null
     var stroke: RemoteLayer? = null
     var points: RemoteLayer? = null
 
-    var seenConnections = mutableSetOf<WebSocket>()
+    var seenConnections = mutableSetOf<org.nanohttpd.protocols.websockets.WebSocket>()
 
     var previousSide = 0
 
@@ -36,7 +37,7 @@ class RemoteStageLayerHelper(val websocket: WebSocketServer, val max_vertex: Int
         if (previousSide!=s.sides)
         {
             previousSide = s.sides
-            websocket.connections().forEach {
+            websocket.openWebsockets.forEach {
                 setSide(it, channel_name+"_s", s.sides)
                 setSide(it, channel_name+"_f", s.sides)
                 setSide(it, channel_name+"_p", s.sides)
@@ -44,7 +45,7 @@ class RemoteStageLayerHelper(val websocket: WebSocketServer, val max_vertex: Int
         }
         else
         {
-            websocket.connections().forEach {
+            websocket.openWebsockets.forEach {
                 if (!seenConnections.contains(it))
                 {
                     setSide(it, channel_name+"_s", s.sides)
@@ -57,7 +58,7 @@ class RemoteStageLayerHelper(val websocket: WebSocketServer, val max_vertex: Int
 
         if (s.textureFilename!=null)
         {
-            websocket.connections().forEach {
+            websocket.openWebsockets.forEach {
                 if (!seenConnections.contains(it))
                 {
                     RemoteTexture(websocket, channel_name+"_s").sendFile(s.textureFilename!!)
@@ -68,11 +69,11 @@ class RemoteStageLayerHelper(val websocket: WebSocketServer, val max_vertex: Int
         }
 
         seenConnections.clear()
-        seenConnections.addAll(websocket.connections())
+        seenConnections.addAll(websocket.openWebsockets)
 
     }
 
-    private fun setSide(websocket: WebSocket, s: String, sides: Int) {
+    private fun setSide(websocket: org.nanohttpd.protocols.websockets.WebSocket, s: String, sides: Int) {
         println(" limiting side of $s to $sides")
         var s2 = mangleName(s)
         websocket.send("if (meshes[\"${s2}\"]) meshes[\"${s2}\"].layers.set($sides)")

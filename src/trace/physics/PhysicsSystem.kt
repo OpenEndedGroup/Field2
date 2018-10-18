@@ -159,11 +159,9 @@ class PhysicsSystem {
         return pp
     }
 
-    fun removePhysics(f: FLine)
-    {
-        val pp = f.attributes.getOr(physics, {null})
-        if (pp!=null)
-        {
+    fun removePhysics(f: FLine) {
+        val pp = f.attributes.getOr(physics, { null })
+        if (pp != null) {
             allPhysicsLines.remove(pp)
             pp.remove()
         }
@@ -279,8 +277,7 @@ class PhysicsSystem {
         }
 
         var removed = false
-        fun remove()
-        {
+        fun remove() {
             if (removed) return
 
             world.destroyBody(body)
@@ -304,6 +301,8 @@ class PhysicsSystem {
                 body.setTransform(convert(v), body.angle)
             }
         }
+
+
 
         fun applyForce(force: field.linalg.Vec2) {
             body.applyForceToCenter(convert(force))
@@ -329,6 +328,22 @@ class PhysicsSystem {
             if (Math.abs(v) < max) return
             val excess = ((Math.abs(v) - max) * forceLength).toDouble()
             body.applyTorque((-Math.signum(v) * excess).toFloat())
+        }
+
+        fun decayVelocity(by: Double, limit: Double) {
+            val v = convert2(body.linearVelocity)
+            if (v.length() > 0.001)
+                body.applyForceToCenter(convert(field.linalg.Vec2(-v.x, -v.y).mul(by)))
+            else
+                body.linearVelocity = convert(field.linalg.Vec2(0.0, 0.0))
+        }
+
+        fun decayAngularVelocity(forceLength: Float, limit: Double) {
+            val v = body.angularVelocity
+            if (Math.abs(v) > 0.001)
+                body.applyTorque(-v * forceLength)
+            else
+                body.angularVelocity = 0f
         }
 
         fun getRotation() = body.transform.q.angle

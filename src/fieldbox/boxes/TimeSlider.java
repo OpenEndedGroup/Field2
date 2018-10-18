@@ -34,6 +34,10 @@ public class TimeSlider extends Box {
 
 	static public final Dict.Prop<TimeSlider> time = new Dict.Prop<>("time").toCanon().doc("the default red-line time slider. Set `_.time.frame.x` = something to move it around.");
 	static public final Dict.Prop<Double> velocity = new Dict.Prop<>("velocity").toCanon().doc("the rate at which this time slider is moving (that is, delta-frame.x per update).");
+	static public final Dict.Prop<Boolean> isRunning = new Dict.Prop<>("isRunning").toCanon().doc("set this to true if you are smoothly changing time in a way that it makes sense to interpolate" +
+		" and dead-reckon off of. Automatically set to false when the frame is dragged around.");
+
+
 	public static Dict.Prop<BiFunctionOfBoxAnd<Double, Double>> localTime = new Dict.Prop<>("localTime")
 		.toCanon().type().doc("setting this property modifies");
 
@@ -52,8 +56,14 @@ public class TimeSlider extends Box {
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__force_onscreen__", this::forceOnscreen);
 		this.properties.putToMap(Boxes.insideRunLoop, "main.__swipe__", this::swiper);
 
+		this.properties.putToMap(Callbacks.onFrameChanged, "__dontInterpolate__", (box, next) -> {
+			this.properties.put(isRunning, false);
+			return was;
+		});
+
 		properties.put(frame, new Rect(0, 0, width, 5000));
 
+		this.properties.put(isRunning, false);
 		this.properties.put(Delete.undeletable, true);
 		this.properties.put(FrameManipulation.lockWidth, true);
 		this.properties.put(FrameManipulation.lockHeight, true);

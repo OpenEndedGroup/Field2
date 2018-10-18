@@ -1,12 +1,14 @@
 package trace.graphics.remote
 
+import fielded.webserver.NewNanoHTTPD
 import org.java_websocket.server.WebSocketServer
+import org.nanohttpd.protocols.websockets.WebSocket
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.file.Files
 
-class RemoteTexture(val websocket: WebSocketServer, var channel_name: String) {
+class RemoteTexture(val websocket: NewNanoHTTPD, var channel_name: String) {
 
     fun sendFile(fn: String) {
 
@@ -15,7 +17,7 @@ class RemoteTexture(val websocket: WebSocketServer, var channel_name: String) {
         }
 
         val bytes = Files.readAllBytes(File(fn).toPath())
-        val buffer = ByteBuffer.allocateDirect(bytes.size + 2 * 64).order(ByteOrder.nativeOrder());
+        val buffer = ByteBuffer.allocate(bytes.size + 2 * 64).order(ByteOrder.nativeOrder());
         buffer.rewind()
         buffer.putInt(bytes.size)
         buffer.putChar('x')
@@ -26,8 +28,8 @@ class RemoteTexture(val websocket: WebSocketServer, var channel_name: String) {
         buffer.position(2 * 64).put(bytes);
         buffer.rewind()
         buffer.order(ByteOrder.BIG_ENDIAN)
-        websocket.connections().forEach {
-            it.send(buffer)
+        websocket.openWebsockets.forEach {
+            it.send(buffer.array())
         }
         buffer.order(ByteOrder.LITTLE_ENDIAN)
     }

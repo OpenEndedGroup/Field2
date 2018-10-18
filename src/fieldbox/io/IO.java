@@ -11,6 +11,7 @@ import fieldbox.boxes.FrameManipulation;
 import fieldbox.boxes.plugins.PluginList;
 import fieldbox.boxes.plugins.Variant;
 import fieldbox.execution.Execution;
+import fielded.RemoteEditor;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -925,10 +926,9 @@ public class IO {
 		public String getDefaultSuffix(Box box) {
 
 			if (defaultSuffix.equals(EXECUTION)) {
-				Execution e = box.first(Execution.execution)
-					.orElseThrow(() -> new IllegalArgumentException(" no execution for box " + box));
-				return e.support(e, new Dict.Prop<String>(name))
-					.getDefaultFileExtension();
+
+				return RemoteEditor.getExecution(box, new Dict.Prop<String>(name)).support(box, new Dict.Prop<String>(name)).getDefaultFileExtension();
+
 			}
 
 			return defaultSuffix;
@@ -937,10 +937,7 @@ public class IO {
 		public String getLanguage(Box box) {
 
 			if (defaultSuffix.equals(EXECUTION)) {
-				Execution e = box.first(Execution.execution)
-					.orElseThrow(() -> new IllegalArgumentException(" no execution for box " + box));
-				return e.support(e, new Dict.Prop<String>(name))
-					.getDefaultFileExtension();
+				return RemoteEditor.getExecution(box, new Dict.Prop<String>(name)).support(box, new Dict.Prop<String>(name)).getDefaultFileExtension();
 			}
 
 			return language;
