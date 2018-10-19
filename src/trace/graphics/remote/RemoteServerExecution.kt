@@ -24,6 +24,7 @@ import org.json.JSONStringer
 import trace.graphics.Stage
 
 import java.io.IOException
+import java.net.InetAddress
 import java.util.*
 import java.util.function.BiConsumer
 import java.util.function.BiFunction
@@ -78,19 +79,21 @@ class RemoteServerExecution : Execution(null) {
 
             val l = server.s.openWebsockets.size
 
-            var descrption = if (l == 0)
-                "No connected web-browsers, connect to " + server.hostname.replace("/boot", "/ar.html")
-            else {
-                var description = "$l connection" + (if (l == 1) "" else "s")
+            var descrption = {
+                if (l == 0)
+                    "No connected web-browsers, connect to " + hostname()?.replace("/boot", "/ar.html")
+                else {
+                    var description = "$l connection" + (if (l == 1) "" else "s")
 
-                if (l > 0) {
-                    description += " from :"
-                    server.s.openWebsockets.map {
-                        description += "${it.handshakeRequest.remoteHostName} = ${it.handshakeRequest.remoteIpAddress} "
+                    if (l > 0) {
+                        description += " from :"
+                        server.s.openWebsockets.map {
+                            description += "${it.handshakeRequest.remoteHostName} = ${it.handshakeRequest.remoteIpAddress} "
+                        }
                     }
-                }
 
-                description
+                    description
+                }
             }
 
             if (labelMaker == null || !labelMaker!!.isPresent) {
@@ -104,8 +107,8 @@ class RemoteServerExecution : Execution(null) {
 
                 val was = it.get("s")
 
-                if (was == null || !was.equals(descrption)) {
-                    it.put("s", descrption)
+                if (was == null || !was.equals(descrption())) {
+                    it.put("s", descrption())
                     Drawing.dirty(this)
                 }
 
@@ -114,6 +117,22 @@ class RemoteServerExecution : Execution(null) {
             true
         })
 
+    }
+
+    var lastHostName: String? = null
+    var hostNameCheckedAt = System.currentTimeMillis()
+
+    private fun hostname(): String? {
+
+        if (lastHostName == null || System.currentTimeMillis() - hostNameCheckedAt > 5000) {
+            val addr = InetAddress.getLocalHost().address
+            val addrs = "${addr[0].toInt() and 255}.${addr[1].toInt() and 255}.${addr[2].toInt() and 255}.${addr[3].toInt() and 255}"
+            val hostname = "http://" + addrs + ":8090/boot"
+            hostNameCheckedAt = System.currentTimeMillis()
+            lastHostName = hostname
+            return hostname
+        } else
+            return lastHostName
     }
 
     fun addDynamicRoot(name: String, router: () -> String) {
@@ -151,7 +170,12 @@ class RemoteServerExecution : Execution(null) {
                 try {
                     Execution.context.get().push(box)
 
-                    textFragment = asta.transformer(box).transform(textFragment, false).first
+                    try {
+                        textFragment = asta.transformer(box).transform(textFragment, false).first
+                    } catch (e: Exception) {
+                        System.out.println(" -- ASTA didn't succeed, usually a syntax error of some kind")
+                        e.printStackTrace()
+                    }
 
                     for (i in 0 until lineOffset)
                         textFragment = "\n" + textFragment
@@ -208,8 +232,14 @@ class RemoteServerExecution : Execution(null) {
                     val name = "main._animatorJS_"
 
                     var code = box.properties.get(Execution.code)!!
-                    code = asta.transformer(box).transform(code, true).first
 
+                    code = asta.transformer(box).transform(code, true).first
+                    try {
+                        code = asta.transformer(box).transform(code, true).first
+                    } catch (e: Exception) {
+                        System.out.println(" -- ASTA didn't succeed, usually a syntax error of some kind")
+                        e.printStackTrace()
+                    }
                     server.execute(code, target(box)!!, true, true,
                             timeStart = box.properties.get(Box.frame).x.toDouble(),
                             timeEnd = box.properties.get(Box.frame).xw.toDouble()) { o ->
@@ -324,11 +354,11 @@ class RemoteServerExecution : Execution(null) {
                 }
         }
 
-        val command = "__clearEdges();" + pairs.joinToString {
-            "__addEdge('${it.first}', '${it.second}'); "
+        val command = "__clearEdges();" + pairs.joinToString(separator = "") {
+            if (it.first.length > 0 && it.second.length > 0) "__addEdge('${it.first}', '${it.second}'); " else ""
         }
 
-//        println(" -- updating topology :"+command)
+        println(" -- updating topology :" + command)
         server.execute(command, requiresSandbox = false)
 
     }

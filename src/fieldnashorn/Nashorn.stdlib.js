@@ -92,7 +92,7 @@ rotate3.__doc__ = "shorthand for creating a transformation that rotates in 3d. `
 var scale3 = function (x,y,z) {
     if (arguments.length == 0) return T3D.scale(1)
     if (arguments.length == 1) return T3D.scale(x)
-    if (arguments.length == 2) return T3D.scale(x, y,0)
+    if (arguments.length == 2) return T3D.scale(x,y,0)
     if (arguments.length == 3) return T3D.scale(x,y,z)
     throw "can't make a scale given this (" + arguments.length + ") number of arguments"
 }

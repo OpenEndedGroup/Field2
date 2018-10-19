@@ -108,6 +108,12 @@ class RemoteServer {
                         println("::: WILL CALL AGAIN :::")
                         handlers.put(address, o)
                     }
+                    else
+                    {
+
+                        // tmp hack -- we are missing some error messages
+                        handlers.put(address, o)
+                    }
                 } else {
                     println("::: UNHANDLED ::: ${handlers.keys}")
                 }
@@ -157,7 +163,12 @@ class RemoteServer {
     }
 
 
-    val handlers = mutableMapOf<String, (JSONObject) -> Boolean>()
+    val handlers = object : LinkedHashMap<String, (JSONObject) -> Boolean>()
+    {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, (JSONObject) -> Boolean>?): Boolean {
+            return size>100
+        }
+    }
 
 
     @JvmOverloads
