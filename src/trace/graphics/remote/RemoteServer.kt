@@ -12,7 +12,6 @@ import fielded.webserver.NewNanoHTTPD
 import fielded.webserver.Server
 import org.json.JSONObject
 import org.json.JSONArray
-import org.json.JSONObject
 import org.nanohttpd.protocols.http.response.Response.*
 import org.nanohttpd.protocols.http.response.Status
 import java.io.File
