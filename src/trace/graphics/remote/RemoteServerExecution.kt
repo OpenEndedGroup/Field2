@@ -4,24 +4,24 @@ import com.illposed.osc.OSCMessage
 import field.app.RunLoop
 import field.graphics.util.onsheetui.Label
 import field.linalg.Vec4
-import field.utility.Dict
-import field.utility.IdempotencyMap
-import field.utility.Pair
-import field.utility.xw
+import field.utility.*
 import fieldbox.boxes.Box
 import fieldbox.boxes.Boxes
 import fieldbox.boxes.Drawing
 import fieldbox.boxes.TimeSlider
+import fieldbox.boxes.plugins.Chorder
 import fieldbox.boxes.plugins.IsExecuting
 import fieldbox.execution.Completion
 import fieldbox.execution.Execution
 import fieldbox.io.IO
+import fieldcef.plugins.up
 import fielded.RemoteEditor
 import fielded.live.Asta
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONStringer
 import trace.graphics.Stage
+import java.io.File
 
 import java.io.IOException
 import java.net.InetAddress
@@ -117,6 +117,37 @@ class RemoteServerExecution : Execution(null) {
             true
         })
 
+        server.s.messageHandlers.add { server, address, payload ->
+            if (address.equals("util.begin")) {
+                val p = payload as JSONObject
+
+                findBoxByName(p.getString("name")).ifPresent {
+                    (it up Chorder.begin)!!.apply(it)
+                }
+                true
+            }
+            else if (address.equals("util.end")) {
+                val p = payload as JSONObject
+
+                findBoxByName(p.getString("name")).ifPresent {
+                    (it up Chorder.end)!!.apply(it)
+                }
+
+                true
+            }
+            false
+        }
+
+    }
+
+    protected fun findBoxByID(uid: String): Optional<Box> {
+        return breadthFirst(both()).filter { x -> Util.safeEq(x.properties.getOrConstruct(IO.id), uid) }
+                .findFirst()
+    }
+
+    protected fun findBoxByName(name: String): Optional<Box> {
+        return breadthFirst(both()).filter { x -> Util.safeEq(x.properties.get(Box.name), name) }
+                .findFirst()
     }
 
     var lastHostName: String? = null
@@ -180,6 +211,7 @@ class RemoteServerExecution : Execution(null) {
                     for (i in 0 until lineOffset)
                         textFragment = "\n" + textFragment
 
+                    val name = "main._animatorJS_"
 
                     server.execute(textFragment, target(box)!!, false) { o ->
 
@@ -190,6 +222,18 @@ class RemoteServerExecution : Execution(null) {
                                 success.accept(" &#10003; ")
                             else
                                 success.accept(o.getString("message"))
+                        } else if (k.equals("run-start", ignoreCase = true)) {
+                            box.properties.putToMap(Boxes.insideRunLoop, name, Supplier<Boolean> { true })
+
+                            box.first<BiConsumer<Box, String>>(IsExecuting.isExecuting)
+                                    .ifPresent { x -> x.accept(box, name) }
+                            Drawing.dirty(box)
+
+                        } else if (k.equals("run-stop", ignoreCase = true)) {
+                            box.properties.removeFromMap(Boxes.insideRunLoop, name)
+                            Drawing.dirty(box)
+
+                            return@execute false
                         } else {
                             RemoteEditor.boxFeedback(Optional.of(box), Vec4(1.0, 0.0, 0.0, 0.5), "__redmark__", -1, -1)
                             lineErrors.accept(Pair(o.getInt("line"), o.getString("message")))
@@ -233,7 +277,6 @@ class RemoteServerExecution : Execution(null) {
 
                     var code = box.properties.get(Execution.code)!!
 
-                    code = asta.transformer(box).transform(code, true).first
                     try {
                         code = asta.transformer(box).transform(code, true).first
                     } catch (e: Exception) {
@@ -346,12 +389,19 @@ class RemoteServerExecution : Execution(null) {
         val pairs = mutableSetOf<kotlin.Pair<String, String>>()
 
         this.breadthFirstAll(downwards()).forEach {
-            val a = it.properties.getOrConstruct(IO.id)
-            if (it != this)
-                it.children().forEach {
-                    val b = it.properties.getOrConstruct(IO.id)
-                    pairs.add(a to b)
-                }
+            var a = it.properties.getOrConstruct(IO.id)
+            if (it == this)
+                a = "root"
+
+            it.children().forEach {
+                var b = it.properties.getOrConstruct(IO.id)
+                if (it == this)
+                    b = "root"
+                pairs.add(a to b)
+
+
+            }
+
         }
 
         val command = "__clearEdges();" + pairs.joinToString(separator = "") {
