@@ -41,7 +41,11 @@ class NewNanoHTTPD(val port: Int) {
         return Response.newFixedLengthResponse(OK, mimeTypeFor(f), inputStream, f.length())
     }
 
-    val knownMimeExtensions = mutableMapOf<String, String>("css" to "text/css", "js" to "application/javascript", "gif" to "image/gif", "jpg" to "image/jpeg", "png" to "image/png", "html" to "text/html")
+    val knownMimeExtensions = mutableMapOf<String, String>("css" to "text/css",
+            "js" to "application/javascript",
+            "mov" to "video/quicktime",
+            "mp4" to "video/mp4",
+            "gif" to "image/gif", "jpg" to "image/jpeg", "png" to "image/png", "html" to "text/html")
 
     private fun mimeTypeFor(f: File): String? {
 
