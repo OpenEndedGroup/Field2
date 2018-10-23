@@ -82,6 +82,33 @@ class RemoteServer {
         }
 
         s.messageHandlers.add { server, address, payload ->
+            if (address.equals("files.map")) {
+                val p = payload as JSONObject
+
+                var f = p.getString("mapFrom");
+                var t = p.getString("mapTo");
+
+                if (!f.endsWith("/")) f = f + "/"
+                if (!t.endsWith("/")) t = t + "/"
+
+                s.handlers.add { uri, _, _, _, _ ->
+                    if (uri.startsWith(f, ignoreCase = true)) {
+                        var q = uri.substring(f.length)
+                        val ff = File(File(t), q)
+
+                        if (ff.exists()) {
+                            return@add s.serveFile(ff)
+                        }
+                    }
+                    null
+                }
+                true
+            }
+            false
+        }
+
+
+        s.messageHandlers.add { server, address, payload ->
 
             if (address.equals("log")) {
                 println("LOG::(from browser):: $payload")
@@ -112,9 +139,14 @@ class RemoteServer {
                     if (o.invoke(payload as JSONObject)) {
                         println("::: WILL CALL AGAIN :::")
                         handlers.put(address, o)
+                    } else {
+
+                        // tmp hack -- we are missing some error messages
+                        handlers.put(address, o)
                     }
                 } else {
                     println("::: UNHANDLED ::: ${handlers.keys}")
+                    return@add false
                 }
                 return@add true
             }
@@ -162,8 +194,11 @@ class RemoteServer {
     }
 
 
-
-    val handlers = mutableMapOf<String, (JSONObject) -> Boolean>()
+    val handlers = object : LinkedHashMap<String, (JSONObject) -> Boolean>() {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, (JSONObject) -> Boolean>?): Boolean {
+            return size > 100
+        }
+    }
 
 
     @JvmOverloads
@@ -171,7 +206,7 @@ class RemoteServer {
                 filename: String = "unknown", launchable: Boolean = false,
                 requiresSandbox: Boolean = true,
                 timeStart: Double? = null, timeEnd: Double? = null, handleTo: ((JSONObject) -> Boolean)? = null
-                ): Boolean {
+    ): Boolean {
 
         val u = UUID.randomUUID().toString()
         if (handleTo != null)
@@ -195,7 +230,7 @@ class RemoteServer {
             it.send(q.toString())
         }
 
-        return this.s.openWebsockets.size>0
+        return this.s.openWebsockets.size > 0
     }
 
     fun complete(file: String, index: Int, allowExecution: Boolean, success: (List<Completion>) -> Unit) {
@@ -219,7 +254,7 @@ class RemoteServer {
                 println("extraDoc $extraDoc")
 
                 println(extra)
-                Completion(index + 1 - extra, index + 1, o.getString("title"), o.getString("from")+" "+(extraDoc));
+                Completion(index + 1 - extra, index + 1, o.getString("title"), o.getString("from") + " " + (extraDoc));
 
             }.toList())
 

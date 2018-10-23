@@ -537,7 +537,7 @@ class Asta {
                 if (disabled || c.contains("%%NO_OVERLOADS%%")) return field.utility.Pair(c, Function { x: Int -> x })
 
                 options.numbers = box.properties.isTrue(OverloadedMath.withLiveNumbers, false)
-                options.overloads = box.properties.isTrue(OverloadedMath.withOverloading, false)
+                options.overloads = box.properties.isTrue(OverloadedMath.withOverloading, true)
 
                 val v = parseAndReconstruct(c, {
                     if (it.kind.ordinal < Diagnostic.Kind.WARNING.ordinal) {

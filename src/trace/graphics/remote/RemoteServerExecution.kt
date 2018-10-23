@@ -4,26 +4,27 @@ import com.illposed.osc.OSCMessage
 import field.app.RunLoop
 import field.graphics.util.onsheetui.Label
 import field.linalg.Vec4
-import field.utility.Dict
-import field.utility.IdempotencyMap
-import field.utility.Pair
-import field.utility.xw
+import field.utility.*
 import fieldbox.boxes.Box
 import fieldbox.boxes.Boxes
 import fieldbox.boxes.Drawing
 import fieldbox.boxes.TimeSlider
+import fieldbox.boxes.plugins.Chorder
 import fieldbox.boxes.plugins.IsExecuting
 import fieldbox.execution.Completion
 import fieldbox.execution.Execution
 import fieldbox.io.IO
+import fieldcef.plugins.up
 import fielded.RemoteEditor
 import fielded.live.Asta
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONStringer
 import trace.graphics.Stage
+import java.io.File
 
 import java.io.IOException
+import java.net.InetAddress
 import java.util.*
 import java.util.function.BiConsumer
 import java.util.function.BiFunction
@@ -78,19 +79,21 @@ class RemoteServerExecution : Execution(null) {
 
             val l = server.s.openWebsockets.size
 
-            var descrption = if (l == 0)
-                "No connected web-browsers, connect to " + server.hostname.replace("/boot", "/ar.html")
-            else {
-                var description = "$l connection" + (if (l == 1) "" else "s")
+            var descrption = {
+                if (l == 0)
+                    "No connected web-browsers, connect to " + hostname()?.replace("/boot", "/ar.html")
+                else {
+                    var description = "$l connection" + (if (l == 1) "" else "s")
 
-                if (l > 0) {
-                    description += " from :"
-                    server.s.openWebsockets.map {
-                        description += "${it.handshakeRequest.remoteHostName} = ${it.handshakeRequest.remoteIpAddress} "
+                    if (l > 0) {
+                        description += " from :"
+                        server.s.openWebsockets.map {
+                            description += "${it.handshakeRequest.remoteHostName} = ${it.handshakeRequest.remoteIpAddress} "
+                        }
                     }
-                }
 
-                description
+                    description
+                }
             }
 
             if (labelMaker == null || !labelMaker!!.isPresent) {
@@ -104,8 +107,8 @@ class RemoteServerExecution : Execution(null) {
 
                 val was = it.get("s")
 
-                if (was == null || !was.equals(descrption)) {
-                    it.put("s", descrption)
+                if (was == null || !was.equals(descrption())) {
+                    it.put("s", descrption())
                     Drawing.dirty(this)
                 }
 
@@ -114,6 +117,53 @@ class RemoteServerExecution : Execution(null) {
             true
         })
 
+        server.s.messageHandlers.add { server, address, payload ->
+            if (address.equals("util.begin")) {
+                val p = payload as JSONObject
+
+                findBoxByName(p.getString("name")).ifPresent {
+                    (it up Chorder.begin)!!.apply(it)
+                }
+                true
+            }
+            else if (address.equals("util.end")) {
+                val p = payload as JSONObject
+
+                findBoxByName(p.getString("name")).ifPresent {
+                    (it up Chorder.end)!!.apply(it)
+                }
+
+                true
+            }
+            false
+        }
+
+    }
+
+    protected fun findBoxByID(uid: String): Optional<Box> {
+        return breadthFirst(both()).filter { x -> Util.safeEq(x.properties.getOrConstruct(IO.id), uid) }
+                .findFirst()
+    }
+
+    protected fun findBoxByName(name: String): Optional<Box> {
+        return breadthFirst(both()).filter { x -> Util.safeEq(x.properties.get(Box.name), name) }
+                .findFirst()
+    }
+
+    var lastHostName: String? = null
+    var hostNameCheckedAt = System.currentTimeMillis()
+
+    private fun hostname(): String? {
+
+        if (lastHostName == null || System.currentTimeMillis() - hostNameCheckedAt > 5000) {
+            val addr = InetAddress.getLocalHost().address
+            val addrs = "${addr[0].toInt() and 255}.${addr[1].toInt() and 255}.${addr[2].toInt() and 255}.${addr[3].toInt() and 255}"
+            val hostname = "http://" + addrs + ":8090/boot"
+            hostNameCheckedAt = System.currentTimeMillis()
+            lastHostName = hostname
+            return hostname
+        } else
+            return lastHostName
     }
 
     fun addDynamicRoot(name: String, router: () -> String) {
@@ -151,11 +201,17 @@ class RemoteServerExecution : Execution(null) {
                 try {
                     Execution.context.get().push(box)
 
-                    textFragment = asta.transformer(box).transform(textFragment, false).first
+                    try {
+                        textFragment = asta.transformer(box).transform(textFragment, false).first
+                    } catch (e: Exception) {
+                        System.out.println(" -- ASTA didn't succeed, usually a syntax error of some kind")
+                        e.printStackTrace()
+                    }
 
                     for (i in 0 until lineOffset)
                         textFragment = "\n" + textFragment
 
+                    val name = "main._animatorJS_"
 
                     server.execute(textFragment, target(box)!!, false) { o ->
 
@@ -166,6 +222,18 @@ class RemoteServerExecution : Execution(null) {
                                 success.accept(" &#10003; ")
                             else
                                 success.accept(o.getString("message"))
+                        } else if (k.equals("run-start", ignoreCase = true)) {
+                            box.properties.putToMap(Boxes.insideRunLoop, name, Supplier<Boolean> { true })
+
+                            box.first<BiConsumer<Box, String>>(IsExecuting.isExecuting)
+                                    .ifPresent { x -> x.accept(box, name) }
+                            Drawing.dirty(box)
+
+                        } else if (k.equals("run-stop", ignoreCase = true)) {
+                            box.properties.removeFromMap(Boxes.insideRunLoop, name)
+                            Drawing.dirty(box)
+
+                            return@execute false
                         } else {
                             RemoteEditor.boxFeedback(Optional.of(box), Vec4(1.0, 0.0, 0.0, 0.5), "__redmark__", -1, -1)
                             lineErrors.accept(Pair(o.getInt("line"), o.getString("message")))
@@ -208,8 +276,13 @@ class RemoteServerExecution : Execution(null) {
                     val name = "main._animatorJS_"
 
                     var code = box.properties.get(Execution.code)!!
-                    code = asta.transformer(box).transform(code, true).first
 
+                    try {
+                        code = asta.transformer(box).transform(code, true).first
+                    } catch (e: Exception) {
+                        System.out.println(" -- ASTA didn't succeed, usually a syntax error of some kind")
+                        e.printStackTrace()
+                    }
                     server.execute(code, target(box)!!, true, true,
                             timeStart = box.properties.get(Box.frame).x.toDouble(),
                             timeEnd = box.properties.get(Box.frame).xw.toDouble()) { o ->
@@ -316,19 +389,26 @@ class RemoteServerExecution : Execution(null) {
         val pairs = mutableSetOf<kotlin.Pair<String, String>>()
 
         this.breadthFirstAll(downwards()).forEach {
-            val a = it.properties.getOrConstruct(IO.id)
-            if (it != this)
-                it.children().forEach {
-                    val b = it.properties.getOrConstruct(IO.id)
-                    pairs.add(a to b)
-                }
+            var a = it.properties.getOrConstruct(IO.id)
+            if (it == this)
+                a = "root"
+
+            it.children().forEach {
+                var b = it.properties.getOrConstruct(IO.id)
+                if (it == this)
+                    b = "root"
+                pairs.add(a to b)
+
+
+            }
+
         }
 
-        val command = "__clearEdges();" + pairs.joinToString {
-            "__addEdge('${it.first}', '${it.second}'); "
+        val command = "__clearEdges();" + pairs.joinToString(separator = "") {
+            if (it.first.length > 0 && it.second.length > 0) "__addEdge('${it.first}', '${it.second}'); " else ""
         }
 
-//        println(" -- updating topology :"+command)
+        println(" -- updating topology :" + command)
         server.execute(command, requiresSandbox = false)
 
     }

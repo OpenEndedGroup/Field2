@@ -105,7 +105,7 @@ public class Chorder extends Box {
 				return ThreadSync2.callInMainThreadAndWait(() -> {
 
 					Execution ex = getExecution(box, Execution.code);
-					if (ex!=null)
+					if (ex != null)
 						ex.support(box, Execution.code).begin(box, getInitiator(box));
 
 					return () -> box.properties.computeIfAbsent(IsExecuting.executionCount, (k) -> 0) > 0;
@@ -188,7 +188,7 @@ public class Chorder extends Box {
 					new MarkingMenus.MenuItem("Continue", () -> {
 					}));
 
-				if (fibres.size()>0)
+				if (fibres.size() > 0)
 					menuSpec.items.put(MarkingMenus.Position.SH, new MarkingMenus.MenuItem("Stop", () -> {
 						if (ThreadSync2.getEnabled()) {
 							box.first(ThreadSync2Feedback.fKill)
@@ -265,9 +265,13 @@ public class Chorder extends Box {
 
 						fieldlinker.AsMap in = Initiators.get(b, () -> p.x, () -> p.y);
 
-						b.first(Execution.execution)
-							.ifPresent(x -> x.support(b, Execution.code)
-								.begin(b, Collections.singletonMap("_t", in)));
+						Execution exec = RemoteEditor.getExecution(b, Execution.code);
+						if (exec != null)
+							exec.support(b, Execution.code).begin(b, Collections.singletonMap("_t", in));
+
+//						b.first(Execution.execution)
+//							.ifPresent(x -> x.support(b, Execution.code)
+//								.begin(b, Collections.singletonMap("_t", in)));
 					}, i);
 				}
 
@@ -409,7 +413,7 @@ public class Chorder extends Box {
 	public List<Triple<Vec2, Float, Box>> intersectionsFor(List<Pair<Box, Rect>> frames, Vec2 start, Vec2 end) {
 		List<Triple<Vec2, Float, Box>> ret = new ArrayList<>();
 
-		for (Pair<Box, Rect> br: frames) {
+		for (Pair<Box, Rect> br : frames) {
 			Rect r = br.second;
 
 			Vec2 v1 = getLineIntersection(new Vec2(r.x, r.y), new Vec2(r.x + r.w, r.y),
