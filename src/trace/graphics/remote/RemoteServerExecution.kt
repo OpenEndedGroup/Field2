@@ -408,7 +408,7 @@ class RemoteServerExecution : Execution(null) {
             if (it.first.length > 0 && it.second.length > 0) "__addEdge('${it.first}', '${it.second}'); " else ""
         }
 
-        println(" -- updating topology :" + command)
+//        println(" -- updating topology :" + command)
         server.execute(command, requiresSandbox = false)
 
     }

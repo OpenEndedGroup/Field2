@@ -86,13 +86,13 @@ class RemoteServer {
                 if (!f.endsWith("/")) f = f + "/"
                 if (!t.endsWith("/")) t = t + "/"
 
-                s.handlers.add { uri, _, _, _, _ ->
+                s.handlers.add { uri, _, headers, _, _ ->
                     if (uri.startsWith(f, ignoreCase = true)) {
                         var q = uri.substring(f.length)
                         val ff = File(File(t), q)
 
                         if (ff.exists()) {
-                            return@add s.serveFile(ff)
+                            return@add s.serveFile(headers, ff, s.mimeTypeFor(ff))
                         }
                     }
                     null
