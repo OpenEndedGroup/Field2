@@ -215,19 +215,19 @@ class Interventions(val root: Box) : Box(), IO.Loaded {
     }
 
     protected fun findBoxByID(uid: String): Optional<Box> {
-        return breadthFirst(both()).filter { x -> Util.safeEq(x.properties.get(IO.id), uid) }
+        return breadthFirst(both()).filter { x -> Util.safeEq(x.properties.getOrConstruct(IO.id), uid) }
                 .findFirst()
     }
 }
 
-private inline infix fun <T> Box.up(next: Dict.Prop<T>): T? {
+inline infix fun <T> Box.up(next: Dict.Prop<T>): T? {
     return this.find(next, this.upwards()).findFirst().orElseGet { null }
 }
 
-private inline infix fun <T> Box.down(next: Dict.Prop<T>): T? {
+ inline infix fun <T> Box.down(next: Dict.Prop<T>): T? {
     return this.find(next, this.downwards()).findFirst().orElseGet { null }
 }
 
-private inline infix fun <T> Box.both(next: Dict.Prop<T>): T? {
+ inline infix fun <T> Box.both(next: Dict.Prop<T>): T? {
     return this.find(next, this.both()).findFirst().orElseGet { null }
 }
