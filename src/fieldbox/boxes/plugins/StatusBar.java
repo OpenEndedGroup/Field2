@@ -101,7 +101,7 @@ public class StatusBar extends Box {
 				update();
 			}));
 
-		this.properties.putToMap(statuses, "_default_", () -> " control / right-click menus option / alt execution command-space commands g attach n new");
+		this.properties.putToMap(statuses, "_default_", () -> " control / right-click menus option / alt execution / ctrl-space commands g attach n new");
 
 	}
 
@@ -113,7 +113,7 @@ public class StatusBar extends Box {
 
 
 	public void update() {
-		String s = "[ alpha.14c ] ";
+		String s = "[ alpha.15c ] ";
 		List<Map<String, Supplier<String>>> maps = breadthFirst(both()).filter(x -> x.properties.get(statuses) != null)
 			.map(x -> x.properties.get(statuses))
 			.collect(Collectors.toList());
