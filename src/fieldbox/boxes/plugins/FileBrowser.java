@@ -18,6 +18,7 @@ import fieldbox.io.IO;
 import fieldbox.ui.FieldBoxWindow;
 import fielded.Commands;
 import fielded.RemoteEditor;
+import fielded.TextUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -84,7 +85,8 @@ public class FileBrowser extends Box implements IO.Loaded {
 						.filter(f -> f.name != null)
 						.forEach(f -> {
 							String cm = f.getComment(FileBrowser.this);
-							m.put(new Pair<>(f.name + " <i>&mdash; document</i>", (cm == null ? "" : (cm + "<br>")) + ("contains " + f.boxes.size() + " box" + (f.boxes.size() == 1 ? "" : "es")) + "    <br>"), () -> {
+							m.put(new Pair<>(quote(f.name) + " <i>&mdash; document</i>",
+								(cm == null ? "" : (cm + "<br>")) + ("contains " + f.boxes.size() + " box" + (f.boxes.size() == 1 ? "" : "es")) + "    <br>"), () -> {
 
 								// doit
 
@@ -106,7 +108,8 @@ public class FileBrowser extends Box implements IO.Loaded {
 							List<String> dc = directChildrenOf(f.id);
 
 
-							m.put(new Pair<>(f.name + " " + (f.customClass != null ? "<b>custom</b>" : "") + " " + (f.missingPlugin ? "<b>missing plugin?</b>" : "") + " " + ((dc != null && dc.size() > 0) ? ("+ " + dc.size() + " child" + (dc.size() == 1 ? "" : "ren")) : ""),
+							m.put(new Pair<>(quote(f.name) + " " + (f.customClass != null ? "<b>custom</b>" : "") + " " + (f.missingPlugin ? "<b>missing plugin?</b>" :
+								"") + " " + ((dc != null && dc.size() > 0) ? ("+ " + dc.size() + " child" + (dc.size() == 1 ? "" : "ren")) : ""),
 								("used in " + ui.size() + "&nbsp;file" + (ui.size() == 1 ? "" : "s")) + (f.comment == null ? "" : f.comment)), () -> {
 
 
@@ -161,7 +164,8 @@ public class FileBrowser extends Box implements IO.Loaded {
 
 //						     Log.log("insertbox", "file: " + f.name);
 
-							m.put(new Pair<>(f.name, (f.boxes.size() + " box" + (f.boxes.size() == 1 ? "" : "es") + " " + (f.copyOnly ? "<i>(Template)</i>" : ""))), () -> {
+							m.put(new Pair<>(quote(f.name), (f.boxes.size() + " box" + (f.boxes.size() == 1 ? "" : "es") + " " + (f.copyOnly ? "<i>(Template)</i>" : ""))),
+								() -> {
 
 								// doit
 
@@ -184,7 +188,7 @@ public class FileBrowser extends Box implements IO.Loaded {
 //						     Log.log("insertbox", "box: " + f.name);
 
 							Set<FieldFile> ui = f.usedIn(files);
-							m.put(new Pair<>(f.name + " " + (f.customClass != null ? "<b>custom</b>" : "") + " " + (f.missingPlugin ? "<b>missing plugin?</b>" : ""),
+							m.put(new Pair<>(quote(f.name) + " " + (f.customClass != null ? "<b>custom</b>" : "") + " " + (f.missingPlugin ? "<b>missing plugin?</b>" : ""),
 								("used in " + ui.size() + " file" + (ui.size() == 1 ? "" : "s") + " " + (f.copyOnly ? "<i>(Template)</i>" : ""))), () -> {
 
 								// doit
@@ -321,6 +325,14 @@ public class FileBrowser extends Box implements IO.Loaded {
 			return badges;
 
 		}, () -> allFrameHashSalt));
+	}
+
+	private String quote(String name) {
+		String v = TextUtils.quoteNoOuter(name).replaceAll("'", "&apos;");
+
+		System.out.println(" quoted "+name+" -> "+v);
+
+		return v;
 	}
 
 	public Set<Box> copyFromFileCalled(String name, Vec2 centeredOn) {

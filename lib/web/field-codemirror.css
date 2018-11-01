@@ -73,7 +73,7 @@ body {
 
     background: #2d3133;
     color: #aaa;
-    font-size: 12px;
+    font-size: 10px;
     font-family: "Source Sans Pro";
     margin: 0;
 }
@@ -248,7 +248,7 @@ iframe
 
 .CodeMirror
 {
-    font-size:13px;
+    font-size:11px;
 
     font-family: "Fira Code", "Source Code Pro" !important;
     -webkit-font-variant-ligatures: common-ligatures;

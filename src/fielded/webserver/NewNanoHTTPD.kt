@@ -5,12 +5,20 @@ import org.nanohttpd.protocols.http.IHTTPSession
 import org.nanohttpd.protocols.http.request.Method
 import org.nanohttpd.protocols.http.response.Response
 import org.nanohttpd.protocols.http.response.Status.*
+import org.nanohttpd.protocols.http.response.Status
 import org.nanohttpd.protocols.websockets.CloseCode
 import org.nanohttpd.protocols.websockets.NanoWSD
 import org.nanohttpd.protocols.websockets.WebSocket
 import org.nanohttpd.protocols.websockets.WebSocketFrame
 import java.io.*
 import java.util.*
+import java.io.IOException
+import java.io.FileInputStream
+import java.io.FileNotFoundException
+
+
+
+
 
 // experimenting with new version of nanohttpd (which will serve websockets on the same port)
 class NewNanoHTTPD(val port: Int) {
@@ -41,13 +49,125 @@ class NewNanoHTTPD(val port: Int) {
         return Response.newFixedLengthResponse(OK, mimeTypeFor(f), inputStream, f.length())
     }
 
+    fun serveFile(header: Map<String, String>, file: File, mime: String): Response {
+        var res: Response
+        try {
+            // Calculate etag
+            val etag = Integer.toHexString((file.absolutePath + file.lastModified() + "" + file.length()).hashCode())
+
+            // Support (simple) skipping:
+            var startFrom: Long = 0
+            var endAt: Long = -1
+            var range: String? = header["range"]
+            if (range != null) {
+                if (range.startsWith("bytes=")) {
+                    range = range.substring("bytes=".length)
+                    val minus = range.indexOf('-')
+                    try {
+                        if (minus > 0) {
+                            startFrom = java.lang.Long.parseLong(range.substring(0, minus))
+                            endAt = java.lang.Long.parseLong(range.substring(minus + 1))
+                        }
+                    } catch (ignored: NumberFormatException) {
+                    }
+
+                }
+            }
+
+            // get if-range header. If present, it must match etag or else we
+            // should ignore the range request
+            val ifRange = header["if-range"]
+            val headerIfRangeMissingOrMatching = ifRange == null || etag == ifRange
+
+            val ifNoneMatch = header["if-none-match"]
+            val headerIfNoneMatchPresentAndMatching = ifNoneMatch != null && ("*" == ifNoneMatch || ifNoneMatch == etag)
+
+            // Change return code and add Content-Range header when skipping is
+            // requested
+            val fileLen = file.length()
+
+            if (headerIfRangeMissingOrMatching && range != null && startFrom >= 0 && startFrom < fileLen) {
+                // range request that matches current etag
+                // and the startFrom of the range is satisfiable
+                if (headerIfNoneMatchPresentAndMatching) {
+                    // range request that matches current etag
+                    // and the startFrom of the range is satisfiable
+                    // would return range from file
+                    // respond with not-modified
+                    res = Response.newFixedLengthResponse(Status.NOT_MODIFIED, mime, "")
+                    res.addHeader("ETag", etag)
+                } else {
+                    if (endAt < 0) {
+                        endAt = fileLen - 1
+                    }
+                    var newLen = endAt - startFrom + 1
+                    if (newLen < 0) {
+                        newLen = 0
+                    }
+
+                    val fis = FileInputStream(file)
+                    fis.skip(startFrom)
+
+                    res = Response.newFixedLengthResponse(PARTIAL_CONTENT, mime, fis, newLen)
+                    res.addHeader("Accept-Ranges", "bytes")
+                    res.addHeader("Content-Length", "" + newLen)
+                    res.addHeader("Content-Range", "bytes $startFrom-$endAt/$fileLen")
+                    res.addHeader("ETag", etag)
+                }
+            } else {
+
+                if (headerIfRangeMissingOrMatching && range != null && startFrom >= fileLen) {
+                    // return the size of the file
+                    // 4xx responses are not trumped by if-none-match
+                    res = Response.newFixedLengthResponse(RANGE_NOT_SATISFIABLE, NanoHTTPD.MIME_PLAINTEXT, "")
+                    res.addHeader("Content-Range", "bytes */$fileLen")
+                    res.addHeader("ETag", etag)
+                } else if (range == null && headerIfNoneMatchPresentAndMatching) {
+                    // full-file-fetch request
+                    // would return entire file
+                    // respond with not-modified
+                    res = Response.newFixedLengthResponse(Status.NOT_MODIFIED, mime, "")
+                    res.addHeader("ETag", etag)
+                } else if (!headerIfRangeMissingOrMatching && headerIfNoneMatchPresentAndMatching) {
+                    // range request that doesn't match current etag
+                    // would return entire (different) file
+                    // respond with not-modified
+
+                    res = Response.newFixedLengthResponse(Status.NOT_MODIFIED, mime, "")
+                    res.addHeader("ETag", etag)
+                } else {
+                    // supply the file
+                    res = newFixedFileResponse(file, mime)
+                    res.addHeader("Content-Length", "" + fileLen)
+                    res.addHeader("ETag", etag)
+                }
+            }
+        } catch (ioe: IOException) {
+            res = Response.newFixedLengthResponse(FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT, "FORBIDDEN: ");
+        }
+
+        return res
+    }
+
+    @Throws(FileNotFoundException::class)
+    private fun newFixedFileResponse(file: File, mime: String): Response {
+        val res: Response
+        res = Response.newFixedLengthResponse(Status.OK, mime, FileInputStream(file), file.length())
+        res.addHeader("Accept-Ranges", "bytes")
+        return res
+    }
+
+
     val knownMimeExtensions = mutableMapOf<String, String>("css" to "text/css",
             "js" to "application/javascript",
             "mov" to "video/quicktime",
             "mp4" to "video/mp4",
+            "wav" to "audio/wav",
+            "aif" to "audio/aiff",
+            "aiff" to "audio/aiff",
             "gif" to "image/gif", "jpg" to "image/jpeg", "png" to "image/png", "html" to "text/html")
 
-    private fun mimeTypeFor(f: File): String? {
+    fun mimeTypeFor(f: File): String {
 
         if (f.name.indexOf('.') == -1) return "text/html"
 
@@ -159,11 +279,11 @@ class NewNanoHTTPD(val port: Int) {
 
         server.start()
 
-        handlers.add { uri, _, _, _, _ ->
+        handlers.add { uri, _, headers, _, _ ->
             dynamicRoots.entries.stream().map { kv ->
                 val f = File(kv.value() + "/" + uri)
                 if (f.exists()) {
-                    serveFile(f)
+                    serveFile(headers, f, mimeTypeFor(f))
                 } else
                     null
             }.filter { it !=null }.findFirst().orElse(null)

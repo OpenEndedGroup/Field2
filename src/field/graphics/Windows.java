@@ -221,8 +221,7 @@ public class Windows {
 			@Override
 			public void cursorPos(long window, double x, double y) {
 
-				System.out.println(" -- cursorPos "+window+" "+x+" "+y);
-
+//				System.out.println(" -- cursorPos "+window+" "+x+" "+y);
 
 				Runnable r = () -> {
 					checkClassLoader();
