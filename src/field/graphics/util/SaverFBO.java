@@ -2,6 +2,7 @@ package field.graphics.util;
 
 import field.graphics.FBO;
 import field.graphics.FastJPEG;
+import field.graphics.SlowJPEG;
 import field.utility.IdempotencyMap;
 import field.utility.Pair;
 import fieldnashorn.annotations.HiddenInAutocomplete;
@@ -10,7 +11,6 @@ import org.lwjgl.opengl.GL11;
 import java.awt.*;
 import java.io.File;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
@@ -31,7 +31,7 @@ public class SaverFBO {
 
 	private final ExecutorService pool;
 
-	private final String prefix;
+	String prefix;
 	private FBO fbo;
 
 	public SaverFBO(int width, int height, int numWorkers, String prefix, FBO fbo) {
@@ -60,6 +60,12 @@ public class SaverFBO {
 	public void setOn(boolean on) {
 		this.on = on;
 		drip = false;
+	}
+
+
+	public SaverFBO setPrefix(String prefix) {
+		this.prefix = prefix;
+		return this;
 	}
 
 	/**
@@ -185,19 +191,19 @@ public class SaverFBO {
 		return new Callable<Pair<ByteBuffer, ByteBuffer>>() {
 			public Pair<ByteBuffer, ByteBuffer> call() throws Exception {
 
-//				for(int y=0;y<height;y++)
-//				{
-//					storage.first.position(y*width*3);
-//					storage.first.limit((y+1)*width*3);
-//					storage.second.position((height-y-1)*width*3);
-//					storage.second.limit((height-y-1+1)*width*3);
-//					storage.second.put(storage.first);
-//					storage.second.clear();
-//					storage.first.clear();
-//				}
+				for(int y=0;y<height;y++)
+				{
+					storage.first.position(y*width*3);
+					storage.first.limit((y+1)*width*3);
+					storage.second.position((height-y-1)*width*3);
+					storage.second.limit((height-y-1+1)*width*3);
+					storage.second.put(storage.first);
+					storage.second.clear();
+					storage.first.clear();
+				}
 
 				try {
-					j2.compress(filename, storage.first, width, height);
+					new SlowJPEG().compress(filename, storage.first, width, height);
 				} catch (Throwable t) {
 					System.err.println(" -- exception thrown in compress for :" + filename + " " + storage + " " + width + " " + height);
 					t.printStackTrace();
