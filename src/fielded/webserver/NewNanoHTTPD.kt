@@ -15,9 +15,9 @@ import java.util.*
 import java.io.IOException
 import java.io.FileInputStream
 import java.io.FileNotFoundException
-
-
-
+import java.nio.file.CopyOption
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 
 
 // experimenting with new version of nanohttpd (which will serve websockets on the same port)
@@ -26,6 +26,8 @@ class NewNanoHTTPD(val port: Int) {
     val openWebsockets = mutableListOf<WebSocket>()
     var handlers = mutableListOf<(String, Method, Map<String, String>, Map<String, List<String>>, Map<String, String>) -> Response?>()
     var messageHandlers = mutableListOf<(WebSocket, String, Any) -> Boolean>()
+    var htmlFilters = mutableListOf<(String) -> String>()
+
 
     fun addDocumentRoot(s: String) {
         handlers.add { uri, _, _, _, _ ->
@@ -45,9 +47,37 @@ class NewNanoHTTPD(val port: Int) {
 
 
     fun serveFile(f: File): Response {
+
+        filterFile(f)?.let {
+            return@serveFile it
+        }
+
         val inputStream = BufferedInputStream(FileInputStream(f))
         return Response.newFixedLengthResponse(OK, mimeTypeFor(f), inputStream, f.length())
     }
+
+    fun filterFile(f : File) : Response? {
+        if (f.name.endsWith(".html"))
+        {
+            val fm = File.createTempFile("field_filtered_", ".html")
+            val txt = filterFile(f, Files.readString(f.toPath()))
+
+            if (txt!=null)
+                return Response.newFixedLengthResponse(OK, mimeTypeFor(f), txt)
+
+        }
+        return null
+    }
+
+    private fun filterFile(f: File, contents: String): String? {
+
+        var contents = contents
+        htmlFilters.forEach {
+            contents = it(contents)
+        }
+        return contents
+    }
+
 
     fun serveFile(header: Map<String, String>, file: File, mime: String): Response {
         var res: Response
@@ -203,6 +233,10 @@ class NewNanoHTTPD(val port: Int) {
                         var payload = o.get("payload")
                         val originalPayload = payload
 
+                        var from = o.get("from")
+                        if (payload is JSONObject)
+                            payload.put("__originalid__", from)
+
                         for (v in messageHandlers) {
                             try {
                                 if (v(this, address, payload))
@@ -291,7 +325,7 @@ class NewNanoHTTPD(val port: Int) {
 
         Thread() {
             while (true) {
-                Thread.sleep(2000)
+                Thread.sleep(1500)
                 println("ping")
                 openWebsockets.forEach {
                     it.ping(byteArrayOf(0))
