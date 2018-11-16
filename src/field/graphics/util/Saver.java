@@ -47,6 +47,8 @@ public class Saver {
 
 	public int frameNumber = 0;
 
+	public int strobe = 1;
+
 	@HiddenInAutocomplete
 	boolean on = false;
 	@HiddenInAutocomplete
@@ -103,12 +105,16 @@ public class Saver {
 		if (update(prefix, frameNumber, ".jpg")) frameNumber++;
 	}
 
+	int innerTick = 0;
+
 	@HiddenInAutocomplete
 	public boolean update(String prefix, int frameNumber, String suffix) {
 		if (!on) {
 			runHooks(null);
 			return false;
 		}
+
+		if (innerTick++%strobe!=0) return false;
 
 		Pair<ByteBuffer, ByteBuffer> storage = null;
 

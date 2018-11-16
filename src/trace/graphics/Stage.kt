@@ -1332,6 +1332,14 @@ class Stage(val w: Int, val h: Int) : AsMap {
         return saver.start()
     }
 
+
+    fun startSaving(path : String): String {
+        saver.setPrefix(path)
+        saver.frameNumber = 0
+
+        return saver.start()
+    }
+
     fun stopSaving() {
         saver.stop()
     }

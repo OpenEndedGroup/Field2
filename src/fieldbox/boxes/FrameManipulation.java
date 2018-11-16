@@ -12,7 +12,7 @@ import field.utility.Triple;
 import fieldbox.boxes.plugins.Planes;
 import fieldbox.boxes.plugins.Scrolling;
 import fieldbox.boxes.plugins.SimpleSnapHelper;
-import fieldbox.boxes.plugins.UndoStack;
+//import fieldbox.boxes.plugins.UndoStack;
 import fieldbox.ui.Cursors;
 import fieldcef.browser.Browser;
 import fieldcef.plugins.TextEditor;
@@ -376,8 +376,8 @@ public class FrameManipulation extends Box {
 					transformPart2(c1);
 
 					c1.forEach(x -> {
-						UndoStack.u.change(x.first, frame, x.third);
-//						x.first.properties.put(frame, x.third);
+//						UndoStack.u.change(x.first, frame, x.third);
+						x.first.properties.put(frame, x.third);
 						feedback(hitBox, originalFrame, x.third, termination ? 60 : -1);
 						Drawing.dirty(hitBox);
 					});

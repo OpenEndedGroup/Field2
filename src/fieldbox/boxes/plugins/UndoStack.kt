@@ -54,7 +54,8 @@ class UndoStack {
                     Triple(0, 0, it.time)
                 } // not mergeable
             }
-        }.aggregateTo(ord, { key, acc: Undo?, element, first -> if (first) element else acc!! }).values.toCollection(dest)
+        }.aggregateTo(ord, { key : Any, acc: Undo?, element : Long, first -> if (first) element else acc!! })
+                .values.toCollection(dest)
 
         stack = dest
 
