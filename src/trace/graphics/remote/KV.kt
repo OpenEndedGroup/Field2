@@ -4,18 +4,18 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /** the world's most straightforward key-value store */
-class KV(val channel : String, val syncService : (Int, String, String, JSONObject) -> Unit) {
+class KV(val channel: String, val syncService: ((String) -> Boolean, String, String, JSONObject) -> Unit) {
 
     val store = mutableMapOf<String, JSONObject>()
 
-    fun put(from: Int, name: String, value: JSONObject): Boolean {
+    fun put(from: String, name: String, value: JSONObject): Boolean {
         val changed = store.get(name).let {
             store.put(name, value);
-            it == null || !it.equals(value)
+            it == null || it != value
         }
 
         if (changed)
-            syncService(-from, channel, name, value); // everything but 'from'
+            syncService({ it != from }, channel, name, value); // everything but 'from'
 
         return changed
     }
@@ -24,10 +24,9 @@ class KV(val channel : String, val syncService : (Int, String, String, JSONObjec
         return store.get(name);
     }
 
-    fun syncTo(to: Int)
-    {
+    fun syncTo(to: String) {
         store.forEach {
-            syncService(to, channel, it.key, it.value)
+            syncService({ it == to }, channel, it.key, it.value)
         }
     }
 

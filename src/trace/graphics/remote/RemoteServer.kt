@@ -1,5 +1,7 @@
 package trace.graphics.remote
 
+import com.google.common.collect.BiMap
+import com.google.common.collect.HashBiMap
 import com.google.common.io.Files
 import fieldagent.Main
 import fieldbox.boxes.Box
@@ -14,6 +16,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.nanohttpd.protocols.http.response.Response.*
 import org.nanohttpd.protocols.http.response.Status
+import org.nanohttpd.protocols.websockets.WebSocket
 import java.io.File
 import java.io.FileInputStream
 import java.net.InetAddress
@@ -35,8 +38,13 @@ class RemoteServer {
 
     var errorRoot: Box? = null
 
+    val rpc = RPC()
+
     init {
         this.s = NewNanoHTTPD(8090)
+
+
+
 
 //        s.addDocumentRoot(fieldagent.Main.app + "/modules/fieldbox/resources/")
 //        s.addDocumentRoot(fieldagent.Main.app + "/modules/fielded/resources/")
@@ -75,6 +83,16 @@ class RemoteServer {
             }
             null
         }
+        s.messageHandlers.add { server, address, payload ->
+            val p = payload as JSONObject
+            if (p.has("id")) {
+                val id = p.getString("id")
+
+                if (id != null)
+                    rpc.map(server, id)
+            }
+            false
+        }
 
         s.messageHandlers.add { server, address, payload ->
             if (address.equals("files.map")) {
@@ -102,6 +120,14 @@ class RemoteServer {
             false
         }
 
+        s.messageHandlers.add { server, address, payload ->
+            if (address.equals("kv.receive")) {
+                val p = payload as JSONObject
+                rpc.handle(p)
+                true
+            }
+            false
+        }
 
         s.messageHandlers.add { server, address, payload ->
 
@@ -150,6 +176,7 @@ class RemoteServer {
         }
 
     }
+
 
     fun nowHeadless() {
         initFile = "init_headless.html"

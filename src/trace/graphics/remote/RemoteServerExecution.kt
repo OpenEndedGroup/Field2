@@ -1,7 +1,6 @@
 package trace.graphics.remote
 
-import com.illposed.osc.OSCMessage
-import field.app.RunLoop
+import field.graphics.Shader
 import field.graphics.util.onsheetui.Label
 import field.linalg.Vec4
 import field.utility.*
@@ -10,24 +9,22 @@ import fieldbox.boxes.Boxes
 import fieldbox.boxes.Drawing
 import fieldbox.boxes.TimeSlider
 import fieldbox.boxes.plugins.Chorder
+import fieldbox.boxes.plugins.GraphicsSupport
 import fieldbox.boxes.plugins.IsExecuting
 import fieldbox.execution.Completion
 import fieldbox.execution.Execution
 import fieldbox.io.IO
 import fieldcef.plugins.up
+import fielded.Commands
 import fielded.RemoteEditor
 import fielded.live.Asta
-import org.json.JSONArray
 import org.json.JSONObject
-import org.json.JSONStringer
+import org.nanohttpd.protocols.websockets.WebSocket
 import trace.graphics.Stage
-import java.io.File
 
-import java.io.IOException
 import java.net.InetAddress
 import java.util.*
 import java.util.function.BiConsumer
-import java.util.function.BiFunction
 import java.util.function.Consumer
 import java.util.function.Supplier
 
@@ -125,8 +122,7 @@ class RemoteServerExecution : Execution(null) {
                     (it up Chorder.begin)!!.apply(it)
                 }
                 true
-            }
-            else if (address.equals("util.end")) {
+            } else if (address.equals("util.end")) {
                 val p = payload as JSONObject
 
                 findBoxByName(p.getString("name")).ifPresent {
@@ -134,9 +130,85 @@ class RemoteServerExecution : Execution(null) {
                 }
 
                 true
-            }
-            false
+            } else
+                false
         }
+
+        server.s.messageHandlers.add { server, address, payload ->
+            if (address.equals("request.shaderSupport")) {
+                val p = payload as JSONObject
+
+                var v = p.getString("defaultVertex");
+                var f = p.getString("defaultFragment");
+                var id = p.getString("boxID");
+                var callback = p.getString("reloadCallback");
+
+                initializeShaderSupport(id, v, f, callback);
+                true
+            } else
+                false
+        }
+        server.s.messageHandlers.add { server, address, payload ->
+            if (address.equals("status.shaderSupport")) {
+                val p = payload as JSONObject
+
+                var ty = p.getString("type")
+                var id = p.getString("boxID");
+                if (ty == "success") {
+                    val e = GraphicsSupport.errorHandler(findBoxByID(id).get(), "browser shader");
+                    e.noError()
+                } else if (ty == "error") {
+                    val e = GraphicsSupport.errorHandler(findBoxByID(id).get(), "browser shader");
+                    var m = p.getString("message")
+                    if (p.getString("v").length > 0) m += "\n on vertex shader '" + p.getString("v") + "'"
+                    if (p.getString("f").length > 0) m += "\n on fragment shader '" + p.getString("f") + "'"
+                    e.errorOnLine(1, m)
+                }
+
+                true
+            } else
+                false
+        }
+
+
+        properties.put(Commands.commands, Supplier<Map<Pair<String, String>, Runnable>> {
+            val m = LinkedHashMap<Pair<String, String>, Runnable>()
+            val ed = this.find(RemoteEditor.editor, both()).findFirst().get()
+
+            val box = ed.currentlyEditing
+
+
+            val s = knownShaderBoxes.get(box)
+
+            if (s != null)
+                m[Pair("Reload shader (browser)", "Reloads all shaders associated with this box via `_.newShader()`")] = Runnable {
+                    reloadBoxShader(s, box.properties.get(GraphicsSupport.vertex), box.properties.get(GraphicsSupport.fragment))
+                }
+
+
+            m
+        })
+    }
+
+    val knownShaderBoxes = mutableMapOf<Box, String>();
+
+    fun initializeShaderSupport(id: String, v: String, f: String, callback: String) {
+
+        this.findBoxByID(id).ifPresent {
+            val v2 = it.properties.computeIfAbsent(GraphicsSupport.vertex, { v });
+            val f2 = it.properties.computeIfAbsent(GraphicsSupport.fragment, { f });
+
+            if (v2 != v || f2 != f) {
+                reloadBoxShader(callback, v2, f2);
+            }
+            knownShaderBoxes.put(it, callback)
+
+
+        }
+    }
+
+    private fun reloadBoxShader(callback: String, v2: String?, f2: String?) {
+        server.execute("__reloadShader(`" + callback + "`, `" + v2 + "`, `" + f2 + "`)", requiresSandbox = false)
 
     }
 
@@ -181,6 +253,8 @@ class RemoteServerExecution : Execution(null) {
 
     override fun support(box: Box, prop: Dict.Prop<String>): Execution.ExecutionSupport? {
         if (box == this) return null
+        if (prop != Execution.code) return null;
+
         val ef = this.properties.get(Execution.executionFilter)
         return if (ef == null || ef.apply(box)) wrap(box, prop) else null
     }

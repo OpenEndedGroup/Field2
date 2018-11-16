@@ -8,9 +8,8 @@ import field.utility.PerThread
 import field.utility.Vec2
 import field.utility.Vec3
 import field.utility.Dict
-import field.utility.Vec4
 import fieldbox.boxes.Box
-import fieldbox.boxes.plugins.DragToCopy.duplicate
+import fieldcef.plugins.up
 import fieldnashorn.babel.SourceTransformer
 import jdk.nashorn.api.tree.*
 import java.lang.reflect.Method
@@ -27,7 +26,8 @@ class Asta {
     class Options {
         var overloads = false
         var numbers = false
-        fun on(): Boolean = overloads || numbers
+        var functionRewrite = false
+        fun on(): Boolean = overloads || numbers || functionRewrite
     }
 
     var options by PerThread { Options() }
@@ -539,23 +539,20 @@ class Asta {
 
                 options.numbers = box.properties.isTrue(OverloadedMath.withLiveNumbers, false)
                 options.overloads = box.properties.isTrue(OverloadedMath.withOverloading, true)
+                options.functionRewrite = box.properties.isTrue(OverloadedMath.withFunctionRewriting, false)
 
                 val v = parseAndReconstruct(c, {
                     if (it.kind.ordinal < Diagnostic.Kind.WARNING.ordinal) {
                         throw SourceTransformer.TranslationFailedException(it.message + " on line " + it.lineNumber + " at col " + it.columnNumber)
                     }
                     print("Diagnostic: $it")
-                })
+                }, box)
 
                 if (!fragment && options.on()) {
                     currentContents = c
                     baseContents = c
                     currentMapping = mutableMapOf()
                 }
-
-//                if (debug) {
-//                    println("final transform -> $v")
-//                }
 
                 return field.utility.Pair(v, Function { x: Int -> x })
             }
@@ -577,7 +574,7 @@ class Asta {
     }
 
     @JvmOverloads
-    fun parseAndReconstruct(v: String, d: (Diagnostic) -> Unit = { print("diagnostic: $it") }): String {
+    fun parseAndReconstruct(v: String, d: (Diagnostic) -> Unit = { print("diagnostic: $it") }, box: Box): String {
 
         if (!options.on()) return v
 
@@ -603,7 +600,7 @@ class Asta {
 
             var (s, e) = startAndEndPositionFor(it)
 
-            actions.add { replaced = replaced.replaceRange(s, e, reconstructOver(it, 0, v, forbiddenRanges)) }
+            actions.add { replaced = replaced.replaceRange(s, e, reconstructOver(it, 0, v, forbiddenRanges, parent = null, box = box)) }
         }
 
         actions.reversed().forEach { it() }
@@ -613,8 +610,7 @@ class Asta {
 
     private fun findForbiddenRanges(it: Tree, forbiddenRanges: MutableList<Pair<Long, Long>>) {
 
-        if (it is ForLoopTree)
-        {
+        if (it is ForLoopTree) {
             val a = it.startPosition
             val b = it.statement.startPosition
             forbiddenRanges.add(a to b)
@@ -654,7 +650,7 @@ class Asta {
         children.forEach { recurOver(it!!, i + 2, v) }
     }
 
-    private fun reconstructOver(tree: Tree, i: Int, v: String, forbiddenRanges : List<Pair<Long, Long>>): String {
+    private fun reconstructOver(tree: Tree, i: Int, v: String, forbiddenRanges: List<Pair<Long, Long>>, parent: Tree? = null, box: Box): String {
         if (debug) println("${indent(i)}" + tree.kind)
         val children = childrenFor(tree)
 
@@ -676,11 +672,11 @@ class Asta {
                 val right = children.get(1)
 
                 val (sr, er) = startAndEndPositionFor(right)
-                var rightR = reconstructOver(right, i + 5, v, forbiddenRanges)//text.replaceRange((sr - start).toInt()..(er - start - 1).toInt(), )
+                var rightR = reconstructOver(right, i + 5, v, forbiddenRanges, parent, box)//text.replaceRange((sr - start).toInt()..(er - start - 1).toInt(), )
 
 
                 val (sc, ec) = startAndEndPositionFor(left)
-                var leftR = reconstructOver(left, i + 5, v, forbiddenRanges)//rightR.replaceRange((sc - start).toInt()..(ec - start - 1).toInt())
+                var leftR = reconstructOver(left, i + 5, v, forbiddenRanges, parent, box)//rightR.replaceRange((sc - start).toInt()..(ec - start - 1).toInt())
 
                 if (debug) println(" -> leftR : $leftR")
 
@@ -696,14 +692,14 @@ class Asta {
                 println("right `$rightR`")
 
                 if (rightR.trim().endsWith("//"))
-                    rightR = rightR.trim().substring(0, rightR.trim().length-2)
+                    rightR = rightR.trim().substring(0, rightR.trim().length - 2)
 
-                if (leftR.startsWith("(") && count(leftR, '(') == count(leftR, ')')+1 && closeBracket>0) {
+                if (leftR.startsWith("(") && count(leftR, '(') == count(leftR, ')') + 1 && closeBracket > 0) {
                     leftR = leftR.substring(1)
                     closeBracket--
                 }
-                if (leftR.endsWith(")") && count(leftR, ')') == count(leftR, '(')+1 && closeBracket==0 && openBracket==0) {
-                    leftR = leftR.substring(0, leftR.length-1)
+                if (leftR.endsWith(")") && count(leftR, ')') == count(leftR, '(') + 1 && closeBracket == 0 && openBracket == 0) {
+                    leftR = leftR.substring(0, leftR.length - 1)
                     closeBracket++
                 }
 
@@ -715,6 +711,14 @@ class Asta {
             return "__NUMBER_LITERAL__(" + start + ", " + end + ", " + text + ")"
         }
 
+        if (options.functionRewrite && tree is IdentifierTree && tree.kind.equals(Tree.Kind.IDENTIFIER) && parent != null && parent is FunctionCallTree) {
+            // lookup
+            val newName = rewriteFunctionName(tree.name, start, end, box)
+            if (newName != null) {
+                return newName
+            }
+        }
+
         var n = children.size - 1
         for (c in children.asReversed()) {
 
@@ -723,7 +727,7 @@ class Asta {
             if (debug) println("${indent(i + 2)} replace range ${(s - start).toInt()..(e - start - 1).toInt()}  : '" + text.substring((s - start).toInt()..(e - start - 1).toInt()) + "'")
 
 //            text = text.replaceRange((c.startPosition - start).toInt()..(c.endPosition - start - 1).toInt(), reconstructOver(c, i + 5, v))
-            text = text.replaceRange((s - start).toInt()..(e - start - 1).toInt(), reconstructOver(c, i + 5, v,forbiddenRanges))
+            text = text.replaceRange((s - start).toInt()..(e - start - 1).toInt(), reconstructOver(c, i + 5, v, forbiddenRanges, parent = tree, box = box))
             n--
         }
 
@@ -733,10 +737,14 @@ class Asta {
         return text
     }
 
-    private fun forbidden(startPosition: Long, endPosition: Long, f : List<Pair<Long, Long>>): Boolean {
-            f.forEach {
-                if (startPosition<it.second && endPosition>it.first) return true
-            }
+    private fun rewriteFunctionName(name: String, start: Int, end: Int, box: Box): String? {
+        return (box up OverloadedMath.functionRewriteTrap)?.apply(box, name)
+    }
+
+    private fun forbidden(startPosition: Long, endPosition: Long, f: List<Pair<Long, Long>>): Boolean {
+        f.forEach {
+            if (startPosition < it.second && endPosition > it.first) return true
+        }
         return false
     }
 
@@ -758,7 +766,7 @@ class Asta {
     private fun childrenFor(tree: Tree): List<Tree> {
 //        if (debug) println(" children for :" + tree + " " + tree.javaClass + " " + tree.kind)
         return accessorMap[tree.kind]!!.flatMap {
-//            if (debug) println("-> $it ($tree)")
+            //            if (debug) println("-> $it ($tree)")
             try {
                 try {
                     val rr = it.invoke(tree)
