@@ -29,6 +29,7 @@ import javax.script.ScriptException;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -40,91 +41,97 @@ import java.util.stream.Collectors;
  */
 public class NashornExecution implements Execution.ExecutionSupport {
 
-    static public final Dict.Prop<SourceTransformer> sourceTransformer = new Dict.Prop<SourceTransformer>(
-            "sourceTransformer").doc(
-            "an instanceof of a SourceTransformer that will take the source code here and transform it into JavaScript. This allows things like Babel.js to be used in Field")
-            .toCanon();
-    static public final ThreadLocal<ScriptEngine> currentEngine = new ThreadLocal<>();
-    static int uniq = 0;
-    public final Dict.Prop<String> property;
-    public final Box box;
-    public final ScriptContext context;
-    final String prefix = "" + (uniq++);
-    private final ScriptEngine engine;
-    private final Out output;
-    public String filename = null;
-    Function<Integer, Integer> lineTransform;
-    private Nashorn factory;
-    private TernSupport ternSupport;
-    private int lineOffset;
-    private Triple<Box, Integer, Boolean> currentLineNumber = null;
-    private Dict.Prop<String> originProperty;
-    private boolean all = false;
-
-    public NashornExecution(Nashorn factory, Box box, Dict.Prop<String> property, ScriptContext b, ScriptEngine engine) {
-        this.factory = factory;
-        this.box = box;
-        this.property = property;
-        this.context = b;
-        this.engine = engine;
-
-        output = box.find(Out.__out, box.both())
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Can't find html output support"));
-    }
-
-    @Override
-    public Object executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors) {
-        if (suffix.equals("print")) {
-            return executeAndReturn("print(" + textFragment + ")", lineErrors, success, false);
-        } else return executeAndReturn(textFragment, lineErrors, success, !suffix.equals("noprint"));
-    }
-
-    protected Object executeAndReturn(String textFragment, Consumer<Pair<Integer, String>> lineErrors, final Consumer<String> success, boolean printResult) {
-
-        lineErrors = new ErrorHelper().errorHelper(lineErrors, box);
-        Callbacks.call(box, Callbacks.onExecute);
-        try {
-
-            Execution.context.get().push(box);
-
-            Writer writer = null;
-            boolean[] written = {false};
-            if (success != null) {
-
-                currentLineNumber = null;
+	static public final Dict.Prop<SourceTransformer> sourceTransformer = new Dict.Prop<SourceTransformer>(
+		"sourceTransformer").doc(
+		"an instanceof of a SourceTransformer that will take the source code here and transform it into JavaScript. This allows things like Babel.js to be used in Field")
+		.toCanon();
+	static public final Dict.Prop<ExecutorService> customExecutor = new Dict.Prop<ExecutorService>(
+		"customExecutor").doc(
+		"executes code in this box in a separate ExecutorService")
+		.toCanon();
 
 
-                writer = new Writer() {
-                    @Override
-                    public void write(char[] cbuf, int off, int len) throws IOException {
-                        if (len > 0) {
-                            String s = new String(cbuf, off, len);
+	static public final ThreadLocal<ScriptEngine> currentEngine = new ThreadLocal<>();
+	static int uniq = 0;
+	public final Dict.Prop<String> property;
+	public final Box box;
+	public final ScriptContext context;
+	final String prefix = "" + (uniq++);
+	private final ScriptEngine engine;
+	private final Out output;
+	public String filename = null;
+	Function<Integer, Integer> lineTransform;
+	private Nashorn factory;
+	private TernSupport ternSupport;
+	private int lineOffset;
+	private Triple<Box, Integer, Boolean> currentLineNumber = null;
+	private Dict.Prop<String> originProperty;
+	private boolean all = false;
+
+	public NashornExecution(Nashorn factory, Box box, Dict.Prop<String> property, ScriptContext b, ScriptEngine engine) {
+		this.factory = factory;
+		this.box = box;
+		this.property = property;
+		this.context = b;
+		this.engine = engine;
+
+		output = box.find(Out.__out, box.both())
+			.findFirst()
+			.orElseThrow(() -> new IllegalStateException("Can't find html output support"));
+	}
+
+	@Override
+	public Object executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors) {
+		if (suffix.equals("print")) {
+			return executeAndReturn("print(" + textFragment + ")", lineErrors, success, false);
+		} else return executeAndReturn(textFragment, lineErrors, success, !suffix.equals("noprint"));
+	}
+
+	protected Object executeAndReturn(String textFragment, Consumer<Pair<Integer, String>> lineErrors, final Consumer<String> success, boolean printResult) {
+
+		lineErrors = new ErrorHelper().errorHelper(lineErrors, box);
+		Callbacks.call(box, Callbacks.onExecute);
+		try {
+
+			Execution.context.get().push(box);
+
+			Writer writer = null;
+			boolean[] written = {false};
+			if (success != null) {
+
+				currentLineNumber = null;
+
+
+				writer = new Writer() {
+					@Override
+					public void write(char[] cbuf, int off, int len) throws IOException {
+						if (len > 0) {
+							String s = new String(cbuf, off, len);
 //							if (s.endsWith("\n"))
 //								s = s.substring(0, s.length() - 1) + "<br>";
-                            if (s.trim().length() == 0) return;
-                            written[0] = true;
+							if (s.trim().length() == 0) return;
+							written[0] = true;
 
-                            if (currentLineNumber == null || currentLineNumber.first == null || currentLineNumber.second == -1) {
+							if (currentLineNumber == null || currentLineNumber.first == null || currentLineNumber.second == -1) {
 //								success.accept(s);
-                                final String finalS = s;
-                                Set<Consumer<Quad<Box, Integer, String, Boolean>>> o = box.find(
-                                        Execution.directedOutput, box.upwards())
-                                        .collect(Collectors.toSet());
-                                o.forEach(x -> x.accept(new Quad<>(box, -1, finalS, true)));
+								final String finalS = s;
+								Set<Consumer<Quad<Box, Integer, String, Boolean>>> o = box.find(
+									Execution.directedOutput, box.upwards())
+									.collect(Collectors.toSet());
+								o.forEach(x -> x.accept(new Quad<>(box, -1, finalS, true)));
 
-                            } else {
+							} else {
 
-                                final String finalS = s;
-                                Set<Consumer<Quad<Box, Integer, String, Boolean>>> o = box.find(
-                                        Execution.directedOutput, box.upwards())
-                                        .collect(Collectors.toSet());
+								final String finalS = s;
+								Set<Consumer<Quad<Box, Integer, String, Boolean>>> o = box.find(
+									Execution.directedOutput, box.upwards())
+									.collect(Collectors.toSet());
 
-                                if (o.size() > 0) {
-                                    o.forEach(x -> x.accept(
-                                            new Quad<>(currentLineNumber.first, currentLineNumber.second, finalS,
-                                                       currentLineNumber.third)));
-                                } else {
+								if (o.size() > 0) {
+									o.forEach(x -> x.accept(
+										new Quad<>(currentLineNumber.first, currentLineNumber.second, finalS,
+											currentLineNumber.third)));
+								} else {
 //									success.accept(finalS);
 
 									o.forEach(x -> x.accept(new Quad<>(box, -1, finalS, true)));
@@ -230,7 +237,8 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
 		try {
 			if (e instanceof ThreadSync2.KilledException) {
-			} if (e instanceof ScriptException) {
+			}
+			if (e instanceof ScriptException) {
 				lineErrors.accept(new Pair<>(lineTransform.apply(((ScriptException) e).getLineNumber()), extraMessage + " " + e.getMessage()));
 				e.printStackTrace();
 			} else if (e instanceof NashornException) {
@@ -285,19 +293,20 @@ public class NashornExecution implements Execution.ExecutionSupport {
 		}
 		if (!box.properties.isTrue(ThreadSync2Feedback.mainThread, false) && ThreadSync2.getEnabled() && Thread.currentThread() == ThreadSync2.getSync().getMainThread()) {
 
+			ExecutorService ex = box.first(customExecutor).orElse(ThreadSync2.Companion.getExecutor());
+
 			try {
 				ThreadSync2.Fibre f = ThreadSync2.getSync()
-						.launchAndServiceOnce("execution of {{" + textFragment + "}}",
-											  () -> engine.eval(textFragment, context), t -> {
-									if (!(t instanceof ThreadSync2.KilledException))
-										if (seenBefore.add(t))
-											exception.accept(t);
-								});
-			f.tag = box;
-			return f.lastReturn;
-			}
-			catch(ThreadSync2.KilledException e)
-			{			return null;
+					.launchAndServiceOnce("execution of {{" + textFragment + "}}",
+						() -> engine.eval(textFragment, context), t -> {
+							if (!(t instanceof ThreadSync2.KilledException))
+								if (seenBefore.add(t))
+									exception.accept(t);
+						}, ex);
+				f.tag = box;
+				return f.lastReturn;
+			} catch (ThreadSync2.KilledException e) {
+				return null;
 			}
 
 

@@ -68,12 +68,19 @@ class Asta {
     companion object {
 
         @JvmStatic
-        var debug = false
+        var debug = true
 
         @JvmStatic
-        fun __MINUS__(a: Any?, b: Any?): Any? {
+        fun __MINUS__(va: Any?, vb: Any?): Any? {
+
+            var a = va
+            var b = vb
+
+            if (a is OverloadedMath.ReducedWhenOverloaded) a = a.get()
+            if (b is OverloadedMath.ReducedWhenOverloaded) b = b.get()
 
             if (a is Number && b is Number) return a.toDouble() - b.toDouble()
+
 
             if (a == null) throw NullPointerException("can't subtract `$a` and `$b`")
             if (b == null) throw NullPointerException("can't subtract `$a` and `$b`")
@@ -162,7 +169,13 @@ class Asta {
         }
 
         @JvmStatic
-        fun __PLUS__(a: Any?, b: Any?): Any? {
+        fun __PLUS__(va: Any?, vb: Any?): Any? {
+
+            var a = va
+            var b = vb
+
+            if (a is OverloadedMath.ReducedWhenOverloaded) a = a.get()
+            if (b is OverloadedMath.ReducedWhenOverloaded) b = b.get()
 
             if (a is Number && b is Number) return a.toDouble() + b.toDouble()
 
@@ -253,7 +266,13 @@ class Asta {
         }
 
         @JvmStatic
-        fun __MULTIPLY__(a: Any?, b: Any?): Any? {
+        fun __MULTIPLY__(va: Any?, vb: Any?): Any? {
+
+            var a = va
+            var b = vb
+
+            if (a is OverloadedMath.ReducedWhenOverloaded) a = a.get()
+            if (b is OverloadedMath.ReducedWhenOverloaded) b = b.get()
 
             if (a is Number && b is Number) return a.toDouble() * b.toDouble()
 
@@ -345,7 +364,13 @@ class Asta {
 
 
         @JvmStatic
-        fun __DIVIDE__(a: Any?, b: Any?): Any? {
+        fun __DIVIDE__(va: Any?, vb: Any?): Any? {
+
+            var a = va
+            var b = vb
+
+            if (a is OverloadedMath.ReducedWhenOverloaded) a = a.get()
+            if (b is OverloadedMath.ReducedWhenOverloaded) b = b.get()
 
             if (a is Number && b is Number) return a.toDouble() / b.toDouble()
 
@@ -437,7 +462,13 @@ class Asta {
 
 
         @JvmStatic
-        fun __XOR__(a: Any?, b: Any?): Any? {
+        fun __XOR__(va: Any?, vb: Any?): Any? {
+
+            var a = va
+            var b = vb
+
+            if (a is OverloadedMath.ReducedWhenOverloaded) a = a.get()
+            if (b is OverloadedMath.ReducedWhenOverloaded) b = b.get()
 
             if (a is Number && b is Number) return a.toDouble() * b.toDouble()
 
@@ -573,6 +604,7 @@ class Asta {
         return r
     }
 
+    var hash = 0L
     @JvmOverloads
     fun parseAndReconstruct(v: String, d: (Diagnostic) -> Unit = { print("diagnostic: $it") }, box: Box): String {
 
@@ -595,12 +627,14 @@ class Asta {
         }
 
 
+        hash = 0L
+
         r.sourceElements.forEach {
             print("\n\n sourceElement: $it\n\n")
 
             var (s, e) = startAndEndPositionFor(it)
 
-            actions.add { replaced = replaced.replaceRange(s, e, reconstructOver(it, 0, v, forbiddenRanges, parent = null, box = box)) }
+            actions.add { replaced = replaced.replaceRange(s, e, reconstructOver(it, 0, v, forbiddenRanges, parent = null, box = box, hash=0L)) }
         }
 
         actions.reversed().forEach { it() }
@@ -650,8 +684,9 @@ class Asta {
         children.forEach { recurOver(it!!, i + 2, v) }
     }
 
-    private fun reconstructOver(tree: Tree, i: Int, v: String, forbiddenRanges: List<Pair<Long, Long>>, parent: Tree? = null, box: Box): String {
-        if (debug) println("${indent(i)}" + tree.kind)
+    private fun reconstructOver(tree: Tree, i: Int, v: String, forbiddenRanges: List<Pair<Long, Long>>, parent: Tree? = null, box: Box, hash: Long): String {
+
+        if (debug) println("${indent(i)}" + tree.kind+" ##"+hash)
         val children = childrenFor(tree)
 
         var (start, end) = startAndEndPositionFor(tree, true)
@@ -659,10 +694,10 @@ class Asta {
         var text = v.substring(start, end)
 
 
-        if (debug) println("${indent(i)} node covers ${start} -> ${end} = $text")
+//        if (debug) println("${indent(i)} node covers ${start} -> ${end} = $text")
 
         if (options.overloads && tree is BinaryTree && tree.kind in trapKinds && !forbidden(tree.startPosition, tree.endPosition, forbiddenRanges)) {
-            if (debug) println(" ** binary operator :" + tree)
+//            if (debug) println(" ** binary operator :" + tree)
 
             if (!(text.contains("'") || text.contains("\"") || text.contains("`"))) {
 
@@ -672,11 +707,11 @@ class Asta {
                 val right = children.get(1)
 
                 val (sr, er) = startAndEndPositionFor(right)
-                var rightR = reconstructOver(right, i + 5, v, forbiddenRanges, parent, box)//text.replaceRange((sr - start).toInt()..(er - start - 1).toInt(), )
+                var rightR = reconstructOver(right, i + 5, v, forbiddenRanges, parent, box, hash=31*hash+hashFor(right, "right".hashCode().toLong()))//text.replaceRange((sr - start).toInt()..(er - start - 1).toInt(), )
 
 
                 val (sc, ec) = startAndEndPositionFor(left)
-                var leftR = reconstructOver(left, i + 5, v, forbiddenRanges, parent, box)//rightR.replaceRange((sc - start).toInt()..(ec - start - 1).toInt())
+                var leftR = reconstructOver(left, i + 5, v, forbiddenRanges, parent, box, hash=31*hash+hashFor(left, "left".hashCode().toLong()))//rightR.replaceRange((sc - start).toInt()..(ec - start - 1).toInt())
 
                 if (debug) println(" -> leftR : $leftR")
 
@@ -687,9 +722,9 @@ class Asta {
                 var closeBracket = count(middle, ')');
                 val openBracket = count(middle, '(');
 
-                println(" middle text is `$middle` $closeBracket, $openBracket")
-                println("left `$leftR`")
-                println("right `$rightR`")
+//                println(" middle text is `$middle` $closeBracket, $openBracket")
+//                println("left `$leftR`")
+//                println("right `$rightR`")
 
                 if (rightR.trim().endsWith("//"))
                     rightR = rightR.trim().substring(0, rightR.trim().length - 2)
@@ -713,7 +748,8 @@ class Asta {
 
         if (options.functionRewrite && tree is IdentifierTree && tree.kind.equals(Tree.Kind.IDENTIFIER) && parent != null && parent is FunctionCallTree) {
             // lookup
-            val newName = rewriteFunctionName(tree.name, start, end, box)
+            if (debug) System.out.println(" functional name '"+tree.name+"' "+tree)
+            val newName = rewriteFunctionName(tree.name, start, end, box, hash)
             if (newName != null) {
                 return newName
             }
@@ -727,7 +763,7 @@ class Asta {
             if (debug) println("${indent(i + 2)} replace range ${(s - start).toInt()..(e - start - 1).toInt()}  : '" + text.substring((s - start).toInt()..(e - start - 1).toInt()) + "'")
 
 //            text = text.replaceRange((c.startPosition - start).toInt()..(c.endPosition - start - 1).toInt(), reconstructOver(c, i + 5, v))
-            text = text.replaceRange((s - start).toInt()..(e - start - 1).toInt(), reconstructOver(c, i + 5, v, forbiddenRanges, parent = tree, box = box))
+            text = text.replaceRange((s - start).toInt()..(e - start - 1).toInt(), reconstructOver(c, i + 5, v, forbiddenRanges, parent = tree, box = box, hash=hash*31+hashFor(c, n.toLong())))
             n--
         }
 
@@ -737,8 +773,13 @@ class Asta {
         return text
     }
 
-    private fun rewriteFunctionName(name: String, start: Int, end: Int, box: Box): String? {
-        return (box up OverloadedMath.functionRewriteTrap)?.apply(box, name)
+    private fun hashFor(c: Tree, salt: Long =0): Long {
+        System.out.println("HASH? "+c.kind.hashCode())
+        return c.kind.hashCode().toLong()*31+salt
+    }
+
+    private fun rewriteFunctionName(name: String, start: Int, end: Int, box: Box, hash : Long): String? {
+        return (box up OverloadedMath.functionRewriteTrap)?.apply(box, name, hash)
     }
 
     private fun forbidden(startPosition: Long, endPosition: Long, f: List<Pair<Long, Long>>): Boolean {

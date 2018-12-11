@@ -4,6 +4,7 @@ import field.utility.AsMapDelegator
 import field.utility.Dict
 import field.utility.IdempotencyMap
 import field.utility.Options
+import fieldbox.boxes.plugins.Exec
 import fieldlinker.AsMap
 
 import java.util.*
@@ -111,9 +112,10 @@ class ThreadSync2 {
         @JvmField
         var lastReturn: Any? = null;
 
-        fun launch(license: Any?, r: Callable<*>) {
+        @JvmOverloads
+        fun launch(license: Any?, r: Callable<*>, e : ExecutorService = executor) {
             this.license = license
-            executor.submit {
+            e.submit {
                 thisFibre.set(this)
 
                 try {
@@ -219,12 +221,12 @@ class ThreadSync2 {
         return didWork
     }
 
-    fun launchAndServiceOnce(r: Callable<*>): Fibre? {
+    fun launchAndServiceOnce(r: Callable<*>, e : ExecutorService = executor): Fibre? {
         // call only from "main thread"
         val f = Fibre()
         val ll = license
         license = null
-        f.launch(ll, r)
+        f.launch(ll, r, e)
         license = f.output.take()
         if (!f.finished) {
             current.add(f)
@@ -233,14 +235,14 @@ class ThreadSync2 {
         return null
     }
 
-    fun launchAndServiceOnce(debugText: String, r: Callable<*>, t: Consumer<Throwable>): Fibre? {
+    fun launchAndServiceOnce(debugText: String, r: Callable<*>, t: Consumer<Throwable>, e : ExecutorService = executor): Fibre? {
         // call only from "main thread"
         val f = Fibre()
         f.debugText = debugText
         f.errorHandler = t
         val ll = license
         license = null
-        f.launch(ll, r)
+        f.launch(ll, r, e)
         license = f.output.take()
         if (!f.finished) {
             current.add(f)
@@ -268,7 +270,7 @@ class ThreadSync2 {
         var sync: ThreadSync2? = null
         var thisFibre = ThreadLocal<Fibre>()
 
-        private val executor = Executors.newCachedThreadPool()
+        val executor = Executors.newCachedThreadPool()
 
         @JvmStatic
         fun yield() {
