@@ -112,8 +112,15 @@ class ThreadSync2 {
         var lastReturn: Any? = null;
 
         fun launch(license: Any?, r: Callable<*>) {
+            launch(license, r, executor)
+        }
+
+        fun launch(license: Any?, r: Callable<*>, e : ExecutorService) {
             this.license = license
-            executor.submit {
+
+
+
+            e.submit {
                 thisFibre.set(this)
 
                 try {
@@ -233,14 +240,16 @@ class ThreadSync2 {
         return null
     }
 
-    fun launchAndServiceOnce(debugText: String, r: Callable<*>, t: Consumer<Throwable>): Fibre? {
+
+    @JvmOverloads
+    fun launchAndServiceOnce(debugText: String, r: Callable<*>, t: Consumer<Throwable>, e : ExecutorService = executor): Fibre? {
         // call only from "main thread"
         val f = Fibre()
         f.debugText = debugText
         f.errorHandler = t
         val ll = license
         license = null
-        f.launch(ll, r)
+        f.launch(ll, r, e)
         license = f.output.take()
         if (!f.finished) {
             current.add(f)
@@ -268,7 +277,8 @@ class ThreadSync2 {
         var sync: ThreadSync2? = null
         var thisFibre = ThreadLocal<Fibre>()
 
-        private val executor = Executors.newCachedThreadPool()
+        @JvmStatic
+        val executor = Executors.newCachedThreadPool()
 
         @JvmStatic
         fun yield() {
@@ -297,7 +307,6 @@ class ThreadSync2 {
 
                 val f = CompletableFuture<T>()
                 println("||||||||||||||||||||||||||||||| call once ")
-                RunLoop.main.once {
                     try {
                         f.complete(c.call())
                     } catch (t: Throwable) {
@@ -313,6 +322,7 @@ class ThreadSync2 {
                     println("||||||||||||||||||||||||||||||| back from main loop")
                 }
                 println("||||||||||||||||||||||||||||||| f is :" + f)
+                RunLoop.main.once {
 
                 return f.get()
             }
