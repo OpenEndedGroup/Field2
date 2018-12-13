@@ -133,22 +133,30 @@ public class Drawing extends Box implements DrawingInterface {
 	}
 
 	static public void dirty(Box b, String explicitLayerName) {
-		b.find(Boxes.root, b.both())
-			.findFirst()
-			.map(x -> x.properties.put(needRepaint, true));
+
+//		System.out.println(" -- dirty on "+b+" "+explicitLayerName);
+
+//		b.find(Boxes.root, b.both())
+//			.findFirst()
+//			.map(x -> x.properties.put(needRepaint, true));
+
+		cachedRoot.properties.put(needRepaint, true);
 
 		if (explicitLayerName.endsWith(".fast"))
 			explicitLayerName = explicitLayerName.substring(0, explicitLayerName.length() - ".fast".length());
 
 		String finalExplicitLayerName = explicitLayerName;
-		b.find(Boxes.window, b.both())
-			.findFirst()
-			.ifPresent(x -> {
-				x.requestRepaint();
-				x.getCompositor()
-					.getLayer(finalExplicitLayerName).dirty();
-			});
 
+//		b.find(Boxes.window, b.both())
+//			.findFirst()
+//			.ifPresent(x -> {
+//				x.requestRepaint();
+//				x.getCompositor()
+//					.getLayer(finalExplicitLayerName).dirty();
+//			});
+//
+		cachedWindow.requestRepaint();
+		cachedWindow.getCompositor().getLayer(finalExplicitLayerName).dirty();
 	}
 
 	/**
@@ -202,9 +210,16 @@ public class Drawing extends Box implements DrawingInterface {
 		return install(root, "__main__");
 	}
 
+	static FieldBoxWindow cachedWindow;
+	static Box cachedRoot;
+
+
 	public Box install(Box root, String layerName) {
 		FieldBoxWindow window = root.first(Boxes.window)
 			.orElseThrow(() -> new IllegalArgumentException(" can't draw a box hierarchy with no window to draw it in !"));
+
+		cachedWindow = window;
+		cachedRoot= root;
 
 		GraphicsContext graphicsContext = window.getGraphicsContext();
 

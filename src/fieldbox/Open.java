@@ -315,8 +315,8 @@ public class Open {
 
 		window.getCompositor()
 			.getMainLayer()
-			.blurYInto(5, lx.getScene());
-		lx.blurXInto(5, ly.getScene());
+			.blurYInto(4, lx.getScene());
+		lx.blurXInto(4, ly.getScene());
 
 		lx.addDependancy(window.getCompositor()
 			.getMainLayer());
@@ -344,8 +344,8 @@ public class Open {
 			.newLayer("__main__gblury", 1, 8);
 
 
-		composited.blurYInto(5, lx.getScene());
-		lx.blurXInto(5, ly.getScene());
+		composited.blurYInto(4, lx.getScene());
+		lx.blurXInto(4, ly.getScene());
 
 		lx.addDependancy(composited);
 		ly.addDependancy(lx);

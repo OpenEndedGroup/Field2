@@ -107,10 +107,11 @@ public class Windows {
 					new Exception().printStackTrace();
 				};
 
-				if (RunLoop.main.isMainThread()) r.run();
+				if (checkThread()) r.run();
 				else {
 					events.addLast(r);
 					RunLoop.main.shouldSleep.add(Windows.this);
+					RunLoop.main.interrupt();
 				}
 			}
 
@@ -123,10 +124,11 @@ public class Windows {
 						a.windowFocus(window, focused);
 				};
 
-				if (RunLoop.main.isMainThread()) r.run();
+				if (checkThread()) r.run();
 				else {
 					events.addLast(r);
 					RunLoop.main.shouldSleep.add(Windows.this);
+					RunLoop.main.interrupt();
 				}
 			}
 
@@ -138,10 +140,11 @@ public class Windows {
 					if (a != null) a.windowRefresh(window);
 				};
 
-				if (RunLoop.main.isMainThread()) r.run();
+				if (checkThread()) r.run();
 				else {
 					events.addLast(r);
 					RunLoop.main.shouldSleep.add(Windows.this);
+					RunLoop.main.interrupt();
 				}
 			}
 
@@ -192,10 +195,11 @@ public class Windows {
 						a.mouseButton(window, fbutton, pressed, fmods);
 				};
 
-				if (RunLoop.main.isMainThread()) r.run();
+				if (checkThread()) r.run();
 				else {
 					events.addLast(r);
 					RunLoop.main.shouldSleep.add(Windows.this);
+					RunLoop.main.interrupt();
 				}
 			}
 
@@ -209,11 +213,12 @@ public class Windows {
 						a.scroll(window, scrollX, scrollY);
 				};
 
-				if (RunLoop.main.isMainThread()) {
+				if (checkThread()) {
 					r.run();
 				} else {
 					events.addLast(r);
 					RunLoop.main.shouldSleep.add(Windows.this);
+					RunLoop.main.interrupt();
 				}
 			}
 
@@ -221,7 +226,7 @@ public class Windows {
 			@Override
 			public void cursorPos(long window, double x, double y) {
 
-//				System.out.println(" -- cursorPos "+window+" "+x+" "+y);
+//				System.out.println(" -- cursorPos "+window+" "+x+" "+y+" "+checkThread());
 
 				Runnable r = () -> {
 					checkClassLoader();
@@ -230,10 +235,11 @@ public class Windows {
 						a.cursorPos(window, x, y);
 				};
 
-				if (RunLoop.main.isMainThread()) r.run();
+				if (checkThread()) r.run();
 				else {
 					events.addLast(r);
 					RunLoop.main.shouldSleep.add(Windows.this);
+					RunLoop.main.interrupt();
 				}
 			}
 
@@ -250,10 +256,11 @@ public class Windows {
 						a.key(window, key, scancode, action, mods);
 				};
 
-				if (RunLoop.main.isMainThread()) r.run();
+				if (checkThread()) r.run();
 				else {
 					events.addLast(r);
 					RunLoop.main.shouldSleep.add(Windows.this);
+					RunLoop.main.interrupt();
 				}
 			}
 
@@ -267,10 +274,11 @@ public class Windows {
 						a.character(window, character);
 				};
 
-				if (RunLoop.main.isMainThread()) r.run();
+				if (checkThread()) r.run();
 				else {
 					events.addLast(r);
 					RunLoop.main.shouldSleep.add(Windows.this);
+					RunLoop.main.interrupt();
 				}
 			}
 
@@ -283,10 +291,11 @@ public class Windows {
 					if (a != null) a.drop(window, files);
 				};
 
-				if (RunLoop.main.isMainThread()) r.run();
+				if (checkThread()) r.run();
 				else {
 					events.addLast(r);
 					RunLoop.main.shouldSleep.add(Windows.this);
+					RunLoop.main.interrupt();
 				}
 			}
 
@@ -299,10 +308,11 @@ public class Windows {
 					if (a != null) a.windowClose(window);
 				};
 
-				if (RunLoop.main.isMainThread()) r.run();
+				if (checkThread()) r.run();
 				else {
 					events.addLast(r);
 					RunLoop.main.shouldSleep.add(Windows.this);
+					RunLoop.main.interrupt();
 				}
 				return true;
 			}
@@ -316,10 +326,11 @@ public class Windows {
 						a.windowPos(window, x, y);
 				};
 
-				if (RunLoop.main.isMainThread()) r.run();
+				if (checkThread()) r.run();
 				else {
 					events.addLast(r);
 					RunLoop.main.shouldSleep.add(Windows.this);
+					RunLoop.main.interrupt();
 				}
 			}
 
@@ -332,10 +343,11 @@ public class Windows {
 						a.windowSize(window, w, h);
 				};
 
-				if (RunLoop.main.isMainThread()) r.run();
+				if (checkThread()) r.run();
 				else {
 					events.addLast(r);
 					RunLoop.main.shouldSleep.add(Windows.this);
+					RunLoop.main.interrupt();
 				}
 			}
 
@@ -348,16 +360,22 @@ public class Windows {
 						a.framebufferSize(window, w, h);
 				};
 
-				if (RunLoop.main.isMainThread()) r.run();
+				if (checkThread()) r.run();
 				else {
 					events.addLast(r);
 					RunLoop.main.shouldSleep.add(Windows.this);
+					RunLoop.main.interrupt();
 				}
 
 			}
 		};
 
 
+	}
+
+	private boolean checkThread() {
+//		return true;
+		return RunLoop.main.isMainThread();
 	}
 
 	private void checkClassLoader() {

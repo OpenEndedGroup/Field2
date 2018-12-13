@@ -267,7 +267,7 @@ public class RemoteEditor extends Box {
 
 			box.get().properties.put(new Dict.Prop<String>(prop), text);
 
-			boxFeedback(box, new Vec4(0, 0, 0, 0.2f));
+//			boxFeedback(box, new Vec4(0, 0, 0, 0.2f));
 			Callbacks.call(box.get(), Callbacks.onEdit);
 
 			String disabledRanges = p.getString("disabledRanges");
@@ -413,7 +413,7 @@ public class RemoteEditor extends Box {
 
 			IO.persist(new Dict.Prop<String>("_" + prop + "_cookie"));
 
-			boxFeedback(box, new Vec4(0, 0, 0, 0.8f));
+//			boxFeedback(box, new Vec4(0, 0, 0, 0.8f));
 
 			return payload;
 		});

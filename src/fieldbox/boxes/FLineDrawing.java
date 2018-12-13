@@ -174,12 +174,17 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 
 	static public Function<Box, FLine> expires(Function<Box, FLine> wrap, int updates) {
 		int[] counter = {updates};
+
+//		Exception e = new Exception();
+//		e.fillInStackTrace();
+
 		return box -> {
 			if (updates < 0) return wrap.apply(box);
 			FLine f = wrap.apply(box);
 			String l = f.attributes.getOr(layer, () -> "__main__");
 			f.attributes.multiply(opacity, 1, counter[0] / (float) updates);
 			f.modify();
+//			e.printStackTrace();
 			Drawing.dirty(box, l);
 			return counter[0]-- == 0 ? null : f;
 		};

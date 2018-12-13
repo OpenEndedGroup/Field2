@@ -187,7 +187,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 		}
 
 		static public FBOSpecification rgba(int unit, int width, int height) {
-			return new FBOSpecification(unit, GL_RGBA, width, height, GL_RGBA, GL_BYTE, 8, false, 1, false, false, 1);
+			return new FBOSpecification(unit, GL_RGBA8, width, height, GL_RGBA, GL_BYTE, 8, false, 1, false, false, 1);
 		}
 
 		static public FBOSpecification rgbaAndDepth(int unit, int width, int height) {
@@ -395,6 +395,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 	}
 
 	public boolean draw() {
+
 		drawCount++;
 		GraphicsContext.checkError(() -> "on FBO draw entry, specification " + specification);
 		try (Util.ExceptionlessAutoClosable st = GraphicsContext.getContext().stateTracker.save()) {

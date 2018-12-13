@@ -21,6 +21,7 @@ public class LoggingDefaults {
 //		Log.on("INSERT", Log::green);
 		Log.on("cef.console", Log::green);
 		Log.on("cef.*", Log::green);
+		Log.on("cef.debug", Log::green);
 		Log.on("glass.*", Log::green);
 //		Log.on("completion.debug", Log::green);
 		Log.on(".*error", Log::red);

@@ -34,6 +34,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.glfw.GLFW.glfwPollEvents;
 
 
 /**
@@ -410,12 +411,12 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 //			}
 
             if (!needsRepainting()) {
-                if (!isThreaded) glfwPollEvents();
+                if (!isThreaded) pollEvents();
                 return;
             }
 
             if (renderControl.skipRender()) {
-                if (!isThreaded) glfwPollEvents();
+                if (!isThreaded) pollEvents();
                 return;
             }
 
@@ -448,7 +449,10 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
                 }
 
                 if (!isThreaded && !(createdInThread != Thread.currentThread()))
-                    glfwPollEvents();
+                    pollEvents();
+
+
+
             } finally {
                 glfwMakeContextCurrent(0);
             }
@@ -456,6 +460,12 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
             currentWindow.set(null);
         }
 
+    }
+
+    private void pollEvents() {
+//        System.err.println(">}>");
+//        glfwPollEvents();
+//        System.err.println("<{<");
     }
 
     /**

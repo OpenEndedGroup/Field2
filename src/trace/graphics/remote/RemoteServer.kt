@@ -44,8 +44,6 @@ class RemoteServer {
         this.s = NewNanoHTTPD(8090)
 
 
-
-
 //        s.addDocumentRoot(fieldagent.Main.app + "/modules/fieldbox/resources/")
 //        s.addDocumentRoot(fieldagent.Main.app + "/modules/fielded/resources/")
 //        s.addDocumentRoot(fieldagent.Main.app + "/modules/fieldcore/resources/")
@@ -215,13 +213,11 @@ class RemoteServer {
 
     }
 
-
     val handlers = object : LinkedHashMap<String, (JSONObject) -> Boolean>() {
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, (JSONObject) -> Boolean>?): Boolean {
             return size > 100
         }
     }
-
 
     @JvmOverloads
     fun execute(s: String,

@@ -10,9 +10,9 @@ import java.nio.ByteOrder
 import kotlin.experimental.and
 
 class PointCloudFromJPG(val fn: String) {
-    private var data: ByteBuffer
+    var data: ByteBuffer
 
-    private var dim: IntArray
+    var dim: IntArray
 
     init {
         dim = FastJPEG.j.dimensions(fn)
@@ -34,7 +34,6 @@ class PointCloudFromJPG(val fn: String) {
             }
         }
     }
-
 
     operator fun get(x: Int, y: Int, c: Int): Float {
         var x = x

@@ -297,14 +297,17 @@ class RemoteServerExecution : Execution(null) {
                             else
                                 success.accept(o.getString("message"))
                         } else if (k.equals("run-start", ignoreCase = true)) {
-                            box.properties.putToMap(Boxes.insideRunLoop, name, Supplier<Boolean> { true })
+                            val s1 = box.properties.getOrConstruct(Boxes.insideRunLoop).size
+                            box.properties.putToMap(Boxes.insideRunLoop, name + o.getString("altName"), Supplier<Boolean> { true })
+                            val s2 = box.properties.getOrConstruct(Boxes.insideRunLoop).size
 
-                            box.first<BiConsumer<Box, String>>(IsExecuting.isExecuting)
-                                    .ifPresent { x -> x.accept(box, name) }
+//                            if (s2>s1)
+                                box.first<BiConsumer<Box, String>>(IsExecuting.isExecuting)
+                                        .ifPresent { x -> x.accept(box, name + o.getString("altName")) }
                             Drawing.dirty(box)
 
                         } else if (k.equals("run-stop", ignoreCase = true)) {
-                            box.properties.removeFromMap(Boxes.insideRunLoop, name)
+                            box.properties.removeFromMap(Boxes.insideRunLoop, name + o.getString("altName"))
                             Drawing.dirty(box)
 
                             return@execute false
@@ -371,14 +374,17 @@ class RemoteServerExecution : Execution(null) {
                             RemoteEditor.boxFeedback(Optional.of(box), Vec4(1.0, 0.0, 0.0, 0.5), "__redmark__", -1, -1)
                             lineErrors.accept(Pair(o.getInt("line"), o.getString("message")))
                         } else if (k.equals("run-start", ignoreCase = true)) {
-                            box.properties.putToMap(Boxes.insideRunLoop, name, Supplier<Boolean> { true })
+                            val s1 = box.properties.getOrConstruct(Boxes.insideRunLoop).size
+                            box.properties.putToMap(Boxes.insideRunLoop, name + o.getString("altName"), Supplier<Boolean> { true })
+                            val s2 = box.properties.getOrConstruct(Boxes.insideRunLoop).size
 
-                            box.first<BiConsumer<Box, String>>(IsExecuting.isExecuting)
-                                    .ifPresent { x -> x.accept(box, name) }
+//                            if (s2==1)
+                                box.first<BiConsumer<Box, String>>(IsExecuting.isExecuting)
+                                        .ifPresent { x -> x.accept(box, name + o.getString("altName")) }
                             Drawing.dirty(box)
 
                         } else if (k.equals("run-stop", ignoreCase = true)) {
-                            box.properties.removeFromMap(Boxes.insideRunLoop, name)
+                            box.properties.removeFromMap(Boxes.insideRunLoop, name + o.getString("altName"))
                             Drawing.dirty(box)
 
                             return@execute false
@@ -399,7 +405,7 @@ class RemoteServerExecution : Execution(null) {
             override fun end(lineErrors: Consumer<Pair<Int, String>>, success: Consumer<String>) {
                 RemoteEditor.removeBoxFeedback(Optional.of(box), "__redmark__")
 
-                server.execute("__tasks[\"" + target(box) + "\"].stop()", target(box)!!, true) { o ->
+                server.execute("if (__tasks[\"" + target(box) + "\"]) __tasks[\"" + target(box) + "\"].stop()", target(box)!!, true) { o ->
                     println(" got feedback from ending something ")
                     println(o)
                     false

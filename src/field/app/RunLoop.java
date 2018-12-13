@@ -24,7 +24,7 @@ public class RunLoop {
 	public Scene mainLoop = new Scene();
 
 	public Set<Object> shouldSleep = Collections.synchronizedSet(new LinkedHashSet<>());
-	final Thread mainThread;
+	Thread mainThread;
 	List<Runnable> onExit = new LinkedList<>();
 	AtomicBoolean exitStarted = new AtomicBoolean(false);
 
@@ -55,12 +55,18 @@ public class RunLoop {
 
 	static public boolean printTelemetry = false;
 
+	Object eventLock = new Object();
+
+
 	public void enterMainLoop() {
 		if (Thread.currentThread() != mainThread)
 			throw new IllegalArgumentException(" cannot enter main loop on non-main thread");
 
 		if (ThreadSync2.getEnabled())
 			ThreadSync2.setSync(new ThreadSync2());
+
+
+		mainThread = Thread.currentThread();
 
 		while (true) {
 			try {
@@ -93,7 +99,15 @@ public class RunLoop {
 				}
 
 				if (shouldSleep.size() == 0 && !didWork) {
-					Thread.sleep(2);
+
+					try {
+						synchronized (eventLock) {
+							eventLock.wait(10);
+						}
+					} catch (InterruptedException ie) {
+						ie.printStackTrace();
+					}
+
 					sleepsTaken++;
 				}
 
@@ -252,5 +266,13 @@ public class RunLoop {
 		// we add this to the start of the list, it will be run before anything that's already there.
 		onExit.add(0, r);
 	}
+
+	public void interrupt() {
+		synchronized (eventLock)
+		{
+			eventLock.notifyAll();
+		}
+	}
+
 
 }

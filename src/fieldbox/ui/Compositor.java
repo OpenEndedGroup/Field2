@@ -30,11 +30,13 @@ public class Compositor {
 	public Compositor(FieldBoxWindow window) {
 		this.window = window;
 		this.mainLayer = new Layer(0);
+		mainLayer.name = "__main__";
 		layers.put("__main__", mainLayer);
 	}
 
 	public void updateScene() {
 		fadeup = fading++ < 50 && Main.os!=Main.OS.mac;
+
 
 		if (GraphicsContext.isResizing) {
 			for (Layer l : layers.values()) {
@@ -51,11 +53,16 @@ public class Compositor {
 
 		for (Layer l : layers.values()) {
 			l.needsRedrawing = Math.max(-1, l.needsRedrawing - 1);
-			if (resizing) l.fbo.draw();
+			if (resizing)
+			{
+				System.out.println(" drawing (resizing) :"+l);
+				l.fbo.draw();
+			}
 			else if (l.needsRedrawing > -1 || fadeup) {
 				Log.log("drawing", () -> " drawing dependancies of " + l);
 				l.drawDependancies();
 				Log.log("drawing", () -> " drawing because dirty " + l);
+//				System.out.println(" redrawing layer "+l.name+" because "+l.needsRedrawing);
 				l.fbo.draw();
 			}
 		}
@@ -180,12 +187,14 @@ public class Compositor {
 			dependsOn.put(l, new Cache<Layer>(l, x -> x.mod, x -> {
 				x.drawDependancies();
 				Log.log("drawing", () -> "layer:" + x);
+				System.out.println(" drawing :"+x);
 				x.fbo.draw();
 				x.mod++;
 			}));
 			l.dependsOn.put(this, new Cache<Layer>(this, x -> x.mod, x -> {
 				x.drawDependancies();
 				Log.log("drawing", () -> "layer2:" + x);
+				System.out.println(" drawing :"+x);
 				x.fbo.draw();
 				x.mod++;
 			}));
@@ -197,6 +206,7 @@ public class Compositor {
 		}
 
 		public void dirty() {
+//			System.out.println(" layer "+name+" needs redrawing <- 1");
 			needsRedrawing = 1;
 		}
 

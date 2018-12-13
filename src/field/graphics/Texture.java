@@ -298,7 +298,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 			GL15.glBindBuffer(GL21.GL_PIXEL_UNPACK_BUFFER, 0);
 			Log.log("graphics.trace", () -> "uploaded part 1");
 			s.mod++;
-		}, -2)/*.setOnceOnly()*/.setAllContextsFor(this));
+		}, -2).setOnceOnly().setAllContextsFor(this)); // VR depends on this
 	}
 
 	public int getPendingUploads() {
@@ -502,6 +502,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 		uploadCount++;
 		return mod;
 	}
+
 
 	public Texture setIsDoubleBuffered(boolean isDoubleBuffered) {
 		this.isDoubleBuffered = isDoubleBuffered;
