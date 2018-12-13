@@ -3,6 +3,7 @@ package fieldlinker;
 
 //import jdk.dynalink.CallSiteDescriptor;
 
+//import field.utility.AsMapDelegator;
 import jdk.dynalink.beans.StaticClass;
 import jdk.dynalink.linker.*;
 //import jdk.dynalink.support.Guards;
@@ -200,7 +201,46 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 				return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
 			}
 
-		} else if (linkRequest.getCallSiteDescriptor().getOperation()
+		} else if (linkRequest.getCallSiteDescriptor().toString().startsWith("SET:ELEMENT|PROPERTY(Object,int,double)"))
+		{
+			Object rec = linkRequest.getReceiver();
+			if (rec instanceof AsMap_slots)
+			{
+				if (debug)
+					System.err.println(" linking AsMap_slots.java/setSlot " + rec);
+				MethodHandle get = MethodHandles.lookup()
+					.findVirtual(implementingClassForSlots(rec.getClass()), "setSlot", MethodType.methodType(Object.class, Integer.TYPE, Double.TYPE));
+
+				return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
+			}
+		}
+		else if (linkRequest.getCallSiteDescriptor().toString().startsWith("SET:ELEMENT|PROPERTY(Object,int,int)"))
+		{
+			Object rec = linkRequest.getReceiver();
+			if (rec instanceof AsMap_slots)
+			{
+				if (debug)
+					System.err.println(" linking AsMap_slots.java/setSlot " + rec);
+				MethodHandle get = MethodHandles.lookup()
+					.findVirtual(implementingClassForSlots(rec.getClass()), "setSlot", MethodType.methodType(Object.class, Integer.TYPE, Integer.TYPE));
+
+				return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
+			}
+		}else if (linkRequest.getCallSiteDescriptor().toString().startsWith("GET:ELEMENT|PROPERTY|METHOD(Object,int)"))
+		{
+			Object rec = linkRequest.getReceiver();
+			if (rec instanceof AsMap_slots)
+			{
+				if (debug)
+					System.err.println(" linking AsMap_slots.java/getSlot " + rec);
+				MethodHandle get = MethodHandles.lookup()
+					.findVirtual(implementingClassForSlots(rec.getClass()), "getSlot", MethodType.methodType(Double.TYPE, Integer.TYPE));
+
+				return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
+			}
+		}
+
+		else if (linkRequest.getCallSiteDescriptor().getOperation()
 			.toString().startsWith("SET:ELEMENT|PROPERTY")) {
 			Object rec = linkRequest.getReceiver();
 
@@ -223,7 +263,7 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 				if (rec instanceof AsMap) {
 
 					if (debug)
-						System.err.println(" linking AsMap.java/setElement " + rec);
+						System.err.println(" linking AsMap.java/setElement2 " + rec);
 					MethodHandle get = MethodHandles.lookup()
 						.findVirtual(implementingClassFor(rec.getClass()), "asMap_setElement", MethodType.methodType(Object.class, Object.class, Object.class));
 
@@ -300,6 +340,15 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 		Class<?>[] ii = aClass.getInterfaces();
 		for (Class c : ii)
 			if (c == AsMap.class) return aClass;
+
+		return implementingClassFor(aClass.getSuperclass());
+	}
+	private Class<?> implementingClassForSlots(Class<? extends Object> aClass) {
+		if (aClass == null) return null;
+
+		Class<?>[] ii = aClass.getInterfaces();
+		for (Class c : ii)
+			if (c == AsMap_slots.class) return aClass;
 
 		return implementingClassFor(aClass.getSuperclass());
 	}

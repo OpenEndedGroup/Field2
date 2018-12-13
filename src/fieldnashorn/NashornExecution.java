@@ -22,6 +22,7 @@ import fielded.plugins.Out;
 import fieldnashorn.babel.SourceTransformer;
 import jdk.nashorn.api.scripting.NashornException;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import kotlin.text.Regex;
 
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
@@ -108,31 +109,32 @@ public class NashornExecution implements Execution.ExecutionSupport {
                     public void write(char[] cbuf, int off, int len) throws IOException {
                         if (len > 0) {
                             String s = new String(cbuf, off, len);
+
 //							if (s.endsWith("\n"))
 //								s = s.substring(0, s.length() - 1) + "<br>";
-                            if (s.trim().length() == 0) return;
-                            written[0] = true;
+							if (s.trim().length() == 0) return;
+							written[0] = true;
 
-                            if (currentLineNumber == null || currentLineNumber.first == null || currentLineNumber.second == -1) {
+							if (currentLineNumber == null || currentLineNumber.first == null || currentLineNumber.second == -1) {
 //								success.accept(s);
-                                final String finalS = s;
-                                Set<Consumer<Quad<Box, Integer, String, Boolean>>> o = box.find(
-                                        Execution.directedOutput, box.upwards())
-                                        .collect(Collectors.toSet());
-                                o.forEach(x -> x.accept(new Quad<>(box, -1, finalS, true)));
+								final String finalS = s;
+								Set<Consumer<Quad<Box, Integer, String, Boolean>>> o = box.find(
+									Execution.directedOutput, box.upwards())
+									.collect(Collectors.toSet());
+								o.forEach(x -> x.accept(new Quad<>(box, -1, finalS, true)));
 
-                            } else {
+							} else {
 
-                                final String finalS = s;
-                                Set<Consumer<Quad<Box, Integer, String, Boolean>>> o = box.find(
-                                        Execution.directedOutput, box.upwards())
-                                        .collect(Collectors.toSet());
+								final String finalS = s;
+								Set<Consumer<Quad<Box, Integer, String, Boolean>>> o = box.find(
+									Execution.directedOutput, box.upwards())
+									.collect(Collectors.toSet());
 
-                                if (o.size() > 0) {
-                                    o.forEach(x -> x.accept(
-                                            new Quad<>(currentLineNumber.first, currentLineNumber.second, finalS,
-                                                       currentLineNumber.third)));
-                                } else {
+								if (o.size() > 0) {
+									o.forEach(x -> x.accept(
+										new Quad<>(currentLineNumber.first, currentLineNumber.second, finalS,
+											currentLineNumber.third)));
+								} else {
 //									success.accept(finalS);
 
                                     o.forEach(x -> x.accept(new Quad<>(box, -1, finalS, true)));
@@ -354,7 +356,9 @@ public class NashornExecution implements Execution.ExecutionSupport {
         if (box.find(Callbacks.run, box.upwards()).findAny().isPresent()) {
             if (endOngoing) end(lineErrors, success);
 
-            String name = "main._animator" + prefix + "_" + (uniq);
+
+
+            String name = prefixFor(box)+"_animator" + prefix + "_" + (uniq);
             boolean[] first = {true};
 
             box.properties.putToMap(Boxes.insideRunLoop, name, () -> {
@@ -404,6 +408,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
                 @Override
                 public Object end(boolean isEnding) {
                     ThreadSync2Feedback.shouldEnd(box);
+
 //					ThreadSync2Feedback.kill(box);
                     return this;
                 }
@@ -417,7 +422,8 @@ public class NashornExecution implements Execution.ExecutionSupport {
         Supplier<Boolean> r = interpretAnimation(_r);
         if (r != null) {
             if (endOngoing) end(lineErrors, success);
-            String name = "main._animator" + prefix + "_" + (uniq);
+
+            String name = prefixFor(box)+"_animator" + prefix + "_" + (uniq);
             box.properties.putToMap(Boxes.insideRunLoop, name, r);
             box.first(IsExecuting.isExecuting)
                     .ifPresent(x -> x.accept(box, name));
@@ -439,7 +445,16 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
     @Override
     public void end(Consumer<field.utility.Pair<Integer, String>> lineErrors, Consumer<String> success) {
-        end("main\\._animator" + prefix + "_.*", lineErrors, success);
+        end(Pattern.quote(prefixFor(box))+"_animator" + prefix + "_.*", lineErrors, success);
+    }
+
+    private String prefixFor(Box box) {
+        return box.first(customExecutor).map( (e) -> {
+            if (e instanceof ThreadSync2.TrappedExecutorName)
+                return ((ThreadSync2.TrappedExecutorName)e).executionNamePrefix();
+            else
+                return "main.";
+        }).filter(Objects::nonNull).orElse("main.");
     }
 
     @Override

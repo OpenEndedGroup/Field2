@@ -7,6 +7,8 @@ import java.util.function.BiFunction;
 
 public interface OverloadedMath {
 
+	interface ReducedWhenOverloaded{ OverloadedMath get(); }
+
 	Dict.Prop<Boolean> withOverloading = new Dict.Prop<>("withOverloading")
 		.toCanon().type()
 		.doc("set `_.withOverloading=true` to turn on operator overloading (specifically for adding Vectors and transforming lines and the like")
@@ -21,11 +23,11 @@ public interface OverloadedMath {
 		.doc("set `_.withFunctionRewriting=true` to turn on the option to AST-rewrite identifiers in function invocations. If you don't know what that means, don't turn it on")
 		.set(IO.persistent, true);
 
-	Dict.Prop<BiFunction<Box, String, String>> functionRewriteTrap = new Dict.Prop<>("withFunctionRewriting")
+	Dict.Prop<Box.TriFunctionOfBoxAnd<String, Long, String>> functionRewriteTrap = new Dict.Prop<>("functionRewriteTrap")
 		.toCanon().type()
-		.doc("set `_.functionRewriteTrap will be called (if _.withFunctionRewriting==true) with (_, identifier) and return a new string that will replace the function identifier (or null) " +
-			"to not replace anything")
-		.set(IO.persistent, true);
+		.doc("set `_.functionRewriteTrap will be called (if _.withFunctionRewriting==true) with (_, identifier, hash) and return a new string that will replace the function identifier (or " +
+			"null) " +
+			"to not replace anything");
 
 
 

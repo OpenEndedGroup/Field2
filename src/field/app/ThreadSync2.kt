@@ -4,6 +4,7 @@ import field.utility.AsMapDelegator
 import field.utility.Dict
 import field.utility.IdempotencyMap
 import field.utility.Options
+import fieldbox.boxes.plugins.Exec
 import fieldlinker.AsMap
 
 import java.util.*
@@ -14,6 +15,16 @@ import java.util.function.*
  * Created by marc on 7/23/17.
  */
 class ThreadSync2 {
+
+    interface TrappedReturn
+    {
+        fun notifyReturn(a : Any?)
+    }
+
+    interface TrappedExecutorName
+    {
+        fun executionNamePrefix() : String
+    }
 
 
     // _.p = line( ... , ... , ...)   // trap that on asMap_set( ... )
@@ -36,7 +47,7 @@ class ThreadSync2 {
     }
 
     open class KilledException : RuntimeException()
-    class TooLongKilledException(override val message : String) : RuntimeException()
+    class TooLongKilledException(override val message: String) : RuntimeException()
 
     inner class Fibre : AsMapDelegator() {
         override fun delegateTo(): AsMap {
@@ -111,28 +122,24 @@ class ThreadSync2 {
         @JvmField
         var lastReturn: Any? = null;
 
-        fun launch(license: Any?, r: Callable<*>) {
-            launch(license, r, executor)
-        }
-
-        fun launch(license: Any?, r: Callable<*>, e : ExecutorService) {
+        @JvmOverloads
+        fun launch(license: Any?, r: Callable<*>, e: ExecutorService = executor) {
             this.license = license
-
-
-
             e.submit {
                 thisFibre.set(this)
 
                 try {
                     lastReturn = r.call()
+
+                    if (e is TrappedReturn)
+                        e.notifyReturn(lastReturn)
+
                     while (serviceAlso(also))
                         yield()
-                } catch (t: TooLongKilledException)
-                {
+                } catch (t: TooLongKilledException) {
                     if (errorHandler != null)
                         errorHandler!!.accept(t)
-                }
-                catch (t: KilledException) {
+                } catch (t: KilledException) {
 
                 } catch (t: Throwable) {
                     System.err.println(" exception thrown in fibre '$debugText'")
@@ -200,7 +207,8 @@ class ThreadSync2 {
         return ArrayList(current)
     }
 
-    @Volatile internal var license: Any? = "-- license -- "
+    @Volatile
+    internal var license: Any? = "-- license -- "
 
     fun service(): Boolean {
         val didWork = current.size > 0
@@ -226,12 +234,12 @@ class ThreadSync2 {
         return didWork
     }
 
-    fun launchAndServiceOnce(r: Callable<*>): Fibre? {
+    fun launchAndServiceOnce(r: Callable<*>, e: ExecutorService = executor): Fibre? {
         // call only from "main thread"
         val f = Fibre()
         val ll = license
         license = null
-        f.launch(ll, r)
+        f.launch(ll, r, e)
         license = f.output.take()
         if (!f.finished) {
             current.add(f)
@@ -240,9 +248,8 @@ class ThreadSync2 {
         return null
     }
 
-
     @JvmOverloads
-    fun launchAndServiceOnce(debugText: String, r: Callable<*>, t: Consumer<Throwable>, e : ExecutorService = executor): Fibre? {
+    fun launchAndServiceOnce(debugText: String, r: Callable<*>, t: Consumer<Throwable>, e: ExecutorService = executor): Fibre? {
         // call only from "main thread"
         val f = Fibre()
         f.debugText = debugText
@@ -270,7 +277,7 @@ class ThreadSync2 {
         val enabled = Options.dict().isTrue(Dict.Prop<Boolean>("thread2"), true)
 
         init {
-            println("\n\n -- thread2 :"+ enabled+" --\n\n")
+            println("\n\n -- thread2 :" + enabled + " --\n\n")
         }
 
         @JvmStatic
@@ -307,6 +314,7 @@ class ThreadSync2 {
 
                 val f = CompletableFuture<T>()
                 println("||||||||||||||||||||||||||||||| call once ")
+                RunLoop.main.once {
                     try {
                         f.complete(c.call())
                     } catch (t: Throwable) {
@@ -322,11 +330,11 @@ class ThreadSync2 {
                     println("||||||||||||||||||||||||||||||| back from main loop")
                 }
                 println("||||||||||||||||||||||||||||||| f is :" + f)
-                RunLoop.main.once {
 
                 return f.get()
             }
         }
+
 
         var debug = false;
 
@@ -365,7 +373,6 @@ class ThreadSync2 {
 
 
     }
-
 
 
 }
