@@ -5,10 +5,7 @@ import field.app.ThreadSync;
 import field.app.ThreadSync2;
 import field.graphics.*;
 import field.graphics.util.onsheetui.Label;
-import field.utility.AutoPersist;
-import field.utility.Dict;
-import field.utility.Log;
-import field.utility.Options;
+import field.utility.*;
 import fieldagent.Main;
 import fieldbox.boxes.*;
 import fieldbox.boxes.plugins.*;
@@ -17,6 +14,7 @@ import fieldbox.execution.Execution;
 import fieldbox.io.IO;
 import fieldbox.ui.Compositor;
 import fieldbox.ui.FieldBoxWindow;
+import fieldbox.ui.ScreenGeometry;
 import fieldcef.plugins.*;
 import fielded.ServerSupport;
 import fielded.boxbrowser.BoxBrowser;
@@ -38,6 +36,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
+import static org.lwjgl.glfw.GLFW.glfwGetPrimaryMonitor;
 import static org.lwjgl.opengl.GL11.*;
 
 //import fieldcef.plugins.GlassBrowser;
@@ -75,10 +74,10 @@ public class Open {
 	private Map<String, List<Object>> plugins;
 	private Nashorn javascript;
 
-	private int sizeX = AutoPersist.persist("window_sizeX", () -> 1000, x -> Math.min(1920 * 2, Math.max(100, x)), (x) -> window == null ? x : (int) window.getBounds().w);
-	private int sizeY = AutoPersist.persist("window_sizeY", () -> 800, x -> Math.min(1920 * 2, Math.max(100, x)), (x) -> window == null ? x : (int) window.getBounds().h);
-	private int atX = AutoPersist.persist("window_atX", () -> 0, x -> x, (x) -> window == null ? x : (int) window.getBounds().x);
-	private int atY = AutoPersist.persist("window_atY", () -> 0, x -> x, (x) -> window == null ? x : (int) window.getBounds().y);
+//	private int sizeX = AutoPersist.persist("window_sizeX", () -> 1000, x -> Math.min(1920 * 2, Math.max(100, x)), (x) -> window == null ? x : (int) window.getBounds().w);
+//	private int sizeY = AutoPersist.persist("window_sizeY", () -> 800, x -> Math.min(1920 * 2, Math.max(100, x)), (x) -> window == null ? x : (int) window.getBounds().h);
+//	private int atX = AutoPersist.persist("window_atX", () -> 0, x -> x, (x) -> window == null ? x : (int) window.getBounds().x);
+//	private int atY = AutoPersist.persist("window_atY", () -> 0, x -> x, (x) -> window == null ? x : (int) window.getBounds().y);
 
 	public boolean experimental = Options.dict().isTrue(new Dict.Prop<Boolean>("experimental"), false);
 
@@ -104,7 +103,9 @@ public class Open {
 			pluginList = null;
 		}
 
-		window = new FieldBoxWindow(atX, atY, sizeX, sizeY, filename);
+
+		Rect bounds = ScreenGeometry.primaryMonitorBounds();
+		window = new FieldBoxWindow((int)bounds.x, (int)bounds.y, (int)bounds.w, (int)bounds.h, filename);
 
 		window.scene.attach(-5, this::defaultGLPreambleBackground);
 		window.mainLayer()

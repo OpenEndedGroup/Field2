@@ -282,6 +282,14 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 					}
 					return false;
 				}
+
+				@Override
+				public Object remove(Object key) {
+					ScriptObjectMirror som = (ScriptObjectMirror) super.get("nashorn.global");
+					if (som!=null)
+						return som.remove(key);
+					return false;
+				}
 			};
 			context.setBindings(e, ScriptContext.ENGINE_SCOPE);
 		}

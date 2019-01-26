@@ -187,14 +187,12 @@ public class Compositor {
 			dependsOn.put(l, new Cache<Layer>(l, x -> x.mod, x -> {
 				x.drawDependancies();
 				Log.log("drawing", () -> "layer:" + x);
-				System.out.println(" drawing :"+x);
 				x.fbo.draw();
 				x.mod++;
 			}));
 			l.dependsOn.put(this, new Cache<Layer>(this, x -> x.mod, x -> {
 				x.drawDependancies();
 				Log.log("drawing", () -> "layer2:" + x);
-				System.out.println(" drawing :"+x);
 				x.fbo.draw();
 				x.mod++;
 			}));

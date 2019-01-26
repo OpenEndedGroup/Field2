@@ -16,7 +16,7 @@ public class FastJPEG implements JPEGLoader {
 			System.loadLibrary("fieldjpegturb");
 			available = true;
 		} catch (Throwable t) {
-//			t.printStackTrace();
+			t.printStackTrace();
 		}
 		if (!available) try {
 			System.loadLibrary("turbojpegF");

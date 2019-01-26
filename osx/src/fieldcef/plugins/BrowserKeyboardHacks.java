@@ -63,7 +63,10 @@ public class BrowserKeyboardHacks {
 
 		int fmod = mod;
 
+		System.out.println(" event maps to integers "+m);
 		for (Integer mm : m) {
+
+			System.out.println((mapper.isForcedTyped(mm)!=null)+" "+mod+" "+mapper.isForcedTyped(mm));
 
 			if (mapper.isForcedTyped(mm)!=null && mod!=0)
 			{
@@ -77,6 +80,8 @@ public class BrowserKeyboardHacks {
 
 			Integer translated = mapper.translateCode(mm);
 			keysDown.add(mm);
+
+			System.out.println("translated "+translated);
 
 			if (translated != null) {
 

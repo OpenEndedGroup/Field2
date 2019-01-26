@@ -5,6 +5,7 @@ import field.graphics.Scene;
 import field.utility.Dict;
 import field.utility.IdempotencyMap;
 import fieldbox.boxes.plugins.Planes;
+import fieldbox.execution.Execution;
 import fieldbox.execution.InverseDebugMapping;
 import fieldbox.io.IO;
 import fieldbox.ui.FieldBoxWindow;
@@ -28,14 +29,16 @@ public class Boxes {
 	static public final Dict.Prop<FieldBoxWindow> window = new Dict.Prop<>("window")
 		.doc("the FieldBoxWindow that this graph is currently in")
 		.set(Dict.readOnly, true);
-	static public final Dict.Prop<Map<String, Supplier<Boolean>>> insideRunLoop = new Dict.Prop<>("_insideRunLoop").set(Dict.readOnly).autoConstructs(() -> new IdempotencyMap<Supplier<Boolean>>(Supplier.class));
+	static public final Dict.Prop<Map<String, Supplier<Boolean>>> insideRunLoop =
+		new Dict.Prop<>("_insideRunLoop").set(Dict.readOnly).autoConstructs(() -> new IdempotencyMap<Supplier<Boolean>>(Supplier.class));
 
 	static public final Dict.Prop<Boolean> dontSave = new Dict.Prop<>("dontSave").type()
 		.toCanon()
 		.doc("set this to true to cause this box to not be saved with the box graph");
 	static public final Dict.Prop<String> tag = new Dict.Prop<>("tag").type()
 		.toCanon()
-		.doc("Facilitates box creation in an idempotent style'internal name' for boxes. <code>new _('tag', {})</code> will either create a box with tag <code>'tag'</code> (as a child of <code>_</code> or return an existing box with this tag ");
+		.doc("Facilitates box creation in an idempotent style'internal name' for boxes. <code>new _('tag', {})</code> will either create a box with tag <code>'tag'</code> (as a child of " +
+			"<code>_</code> or return an existing box with this tag ");
 
 	static {
 		IO.persist(tag);
@@ -86,10 +89,13 @@ public class Boxes {
 						try {
 							if (n.getKey().startsWith("main.") || n.getKey().startsWith("main_"))
 								try {
+									Execution.context.get().push(y);
 									if (!n.getValue()
 										.get()) r.remove();
 								} catch (Throwable t) {
 									t.printStackTrace();
+								} finally {
+									Execution.context.get().pop();
 								}
 						} catch (Throwable t) {
 							t.printStackTrace();

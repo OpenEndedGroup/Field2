@@ -50,7 +50,8 @@ import static fieldbox.boxes.Box.format;
  * cause an explicit un-caching of this line).
  * <p>
  * The caching of the flattening of this line into MeshBuilder data (ready for OpenGL) cascades into MeshBuilder's cache structure. Thus, we have three levels of caching in total: FLine caches
- * whether or not the geometry has changed at all, MeshBuilder caches whether or not there's any point sending anything to the OpenGL
+ * whether or not the geometry has
+ * changed at all, MeshBuilder caches whether or not there's any point sending anything to the OpenGL
  * underlying Buffers or whether this piece of geometry can be skipped, and finally individual ArrayBuffers can elect to skip the upload to OpenGL. This means that static geometry is extremely cheap
  * to draw.
  */

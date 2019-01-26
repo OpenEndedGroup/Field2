@@ -2,13 +2,12 @@ package trace.sound
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
+import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import org.lwjgl.util.WaveData
 import trace.sound.Sound.*
-import java.io.BufferedInputStream
-import java.io.BufferedReader
-import java.io.FileInputStream
-import java.io.FileReader
+import java.io.*
+import java.lang.IllegalArgumentException
 import java.nio.FloatBuffer
 
 class SoundAnalysis(val fn: String) {
@@ -21,7 +20,18 @@ class SoundAnalysis(val fn: String) {
     private var floats: FloatBuffer
     private var sampleRate: Int
 
+    private var rhythm: JsonObject
+
     init {
+
+        if (!File(fn).exists())
+            throw IllegalArgumentException(" can't find a file called $fn")
+
+        RunAnalysis(fn)
+
+        if (!File(fn+".yaml_frames").exists())
+            throw IllegalArgumentException(" sorry, analysis didn't run properly for $fn. Wrong file format?")
+
         val parsed = JsonParser().parse(BufferedReader(FileReader(fn + ".yaml_frames")))
 
         lowlevel = parsed.asJsonObject.get("lowlevel")
@@ -33,6 +43,9 @@ class SoundAnalysis(val fn: String) {
         sampleRate = data.samplerate
 
         duration = parsed.asJsonObject.get("metadata").asJsonObject.get("audio_properties").asJsonObject.get("analysis").asJsonObject.get("length").asFloat
+
+        rhythm = parsed.asJsonObject.getAsJsonObject("rhythm")
+
     }
 
     val cache_getName = object : LinkedHashMap<String, FloatArray>() {
@@ -45,6 +58,21 @@ class SoundAnalysis(val fn: String) {
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Pair<Float, Float>>?): Boolean {
             return size > 50
         }
+    }
+
+    fun listNames() : String {
+        return "loudness, "+lowlevel.asJsonObject.keySet().joinToString { it }
+    }
+
+    fun getOnsetTimes(): DoubleArray {
+        val n = rhythm.getAsJsonArray("onset_times")
+        val o = DoubleArray(n.size())
+
+        for (i in 0 until n.size()) {
+            val f = n.get(i).asDouble
+            o[i] = f
+        }
+        return o
     }
 
     fun get(name: String): FloatArray {

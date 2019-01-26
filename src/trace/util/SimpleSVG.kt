@@ -29,7 +29,7 @@ class SimpleSVG(val filename: String) {
         val m3 = Pattern.compile("d=\"([cqmzVHvhMLlCQZ\\- ,\t0-9\\.]+)\" .*?style=\".*?fill: #(..)(..)(..);.*?\"")
 
         val p1 = Pattern.compile("style=\".*?fill:#(..)(..)(..);.*?\".*?points=\"([cqmzVHvhMLlCQZ\\- ,\t0-9\\.]+)\"")
-        (Files.readAllLines(File(filename).toPath())).joinToString(" ").split("</").forEach {
+        (Files.readAllLines(File(filename).toPath())).joinToString(" ").split("/>").forEach {
             println("line: ${it}")
 
             val mmm = mm.matcher(it)

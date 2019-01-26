@@ -147,7 +147,7 @@ public class Browser extends Box implements IO.Loaded {
 	}
 
 	public void attachToShader(Shader s) {
-		s.attach(-2, "__rectupdate__", x -> {
+		s.attach(-200, "__rectupdate__", x -> {
 			Rect r = properties.get(Box.frame);
 			update(r.x, r.y, 1/*r.w/w*/);
 		});
@@ -206,6 +206,7 @@ public class Browser extends Box implements IO.Loaded {
 
 
 		float rsf = window.getRetinaScaleFactor();
+
 
 		System.out.println("CefSystem is initializing a browser at " + w + "x" + h);
 
@@ -644,9 +645,10 @@ public class Browser extends Box implements IO.Loaded {
 		int y1 = 0;
 
 		for (Rectangle r: dirty) {
-//            System.out.println(" -- "+r);
+			System.out.println(" -- "+r+" / "+System.identityHashCode(buffer));
 
 			if (r.x == 0 && r.y == 0 && r.width == w && r.height == h) {
+				System.out.println(" (( just copy )) ");
 				buffer.clear();
 				sourceView.clear();
 				sourceView.put(buffer);
@@ -691,6 +693,7 @@ public class Browser extends Box implements IO.Loaded {
 		Drawing.dirty(Browser.this);
 		root.properties.put(Drawing.needRepaint, true);
 		window.requestRepaint();
+
 		RunLoop.main.shouldSleep.add(Browser.this);
 
 		if (damage == null) damage = new Rect(x0, y0, x1 - x0, y1 - y0);
@@ -698,6 +701,7 @@ public class Browser extends Box implements IO.Loaded {
 
 		this.dirty.set(true);
 
+		RunLoop.main.interrupt();
 
 //		System.out.println(" finished copy to buffer 1 " + (System.currentTimeMillis() - charTypedAt) + "ms ");
 	}
@@ -765,43 +769,60 @@ public class Browser extends Box implements IO.Loaded {
 
 	protected void update(float x, float y, float scale) {
 
+//		Log.on("cef.debug", Log::green);
 //		System.out.println(" inside update for browser ");
 
+		if (damage==null) {
+			//System.out.print("%");
+		} else System.out.println("<");
 
-		if (this.dirty.getAndSet(false) && damage != null) {
-			if (check-- > 0 || lastZoom != baseZoomLevel) {
-				if (Main.os != Main.OS.windows)
-					browser.setZoomLevel(baseZoomLevel * window.getRetinaScaleFactor());
-				else
-					browser.setZoomLevel(baseZoomLevel * 2);
-				lastZoom = baseZoomLevel;
-			}
-			Log.log("cef.debug", () -> " texture was dirty, uploading ");
+//		if (GraphicsContext.getContext() != null)
+		{
+			if (this.dirty.getAndSet(false) && damage != null) {
+				if (check-- > 0 || lastZoom != baseZoomLevel) {
+					if (Main.os != Main.OS.windows)
+						browser.setZoomLevel(baseZoomLevel * window.getRetinaScaleFactor());
+					else
+						browser.setZoomLevel(baseZoomLevel * 2);
+					lastZoom = baseZoomLevel;
+				}
+//			Log.green("cef", " texture was dirty, uploading ");
+				Log.log("cef.debug", () -> " texture was dirty, uploading ");
 
-//			if (GraphicsContext.getContext() != null)
-//				texture.forceUploadNow(source);
-//			else
-			texture.upload(source, false, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (1 + damage.h + damage.y));
+//				if (GraphicsContext.getContext() != null)
+//				{
+//					texture.forceUploadNow(source);
+//					System.out.println(" in context forced update :"+damage);
+//				}
+//				else
+					texture.upload(source, false, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (1 + damage.h + damage.y));
 
 //			System.out.print("<P1>");
-			Drawing.dirty(this);
-			again = 1;
-			hasRepainted = true;
-			RunLoop.main.shouldSleep.add(this);
-		} else if (again > 0 && damage != null) {
-			Log.log("cef.debug", () -> " texture was dirty " + again + " call, uploading ");
-//			if (GraphicsContext.getContext() != null)
-//				texture.forceUploadNow(source);
-//			else
-			texture.upload(source, false, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (1 + damage.h + damage.y));
+				Drawing.dirty(this);
+				again = 1;
+				hasRepainted = true;
+				RunLoop.main.shouldSleep.add(this);
+
+
+			} else if (again > 0 && damage != null) {
+//			Log.green("cef", " texture was dirty again ");
+				Log.log("cef.debug", () -> " texture was dirty " + again + " call, uploading ");
+
+//				if (GraphicsContext.getContext() != null){
+//					texture.forceUploadNow(source);
+//					System.out.println(" in context forced update, again "+damage);
+//				}
+//				else
+					texture.upload(source, false, (int) damage.x, (int) damage.y, (int) (damage.w + damage.x), (int) (1 + damage.h + damage.y));
 
 //			System.out.print("<p2>");
-			Drawing.dirty(this);
-			RunLoop.main.shouldSleep.add(this);
-			again--;
-		} else if (again == 0) {
-			damage = null;
-			RunLoop.main.shouldSleep.remove(this);
+				Drawing.dirty(this);
+				RunLoop.main.shouldSleep.add(this);
+				again--;
+			} else if (again == 0) {
+				damage = null;
+				RunLoop.main.shouldSleep.remove(this);
+			}
 		}
 
 
@@ -820,6 +841,7 @@ public class Browser extends Box implements IO.Loaded {
 		}
 
 		for (Pair<String, Consumer<String>> p: m) {
+			System.out.println(" dispatching message :"+p.first);
 			Log.log("cef.debug", () -> "dispatching message <" + p.first + ">");
 
 			JSONObject o = new JSONObject(p.first);

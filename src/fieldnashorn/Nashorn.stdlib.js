@@ -29,6 +29,7 @@ var MersenneTwisterFast= Java.type('trace.random.MersenneTwisterFast')
 
 
 var Inject = Java.type("field.graphics.util.onsheetui.Inject")
+var Time = Java.type("trace.sound.Time")
 
 
 var __h__ = new Asta();

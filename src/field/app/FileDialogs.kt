@@ -8,7 +8,7 @@ import java.util.concurrent.Callable
 class FileDialogs {
 
     @JvmOverloads
-    fun openFile(title: String, initialPath: String = "", pattern: String = "*.*", description: String = "All Files"): String {
+    fun openFile(title: String, initialPath: String = "", pattern: String = "*.*", description: String = "All Files"): String? {
 
         val path = inMainThread  {
 
@@ -24,7 +24,7 @@ class FileDialogs {
     }
 
     @JvmOverloads
-    fun saveFile(title:String, initialPath: String = "", pattern: String, description: String): String {
+    fun saveFile(title:String, initialPath: String = "", pattern: String, description: String): String? {
 
         val path = inMainThread  {
 

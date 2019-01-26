@@ -399,6 +399,8 @@ public class NashornExecution implements Execution.ExecutionSupport {
 
         Object _r = context.getAttribute("_r");
 
+        if (ScriptObjectMirror.isUndefined(_r)) _r = null;
+
         // if _r is null, but that executeAndReturn has launched fibres then we need a dummy _r that calls _.fkill() for 'end' and calls _.end at the end of the fiber to synchronize the two
         // execution models we have here
 

@@ -17,8 +17,12 @@ class WebcamDriver {
     init {
         // get default webcam and open it
         webcam = Webcam.getDefault()
+
+        println(" opening webcam ? $webcam")
+
         webcam.viewSize = WebcamResolution.VGA.size
         webcam.open(true)
+        println(" opening webcam ? $webcam")
 
         storage = ByteBuffer.allocateDirect(webcam.viewSize.width*webcam.viewSize.height*3);
 
@@ -27,7 +31,7 @@ class WebcamDriver {
 
         webcam.getImageBytes(storage)
 
-        texture = Texture(Texture.TextureSpecification.byte3(6, w, h, storage, false))
+        texture = Texture(Texture.TextureSpecification.byte3(0, w, h, storage, false))
     }
 
 

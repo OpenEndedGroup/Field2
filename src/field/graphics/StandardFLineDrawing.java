@@ -42,7 +42,7 @@ public class StandardFLineDrawing {
 				"fline");
 
 	static public final Dict.Prop<Boolean> hint_noDepth = new Dict.Prop<>("hint_noDepth").type().toCanon().doc("set on a line to hint to the renderer that z=0 for all nodes in this line. At " +
-		"present this merely allows lines to be `thicken` faster.");
+		"as spresent this merely allows lines to be `thicken` faster.");
 	static public final Dict.Prop<Boolean> filled = new Dict.Prop<>("filled").type()
 		.toCanon()
 		.doc("should the line be filled and tessellated? defaults to false").set(Dict.domain, "fline");

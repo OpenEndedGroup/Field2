@@ -84,13 +84,13 @@ public class SlowJPEG implements JPEGLoader{
 			e.printStackTrace();
 		}
 
-		try {
-			ImageWriter jj = ImageIO.getImageWritersByFormatName("png").next();
-			jj.setOutput(new FileImageOutputStream(new File(filename.replace(".jpg", ".png"))));
-			jj.write(null, new IIOImage(image, null, null), null);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+//		try {
+//			ImageWriter jj = ImageIO.getImageWritersByFormatName("png").next();
+//			jj.setOutput(new FileImageOutputStream(new File(filename.replace(".jpg", ".png"))));
+//			jj.write(null, new IIOImage(image, null, null), null);
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
 
 	}
 

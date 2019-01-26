@@ -4,6 +4,7 @@ package fieldlinker;
 //import jdk.dynalink.CallSiteDescriptor;
 
 //import field.utility.AsMapDelegator;
+
 import jdk.dynalink.beans.StaticClass;
 import jdk.dynalink.linker.*;
 //import jdk.dynalink.support.Guards;
@@ -113,7 +114,7 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 			}
 
 
-		}  else if (linkRequest.getCallSiteDescriptor()
+		} else if (linkRequest.getCallSiteDescriptor()
 			.getOperation().toString().startsWith("NEW") && linkRequest.getArguments().length == 2) {
 
 			Object rec = linkRequest.getReceiver();
@@ -201,11 +202,9 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 				return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
 			}
 
-		} else if (linkRequest.getCallSiteDescriptor().toString().startsWith("SET:ELEMENT|PROPERTY(Object,int,double)"))
-		{
+		} else if (linkRequest.getCallSiteDescriptor().toString().startsWith("SET:ELEMENT|PROPERTY(Object,int,double)")) {
 			Object rec = linkRequest.getReceiver();
-			if (rec instanceof AsMap_slots)
-			{
+			if (rec instanceof AsMap_slots) {
 				if (debug)
 					System.err.println(" linking AsMap_slots.java/setSlot " + rec);
 				MethodHandle get = MethodHandles.lookup()
@@ -213,12 +212,9 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 
 				return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
 			}
-		}
-		else if (linkRequest.getCallSiteDescriptor().toString().startsWith("SET:ELEMENT|PROPERTY(Object,int,int)"))
-		{
+		} else if (linkRequest.getCallSiteDescriptor().toString().startsWith("SET:ELEMENT|PROPERTY(Object,int,int)")) {
 			Object rec = linkRequest.getReceiver();
-			if (rec instanceof AsMap_slots)
-			{
+			if (rec instanceof AsMap_slots) {
 				if (debug)
 					System.err.println(" linking AsMap_slots.java/setSlot " + rec);
 				MethodHandle get = MethodHandles.lookup()
@@ -226,21 +222,60 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 
 				return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
 			}
-		}else if (linkRequest.getCallSiteDescriptor().toString().startsWith("GET:ELEMENT|PROPERTY|METHOD(Object,int)"))
-		{
+		} else if (linkRequest.getCallSiteDescriptor().toString().startsWith("GET:ELEMENT|PROPERTY|METHOD(Object,int)")) {
 			Object rec = linkRequest.getReceiver();
-			if (rec instanceof AsMap_slots)
-			{
+			if (rec instanceof AsMap_slots) {
 				if (debug)
 					System.err.println(" linking AsMap_slots.java/getSlot " + rec);
 				MethodHandle get = MethodHandles.lookup()
 					.findVirtual(implementingClassForSlots(rec.getClass()), "getSlot", MethodType.methodType(Double.TYPE, Integer.TYPE));
 
 				return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
-			}
-		}
+			} else {
+				if (linkRequest.getArguments().length == 2) {
 
-		else if (linkRequest.getCallSiteDescriptor().getOperation()
+					if (linkRequest.getArguments()[1].getClass().isPrimitive()) {
+
+						if (rec instanceof AsMap) {
+							if (debug)
+								System.err.println(" linking AsMap.java/property get " + rec);
+							MethodHandle get = MethodHandles.lookup()
+								.findVirtual(rec.getClass(), "asMap_getElement", MethodType.methodType(Object.class, Integer.TYPE));
+
+							return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
+
+						}
+					} else {
+						if (rec instanceof AsMap) {
+							if (debug)
+								System.err.println(" linking AsMap.java/property get " + rec);
+							MethodHandle get = MethodHandles.lookup()
+								.findVirtual(rec.getClass(), "asMap_getElement", MethodType.methodType(Object.class, Object.class));
+
+
+							return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
+
+						}
+
+					}
+				} else {
+					String[] p = linkRequest.getCallSiteDescriptor().getOperation().toString().split(":");
+					String propertyName = p[p.length - 1];
+
+					if (rec instanceof AsMap) {
+						if (debug)
+							System.err.println(" linking AsMap.java/property get " + rec);
+						MethodHandle get = MethodHandles.lookup()
+							.findVirtual(rec.getClass(), "asMap_getElement", MethodType.methodType(Object.class, Object.class));
+
+						get = MethodHandles.insertArguments(get, 1, propertyName);
+
+						return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
+
+					}
+				}
+			}
+		} else if (linkRequest.getCallSiteDescriptor().getOperation()
 			.toString().startsWith("SET:ELEMENT|PROPERTY")) {
 			Object rec = linkRequest.getReceiver();
 
@@ -272,63 +307,16 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 					return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
 				}
 			}
-		} else if (linkRequest.getCallSiteDescriptor().getOperation()
-			.toString().startsWith("GET:ELEMENT|PROPERTY|METHOD")) {
+		} else if (linkRequest.getCallSiteDescriptor()
+			.getOperation().toString().startsWith("CALL")) {
+
 			Object rec = linkRequest.getReceiver();
 
-			if (linkRequest.getArguments().length == 2) {
-
-				if (linkRequest.getArguments()[1].getClass().isPrimitive()) {
-
-					if (rec instanceof AsMap) {
-						if (debug)
-							System.err.println(" linking AsMap.java/property get " + rec);
-						MethodHandle get = MethodHandles.lookup()
-							.findVirtual(rec.getClass(), "asMap_getElement", MethodType.methodType(Object.class, Integer.TYPE));
-
-						return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
-
-					}
-				} else {
-					if (rec instanceof AsMap) {
-						if (debug)
-							System.err.println(" linking AsMap.java/property get " + rec);
-						MethodHandle get = MethodHandles.lookup()
-							.findVirtual(rec.getClass(), "asMap_getElement", MethodType.methodType(Object.class, Object.class));
-
-
-						return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
-
-					}
-
-				}
-			} else {
-				String[] p = linkRequest.getCallSiteDescriptor().getOperation().toString().split(":");
-				String propertyName = p[p.length - 1];
-
-				if (rec instanceof AsMap) {
-					if (debug)
-						System.err.println(" linking AsMap.java/property get " + rec);
-					MethodHandle get = MethodHandles.lookup()
-						.findVirtual(rec.getClass(), "asMap_getElement", MethodType.methodType(Object.class, Object.class));
-
-					get = MethodHandles.insertArguments(get, 1, propertyName);
-
-					return new GuardedInvocation(get, Guards.isInstance(rec.getClass(), MethodType.methodType(Boolean.TYPE, Object.class)));
-
-				}
-			}
-		} else if (linkRequest.getCallSiteDescriptor()
-				.getOperation().toString().startsWith("CALL")) {
-
-				Object rec = linkRequest.getReceiver();
-
-				System.out.println(" rec for CALL is "+rec+" "+(rec!=null ? rec.getClass() : null));
-			}
-		else {
+			System.out.println(" rec for CALL is " + rec + " " + (rec != null ? rec.getClass() : null));
+		} else {
 			if (debug) {
 				System.out.println(" don't know what to do with that :" + linkRequest.getCallSiteDescriptor().getOperation()
-					.toString()+" "+linkRequest.getReceiver());
+					.toString() + " " + linkRequest.getReceiver());
 			}
 		}
 		return null;
@@ -343,6 +331,7 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 
 		return implementingClassFor(aClass.getSuperclass());
 	}
+
 	private Class<?> implementingClassForSlots(Class<? extends Object> aClass) {
 		if (aClass == null) return null;
 

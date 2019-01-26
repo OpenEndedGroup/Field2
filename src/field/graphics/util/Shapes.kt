@@ -42,7 +42,7 @@ class Shapes {
     @JvmOverloads
     @Documentation("Appends a cube of size `scale` to `builder`")
     fun cube(scale: Vec3 = Vec3(1.0, 1.0, 1.0), builder: MeshBuilder): MeshBuilder {
-        val shape = ParShapes.par_shapes_create_cube()
+        val shape = ParShapes.par_shapes_create_cube()!!
         ParShapes.par_shapes_scale(shape, scale.x().toFloat(), scale.y().toFloat(), scale.z().toFloat())
         parMeshToMeshBuilder(shape, builder)
         return builder
@@ -51,7 +51,7 @@ class Shapes {
     @JvmOverloads
     @Documentation("Appends a sphere of radius `scale` to `builder`")
     fun sphere(scale: Vec3 = Vec3(1.0, 1.0, 1.0), slices: Int, stacks: Int, builder: MeshBuilder): MeshBuilder {
-        val shape = ParShapes.par_shapes_create_parametric_sphere(slices, stacks)
+        val shape = ParShapes.par_shapes_create_parametric_sphere(slices, stacks)!!
         ParShapes.par_shapes_scale(shape, scale.x.toFloat(), scale.y.toFloat(), scale.z.toFloat())
         parMeshToMeshBuilder(shape, builder)
         return builder
@@ -65,7 +65,7 @@ class Shapes {
     @JvmOverloads
     @Documentation("Appends a torus of with radius `scale` and inner radius `scale` * `inner_radius` to `builder`")
     fun torus(scale: Vec3 = Vec3(1.0, 1.0, 1.0), slices: Int, stacks: Int, inner_radius: Number, builder: MeshBuilder): MeshBuilder {
-        val shape = ParShapes.par_shapes_create_torus(slices, stacks, inner_radius.toFloat())
+        val shape = ParShapes.par_shapes_create_torus(slices, stacks, inner_radius.toFloat())!!
         ParShapes.par_shapes_scale(shape, scale.x.toFloat(), scale.y.toFloat(), scale.z.toFloat())
         parMeshToMeshBuilder(shape, builder)
         return builder
@@ -79,7 +79,7 @@ class Shapes {
     @JvmOverloads
     @Documentation("Appends a tetrahedron of size `scale`")
     fun tetrahedron(scale: Vec3 = Vec3(1.0, 1.0, 1.0), builder: MeshBuilder): MeshBuilder {
-        val shape = ParShapes.par_shapes_create_tetrahedron()
+        val shape = ParShapes.par_shapes_create_tetrahedron()!!
         ParShapes.par_shapes_scale(shape, scale.x.toFloat(), scale.y.toFloat(), scale.z.toFloat())
         parMeshToMeshBuilder(shape, builder)
         return builder
@@ -93,7 +93,7 @@ class Shapes {
     @JvmOverloads
     @Documentation("Appends an icosahedron of size `scale`")
     fun icosahedron(scale: Vec3 = Vec3(1.0, 1.0, 1.0), builder: MeshBuilder): MeshBuilder {
-        val shape = ParShapes.par_shapes_create_icosahedron()
+        val shape = ParShapes.par_shapes_create_icosahedron()!!
         ParShapes.par_shapes_scale(shape, scale.x.toFloat(), scale.y.toFloat(), scale.z.toFloat())
         parMeshToMeshBuilder(shape, builder)
         return builder
@@ -107,7 +107,7 @@ class Shapes {
     @JvmOverloads
     @Documentation("Appends an dodecahedron of size `scale`")
     fun dodecahedron(scale: Vec3 = Vec3(1.0, 1.0, 1.0), builder: MeshBuilder): MeshBuilder {
-        val shape = ParShapes.par_shapes_create_dodecahedron()
+        val shape = ParShapes.par_shapes_create_dodecahedron()!!
         ParShapes.par_shapes_scale(shape, scale.x.toFloat(), scale.y.toFloat(), scale.z.toFloat())
         parMeshToMeshBuilder(shape, builder)
         return builder
@@ -121,7 +121,7 @@ class Shapes {
     @JvmOverloads
     @Documentation("Appends an octahedron of size `scale`")
     fun octahedron(scale: Vec3 = Vec3(1.0, 1.0, 1.0), builder: MeshBuilder): MeshBuilder {
-        val shape = ParShapes.par_shapes_create_octahedron()
+        val shape = ParShapes.par_shapes_create_octahedron()!!
         ParShapes.par_shapes_scale(shape, scale.x.toFloat(), scale.y.toFloat(), scale.z.toFloat())
         parMeshToMeshBuilder(shape, builder)
         return builder
@@ -136,11 +136,11 @@ class Shapes {
     class Mesh(val v: FloatBuffer, val e: IntBuffer, val n: FloatBuffer?, val c: FloatBuffer?, val name: String)
 
     fun loadMeshes(filename: String): MutableList<Mesh> {
-        val scene = aiImportFile(filename, aiProcess_JoinIdenticalVertices or aiProcess_Triangulate);
+        val scene = aiImportFile(filename, aiProcess_JoinIdenticalVertices or aiProcess_Triangulate)!!;
 
         val out = mutableListOf<Mesh>()
 
-        val meshes = scene.mMeshes()
+        val meshes = scene.mMeshes()!!
         for (n in 0 until scene.mNumMeshes()) {
             val aimesh = AIMesh.create(meshes[n])
 

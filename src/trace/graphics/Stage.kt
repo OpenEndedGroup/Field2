@@ -33,6 +33,7 @@ import trace.video.ImageCache
 import trace.video.Syphon
 import trace.video.TwinTextureCache
 import java.io.File
+import java.lang.NullPointerException
 import java.lang.reflect.Modifier
 import java.util.*
 import java.util.concurrent.Callable
@@ -272,7 +273,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
         @JvmField
         @Documentation("list of `FLine` to draw, just like `_.lines` but it will appear on this Stage")
-        val lines = IdempotencyMap<FLine>(FLine::class.java).configureResourceLimits<IdempotencyMap<FLine>>(300, "too many lines on a stage layer")
+        val lines = IdempotencyMap<FLine>(FLine::class.java).configureResourceLimits<IdempotencyMap<FLine>>(1000, "too many lines on a stage layer")
 
         var doTexture = false
         var textureFilename: String? = null
@@ -1048,8 +1049,18 @@ class Stage(val w: Int, val h: Int) : AsMap {
             mutableMapOf("COLOR_REMAP" to sg.colorRemap, "SPACE_REMAP" to sg.spaceRemap)
         }))
 
-        val map = ImageCache.mapFromDirectory(filename, ".*.jpg")
+        val map = try {
+            ImageCache.mapFromDirectory(filename, ".*.jpg")
+        }
+        catch(n : NullPointerException)
+        {
+            if (!File(filename).exists())
+                throw java.lang.IllegalArgumentException(" problem loading jpgs from directory `$filename`, that directory doesn't exist")
+            if (!File(filename).isDirectory)
+                throw java.lang.IllegalArgumentException(" problem loading jpgs from directory `$filename`, that isn't a directory")
 
+            throw java.lang.IllegalArgumentException(" problem loading jpgs from directory `$filename`")
+        }
         // todo image size
         if (map.length() == 0) throw IllegalArgumentException(" doesn't seem to be any .jpg files in directory $filename ?")
 

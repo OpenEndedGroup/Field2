@@ -71,6 +71,58 @@ public class Out extends Box {
 
 		// setup some defaults
 
+		output.map._put("[F", x -> {
+			String s = "{HTML}";
+			if (((float[]) x).length == 0) {
+				s += "<table class='maptable' cellspacing=0>";
+				s += "<i>Empty Array of Floats" + shorten(x.getClass()) + "</i>";
+				s += "</table>";
+				return s;
+			}
+			float[] k = ((float[]) x);
+
+			s += "<div class='maptable' cellspacing=0><div class='smaller-inframe'>Float Array, length " + k.length + "</div>";
+			int num = 0;
+			for (Float oo : k) {
+				s += "<div class='maptable-entry'> <div class='maptable-value'>" + output.convert(oo, "value") + "</div></div>";
+				num++;
+				if (num > 10 && k.length > 15) {
+					s += "<div class='maptable-entry'><div class='maptable-key'> ... </div> <div class='maptable-value'> " + num + "/" + k.length + " total </div></div>";
+					break;
+				}
+
+			}
+			s += "</div>";
+
+			return s;
+		});
+
+		output.map._put("[D", x -> {
+			String s = "{HTML}";
+			if (((double[]) x).length == 0) {
+				s += "<table class='maptable' cellspacing=0>";
+				s += "<i>Empty Array of Floats" + shorten(x.getClass()) + "</i>";
+				s += "</table>";
+				return s;
+			}
+			double[] k = ((double[]) x);
+
+			s += "<div class='maptable' cellspacing=0><div class='smaller-inframe'>Double Array, length " + k.length + "</div>";
+			int num = 0;
+			for (Double oo : k) {
+				s += "<div class='maptable-entry'> <div class='maptable-value'>" + output.convert(oo, "value") + "</div></div>";
+				num++;
+				if (num > 10 && k.length > 15) {
+					s += "<div class='maptable-entry'><div class='maptable-key'> ... </div> <div class='maptable-value'> " + num + "/" + k.length + " total </div></div>";
+					break;
+				}
+
+			}
+			s += "</div>";
+
+			return s;
+		});
+
 		output.map._put("Object", x -> {
 
 			String groupName = "o" + output.joinContext();
