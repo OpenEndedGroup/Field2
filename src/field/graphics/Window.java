@@ -18,6 +18,7 @@ import fieldbox.boxes.Mouse;
 import fielded.boxbrowser.BoxBrowser;
 import fieldlinker.Linker;
 import fieldnashorn.annotations.HiddenInAutocomplete;
+import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.Callback;
 import org.lwjgl.system.Configuration;
@@ -180,6 +181,8 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 
                 if (window == 0) {
                     System.err.println(" FAILED TO CREATE WINDOW :" + shareContext);
+
+                    System.err.println(w+" "+h+" "+title+" "+shareContext.window);
                 }
                 glfwSetWindowPos(window, x, y);
                 Windows.windows.register(window, callback = makeCallback());
@@ -211,7 +214,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
                 RunLoop.main.getLoop().attach(0, perform);
 
 
-                glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS, GL11.GL_TRUE);
+                glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS , GL11.GL_TRUE);
 
                 retinaScaleFactor = permitRetina ? (int) (Options.dict()
                         .getFloat(new Dict.Prop<Number>("retina"), 0f) + 1) : 1;
@@ -381,6 +384,9 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 
     boolean focused = false;
 
+    static public long lastFrameAt = 0;
+    static public long interframeTime = 0;
+
     public void loop() {
 
         currentWindow.set(this);
@@ -394,22 +400,6 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
                 return;
             }
 
-//			if (Main.os == Main.OS.mac && true) {
-//
-////				if (frameHack++ == 2)
-////					glfwFocusWindow(window);
-//
-//				// shenanegians required to order front a window on El Capitan
-//				if (frameHack++ == 0) {
-//					Rect r = getBounds();
-//					setBounds((int) r.x + 1, (int) r.y + 1, (int) r.w + 1, (int) r.h + 10);
-//				}
-//				if (frameHack == 5) {
-//					Rect r = getBounds();
-//					setBounds((int) r.x - 1, (int) r.y - 1, (int) r.w - 1, (int) r.h - 10);
-//				}
-//			}
-
             if (!needsRepainting()) {
                 if (!isThreaded) pollEvents();
                 return;
@@ -420,7 +410,6 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
                 return;
             }
 
-            System.err.print("^");
 
             needsRepainting = false;
             glfwMakeContextCurrent(window);
@@ -447,6 +436,29 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
                 if (!dontSwap) {
                     swapControl.swap(window);
                 }
+
+                interframeTime = System.currentTimeMillis() - lastFrameAt;
+                lastFrameAt = System.currentTimeMillis();
+
+
+                if (interframeTime>1000/45.)
+                    System.err.print(".");
+                else if (interframeTime>1000/74.)
+                    System.err.print("^");
+                else if (interframeTime>1000/80.)
+                    System.err.print("a");
+                else if (interframeTime>1000/95.)
+                    System.err.print("b");
+                else if (interframeTime>1000/110.)
+                    System.err.print("c");
+                else
+                {
+//                    System.err.println(1000/(float)interframeTime);
+                    System.err.print(",");
+                }
+
+
+
 
                 if (!isThreaded && !(createdInThread != Thread.currentThread()))
                     pollEvents();
@@ -929,8 +941,9 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
     }
 
     public int getRetinaScaleFactor() {
-        int sc = glfwGetFrameBufferWidth(window) / glfwGetWindowWidth(window);
-//		System.err.println("SC:"+sc);
+        int w = glfwGetWindowWidth(window);
+        if (w==0) return 1;
+        int sc = glfwGetFrameBufferWidth(window) / w;
         return sc;
     }
 
@@ -1318,4 +1331,6 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
             return properties;
         }
     }
+
+
 }

@@ -39,13 +39,13 @@ import static org.lwjgl.opengl.GL32.*;
  */
 public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUniform<Integer>, BoxBrowser.HasMarkdownInformation {
 
+	static public ThreadLocal<FBO> currentFBO = ThreadLocal.withInitial(() -> null);
+
 
 	@Override
 	@HiddenInAutocomplete
 	public Integer getUniform() {
-		try (Util.ExceptionlessAutoClosable st = GraphicsContext.getContext().stateTracker.save()) {
-			return specification.unit;
-		}
+		return specification.unit;
 	}
 
 	int boundCount = 0;
@@ -340,12 +340,12 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 						specification.type, (ByteBuffer) null);
 
 					glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, s.text[i], 0);
-					glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-					glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+					glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+					glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
 					glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-
 					glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 				}
@@ -405,6 +405,8 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 			GraphicsContext.checkError(() -> "prior to fbo");
 			GraphicsContext.getContext().stateTracker.fbo.set(specification.multisample ? s.multisample : s.name);
 
+			currentFBO.set(this);
+
 			int[] v = {(int) viewport.x, (int) viewport.y, (int) viewport.w, (int) viewport.h};
 
 			GraphicsContext.checkError(() -> "prior to scissor");
@@ -440,6 +442,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 
 
 			if (specification.multisample) {
+                GraphicsContext.checkError(() -> "on FBO draw exit4a");
 				glBindFramebuffer(GL_READ_FRAMEBUFFER, s.multisample);
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, s.name);
 				for (int i = 0; i < s.text.length; i++) {
@@ -449,12 +452,15 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 				}
 				glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+                GraphicsContext.checkError(() -> "on FBO draw exit4a");
 			}
 
 
 
 
+            GraphicsContext.checkError(() -> "on FBO draw exit3a");
 			Runnable m = postDrawQueue.getAndSet(null);
+            GraphicsContext.checkError(() -> "on FBO draw exit3b");
 
 			if (m != null) m.run();
 
@@ -463,9 +469,16 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 				glDisable(GL_FRAMEBUFFER_SRGB);
 			}
 
+            GraphicsContext.checkError(() -> "on FBO draw exit2b");
+
 			return true;
-		} finally {
-			GraphicsContext.checkError(() -> "on FBO draw exit2");
+		} catch (Throwable t){
+		    t.printStackTrace();
+		    throw t;
+        }
+		finally {
+			currentFBO.set(null);
+            GraphicsContext.checkError(() -> "on FBO draw exit2");
 		}
 	}
 

@@ -18,6 +18,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.util.*;
@@ -120,13 +124,13 @@ public class IO {
 
 	static public String readFromFile(File f) {
 		try {
-			return Files.readAllLines(sanitizeName(f).toPath())
+			return Files.readAllLines(sanitizeName(f).toPath(), StandardCharsets.ISO_8859_1)
 				.stream()
 				.reduce((a, b) -> a + "\n" + b).orElse("");
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (InvalidPathException e) {
-			System.err.println(" illegal character in filename ? " + f + ", continuing on");
+			System.err.println(" illegal character in filename ? " + sanitizeName(f).toPath() + ", continuing on");
 		}
 
 		return "";

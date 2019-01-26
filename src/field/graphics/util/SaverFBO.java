@@ -7,6 +7,8 @@ import field.utility.IdempotencyMap;
 import field.utility.Pair;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
+import org.lwjgl.opengl.GL13;
 
 import java.awt.*;
 import java.io.File;
@@ -121,9 +123,9 @@ public class SaverFBO {
 		if (workers.size() < numWorkers) {
 			storage = newStorage();
 		} else {
-			//System.out.println("state opf workers: ");
-//			for (FutureTask t : workers)
-//				System.out.println(t.isDone());
+			System.out.println("state opf workers: ");
+			for (FutureTask t : workers)
+				System.out.println(t.isDone());
 
 			FutureTask<Pair<ByteBuffer, ByteBuffer>> w = workers.remove(0);
 			try {
@@ -132,6 +134,7 @@ public class SaverFBO {
 				e.printStackTrace();
 			}
 		}
+
 
 		getImage(storage);
 
@@ -167,7 +170,7 @@ public class SaverFBO {
 		storage.first.rewind();
 		a[0] = glGetInteger(GL_FRAMEBUFFER_BINDING);
 		glBindFramebuffer(GL_FRAMEBUFFER, fbo.getOpenGLFrameBufferNameInCurrentContext());
-		glReadPixels(0, 0, width, height, GL11.GL_RGB, GL_UNSIGNED_BYTE, storage.first);
+		glReadPixels(0, 0, width, height, GL12.GL_BGR, GL_UNSIGNED_BYTE, storage.first);
 		glBindFramebuffer(GL_FRAMEBUFFER, a[0]);
 		storage.first.rewind();
 
@@ -203,7 +206,7 @@ public class SaverFBO {
 				}
 
 				try {
-					new SlowJPEG().compress(filename, storage.first, width, height);
+					new SlowJPEG().compress(filename, storage.second, width, height);
 				} catch (Throwable t) {
 					System.err.println(" -- exception thrown in compress for :" + filename + " " + storage + " " + width + " " + height);
 					t.printStackTrace();

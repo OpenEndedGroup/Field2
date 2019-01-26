@@ -142,8 +142,9 @@ public class Drawing extends Box implements DrawingInterface {
 
 		cachedRoot.properties.put(needRepaint, true);
 
-		if (explicitLayerName.endsWith(".fast"))
-			explicitLayerName = explicitLayerName.substring(0, explicitLayerName.length() - ".fast".length());
+		if (explicitLayerName.contains(".")) {
+			explicitLayerName = explicitLayerName.substring(0, explicitLayerName.lastIndexOf("."));
+		}
 
 		String finalExplicitLayerName = explicitLayerName;
 
@@ -406,12 +407,13 @@ public class Drawing extends Box implements DrawingInterface {
 
 		String subName = "";
 		if (layerName.contains(".")) {
-			layerName = layerName.substring(0, layerName.lastIndexOf("."));
 			subName = layerName.substring(layerName.lastIndexOf(".")+1);
+			layerName = layerName.substring(0, layerName.lastIndexOf("."));
 		}
 
 		PerLayer l = layerLocal.get(layerName);
 		MeshBuilder ll = l._line.computeIfAbsent(subName, k -> {
+
 			BaseMesh line = BaseMesh.lineList(1, 1);
 			l.shader.attach(line);
 
@@ -422,6 +424,7 @@ public class Drawing extends Box implements DrawingInterface {
 
 			return b;
 		});
+
 		if (ll.isOpen()) return ll;
 		throw new IllegalArgumentException(" graphics resource (line) isn't open, are you trying to draw outside of your drawing method?");
 	}
@@ -429,8 +432,8 @@ public class Drawing extends Box implements DrawingInterface {
 	public MeshBuilder getMesh(String layerName) {
 		String subName = "";
 		if (layerName.contains(".")) {
-			layerName = layerName.substring(0, layerName.lastIndexOf("."));
 			subName = layerName.substring(layerName.lastIndexOf(".")+1);
+			layerName = layerName.substring(0, layerName.lastIndexOf("."));
 		}
 
 		PerLayer l = layerLocal.get(layerName);
@@ -453,8 +456,8 @@ public class Drawing extends Box implements DrawingInterface {
 
 		String subName = "";
 		if (layerName.contains(".")) {
-			layerName = layerName.substring(0, layerName.lastIndexOf("."));
 			subName = layerName.substring(layerName.lastIndexOf(".")+1);
+			layerName = layerName.substring(0, layerName.lastIndexOf("."));
 		}
 
 		PerLayer l = layerLocal.get(layerName);

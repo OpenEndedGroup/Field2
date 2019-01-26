@@ -55,7 +55,8 @@ class Random {
     }
 
     fun nextDouble(increment: Double): Double {
-        val i = if (increment > 4) increment % 4 else increment
+
+        val i = (if (increment > 4) increment % 4 else increment)/4.0
         T += i
         while (bi < Math.floor(T)) {
             a = b

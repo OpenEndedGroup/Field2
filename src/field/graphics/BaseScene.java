@@ -15,82 +15,89 @@ import java.util.function.Supplier;
  * the setup method and passed into upload().
  */
 public abstract class BaseScene<t_state extends BaseScene.Modifiable> extends Scene implements Scene.Perform {
-	static public class Modifiable {
-		int mod = 0;
-	}
+    public Supplier<Boolean> disabled = () -> false;
+    protected int mod = 0;
 
-	protected BaseScene() {
-		// its generally important that things get initialized as early as possible (and, furthermore, not in some random spot in the Scene update)
-		GraphicsContext.postQueueInAllContexts(() -> {
-			try(Util.ExceptionlessAutoClosable st = GraphicsContext.getContext().stateTracker.save()) {
-				GraphicsContext.put(this, setup());
-			}
-		});
+    boolean hasInitedOnce = false;
 
-	}
+    protected BaseScene() {
+        // its generally important that things get initialized as early as possible (and, furthermore, not in some random spot in the Scene update)
+        GraphicsContext.postQueueInAllContexts(() -> {
+            try (Util.ExceptionlessAutoClosable st = GraphicsContext.getContext().stateTracker.save()) {
+                GraphicsContext.put(this, setup());
+            }
+        });
 
-	protected int mod = 0;
+    }
 
-	@Override
-	public boolean perform(int pass) {
+    @Override
+    public boolean perform(int pass) {
 
-		if (disabled.get()) return true;
+        if (hasInitedOnce && disabled.get()) return true;
 
-		if (pass == getPasses()[0]) {
-			t_state s = GraphicsContext.get(this, () -> setup());
+        if (pass == getPasses()[0]) {
+            t_state s = GraphicsContext.get(this, () -> setup());
 
-			if (s.mod != mod) s.mod = upload(s);
+            hasInitedOnce = true;
 
-			update(pass, this::perform0);
-		}
+            if (disabled.get()) {
+                return true;
+            }
 
-		if (getPasses().length > 1) if (pass == getPasses()[1]) this.perform1();
+            if (s.mod != mod) s.mod = upload(s);
 
-		return true;
-	}
+            update(pass, this::perform0);
+        }
 
-	protected int upload(t_state s) {
-		return mod;
-	}
+        if (disabled.get()) return true;
 
-	protected abstract boolean perform0();
+        if (getPasses().length > 1) if (pass == getPasses()[1]) this.perform1();
 
-	protected boolean perform1() {
-		return true;
-	}
+        return true;
+    }
 
-	/**
-	 * it is the caller's responsibility to ensure that this is called per context. To do so, you can wrap all calls to this in
-	 * GraphicsContext.preQueueInAllContexts(() -> ... and GraphicsContext.get(this, () -> ... )
-	 */
-	protected abstract t_state setup();
+    protected int upload(t_state s) {
+        return mod;
+    }
 
-	public void finalize() {
-		GraphicsContext.postQueueInAllContexts(this::destroy);
-	}
+    protected abstract boolean perform0();
 
-	protected void destroy() {
-		t_state s = GraphicsContext.remove(this);
-		if (s == null) return;
-		deallocate(s);
-	}
+    protected boolean perform1() {
+        return true;
+    }
 
-	protected abstract void deallocate(t_state s);
+    /**
+     * it is the caller's responsibility to ensure that this is called per context. To do so, you can wrap all calls to this in
+     * GraphicsContext.preQueueInAllContexts(() -> ... and GraphicsContext.get(this, () -> ... )
+     */
+    protected abstract t_state setup();
 
-	public Supplier<Boolean> disabled = () -> false;
+    public void finalize() {
+        GraphicsContext.postQueueInAllContexts(this::destroy);
+    }
 
-	public void disable()
-	{
-		disabled = () -> true;
-	}
+    protected void destroy() {
+        t_state s = GraphicsContext.remove(this);
+        if (s == null) return;
+        deallocate(s);
+    }
 
-	public void enable()
-	{
-		disabled = () -> false;
-	}
-	public void disable(Supplier<Boolean> when)
-	{
-		disabled = when;
-	}
+    protected abstract void deallocate(t_state s);
+
+    public void disable() {
+        disabled = () -> true;
+    }
+
+    public void enable() {
+        disabled = () -> false;
+    }
+
+    public void disable(Supplier<Boolean> when) {
+        disabled = when;
+    }
+
+    static public class Modifiable {
+        int mod = 0;
+    }
 
 }

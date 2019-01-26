@@ -5,6 +5,7 @@ import com.google.common.collect.HashBiMap;
 import field.app.RunLoop;
 import field.utility.Log;
 import field.utility.Util;
+import fieldbox.execution.Execution;
 import fieldagent.Main;
 import org.java_websocket.WebSocket;
 import org.java_websocket.WebSocketImpl;
@@ -336,6 +337,8 @@ public class Server {
 	}
 
 	public void send(WebSocket name, String message) {
+
+		if (Execution.performanceMode) return;
 
 		queue(() -> name.send(message));
 	}

@@ -17,8 +17,8 @@ echo $fieldhome
     -Xdebug \
     -Xrunjdwp:server=y,transport=dt_socket,address=5005,suspend=n -Dorg.lwjgl.util.Debug=true \
     -DappDir=$fieldhome \
-    -Xmx12g \
-    -Xms8g \
+    -Xmx8g \
+    -Xms6g \
     -javaagent:$fieldhome/build/field_agent.jar \
     -cp "$out;$fieldhome/build/field_linker.jar;$fieldhome/lib/;$fieldhome/lib/jars/*;$fieldhome/build/field_agent.jar" \
     -Djava.library.path=$fieldhome/win/lib/ \

@@ -501,4 +501,5 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, fi
 	public int getModCount() {
 		return modCount;
 	}
+
 }

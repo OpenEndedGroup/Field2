@@ -16,8 +16,7 @@ import java.lang.reflect.Method
 import java.util.*
 import java.util.function.Function
 
-/*
-    AST based rewriting
+/*    AST based rewriting
  */
 class Asta {
 
@@ -555,7 +554,7 @@ class Asta {
         })
 
         r.sourceElements.forEach {
-            print("\n\n sourceElement: $it\n\n")
+//            print("\n\n sourceElement: $it\n\n")
             recurOver(it, 0, v)
         }
 
@@ -825,11 +824,11 @@ class Asta {
                     }
                 } catch (ee: ClassCastException) {
                     // this happens when we call forloop stuff on a forofloop
-                    ee.printStackTrace()
+//                    ee.printStackTrace()
                     Collections.EMPTY_LIST
                 }
             } catch (e: java.lang.IllegalArgumentException) {
-                e.printStackTrace()
+//                e.printStackTrace()
                 Collections.EMPTY_LIST
             }
         }.filter { it != null }.map { it as Tree }.sortedBy { it!!.startPosition }.toList()

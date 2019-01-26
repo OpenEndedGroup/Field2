@@ -23,8 +23,10 @@ import java.util.function.Supplier;
 public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecution> {
 
 	final public static Dict.Prop<ScriptContext> boxBindings = new Dict.Prop<ScriptContext>("_boxBindings");
+	public static boolean isEnding = false;
 
-	final public String _stdlib = BoxDefaultCode.findSource(this.getClass(), "stdlib");
+	public String _stdlib = BoxDefaultCode.findSource(this.getClass(), "stdlib");
+	static public String _sstdlib;
 
 	private TernSupport ternSupport;
 
@@ -33,6 +35,8 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 	private SimpleBindings global;
 
 	public Nashorn() {
+
+		_sstdlib = _stdlib;
 
 		engine = factory.getScriptEngine("-scripting", "--global-per-engine", "--optimistic-types=true", "--language=es6");
 
@@ -131,6 +135,8 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 
 					@Override
 					public Object middle(boolean isEnding) {
+						Nashorn.isEnding = isEnding;
+
 						((Runnable) o).run();
 						return null;
 					}
@@ -157,6 +163,7 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 
 					@Override
 					public Object middle(boolean isEnding) {
+						Nashorn.isEnding = isEnding;
 						return ((Supplier) o).get();
 					}
 
@@ -167,7 +174,9 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 
 					@Override
 					public Object end(boolean isEnding) {
-						return null;/*return middle(isEnding);*/
+//						return null;/*return middle(isEnding);*/
+
+						return middle(isEnding);
 					}
 
 				};
@@ -211,7 +220,7 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 		setupInitialBindings(b, next.first);
 
 		try {
-			en.eval(_stdlib);
+			en.eval(_sstdlib);
 		} catch (ScriptException e) {
 			System.err.println(" _stdlib threw an exception, can't be a good thing ");
 			e.printStackTrace();

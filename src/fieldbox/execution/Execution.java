@@ -20,6 +20,8 @@ import java.util.function.Function;
  */
 public class Execution extends Box {
 
+	static public boolean performanceMode = false;
+
 	public interface CompletionSupport
 	{
 		void completion(Box inside, String allText, int line, int ch, Consumer<List<Completion>> results);

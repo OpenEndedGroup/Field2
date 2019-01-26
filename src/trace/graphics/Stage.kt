@@ -373,6 +373,12 @@ class Stage(val w: Int, val h: Int) : AsMap {
             }
         }
 
+        fun makeKeyboardCamera()
+        {
+            keyboardCamera = KeyboardCamera(__camera, insideViewport!!, "" + name)
+            keyboardCamera!!.standardMap()
+        }
+
         fun bindPointShader(box: Box): Shader? {
             bindShaderToBox(name, box, 2)
             return shader!!.third!!

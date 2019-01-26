@@ -60,7 +60,7 @@ class NewNanoHTTPD(val port: Int) {
         if (f.name.endsWith(".html"))
         {
             val fm = File.createTempFile("field_filtered_", ".html")
-            val txt = filterFile(f, Files.readString(f.toPath()))
+            val txt = filterFile(f, String(Files.readAllBytes(f.toPath())))
 
             if (txt!=null)
                 return Response.newFixedLengthResponse(OK, mimeTypeFor(f), txt)

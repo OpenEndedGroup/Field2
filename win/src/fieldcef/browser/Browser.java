@@ -171,6 +171,10 @@ public class Browser extends Box implements IO.Loaded {
 
     }
 
+
+    public float ezl = Options.dict().getFloat(new Dict.Prop<Number>("extraZoomLevel"), 1);
+
+
     public void loaded() {
         Log.disable("cef.*");
 
@@ -225,7 +229,7 @@ public class Browser extends Box implements IO.Loaded {
             }
 
         });
-        browser.setZoomLevel(1);
+        browser.setZoomLevel(ezl);
 
         keyboardHacks = new BrowserKeyboardHacks(browser);
         source = ByteBuffer.allocateDirect(((int) (w * rsf) * ((int) (h * rsf)) * 4)).order(ByteOrder.nativeOrder());
@@ -774,9 +778,9 @@ public class Browser extends Box implements IO.Loaded {
         if (this.dirty.getAndSet(false) && damage != null) {
             if (check-- > 0) {
                 if (Main.os != Main.OS.windows)
-                    browser.setZoomLevel(1 * window.getRetinaScaleFactor());
+                    browser.setZoomLevel(ezl * window.getRetinaScaleFactor());
                 else {
-                    browser.setZoomLevel(1);
+                    browser.setZoomLevel(ezl);
                 }
             }
             Log.log("cef.debug", () -> " texture was dirty, uploading ");

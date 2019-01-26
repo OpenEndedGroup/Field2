@@ -293,7 +293,7 @@ public class RemoteEditor extends Box {
 				}
 				if (current_ln.get() != v) return;
 
-//				if (true) return;
+				if (true) return;
 
 				Execution.ExecutionSupport support = getExecution(box.get(), new Dict.Prop<String>(prop)).support(box.get(), new Dict.Prop<String>(prop));
 

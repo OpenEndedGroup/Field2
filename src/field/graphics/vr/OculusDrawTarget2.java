@@ -237,7 +237,7 @@ public class OculusDrawTarget2 {
             @Override
             public boolean perform(int pass) {
 
-                if (warmUp++ < 5) return true;
+                if (warmUp++ < 1) return true;
 
                 OVRDetectResult detect = OVRDetectResult.calloc();
                 ovr_Detect(0, detect);
@@ -337,7 +337,10 @@ public class OculusDrawTarget2 {
 
                 if (OVRGL.ovr_CreateTextureSwapChainGL(hmd, swapChainDesc,
                                                        textureSetPB) != ovrSuccess) {      // twice width for single texture
+
                     throw new IllegalStateException("Failed to create Swap Texture Set");
+
+
                 }
                 long hts = textureSetPB.get(0);
 
@@ -576,7 +579,8 @@ public class OculusDrawTarget2 {
                                              -eyePose.Position().z()).add(extraCameraTranslation);
                     mat.translate(position);
                     mat.translate(playerEyePos);    //back to 'floor' height
-
+               //     mat.translate(new Vec3(0,0.6, 0)); // pockets
+                    mat.translate(new Vec3(0,-0., 0.3));
 
 //					System.out.println(" translation :"+position+" "+playerEyePos+" "+mat.getTranslation(new Vec3()));
 //					translation = mat.getTranslation(new Vec3());

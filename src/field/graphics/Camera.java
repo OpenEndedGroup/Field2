@@ -20,6 +20,14 @@ import java.util.function.Function;
  */
 public class Camera {
 
+
+	// inglorious vr hack
+	public float cameraScale = 1f;
+
+	public void setCameraScale(float cameraScale) {
+		this.cameraScale = cameraScale;
+	}
+
 	static public class State implements Serializable_safe {
 
 		static final long serialVersionUID = -3003261492097861789L;
@@ -94,12 +102,17 @@ public class Camera {
 		 */
 		public float io_disparity_per_distance = 0;
 
+		/**
+		 * artificially move the target with the eyes. Positive values of this push the effective neutral point back from the eyes
+		 */
+		public float io_target_shift = 0;
+
 		public Vec3 ray() {
 			return Vec3.sub(target, position, new Vec3());
 		}
 
 		public Vec3 ray(float stereoSide) {
-			return Vec3.sub(target, position(stereoSide), new Vec3());
+			return Vec3.sub(target(stereoSide), position(stereoSide), new Vec3());
 		}
 
 		public Vec3 left() {
@@ -115,7 +128,16 @@ public class Camera {
 		}
 
 		public Vec3 target() {
-			return target;
+			return target(0);
+		}
+
+		public Vec3 target(float stereoSide) {
+
+			Vec3 left = left();
+			float d = (float) target.distance(position);
+			float s = stereoSide * (io_disparity + io_disparity_per_distance * d) * io_target_shift;
+
+			return new Vec3(target).fma(left, s);
 		}
 
 		public State copy() {
@@ -390,13 +412,31 @@ public class Camera {
 		ret[3 * 4 + 3] = 1;
 
 		Mat4 m = new Mat4(ret);
-		Vec3 e = Mat4.transform(m, state.position(stereoSide), new Vec3());
-		ret[3 * 4 + 0] = (float) -e.x;
-		ret[3 * 4 + 1] = (float) -e.y;
-		ret[3 * 4 + 2] = (float) -e.z;
 
-		Mat4 q = new Mat4(ret);
+		if (Math.abs(cameraScale-1.0)>1e-4) {
+			m.translate(new Vec3(state.up).mul(1.67));
+			m.scale(cameraScale);
+			m.translate(new Vec3(state.up).mul(-1.67));
+		}
+
+//		Vec3 e = Mat4.transform(m, state.position(stereoSide), new Vec3());
+//		ret[3 * 4 + 0] = (float) -e.x;
+//		ret[3 * 4 + 1] = (float) -e.y;
+//		ret[3 * 4 + 2] = (float) -e.z;
+
+//		m.m30 = (float)-e.x;
+//		m.m31 = (float)-e.y;
+//		m.m32 = (float)-e.z;
+
+		m.translate(new Vec3(state.position(stereoSide)).mul(-1));
+
+		Mat4 q = new Mat4(m);
+
+
+
 		q.transpose();
+
+
 //		System.out.println(" model view is :" + new Mat4(q));
 		return q;
 	}

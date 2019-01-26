@@ -28,6 +28,9 @@ public class RunLoop {
 	List<Runnable> onExit = new LinkedList<>();
 	AtomicBoolean exitStarted = new AtomicBoolean(false);
 
+	static public Supplier<Double> time = () -> System.currentTimeMillis() + 0.0d;
+
+
 	protected RunLoop() {
 		mainThread = Thread.currentThread();
 		Runtime.getRuntime()
@@ -268,8 +271,7 @@ public class RunLoop {
 	}
 
 	public void interrupt() {
-		synchronized (eventLock)
-		{
+		synchronized (eventLock) {
 			eventLock.notifyAll();
 		}
 	}

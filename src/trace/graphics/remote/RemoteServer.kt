@@ -12,8 +12,8 @@ import fielded.live.Asta
 import fielded.webserver.NanoHTTPD
 import fielded.webserver.NewNanoHTTPD
 import fielded.webserver.Server
-import org.json.JSONArray
 import org.json.JSONObject
+import org.json.JSONArray
 import org.nanohttpd.protocols.http.response.Response.*
 import org.nanohttpd.protocols.http.response.Status
 import org.nanohttpd.protocols.websockets.WebSocket
@@ -23,12 +23,15 @@ import java.net.InetAddress
 import java.net.NetworkInterface
 import java.nio.charset.Charset
 import java.util.*
+import java.util.function.Consumer
 
 class RemoteServer {
     var initFile = "init_remote.html" // can swap this to go 'headless'
-
-    var BOOT = "/boot"
+    val BOOT = "/boot"
     val RESOURCE = "/resource-"
+    val MESSAGE = "message"
+    val LOG = "log"
+    val ERROR = "error"
 
     var s: NewNanoHTTPD
 
@@ -36,6 +39,7 @@ class RemoteServer {
 
     var hostname: String
 
+    var responseMap = mutableMapOf<String, (JSONObject) -> Boolean>();
     var errorRoot: Box? = null
 
     val rpc = RPC()
@@ -63,6 +67,7 @@ class RemoteServer {
                 var text = Files.toString(File(Main.app + "lib/web/$initFile"), Charset.defaultCharset())
 
                 System.out.println(" canonical host name is :" + InetAddress.getLocalHost().getCanonicalHostName())
+
 
                 text = text.replace("///IP///", addrs) //!!
                 text = text.replace("///ID///", "" + (id++))

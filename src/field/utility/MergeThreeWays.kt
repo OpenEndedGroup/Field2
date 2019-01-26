@@ -1814,8 +1814,8 @@ class MergeThreeWays {
                             && !patch.diffs.isEmpty() && aDiff !== diffs.last) {
                         // Small equality inside a patch.
                         patch.diffs.add(aDiff)
-                        patch.length1 += aDiff.text!!.length
-                        patch.length2 += aDiff.text!!.length
+                        patch.length1 += aDiff.text.length
+                        patch.length2 += aDiff.text.length
                     }
 
                     if (aDiff.text!!.length >= 2 * Patch_Margin) {
