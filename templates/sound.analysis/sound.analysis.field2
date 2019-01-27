@@ -1,0 +1,180 @@
+#field/document{
+  :externalList [
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/sound.analysis/sound file.box.js"
+      }
+      :dataFile "{{templates}}/sound.analysis/sound file.box"
+      :id "_e02899a7_acab_450f_b01d_efd731215f07"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+        "_e901700b_61a5_4409_be07_4ba82c0de844"
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x -15.933841705322266
+          :y 40.436214447021484
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/sound.analysis/play.box.js"
+      }
+      :dataFile "{{templates}}/sound.analysis/play.box"
+      :id "_2708a860_56e4_4bd7_a635_97723b44e3a7"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        "_e02899a7_acab_450f_b01d_efd731215f07"
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x -4.883274078369141
+          :y 162.74246215820312
+          :w 100.0
+          :h 50.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/sound.analysis/stop.box.js"
+      }
+      :dataFile "{{templates}}/sound.analysis/stop.box"
+      :id "_d59c6d8a_75e9_4e42_a704_44280d6d76d5"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x -4.883274078369141
+          :y 212.7384033203125
+          :w 100.0
+          :h 50.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/sound.analysis/replay.box.js"
+      }
+      :dataFile "{{templates}}/sound.analysis/replay.box"
+      :id "_f2fadf16_747a_48dc_a45a_43fd857ab7c9"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x -4.883152008056641
+          :y 262.7383117675781
+          :w 99.7421875
+          :h 50.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/sound.analysis/reset.box.js"
+      }
+      :dataFile "{{templates}}/sound.analysis/reset.box"
+      :id "_78a5e574_8003_4809_831d_270d040c06a5"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x -4.883274078369141
+          :y 312.73828125
+          :w 100.0
+          :h 49.44921875
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/sound.analysis/shortcuts.box.js"
+      }
+      :dataFile "{{templates}}/sound.analysis/shortcuts.box"
+      :id "_2669fadb_e3aa_4b86_be24_5a03833bbba8"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 19.50600814819336
+          :y 361.9294128417969
+          :w 76.47265625
+          :h 43.80078125
+        }
+      }
+    }
+  ]
+  :knownFiles {
+    "txt" #field/filespec{
+      :name "txt"
+    }
+    "fragment" #field/filespec{
+      :name "fragment"
+    }
+    "code" #field/filespec{
+      :name "code"
+    }
+    "vertex" #field/filespec{
+      :name "vertex"
+    }
+    "geometry" #field/filespec{
+      :name "geometry"
+    }
+    "html" #field/filespec{
+      :name "html"
+    }
+    "edn" #field/filespec{
+      :name "edn"
+    }
+  }
+  :knownProperties #{
+    "__id__"
+    "comment"
+    "classpath"
+    "perDocument"
+    "name"
+    "frame"
+    "lockHeight"
+    "lockWidth"
+    "tag"
+    "windowSpace"
+    "windowScale"
+    "isPaired"
+    "auto"
+    "head"
+    "tail"
+    "defaultEditorProperty"
+    "_defaultEditorProperty_cookie"
+    "_code_cookie"
+    "_theVariant"
+    "includes"
+    "excludes"
+    "__datafilename__"
+    "__filename__code"
+  }
+}
