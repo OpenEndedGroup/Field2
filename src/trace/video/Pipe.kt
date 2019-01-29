@@ -374,6 +374,7 @@ open class Pipe(private val width: Int, private val height: Int) {
                 if (decompressed.containsKey(filename)) {
                     val m = decompressed.remove(filename)
                     unallocated.add(m!!)
+                    scavangable.put(filename, m)
                 }
                 check()
             }
