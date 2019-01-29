@@ -12,10 +12,7 @@ import field.linalg.*
 import field.utility.*
 import fieldbox.boxes.Box
 import fieldbox.boxes.Drawing
-import fieldbox.boxes.plugins.BoxDefaultCode
-import fieldbox.boxes.plugins.GraphicsSupport
-import fieldbox.boxes.plugins.ThreadSync2Feedback
-import fieldbox.boxes.plugins.Viewport
+import fieldbox.boxes.plugins.*
 import fieldbox.execution.Execution
 import fieldbox.ui.GlfwCallbackDelegate
 import fielded.RemoteEditor
@@ -296,6 +293,13 @@ class Stage(val w: Int, val h: Int) : AsMap {
         @Documentation("If this layer is a video layer this `time` represents the fraction through the video that we are. i.e. 0 is the very first frame and 1 is the very last frame.")
         var time = 0.0
 
+        var frameSet = false
+        var _frame = 0
+        fun setFrame(f: Int) {
+            _frame = f
+            frameSet = true
+        }
+
         @JvmField
         @Documentation("Sets the scale of this box. The origin is in the bottom left, and 'bounds' is in the top right. Defaults to vec(100,100")
         var bounds = Vec2(100.0, 100.0)
@@ -305,6 +309,14 @@ class Stage(val w: Int, val h: Int) : AsMap {
         @JvmField
         @Documentation("Sets any color remapping code that's applied to this layer")
         var colorRemap = "";
+
+        @JvmField
+        @Documentation("Color to multiply this video by")
+        var colorMul = Vec3(1, 1, 1);
+
+        @JvmField
+        @Documentation("Color to add to this video")
+        var colorAdd = Vec3(0, 0, 0);
 
         @JvmField
         @Documentation("Sets any space remapping code that's applied to this layer")
@@ -325,6 +337,11 @@ class Stage(val w: Int, val h: Int) : AsMap {
         @JvmField
         @Documentation("How much is left stereo texture shifted with respect to the right")
         var leftOffset = Vec3(0, 0, 0);
+
+
+        @JvmField
+        @Documentation("Additional motion blur")
+        var blur = Vec3(0, 0, 0)
 
         var P = Mat4().identity()
         var V = Mat4().identity()
@@ -385,8 +402,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
             }
         }
 
-        fun makeKeyboardCamera()
-        {
+        fun makeKeyboardCamera() {
             keyboardCamera = KeyboardCamera(__camera, insideViewport!!, "" + name)
             keyboardCamera!!.standardMap()
         }
@@ -586,8 +602,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
         var layerIsDone = false
 
-        fun finishLayer()
-        {
+        fun finishLayer() {
             layerIsDone = true
         }
 
@@ -690,8 +705,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
             fbo.scene.attach(-100, "__doGeometry__" + name, Consumer<Int> {
 
-                if (!layerIsDone)
-                {
+                if (!layerIsDone) {
 
                     camera.update()
 
@@ -762,6 +776,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
         }
 
         var webcamDriver: WebcamDriver? = null
+        var fileMap: ImageCache.FileMap? = null
 
     }
 
@@ -1062,9 +1077,8 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
         val map = try {
             ImageCache.mapFromDirectory(filename, ".*.jpg")
-        }
-        catch(n : NullPointerException)
-        {
+
+        } catch (n: NullPointerException) {
             if (!File(filename).exists())
                 throw java.lang.IllegalArgumentException(" problem loading jpgs from directory `$filename`, that directory doesn't exist")
             if (!File(filename).isDirectory)
@@ -1078,16 +1092,14 @@ class Stage(val w: Int, val h: Int) : AsMap {
         val fn = map.apply(0);
         val dim = FastJPEG.j.dimensions(fn);
 
-        val ic = ImageCache(dim[0], dim[1], 90, 40, map)
+        val ic = ImageCache(dim[0], dim[1], 300, 40, map)
         val cache = TwinTextureCache(0, ic)
         cache.setPlaying(true)
 
-        ImageCache.synchronous = false;
+        ImageCache.synchronous = true;
 
         cache.setTime(1.0)
 //        cache.update()
-
-        // todo, a lot more debug than this
 
         s1.asMap_set("T0", cache.textureA)
         s1.asMap_set("T1", cache.textureB)
@@ -1099,10 +1111,30 @@ class Stage(val w: Int, val h: Int) : AsMap {
         s3.asMap_set("T1", cache.textureB)
         s3.asMap_set("alpha", Supplier { cache.getAlpha() })
 
+        s1.asMap_set("blur", Supplier { sg.blur })
+        s2.asMap_set("blur", Supplier { sg.blur })
+        s3.asMap_set("blur", Supplier { sg.blur })
+
+        s1.asMap_set("colorAdd", Supplier { sg.colorAdd })
+        s2.asMap_set("colorAdd", Supplier { sg.colorAdd })
+        s3.asMap_set("colorAdd", Supplier { sg.colorAdd })
+        s1.asMap_set("colorMul", Supplier { sg.colorMul })
+        s2.asMap_set("colorMul", Supplier { sg.colorMul })
+        s3.asMap_set("colorMul", Supplier { sg.colorMul })
+
         sg.setShader(Triple(s1, s2, s3))
+
+        sg.fileMap = map
+
         sg.doTexture = true
         sg.post.put("__dovideo__", Runnable {
-            cache.setTime(map.length() * sg.time);
+
+            if (sg.frameSet) {
+                sg.frameSet = false
+                sg.time = sg._frame / map.length().toDouble()
+                cache.setTime(sg._frame.toDouble());
+            } else
+                cache.setTime(map.length() * sg.time);
             cache.update()
         })
 
@@ -1322,12 +1354,28 @@ class Stage(val w: Int, val h: Int) : AsMap {
         }
     }
 
+    var previousFrameAt = 0L
     /**
      * marks the spot in the code where we wait for anything we've drawn to appear on the screen. Effectively the same as `_redraw(); _.wait()`
      */
     fun frame(): Boolean {
+
         redraw()
-        return ThreadSync2Feedback.maybeYield();
+        val r = ThreadSync2Feedback.maybeYield();
+        previousFrameAt = System.currentTimeMillis()
+        return r
+    }
+
+
+    fun frame(t: Double): Boolean {
+        val now = previousFrameAt
+        redraw()
+        Threading.waitSafely()
+        while ((System.currentTimeMillis() - now) / 1000.0 < t) {
+            Threading.waitSafely()
+        }
+        previousFrameAt = System.currentTimeMillis()
+        return t > 0
     }
 
     fun errorHandler(b: Box, shader: String): Shader.iErrorHandler {
@@ -1361,7 +1409,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
     }
 
 
-    fun startSaving(path : String): String {
+    fun startSaving(path: String): String {
         saver.setPrefix(path)
         saver.frameNumber = 0
 

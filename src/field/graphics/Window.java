@@ -192,7 +192,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
                 glfwMakeContextCurrent(window);
 //				glfwSwapInterval(1);
 
-                glfwSwapInterval(0);
+                glfwSwapInterval(1);
 
                 if (shareContext == this) {
                     glcontext = GL.createCapabilities(true);

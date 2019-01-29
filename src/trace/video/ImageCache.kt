@@ -178,23 +178,30 @@ class ImageCache(val width: Int, val height: Int, maxBuffer: Int, private val lo
 
     class FileMap(var ff: Array<File?>) : Function<Int, String> {
 
+        private var remap: Array<Int>
+
+        init {
+            remap = Array<Int>(ff.size, { it })
+        }
+
         fun length(): Int {
-            return ff.size
+            return remap.size
         }
 
         override fun apply(x: Int): String {
             var x = x
             if (x < 0) x = 0
-            //            if (x>=ff.length) x = ff.length-1;
-            return ff[x!! % ff.size]!!.absolutePath
+            return ff[remap[x!! % remap.size]]!!.absolutePath
+        }
+
+        fun remap(num: Int, mapper: Function<Int, Int>) {
+            remap = Array<Int>(ff.size, { mapper.apply(it) })
         }
     }
 
     companion object {
 
-
-        var synchronous = Options.dict().isTrue(Dict.Prop<Int>("offline"), false)
-
+        var synchronous = Options.dict().isTrue(Dict.Prop<Int>("offline"), true)
 
         fun mapFromDirectory(dir: String, match: String): FileMap {
 
