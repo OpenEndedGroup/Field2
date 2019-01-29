@@ -29,6 +29,7 @@ import trace.graphics.remote.RemoteServer
 import trace.graphics.remote.RemoteStageLayerHelper
 import trace.input.Buttons
 import trace.input.WebcamDriver
+import trace.util.FLineToSVG
 import trace.video.ImageCache
 import trace.video.Syphon
 import trace.video.TwinTextureCache
@@ -356,6 +357,16 @@ class Stage(val w: Int, val h: Int) : AsMap {
             }
 
         }
+
+        fun toSVG(fn : String)
+        {
+            val f = FLineToSVG(fn)
+            lines.values.forEach {
+                f.addLine(it, this)
+            }
+            f.save()
+        }
+
 
         var vrDefaulted = false
 
