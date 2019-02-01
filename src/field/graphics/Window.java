@@ -401,7 +401,9 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
             }
 
             if (!needsRepainting()) {
-                if (!isThreaded) pollEvents();
+                if (!isThreaded) {
+                    pollEvents();
+                }
                 return;
             }
 
@@ -476,7 +478,8 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 
     private void pollEvents() {
 //        System.err.println(">}>");
-//        glfwPollEvents();
+        if (Main.os== Main.OS.windows)
+        glfwPollEvents();
 //        System.err.println("<{<");
     }
 
