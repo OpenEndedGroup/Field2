@@ -52,7 +52,9 @@ open class Pipe(private val width: Int, private val height: Int) {
     private val storage: ByteBuffer?
         get() = synchronized(decompressing) {
             return if (unallocated.size > 0) {
-                unallocated.removeAt(0)
+                val rr = unallocated.removeAt(0)
+                scavangable.values.remove(rr)
+                rr
             } else {
                 createStorage()
             }
@@ -60,6 +62,8 @@ open class Pipe(private val width: Int, private val height: Int) {
 
     init {
         pool = Executors.newFixedThreadPool(threads)
+
+        var previous = System.currentTimeMillis()
         for (i in 0 until threads) {
             pool.execute {
                 while (true) {
@@ -97,6 +101,14 @@ open class Pipe(private val width: Int, private val height: Int) {
                             inflight.remove(n!!.key)
                         }
                     }
+
+
+                    if (i==0 && System.currentTimeMillis()-previous>2000)
+                    {
+                        printStatus()
+                        previous = System.currentTimeMillis()
+                    }
+
                 }
             }
         }
@@ -182,6 +194,7 @@ open class Pipe(private val width: Int, private val height: Int) {
         synchronized(decompressing) {
             if (scavangable.containsKey(filename)) {
                 val r = scavangable.remove(filename)
+                unallocated.remove(r)
                 decompressed.put(filename, r!!)
                 locked.put(filename, r)
                 check()
@@ -221,7 +234,7 @@ open class Pipe(private val width: Int, private val height: Int) {
             println(" -- waiting :" + filename)
 
             try {
-                Thread.sleep(100)
+                Thread.sleep(10)
             } catch (e: InterruptedException) {
                 e.printStackTrace()
             }
@@ -275,21 +288,24 @@ open class Pipe(private val width: Int, private val height: Int) {
         synchronized(decompressing) {
             check()
             if (decompressing.containsKey(filename)) {
-                //				System.out.println(" already scheduled");
+                				System.out.println(" already scheduled");
                 //				System.err.println("          decompressed :" + decompressed.size() + "  " + decompressed.keySet());
                 return
             }
             if (inflight.containsKey(filename)) {
-                //				System.out.println(" already in flight");
+                				System.out.println(" already in flight");
                 return
             }
             if (decompressed.containsKey(filename)) {
-                //				System.out.println(" already done ");
+//                				System.out.println(" already done ");
                 return
             }
             if (scavangable.containsKey(filename)) {
-                //				System.out.println(" rescavanged ");
+                				System.out.println(" rescavanged ");
                 val q = scavangable.remove(filename)
+
+                unallocated.remove(q)
+
                 decompressed.put(filename, q!!)
                 return
             }
@@ -306,6 +322,7 @@ open class Pipe(private val width: Int, private val height: Int) {
                     val k = scavangable.keys.iterator().next()
                     val storage = scavangable[k]
                     scavangable.remove(k)
+                    unallocated.remove(storage)
                     decompressing.put(filename, storage!!)
                     (decompressing as Object).notify()
                     check()
@@ -374,7 +391,6 @@ open class Pipe(private val width: Int, private val height: Int) {
                 if (decompressed.containsKey(filename)) {
                     val m = decompressed.remove(filename)
                     unallocated.add(m!!)
-                    scavangable.put(filename, m)
                 }
                 check()
             }
@@ -391,7 +407,8 @@ open class Pipe(private val width: Int, private val height: Int) {
             val m = locked.remove(filename)
             if (m != null) {
                 decompressed.remove(filename)
-                scavangable.put(filename, m)
+//                scavangable.put(filename, m)
+                unallocated.add(m)
 
             } else {
                 // System.err.println(" free without lock ? :" +
