@@ -135,8 +135,11 @@ class Stage(val w: Int, val h: Int) : AsMap {
     @HiddenInAutocomplete
     val saver: SaverFBO;
 
+    val LATENCY = 8;
+
     init {
         thisStageNum = stageNum++
+//        fbo = FBOStack(FBO.FBOSpecification.singleFloat16_depth(thisStageNum, w, h), LATENCY)
         fbo = FBO(FBO.FBOSpecification.singleFloat16_depth(thisStageNum, w, h))
 
         val base = System.getProperty("user.home") + File.separatorChar + "Desktop" + File.separatorChar + "field_stage_recordings" + File.separatorChar
@@ -147,7 +150,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
         val prefix = File(base + Saver.pad(x))
         prefix.mkdirs()
 
-        saver = SaverFBO(w, h, 4, prefix.absolutePath + File.separatorChar + "s_", fbo)
+        saver = SaverFBO(w, h, 4, prefix.absolutePath + File.separatorChar + "s_", { fbo })
 
         val s = Shader()
 
@@ -167,7 +170,10 @@ class Stage(val w: Int, val h: Int) : AsMap {
         planeBuilder.close()
 
         s.asMap_set("geom", planes)
-        s.asMap_set("color", Supplier { background });
+        s.asMap_set("color", Supplier { background })
+
+        var tick = 0
+
         fbo.scene.attach(-101, {
             if (STEREO)
                 GL11.glEnable(GL11.GL_CLIP_PLANE0);
@@ -177,7 +183,14 @@ class Stage(val w: Int, val h: Int) : AsMap {
 //            GL11.glEnable(GL32.GL_DEPTH_CLAMP)
             GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 //            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
+
+//            if (tick++ < LATENCY*8)
+//                GL11.glClear(GL11.GL_COLOR_BUFFER_BIT or GL11.GL_DEPTH_BUFFER_BIT)
+
             false
+
+//            tick++ < LATENCY
+
         })
         fbo.scene.attach("background_clear", s)
         fbo.scene.attach(-101, Scene.Perform {
