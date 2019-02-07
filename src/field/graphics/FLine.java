@@ -7,7 +7,6 @@ import fieldbox.boxes.Box;
 import fieldbox.execution.Completion;
 import fieldbox.execution.HandlesCompletion;
 import fieldbox.execution.JavaSupport;
-import fieldnashorn.Watchdog;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import jdk.nashorn.api.scripting.ScriptUtils;
@@ -1327,6 +1326,26 @@ public class FLine implements Supplier<FLine>, fieldlinker.AsMap, HandlesComplet
 		FLinesAndJavaShapes.Cursor c = cursor();
 		c.setD(Math.max(0, Math.min(1, alpha)) * c.lengthD());
 		return c.position();
+	}
+
+
+	/**
+	 * returns a position on this line that's `distance` along it: specifically when `distance=0` then we're at the start of the line, when `alpha=0.5` then we are in the middle, when
+	 * `distance=line.length()` we're at the end.
+	 */
+	public Vec3 sampleAtD(double distance) {
+		FLinesAndJavaShapes.Cursor c = cursor();
+		c.setD(distance);
+		return c.position();
+	}
+
+
+	/**
+	 * how long is this line?
+	 */
+	public float length() {
+		FLinesAndJavaShapes.Cursor c = cursor();
+		return c.lengthD();
 	}
 
 	/**

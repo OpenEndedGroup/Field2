@@ -27,6 +27,7 @@ import trace.graphics.remote.RemoteStageLayerHelper
 import trace.input.Buttons
 import trace.input.WebcamDriver
 import trace.util.FLineToSVG
+import trace.util.LinePiper
 import trace.video.ImageCache
 import trace.video.Syphon
 import trace.video.TwinTextureCache
@@ -112,20 +113,20 @@ class Stage(val w: Int, val h: Int) : AsMap {
     @Documentation("The background color of the stage")
     var background = Vec4(0.5, 0.5, 0.5, 1.0)
 
-    var window: Window? = null;
-    var isOut = false;
+    var window: Window? = null
+    var isOut = false
 
     companion object {
         var stageNum: Int = 0
 
         @JvmStatic
-        var rs = RemoteServer()
-        var max_vertex = 60000;
-        var max_element = 60000;
-        var doRemote = true;
+        var rs: RemoteServer? = null //= RemoteServer()
+        var max_vertex = 60000
+        var max_element = 60000
+        var doRemote = false
     }
 
-    val thisStageNum: Int;
+    val thisStageNum: Int
 
 
     @HiddenInAutocomplete
@@ -134,9 +135,9 @@ class Stage(val w: Int, val h: Int) : AsMap {
     val clear_fragment = BoxDefaultCode.findSource(this.javaClass, "clear_fragment")
 
     @HiddenInAutocomplete
-    val saver: SaverFBO;
+    val saver: SaverFBO
 
-    val LATENCY = 8;
+    val LATENCY = 8
 
     init {
         thisStageNum = stageNum++
@@ -151,12 +152,12 @@ class Stage(val w: Int, val h: Int) : AsMap {
         val prefix = File(base + Saver.pad(x))
         prefix.mkdirs()
 
-        saver = SaverFBO(w, h, 4, prefix.absolutePath + File.separatorChar + "s_", { fbo })
+        saver = SaverFBO(w, h, 4, prefix.absolutePath + File.separatorChar + "s_") { fbo }
 
         val s = Shader()
 
-        s.addSource(Shader.Type.vertex, clear_vertex);
-        s.addSource(Shader.Type.fragment, clear_fragment);
+        s.addSource(Shader.Type.vertex, clear_vertex)
+        s.addSource(Shader.Type.fragment, clear_fragment)
 
         val planes = BaseMesh.triangleList(0, 0)
         val planeBuilder = MeshBuilder(planes)
@@ -175,14 +176,14 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
         var tick = 0
 
-        fbo.scene.attach(-101, {
+        fbo.scene.attach(-101) {
             if (STEREO)
-                GL11.glEnable(GL11.GL_CLIP_PLANE0);
-            GL11.glEnable(GL11.GL_BLEND);
+                GL11.glEnable(GL11.GL_CLIP_PLANE0)
+            GL11.glEnable(GL11.GL_BLEND)
             GL11.glDisable(GL11.GL_DEPTH_TEST)
             GL11.glDepthFunc(GL11.GL_LESS)
 //            GL11.glEnable(GL32.GL_DEPTH_CLAMP)
-            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
 //            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
 
 //            if (tick++ < LATENCY*8)
@@ -192,11 +193,11 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
 //            tick++ < LATENCY
 
-        })
+        }
         fbo.scene.attach("background_clear", s)
         fbo.scene.attach(-101, Scene.Perform {
             GL11.glClearDepth(1.0)
-            GL11.glClear(GL11.GL_COLOR_BUFFER_BIT or GL11.GL_DEPTH_BUFFER_BIT);
+            GL11.glClear(GL11.GL_COLOR_BUFFER_BIT or GL11.GL_DEPTH_BUFFER_BIT)
             false
         })
 
@@ -272,19 +273,20 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
 
     inner class ShaderGroup(val name: String) {
-        val line = BaseMesh.lineList(0, 0).setInstances({ if (OculusDrawTarget2.isVR != null || STEREO) 2 else 1 })
+        val line = BaseMesh.lineList(0, 0).setInstances { if (OculusDrawTarget2.isVR != null || STEREO) 2 else 1 }
         val lineBuilder = MeshBuilder(line)
-        val planes = BaseMesh.triangleList(0, 0).setInstances({ if (OculusDrawTarget2.isVR != null || STEREO) 2 else 1 })
+        val planes = BaseMesh.triangleList(0, 0).setInstances { if (OculusDrawTarget2.isVR != null || STEREO) 2 else 1 }
         val planeBuilder = MeshBuilder(planes)
-        val points = BaseMesh.pointList(0).setInstances({ if (OculusDrawTarget2.isVR != null || STEREO) 2 else 1 })
+        val points = BaseMesh.pointList(0).setInstances { if (OculusDrawTarget2.isVR != null || STEREO) 2 else 1 }
         val pointBuilder = MeshBuilder(points)
-        val post = IdempotencyMap<Runnable>(Runnable::class.java);
+        val post = IdempotencyMap<Runnable>(Runnable::class.java)
 
-        val remoteHelper = if (doRemote) RemoteStageLayerHelper(rs.s, max_vertex, max_element, -1, name) else null
+        val remoteHelper = if (doRemote) RemoteStageLayerHelper(rs!!.s, max_vertex, max_element, -1, name) else null
 
+        val lines = IdempotencyMap<FLine>(FLine::class.java).configureResourceLimits<IdempotencyMap<FLine>>(1000, "too many lines on a stage layer")
         @JvmField
         @Documentation("list of `FLine` to draw, just like `_.lines` but it will appear on this Stage")
-        val lines = IdempotencyMap<FLine>(FLine::class.java).configureResourceLimits<IdempotencyMap<FLine>>(1000, "too many lines on a stage layer")
+        val __lines = LinePiper<IdempotencyMap<FLine>>(lines, { IdempotencyMap(FLine::class.java) }, { it.duplicate() }, LATENCY)
 
         var doTexture = false
         var textureFilename: String? = null
@@ -292,7 +294,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
         @JvmField
         @Documentation("Camera translation. Starts at vec(0,0)")
-        var translation = Vec2();
+        var translation = Vec2()
 
         @JvmField
         @Documentation("Camera 'scale'. Numbers >1 zoom in, Numbers <1 zoom out. Starts as vec(1,1).")
@@ -300,7 +302,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
         @JvmField
         @Documentation("The opacity of this layer")
-        var opacity = 1.0;
+        var opacity = 1.0
 
         @JvmField
         @Documentation("If this layer is a video layer this `time` represents the fraction through the video that we are. i.e. 0 is the very first frame and 1 is the very last frame.")
@@ -317,23 +319,23 @@ class Stage(val w: Int, val h: Int) : AsMap {
         @Documentation("Sets the scale of this box. The origin is in the bottom left, and 'bounds' is in the top right. Defaults to vec(100,100")
         var bounds = Vec2(100.0, 100.0)
 
-        var shader: Triple<Shader?, Shader?, Shader?>? = null;
+        var shader: Triple<Shader?, Shader?, Shader?>? = null
 
         @JvmField
         @Documentation("Sets any color remapping code that's applied to this layer")
-        var colorRemap = "";
+        var colorRemap = ""
 
         @JvmField
         @Documentation("Color to multiply this video by")
-        var colorMul = Vec3(1, 1, 1);
+        var colorMul = Vec3(1, 1, 1)
 
         @JvmField
         @Documentation("Color to add to this video")
-        var colorAdd = Vec3(0, 0, 0);
+        var colorAdd = Vec3(0, 0, 0)
 
         @JvmField
         @Documentation("Sets any space remapping code that's applied to this layer")
-        var spaceRemap = "";
+        var spaceRemap = ""
 
         @JvmField
         @Documentation("How much is the camera rotated (in degrees)")
@@ -349,7 +351,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
         @JvmField
         @Documentation("How much is left stereo texture shifted with respect to the right")
-        var leftOffset = Vec3(0, 0, 0);
+        var leftOffset = Vec3(0, 0, 0)
 
 
         @JvmField
@@ -363,18 +365,18 @@ class Stage(val w: Int, val h: Int) : AsMap {
         var camera: SimpleCamera
 
         @JvmField
-        var is3D = STEREO;
+        var is3D = STEREO
 
         @JvmField
-        var sides = 0;
+        var sides = 0
 
         var keyboardCamera: KeyboardCamera? = null
 
         init {
-            var s = __camera.state
-            s.aspect = (w / h.toFloat());
+            val s = __camera.state
+            s.aspect = (w / h.toFloat())
             if (STEREO)
-                s.aspect *= 0.5f;
+                s.aspect *= 0.5f
             s.target = Vec3(0.0, 0.0, 0.0)
             s.up = Vec3(0.0, -1.0, 0.0)
             s.position = Vec3(0.0, 0.0, 2.0)
@@ -388,8 +390,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
         }
 
-        fun toSVG(fn : String)
-        {
+        fun toSVG(fn: String) {
             val f = FLineToSVG(fn)
             lines.values.forEach {
                 f.addLine(it, this)
@@ -406,7 +407,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
                 this.is3D = true
                 this.bounds = Vec2(1.0, 1.0)
                 this.translation = Vec2(-0.5, -0.5)
-                var s = this.__camera.getState()
+                val s = this.__camera.getState()
                 val y = 1.6
                 s.position = Vec3(0, y, -2)
                 s.target = Vec3(0, y, 0)
@@ -435,73 +436,73 @@ class Stage(val w: Int, val h: Int) : AsMap {
             return shader!!.first!!
         }
 
-        private var vrOptIn = 0f;
+        private var vrOptIn = 0f
 
         val builders = mutableMapOf<String, kotlin.Pair<MeshBuilder, BaseMesh>>()
 
 
         fun lineBuilder(name: String): MeshBuilder {
-            return builders.computeIfAbsent(name, {
+            return builders.computeIfAbsent(name) {
 
-                val geometry = BaseMesh.lineList(0, 0).setInstances({ if (OculusDrawTarget2.isVR != null || STEREO) 2 else 1 })
+                val geometry = BaseMesh.lineList(0, 0).setInstances { if (OculusDrawTarget2.isVR != null || STEREO) 2 else 1 }
                 val builder = MeshBuilder(geometry)
 
                 shader!!.second!!.asMap_set(name, geometry)
 
                 builder to geometry
-            }).first
+            }.first
         }
 
         fun lineAdjBuilder(name: String): MeshBuilder {
-            return builders.computeIfAbsent(name, {
+            return builders.computeIfAbsent(name) {
 
-                val geometry = BaseMesh.lineAdjecencyList(0, 0).setInstances({ if (OculusDrawTarget2.isVR != null || STEREO) 2 else 1 })
+                val geometry = BaseMesh.lineAdjecencyList(0, 0).setInstances { if (OculusDrawTarget2.isVR != null || STEREO) 2 else 1 }
                 val builder = MeshBuilder(geometry)
 
                 shader!!.second!!.asMap_set(name, geometry)
 
                 builder to geometry
-            }).first
+            }.first
         }
 
         fun triangleBuilder(name: String): MeshBuilder {
-            return builders.computeIfAbsent(name, {
+            return builders.computeIfAbsent(name) {
 
-                val geometry = BaseMesh.triangleList(0, 0).setInstances({ if (OculusDrawTarget2.isVR != null || STEREO) 2 else 1 })
+                val geometry = BaseMesh.triangleList(0, 0).setInstances { if (OculusDrawTarget2.isVR != null || STEREO) 2 else 1 }
                 geometry.setInstances(2)
                 val builder = MeshBuilder(geometry)
 
                 shader!!.first!!.asMap_set(name, geometry)
 
-                geometry.attach(-100, {
+                geometry.attach(-100) {
                     GL11.glEnable(GL11.GL_DEPTH_TEST)
                     GL11.glDepthFunc(GL11.GL_LESS)
                     GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT)
                     true
-                })
+                }
 
-                geometry.attach(100, {
+                geometry.attach(100) {
                     GL11.glDisable(GL11.GL_DEPTH_TEST)
                     GL11.glDepthFunc(GL11.GL_LESS)
                     GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT)
                     true
-                })
+                }
 
                 builder to geometry
-            }).first
+            }.first
         }
 
         fun pointBuilder(name: String): MeshBuilder {
-            return builders.computeIfAbsent(name, {
+            return builders.computeIfAbsent(name) {
 
-                val geometry = BaseMesh.pointList(0).setInstances({ if (OculusDrawTarget2.isVR != null || STEREO) 2 else 1 })
+                val geometry = BaseMesh.pointList(0).setInstances { if (OculusDrawTarget2.isVR != null || STEREO) 2 else 1 }
                 geometry.setInstances(2)
                 val builder = MeshBuilder(geometry)
 
                 shader!!.third!!.asMap_set(name, geometry)
 
                 builder to geometry
-            }).first
+            }.first
         }
 
         fun vrGazeDirection(): Vec3 {
@@ -513,10 +514,10 @@ class Stage(val w: Int, val h: Int) : AsMap {
             m = Mat4.mul(m, m2, Mat4())
             m.invert()
 
-            var a = m.transform(Vec4(0.0, 0.0, 0.0, 1.0))
-            var b = m.transform(Vec4(0.0, 0.0, -1.0, 1.0))
-            var a2 = Vec3(a.x, a.y, a.z) * (1 / a.w)
-            var b2 = Vec3(b.x, b.y, b.z) * (1 / b.w)
+            val a = m.transform(Vec4(0.0, 0.0, 0.0, 1.0))
+            val b = m.transform(Vec4(0.0, 0.0, -1.0, 1.0))
+            val a2 = Vec3(a.x, a.y, a.z) * (1 / a.w)
+            val b2 = Vec3(b.x, b.y, b.z) * (1 / b.w)
 
             return b2 - a2
 
@@ -531,9 +532,9 @@ class Stage(val w: Int, val h: Int) : AsMap {
             m = Mat4.mul(m, m2, Mat4())
             m.invert()
 
-            var a = m.transform(Vec4(0.0, 0.0, 0.0, 1.0))
-            var b = m.transform(Vec4(0.0, 0.0, -1.0, 1.0))
-            var a2 = Vec3(a.x, a.y, a.z) * (1 / a.w)
+            val a = m.transform(Vec4(0.0, 0.0, 0.0, 1.0))
+            val b = m.transform(Vec4(0.0, 0.0, -1.0, 1.0))
+            val a2 = Vec3(a.x, a.y, a.z) * (1 / a.w)
             var b2 = Vec3(b.x, b.y, b.z) * (1 / b.w)
 
             return a2
@@ -543,11 +544,11 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
         fun vrLeftHandPosition(): Vec3 {
 
-            var at = SimpleOculusTarget.o!!.leftPosition + Vec3(0.0, 1.65, 0.0)
+            val at = SimpleOculusTarget.o!!.leftPosition + Vec3(0.0, 1.65, 0.0)
             var m2 = Mat4(__camera.view().get())
             m2 = m2.transpose()
             m2 = m2.invert()
-            var al = m2.transform(Vec4(at, 1.0))
+            val al = m2.transform(Vec4(at, 1.0))
 
             println(al)
             return Vec3(al.x, al.y, al.z) * (1 / al.w)
@@ -556,7 +557,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
         fun vrLeftHandDirection(): Vec3 {
 
-            val m = Mat4();
+            val m = Mat4()
             m.identity()
             val o = SimpleOculusTarget.o!!.leftOrientation
 
@@ -571,15 +572,15 @@ class Stage(val w: Int, val h: Int) : AsMap {
             var m2 = Mat4(__camera.view().get())
             m2 = m2.transpose()
             m2 = m2.invert()
-            var al = m2.transform(Vec4(dir, 0.0))
+            val al = m2.transform(Vec4(dir, 0.0))
 
-            return Vec3(al.x, al.y, al.z);
+            return Vec3(al.x, al.y, al.z)
         }
 
 
         fun vrRightHandDirection(): Vec3 {
 
-            val m = Mat4();
+            val m = Mat4()
             m.identity()
             val o = SimpleOculusTarget.o!!.rightOrientation
 
@@ -594,19 +595,19 @@ class Stage(val w: Int, val h: Int) : AsMap {
             var m2 = Mat4(__camera.view().get())
             m2 = m2.transpose()
             m2 = m2.invert()
-            var al = m2.transform(Vec4(dir, 0.0))
+            val al = m2.transform(Vec4(dir, 0.0))
 
-            return Vec3(al.x, al.y, al.z);
+            return Vec3(al.x, al.y, al.z)
         }
 
 
         fun vrRightHandPosition(): Vec3 {
 
-            var at = SimpleOculusTarget.o!!.rightPosition + Vec3(0.0, 1.65, 0.0)
+            val at = SimpleOculusTarget.o!!.rightPosition + Vec3(0.0, 1.65, 0.0)
             var m2 = Mat4(__camera.view().get())
             m2 = m2.transpose()
             m2 = m2.invert()
-            var al = m2.transform(Vec4(at, 1.0))
+            val al = m2.transform(Vec4(at, 1.0))
 
             println(al)
             return Vec3(al.x, al.y, al.z) * (1 / al.w)
@@ -716,7 +717,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
             }
 
 
-            fbo.scene.attach(-100, "__doGeometry__" + name, Consumer<Int> {
+            fbo.scene.attach(-100, "__doGeometry__" + name) {
 
                 if (!layerIsDone) {
 
@@ -726,7 +727,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
                     planeBuilder.open()
                     pointBuilder.open()
                     try {
-                        lines.values.forEach {
+                        __lines.tailUpdate().values.forEach {
                             if (doTexture)
                                 it.addAuxProperties(4, StandardFLineDrawing.texCoord.name)
                             StandardFLineDrawing.dispatchLine(it, planeBuilder, lineBuilder, pointBuilder, Optional.empty(), "")
@@ -739,7 +740,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
                     remoteHelper?.update(this)
                 }
                 post.values.forEach { it.run() }
-            })
+            }
             groups[name] = this
             return this
         }
@@ -811,7 +812,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
         s3.addSource(Shader.Type.geometry, default_geometry_points)
         s3.addSource(Shader.Type.fragment, default_fragment_points)
 
-        return Triple(s1, s2, s3);
+        return Triple(s1, s2, s3)
     }
 
     fun bindShaderToBox(name: String, box: Box, kind: Int) {
@@ -864,8 +865,8 @@ class Stage(val w: Int, val h: Int) : AsMap {
             mutableMapOf("COLOR_REMAP" to sg.colorRemap, "SPACE_REMAP" to sg.spaceRemap)
         }))
 
-        var tt = Texture(Texture.TextureSpecification.fromJpeg(3, filename, true))
-        var tt2 = Texture(Texture.TextureSpecification.fromJpeg(4, filename, true))
+        val tt = Texture(Texture.TextureSpecification.fromJpeg(3, filename, true))
+        val tt2 = Texture(Texture.TextureSpecification.fromJpeg(4, filename, true))
 
         s1.asMap_set("source", tt)
         s1.asMap_set("source2", tt2)
@@ -892,23 +893,23 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
         try {
             val box = Execution.context.get().peek()
-            s1.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"));
-            s1.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"));
-            s1.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"));
-            s1.setOnError(errorHandler(box, "color_remap"));
-            s2.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"));
-            s2.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"));
-            s2.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"));
-            s2.setOnError(errorHandler(box, "color_remap"));
-            s3.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"));
-            s3.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"));
-            s3.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"));
-            s3.setOnError(errorHandler(box, "color_remap"));
+            s1.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"))
+            s1.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"))
+            s1.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"))
+            s1.setOnError(errorHandler(box, "color_remap"))
+            s2.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"))
+            s2.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"))
+            s2.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"))
+            s2.setOnError(errorHandler(box, "color_remap"))
+            s3.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"))
+            s3.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"))
+            s3.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"))
+            s3.setOnError(errorHandler(box, "color_remap"))
         } catch (e: Throwable) {
             e.printStackTrace()
         }
 
-        sg.setShader(Triple(s1, s2, s3));
+        sg.setShader(Triple(s1, s2, s3))
         sg.doTexture = true
         sg.textureFilename = filename
         sg.textureDimensions = Vec2(tt.specification.width, tt.specification.height)
@@ -961,23 +962,23 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
         try {
             val box = Execution.context.get().peek()
-            s1.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"));
-            s1.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"));
-            s1.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"));
-            s1.setOnError(errorHandler(box, "color_remap"));
-            s2.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"));
-            s2.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"));
-            s2.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"));
-            s2.setOnError(errorHandler(box, "color_remap"));
-            s3.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"));
-            s3.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"));
-            s3.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"));
-            s3.setOnError(errorHandler(box, "color_remap"));
+            s1.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"))
+            s1.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"))
+            s1.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"))
+            s1.setOnError(errorHandler(box, "color_remap"))
+            s2.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"))
+            s2.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"))
+            s2.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"))
+            s2.setOnError(errorHandler(box, "color_remap"))
+            s3.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"))
+            s3.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"))
+            s3.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"))
+            s3.setOnError(errorHandler(box, "color_remap"))
         } catch (e: Throwable) {
             e.printStackTrace()
         }
 
-        sg.setShader(Triple(s1, s2, s3));
+        sg.setShader(Triple(s1, s2, s3))
         sg.doTexture = true
         sg.textureFilename = filename
         sg.textureDimensions = Vec2(tt.specification.width, tt.specification.height)
@@ -1029,25 +1030,25 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
         try {
             val box = Execution.context.get().peek()
-            s1.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"));
-            s1.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"));
-            s1.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"));
-            s1.setOnError(errorHandler(box, "color_remap"));
-            s2.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"));
-            s2.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"));
-            s2.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"));
-            s2.setOnError(errorHandler(box, "color_remap"));
-            s3.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"));
-            s3.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"));
-            s3.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"));
-            s3.setOnError(errorHandler(box, "color_remap"));
+            s1.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"))
+            s1.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"))
+            s1.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"))
+            s1.setOnError(errorHandler(box, "color_remap"))
+            s2.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"))
+            s2.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"))
+            s2.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"))
+            s2.setOnError(errorHandler(box, "color_remap"))
+            s3.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"))
+            s3.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"))
+            s3.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"))
+            s3.setOnError(errorHandler(box, "color_remap"))
         } catch (e: Throwable) {
             e.printStackTrace()
         }
 
-        sg.setShader(Triple(s1, s2, s3));
+        sg.setShader(Triple(s1, s2, s3))
         sg.doTexture = true
-        sg.webcamDriver = wd;
+        sg.webcamDriver = wd
         sg.post.put("texupdate", Runnable {
             println(" wd update")
             wd.update()
@@ -1102,14 +1103,14 @@ class Stage(val w: Int, val h: Int) : AsMap {
         // todo image size
         if (map.length() == 0) throw IllegalArgumentException(" doesn't seem to be any .jpg files in directory $filename ?")
 
-        val fn = map.apply(0);
-        val dim = FastJPEG.j.dimensions(fn);
+        val fn = map.apply(0)
+        val dim = FastJPEG.j.dimensions(fn)
 
         val ic = ImageCache(dim[0], dim[1], 300, 40, map)
         val cache = TwinTextureCache(0, ic)
         cache.setPlaying(true)
 
-        ImageCache.synchronous = true;
+        ImageCache.synchronous = true
 
         cache.setTime(1.0)
 //        cache.update()
@@ -1145,26 +1146,26 @@ class Stage(val w: Int, val h: Int) : AsMap {
             if (sg.frameSet) {
                 sg.frameSet = false
                 sg.time = sg._frame / map.length().toDouble()
-                cache.setTime(sg._frame.toDouble());
+                cache.setTime(sg._frame.toDouble())
             } else
-                cache.setTime(map.length() * sg.time);
+                cache.setTime(map.length() * sg.time)
             cache.update()
         })
 
         try {
             val box = Execution.context.get().peek()
-            s1.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"));
-            s1.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"));
-            s1.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"));
-            s1.setOnError(errorHandler(box, "color_remap"));
-            s2.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"));
-            s2.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"));
-            s2.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"));
-            s2.setOnError(errorHandler(box, "color_remap"));
-            s3.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"));
-            s3.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"));
-            s3.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"));
-            s3.setOnError(errorHandler(box, "color_remap"));
+            s1.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"))
+            s1.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"))
+            s1.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"))
+            s1.setOnError(errorHandler(box, "color_remap"))
+            s2.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"))
+            s2.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"))
+            s2.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"))
+            s2.setOnError(errorHandler(box, "color_remap"))
+            s3.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"))
+            s3.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"))
+            s3.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"))
+            s3.setOnError(errorHandler(box, "color_remap"))
         } catch (e: IndexOutOfBoundsException) {
             e.printStackTrace()
         }
@@ -1181,7 +1182,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
         val g = ShaderGroup(name)
         g.setShader(defaultShader(g))
-        return g;
+        return g
     }
 
     // should texturing somehow be default?
@@ -1217,12 +1218,12 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
         try {
             val box = Execution.context.get().peek()
-            s1.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"));
-            s1.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"));
-            s1.setOnError(errorHandler(box, "color_remap"));
-            s2.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"));
-            s2.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"));
-            s2.setOnError(errorHandler(box, "color_remap"));
+            s1.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"))
+            s1.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"))
+            s1.setOnError(errorHandler(box, "color_remap"))
+            s2.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"))
+            s2.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"))
+            s2.setOnError(errorHandler(box, "color_remap"))
         } catch (e: IndexOutOfBoundsException) {
             e.printStackTrace()
         }
@@ -1234,7 +1235,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
     private var insideViewport: Viewport? = null
 
     fun show(name: String, v: Viewport): Shader {
-        insideViewport = v;
+        insideViewport = v
         return showScene(name, (v get Viewport.scene)!!, { isOut }, { v.properties.get(Box.frame).w / v.properties.get(Box.frame).h.toDouble() }, false)
     }
 
@@ -1247,7 +1248,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
             it.apply(box, masterShader!!)
         }
 
-        return masterShader!!;
+        return masterShader!!
     }
 
     fun showScene(name: String, scene: Scene, disabled: () -> Boolean, asp: () -> Double, isFullscreen: Boolean): Shader {
@@ -1292,18 +1293,18 @@ class Stage(val w: Int, val h: Int) : AsMap {
         planeBuilder.e(0, 1, 2)
         planeBuilder.e(0, 2, 3)
         planeBuilder.close()
-        s.asMap_set("tex", fbo);
-        s.asMap_set("geom", planes);
-        s.asMap_set("aspect", Supplier { ((h) / w.toFloat()) * asp() });
+        s.asMap_set("tex", fbo)
+        s.asMap_set("geom", planes)
+        s.asMap_set("aspect", Supplier { ((h) / w.toFloat()) * asp() })
 
-        scene.asMap_set(name, s);
+        scene.asMap_set(name, s)
         scene.attach(-100, "__draw__" + name, Consumer<Int> {
             fbo.draw()
         })
 
-        masterShader = s;
+        masterShader = s
 
-        return s;
+        return s
     }
 
     @JvmField
@@ -1316,9 +1317,9 @@ class Stage(val w: Int, val h: Int) : AsMap {
     fun popOut(): Shader? {
         if (isOut) {
             // toFront
-            return null;
+            return null
         }
-        isOut = true;
+        isOut = true
 
         return ThreadSync2.callInMainThreadAndWait(Callable {
             if (window == null) {
@@ -1350,8 +1351,8 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
     // can only be called by closing window
     private fun popIn() {
-        window = null;
-        isOut = false;
+        window = null
+        isOut = false
     }
 
     /**
@@ -1362,7 +1363,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
             // assume continuous loop
         } else {
             if (insideViewport != null) {
-                Drawing.dirty(insideViewport!!)
+                Drawing.dirty(insideViewport!!, LATENCY)
             }
         }
     }
@@ -1374,7 +1375,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
     fun frame(): Boolean {
 
         redraw()
-        val r = ThreadSync2Feedback.maybeYield();
+        val r = ThreadSync2Feedback.maybeYield()
         previousFrameAt = System.currentTimeMillis()
         return r
     }

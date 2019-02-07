@@ -6,6 +6,7 @@ import field.utility.IdempotencyMap
 import field.utility.Options
 import fieldbox.boxes.plugins.Exec
 import fieldlinker.AsMap
+import java.lang.IllegalArgumentException
 
 import java.util.*
 import java.util.concurrent.*
@@ -16,14 +17,12 @@ import java.util.function.*
  */
 class ThreadSync2 {
 
-    interface TrappedReturn
-    {
-        fun notifyReturn(a : Any?)
+    interface TrappedReturn {
+        fun notifyReturn(a: Any?)
     }
 
-    interface TrappedExecutorName
-    {
-        fun executionNamePrefix() : String
+    interface TrappedExecutorName {
+        fun executionNamePrefix(): String
     }
 
 
@@ -68,6 +67,8 @@ class ThreadSync2 {
         @JvmField
         var d = Dict()
 
+        var customExecutor : ExecutorService? = null
+
         @Volatile
         @JvmField
         var finished = false
@@ -99,6 +100,9 @@ class ThreadSync2 {
         var license: Any? = null
 
         fun yield() {
+
+            if (customExecutor!=ThreadSync2.executor) throw IllegalArgumentException(" can't wait() on this thread (are you inside the audio thread?) ")
+
             output.put(license)
             license = null
 
@@ -109,7 +113,17 @@ class ThreadSync2 {
             serviceAlso(also)
 
             try {
-                license = input.take()
+
+//                license = input.take()
+                var pl: Any? = null
+                while (pl == null) {
+                    pl = input.poll(1, TimeUnit.SECONDS)
+                    if (pl == null) {
+                        System.err.println(" -- waited in ${Thread.currentThread().name} for 5 seconds inside yield(), still waiting --")
+                    }
+                }
+
+                license = pl
             } catch (e: InterruptedException) {
 
             }
@@ -127,6 +141,7 @@ class ThreadSync2 {
             this.license = license
             e.submit {
                 thisFibre.set(this)
+                thisThread = Thread.currentThread()
 
                 try {
                     lastReturn = r.call()
@@ -221,7 +236,13 @@ class ThreadSync2 {
             else {
                 val ll = license
                 license = null
-                f.input.put(ll)
+
+//                f.input.put(ll)
+
+                while (!f.input.offer(ll, 5, TimeUnit.SECONDS)) {
+                    System.err.println(" waited 5 seconds to fibre $f from ${Thread.currentThread()}")
+                }
+
                 license = f.output.take()
             }
 
@@ -237,6 +258,7 @@ class ThreadSync2 {
     fun launchAndServiceOnce(r: Callable<*>, e: ExecutorService = executor): Fibre? {
         // call only from "main thread"
         val f = Fibre()
+        f.customExecutor = e
         val ll = license
         license = null
         f.launch(ll, r, e)
@@ -252,6 +274,7 @@ class ThreadSync2 {
     fun launchAndServiceOnce(debugText: String, r: Callable<*>, t: Consumer<Throwable>, e: ExecutorService = executor): Fibre? {
         // call only from "main thread"
         val f = Fibre()
+        f.customExecutor = e
         f.debugText = debugText
         f.errorHandler = t
         val ll = license

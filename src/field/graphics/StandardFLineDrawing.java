@@ -241,7 +241,7 @@ public class StandardFLineDrawing {
 				.filter(node -> node.attributes.has(text))
 				.forEach(node -> {
 					String textToDraw = "" + node.attributes.get(text);
-					float textScale = node.attributes.getFloat(StandardFLineDrawing.textScale, 1f) * 0.15f;
+					float textScale = node.attributes.getFloat(StandardFLineDrawing.textScale, 1f) * 0.12f;
 					float align = node.attributes.getFloat(StandardFLineDrawing.textAlign, 0.5f);
 					ot.map(t -> t.getFontSupport(fline.attributes.getOr(font, () -> "source-sans-pro-regular-92.fnt"), layerName))
 						.ifPresent(fs -> {
@@ -258,7 +258,7 @@ public class StandardFLineDrawing {
 					java.util.List<String> textToDraw = node.attributes.get(textSpans);
 					java.util.List<String> fontToDraw = node.attributes.get(fontSpans);
 					java.util.List<Vec4> colorsToDraw = node.attributes.get(textColorSpans);
-					float textScale = node.attributes.getFloat(StandardFLineDrawing.textScale, 1f) * 0.15f;
+					float textScale = node.attributes.getFloat(StandardFLineDrawing.textScale, 1f) * 0.12f;
 					String prev = "source-sans-pro-regular-92.fnt";
 					Vec4 prevColor = fc;
 

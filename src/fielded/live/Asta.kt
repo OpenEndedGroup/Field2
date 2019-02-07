@@ -177,6 +177,7 @@ class Asta {
             if (b is OverloadedMath.ReducedWhenOverloaded) b = b.get()
 
             if (a is Number && b is Number) return a.toDouble() + b.toDouble()
+            if (a is String || b is String) return a.toString() + b.toString()
 
             if (a == null) throw NullPointerException("can't add `$a` and `$b`")
             if (b == null) throw NullPointerException("can't add `$a` and `$b`")
@@ -554,7 +555,7 @@ class Asta {
         })
 
         r.sourceElements.forEach {
-//            print("\n\n sourceElement: $it\n\n")
+            //            print("\n\n sourceElement: $it\n\n")
             recurOver(it, 0, v)
         }
 
@@ -633,7 +634,7 @@ class Asta {
 
             var (s, e) = startAndEndPositionFor(it)
 
-            actions.add { replaced = replaced.replaceRange(s, e, reconstructOver(it, 0, v, forbiddenRanges, parent = null, box = box, hash=0L)) }
+            actions.add { replaced = replaced.replaceRange(s, e, reconstructOver(it, 0, v, forbiddenRanges, parent = null, box = box, hash = 0L)) }
         }
 
         actions.reversed().forEach { it() }
@@ -685,7 +686,7 @@ class Asta {
 
     private fun reconstructOver(tree: Tree, i: Int, v: String, forbiddenRanges: List<Pair<Long, Long>>, parent: Tree? = null, box: Box, hash: Long): String {
 
-        if (debug) println("${indent(i)}" + tree.kind+" ##"+hash)
+        if (debug) println("${indent(i)}" + tree.kind + " ##" + hash)
         val children = childrenFor(tree)
 
         var (start, end) = startAndEndPositionFor(tree, true)
@@ -698,7 +699,8 @@ class Asta {
         if (options.overloads && tree is BinaryTree && tree.kind in trapKinds && !forbidden(tree.startPosition, tree.endPosition, forbiddenRanges)) {
 //            if (debug) println(" ** binary operator :" + tree)
 
-            if (!(text.contains("'") || text.contains("\"") || text.contains("`"))) {
+//            if (!(text.contains("'") || text.contains("\"") || text.contains("`")))
+            if (true) {
 
                 // is this inside the initializer of a for loop? if so, replacing anything here will wreck everyone's offsets
 
@@ -706,11 +708,11 @@ class Asta {
                 val right = children.get(1)
 
                 val (sr, er) = startAndEndPositionFor(right)
-                var rightR = reconstructOver(right, i + 5, v, forbiddenRanges, parent, box, hash=31*hash+hashFor(right, "right".hashCode().toLong()))//text.replaceRange((sr - start).toInt()..(er - start - 1).toInt(), )
+                var rightR = reconstructOver(right, i + 5, v, forbiddenRanges, parent, box, hash = 31 * hash + hashFor(right, "right".hashCode().toLong()))//text.replaceRange((sr - start).toInt()..(er - start - 1).toInt(), )
 
 
                 val (sc, ec) = startAndEndPositionFor(left)
-                var leftR = reconstructOver(left, i + 5, v, forbiddenRanges, parent, box, hash=31*hash+hashFor(left, "left".hashCode().toLong()))//rightR.replaceRange((sc - start).toInt()..(ec - start - 1).toInt())
+                var leftR = reconstructOver(left, i + 5, v, forbiddenRanges, parent, box, hash = 31 * hash + hashFor(left, "left".hashCode().toLong()))//rightR.replaceRange((sc - start).toInt()..(ec - start - 1).toInt())
 
                 if (debug) println(" -> leftR : $leftR")
 
@@ -747,7 +749,7 @@ class Asta {
 
         if (options.functionRewrite && tree is IdentifierTree && tree.kind.equals(Tree.Kind.IDENTIFIER) && parent != null && parent is FunctionCallTree) {
             // lookup
-            if (debug) System.out.println(" functional name '"+tree.name+"' "+tree)
+            if (debug) System.out.println(" functional name '" + tree.name + "' " + tree)
             val newName = rewriteFunctionName(tree.name, start, end, box, hash)
             if (newName != null) {
                 return newName
@@ -762,7 +764,7 @@ class Asta {
             if (debug) println("${indent(i + 2)} replace range ${(s - start).toInt()..(e - start - 1).toInt()}  : '" + text.substring((s - start).toInt()..(e - start - 1).toInt()) + "'")
 
 //            text = text.replaceRange((c.startPosition - start).toInt()..(c.endPosition - start - 1).toInt(), reconstructOver(c, i + 5, v))
-            text = text.replaceRange((s - start).toInt()..(e - start - 1).toInt(), reconstructOver(c, i + 5, v, forbiddenRanges, parent = tree, box = box, hash=hash*31+hashFor(c, n.toLong())))
+            text = text.replaceRange((s - start).toInt()..(e - start - 1).toInt(), reconstructOver(c, i + 5, v, forbiddenRanges, parent = tree, box = box, hash = hash * 31 + hashFor(c, n.toLong())))
             n--
         }
 
@@ -772,12 +774,12 @@ class Asta {
         return text
     }
 
-    private fun hashFor(c: Tree, salt: Long =0): Long {
-        System.out.println("HASH? "+c.kind.hashCode())
-        return c.kind.hashCode().toLong()*31+salt
+    private fun hashFor(c: Tree, salt: Long = 0): Long {
+        System.out.println("HASH? " + c.kind.hashCode())
+        return c.kind.hashCode().toLong() * 31 + salt
     }
 
-    private fun rewriteFunctionName(name: String, start: Int, end: Int, box: Box, hash : Long): String? {
+    private fun rewriteFunctionName(name: String, start: Int, end: Int, box: Box, hash: Long): String? {
         return (box up OverloadedMath.functionRewriteTrap)?.apply(box, name, hash)
     }
 
@@ -838,8 +840,12 @@ class Asta {
         var start = c.startPosition.toInt()
         var end = c.endPosition.toInt()
 
-//        println("start/end in $c = $start/$end")
+        println("start/end in $c = $start/$end")
         // Nashorn appears to just lie about the start and end position of some parts of the tree.
+
+        if (c.kind == Tree.Kind.STRING_LITERAL) {
+            return start - 1 to end + 1
+        }
 
         if (/*start == end &&*/ correct) {
             val cc = childrenFor(c)

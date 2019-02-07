@@ -783,7 +783,7 @@ public class Browser extends Box implements IO.Loaded {
 					if (Main.os != Main.OS.windows)
 						browser.setZoomLevel(baseZoomLevel * window.getRetinaScaleFactor());
 					else
-						browser.setZoomLevel(baseZoomLevel * 2);
+						browser.setZoomLevel(baseZoomLevel * 1);
 					lastZoom = baseZoomLevel;
 				}
 //			Log.green("cef", " texture was dirty, uploading ");
