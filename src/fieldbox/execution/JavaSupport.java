@@ -547,7 +547,19 @@ public class JavaSupport {
 								.trim()
 								.length() < 1) continue;
 
+
 							String val = "";
+
+							if (m.getParameters().size()==0)
+							{
+								String s = getDocumentationFromAnnotation(c);
+								if (s!=null)
+								{
+									val += "<span class='doc'>"+MarkdownToHTML.convert(s)+"</span>";
+								}
+
+							}
+
 							boolean tostring = false;
 							if (hasAnnotation(m.getAnnotations(), SafeToToString.class)) {
 								try {
@@ -759,6 +771,15 @@ public class JavaSupport {
 			}
 			Method meth = c.getDeclaredMethod(m.getName(), tt);
 			Documentation d = meth.getAnnotation(Documentation.class);
+			return d == null ? null : d.value();
+		} catch (Throwable e) {
+			return null;
+		}
+	}
+
+	private String getDocumentationFromAnnotation(Class c) {
+		try {
+			Documentation d = (Documentation)c.getAnnotation(Documentation.class);
 			return d == null ? null : d.value();
 		} catch (Throwable e) {
 			return null;

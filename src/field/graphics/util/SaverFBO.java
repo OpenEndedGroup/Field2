@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL30.*;
@@ -34,9 +35,9 @@ public class SaverFBO {
 	private final ExecutorService pool;
 
 	String prefix;
-	private FBO fbo;
+	private Supplier<FBO> fbo;
 
-	public SaverFBO(int width, int height, int numWorkers, String prefix, FBO fbo) {
+	public SaverFBO(int width, int height, int numWorkers, String prefix, Supplier<FBO> fbo) {
 		this.width = width;
 		this.height = height;
 		this.numWorkers = numWorkers;
@@ -44,6 +45,10 @@ public class SaverFBO {
 		this.fbo = fbo;
 
 		pool = Executors.newCachedThreadPool();
+	}
+
+	public SaverFBO(int width, int height, int numWorkers, String prefix, FBO fbo) {
+		this(width, height, numWorkers, prefix, () -> fbo);
 	}
 
 	List<FutureTask<Pair<ByteBuffer, ByteBuffer>>> workers = new ArrayList<>();
@@ -88,8 +93,7 @@ public class SaverFBO {
 	/**
 	 * Opens the directory that this is saving to in the Finder (Mac Only)
 	 */
-	public void open()
-	{
+	public void open() {
 		Desktop.getDesktop().browseFileDirectory(new File(prefix).getParentFile());
 	}
 
@@ -141,7 +145,7 @@ public class SaverFBO {
 		runHooks(storage);
 
 		lastFilename = prefix + pad(frameNumber) + suffix;
-		FutureTask<Pair<ByteBuffer ,ByteBuffer >> task = new FutureTask<>(makeWorker(storage, lastFilename));
+		FutureTask<Pair<ByteBuffer, ByteBuffer>> task = new FutureTask<>(makeWorker(storage, lastFilename));
 		pool.execute(task);
 		workers.add(task);
 
@@ -150,7 +154,7 @@ public class SaverFBO {
 		return true;
 	}
 
-	private void runHooks(Pair<ByteBuffer ,ByteBuffer > storage) {
+	private void runHooks(Pair<ByteBuffer, ByteBuffer> storage) {
 		hooks.values().stream().forEach(x -> x.accept(storage.first));
 	}
 
@@ -169,7 +173,7 @@ public class SaverFBO {
 
 		storage.first.rewind();
 		a[0] = glGetInteger(GL_FRAMEBUFFER_BINDING);
-		glBindFramebuffer(GL_FRAMEBUFFER, fbo.getOpenGLFrameBufferNameInCurrentContext());
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo.get().getOpenGLFrameBufferNameInCurrentContext());
 		glReadPixels(0, 0, width, height, GL12.GL_BGR, GL_UNSIGNED_BYTE, storage.first);
 		glBindFramebuffer(GL_FRAMEBUFFER, a[0]);
 		storage.first.rewind();
@@ -194,12 +198,11 @@ public class SaverFBO {
 		return new Callable<Pair<ByteBuffer, ByteBuffer>>() {
 			public Pair<ByteBuffer, ByteBuffer> call() throws Exception {
 
-				for(int y=0;y<height;y++)
-				{
-					storage.first.position(y*width*3);
-					storage.first.limit((y+1)*width*3);
-					storage.second.position((height-y-1)*width*3);
-					storage.second.limit((height-y-1+1)*width*3);
+				for (int y = 0; y < height; y++) {
+					storage.first.position(y * width * 3);
+					storage.first.limit((y + 1) * width * 3);
+					storage.second.position((height - y - 1) * width * 3);
+					storage.second.limit((height - y - 1 + 1) * width * 3);
 					storage.second.put(storage.first);
 					storage.second.clear();
 					storage.first.clear();

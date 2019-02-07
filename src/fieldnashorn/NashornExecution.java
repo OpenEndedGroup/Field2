@@ -42,73 +42,73 @@ import java.util.stream.Collectors;
  */
 public class NashornExecution implements Execution.ExecutionSupport {
 
-    static public final Dict.Prop<SourceTransformer> sourceTransformer = new Dict.Prop<SourceTransformer>(
-            "sourceTransformer").doc(
-            "an instanceof of a SourceTransformer that will take the source code here and transform it into JavaScript. This allows things like Babel.js to be used in Field")
-            .toCanon();
+	static public final Dict.Prop<SourceTransformer> sourceTransformer = new Dict.Prop<SourceTransformer>(
+		"sourceTransformer").doc(
+		"an instanceof of a SourceTransformer that will take the source code here and transform it into JavaScript. This allows things like Babel.js to be used in Field")
+		.toCanon();
 
-    static public final Dict.Prop<ExecutorService> customExecutor = new Dict.Prop<ExecutorService>(
-            "_customExecutor").doc(
-            "a specialized executor for this box")
-            .toCanon();
-
-
-    static public final ThreadLocal<ScriptEngine> currentEngine = new ThreadLocal<>();
-    static int uniq = 0;
-    public final Dict.Prop<String> property;
-    public final Box box;
-    public final ScriptContext context;
-    final String prefix = "" + (uniq++);
-    private final ScriptEngine engine;
-    private final Out output;
-    public String filename = null;
-    Function<Integer, Integer> lineTransform;
-    private Nashorn factory;
-    private TernSupport ternSupport;
-    private int lineOffset;
-    private Triple<Box, Integer, Boolean> currentLineNumber = null;
-    private Dict.Prop<String> originProperty;
-    private boolean all = false;
-
-    public NashornExecution(Nashorn factory, Box box, Dict.Prop<String> property, ScriptContext b, ScriptEngine engine) {
-        this.factory = factory;
-        this.box = box;
-        this.property = property;
-        this.context = b;
-        this.engine = engine;
-
-        output = box.find(Out.__out, box.both())
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Can't find html output support"));
-    }
-
-    @Override
-    public Object executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors) {
-        if (suffix.equals("print")) {
-            return executeAndReturn("print(" + textFragment + ")", lineErrors, success, false);
-        } else return executeAndReturn(textFragment, lineErrors, success, !suffix.equals("noprint"));
-    }
-
-    protected Object executeAndReturn(String textFragment, Consumer<Pair<Integer, String>> lineErrors, final Consumer<String> success, boolean printResult) {
-
-        lineErrors = new ErrorHelper().errorHelper(lineErrors, box);
-        Callbacks.call(box, Callbacks.onExecute);
-        try {
-
-            Execution.context.get().push(box);
-
-            Writer writer = null;
-            boolean[] written = {false};
-            if (success != null) {
-
-                currentLineNumber = null;
+	static public final Dict.Prop<ExecutorService> customExecutor = new Dict.Prop<ExecutorService>(
+		"_customExecutor").doc(
+		"a specialized executor for this box")
+		.toCanon();
 
 
-                writer = new Writer() {
-                    @Override
-                    public void write(char[] cbuf, int off, int len) throws IOException {
-                        if (len > 0) {
-                            String s = new String(cbuf, off, len);
+	static public final ThreadLocal<ScriptEngine> currentEngine = new ThreadLocal<>();
+	static int uniq = 0;
+	public final Dict.Prop<String> property;
+	public final Box box;
+	public final ScriptContext context;
+	final String prefix = "" + (uniq++);
+	private final ScriptEngine engine;
+	private final Out output;
+	public String filename = null;
+	Function<Integer, Integer> lineTransform;
+	private Nashorn factory;
+	private TernSupport ternSupport;
+	private int lineOffset;
+	private Triple<Box, Integer, Boolean> currentLineNumber = null;
+	private Dict.Prop<String> originProperty;
+	private boolean all = false;
+
+	public NashornExecution(Nashorn factory, Box box, Dict.Prop<String> property, ScriptContext b, ScriptEngine engine) {
+		this.factory = factory;
+		this.box = box;
+		this.property = property;
+		this.context = b;
+		this.engine = engine;
+
+		output = box.find(Out.__out, box.both())
+			.findFirst()
+			.orElseThrow(() -> new IllegalStateException("Can't find html output support"));
+	}
+
+	@Override
+	public Object executeTextFragment(String textFragment, String suffix, Consumer<String> success, Consumer<Pair<Integer, String>> lineErrors) {
+		if (suffix.equals("print")) {
+			return executeAndReturn("print(" + textFragment + ")", lineErrors, success, false);
+		} else return executeAndReturn(textFragment, lineErrors, success, !suffix.equals("noprint"));
+	}
+
+	protected Object executeAndReturn(String textFragment, Consumer<Pair<Integer, String>> lineErrors, final Consumer<String> success, boolean printResult) {
+
+		lineErrors = new ErrorHelper().errorHelper(lineErrors, box);
+		Callbacks.call(box, Callbacks.onExecute);
+		try {
+
+			Execution.context.get().push(box);
+
+			Writer writer = null;
+			boolean[] written = {false};
+			if (success != null) {
+
+				currentLineNumber = null;
+
+
+				writer = new Writer() {
+					@Override
+					public void write(char[] cbuf, int off, int len) throws IOException {
+						if (len > 0) {
+							String s = new String(cbuf, off, len);
 
 //							if (s.endsWith("\n"))
 //								s = s.substring(0, s.length() - 1) + "<br>";
@@ -413,132 +413,132 @@ public class NashornExecution implements Execution.ExecutionSupport {
                     ThreadSync2Feedback.shouldEnd(box);
 
 //					ThreadSync2Feedback.kill(box);
-                    return this;
-                }
-            };
+					return this;
+				}
+			};
 
-            fibres.get(fibres.size() - 1).setOnExit(() -> {
-                box.first(Chorder.end).ifPresent(x -> x.apply(box));
-            });
-        }
+			fibres.get(fibres.size() - 1).setOnExit(() -> {
+				box.first(Chorder.end).ifPresent(x -> x.apply(box));
+			});
+		}
 
-        Supplier<Boolean> r = interpretAnimation(_r);
-        if (r != null) {
-            if (endOngoing) end(lineErrors, success);
+		Supplier<Boolean> r = interpretAnimation(_r);
+		if (r != null) {
+			if (endOngoing) end(lineErrors, success);
 
-            String name = prefixFor(box)+"_animator" + prefix + "_" + (uniq);
-            box.properties.putToMap(Boxes.insideRunLoop, name, r);
-            box.first(IsExecuting.isExecuting)
-                    .ifPresent(x -> x.accept(box, name));
+			String name = prefixFor(box) + "_animator" + prefix + "_" + (uniq);
+			box.properties.putToMap(Boxes.insideRunLoop, name, r);
+			box.first(IsExecuting.isExecuting)
+				.ifPresent(x -> x.accept(box, name));
 
-            uniq++;
-            return name;
-        }
+			uniq++;
+			return name;
+		}
 
-        return null;
-    }
+		return null;
+	}
 
-    private Supplier<Boolean> interpretAnimation(Object r) {
-        if (r instanceof Supplier && r instanceof Consumer) return (Supplier<Boolean>) r;
-        Animatable.AnimationElement res = Animatable.interpret(r, null);
-        if (res == null) return null;
-        Animatable.Shim s = new Animatable.Shim(res);
-        return s;
-    }
+	private Supplier<Boolean> interpretAnimation(Object r) {
+		if (r instanceof Supplier && r instanceof Consumer) return (Supplier<Boolean>) r;
+		Animatable.AnimationElement res = Animatable.interpret(r, null);
+		if (res == null) return null;
+		Animatable.Shim s = new Animatable.Shim(res);
+		return s;
+	}
 
-    @Override
-    public void end(Consumer<field.utility.Pair<Integer, String>> lineErrors, Consumer<String> success) {
-        end(Pattern.quote(prefixFor(box))+"_animator" + prefix + "_.*", lineErrors, success);
-    }
+	@Override
+	public void end(Consumer<field.utility.Pair<Integer, String>> lineErrors, Consumer<String> success) {
+		end(Pattern.quote(prefixFor(box)) + "_animator" + prefix + "_.*", lineErrors, success);
+	}
 
-    private String prefixFor(Box box) {
-        return box.first(customExecutor).map( (e) -> {
-            if (e instanceof ThreadSync2.TrappedExecutorName)
-                return ((ThreadSync2.TrappedExecutorName)e).executionNamePrefix();
-            else
-                return "main.";
-        }).filter(Objects::nonNull).orElse("main.");
-    }
+	private String prefixFor(Box box) {
+		return box.first(customExecutor).map((e) -> {
+			if (e instanceof ThreadSync2.TrappedExecutorName)
+				return ((ThreadSync2.TrappedExecutorName) e).executionNamePrefix();
+			else
+				return "main.";
+		}).filter(Objects::nonNull).orElse("main.");
+	}
 
-    @Override
-    public void end(String regex, Consumer<field.utility.Pair<Integer, String>> lineErrors, Consumer<String> success) {
-        Map<String, Supplier<Boolean>> m = box.properties.get(Boxes.insideRunLoop);
-        if (m == null) return;
-
-
-        Pattern p = Pattern.compile(regex);
-
-        for (String s : new ArrayList<>(m.keySet())) {
-            if (p.matcher(s).matches()) {
-                Supplier<Boolean> b = m.get(s);
-                if (b instanceof Consumer) ((Consumer<Boolean>) b).accept(false);
-                else {
-                    m.remove(s);
-                }
-            }
-        }
-
-        Drawing.dirty(box);
-    }
+	@Override
+	public void end(String regex, Consumer<field.utility.Pair<Integer, String>> lineErrors, Consumer<String> success) {
+		Map<String, Supplier<Boolean>> m = box.properties.get(Boxes.insideRunLoop);
+		if (m == null) return;
 
 
-    @Override
-    public void setConsoleOutput(Consumer<String> stdout, Consumer<String> stderr) {
+		Pattern p = Pattern.compile(regex);
 
-    }
+		for (String s : new ArrayList<>(m.keySet())) {
+			if (p.matcher(s).matches()) {
+				Supplier<Boolean> b = m.get(s);
+				if (b instanceof Consumer) ((Consumer<Boolean>) b).accept(false);
+				else {
+					m.remove(s);
+				}
+			}
+		}
 
-    @Override
-    public void completion(String allText, int line, int ch, Consumer<List<Completion>> results, boolean explicitlyRequested) {
-        List<Completion> r1 = ternSupport.completion(engine, box.properties.get(IO.id), allText, line, ch,
-                                                     explicitlyRequested);
+		Drawing.dirty(box);
+	}
 
-        System.out.println(" completions are :" + r1.size());
-        r1.forEach(x -> {
-            System.out.println("   " + x);
-        });
 
-        if (r1 != null) {
-            results.accept(r1);
-        }
+	@Override
+	public void setConsoleOutput(Consumer<String> stdout, Consumer<String> stderr) {
 
-        this.box.find(Execution.completions, this.box.upwards())
-                .flatMap(x -> x.values()
-                        .stream())
-                .forEach(x -> x.completion(this.box, allText, line, ch, results));
-    }
+	}
 
-    @Override
-    public void imports(String allText, int line, int ch, Consumer<List<Completion>> results) {
-        List<Completion> r1 = ternSupport.imports(engine, box.properties.get(IO.id), allText, line, ch);
-        if (r1 != null) {
-            results.accept(r1);
-        }
+	@Override
+	public void completion(String allText, int line, int ch, Consumer<List<Completion>> results, boolean explicitlyRequested) {
+		List<Completion> r1 = ternSupport.completion(engine, box.properties.get(IO.id), allText, line, ch,
+			explicitlyRequested);
 
-        this.box.find(Execution.imports, this.box.upwards())
-                .flatMap(x -> x.values()
-                        .stream())
-                .forEach(x -> x.completion(this.box, allText, line, ch, results));
-    }
+		System.out.println(" completions are :" + r1.size());
+		r1.forEach(x -> {
+			System.out.println("   " + x);
+		});
 
-    public void setTernSupport(TernSupport ternSupport) {
-        this.ternSupport = ternSupport;
-    }
+		if (r1 != null) {
+			results.accept(r1);
+		}
 
-    public void setFilenameForStacktraces(String filename) {
-        this.filename = filename;
-    }
+		this.box.find(Execution.completions, this.box.upwards())
+			.flatMap(x -> x.values()
+				.stream())
+			.forEach(x -> x.completion(this.box, allText, line, ch, results));
+	}
 
-    @Override
-    public String getCodeMirrorLanguageName() {
-        return "javascript";
-    }
+	@Override
+	public void imports(String allText, int line, int ch, Consumer<List<Completion>> results) {
+		List<Completion> r1 = ternSupport.imports(engine, box.properties.get(IO.id), allText, line, ch);
+		if (r1 != null) {
+			results.accept(r1);
+		}
 
-    @Override
-    public String getDefaultFileExtension() {
-        return ".js";
-    }
+		this.box.find(Execution.imports, this.box.upwards())
+			.flatMap(x -> x.values()
+				.stream())
+			.forEach(x -> x.completion(this.box, allText, line, ch, results));
+	}
 
-    public Object getBinding(String name) {
-        return engine.getContext().getAttribute(name);
-    }
+	public void setTernSupport(TernSupport ternSupport) {
+		this.ternSupport = ternSupport;
+	}
+
+	public void setFilenameForStacktraces(String filename) {
+		this.filename = filename;
+	}
+
+	@Override
+	public String getCodeMirrorLanguageName() {
+		return "javascript";
+	}
+
+	@Override
+	public String getDefaultFileExtension() {
+		return ".js";
+	}
+
+	public Object getBinding(String name) {
+		return engine.getContext().getAttribute(name);
+	}
 }

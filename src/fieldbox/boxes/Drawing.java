@@ -49,7 +49,8 @@ public class Drawing extends Box implements DrawingInterface {
 		.toCanon();
 	static public final Dict.Prop<Vec2> windowSpace = new Dict.Prop<>("windowSpace").type()
 		.toCanon()
-		.doc("set to make this box stick to the viewport when it pans around. The value is a <code>Vec2(x,y)</code>. <code>x=0, y=0</code> pins the top left of this box to the top left of the window; similarly <code>x=1, y=1</code> pins the top left of this box to the bottom right. ");
+		.doc("set to make this box stick to the viewport when it pans around. The value is a <code>Vec2(x,y)</code>. <code>x=0, y=0</code> pins the top left of this box to the top left of " +
+			"the window; similarly <code>x=1, y=1</code> pins the top left of this box to the bottom right. ");
 
 	static public final Dict.Prop<Vec2> windowScale = new Dict.Prop<>("windowScale").type()
 		.toCanon()
@@ -74,18 +75,20 @@ public class Drawing extends Box implements DrawingInterface {
 	private Vec2 boxScale = new Vec2(1, 1);
 	private float opacity = 1f;
 
+	static int autoDirty = 0;
+
 	public Drawing() {
 		this.properties.putToMap(IO.onPreparingToSave, "__checkWindowSpace__", () -> {
 			System.out.println(" handling window space boxes ");
 
 			Map<Box, Rect> oldFrames = new LinkedHashMap<>();
 
-			this.breadthFirstAll(this.allDownwardsFrom()).forEach( x -> {
+			this.breadthFirstAll(this.allDownwardsFrom()).forEach(x -> {
 				if (x.properties.has(frame))
 					oldFrames.put(x, x.properties.get(frame).duplicate());
 			});
 
-			updateWindowSpaceBoxes(translation, new Vec2(0,0), lastDimensions, lastDimensions, scale, new Vec2(1,1));
+			updateWindowSpaceBoxes(translation, new Vec2(0, 0), lastDimensions, lastDimensions, scale, new Vec2(1, 1));
 
 			this.properties.putToMap(IO.onFinishingSaving, "__checkWindowSpace__", () -> {
 				RunLoop.main.delayTicks(() -> {
@@ -99,6 +102,12 @@ public class Drawing extends Box implements DrawingInterface {
 				}, 1);
 			});
 
+		});
+
+		this.properties.putToMap(Boxes.insideRunLoop, "main.autoDirty", () -> {
+			if (autoDirty-- > 0)
+				dirty(this);
+			return true;
 		});
 	}
 
@@ -165,8 +174,7 @@ public class Drawing extends Box implements DrawingInterface {
 	 */
 	static public void dirty(Box b, int n) {
 		dirty(b);
-
-		RunLoop.main.nTimes(() -> dirty(b), n);
+		autoDirty = n;
 	}
 
 	/**
@@ -182,7 +190,7 @@ public class Drawing extends Box implements DrawingInterface {
 			f.moveTo(view.x + view.w / 2, view.y + view.h / 2 - 10);
 			f.nodes.get(0).attributes.put(StandardFLineDrawing.text, text);
 			f.nodes.get(0).attributes.put(textScale, 4);
-			f.attributes.put(color, new Vec4(0,0,0,1f));
+			f.attributes.put(color, new Vec4(0, 0, 0, 1f));
 			f.attributes.put(hasText, true);
 			f.attributes.put(layer, "glass2");
 
@@ -196,7 +204,7 @@ public class Drawing extends Box implements DrawingInterface {
 			FLine f = new FLine();
 			int w = 20;
 			int h = 60;
-			f.rect(view.x - w, view.y /*+ view.h / 2 */- h - 10, view.w + w * 2, view.h + h + 25);
+			f.rect(view.x - w, view.y /*+ view.h / 2 */ - h - 10, view.w + w * 2, view.h + h + 25);
 			f.attributes.put(color, new Vec4(0.2, 0.2, 0.2, -0.2f));
 			f.attributes.put(layer, "glass2");
 			f.attributes.put(filled, true);
@@ -220,7 +228,7 @@ public class Drawing extends Box implements DrawingInterface {
 			.orElseThrow(() -> new IllegalArgumentException(" can't draw a box hierarchy with no window to draw it in !"));
 
 		cachedWindow = window;
-		cachedRoot= root;
+		cachedRoot = root;
 
 		GraphicsContext graphicsContext = window.getGraphicsContext();
 
@@ -407,7 +415,7 @@ public class Drawing extends Box implements DrawingInterface {
 
 		String subName = "";
 		if (layerName.contains(".")) {
-			subName = layerName.substring(layerName.lastIndexOf(".")+1);
+			subName = layerName.substring(layerName.lastIndexOf(".") + 1);
 			layerName = layerName.substring(0, layerName.lastIndexOf("."));
 		}
 
@@ -432,7 +440,7 @@ public class Drawing extends Box implements DrawingInterface {
 	public MeshBuilder getMesh(String layerName) {
 		String subName = "";
 		if (layerName.contains(".")) {
-			subName = layerName.substring(layerName.lastIndexOf(".")+1);
+			subName = layerName.substring(layerName.lastIndexOf(".") + 1);
 			layerName = layerName.substring(0, layerName.lastIndexOf("."));
 		}
 
@@ -456,7 +464,7 @@ public class Drawing extends Box implements DrawingInterface {
 
 		String subName = "";
 		if (layerName.contains(".")) {
-			subName = layerName.substring(layerName.lastIndexOf(".")+1);
+			subName = layerName.substring(layerName.lastIndexOf(".") + 1);
 			layerName = layerName.substring(0, layerName.lastIndexOf("."));
 		}
 
@@ -556,6 +564,7 @@ public class Drawing extends Box implements DrawingInterface {
 	public Vec2 windowSystemToDrawingSystemDelta(Vec2 windowDelta) {
 		return windowSystemToDrawingSystemDelta(windowDelta, translation, scale);
 	}
+
 	/**
 	 * to convert between event / mouse / pixel coordinates and OpenGL / Box / Drawing delta's.
 	 */
@@ -608,7 +617,8 @@ public class Drawing extends Box implements DrawingInterface {
 			});
 
 		if (translationNext != null || (lastDimensions != null && !Util.safeEq(lastDimensions, nextDimensions)) || scaleNext != null) {
-			updateWindowSpaceBoxes(translation, translationNext == null ? translation : translationNext, lastDimensions == null ? nextDimensions : lastDimensions, nextDimensions, scale, scaleNext == null ? scale : scaleNext);
+			updateWindowSpaceBoxes(translation, translationNext == null ? translation : translationNext, lastDimensions == null ? nextDimensions : lastDimensions, nextDimensions, scale,
+				scaleNext == null ? scale : scaleNext);
 
 			translation.x = (translationNext == null ? translation : translationNext).x;
 			translation.y = (translationNext == null ? translation : translationNext).y;
@@ -783,8 +793,8 @@ public class Drawing extends Box implements DrawingInterface {
 
 	public class PerLayer {
 		private Map<String, MeshBuilder> _mesh = new LinkedHashMap<>();
-		private Map<String, MeshBuilder> _line= new LinkedHashMap<>();
-		private Map<String, MeshBuilder> _point= new LinkedHashMap<>();
+		private Map<String, MeshBuilder> _line = new LinkedHashMap<>();
+		private Map<String, MeshBuilder> _point = new LinkedHashMap<>();
 
 		private Shader shader;
 		private Shader pointShader;

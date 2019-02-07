@@ -33,6 +33,9 @@ public class ErrorHelper {
 	Pattern refFinder = Pattern.compile("ReferenceError: \"(.+)\" is not defined");
 	Pattern staticClassIssues = Pattern.compile("StaticClass cannot be cast to java.base/java.lang.Class");
 	Pattern notAFunction = Pattern.compile(" ([_a-zA-Z][_a-zA-Z0-9]*) is not a function");
+	Pattern syntaxLineCol = Pattern.compile("<<internal>>\\:(.+)\\:");
+
+	Pattern undefined = Pattern.compile("jdk.nashorn.internal.runtime.Undefined");
 
 	public Consumer
 		<Pair<Integer, String>> errorHelper(Consumer<Pair<Integer, String>> wrap, Box box) {
@@ -43,11 +46,32 @@ public class ErrorHelper {
 			line = replaceMissingRefs(box, line);
 			line = replaceStaticClassCasts(box, line);
 			line = replaceMissingNew(box, line);
+			line = replaceSyntaxLineSpec(box, line);
+			line = replaceUndefined(box, line);
 
 			line = new Pair<>(line.first, line.second.trim() + "\n");
 
 			wrap.accept(line);
 		};
+	}
+
+	private Pair<Integer, String> replaceSyntaxLineSpec(Box box, Pair<Integer, String> line) {
+		Matcher m = syntaxLineCol.matcher(line.second);
+		if (m.find()) {
+			int actualLine = Integer.parseInt(m.group(1));
+			if (line.first == -1) {
+				return new Pair<Integer, String>(actualLine, line.second.substring(line.second.indexOf(" ")));
+			}
+		}
+		return line;
+	}
+
+	private Pair<Integer, String> replaceUndefined(Box box, Pair<Integer, String> line) {
+		Matcher m = undefined.matcher(line.second);
+		if (m.find()) {
+			return new Pair<Integer, String>(line.first, m.replaceAll("Undefined"));
+		}
+		return line;
 	}
 
 	private Pair<Integer, String> replaceStaticClassCasts(Box box, Pair<Integer, String> line) {
@@ -157,9 +181,8 @@ public class ErrorHelper {
 
 	private String html(Box box, Object second) {
 
-		if (second instanceof StaticClass)
-		{
-			return "for example `new "+((StaticClass) second).getRepresentedClass().getSimpleName()+"`";
+		if (second instanceof StaticClass) {
+			return "for example `new " + ((StaticClass) second).getRepresentedClass().getSimpleName() + "`";
 		}
 
 		return box.first(Out.__out).map(x -> x.convert(second)).orElseGet(() -> "" + second);
@@ -177,18 +200,21 @@ public class ErrorHelper {
 
 			Box foundBox = find(box, uid);
 			if (foundBox == box) {
-				line = new Pair<>(line.first, m.replaceAll(TransientCommands.transientCommands.refForCommand(name + " (this box)", () -> {
+				line = new Pair<>(line.first, m.replaceFirst(TransientCommands.transientCommands.refForCommand(name + " (this box)", () -> {
 					FrameManipulation.setSelectionTo(box, Collections.singleton(foundBox));
 				})));
+				return replaceBoxReferences(box, line);
 			} else if (foundBox != null) {
 				// need a link which is simply "send this message"
 
-				line = new Pair<>(line.first, m.replaceAll(TransientCommands.transientCommands.refForCommand(name, () -> {
+				line = new Pair<>(line.first, m.replaceFirst(TransientCommands.transientCommands.refForCommand(name, () -> {
 					FrameManipulation.setSelectionTo(box, Collections.singleton(foundBox));
 				})));
+				return replaceBoxReferences(box, line);
 			} else {
-				line = new Pair<>(line.first, m.replaceAll(TransientCommands.transientCommands.refForCommand(name + " (unknown box)", () -> {
+				line = new Pair<>(line.first, m.replaceFirst(TransientCommands.transientCommands.refForCommand(name + " (unknown box)", () -> {
 				})));
+				return replaceBoxReferences(box, line);
 			}
 		}
 		return line;

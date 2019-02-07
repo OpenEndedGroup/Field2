@@ -1,13 +1,14 @@
 package fieldbox.execution
 
 import com.google.common.collect.MapMaker
+import field.linalg.Vec4
 import field.utility.Log
 import field.utility.Pair
 import fieldbox.boxes.Box
 import fieldbox.io.IO
 import fielded.RemoteEditor
+import java.util.*
 
-import java.util.ArrayList
 import java.util.function.Consumer
 import java.util.function.Function
 import java.util.function.Supplier
@@ -72,6 +73,7 @@ object Errors {
             if (additionalMessage != null) System.err.println(additionalMessage)
             if (tr != null) tr.printStackTrace()
         } else {
+            RemoteEditor.boxFeedback(Optional.of(target.get()), Vec4(1.0, 0.0, 0.0, 0.5), "__redmark__", -1, -1)
             val oef = target.get().first(RemoteEditor.outputErrorFactory)
             if (!oef.isPresent) {
                 System.err.println(" Exception thrown in a box called ${name} which isn't editable; full stacktrace below:")

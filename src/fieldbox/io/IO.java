@@ -66,16 +66,15 @@ public class IO {
 		.set(Dict.domain, "*/attributes");
 
 	public static final Dict.Prop<List<String>> classpath = new Dict.Prop<>("classpath").toCanon()
-											    .type()
-											    .doc("This box asks the classloader to extend the classpath by this list of paths");
+		.type()
+		.doc("This box asks the classloader to extend the classpath by this list of paths");
 
 	public static final Dict.Prop<IdempotencyMap<Runnable>> onPreparingToSave = new Dict.Prop<>("onPreparingToSave").toCanon()
-														    .type()
-														    .doc("Notification that this box is going to be saved to disk");
+		.type()
+		.doc("Notification that this box is going to be saved to disk");
 	public static final Dict.Prop<IdempotencyMap<Runnable>> onFinishingSaving = new Dict.Prop<>("onFinishingSaving").toCanon()
-														    .type()
-														    .doc("Notification that this box is going to be saved to disk");
-
+		.type()
+		.doc("Notification that this box is going to be saved to disk");
 
 
 	static Set<String> knownProperties = new LinkedHashSet<String>();
@@ -115,8 +114,7 @@ public class IO {
 		knownProperties.add(FrameManipulation.lockWidth.getName());
 	}
 
-	public void setDefaultDirectory(String defaultDirectory) throws IOException
-	{
+	public void setDefaultDirectory(String defaultDirectory) throws IOException {
 		this.defaultDirectory = new File(defaultDirectory).getCanonicalPath();
 		if (!new File(defaultDirectory).exists()) new File(defaultDirectory).mkdir();
 	}
@@ -277,9 +275,7 @@ public class IO {
 				.collect(Collectors.toList());
 			d.knownFiles = new LinkedHashMap<>(knownFiles);
 			d.knownProperties = new LinkedHashSet<>(knownProperties);
-		}
-		finally
-		{
+		} finally {
 			Callbacks.call_runnable(documentRoot, onFinishingSaving, null, false, documentRoot.both());
 		}
 		return d;
@@ -391,7 +387,9 @@ public class IO {
 		if (pluginList != null) try {
 			options = pluginList.read(dataFile.getAbsolutePath(), false);
 			pluginList.interpretClassPathAndOptions(options);
-		} catch (IOException e) {
+		} catch (Throwable e) {
+			Log.log("io.error", () -> "trouble loading external " + dataFile + ". Corrupt file?");
+			System.err.println(" io error : trouble loading external " + dataFile + ". corrupt?");
 			e.printStackTrace();
 		}
 
@@ -556,9 +554,9 @@ public class IO {
 		ex.box = box;
 
 		ex.dataFile = relativize(box.properties.computeIfAbsent(new Dict.Prop<String>("__datafilename__"), (k) -> relativize(makeDataFilenameFor(defaultSubDirectory, ex, box))));
-		ex.dataFile = ex.dataFile.replace("\\","/");
-		ex.dataFile = ex.dataFile.replace("\\\\","/");
-		ex.dataFile = ex.dataFile.replace("\\\\","/");
+		ex.dataFile = ex.dataFile.replace("\\", "/");
+		ex.dataFile = ex.dataFile.replace("\\\\", "/");
+		ex.dataFile = ex.dataFile.replace("\\\\", "/");
 		box.properties.put(new Dict.Prop<String>("__datafilename__"), ex.dataFile);
 
 		System.out.println(" set !datafilename to be :" + ex.dataFile);
@@ -721,11 +719,11 @@ public class IO {
 	public File filenameFor(String value) {
 		if (value.startsWith(TEMPLATES)) {
 			return new File(templateDirectory,
-					/*safe*/(value.substring(TEMPLATES.length())));
+				/*safe*/(value.substring(TEMPLATES.length())));
 		}
 		if (value.startsWith(WORKSPACE)) {
 			return new File(defaultDirectory,
-					/*safe*/(value.substring(WORKSPACE.length())));
+				/*safe*/(value.substring(WORKSPACE.length())));
 		}
 		return new File(value);
 	}
@@ -733,11 +731,11 @@ public class IO {
 	public File filenameFor(String defaultPrefix, String value) {
 		if (value.startsWith(TEMPLATES)) {
 			return sanitizeName(new File(templateDirectory,
-					/*safe*/(value.substring(TEMPLATES.length()))));
+				/*safe*/(value.substring(TEMPLATES.length()))));
 		}
 		if (value.startsWith(WORKSPACE)) {
 			return sanitizeName(new File(defaultDirectory,
-					/*safe*/(value.substring(WORKSPACE.length()))));
+				/*safe*/(value.substring(WORKSPACE.length()))));
 		}
 		return sanitizeName(filenameFor(defaultPrefix + "/" + value));
 	}

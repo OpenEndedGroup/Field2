@@ -60,7 +60,8 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 		});
 
 		String pre
-			= "Framebuffer object has dimensions <b>" + specification.width + "</b>x<b>" + specification.height + "</b> and is bound to texture unit <b>" + specification.unit + "</b><br>";
+			= "Framebuffer object has dimensions <b>" + specification.width + "</b>x<b>" + specification.height + "</b> and is bound to texture unit <b>" + specification.unit + "</b" +
+			"><br>";
 		if (specification.multisample) pre += "Multisampling is turned on; ";
 		if (specification.depth)
 			pre += "There is a depth render-buffer associated with this framebuffer; ";
@@ -140,7 +141,8 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 
 		public int overrideTextureID = -1;
 
-		public FBOSpecification(int unit, int internalFormat, int width, int height, int format, int type, int elementSize, boolean depth, int num, boolean multisample, boolean multisample_raw, int layers) {
+		public FBOSpecification(int unit, int internalFormat, int width, int height, int format, int type, int elementSize, boolean depth, int num, boolean multisample,
+					boolean multisample_raw, int layers) {
 			this.unit = unit;
 			this.internalFormat = internalFormat;
 			this.width = width;
@@ -166,13 +168,13 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 			return new FBOSpecification(unit, GL_RGBA32F, width, height, GL_RGBA, GL_FLOAT, 32, false, 1, false, false, 1);
 		}
 
-        static public FBOSpecification singleFloat16(int unit, int width, int height) {
-            return new FBOSpecification(unit, GL_RGBA16F, width, height, GL_RGBA, GL_HALF_FLOAT, 16, false, 1, false, false, 1);
-        }
+		static public FBOSpecification singleFloat16(int unit, int width, int height) {
+			return new FBOSpecification(unit, GL_RGBA16F, width, height, GL_RGBA, GL_HALF_FLOAT, 16, false, 1, false, false, 1);
+		}
 
-        static public FBOSpecification singleFloat16_depth(int unit, int width, int height) {
-            return new FBOSpecification(unit, GL_RGBA16F, width, height, GL_RGBA, GL_HALF_FLOAT, 16, true, 1, false, false, 1);
-        }
+		static public FBOSpecification singleFloat16_depth(int unit, int width, int height) {
+			return new FBOSpecification(unit, GL_RGBA16F, width, height, GL_RGBA, GL_HALF_FLOAT, 16, true, 1, false, false, 1);
+		}
 
 		static public FBOSpecification layeredFloat(int unit, int width, int height, int layers) {
 			return new FBOSpecification(unit, GL_RGBA32F, width, height, GL_RGBA, GL_FLOAT, 32, false, 1, false, false, layers);
@@ -442,7 +444,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 
 
 			if (specification.multisample) {
-                GraphicsContext.checkError(() -> "on FBO draw exit4a");
+				GraphicsContext.checkError(() -> "on FBO draw exit4a");
 				glBindFramebuffer(GL_READ_FRAMEBUFFER, s.multisample);
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, s.name);
 				for (int i = 0; i < s.text.length; i++) {
@@ -452,15 +454,13 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 				}
 				glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-                GraphicsContext.checkError(() -> "on FBO draw exit4a");
+				GraphicsContext.checkError(() -> "on FBO draw exit4a");
 			}
 
 
-
-
-            GraphicsContext.checkError(() -> "on FBO draw exit3a");
+			GraphicsContext.checkError(() -> "on FBO draw exit3a");
 			Runnable m = postDrawQueue.getAndSet(null);
-            GraphicsContext.checkError(() -> "on FBO draw exit3b");
+			GraphicsContext.checkError(() -> "on FBO draw exit3b");
 
 			if (m != null) m.run();
 
@@ -469,16 +469,15 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 				glDisable(GL_FRAMEBUFFER_SRGB);
 			}
 
-            GraphicsContext.checkError(() -> "on FBO draw exit2b");
+			GraphicsContext.checkError(() -> "on FBO draw exit2b");
 
 			return true;
-		} catch (Throwable t){
-		    t.printStackTrace();
-		    throw t;
-        }
-		finally {
+		} catch (Throwable t) {
+			t.printStackTrace();
+			throw t;
+		} finally {
 			currentFBO.set(null);
-            GraphicsContext.checkError(() -> "on FBO draw exit2");
+			GraphicsContext.checkError(() -> "on FBO draw exit2");
 		}
 	}
 
@@ -564,7 +563,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 		CompletableFuture<ByteBuffer> c = new CompletableFuture<ByteBuffer>() {
 			@Override
 			public ByteBuffer get() throws InterruptedException, ExecutionException {
-				if (Thread.currentThread()==t && !isDone()) return ato;
+				if (Thread.currentThread() == t && !isDone()) return ato;
 				return super.get();
 			}
 		};
@@ -694,7 +693,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 			int[] a = {0};
 			a[0] = glGetInteger(GL_FRAMEBUFFER_BINDING);
 			glBindFramebuffer(GL_FRAMEBUFFER, getOpenGLFrameBufferNameInCurrentContext());
-			glReadBuffer(GL_COLOR_ATTACHMENT0+attachment);
+			glReadBuffer(GL_COLOR_ATTACHMENT0 + attachment);
 			glReadPixels(0, 0, specification.width, specification.height, GL11.GL_RGBA, GL_FLOAT, ato);
 			glBindFramebuffer(GL_FRAMEBUFFER, a[0]);
 			c.complete(ato);
@@ -711,9 +710,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 	}
 
 
-
-	public Scene getScene()
-	{
+	public Scene getScene() {
 		return scene;
 	}
 

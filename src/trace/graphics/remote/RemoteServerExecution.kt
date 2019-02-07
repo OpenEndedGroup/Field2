@@ -39,7 +39,7 @@ class RemoteServerExecution : Execution(null) {
 
     init {
 
-        server = Stage.rs
+        server = Stage.rs!!
         server.errorRoot = this
 
         this.properties.putToMap(Boxes.insideRunLoop, "main.copyTime", Supplier<Boolean> {
