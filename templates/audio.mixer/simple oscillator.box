@@ -1,0 +1,23 @@
+{
+  "boxOutline" #field/serializable{
+    :base64 "rO0ABXNyABFmaWVsZC5saW5hbGcuVmVjNAAAAAAAAAABDAAAeHB3IAAAAAAAAAAAAAAAAAAAAAA/0zMzMzMzMz/QAAAAAAAAeA=="
+  }
+  "withFunctionRewriting" true
+  "name" "simple oscillator"
+  "frame" #field/rect{
+    :x 366.3828125
+    :y 752.859375
+    :w 100.0
+    :h 100.0
+  }
+  "__filename__code" "{{templates}}/audio.mixer/simple oscillator.box.js"
+  "_code_cookie" "{\"output\":\"appendRemoteOutputToLine(16, \\\"<div class=\\\\\\\"outputline\\\\\\\"><div class=\\\\\\\"outputline\\\\\\\"><div class=\\\\\\\"outputline\\\\\\\"><div class=\\\\\\\"outputline\\\\\\\">[function defined]<br><\\/div><div class=\\\\\\\"outputline\\\\\\\">[function defined]<br><\\/div><div class=\\\\\\\"outputline\\\\\\\">[function defined]<br><\\/div><div class=\\\\\\\"outputline\\\\\\\">[function defined]<br><\\/div><div class=\\\\\\\"outputline\\\\\\\">[function defined]<br><\\/div><div class=\\\\\\\"outputline\\\\\\\">[function defined]<br><\\/div><div class=\\\\\\\"outputline\\\\\\\">[function defined]<br><\\/div><\\/div><\\/div><\\/div>\\\", 'Field-remoteOutput-error', 'Field-remoteOutput', false,0)\\n\",\"folds\":{\"selections\":[{\"head\":{\"ch\":28,\"line\":13,\"sticky\":null},\"anchor\":{\"ch\":28,\"line\":13,\"sticky\":null}}],\"marks\":[]},\"history\":{\"done\":[{\"primIndex\":0,\"ranges\":[{\"head\":{\"ch\":28,\"line\":13,\"sticky\":null},\"anchor\":{\"ch\":28,\"line\":13,\"sticky\":null}}]}],\"undone\":[]},\"currentpos\":{\"ch\":28,\"line\":13,\"sticky\":null},\"widgets\":[],\"brackets\":\"makePathForHandles(cmGetLineHandle(9, false), cmGetLineHandle(11, true), 0, undefined, 'undefined')\\nmakePathForHandles(cmGetLineHandle(1, false), cmGetLineHandle(1, true), 0, undefined, 'undefined')\\nmakePathForHandles(cmGetLineHandle(15, false), cmGetLineHandle(15, true), 0, undefined, 'undefined')\\nmakePathForHandles(cmGetLineHandle(9, false), cmGetLineHandle(9, true), 1, undefined, 'undefined')\\n\"}"
+  "code" "var Line = Java.type('auw.standard.Line')\nvar Osc = Java.type('auw.simple.Osc')\n\nvar t = 0\n\nvar osc\n_r = () => {\n\tif (t++%100==0)\n\t{\n\t\tosc = new Osc()\n\t\tosc.frequency=880/2\n\t\tosc.decay = 0.95\n\t}\n\tosc.square = Math.sin(t/200)\n}\n\n"
+  "withOverloading" true
+  "__boxclass__" "fieldbox.boxes.Box"
+  "__id__" "_1bad0dd5_4878_4d9b_809d_047930ab7bd1"
+  "__datafilename__" "{{templates}}/audio.mixer/simple oscillator.box"
+  "boxBackground" #field/serializable{
+    :base64 "rO0ABXNyABFmaWVsZC5saW5hbGcuVmVjNAAAAAAAAAABDAAAeHB3ID/wAAAAAAAAP+5mZmZmZmY/7MzMzMzMzT/oAAAAAAAAeA=="
+  }
+}
