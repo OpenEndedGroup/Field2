@@ -279,6 +279,7 @@ public class NashornExecution implements Execution.ExecutionSupport {
     }
 
     private Object engineeval(String textFragment, ScriptContext context, Consumer<Throwable> exception) throws ScriptException {
+
         Set<Throwable> seenBefore = new LinkedHashSet<>();
         if (ThreadSync.enabled && Thread.currentThread() == ThreadSync.get().mainThread) {
             try {
