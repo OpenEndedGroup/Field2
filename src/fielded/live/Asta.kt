@@ -67,7 +67,7 @@ class Asta {
     companion object {
 
         @JvmStatic
-        var debug = true
+        var debug = false
 
         @JvmStatic
         fun __MINUS__(va: Any?, vb: Any?): Any? {
