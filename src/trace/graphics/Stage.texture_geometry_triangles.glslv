@@ -15,6 +15,11 @@ flat out int oside;
 in int[] id;
 uniform int sides;
 
+in vec3[] onormal;
+
+out vec3 fnormal;
+
+
 void main(void)
 {
     if (sides==1 && id[0]!=1) return;
@@ -29,6 +34,8 @@ void main(void)
         gl_ClipDistance[0] = CD[i];
         ovcolor = vcolor[i];
         ottc = ttc[i];
+        fnormal = onormal[i];
+
         EmitVertex();
     }
 

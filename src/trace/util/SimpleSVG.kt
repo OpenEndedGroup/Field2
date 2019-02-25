@@ -27,6 +27,7 @@ class SimpleSVG(val filename: String) {
         val mm2 = Pattern.compile("class=\".*?\".*?d=\"([cqmzVHvhMLlCQZ\\- ,\t0-9\\.]+)\"")
         val m2 = Pattern.compile("style=\".*?fill:none;.*?\" .*?d=\"([cqmzVHvhMLlCQZ\\- ,\t0-9\\.]+)\"")
         val m3 = Pattern.compile("d=\"([cqmzVHvhMLlCQZ\\- ,\t0-9\\.]+)\" .*?style=\".*?fill: #(..)(..)(..);.*?\"")
+        val m3b = Pattern.compile("d=\"([cqmzVHvhMLlCQZ\\- ,\t0-9\\.]+)\"")
 
         val p1 = Pattern.compile("style=\".*?fill:#(..)(..)(..);.*?\".*?points=\"([cqmzVHvhMLlCQZ\\- ,\t0-9\\.]+)\"")
         (Files.readAllLines(File(filename).toPath())).joinToString(" ").split("/>").forEach {
@@ -78,6 +79,18 @@ class SimpleSVG(val filename: String) {
                 r += qq
                 return@forEach
             }
+            val mmm3b = m3b.matcher(it)
+            if (mmm3b.find()) {
+//                println("found")
+
+                val path = mmm3b.group(1)
+
+                val qq = toFLine(path, colorStringToColor2("00", "00", "00"), { 0.0 })
+                bounds = Rect.union(bounds, qq.bounds())
+                r += qq
+                return@forEach
+            }
+
             val pp1 = p1.matcher(it)
             if (pp1.find()) {
 //                println("found")

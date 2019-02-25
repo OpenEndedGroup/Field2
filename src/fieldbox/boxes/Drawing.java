@@ -703,8 +703,31 @@ public class Drawing extends Box implements DrawingInterface {
 				}
 
 
+				preventOffscreenBox(f, tn, dn, sn);
+
+
 				box.properties.put(Box.frame, f);
+
 			});
+	}
+
+	private void preventOffscreenBox(Rect f, Vec2 t, Vec2 d, Vec2 s) {
+		Vec2 q = drawingSystemToWindowSystem(new Vec2(f.x, f.y), t, s);
+		if (q.x<0) q.x = 10;
+		if (q.y<0) q.y = 10;
+		q = windowSystemToDrawingSystemNext(q, t, s);
+
+		f.x = (float) q.x;
+		f.y = (float) q.y;
+
+		q = drawingSystemToWindowSystem(new Vec2(f.x, f.y), t, s);
+		if (q.x>d.x) q.x = d.x-10;
+		if (q.y>d.y) q.y = d.y-10;
+
+		q = windowSystemToDrawingSystemNext(q, t, s);
+
+		f.x = (float) (q.x);
+		f.y = (float) (q.y);
 	}
 
 	private Vec2 deltaToStabalize(Vec2 dimensions, Vec2 dimensionsNext, Vec2 v, Vec2 at, Vec2 t, Vec2 tn, Vec2 s, Vec2 sn) {

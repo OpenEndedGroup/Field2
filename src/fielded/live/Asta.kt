@@ -840,7 +840,7 @@ class Asta {
         var start = c.startPosition.toInt()
         var end = c.endPosition.toInt()
 
-        println("start/end in $c = $start/$end")
+//        println("start/end in $c = $start/$end")
         // Nashorn appears to just lie about the start and end position of some parts of the tree.
 
         if (c.kind == Tree.Kind.STRING_LITERAL) {
