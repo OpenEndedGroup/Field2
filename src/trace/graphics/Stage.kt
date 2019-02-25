@@ -29,6 +29,7 @@ import trace.input.WebcamDriver
 import trace.util.FLineToSVG
 import trace.util.LinePiper
 import trace.video.ImageCache
+import trace.video.SimpleHead
 import trace.video.Syphon
 import trace.video.TwinTextureCache
 import java.io.File
@@ -48,7 +49,6 @@ import java.util.function.Supplier
  * stage.remap = `dest.x = src.x*2` ?
  */
 class Stage(val w: Int, val h: Int) : AsMap {
-
 
     override fun asMap_new(a: Any?): Any {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
@@ -120,7 +120,16 @@ class Stage(val w: Int, val h: Int) : AsMap {
         var stageNum: Int = 0
 
         @JvmStatic
-        var rs: RemoteServer? = null //= RemoteServer()
+        var rs: RemoteServer? = null
+
+        init {
+            try {
+                rs = RemoteServer()
+            } catch (e: Throwable) {
+                println(" -- error, can't start RemoteServer. No AR for you then --")
+            }
+        }
+
         var max_vertex = 60000
         var max_element = 60000
         var doRemote = false
@@ -791,6 +800,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
         var webcamDriver: WebcamDriver? = null
         var fileMap: ImageCache.FileMap? = null
+        lateinit var head: SimpleHead.Frame
 
     }
 
@@ -890,6 +900,78 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
         s3.asMap_set("source", tt)
         s3.asMap_set("source2", tt2)
+
+        try {
+            val box = Execution.context.get().peek()
+            s1.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"))
+            s1.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"))
+            s1.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"))
+            s1.setOnError(errorHandler(box, "color_remap"))
+            s2.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"))
+            s2.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"))
+            s2.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"))
+            s2.setOnError(errorHandler(box, "color_remap"))
+            s3.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"))
+            s3.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"))
+            s3.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"))
+            s3.setOnError(errorHandler(box, "color_remap"))
+        } catch (e: Throwable) {
+            e.printStackTrace()
+        }
+
+        sg.setShader(Triple(s1, s2, s3))
+        sg.doTexture = true
+        sg.textureFilename = filename
+        sg.textureDimensions = Vec2(tt.specification.width, tt.specification.height)
+        return sg
+    }
+
+    fun withTexture(t: Texture): ShaderGroup {
+
+        val filename = "" + System.identityHashCode(t)
+
+        val n = groups.get(filename)
+        if (n != null)
+            return n
+
+        if (groups.containsKey(filename)) {
+            groups.remove(filename)!!.detatch()
+        }
+
+        val sg = ShaderGroup(filename)
+
+        val s1 = Shader()
+        s1.addSource(Shader.Type.vertex, texture_vertex)
+        s1.addSource(Shader.Type.geometry, texture_geometry_triangles)
+        s1.addSource(Shader.Type.fragment, ShaderPreprocessor().Preprocess(null, texture_fragment, Supplier {
+            mutableMapOf("COLOR_REMAP" to sg.colorRemap, "SPACE_REMAP" to sg.spaceRemap)
+        }))
+
+        val tt = t
+        val tt2 = t
+
+        s1.asMap_set("source", tt)
+        s1.asMap_set("source2", OffersUniform { tt2.specification.unit })
+
+        val s2 = Shader()
+        s2.addSource(Shader.Type.vertex, texture_vertex)
+        s2.addSource(Shader.Type.geometry, texture_geometry_lines)
+        s2.addSource(Shader.Type.fragment, ShaderPreprocessor().Preprocess(null, texture_fragment, Supplier {
+            mutableMapOf("COLOR_REMAP" to sg.colorRemap, "SPACE_REMAP" to sg.spaceRemap)
+        }))
+
+        s2.asMap_set("source", tt)
+        s2.asMap_set("source2", OffersUniform { tt2.specification.unit })
+
+        val s3 = Shader()
+        s3.addSource(Shader.Type.vertex, texture_vertex)
+        s3.addSource(Shader.Type.geometry, texture_geometry_points)
+        s3.addSource(Shader.Type.fragment, ShaderPreprocessor().Preprocess(null, texture_fragment_points, Supplier {
+            mutableMapOf("COLOR_REMAP" to sg.colorRemap, "SPACE_REMAP" to sg.spaceRemap)
+        }))
+
+        s3.asMap_set("source", tt)
+        s3.asMap_set("source2", OffersUniform { tt2.specification.unit })
 
         try {
             val box = Execution.context.get().peek()
@@ -1168,6 +1250,17 @@ class Stage(val w: Int, val h: Int) : AsMap {
             s3.setOnError(errorHandler(box, "color_remap"))
         } catch (e: IndexOutOfBoundsException) {
             e.printStackTrace()
+        }
+
+        if (File(filename.replace(".dir", ".simpleHead")).exists()) {
+            val reader = SimpleHead.reader(filename.replace(".dir", ".simpleHead"))
+            sg.head = reader(0.0)
+
+            sg.post.put("__dovideo2__", Runnable {
+                println(" -- reader update at time ${cache.time / map.length()}")
+                sg.head = reader( (cache.time / map.length())%1 )
+            })
+
         }
 
         return sg

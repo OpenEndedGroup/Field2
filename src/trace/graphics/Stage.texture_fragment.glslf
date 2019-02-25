@@ -10,6 +10,8 @@ uniform vec3 leftOffset;
 
 flat in int oside;
 
+in vec3 fnormal;
+
 vec2 rot(vec2 a, float angle)
 {
     mat2 m = mat2(cos(angle), sin(angle), -sin(angle), cos(angle));

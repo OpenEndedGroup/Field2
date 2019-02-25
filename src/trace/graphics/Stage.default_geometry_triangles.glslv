@@ -11,6 +11,14 @@ in float[] CD;
 in int[] id;
 uniform int sides;
 
+
+in vec3[] onormal;
+in vec2[] otextureCoordinates;
+
+out vec2 ftextureCoordinate;
+out vec3 fnormal;
+
+
 void main(void)
 {
     if (sides==1 && id[0]!=1) return;
@@ -22,6 +30,10 @@ void main(void)
         gl_Position = gl_in[i].gl_Position;
         gl_ClipDistance[0] = CD[i];
         ovcolor = vcolor[i];
+
+        fnormal = onormal[i];
+        ftextureCoordinate = otextureCoordinates[i];
+
         EmitVertex();
     }
 
