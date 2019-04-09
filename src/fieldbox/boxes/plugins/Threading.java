@@ -5,7 +5,6 @@ import field.app.ThreadSync2;
 import field.utility.Dict;
 import fieldbox.boxes.Box;
 import jdk.nashorn.api.scripting.AbstractJSObject;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -60,7 +59,6 @@ public class Threading extends Box {
 		});
 	}
 
-	@NotNull
 	static public boolean waitSafely() {
 		if (ThreadSync2.fibre().shouldEnd)
 		{

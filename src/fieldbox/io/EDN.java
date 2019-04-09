@@ -78,7 +78,7 @@ public class EDN {
 						this.set.add(o);
 					}
 
-//					public Object build() {
+					//					public Object build() {
 //						return Collections.unmodifiableSet(this.set);
 //					}
 					public Object build() {
@@ -124,13 +124,13 @@ public class EDN {
 				Map<?, ?> m = (Map) o;
 
 				Map.Entry<?, ?> e = m.entrySet()
-						     .iterator()
-						     .next();
+					.iterator()
+					.next();
 
 				String v = (String) e.getValue();
 
 				byte[] d = Base64.getDecoder()
-						 .decode(v.getBytes());
+					.decode(v.getBytes());
 
 				ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(d));
 				Object vv = ois.readObject();
@@ -153,32 +153,34 @@ public class EDN {
 				Object instance = getUnsafe().allocateInstance(c);
 
 				Map<?, ?> m = (Map) o;
-				m.entrySet()
-				 .forEach(e -> {
-					 String s = "";
-					 Object k = e.getKey();
-					 if (k instanceof Keyword) s = ((Keyword) k).getName();
-					 else s = k.toString();
+				m.entrySet().forEach(e -> {
+					String s = "";
+					Object k = e.getKey();
+					if (k instanceof Keyword) s = ((Keyword) k).getName();
+					else s = k.toString();
 
-					 try {
-						 Field f = c.getField(s);
-						 f.setAccessible(true);
-						 if (Modifier.isFinal(f.getModifiers())) {
-							 long of = getUnsafe().objectFieldOffset(f);
-							 if (f.getType() == Float.TYPE) getUnsafe().putFloat(instance, of, ((Number) e.getValue()).floatValue());
-							 else throw new IllegalArgumentException("can't handle " + f.getType() + " / " + f + " / " + s + " " + instance);
-						 } else {
-							 if (f.getType() == Float.TYPE) f.set(instance, ((Number) e.getValue()).floatValue());
-							 else f.set(instance, e.getValue());
+					try {
+						Field f = c.getField(s);
+						f.setAccessible(true);
+						if (Modifier.isFinal(f.getModifiers())) {
+							long of = getUnsafe().objectFieldOffset(f);
+							if (f.getType() == Float.TYPE) getUnsafe().putFloat(instance, of, ((Number) e.getValue()).floatValue());
+							else throw new IllegalArgumentException("can't handle " + f.getType() + " / " + f + " / " + s + " " + instance);
+						} else {
+							if (f.getType() == Float.TYPE) f.set(instance, ((Number) e.getValue()).floatValue());
+							else f.set(instance, e.getValue());
 
-						 }
-					 } catch (NoSuchFieldException e1) {
-						 e1.printStackTrace();
-					 } catch (IllegalAccessException e1) {
-						 e1.printStackTrace();
-					 }
+						}
+					} catch (NoSuchFieldException e1) {
+						e1.printStackTrace();
+					} catch (IllegalAccessException e1) {
+						e1.printStackTrace();
+					} catch (ClassCastException e1) {
+						System.err.println(" corrupt file ? " + e);
+						e1.printStackTrace();
+					}
 
-				 });
+				});
 				return instance;
 			} catch (InstantiationException e) {
 				e.printStackTrace();
@@ -192,41 +194,41 @@ public class EDN {
 
 			try {
 				Map<?, ?> m = (Map) o;
-				String clazz= (String) m.get(Keyword.newKeyword("$class"));
+				String clazz = (String) m.get(Keyword.newKeyword("$class"));
 
 				Class<?> c = Thread.currentThread()
-							.getContextClassLoader()
-							.loadClass(clazz);
+					.getContextClassLoader()
+					.loadClass(clazz);
 				Object instance = getUnsafe().allocateInstance(c);
 
 				m.entrySet()
-				 .forEach(e -> {
-					 String s = "";
-					 Object k = e.getKey();
-					 if (k instanceof Keyword) s = ((Keyword) k).getName();
-					 else s = k.toString();
+					.forEach(e -> {
+						String s = "";
+						Object k = e.getKey();
+						if (k instanceof Keyword) s = ((Keyword) k).getName();
+						else s = k.toString();
 
-					 if (s.startsWith("$")) return;
+						if (s.startsWith("$")) return;
 
-					 try {
-						 Field f = c.getField(s);
-						 f.setAccessible(true);
-						 if (Modifier.isFinal(f.getModifiers())) {
-							 long of = getUnsafe().objectFieldOffset(f);
-							 if (f.getType() == Float.TYPE) getUnsafe().putFloat(instance, of, ((Number) e.getValue()).floatValue());
-							 else throw new IllegalArgumentException("can't handle " + f.getType() + " / " + f + " / " + s + " " + instance);
-						 } else {
-							 if (f.getType() == Float.TYPE) f.set(instance, ((Number) e.getValue()).floatValue());
-							 else f.set(instance, e.getValue());
+						try {
+							Field f = c.getField(s);
+							f.setAccessible(true);
+							if (Modifier.isFinal(f.getModifiers())) {
+								long of = getUnsafe().objectFieldOffset(f);
+								if (f.getType() == Float.TYPE) getUnsafe().putFloat(instance, of, ((Number) e.getValue()).floatValue());
+								else throw new IllegalArgumentException("can't handle " + f.getType() + " / " + f + " / " + s + " " + instance);
+							} else {
+								if (f.getType() == Float.TYPE) f.set(instance, ((Number) e.getValue()).floatValue());
+								else f.set(instance, e.getValue());
 
-						 }
-					 } catch (NoSuchFieldException e1) {
-						 e1.printStackTrace();
-					 } catch (IllegalAccessException e1) {
-						 e1.printStackTrace();
-					 }
+							}
+						} catch (NoSuchFieldException e1) {
+							e1.printStackTrace();
+						} catch (IllegalAccessException e1) {
+							e1.printStackTrace();
+						}
 
-				 });
+					});
 				return instance;
 			} catch (InstantiationException e) {
 				e.printStackTrace();
@@ -236,7 +238,6 @@ public class EDN {
 			return null;
 		};
 	}
-
 
 
 	public us.bpsm.edn.printer.Printer.Fn<?> simpleSerializeToMap(Tag tag, Class c) {
@@ -253,7 +254,7 @@ public class EDN {
 				}
 
 				writer.printValue(tag)
-				      .printValue(mm);
+					.printValue(mm);
 
 			} catch (IllegalAccessException e) {
 				e.printStackTrace();
@@ -267,7 +268,7 @@ public class EDN {
 				Map<Object, Object> mm = new LinkedHashMap<>();
 
 				Field[] f = o.getClass().getFields();
-				mm.put(Keyword.newKeyword("$class"),o.getClass().getName());
+				mm.put(Keyword.newKeyword("$class"), o.getClass().getName());
 
 				for (Field ff : f) {
 					if (Modifier.isTransient(ff.getModifiers())) continue;
@@ -276,13 +277,14 @@ public class EDN {
 				}
 
 				writer.printValue(tag)
-				      .printValue(mm);
+					.printValue(mm);
 
 			} catch (IllegalAccessException e) {
 				e.printStackTrace();
 			}
 		};
 	}
+
 	public us.bpsm.edn.printer.Printer.Fn<?> serializeFromSerializable(Tag tag) {
 		return (o, writer) -> {
 			try {
@@ -293,7 +295,7 @@ public class EDN {
 				byte[] bytes = baos.toByteArray();
 
 				byte[] b2 = Base64.getEncoder()
-				      .encode(bytes);
+					.encode(bytes);
 
 				String v = new String(b2);
 
@@ -302,7 +304,7 @@ public class EDN {
 				mm.put(Keyword.newKeyword("base64"), v);
 
 				writer.printValue(tag)
-				      .printValue(mm);
+					.printValue(mm);
 
 			} catch (IOException e) {
 				e.printStackTrace();

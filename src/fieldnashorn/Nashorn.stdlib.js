@@ -172,3 +172,13 @@ __.noLimits = function() {
     Java.type("fieldnashorn.Watchdog").limits=false
 }
 __.noLimits.__doc__ = "_.noLimit() removes all resource limit checking from Field. This means that loops can take longer than 5 seconds to complete, `_.lines` (and other places where you can put geometry) can take more than 1000 elements"
+
+var loadJSONLines = (filename) => {
+    var t = Java.type("trace.util.JSONLines")
+    var q = new t(filename)
+    q.parseNow = (q, n) => {
+        return JSON.parse(q.lines[n])
+    }
+    return q
+}
+loadJSONLines.__doc__ = "loadJSONLines(filename) loads all of the json objects in a file called `filename` and lets you access them as JavaScript objects like `loadJSONLines(filename).parse(20) returns the 21st object / line from the file"

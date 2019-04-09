@@ -233,7 +233,7 @@ public class DefaultMenus extends Box {
 		return b1;
 	}
 
-	private Box newBoxOfClass(Class cz, Vec2 at, Box... parents) {
+	static public Box newBoxOfClass(Class cz, Vec2 at, Box... parents) {
 		Box b1 = null;
 		try {
 			b1 = (Box) cz.getConstructor()

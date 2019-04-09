@@ -10,7 +10,6 @@ import fieldbox.boxes.plugins.Planes;
 import fieldbox.boxes.plugins.LocalTime;
 import fieldbox.execution.Execution;
 import fieldlinker.Linker;
-import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.*;

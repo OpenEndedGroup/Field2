@@ -47,13 +47,11 @@ class RemoteServer {
     init {
         this.s = NewNanoHTTPD(8090)
 
-
 //        s.addDocumentRoot(fieldagent.Main.app + "/modules/fieldbox/resources/")
 //        s.addDocumentRoot(fieldagent.Main.app + "/modules/fielded/resources/")
 //        s.addDocumentRoot(fieldagent.Main.app + "/modules/fieldcore/resources/")
 //        s.addDocumentRoot(fieldagent.Main.app + "/lib/web/")
 //        s.addDocumentRoot(fieldagent.Main.app + "/win/lib/web/")
-
 
         val addr = InetAddress.getLocalHost().address
         val addrs = "${addr[0].toInt() and 255}.${addr[1].toInt() and 255}.${addr[2].toInt() and 255}.${addr[3].toInt() and 255}"
@@ -87,14 +85,21 @@ class RemoteServer {
             null
         }
         s.messageHandlers.add { server, address, payload ->
-            val p = payload as JSONObject
-            if (p.has("id")) {
-                val id = p.getString("id")
+            if (payload is JSONObject) {
+                val p = payload as JSONObject
+                if (p.has("id")) {
+                    val id = p.getString("id")
 
-                if (id != null)
-                    rpc.map(server, id)
+                    if (id != null)
+                        rpc.map(server, id)
+                }
+                false
             }
-            false
+            else
+            {
+                println("Payload was supposed to be JSON was $payload instead?")
+                false
+            }
         }
 
         s.messageHandlers.add { server, address, payload ->

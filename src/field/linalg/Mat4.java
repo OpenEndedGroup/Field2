@@ -1155,6 +1155,37 @@ public class Mat4 implements Externalizable, Supplier<Mat4>, Mutable, Serializab
 		return this;
 	}
 
+
+	/**
+	 * Set the values in the matrix using a double array that contains the matrix elements in column-major order.
+	 * <p>
+	 * The results will look like this:<br><br>
+	 * <p>
+	 * 0, 4, 8, 12<br> 1, 5, 9, 13<br> 2, 6, 10, 14<br> 3, 7, 11, 15<br>
+	 *
+	 * @param m the array to read the matrix values from
+	 * @return this
+	 */
+	public Mat4 set(float m[], int offset) {
+		m00 = m[0 + offset];
+		m01 = m[1 + offset];
+		m02 = m[2 + offset];
+		m03 = m[3 + offset];
+		m10 = m[4 + offset];
+		m11 = m[5 + offset];
+		m12 = m[6 + offset];
+		m13 = m[7 + offset];
+		m20 = m[8 + offset];
+		m21 = m[9 + offset];
+		m22 = m[10 + offset];
+		m23 = m[11 + offset];
+		m30 = m[12 + offset];
+		m31 = m[13 + offset];
+		m32 = m[14 + offset];
+		m33 = m[15 + offset];
+		return this;
+	}
+
 	/**
 	 * Set the values in the matrix using a float array that contains the matrix elements in column-major order.
 	 * <p>

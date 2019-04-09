@@ -146,12 +146,12 @@ class Stage(val w: Int, val h: Int) : AsMap {
     @HiddenInAutocomplete
     val saver: SaverFBO
 
-    val LATENCY = 8
+    val LATENCY = 1
 
     init {
         thisStageNum = stageNum++
 //        fbo = FBOStack(FBO.FBOSpecification.singleFloat16_depth(thisStageNum, w, h), LATENCY)
-        fbo = FBO(FBO.FBOSpecification.singleFloat16_depth(thisStageNum, w, h))
+        fbo = FBO(FBO.FBOSpecification.singleFloat16(thisStageNum, w, h))
 
         val base = System.getProperty("user.home") + File.separatorChar + "Desktop" + File.separatorChar + "field_stage_recordings" + File.separatorChar
 
@@ -802,6 +802,8 @@ class Stage(val w: Int, val h: Int) : AsMap {
         var fileMap: ImageCache.FileMap? = null
         lateinit var head: SimpleHead.Frame
 
+        var texture: Texture? = null
+
     }
 
     @JvmField
@@ -926,9 +928,10 @@ class Stage(val w: Int, val h: Int) : AsMap {
         return sg
     }
 
-    fun withTexture(t: Texture): ShaderGroup {
+    @JvmOverloads
+    fun withTexture(t: Texture, name : String? = null): ShaderGroup {
 
-        val filename = "" + System.identityHashCode(t)
+        val filename = name ?: ""+System.identityHashCode(t)
 
         val n = groups.get(filename)
         if (n != null)
@@ -993,6 +996,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
         sg.setShader(Triple(s1, s2, s3))
         sg.doTexture = true
+        sg.texture = t
         sg.textureFilename = filename
         sg.textureDimensions = Vec2(tt.specification.width, tt.specification.height)
         return sg
