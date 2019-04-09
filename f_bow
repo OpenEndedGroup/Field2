@@ -1,7 +1,7 @@
 #!/bin/bash
 pushd $(dirname `which "$0"`) >/dev/null; fieldhome="$PWD"; popd >/dev/null
 
-JDK=$fieldhome/jdk/win/jdk-10/bin/
+JDK=$fieldhome/jdk/win/jdk-12/bin/
 
 out=$fieldhome/build/classes
 out=${out/\/mnt\/c\//c:\//}
@@ -15,10 +15,10 @@ echo $fieldhome
 
 "$java" \
     -Xdebug \
-    -Xrunjdwp:server=y,transport=dt_socket,address=5005,suspend=n -Dorg.lwjgl.util.Debug=true \
+    -Xrunjdwp:server=y,transport=dt_socket,address=5005,suspend=n -Dorg.lwjgl.util.Debug=false \
     -DappDir=$fieldhome \
-    -Xmx8g \
-    -Xms6g \
+    -Xmx6g \
+    -Xms4g \
     -javaagent:$fieldhome/build/field_agent.jar \
     -cp "$out;$fieldhome/build/field_linker.jar;$fieldhome/lib/;$fieldhome/lib/jars/*;$fieldhome/build/field_agent.jar" \
     -Djava.library.path=$fieldhome/win/lib/ \

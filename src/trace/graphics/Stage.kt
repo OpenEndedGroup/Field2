@@ -183,6 +183,23 @@ class Stage(val w: Int, val h: Int) : AsMap {
         s.asMap_set("geom", planes)
         s.asMap_set("color", Supplier { background })
 
+        s.attach(100, {
+
+            GL11.glColorMask(false, false, false, true);
+            GL11.glClearColor(0f, 0f, 0f, 0f);
+            GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
+            GL11.glColorMask(true, true, true, true);
+
+            true
+        })
+
+        s.attach(-99, {
+
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
+
+            true
+        })
+
         var tick = 0
 
         fbo.scene.attach(-101) {

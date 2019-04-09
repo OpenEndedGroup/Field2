@@ -51,6 +51,8 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
             .isTrue(new Dict.Prop("doubleBuffered"), Main.os == Main.OS.mac);
     static public boolean dontShare = Options.dict()
             .isTrue(new Dict.Prop("dontShare"), Main.os == Main.OS.windows);
+
+
     static public Window shareContext = null;
     static ThreadLocal<Window> currentWindow = new ThreadLocal<Window>() {
         @Override

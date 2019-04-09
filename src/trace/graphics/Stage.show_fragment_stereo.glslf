@@ -33,9 +33,5 @@ void main()
 
     _output.w = 1;
 
-//    if (tc.x<0 || tc.x>1)
-//        _output = vec4(0.03,0.03,0.03,1);
-
-
 
 }

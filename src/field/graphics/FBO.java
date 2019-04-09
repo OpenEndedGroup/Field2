@@ -593,7 +593,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 	public Future<ByteBuffer> asyncDebugDownloadRGB8(ByteBuffer to) {
 		ByteBuffer ato;
 
-		int sz = specification.width * specification.height * 4;
+		int sz = specification.width * specification.height * 4; // 3?
 		if (to == null || !to.isDirect() || to.limit() < sz) {
 			ato = ByteBuffer.allocateDirect(sz);
 		} else ato = to;

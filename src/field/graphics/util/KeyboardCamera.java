@@ -157,7 +157,7 @@ public class KeyboardCamera implements Function<Window.Event<KeyboardState>, Boo
 		boolean[] changed = {false};
 		bindings.entrySet().forEach((k) -> {
 			if (currentState != null && k.getKey().matches(currentState)) {
-				k.getValue().amount = k.getValue().amount * onset + (1 - onset) * 1;
+				k.getValue().amount = k.getValue().amount * onset + (1 - onset) * 0.4f;
 			} else {
 				k.getValue().amount *= decay;
 			}

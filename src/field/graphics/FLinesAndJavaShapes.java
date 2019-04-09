@@ -3,6 +3,7 @@ package field.graphics;
 import field.linalg.Quat;
 import field.linalg.Vec2;
 import field.linalg.Vec3;
+import field.linalg.Vec4;
 import field.utility.*;
 import fieldbox.boxes.Box;
 import fieldnashorn.annotations.HiddenInAutocomplete;
@@ -73,6 +74,9 @@ public class FLinesAndJavaShapes {
 		return p;
 
 	}
+
+
+
 
 	static public Shape flineToJavaShape(Collection<FLine> f) {
 		GeneralPath p = new GeneralPath();
@@ -157,6 +161,21 @@ public class FLinesAndJavaShapes {
 		out.x = a.x * oma3 + 3 * c1.x * alpha * oma2 + 3 * c2.x * alpha2 * oma + b.x * alpha3;
 		out.y = a.y * oma3 + 3 * c1.y * alpha * oma2 + 3 * c2.y * alpha2 * oma + b.y * alpha3;
 		out.z = a.z * oma3 + 3 * c1.z * alpha * oma2 + 3 * c2.z * alpha2 * oma + b.z * alpha3;
+
+		return out;
+	}
+
+	static public Vec4 evaluateCubicFrame(Vec4 a, Vec4 c1, Vec4 c2, Vec4 b, double alpha, Vec4 out) {
+		double oma = 1 - alpha;
+		double oma2 = oma * oma;
+		double oma3 = oma2 * oma;
+		double alpha2 = alpha * alpha;
+		double alpha3 = alpha2 * alpha;
+
+		out.x = a.x * oma3 + 3 * c1.x * alpha * oma2 + 3 * c2.x * alpha2 * oma + b.x * alpha3;
+		out.y = a.y * oma3 + 3 * c1.y * alpha * oma2 + 3 * c2.y * alpha2 * oma + b.y * alpha3;
+		out.z = a.z * oma3 + 3 * c1.z * alpha * oma2 + 3 * c2.z * alpha2 * oma + b.z * alpha3;
+		out.w = a.w * oma3 + 3 * c1.w * alpha * oma2 + 3 * c2.w * alpha2 * oma + b.w * alpha3;
 
 		return out;
 	}

@@ -56,7 +56,7 @@ public class RunLoop {
 	long interval = 100;
 	long intervalIn = 0;
 
-	static public boolean printTelemetry = false;
+	static public boolean printTelemetry = true;
 
 	Object eventLock = new Object();
 
@@ -101,7 +101,8 @@ public class RunLoop {
 					locksMissed++;
 				}
 
-				if (shouldSleep.size() == 0 && !didWork) {
+				if (shouldSleep.size() == 0 && !didWork)
+				{
 
 					try {
 						synchronized (eventLock) {
@@ -119,7 +120,7 @@ public class RunLoop {
 					if (printTelemetry) {
 						System.out.println(
 							" a" + (getLock / (double) interval) + " b" + (hasLock / (double) interval) + " c" + (service / (double) interval) + " d" + (mainloop / (double) interval) + " m" + locksMissed + " s" + sleepsTaken);
-						System.out.println(" f" + (System.nanoTime() - intervalIn) / interval);
+						System.out.println(" f" + interval/((System.nanoTime() - intervalIn)/(1000000000.0)));
 						System.out.println(" m" + (Runtime.getRuntime()
 							.freeMemory() - freeMemIn) / interval);
 

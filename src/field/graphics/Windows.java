@@ -374,6 +374,8 @@ public class Windows {
 	}
 
 	private boolean checkThread() {
+//		new Exception().printStackTrace();
+
 //		return true;
 		return RunLoop.main.isMainThread();
 	}

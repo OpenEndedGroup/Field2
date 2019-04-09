@@ -47,6 +47,7 @@ void main()
         gl_Position = vec4(position.xyz,1);
 
      mat4 et = mat4(0);
+     side = 0;
         if (isVR>0)
         {
             if (reallyVR>0)

@@ -1,6 +1,7 @@
 package field.graphics.vr
 
 import field.graphics.FBO
+import field.graphics.GraphicsContext
 import field.graphics.Scene
 import field.graphics.StereoCameraInterface
 import field.linalg.Mat4
@@ -43,11 +44,14 @@ class OpenVRDrawTarget {
             false
         })
 
+        w.attach(100, "__go_openvr__", { _: Int ->
 
-        w.attach(0, "__go_openvr__", { _: Int ->
-
-            if (fbo != null)
+            if (fbo != null && true)
                 stackPush().use {
+
+                    GraphicsContext.checkError{
+                        "before OpenVR FBO"
+                    }
 
                     val poses = TrackedDevicePose.callocStack(VR.k_unMaxTrackedDeviceCount)
                     val gposes = TrackedDevicePose.callocStack(VR.k_unMaxTrackedDeviceCount) // no idea what this is?
@@ -117,18 +121,34 @@ class OpenVRDrawTarget {
                             print("device $n is valid is $clazz, $valid, $connected ${h34.m(0)}\n")
                     }
 
+
                     buttons.run()
+
+                    GraphicsContext.checkError{
+                        "before OpenVR A1"
+                    }
 
                     glEnable(GL_CLIP_PLANE0)
                     fbo?.draw()
                     glDisable(GL_CLIP_PLANE0)
+
+                    GraphicsContext.checkError{
+                        "before OpenVR A2"
+                    }
 
                     val t = Texture.callocStack()
                     t.eColorSpace(VR.EColorSpace_ColorSpace_Linear)
                     t.eType(VR.ETextureType_TextureType_OpenGL)
                     t.handle(fbo!!.openGLTextureNameInCurrentContext.toLong())
 
+
+//                    println("texture name is ${fbo!!.openGLTextureNameInCurrentContext.toLong()}")
+
                     val b = VRTextureBounds.callocStack()
+
+//                    GraphicsContext.checkError{
+//                        "before OpenVR A3"
+//                    }
 
                     b.uMin(0f)
 //                    b.uMax(fbo!!.specification.width / 2f)
@@ -136,16 +156,33 @@ class OpenVRDrawTarget {
                     b.vMin(0f)
                     b.vMax(1f)
                     val res0 = VRCompositor.VRCompositor_Submit(EVREye_Eye_Left, t, b, VR.EVRSubmitFlags_Submit_Default) /// we can used Submit_GLRenderBuffer to submit an MSAA pre-resolve renderbuffer
+
+                    GL11.glGetError()
+
+//                    GraphicsContext.checkError{
+//                        "before OpenVR A4"
+//                    }
+
                     b.uMin(0.5f)
                     b.uMax(1f)
                     b.vMin(0f)
                     b.vMax(1f)
                     val res1 = VRCompositor.VRCompositor_Submit(EVREye_Eye_Right, t, b, VR.EVRSubmitFlags_Submit_Default)
+                    GL11.glGetError()
+
+//                    GraphicsContext.checkError{
+//                        "before OpenVR A5"
+//                    }
 
                     // who knows, yet?
 //                    glFinish();
                     if (debug)
                         print(" submitted frame: $res0 $res1 \n")
+
+
+//                    GraphicsContext.checkError{
+//                        "before OpenVR A6"
+//                    }
 
                 }
 
@@ -196,6 +233,9 @@ class OpenVRDrawTarget {
 
     var inited = false;
 
+    var textureW = -1;
+    var textureH = -1;
+
     private fun actualInit(w: Scene) {
         if (inited)
             return
@@ -233,7 +273,15 @@ class OpenVRDrawTarget {
                     println("Recommended width : " + w.get(0))
                     println("Recommended height: " + h.get(0))
 
-                    fbo = FBO(FBO.FBOSpecification.rgba(0, w.get(0) * 2, h.get(0)))
+                    textureW = w.get(0)
+                    textureH = h.get(0)
+
+
+                    textureW = 1024;
+                    textureH = 1024;
+
+
+                    fbo = FBO(FBO.FBOSpecification.rgba(10, textureW * 2, textureH))
 
                     val left_projection = HmdMatrix44.malloc()
                     val right_projection = HmdMatrix44.malloc()
@@ -256,15 +304,12 @@ class OpenVRDrawTarget {
                     print(" left_v :\n$left_v")
                     print(" right_v :\n$right_v")
 
-                    val width = w.get(0)
-                    val height = h.get(0)
-
                     VRChaperone.VRChaperone_ForceBoundsVisible(false);
 
                     fbo!!.scene.attach(-100, { k ->
 
-                        GL11.glClearColor(0.0f, 0.0f, 0f, 1f)
-                        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT)
+                        GL11.glClearColor(0.9f, 0.0f, 0.9f, 1f)
+                        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT or GL11.GL_DEPTH_BUFFER_BIT)
 
                         GL11.glDisable(GL_SCISSOR_TEST)
 

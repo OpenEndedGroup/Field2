@@ -90,6 +90,18 @@ public class Vec3 implements Externalizable, Supplier<Vec3>, Mutable, Serializab
 		this.y = y;
 		this.z = z;
 	}
+	/**
+	 * Create a new {@link Vec3} with the given component values.
+	 *
+	 * @param x the value of x
+	 * @param y the value of y
+	 * @param z the value of z
+	 */
+	public Vec3(float x, float y, float z) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
+	}
 
 	/**
 	 * Create a new {@link Vec3} with the given component values, text[index], text[index+1], text[index+@]

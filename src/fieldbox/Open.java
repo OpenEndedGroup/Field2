@@ -105,7 +105,8 @@ public class Open {
 
 
 		Rect bounds = ScreenGeometry.primaryMonitorBounds();
-		window = new FieldBoxWindow((int)bounds.x, (int)bounds.y, (int)bounds.w, (int)bounds.h, filename);
+		int inset = 15;
+		window = new FieldBoxWindow((int)bounds.x+inset, (int)bounds.y+inset, (int)bounds.w-inset*2, (int)bounds.h-inset*2, filename);
 
 		window.scene.attach(-5, this::defaultGLPreambleBackground);
 		window.mainLayer()
@@ -410,10 +411,11 @@ public class Open {
 
 		RunLoop.main.once(() -> {
 
-			System.err.println(" booting up text editor ");
 
 //			if (false)
 			{
+				System.err.println(" booting up text editor ");
+
 				new TextEditor(boxes.root()).connect(boxes.root());
 				new GlassBrowser(boxes.root()).connect(boxes.root());
 				new OutputBox(boxes.root()).connect(boxes.root());

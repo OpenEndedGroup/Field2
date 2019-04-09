@@ -200,7 +200,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
         attach(new Transient(() -> {
             pendingUploads.decrementAndGet();
 
-            System.out.println(" uploaded ... "+pendingUploads.get());
+            System.out.println("!!!!!!!!!!!!!!!\n\n\n\n\n\n uploaded ... "+pendingUploads.get());
 
             State s = GraphicsContext.get(this, null);
 
@@ -261,7 +261,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
             if (specification.highQuality) {
                 glGenerateMipmap(specification.target);
             }
-        }, -2)/*.setOnceOnly()*/.setAllContextsFor(this));
+        }, -200)/*.setOnceOnly()*/.setAllContextsFor(this));
     }
 
     /**
@@ -822,7 +822,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
         }
 
         static public TextureSpecification float1(int unit, int width, int height, ByteBuffer source) {
-            return new TextureSpecification(unit, GL_TEXTURE_2D, GL30.GL_R32F, width, height, GL_RED, GL_FLOAT, 4,
+            return new TextureSpecification(unit, GL_TEXTURE_2D, ARBTextureFloat.GL_LUMINANCE32F_ARB, width, height, GL_LUMINANCE, GL_FLOAT, 4,
                                             source, false);
         }
 

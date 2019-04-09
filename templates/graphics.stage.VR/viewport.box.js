@@ -100,5 +100,5 @@ _.auto = 0
 
 _.windowSpace = vec(0,0)
 
-//stage.showScene("stage", so.scene(), () => false, () => 1.0, true)
+stage.showScene("stage", so.scene(), () => false, () => 1.0, true)
 
