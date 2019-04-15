@@ -194,7 +194,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
                 glfwMakeContextCurrent(window);
 //				glfwSwapInterval(1);
 
-                glfwSwapInterval(1);
+                glfwSwapInterval(0);
 
                 if (shareContext == this) {
                     glcontext = GL.createCapabilities(true);
@@ -785,7 +785,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
         Iterator<Function<Event<KeyboardState>, Boolean>> i = keyboardHandlers.iterator();
         Event<KeyboardState> event = new Event<>(before, after);
 
-        debugKeyboardTransition(event);
+//        debugKeyboardTransition(event);
 
         while (i.hasNext()) if (!i.next().apply(event)) i.remove();
     }
@@ -871,7 +871,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
                 if (window == Window.this.window && RunLoop.tick > windowOpenedAt + 10) { // we ignore keyboard events from the first couple of updates; they can refer to key downs
                     // that we'll never receive
 
-                    System.out.println("key> "+key+"/"+scancode+"/"+action);
+//                    System.out.println("key> "+key+"/"+scancode+"/"+action);
 
                     KeyboardState next = keyboardState.withKey(key, action != GLFW_RELEASE);
 
@@ -901,7 +901,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
                     boolean ctrl = ((glfwGetKey(window, GLFW_KEY_LEFT_CONTROL)) | (glfwGetKey(window,
                                                                                               GLFW_KEY_RIGHT_CONTROL))) != 0;
 
-                    System.out.println("char> "+character);
+//                    System.out.println("char> "+character);
 
                     next = next.clean(window);
 

@@ -106,7 +106,7 @@ public class RunLoop {
 
 					try {
 						synchronized (eventLock) {
-							eventLock.wait(10);
+							eventLock.wait(1);
 						}
 					} catch (InterruptedException ie) {
 						ie.printStackTrace();
@@ -123,6 +123,9 @@ public class RunLoop {
 						System.out.println(" f" + interval/((System.nanoTime() - intervalIn)/(1000000000.0)));
 						System.out.println(" m" + (Runtime.getRuntime()
 							.freeMemory() - freeMemIn) / interval);
+
+						if (((System.nanoTime() - intervalIn)/(1000000000.0)) < 1 && interval<5000)
+							interval *= 2;
 
 					}
 					getLock = 0;

@@ -8,6 +8,7 @@ import field.graphics.Window
 import field.graphics.vr.FakeOculusDrawTarget
 import field.graphics.vr.OculusDrawTarget2
 import field.graphics.vr.OpenVRDrawTarget
+import field.linalg.Mat4
 import field.linalg.Vec2
 import fieldbox.boxes.Boxes.window
 import fieldbox.ui.GlfwCallbackDelegate
@@ -19,11 +20,11 @@ class SimpleOculusTarget {
     companion object {
 
         @JvmStatic
-        var disable = false
+        var disable = true
         @JvmStatic
-        var openvr = false
+        var openvr = true
 
-        val window: Window
+        var window: Window? = null
         var o: OculusDrawTarget2? = null
         var o2: OpenVRDrawTarget? = null
         var fake: FakeOculusDrawTarget? = null
@@ -35,36 +36,42 @@ class SimpleOculusTarget {
 
         init {
 
-            window = object : Window(0, 0, 1024, 512, "Field / VR preview") {
-                override fun makeCallback(): GlfwCallback {
+            if (disable)
+            {
 
-                    return object : GlfwCallbackDelegate(super.makeCallback()) {
-                        override fun windowRefresh(l: Long) {
-                            requestRepaint()
-                        }
+            }
+            else {
+                window = object : Window(0, 0, 1024, 512, "Field / VR preview") {
+                    override fun makeCallback(): GlfwCallback {
 
-                        override fun windowClose(l: Long): Boolean {
-                            return true
+                        return object : GlfwCallbackDelegate(super.makeCallback()) {
+                            override fun windowRefresh(l: Long) {
+                                requestRepaint()
+                            }
+
+                            override fun windowClose(l: Long): Boolean {
+                                return true
+                            }
                         }
                     }
                 }
-            }
 
-            window!!.setBounds(0, 0, 1024, 512)
+                window!!.setBounds(0, 0, 1024, 512)
+            }
 
             if (!disable and OS.isWindows() and !openvr) {
                 o = OculusDrawTarget2()
                 o!!.debugBlit = true
                 //        o.debugFBO = true
-                o!!.init(window.scene)
+                o!!.init(window!!.scene)
             } else if (!disable and OS.isWindows() and openvr) {
                 o2 = OpenVRDrawTarget()
                 o2!!.debug = true
-                o2!!.init(window.scene)
-            } else {
+                o2!!.init(window!!.scene)
+            } else if (!disable) {
                 fake = FakeOculusDrawTarget(1344, 1600)
                 fake!!.debugBlit = true
-                fake!!.init(window.scene)
+                fake!!.init(window!!.scene)
             }
 
 
@@ -145,5 +152,41 @@ class SimpleOculusTarget {
             }
         }
 
+
+        fun isVR() : Boolean
+        {
+            return (o!=null || o2 !=null);
+        }
+
+        fun leftProjectionMatrix(): Mat4 {
+            if (OculusDrawTarget2.isVR!=null)
+                return OculusDrawTarget2.isVR!!.leftProjectionMatrix()
+            if (o2!=null)
+                return o2!!.cameraInterface!!.projectionMatrix(-1f)
+            throw IllegalArgumentException("left projection matrix in a non-vr context")
+        }
+        fun rightProjectionMatrix(): Mat4 {
+            if (OculusDrawTarget2.isVR!=null)
+                return OculusDrawTarget2.isVR!!.rightProjectionMatrix()
+            if (o2!=null)
+                return  o2!!.cameraInterface!!.projectionMatrix(1f)
+            throw IllegalArgumentException("right projection matrix in a non-vr context")
+        }
+
+        fun leftViewMatrix(): Mat4 {
+            if (OculusDrawTarget2.isVR!=null)
+                return OculusDrawTarget2.isVR!!.leftView()
+            if (o2!=null)
+                return o2!!.cameraInterface!!.view(-1f)
+            throw IllegalArgumentException("left projection matrix in a non-vr context")
+        }
+
+        fun rightViewMatrix(): Mat4 {
+            if (OculusDrawTarget2.isVR!=null)
+                return OculusDrawTarget2.isVR!!.rightView()
+            if (o2!=null)
+                return o2!!.cameraInterface!!.view(1f)
+            throw IllegalArgumentException("left projection matrix in a non-vr context")
+        }
     }
 }

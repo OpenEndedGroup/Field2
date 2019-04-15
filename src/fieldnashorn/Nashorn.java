@@ -112,6 +112,7 @@ public class Nashorn implements BiFunction<Box, Dict.Prop<String>, NashornExecut
 					}
 
 					public Object middle(boolean isEnding) {
+						Nashorn.isEnding = isEnding;
 						targets[1] = interpretReturn(targets[1], targets[1].middle(isEnding));
 						return this;
 					}

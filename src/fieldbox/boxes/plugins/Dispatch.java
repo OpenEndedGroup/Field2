@@ -136,7 +136,7 @@ public class Dispatch extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMov
 
 	@Override
 	public Keyboard.Hold onKeyDown(Window.Event<Window.KeyboardState> e, int key) {
-		System.out.println(" key down ");
+//		System.out.println(" key down ");
 		if (!e.after.keysDown.contains(GLFW_KEY_G)) {
 			if (this.properties.removeFromMap(frameDrawing, "__ongoingDrag__") != null | this.properties.removeFromMap(frameDrawing, "__ongoingDrag__2") != null)
 				Drawing.dirty(this);
@@ -144,7 +144,7 @@ public class Dispatch extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMov
 		}
 
 		if (e.after.keysDown.equals(e.before.keysDown)) {
-			System.out.println(" -- nothing changed ");
+//			System.out.println(" -- nothing changed ");
 			return null;
 		}
 
@@ -158,7 +158,7 @@ public class Dispatch extends Box implements Mouse.OnMouseDown, Mouse.OnMouseMov
 			.findFirst();
 
 		if (!hit.isPresent()) {
-			System.out.println(" remove, no hit");
+//			System.out.println(" remove, no hit");
 			if (this.properties.removeFromMap(frameDrawing, "__ongoingDrag__") != null | this.properties.removeFromMap(frameDrawing, "__ongoingDrag__2") != null)
 				Drawing.dirty(this);
 			return null;

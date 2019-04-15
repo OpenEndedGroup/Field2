@@ -7,12 +7,12 @@ import field.linalg.Vec4;
 import field.utility.*;
 import fieldbox.boxes.Box;
 import fieldnashorn.annotations.HiddenInAutocomplete;
-import org.apache.commons.math3.optim.MaxEval;
-import org.apache.commons.math3.optim.nonlinear.scalar.GoalType;
-import org.apache.commons.math3.optim.univariate.BrentOptimizer;
-import org.apache.commons.math3.optim.univariate.SearchInterval;
-import org.apache.commons.math3.optim.univariate.UnivariateObjectiveFunction;
-import org.apache.commons.math3.optim.univariate.UnivariatePointValuePair;
+import org.apache.commons.math4.optim.MaxEval;
+import org.apache.commons.math4.optim.nonlinear.scalar.GoalType;
+import org.apache.commons.math4.optim.univariate.BrentOptimizer;
+import org.apache.commons.math4.optim.univariate.SearchInterval;
+import org.apache.commons.math4.optim.univariate.UnivariateObjectiveFunction;
+import org.apache.commons.math4.optim.univariate.UnivariatePointValuePair;
 
 import java.awt.*;
 import java.awt.geom.*;

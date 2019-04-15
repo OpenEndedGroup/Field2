@@ -143,6 +143,8 @@ class ThreadSync2 {
                 thisFibre.set(this)
                 thisThread = Thread.currentThread()
 
+                println(" \n\n\n\n THIS THREAD = $thisThread \n\n\n\n")
+
                 try {
                     lastReturn = r.call()
 

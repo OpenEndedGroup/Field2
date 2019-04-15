@@ -256,7 +256,6 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
             else
                 glTexSubImage2D(specification.target, 0, 0, 0, specification.width, specification.height,
                                 specification.format, specification.type, specification.pixels);
-            glBindTexture(specification.target, 0);
 
             if (specification.highQuality) {
                 glGenerateMipmap(specification.target);
@@ -727,7 +726,12 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
         static public TextureSpecification byte3(int unit, int width, int height, ByteBuffer source, boolean mips) {
             return new TextureSpecification(unit, GL_TEXTURE_2D, GL_RGB8, width, height, GL_RGB, GL_UNSIGNED_BYTE, 3,
-                                            source, mips);
+                    source, mips);
+        }
+
+        static public TextureSpecification byte3_rev(int unit, int width, int height, ByteBuffer source, boolean mips) {
+            return new TextureSpecification(unit, GL_TEXTURE_2D, GL_RGB8, width, height, GL_BGR, GL_UNSIGNED_BYTE, 3,
+                    source, mips);
         }
 
         static public TextureSpecification byte3(int unit, int width, int height, ByteBuffer source, boolean mips, boolean forceSingleBuffered) {
@@ -736,8 +740,8 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
         }
 
         static public TextureSpecification byte1(int unit, int width, int height, ByteBuffer source, boolean mips) {
-            return new TextureSpecification(unit, GL_TEXTURE_2D, GL_R8, width, height, GL_RED, GL_UNSIGNED_BYTE, 1,
-                                            source, mips);
+		return new TextureSpecification(unit, GL_TEXTURE_2D, GL_R8, width, height, GL_RED, GL_UNSIGNED_BYTE, 1,
+			source, mips);
         }
 
         static public TextureSpecification uint4_1d(int unit, int width, ByteBuffer source, boolean mips) {

@@ -26,7 +26,7 @@ class OpenVRDrawTarget {
     @JvmField
     var fbo: FBO? = null
 
-    var debug = false
+    var debug = true
 
     val buttons = Buttons { b ->
         val axes = listOf("button0_left", "button1_left", "button2_left", "button32_left", "button33_left", "axis0_left_x", "axis0_left_y", "axis1_left_x")
@@ -37,6 +37,8 @@ class OpenVRDrawTarget {
     val leftTouched = mutableSetOf<String>();
     val rightTouched = mutableSetOf<String>();
 
+
+    var lastTD = 0L;
 
     fun init(w: Scene) {
         w.attach(0, "__initopenvr__", { _: Int ->
@@ -124,25 +126,30 @@ class OpenVRDrawTarget {
 
                     buttons.run()
 
-                    GraphicsContext.checkError{
-                        "before OpenVR A1"
-                    }
+//                    GraphicsContext.checkError{
+//                        "before OpenVR A1"
+//                    }
+
+
+//                    print("HEAD = \n$head")
+
 
                     glEnable(GL_CLIP_PLANE0)
                     fbo?.draw()
                     glDisable(GL_CLIP_PLANE0)
 
-                    GraphicsContext.checkError{
-                        "before OpenVR A2"
-                    }
+//                    GraphicsContext.checkError{
+//                        "before OpenVR A2"
+//                    }
 
                     val t = Texture.callocStack()
                     t.eColorSpace(VR.EColorSpace_ColorSpace_Linear)
                     t.eType(VR.ETextureType_TextureType_OpenGL)
                     t.handle(fbo!!.openGLTextureNameInCurrentContext.toLong())
 
+                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
 
-//                    println("texture name is ${fbo!!.openGLTextureNameInCurrentContext.toLong()}")
+                    println("texture name is ${fbo!!.openGLTextureNameInCurrentContext.toLong()}")
 
                     val b = VRTextureBounds.callocStack()
 
@@ -157,7 +164,10 @@ class OpenVRDrawTarget {
                     b.vMax(1f)
                     val res0 = VRCompositor.VRCompositor_Submit(EVREye_Eye_Left, t, b, VR.EVRSubmitFlags_Submit_Default) /// we can used Submit_GLRenderBuffer to submit an MSAA pre-resolve renderbuffer
 
-                    GL11.glGetError()
+//                    val vv = GL11.glGetError()
+//                    if (vv!=0)
+//                        println(" PHANTOM ERROR $vv")
+
 
 //                    GraphicsContext.checkError{
 //                        "before OpenVR A4"
@@ -176,13 +186,22 @@ class OpenVRDrawTarget {
 
                     // who knows, yet?
 //                    glFinish();
+
+                    val TD = System.nanoTime()-lastTD
+                    lastTD = TD
+
                     if (debug)
-                        print(" submitted frame: $res0 $res1 \n")
+                        print(" submitted frame: $res0 $res1 $TD\n")
 
 
 //                    GraphicsContext.checkError{
 //                        "before OpenVR A6"
 //                    }
+
+
+                    for(P in fbo!!.passes)
+                        fbo!!.perform(P)
+
 
                 }
 
@@ -277,11 +296,7 @@ class OpenVRDrawTarget {
                     textureH = h.get(0)
 
 
-                    textureW = 1024;
-                    textureH = 1024;
-
-
-                    fbo = FBO(FBO.FBOSpecification.rgba(10, textureW * 2, textureH))
+                    fbo = FBO(FBO.FBOSpecification.rgbaMultisample(10, textureW * 2, textureH))
 
                     val left_projection = HmdMatrix44.malloc()
                     val right_projection = HmdMatrix44.malloc()
@@ -304,7 +319,7 @@ class OpenVRDrawTarget {
                     print(" left_v :\n$left_v")
                     print(" right_v :\n$right_v")
 
-                    VRChaperone.VRChaperone_ForceBoundsVisible(false);
+                    VRChaperone.VRChaperone_ForceBoundsVisible(true);
 
                     fbo!!.scene.attach(-100, { k ->
 

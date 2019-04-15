@@ -113,6 +113,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
     @Documentation("The background color of the stage")
     var background = Vec4(0.5, 0.5, 0.5, 1.0)
 
+    @JvmField
     var window: Window? = null
     var isOut = false
 
@@ -146,12 +147,12 @@ class Stage(val w: Int, val h: Int) : AsMap {
     @HiddenInAutocomplete
     val saver: SaverFBO
 
-    val LATENCY = 8
+    val LATENCY = 1
 
     init {
         thisStageNum = stageNum++
 //        fbo = FBOStack(FBO.FBOSpecification.singleFloat16_depth(thisStageNum, w, h), LATENCY)
-        fbo = FBO(FBO.FBOSpecification.singleFloat16_depth(thisStageNum, w, h))
+        fbo = FBO(FBO.FBOSpecification.singleFloat16(thisStageNum, w, h))
 
         val base = System.getProperty("user.home") + File.separatorChar + "Desktop" + File.separatorChar + "field_stage_recordings" + File.separatorChar
 
@@ -299,11 +300,11 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
 
     inner class ShaderGroup(val name: String) {
-        val line = BaseMesh.lineList(0, 0).setInstances { if (OculusDrawTarget2.isVR != null || STEREO) 2 else 1 }
+        val line = BaseMesh.lineList(0, 0).setInstances { if (SimpleOculusTarget.isVR() != null || STEREO) 2 else 1 }
         val lineBuilder = MeshBuilder(line)
-        val planes = BaseMesh.triangleList(0, 0).setInstances { if (OculusDrawTarget2.isVR != null || STEREO) 2 else 1 }
+        val planes = BaseMesh.triangleList(0, 0).setInstances { if (SimpleOculusTarget.isVR() || STEREO) 2 else 1 }
         val planeBuilder = MeshBuilder(planes)
-        val points = BaseMesh.pointList(0).setInstances { if (OculusDrawTarget2.isVR != null || STEREO) 2 else 1 }
+        val points = BaseMesh.pointList(0).setInstances { if (SimpleOculusTarget.isVR() || STEREO) 2 else 1 }
         val pointBuilder = MeshBuilder(points)
         val post = IdempotencyMap<Runnable>(Runnable::class.java)
 
@@ -470,7 +471,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
         fun lineBuilder(name: String): MeshBuilder {
             return builders.computeIfAbsent(name) {
 
-                val geometry = BaseMesh.lineList(0, 0).setInstances { if (OculusDrawTarget2.isVR != null || STEREO) 2 else 1 }
+                val geometry = BaseMesh.lineList(0, 0).setInstances { if (SimpleOculusTarget.isVR() || STEREO) 2 else 1 }
                 val builder = MeshBuilder(geometry)
 
                 shader!!.second!!.asMap_set(name, geometry)
@@ -482,7 +483,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
         fun lineAdjBuilder(name: String): MeshBuilder {
             return builders.computeIfAbsent(name) {
 
-                val geometry = BaseMesh.lineAdjecencyList(0, 0).setInstances { if (OculusDrawTarget2.isVR != null || STEREO) 2 else 1 }
+                val geometry = BaseMesh.lineAdjecencyList(0, 0).setInstances { if (SimpleOculusTarget.isVR() || STEREO) 2 else 1 }
                 val builder = MeshBuilder(geometry)
 
                 shader!!.second!!.asMap_set(name, geometry)
@@ -494,7 +495,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
         fun triangleBuilder(name: String): MeshBuilder {
             return builders.computeIfAbsent(name) {
 
-                val geometry = BaseMesh.triangleList(0, 0).setInstances { if (OculusDrawTarget2.isVR != null || STEREO) 2 else 1 }
+                val geometry = BaseMesh.triangleList(0, 0).setInstances { if (SimpleOculusTarget.isVR() || STEREO) 2 else 1 }
                 geometry.setInstances(2)
                 val builder = MeshBuilder(geometry)
 
@@ -521,7 +522,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
         fun pointBuilder(name: String): MeshBuilder {
             return builders.computeIfAbsent(name) {
 
-                val geometry = BaseMesh.pointList(0).setInstances { if (OculusDrawTarget2.isVR != null || STEREO) 2 else 1 }
+                val geometry = BaseMesh.pointList(0).setInstances { if (SimpleOculusTarget.isVR() || STEREO) 2 else 1 }
                 geometry.setInstances(2)
                 val builder = MeshBuilder(geometry)
 
@@ -663,7 +664,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
                 it!!.asMap_set("translation", Supplier { translation })
                 it.asMap_set("bounds", Supplier { bounds })
                 it.asMap_set("reallyVR", Supplier<Float> {
-                    if (OculusDrawTarget2.isVR != null) {
+                    if (SimpleOculusTarget.isVR()) {
                         1f
                     } else {
                         0f
@@ -691,8 +692,9 @@ class Stage(val w: Int, val h: Int) : AsMap {
                     if (!is3D) {
                         Mat4().identity()
                     } else {
-                        if (OculusDrawTarget2.isVR != null) {
-                            OculusDrawTarget2.isVR!!.leftProjectionMatrix()
+                        if (SimpleOculusTarget.isVR()) {
+                            SimpleOculusTarget.leftProjectionMatrix()
+
                         } else
                             __camera.projectionMatrix(-1f)
                     }
@@ -701,8 +703,8 @@ class Stage(val w: Int, val h: Int) : AsMap {
                     if (!is3D) {
                         Mat4().identity()
                     } else {
-                        if (OculusDrawTarget2.isVR != null) {
-                            OculusDrawTarget2.isVR!!.leftView()
+                        if (SimpleOculusTarget.isVR()) {
+                            SimpleOculusTarget.leftViewMatrix()
 
                         } else
                             __camera.view(-1f)
@@ -712,8 +714,8 @@ class Stage(val w: Int, val h: Int) : AsMap {
                     if (!is3D) {
                         Mat4().identity()
                     } else {
-                        if (OculusDrawTarget2.isVR != null) {
-                            OculusDrawTarget2.isVR!!.rightProjectionMatrix()
+                        if (SimpleOculusTarget.isVR()) {
+                            SimpleOculusTarget.rightProjectionMatrix()
                         } else
                             __camera.projectionMatrix(1f)
                     }
@@ -722,8 +724,8 @@ class Stage(val w: Int, val h: Int) : AsMap {
                     if (!is3D) {
                         Mat4().identity()
                     } else {
-                        if (OculusDrawTarget2.isVR != null) {
-                            OculusDrawTarget2.isVR!!.rightView()
+                        if (SimpleOculusTarget.isVR()) {
+                            SimpleOculusTarget.rightViewMatrix()
                         } else
                             __camera.view(1f)
                     }
@@ -734,7 +736,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
                 it.asMap_set("rotator", Supplier { Vec2(Math.cos(Math.PI * rotation / 180), Math.sin(Math.PI * rotation / 180)) })
 
                 it.asMap_set("isVR", Supplier {
-                    if (OculusDrawTarget2.isVR != null || STEREO) 1f else -1f
+                    if (SimpleOculusTarget.isVR() || STEREO) 1f else -1f
                 })
 
                 it.asMap_set("leftOffset", Supplier<Vec3> { leftOffset })
@@ -818,6 +820,8 @@ class Stage(val w: Int, val h: Int) : AsMap {
         var webcamDriver: WebcamDriver? = null
         var fileMap: ImageCache.FileMap? = null
         lateinit var head: SimpleHead.Frame
+
+        var texture: Texture? = null
 
     }
 
@@ -943,9 +947,10 @@ class Stage(val w: Int, val h: Int) : AsMap {
         return sg
     }
 
-    fun withTexture(t: Texture): ShaderGroup {
+    @JvmOverloads
+    fun withTexture(t: Texture, name : String? = null): ShaderGroup {
 
-        val filename = "" + System.identityHashCode(t)
+        val filename = name ?: ""+System.identityHashCode(t)
 
         val n = groups.get(filename)
         if (n != null)
@@ -1010,6 +1015,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
         sg.setShader(Triple(s1, s2, s3))
         sg.doTexture = true
+        sg.texture = t
         sg.textureFilename = filename
         sg.textureDimensions = Vec2(tt.specification.width, tt.specification.height)
         return sg
@@ -1464,6 +1470,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
         window = null
         isOut = false
     }
+
 
     /**
      * reminds the window or viewport that it needs to update it's appearance
