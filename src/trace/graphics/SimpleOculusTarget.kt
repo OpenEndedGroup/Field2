@@ -20,7 +20,7 @@ class SimpleOculusTarget {
     companion object {
 
         @JvmStatic
-        var disable = true
+        var disable = !Stage.VR
         @JvmStatic
         var openvr = true
 
@@ -162,14 +162,14 @@ class SimpleOculusTarget {
             if (OculusDrawTarget2.isVR!=null)
                 return OculusDrawTarget2.isVR!!.leftProjectionMatrix()
             if (o2!=null)
-                return o2!!.cameraInterface!!.projectionMatrix(-1f)
+                return o2!!.cameraInterface!!.projectionMatrix(-1f).transpose()
             throw IllegalArgumentException("left projection matrix in a non-vr context")
         }
         fun rightProjectionMatrix(): Mat4 {
             if (OculusDrawTarget2.isVR!=null)
                 return OculusDrawTarget2.isVR!!.rightProjectionMatrix()
             if (o2!=null)
-                return  o2!!.cameraInterface!!.projectionMatrix(1f)
+                return  o2!!.cameraInterface!!.projectionMatrix(1f).transpose()
             throw IllegalArgumentException("right projection matrix in a non-vr context")
         }
 
@@ -177,7 +177,7 @@ class SimpleOculusTarget {
             if (OculusDrawTarget2.isVR!=null)
                 return OculusDrawTarget2.isVR!!.leftView()
             if (o2!=null)
-                return o2!!.cameraInterface!!.view(-1f)
+                return o2!!.cameraInterface!!.view(-1f).transpose()
             throw IllegalArgumentException("left projection matrix in a non-vr context")
         }
 
@@ -185,7 +185,7 @@ class SimpleOculusTarget {
             if (OculusDrawTarget2.isVR!=null)
                 return OculusDrawTarget2.isVR!!.rightView()
             if (o2!=null)
-                return o2!!.cameraInterface!!.view(1f)
+                return o2!!.cameraInterface!!.view(1f).transpose()
             throw IllegalArgumentException("left projection matrix in a non-vr context")
         }
     }
