@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="freenect-1.0-jar-with-dependencies">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/jars/freenect-1.0-jar-with-dependencies.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

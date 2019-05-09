@@ -19,6 +19,10 @@ class LiveOpenPose(val fn: String, val doFaces: Boolean) {
     var people = mutableListOf<Person>()
     var faces = mutableListOf<Face>()
 
+    var previousPeople = mutableListOf<List<Person>>()
+    var previousFaces = mutableListOf<List<Face>>()
+
+
     init {
 
         var p = ProcessBuilder()
@@ -53,14 +57,25 @@ class LiveOpenPose(val fn: String, val doFaces: Boolean) {
                 while (!line(reader).toLowerCase().startsWith("face keypoints"));
                 l2 = line(reader)
                 if (l2.trim().length > 0) {
+                    push(faces, previousFaces)
                     faces = readFaces(l2, reader)
                 }
 
 
+                push(this.people, this.previousPeople)
                 this.people = people
             }
 
         }.start()
+    }
+
+
+    fun <T> push(people: MutableList<T>, previousPeople: MutableList<List<T>>) {
+
+        previousPeople.add(people)
+        if (previousPeople.size > 10)
+            previousPeople.removeAt(0)
+
     }
 
     private fun readFaces(ff: String, reader: BufferedReader): MutableList<Face> {

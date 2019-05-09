@@ -11,7 +11,7 @@ import java.util.zip.ZipInputStream
 
 class OpenPose(val fn: String, val imageWidth: Int, val imageHeight: Int) {
 
-    var files: Array<out File>?
+    var files: List<out File>?
 
     class Frame {
         val people = mutableListOf<Person>()
@@ -39,7 +39,7 @@ class OpenPose(val fn: String, val imageWidth: Int, val imageHeight: Int) {
     }
 
     init {
-        files = File(fn).listFiles { d, x -> x.endsWith(".json") }
+        files = File(fn).listFiles { d, x -> x.endsWith(".json") }.sorted()
 
         files!!.forEach {
             val (p, face) = read(it)

@@ -1,13 +1,11 @@
 package trace.graphics
 
-import field.app.RunLoop
 import field.app.ThreadSync2
 import field.graphics.*
 import field.graphics.util.KeyboardCamera
 import field.graphics.util.Saver
 import field.graphics.util.SaverFBO
 import field.graphics.util.onsheetui.get
-import field.graphics.vr.OculusDrawTarget2
 import field.linalg.*
 import field.utility.*
 import fieldbox.boxes.Box
@@ -19,22 +17,20 @@ import fielded.RemoteEditor
 import fieldlinker.AsMap
 import fieldnashorn.annotations.HiddenInAutocomplete
 import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL12
-import org.lwjgl.opengl.GL13
-import org.lwjgl.opengl.GL32
 import trace.graphics.remote.RemoteServer
 import trace.graphics.remote.RemoteStageLayerHelper
 import trace.input.Buttons
+import trace.input.KinectDriver
 import trace.input.WebcamDriver
 import trace.util.FLineToSVG
 import trace.util.LinePiper
 import trace.video.ImageCache
 import trace.video.SimpleHead
-import trace.video.Syphon
 import trace.video.TwinTextureCache
 import java.io.File
 import java.lang.NullPointerException
 import java.lang.reflect.Modifier
+import java.nio.ByteBuffer
 import java.util.*
 import java.util.concurrent.Callable
 import java.util.function.Consumer
@@ -152,7 +148,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
     init {
         thisStageNum = stageNum++
 //        fbo = FBOStack(FBO.FBOSpecification.singleFloat16_depth(thisStageNum, w, h), LATENCY)
-        fbo = FBO(FBO.FBOSpecification.singleFloat16(thisStageNum, w, h))
+        fbo = FBO(FBO.FBOSpecification.singleFloat16_depth(thisStageNum, w, h))
 
         val base = System.getProperty("user.home") + File.separatorChar + "Desktop" + File.separatorChar + "field_stage_recordings" + File.separatorChar
 
@@ -188,7 +184,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
             GL11.glColorMask(false, false, false, true);
             GL11.glClearColor(0f, 0f, 0f, 0f);
-            GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
+            GL11.glClear(GL11.GL_COLOR_BUFFER_BIT or GL11.GL_DEPTH_BUFFER_BIT);
             GL11.glColorMask(true, true, true, true);
 
             true
@@ -342,6 +338,10 @@ class Stage(val w: Int, val h: Int) : AsMap {
             frameSet = true
         }
 
+        var imageBytes: (() -> ByteBuffer?)? = null
+        var imageBytesPerPixel = 3
+        var imageDimensions = 0 to 0
+
         @JvmField
         @Documentation("Sets the scale of this box. The origin is in the bottom left, and 'bounds' is in the top right. Defaults to vec(100,100")
         var bounds = Vec2(100.0, 100.0)
@@ -463,6 +463,17 @@ class Stage(val w: Int, val h: Int) : AsMap {
             return shader!!.first!!
         }
 
+        fun sampleImage(x: Double, y: Double): Vec3 {
+            if (imageBytes == null) return Vec3()
+            val b = imageBytes?.invoke()
+
+            val px = Math.max(0, Math.min(imageDimensions.first - 1, (x * imageDimensions.first).toInt()))
+            val py = Math.max(0, Math.min(imageDimensions.second - 1, (y * imageDimensions.second).toInt()))
+
+            val off = 3 * py * imageDimensions.first + 3 * px
+            return Vec3((b!!.get(off + 0).toInt() and 0xff) / 255.0, (b!!.get(off + 1).toInt() and 0xff) / 255.0, (b!!.get(off + 2).toInt() and 0xff) / 255.0)
+        }
+
         private var vrOptIn = 0f
 
         val builders = mutableMapOf<String, kotlin.Pair<MeshBuilder, BaseMesh>>()
@@ -504,14 +515,14 @@ class Stage(val w: Int, val h: Int) : AsMap {
                 geometry.attach(-100) {
                     GL11.glEnable(GL11.GL_DEPTH_TEST)
                     GL11.glDepthFunc(GL11.GL_LESS)
-                    GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT)
+//                    GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT)
                     true
                 }
 
                 geometry.attach(100) {
                     GL11.glDisable(GL11.GL_DEPTH_TEST)
                     GL11.glDepthFunc(GL11.GL_LESS)
-                    GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT)
+//                    GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT)
                     true
                 }
 
@@ -940,6 +951,10 @@ class Stage(val w: Int, val h: Int) : AsMap {
             e.printStackTrace()
         }
 
+        sg.imageBytes = { tt.specification.pixels };
+        sg.imageDimensions = tt.specification.width to tt.specification.height
+        sg.imageBytesPerPixel = 3
+
         sg.setShader(Triple(s1, s2, s3))
         sg.doTexture = true
         sg.textureFilename = filename
@@ -947,10 +962,19 @@ class Stage(val w: Int, val h: Int) : AsMap {
         return sg
     }
 
-    @JvmOverloads
-    fun withTexture(t: Texture, name : String? = null): ShaderGroup {
+    fun withKinectDepth(): ShaderGroup {
+        return withTexture(KinectDriver.texture!!, "kinect")
+    }
 
-        val filename = name ?: ""+System.identityHashCode(t)
+    @JvmOverloads
+    fun withTexture(t: TextureFromFloatBuffer, name: String? = null): ShaderGroup {
+        return withTexture(t.tex, name)
+    }
+
+    @JvmOverloads
+    fun withTexture(t: Texture, name: String? = null): ShaderGroup {
+
+        val filename = name ?: "" + System.identityHashCode(t)
 
         val n = groups.get(filename)
         if (n != null)
@@ -1151,6 +1175,10 @@ class Stage(val w: Int, val h: Int) : AsMap {
             e.printStackTrace()
         }
 
+        sg.imageBytes = { wd.storage };
+        sg.imageDimensions = wd.w to wd.h
+        sg.imageBytesPerPixel = 3
+
         sg.setShader(Triple(s1, s2, s3))
         sg.doTexture = true
         sg.webcamDriver = wd
@@ -1257,6 +1285,11 @@ class Stage(val w: Int, val h: Int) : AsMap {
             cache.update()
         })
 
+        sg.imageBytes = { cache.lastBytes }
+        sg.imageDimensions = cache.textureA.specification.width to cache.textureA.specification.height
+        sg.imageBytesPerPixel = 3
+
+
         try {
             val box = Execution.context.get().peek()
             s1.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"))
@@ -1281,7 +1314,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
             sg.post.put("__dovideo2__", Runnable {
                 println(" -- reader update at time ${cache.time / map.length()}")
-                sg.head = reader( (cache.time / map.length())%1 )
+                sg.head = reader((cache.time / map.length()) % 1)
             })
 
         }
