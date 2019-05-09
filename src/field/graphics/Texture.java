@@ -241,6 +241,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
     public void upload() {
         pendingUploads.incrementAndGet();
         attach(new Transient(() -> {
+            GraphicsContext.checkError(() -> "entering texture upload " + specification);
             pendingUploads.decrementAndGet();
             State s = GraphicsContext.get(this, null);
 
@@ -250,6 +251,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
             }
 
             glBindTexture(specification.target, s.name);
+            GraphicsContext.checkError(() -> "bound texture" + specification);
             if (specification.target == GL_TEXTURE_1D)
                 glTexSubImage1D(specification.target, 0, 0, specification.width, specification.format,
                                 specification.type, specification.pixels);
@@ -260,6 +262,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
             if (specification.highQuality) {
                 glGenerateMipmap(specification.target);
             }
+            GraphicsContext.checkError(() -> "exiting texture upload " + specification);
         }, -200)/*.setOnceOnly()*/.setAllContextsFor(this));
     }
 
@@ -826,7 +829,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
         }
 
         static public TextureSpecification float1(int unit, int width, int height, ByteBuffer source) {
-            return new TextureSpecification(unit, GL_TEXTURE_2D, ARBTextureFloat.GL_LUMINANCE32F_ARB, width, height, GL_LUMINANCE, GL_FLOAT, 4,
+            return new TextureSpecification(unit, GL_TEXTURE_2D, GL_R32F, width, height, GL_RED, GL_FLOAT, 4,
                                             source, false);
         }
 

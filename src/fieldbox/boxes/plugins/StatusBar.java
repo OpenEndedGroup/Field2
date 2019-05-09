@@ -111,9 +111,8 @@ public class StatusBar extends Box {
 		return statusText;
 	}
 
-
 	public void update() {
-		String s = "[ alpha.22b ] ";
+		String s = "[ alpha.22c ] ";
 		List<Map<String, Supplier<String>>> maps = breadthFirst(both()).filter(x -> x.properties.get(statuses) != null)
 			.map(x -> x.properties.get(statuses))
 			.collect(Collectors.toList());

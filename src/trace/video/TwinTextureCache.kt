@@ -6,6 +6,8 @@ import field.graphics.FastJPEG
 import field.graphics.Texture
 
 class TwinTextureCache(unit: Int, private val source: ImageCache) {
+
+
     private val a: ByteBuffer
     val textureA: Texture
     private val b: ByteBuffer
@@ -52,6 +54,9 @@ class TwinTextureCache(unit: Int, private val source: ImageCache) {
         this.playing = p
     }
 
+
+    var lastBytes: ByteBuffer? = null
+
     fun setTime(t: Double) {
 
         if (t == lastTime)
@@ -95,6 +100,8 @@ class TwinTextureCache(unit: Int, private val source: ImageCache) {
 
 
                         isDirty = false
+
+                        lastBytes = b
                     } else {
                         println(" failed to load right ")
                     }
@@ -115,6 +122,7 @@ class TwinTextureCache(unit: Int, private val source: ImageCache) {
 //                        q.compress("/var/tmp/RIGHT" + pad(RIGHT++) + ".jpg", b, source.width, source.height)
 
                         isDirty = false
+                        lastBytes = b
                     } else {
                         println(" failed to load left ")
                     }
@@ -128,6 +136,7 @@ class TwinTextureCache(unit: Int, private val source: ImageCache) {
                         textureA.forceUploadNow(a)
                     else
                         textureA.upload(a, true)
+                    lastBytes = a
 
 //                    q.compress("/var/tmp/LEFT" + pad(LEFT++) + ".jpg", a, source.width, source.height)
 
@@ -145,6 +154,7 @@ class TwinTextureCache(unit: Int, private val source: ImageCache) {
                     else
                         textureA.upload(a, true)
                     isDirty = false
+                    lastBytes = a
 
 //                    q.compress("/var/tmp/LEFT" + pad(LEFT++) + ".jpg", a, source.width, source.height)
 
@@ -173,6 +183,7 @@ class TwinTextureCache(unit: Int, private val source: ImageCache) {
                         textureB.forceUploadNow(b)
                     else
                         textureB.upload(b, true)
+                    lastBytes = b
 
 //                    q.compress("/var/tmp/RIGHT" + pad(RIGHT++) + ".jpg", b, source.width, source.height)
 
@@ -192,6 +203,7 @@ class TwinTextureCache(unit: Int, private val source: ImageCache) {
                         textureA.upload(a, true)
 
 //                    q.compress("/var/tmp/LEFT" + pad(LEFT++) + ".jpg", a, source.width, source.height)
+                    lastBytes = a
 
                 } else {
                     w = true

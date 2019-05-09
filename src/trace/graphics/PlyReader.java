@@ -430,7 +430,8 @@ public final class PlyReader {
                 faceElement=e;
                 for (int pi=0; pi<e.properties.size(); pi++) {
                     Property p=e.properties.get(pi);
-                    if ("vertex_indices".equals(p.name)) {
+                    if (p.name.startsWith("vertex_ind")) {
+
                         if (p instanceof ScalarProperty) throw new InvalidPlyFormatException("Face.vertex_indices property is not a list");
                         if (((ListProperty)p).elemType==Type.FLOAT || ((ListProperty)p).elemType==Type.DOUBLE) throw new InvalidPlyFormatException("Face vertex indices must be integral");
                         if (vertexIndicesPropIndex!=-1) throw new InvalidPlyFormatException("Multiple face.vertex_indices properties");
