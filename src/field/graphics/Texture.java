@@ -876,5 +876,10 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
         int x0, x1, y0, y1;
     }
 
+    public TextureUnitReplacement viewWithDifferentUnit(int u)
+    {
+        return new TextureUnitReplacement(u, this);
+    }
+
 
 }

@@ -828,6 +828,16 @@ class Stage(val w: Int, val h: Int) : AsMap {
             }
         }
 
+        fun addTexture(unit: Int, name: String, layer: ShaderGroup) {
+            val texture = layer.shader!!.second!!.lookup("source") as Texture
+
+            val texture2 = texture.viewWithDifferentUnit(unit)
+
+            shader?.first?.asMap_set(name, texture2)
+            shader?.second?.asMap_set(name, texture2)
+            shader?.third?.asMap_set(name, texture2)
+        }
+
         var webcamDriver: WebcamDriver? = null
         var fileMap: ImageCache.FileMap? = null
         lateinit var head: SimpleHead.Frame
@@ -885,8 +895,6 @@ class Stage(val w: Int, val h: Int) : AsMap {
     val show_vertex_vr = BoxDefaultCode.findSource(this.javaClass, "show_vertex_vr")
     @HiddenInAutocomplete
     val show_fragment_vr = BoxDefaultCode.findSource(this.javaClass, "show_fragment_vr")
-
-    // todo: filename mapping
 
     @Documentation("Make a layer with a given texture map. Filename should be a jpeg image.")
     fun withTexture(filename: String): ShaderGroup {

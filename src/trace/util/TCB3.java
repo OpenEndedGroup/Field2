@@ -47,6 +47,10 @@ public class TCB3 {
 			}
 		}
 
+		public Vec3 getV() {
+			return v;
+		}
+
 		public double getX() {
 			return x;
 		}

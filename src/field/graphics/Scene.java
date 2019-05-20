@@ -105,6 +105,13 @@ public class Scene extends Box implements fieldlinker.AsMap {
 
 		return pp;
 	}
+	/**
+	 * looks up a previously named child, attached using attach(tag, perform)
+	*/
+	public Consumer<Integer> lookup(String name)
+	{
+		return tagged.get(name);
+	}
 
 	/**
 	 * Disconnects a Perform from this Scene. Care has been taken to ensure you can do this while the internalScene is being traversed.

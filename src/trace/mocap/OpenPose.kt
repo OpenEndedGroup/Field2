@@ -36,6 +36,11 @@ class OpenPose(val fn: String, val imageWidth: Int, val imageHeight: Int) {
         fun hasLeftHand() = leftHand.size > 0
         fun hasRightHand() = rightHand.size > 0
 
+        var done = false
+
+        var frame = 0
+        var person = 0
+
     }
 
     init {
@@ -45,7 +50,12 @@ class OpenPose(val fn: String, val imageWidth: Int, val imageHeight: Int) {
             val (p, face) = read(it)
             var f = Frame()
 
-            f.people.addAll(p)
+            p.forEach {
+                it.frame = frames.size
+                it.person = f.people.size
+                f.people.add(it)
+            }
+
             f.faces.addAll(face)
             frames.add(f)
         }

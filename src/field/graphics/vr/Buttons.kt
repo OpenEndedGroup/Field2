@@ -16,8 +16,7 @@ class Buttons : Runnable {
 
     private val lastDown: MutableSet<String> = mutableSetOf()
 
-    var slop = 0.01f;
-
+    var slop = 0.01f
 
     constructor(init : (Buttons) -> Unit)
     {
