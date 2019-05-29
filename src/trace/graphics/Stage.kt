@@ -20,7 +20,7 @@ import org.lwjgl.opengl.GL11
 import trace.graphics.remote.RemoteServer
 import trace.graphics.remote.RemoteStageLayerHelper
 import trace.input.Buttons
-import trace.input.KinectDriver
+//import trace.input.KinectDriver
 import trace.input.WebcamDriver
 import trace.util.FLineToSVG
 import trace.util.LinePiper
@@ -1048,9 +1048,9 @@ class Stage(val w: Int, val h: Int) : AsMap {
         return sg
     }
 
-    fun withKinectDepth(): ShaderGroup {
-        return withTexture(KinectDriver.texture!!, "kinect")
-    }
+//    fun withKinectDepth(): ShaderGroup {
+//        return withTexture(KinectDriver.texture!!, "kinect")
+//    }
 
     @JvmOverloads
     fun withTexture(t: TextureFromFloatBuffer, name: String? = null): ShaderGroup {
