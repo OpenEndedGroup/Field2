@@ -16,12 +16,19 @@ class OpenPose(val fn: String, val imageWidth: Int, val imageHeight: Int) {
     class Frame {
         val people = mutableListOf<Person>()
         val faces = mutableListOf<Face>()
+
+        override fun toString(): String {
+            return "Frame with ${people.size} people and ${faces.size} faces"
+        }
     }
 
     var frames = mutableListOf<Frame>()
 
     inner class Face {
         val points = mutableListOf<Vec3>()
+        override fun toString(): String {
+            return "Face with ${points.size} points"
+        }
     }
 
     inner class Person {
@@ -40,6 +47,10 @@ class OpenPose(val fn: String, val imageWidth: Int, val imageHeight: Int) {
 
         var frame = 0
         var person = 0
+
+        override fun toString(): String {
+            return "Person with ${points.size} points / ${points.filter { it.z>0 }.size} confident points"
+        }
 
     }
 
