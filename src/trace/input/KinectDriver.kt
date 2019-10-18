@@ -85,19 +85,26 @@ class KinectDriver {
             })
         }
 
+        @JvmStatic
+        var difference = 0f
+
         private fun copyToFloatBuffer(shortFrame: ShortBuffer, floatFrame: FloatBuffer) {
             floatFrame.clear()
             shortFrame.clear()
+            var d = 0f
             for (n in 0 until shortFrame.capacity()) {
                 var ff = shortFrame.get() / 1024f
                 if (ff > 1) ff = 0f;
-                floatFrame.put(ff)
+
+                d += Math.abs(floatFrame.get(n) - ff)
+                floatFrame.put(n, ff)
             }
             floatFrame.clear()
             shortFrame.clear()
+            difference = d
         }
 
-
+        @JvmStatic
         fun depthAt(x: Double, y: Double): Float {
             val xx = Math.max(0, Math.min(width - 1, (width * x / 100).toInt()))
             val yy = Math.max(0, Math.min(height - 1, (height * y / 100).toInt()))
@@ -106,7 +113,6 @@ class KinectDriver {
 
         }
     }
-
 
 
 }

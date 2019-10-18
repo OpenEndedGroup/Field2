@@ -72,7 +72,7 @@ public class SlowJPEG implements JPEGLoader{
 		byte[] ddd = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
 		System.arraycopy(t.array(), 0, ddd, 0, ddd.length);
 //
-//		try {
+//		try {fb
 //			ImageWriter jj = ImageIO.getImageWritersByFormatName("jpg").next();
 //			jj.setOutput(new FileImageOutputStream(new File(filename)));
 //			JPEGImageWriteParam params = new JPEGImageWriteParam(null);

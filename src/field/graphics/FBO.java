@@ -11,6 +11,7 @@ import fielded.boxbrowser.BoxBrowser;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
+import org.lwjgl.opengl.GL41;
 
 import java.io.File;
 import java.io.IOException;
@@ -126,7 +127,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 	}
 
 	static public class FBOSpecification {
-		public final int unit;
+		public int unit;
 		public final int internalFormat;
 		public final int width;
 		public final int height;
@@ -207,6 +208,13 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 		static public FBOSpecification srgba(int unit, int width, int height) {
 			return new FBOSpecification(unit, GL21.GL_SRGB8_ALPHA8, width, height, GL_RGBA, GL_BYTE, 8, false, 1, false, false, 1);
 		}
+
+
+		public FBOSpecification duplicate()
+		{
+			return new FBOSpecification(unit, internalFormat, width, height, format, type, elementSize, depth, num, multisample, multisample_raw, layers);
+		}
+
 
 		@Override
 		public String toString() {
@@ -396,6 +404,8 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 		return this;
 	}
 
+	public boolean sbsStereoViewport = false;
+
 	public boolean draw() {
 
 		drawCount++;
@@ -416,6 +426,19 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 
 			GraphicsContext.checkError(() -> "prior to viewport");
 			GraphicsContext.getContext().stateTracker.viewport.set(v);
+
+			if (sbsStereoViewport)
+			{
+				GraphicsContext.getContext().stateTracker.viewport.set(v);
+				GL41.glViewportIndexedf(1, viewport.x, viewport.y, viewport.w/2, viewport.h);
+				GL41.glViewportIndexedf(2, viewport.x+viewport.w/2, viewport.y, viewport.w/2, viewport.h);
+				GL41.glScissorIndexed(0, (int)viewport.x, (int)viewport.y, (int)viewport.w, (int)viewport.h);
+				GL41.glScissorIndexed(1, (int)viewport.x, (int)viewport.y, (int)viewport.w/2, (int)viewport.h);
+				GL41.glScissorIndexed(2, (int)viewport.x+(int)viewport.w/2, (int)viewport.y, (int)viewport.w/2, (int)viewport.h);
+				GL41.glEnablei(GL_SCISSOR_TEST, 1);
+				GL41.glEnablei(GL_SCISSOR_TEST, 2);
+			}
+
 
 			GraphicsContext.checkError(() -> "prior to debug red");
 			int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);

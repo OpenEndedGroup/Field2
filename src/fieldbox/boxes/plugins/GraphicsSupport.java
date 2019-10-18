@@ -6,6 +6,7 @@ import field.utility.Pair;
 import field.utility.ShaderPreprocessor;
 import fieldbox.FieldBox;
 import fieldbox.boxes.Box;
+import fieldbox.boxes.Drawing;
 import fieldbox.execution.Execution;
 import fieldbox.execution.InverseDebugMapping;
 import fieldbox.io.IO;
@@ -138,6 +139,8 @@ public class GraphicsSupport extends Box {
 			}
 
 		}
+
+		Drawing.dirty(b, 2);
 	}
 
 	protected Shader newShaderFromBox(Box b) {

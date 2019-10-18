@@ -19,6 +19,8 @@ public class RunLoop {
 	static public final ReentrantLock lock = new ReentrantLock(true);
 	static public final ExecutorService workerPool = Executors.newFixedThreadPool(Runtime.getRuntime()
 		.availableProcessors() * 2 + 2);
+
+
 	static public long tick = 0;
 	protected final Thread shutdownThread;
 	public Scene mainLoop = new Scene();

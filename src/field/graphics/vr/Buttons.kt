@@ -5,7 +5,7 @@ import java.lang.Math.abs
 import java.util.ArrayList
 import java.util.function.Supplier
 
-class Buttons : Runnable {
+class Buttons(init: (Buttons) -> Unit) : Runnable {
 
     // a button is just an axis
     val axesMap: MutableMap<String, Number> = mutableMapOf();
@@ -16,11 +16,9 @@ class Buttons : Runnable {
 
     private val lastDown: MutableSet<String> = mutableSetOf()
 
-    var slop = 0.01f;
+    var slop = 0.01f
 
-
-    constructor(init : (Buttons) -> Unit)
-    {
+    init {
         init(this)
     }
 
@@ -34,7 +32,13 @@ class Buttons : Runnable {
         val downEvents = LinkedHashSet<String>(currentDown)
         downEvents.removeAll(lastDown)
         downEvents.map { down[it] }.filter { it != null }.map { it!!.values }.forEach {
-            it.removeIf { v -> !v.get() }
+
+            println(" running callbacks for $it")
+
+            it.removeIf { v ->
+                println(" running callback $v")
+                !v.get()
+            }
         }
 
         if (downEvents.size>0)

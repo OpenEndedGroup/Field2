@@ -18,7 +18,6 @@ import org.lwjgl.openvr.VR.k_unTrackedDeviceIndex_Hmd
 import org.lwjgl.openvr.VR.ETrackedDeviceProperty_Prop_ModelNumber_String
 import org.lwjgl.openvr.VRSystem.*
 
-
 class OpenVRDrawTarget {
 
     internal var warmUp = 0
@@ -121,8 +120,8 @@ class OpenVRDrawTarget {
                         }
 
 
-                        if (debug)
-                            print("device $n is valid is $clazz, $valid, $connected ${h34.m(0)}\n")
+//                        if (debug)
+//                            print("device $n is valid is $clazz, $valid, $connected ${h34.m(0)}\n")
                     }
 
 
@@ -192,8 +191,8 @@ class OpenVRDrawTarget {
                     val TD = System.nanoTime()-lastTD
                     lastTD = TD
 
-                    if (debug)
-                        print(" submitted frame: $res0 $res1 $TD\n")
+//                    if (debug)
+//                        print(" submitted frame: $res0 $res1 $TD\n")
 
 
 //                    GraphicsContext.checkError{

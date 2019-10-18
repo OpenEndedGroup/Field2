@@ -775,7 +775,6 @@ class Asta {
     }
 
     private fun hashFor(c: Tree, salt: Long = 0): Long {
-        System.out.println("HASH? " + c.kind.hashCode())
         return c.kind.hashCode().toLong() * 31 + salt
     }
 

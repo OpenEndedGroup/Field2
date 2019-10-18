@@ -158,7 +158,7 @@ public class Sound {
 			new FileInputStream(filename)));
 
 		System.out.println(" format :" + data.format + " " + data.samplerate
-			+ " " + data.data);
+			+ " " + data.data+" "+data.data.capacity());
 		try {
 			switch (data.format) {
 				case AL10.AL_FORMAT_MONO16: {

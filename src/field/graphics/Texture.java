@@ -200,7 +200,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
         attach(new Transient(() -> {
             pendingUploads.decrementAndGet();
 
-            System.out.println("!!!!!!!!!!!!!!!\n\n\n\n\n\n uploaded ... "+pendingUploads.get());
+//            System.out.println(" uploading ??");
 
             State s = GraphicsContext.get(this, null);
 
@@ -233,6 +233,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
             Log.log("graphics.trace", () -> "uploaded part 1");
             s.mod++;
         }, -200)/*.setOnceOnly()*/.setAllContextsFor(this));
+
     }
 
     /**
@@ -244,6 +245,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
             GraphicsContext.checkError(() -> "entering texture upload " + specification);
             pendingUploads.decrementAndGet();
             State s = GraphicsContext.get(this, null);
+
 
             if (s == null) {
                 System.out.println(" -- no context for this texture upload");
@@ -833,6 +835,12 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
                                             source, false);
         }
 
+
+        static public TextureSpecification float3(int unit, int width, int height, ByteBuffer source) {
+                return new TextureSpecification(unit, GL_TEXTURE_2D, GL_RGB32F, width, height, GL_RGB, GL_FLOAT, 3,
+                                            source, false);
+        }
+
         static public TextureSpecification float4_1d(int unit, int width, ByteBuffer source, boolean mips) {
             return new TextureSpecification(unit, GL_TEXTURE_1D, GL30.GL_RGBA32F, width, 1, GL_RGBA, GL_FLOAT, 16,
                                             source, mips);
@@ -874,6 +882,11 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
         protected int pbo;
         protected ByteBuffer old;
         int x0, x1, y0, y1;
+    }
+
+    public TextureUnitReplacement viewWithDifferentUnit(int u)
+    {
+        return new TextureUnitReplacement(u, this);
     }
 
 

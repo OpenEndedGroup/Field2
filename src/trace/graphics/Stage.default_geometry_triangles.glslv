@@ -21,6 +21,12 @@ out vec3 fnormal;
 
 void main(void)
 {
+
+    // this is the geometry shader, 
+    // unless you want to do things to whole triangles
+    // that you can't do to individual vertices
+    // I'd look elsewhere....
+
     if (sides==1 && id[0]!=1) return;
     if (sides==2 && id[0]!=0) return;
     int i;

@@ -199,9 +199,9 @@ class Stage(val w: Int, val h: Int) : AsMap {
         var tick = 0
 
         fbo.scene.attach(-101) {
-            if (STEREO) GL11.glEnable(GL11.GL_CLIP_PLANE0)
+            if (STEREO || SimpleOculusTarget.isVR()) GL11.glEnable(GL11.GL_CLIP_PLANE0)
             GL11.glEnable(GL11.GL_BLEND)
-            GL11.glDisable(GL11.GL_DEPTH_TEST)
+            GL11.glEnable(GL11.GL_DEPTH_TEST)
             GL11.glDepthFunc(GL11.GL_LESS)
 //            GL11.glEnable(GL32.GL_DEPTH_CLAMP)
             GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
@@ -338,6 +338,8 @@ class Stage(val w: Int, val h: Int) : AsMap {
         var imageBytesPerPixel = 3
         var imageDimensions = 0 to 0
 
+        var vrButtons : SimpleButtons? = if (SimpleOculusTarget.isVR()) SimpleButtons(SimpleOculusTarget.o2!!) else null
+
         @JvmField
         @Documentation("Sets the scale of this box. The origin is in the bottom left, and 'bounds' is in the top right. Defaults to vec(100,100")
         var bounds = Vec2(100.0, 100.0)
@@ -408,6 +410,11 @@ class Stage(val w: Int, val h: Int) : AsMap {
             if (STEREO) {
                 keyboardCamera = KeyboardCamera(__camera, insideViewport!!, "" + name)
                 keyboardCamera!!.standardMap()
+            }
+
+            if (SimpleOculusTarget.isVR())
+            {
+                vrDefaults()
             }
 
         }
@@ -498,12 +505,21 @@ class Stage(val w: Int, val h: Int) : AsMap {
             }.first
         }
 
+        var rawTriangles = IdempotencyMap<MeshBuilder>(MeshBuilder::class.java).setAutoconstruct { triangleBuilder(it) }
+        var rawLines = IdempotencyMap<MeshBuilder>(MeshBuilder::class.java).setAutoconstruct { lineBuilder(it) }
+        var rawPoints = IdempotencyMap<MeshBuilder>(MeshBuilder::class.java).setAutoconstruct { pointBuilder(it) }
+
+
         fun triangleBuilder(name: String): MeshBuilder {
             return builders.computeIfAbsent(name) {
 
                 val geometry = BaseMesh.triangleList(0, 0).setInstances { if (SimpleOculusTarget.isVR() || STEREO) 2 else 1 }
                 geometry.setInstances(2)
                 val builder = MeshBuilder(geometry)
+
+                builder.open()
+                builder.aux(1, 0.3f,0.6f,0.8f,1f)
+                builder.close()
 
                 shader!!.first!!.asMap_set(name, geometry)
 
@@ -919,6 +935,16 @@ class Stage(val w: Int, val h: Int) : AsMap {
             }
         }
 
+        fun addTexture(unit: Int, name: String, layer: ShaderGroup) {
+            val texture = layer.shader!!.second!!.lookup("source") as Texture
+
+            val texture2 = texture.viewWithDifferentUnit(unit)
+
+            shader?.first?.asMap_set(name, texture2)
+            shader?.second?.asMap_set(name, texture2)
+            shader?.third?.asMap_set(name, texture2)
+        }
+
         var webcamDriver: WebcamDriver? = null
         var fileMap: ImageCache.FileMap? = null
         lateinit var head: SimpleHead.Frame
@@ -972,8 +998,6 @@ class Stage(val w: Int, val h: Int) : AsMap {
     val show_vertex_vr = BoxDefaultCode.findSource(this.javaClass, "show_vertex_vr")
     @HiddenInAutocomplete
     val show_fragment_vr = BoxDefaultCode.findSource(this.javaClass, "show_fragment_vr")
-
-    // todo: filename mapping
 
     @Documentation("Make a layer with a given texture map. Filename should be a jpeg image.")
     fun withTexture(filename: String): ShaderGroup {

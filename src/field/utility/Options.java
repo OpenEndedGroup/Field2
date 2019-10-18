@@ -146,4 +146,9 @@ public class Options {
 		String v = getString(key, def);
 		return v.endsWith("/") ? v : (v + "/");
 	}
+
+	public Object get(String name)
+	{
+		return dict().get(new Dict.Prop(name));
+	}
 }
