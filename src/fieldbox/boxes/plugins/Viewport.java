@@ -294,7 +294,6 @@ public class Viewport extends Box implements IO.Loaded, ProvidesGraphicsContext 
 
 		properties.putToMap(Mouse.onMouseDown, "__pointHit__", (e, b) -> {
 
-
 			// TODO: recur
 			IdempotencyMap<Supplier<FLine>> m = properties.get(pointSelection);
 			if (m == null) return null;

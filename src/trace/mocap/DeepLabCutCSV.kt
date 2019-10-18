@@ -25,8 +25,7 @@ class DeepLabCutCSV(val fn: String, val w: Int, val h: Int) {
             joints.add(x.mapIndexed { i, x ->
 
                 Vec3(100 * x / w, 100 * y[i] / w, c[i])
-
-
+                
             }.toList())
         }
     }

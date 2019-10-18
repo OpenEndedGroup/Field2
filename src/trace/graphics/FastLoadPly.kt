@@ -28,6 +28,9 @@ import java.util.ArrayList
 
 class FastLoadPly(val fn: String) {
 
+    @JvmField
+    var next : FastLoadPly? = null
+
     private var boundTo: BaseMesh? = null
 
     private var lp: LoadPly
@@ -87,6 +90,7 @@ class FastLoadPly(val fn: String) {
                 v.aux(2, size.get(i))
                 v.aux(1, color.get(4 * i + 0), color.get(4 * i + 1), color.get(4 * i + 2), color.get(4 * i + 3))
                 v.aux(4, normal.get(3 * i + 0), normal.get(3 * i + 1), normal.get(3 * i + 2))
+                v.aux(15, positions.get(3 * i + 0), positions.get(3 * i + 1), positions.get(3 * i + 2))
                 v.v(positions.get(3 * i + 0), positions.get(3 * i + 1), positions.get(3 * i + 2))
             }
             v.close()
@@ -118,6 +122,7 @@ class FastLoadPly(val fn: String) {
                 v.aux(2, size.get(i))
                 v.aux(1, color.get(4 * i + 0), color.get(4 * i + 1), color.get(4 * i + 2), color.get(4 * i + 3))
                 v.aux(4, normal.get(3 * i + 0), normal.get(3 * i + 1), normal.get(3 * i + 2))
+                v.aux(15, positions.get(3 * i + 0), positions.get(3 * i + 1), positions.get(3 * i + 2))
                 v.v(positions.get(3 * i + 0), positions.get(3 * i + 1), positions.get(3 * i + 2))
             }
 
@@ -185,8 +190,12 @@ class FastLoadPly(val fn: String) {
                 positions.put(3 * i + 1, (dy + center.y).toFloat())
                 positions.put(3 * i + 2, (dz + center.z).toFloat())
             }
-
         }
+
+
+        if (next!=null)
+            next!!.planarRotate(center, up, amount)
+
     }
 
 }
