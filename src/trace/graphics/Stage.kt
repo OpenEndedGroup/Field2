@@ -20,7 +20,7 @@ import org.lwjgl.opengl.GL11
 import trace.graphics.remote.RemoteServer
 import trace.graphics.remote.RemoteStageLayerHelper
 import trace.input.Buttons
-import trace.input.KinectDriver
+//import trace.input.KinectDriver
 import trace.input.WebcamDriver
 import trace.util.FLineToSVG
 import trace.util.LinePiper
@@ -79,15 +79,10 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
     protected fun computeKnownNonProperties(): Set<String> {
         val r = LinkedHashSet<String>()
-        val m = this.javaClass
-                .methods
-        for (mm in m)
-            r.add(mm.name)
-        val f = this.javaClass
-                .fields
-        for (ff in f)
-            if (!Modifier.isStatic(ff.modifiers))
-                r.add(ff.name)
+        val m = this.javaClass.methods
+        for (mm in m) r.add(mm.name)
+        val f = this.javaClass.fields
+        for (ff in f) if (!Modifier.isStatic(ff.modifiers)) r.add(ff.name)
 
         r.remove("children")
         r.remove("parents")
@@ -115,6 +110,9 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
     companion object {
         var stageNum: Int = 0
+
+        @JvmField
+        var VR: Boolean = false
 
         @JvmStatic
         var rs: RemoteServer? = null
@@ -144,6 +142,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
     val saver: SaverFBO
 
     val LATENCY = 1
+
 
     init {
         thisStageNum = stageNum++
@@ -200,10 +199,9 @@ class Stage(val w: Int, val h: Int) : AsMap {
         var tick = 0
 
         fbo.scene.attach(-101) {
-            if (STEREO)
-                GL11.glEnable(GL11.GL_CLIP_PLANE0)
+            if (STEREO || SimpleOculusTarget.isVR()) GL11.glEnable(GL11.GL_CLIP_PLANE0)
             GL11.glEnable(GL11.GL_BLEND)
-            GL11.glDisable(GL11.GL_DEPTH_TEST)
+            GL11.glEnable(GL11.GL_DEPTH_TEST)
             GL11.glDepthFunc(GL11.GL_LESS)
 //            GL11.glEnable(GL32.GL_DEPTH_CLAMP)
             GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
@@ -234,8 +232,6 @@ class Stage(val w: Int, val h: Int) : AsMap {
     @JvmField
     var STEREO: Boolean = false
 
-    @JvmField
-    var VR: Boolean = false
 
     @JvmField
     var remap = ""
@@ -342,6 +338,8 @@ class Stage(val w: Int, val h: Int) : AsMap {
         var imageBytesPerPixel = 3
         var imageDimensions = 0 to 0
 
+        var vrButtons : SimpleButtons? = if (SimpleOculusTarget.isVR()) SimpleButtons(SimpleOculusTarget.o2!!) else null
+
         @JvmField
         @Documentation("Sets the scale of this box. The origin is in the bottom left, and 'bounds' is in the top right. Defaults to vec(100,100")
         var bounds = Vec2(100.0, 100.0)
@@ -402,8 +400,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
         init {
             val s = __camera.state
             s.aspect = (w / h.toFloat())
-            if (STEREO)
-                s.aspect *= 0.5f
+            if (STEREO) s.aspect *= 0.5f
             s.target = Vec3(0.0, 0.0, 0.0)
             s.up = Vec3(0.0, -1.0, 0.0)
             s.position = Vec3(0.0, 0.0, 2.0)
@@ -413,6 +410,11 @@ class Stage(val w: Int, val h: Int) : AsMap {
             if (STEREO) {
                 keyboardCamera = KeyboardCamera(__camera, insideViewport!!, "" + name)
                 keyboardCamera!!.standardMap()
+            }
+
+            if (SimpleOculusTarget.isVR())
+            {
+                vrDefaults()
             }
 
         }
@@ -503,12 +505,21 @@ class Stage(val w: Int, val h: Int) : AsMap {
             }.first
         }
 
+        var rawTriangles = IdempotencyMap<MeshBuilder>(MeshBuilder::class.java).setAutoconstruct { triangleBuilder(it) }
+        var rawLines = IdempotencyMap<MeshBuilder>(MeshBuilder::class.java).setAutoconstruct { lineBuilder(it) }
+        var rawPoints = IdempotencyMap<MeshBuilder>(MeshBuilder::class.java).setAutoconstruct { pointBuilder(it) }
+
+
         fun triangleBuilder(name: String): MeshBuilder {
             return builders.computeIfAbsent(name) {
 
                 val geometry = BaseMesh.triangleList(0, 0).setInstances { if (SimpleOculusTarget.isVR() || STEREO) 2 else 1 }
                 geometry.setInstances(2)
                 val builder = MeshBuilder(geometry)
+
+                builder.open()
+                builder.aux(1, 0.3f,0.6f,0.8f,1f)
+                builder.close()
 
                 shader!!.first!!.asMap_set(name, geometry)
 
@@ -544,111 +555,215 @@ class Stage(val w: Int, val h: Int) : AsMap {
         }
 
         fun vrGazeDirection(): Vec3 {
+            if (SimpleOculusTarget.o != null) {
 
-            var m = Mat4(SimpleOculusTarget.o!!.rightView().get())
-            var m2 = Mat4(__camera.view().get())
-            m2 = m2.transpose()
+                var m = Mat4(SimpleOculusTarget.o!!.rightView().get())
+                var m2 = Mat4(__camera.view().get())
+                m2 = m2.transpose()
 
-            m = Mat4.mul(m, m2, Mat4())
-            m.invert()
+                m = Mat4.mul(m, m2, Mat4())
+                m.invert()
 
-            val a = m.transform(Vec4(0.0, 0.0, 0.0, 1.0))
-            val b = m.transform(Vec4(0.0, 0.0, -1.0, 1.0))
-            val a2 = Vec3(a.x, a.y, a.z) * (1 / a.w)
-            val b2 = Vec3(b.x, b.y, b.z) * (1 / b.w)
+                val a = m.transform(Vec4(0.0, 0.0, 0.0, 1.0))
+                val b = m.transform(Vec4(0.0, 0.0, -1.0, 1.0))
+                val a2 = Vec3(a.x, a.y, a.z) * (1 / a.w)
+                val b2 = Vec3(b.x, b.y, b.z) * (1 / b.w)
 
-            return b2 - a2
+                return b2 - a2
+            } else if (SimpleOculusTarget.o2 != null) {
+                var m = Mat4(SimpleOculusTarget.o2!!.cameraInterface().view(-1f))
+                m.transpose()
+                var m2 = Mat4(__camera.view().get())
+                m2 = m2.transpose()
 
+                m = Mat4.mul(m, m2, Mat4())
+                m.invert()
+
+                val a = m.transform(Vec4(0.0, 0.0, 0.0, 1.0))
+                val b = m.transform(Vec4(0.0, 0.0, -1.0, 1.0))
+                val a2 = Vec3(a.x, a.y, a.z) * (1 / a.w)
+                var b2 = Vec3(b.x, b.y, b.z) * (1 / b.w)
+
+                return b2 - a2
+            }
+
+            return Vec3()
         }
 
         fun vrViewerPosition(): Vec3 {
 
-            var m = Mat4(SimpleOculusTarget.o!!.rightView().get())
-            var m2 = Mat4(__camera.view().get())
-            m2 = m2.transpose()
+            if (SimpleOculusTarget.o != null) {
+                var m = Mat4(SimpleOculusTarget.o!!.rightView().get())
+                var m2 = Mat4(__camera.view().get())
+                m2 = m2.transpose()
 
-            m = Mat4.mul(m, m2, Mat4())
-            m.invert()
+                m = Mat4.mul(m, m2, Mat4())
+                m.invert()
 
-            val a = m.transform(Vec4(0.0, 0.0, 0.0, 1.0))
-            val b = m.transform(Vec4(0.0, 0.0, -1.0, 1.0))
-            val a2 = Vec3(a.x, a.y, a.z) * (1 / a.w)
-            var b2 = Vec3(b.x, b.y, b.z) * (1 / b.w)
+                val a = m.transform(Vec4(0.0, 0.0, 0.0, 1.0))
+                val b = m.transform(Vec4(0.0, 0.0, -1.0, 1.0))
+                val a2 = Vec3(a.x, a.y, a.z) * (1 / a.w)
+                var b2 = Vec3(b.x, b.y, b.z) * (1 / b.w)
 
-            return a2
+                return a2
+            } else if (SimpleOculusTarget.o2 != null) {
+                var m = Mat4(SimpleOculusTarget.o2!!.cameraInterface().view(-1f))
+                m.transpose()
+                var m2 = Mat4(__camera.view().get())
+                m2 = m2.transpose()
 
+                m = Mat4.mul(m, m2, Mat4())
+                m.invert()
+
+                val a = m.transform(Vec4(0.0, 0.0, 0.0, 1.0))
+                val b = m.transform(Vec4(0.0, 0.0, -1.0, 1.0))
+                val a2 = Vec3(a.x, a.y, a.z) * (1 / a.w)
+                var b2 = Vec3(b.x, b.y, b.z) * (1 / b.w)
+
+                return a2
+            }
+            return Vec3()
         }
 
 
         fun vrLeftHandPosition(): Vec3 {
 
-            val at = SimpleOculusTarget.o!!.leftPosition + Vec3(0.0, 1.65, 0.0)
-            var m2 = Mat4(__camera.view().get())
-            m2 = m2.transpose()
-            m2 = m2.invert()
-            val al = m2.transform(Vec4(at, 1.0))
+            if (SimpleOculusTarget.o != null) {
+                val at = SimpleOculusTarget.o!!.leftPosition + Vec3(0.0, 1.65, 0.0)
+                var m2 = Mat4(__camera.view().get())
+                m2 = m2.transpose()
+                m2 = m2.invert()
+                val al = m2.transform(Vec4(at, 1.0))
 
-            println(al)
-            return Vec3(al.x, al.y, al.z) * (1 / al.w)
+                println(al)
+                return Vec3(al.x, al.y, al.z) * (1 / al.w)
+            } else if (SimpleOculusTarget.o2 != null) {
+                println("hand : ${SimpleOculusTarget.o2!!.hand1}")
 
+                val at = Vec3(SimpleOculusTarget.o2!!.hand1.m03, SimpleOculusTarget.o2!!.hand1.m13, SimpleOculusTarget.o2!!.hand1.m23);// + Vec3(0.0, 1.65, 0.0)
+                var m2 = Mat4(__camera.view().get())
+                m2 = m2.transpose()
+                m2 = m2.invert()
+                val al = m2.transform(Vec4(at, 1.0))
+
+                println(al)
+                return Vec3(al.x, al.y, al.z) * (1 / al.w)
+            }
+            return Vec3()
         }
 
         fun vrLeftHandDirection(): Vec3 {
+            if (SimpleOculusTarget.o != null) {
 
-            val m = Mat4()
-            m.identity()
-            val o = SimpleOculusTarget.o!!.leftOrientation
+                val m = Mat4()
+                m.identity()
+                val o = SimpleOculusTarget.o!!.leftOrientation
 
-            m.rotate(o)
+                m.rotate(o)
 
-            val base = m.transform(Vec4(0, 0, 0, 1))
-            val end = m.transform(Vec4(0, 0, -1, 1))
+                val base = m.transform(Vec4(0, 0, 0, 1))
+                val end = m.transform(Vec4(0, 0, -1, 1))
 
-            val dir = Vec3(end.x, end.y, end.z) * (1 / end.w) - Vec3(base.x, base.y, base.z) * (1 / base.w)
+                val dir = Vec3(end.x, end.y, end.z) * (1 / end.w) - Vec3(base.x, base.y, base.z) * (1 / base.w)
 
 
-            var m2 = Mat4(__camera.view().get())
-            m2 = m2.transpose()
-            m2 = m2.invert()
-            val al = m2.transform(Vec4(dir, 0.0))
+                var m2 = Mat4(__camera.view().get())
+                m2 = m2.transpose()
+                m2 = m2.invert()
+                val al = m2.transform(Vec4(dir, 0.0))
 
-            return Vec3(al.x, al.y, al.z)
+                return Vec3(al.x, al.y, al.z)
+            } else if (SimpleOculusTarget.o2 != null) {
+
+
+                val m = Mat4(SimpleOculusTarget.o2!!.hand1).transpose()
+
+                val base = m.transform(Vec4(0, 0, 0, 1))
+                val end = m.transform(Vec4(0, 0, -1, 1))
+
+                val dir = Vec3(end.x, end.y, end.z) * (1 / end.w) - Vec3(base.x, base.y, base.z) * (1 / base.w)
+
+
+                var m2 = Mat4(__camera.view().get())
+                m2 = m2.transpose()
+                m2 = m2.invert()
+                val al = m2.transform(Vec4(dir, 0.0))
+
+                return Vec3(al.x, al.y, al.z)
+
+            }
+            return Vec3()
         }
 
 
         fun vrRightHandDirection(): Vec3 {
+            if (SimpleOculusTarget.o != null) {
 
-            val m = Mat4()
-            m.identity()
-            val o = SimpleOculusTarget.o!!.rightOrientation
+                val m = Mat4()
+                m.identity()
+                val o = SimpleOculusTarget.o!!.rightOrientation
 
-            m.rotate(o)
+                m.rotate(o)
 
-            val base = m.transform(Vec4(0, 0, 0, 1))
-            val end = m.transform(Vec4(0, 0, -1, 1))
+                val base = m.transform(Vec4(0, 0, 0, 1))
+                val end = m.transform(Vec4(0, 0, -1, 1))
 
-            val dir = Vec3(end.x, end.y, end.z) * (1 / end.w) - Vec3(base.x, base.y, base.z) * (1 / base.w)
+                val dir = Vec3(end.x, end.y, end.z) * (1 / end.w) - Vec3(base.x, base.y, base.z) * (1 / base.w)
 
 
-            var m2 = Mat4(__camera.view().get())
-            m2 = m2.transpose()
-            m2 = m2.invert()
-            val al = m2.transform(Vec4(dir, 0.0))
+                var m2 = Mat4(__camera.view().get())
+                m2 = m2.transpose()
+                m2 = m2.invert()
+                val al = m2.transform(Vec4(dir, 0.0))
 
-            return Vec3(al.x, al.y, al.z)
+                return Vec3(al.x, al.y, al.z)
+            } else if (SimpleOculusTarget.o2 != null) {
+
+                val m = Mat4(SimpleOculusTarget.o2!!.hand2).transpose()
+
+                val base = m.transform(Vec4(0, 0, 0, 1))
+                val end = m.transform(Vec4(0, 0, -1, 1))
+
+                val dir = Vec3(end.x, end.y, end.z) * (1 / end.w) - Vec3(base.x, base.y, base.z) * (1 / base.w)
+
+
+                var m2 = Mat4(__camera.view().get())
+                m2 = m2.transpose()
+                m2 = m2.invert()
+                val al = m2.transform(Vec4(dir, 0.0))
+
+                return Vec3(al.x, al.y, al.z)
+
+            }
+            return Vec3()
         }
 
 
         fun vrRightHandPosition(): Vec3 {
 
-            val at = SimpleOculusTarget.o!!.rightPosition + Vec3(0.0, 1.65, 0.0)
-            var m2 = Mat4(__camera.view().get())
-            m2 = m2.transpose()
-            m2 = m2.invert()
-            val al = m2.transform(Vec4(at, 1.0))
+            if (SimpleOculusTarget.o != null) {
+                val at = SimpleOculusTarget.o!!.rightPosition + Vec3(0.0, 1.65, 0.0)
+                var m2 = Mat4(__camera.view().get())
+                m2 = m2.transpose()
+                m2 = m2.invert()
+                val al = m2.transform(Vec4(at, 1.0))
 
-            println(al)
-            return Vec3(al.x, al.y, al.z) * (1 / al.w)
+                println(al)
+                return Vec3(al.x, al.y, al.z) * (1 / al.w)
+            } else if (SimpleOculusTarget.o2 != null) {
+                println("hand : ${SimpleOculusTarget.o2!!.hand1}")
+
+                val at = Vec3(SimpleOculusTarget.o2!!.hand2.m03, SimpleOculusTarget.o2!!.hand2.m13, SimpleOculusTarget.o2!!.hand2.m23);// + Vec3(0.0, 1.65, 0.0)
+                var m2 = Mat4(__camera.view().get())
+                m2 = m2.transpose()
+                m2 = m2.invert()
+                val al = m2.transform(Vec4(at, 1.0))
+
+                println(al)
+                return Vec3(al.x, al.y, al.z) * (1 / al.w)
+            }
+            return Vec3()
+
 
         }
 
@@ -663,12 +778,9 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
             this.shader = shader
 
-            if (shader.first != null)
-                shader.first!!.asMap_set("_planes_", planes)
-            if (shader.second != null)
-                shader.second!!.asMap_set("_line_", line)
-            if (shader.third != null)
-                shader.third!!.asMap_set("_point_", points)
+            if (shader.first != null) shader.first!!.asMap_set("_planes_", planes)
+            if (shader.second != null) shader.second!!.asMap_set("_line_", line)
+            if (shader.third != null) shader.third!!.asMap_set("_point_", points)
 
             listOf(shader.first, shader.second, shader.third).filter { it != null }.forEachIndexed { index, it ->
 
@@ -706,8 +818,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
                         if (SimpleOculusTarget.isVR()) {
                             SimpleOculusTarget.leftProjectionMatrix()
 
-                        } else
-                            __camera.projectionMatrix(-1f)
+                        } else __camera.projectionMatrix(-1f)
                     }
                 })
                 it.asMap_set("Vl", Supplier<Mat4> {
@@ -717,8 +828,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
                         if (SimpleOculusTarget.isVR()) {
                             SimpleOculusTarget.leftViewMatrix()
 
-                        } else
-                            __camera.view(-1f)
+                        } else __camera.view(-1f)
                     }
                 })
                 it.asMap_set("Pr", Supplier<Mat4> {
@@ -727,8 +837,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
                     } else {
                         if (SimpleOculusTarget.isVR()) {
                             SimpleOculusTarget.rightProjectionMatrix()
-                        } else
-                            __camera.projectionMatrix(1f)
+                        } else __camera.projectionMatrix(1f)
                     }
                 })
                 it.asMap_set("Vr", Supplier<Mat4> {
@@ -737,8 +846,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
                     } else {
                         if (SimpleOculusTarget.isVR()) {
                             SimpleOculusTarget.rightViewMatrix()
-                        } else
-                            __camera.view(1f)
+                        } else __camera.view(1f)
                     }
                 })
                 it.asMap_set("scale", Supplier { scale })
@@ -767,8 +875,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
                     pointBuilder.open()
                     try {
                         __lines.tailUpdate().values.forEach {
-                            if (doTexture)
-                                it.addAuxProperties(4, StandardFLineDrawing.texCoord.name)
+                            if (doTexture) it.addAuxProperties(4, StandardFLineDrawing.texCoord.name)
                             StandardFLineDrawing.dispatchLine(it, planeBuilder, lineBuilder, pointBuilder, Optional.empty(), "")
                         }
                     } finally {
@@ -870,15 +977,11 @@ class Stage(val w: Int, val h: Int) : AsMap {
     fun bindShaderToBox(name: String, box: Box, kind: Int) {
         if (groups[name] != null) {
             box.first(GraphicsSupport.bindShader, box.upwards()).ifPresent {
-                if (kind == 0)
-                    it.apply(box, groups[name]!!.shader!!.first)
-                else if (kind == 1)
-                    it.apply(box, groups[name]!!.shader!!.second)
-                else if (kind == 2)
-                    it.apply(box, groups[name]!!.shader!!.third)
+                if (kind == 0) it.apply(box, groups[name]!!.shader!!.first)
+                else if (kind == 1) it.apply(box, groups[name]!!.shader!!.second)
+                else if (kind == 2) it.apply(box, groups[name]!!.shader!!.third)
             }
-        } else
-            throw IllegalArgumentException(" can't find a ShaderGroup called '$name'")
+        } else throw IllegalArgumentException(" can't find a ShaderGroup called '$name'")
     }
 
     @HiddenInAutocomplete
@@ -899,8 +1002,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
     @Documentation("Make a layer with a given texture map. Filename should be a jpeg image.")
     fun withTexture(filename: String): ShaderGroup {
         val n = groups.get(filename)
-        if (n != null)
-            return n
+        if (n != null) return n
 
         if (groups.containsKey(filename)) {
             groups.remove(filename)!!.detatch()
@@ -970,9 +1072,9 @@ class Stage(val w: Int, val h: Int) : AsMap {
         return sg
     }
 
-    fun withKinectDepth(): ShaderGroup {
-        return withTexture(KinectDriver.texture!!, "kinect")
-    }
+//    fun withKinectDepth(): ShaderGroup {
+//        return withTexture(KinectDriver.texture!!, "kinect")
+//    }
 
     @JvmOverloads
     fun withTexture(t: TextureFromFloatBuffer, name: String? = null): ShaderGroup {
@@ -985,8 +1087,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
         val filename = name ?: "" + System.identityHashCode(t)
 
         val n = groups.get(filename)
-        if (n != null)
-            return n
+        if (n != null) return n
 
         if (groups.containsKey(filename)) {
             groups.remove(filename)!!.detatch()
@@ -1056,8 +1157,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
     @Documentation("Make a layer with a given left-right stereo texture pair. Filenames should be a jpeg images.")
     fun withStereoTexture(filename: String, filename2: String): ShaderGroup {
         val n = groups.get(filename + "|" + filename2)
-        if (n != null)
-            return n
+        if (n != null) return n
 
         if (groups.containsKey(filename + "|" + filename2)) {
             groups.remove(filename + "|" + filename2)!!.detatch()
@@ -1126,8 +1226,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
     fun withWebcam(): ShaderGroup {
         val filename = "__webcam__"
         val n = groups.get(filename)
-        if (n != null)
-            return n
+        if (n != null) return n
 
         if (groups.containsKey(filename)) {
             groups.remove(filename)!!.detatch()
@@ -1197,11 +1296,11 @@ class Stage(val w: Int, val h: Int) : AsMap {
         return sg
     }
 
-    @Documentation("Make a layer that loads 'video' material from a stream of jpeg images in the given directory. These layers have an additional 'time' property that goes from 0 to 1 (from the start of the image sequence to the end).")
+    @Documentation(
+            "Make a layer that loads 'video' material from a stream of jpeg images in the given directory. These layers have an additional 'time' property that goes from 0 to 1 (from the start of the image sequence to the end).")
     fun withImageSequence(filename: String): ShaderGroup {
         val n = groups.get(filename)
-        if (n != null)
-            return n
+        if (n != null) return n
 
         if (groups.containsKey(filename)) {
             groups.remove(filename)!!.detatch()
@@ -1234,10 +1333,8 @@ class Stage(val w: Int, val h: Int) : AsMap {
             ImageCache.mapFromDirectory(filename, ".*.jpg")
 
         } catch (n: NullPointerException) {
-            if (!File(filename).exists())
-                throw java.lang.IllegalArgumentException(" problem loading jpgs from directory `$filename`, that directory doesn't exist")
-            if (!File(filename).isDirectory)
-                throw java.lang.IllegalArgumentException(" problem loading jpgs from directory `$filename`, that isn't a directory")
+            if (!File(filename).exists()) throw java.lang.IllegalArgumentException(" problem loading jpgs from directory `$filename`, that directory doesn't exist")
+            if (!File(filename).isDirectory) throw java.lang.IllegalArgumentException(" problem loading jpgs from directory `$filename`, that isn't a directory")
 
             throw java.lang.IllegalArgumentException(" problem loading jpgs from directory `$filename`")
         }
@@ -1288,8 +1385,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
                 sg.frameSet = false
                 sg.time = sg._frame / map.length().toDouble()
                 cache.setTime(sg._frame.toDouble())
-            } else
-                cache.setTime(map.length() * sg.time)
+            } else cache.setTime(map.length() * sg.time)
             cache.update()
         })
 
@@ -1334,8 +1430,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
     @Documentation("Make a layer with a particular name. If a layer already exists with this name, just look it up. Layers have cameras, opacities and color / space remappers.")
     fun withName(name: String): ShaderGroup {
         val n = groups.get(name)
-        if (n != null)
-            return n
+        if (n != null) return n
 
         val g = ShaderGroup(name)
         g.setShader(defaultShader(g))
@@ -1347,8 +1442,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
     fun withStage(stage: Stage): ShaderGroup {
         val name = "__stage__" + System.identityHashCode(stage)
         val n = groups.get(name)
-        if (n != null)
-            return n
+        if (n != null) return n
 
         if (groups.containsKey(name)) {
             groups.remove(name)!!.detatch()
@@ -1419,23 +1513,22 @@ class Stage(val w: Int, val h: Int) : AsMap {
                 mutableMapOf("REMAP" to remap)
             }))
 
-        } else
-            if (isFullscreen && STEREO) {
-                s.addSource(Shader.Type.vertex, ShaderPreprocessor().Preprocess(null, show_vertex_stereo, Supplier {
-                    mutableMapOf("REMAP" to remap)
-                }))
-                s.addSource(Shader.Type.fragment, ShaderPreprocessor().Preprocess(null, show_fragment_stereo, Supplier {
-                    mutableMapOf("REMAP" to remap)
-                }))
+        } else if (isFullscreen && STEREO) {
+            s.addSource(Shader.Type.vertex, ShaderPreprocessor().Preprocess(null, show_vertex_stereo, Supplier {
+                mutableMapOf("REMAP" to remap)
+            }))
+            s.addSource(Shader.Type.fragment, ShaderPreprocessor().Preprocess(null, show_fragment_stereo, Supplier {
+                mutableMapOf("REMAP" to remap)
+            }))
 
-            } else {
-                s.addSource(Shader.Type.vertex, ShaderPreprocessor().Preprocess(null, show_vertex, Supplier {
-                    mutableMapOf("REMAP" to remap)
-                }))
-                s.addSource(Shader.Type.fragment, ShaderPreprocessor().Preprocess(null, show_fragment, Supplier {
-                    mutableMapOf("REMAP" to remap)
-                }))
-            }
+        } else {
+            s.addSource(Shader.Type.vertex, ShaderPreprocessor().Preprocess(null, show_vertex, Supplier {
+                mutableMapOf("REMAP" to remap)
+            }))
+            s.addSource(Shader.Type.fragment, ShaderPreprocessor().Preprocess(null, show_fragment, Supplier {
+                mutableMapOf("REMAP" to remap)
+            }))
+        }
 
         s.asMap_set("disabled", Supplier { if (disabled.invoke()) 1f else 0f })
 
@@ -1558,8 +1651,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
             override fun errorOnLine(line: Int, error: String) {
                 b.first<java.util.function.Function<Box, Consumer<Pair<Int?, String>>>>(RemoteEditor.outputErrorFactory)
-                        .orElse(java.util.function.Function { x -> Consumer { `is` -> System.err.println("error (without remote editor attached) :" + `is`) } })
-                        .apply(b)
+                        .orElse(java.util.function.Function { x -> Consumer { `is` -> System.err.println("error (without remote editor attached) :" + `is`) } }).apply(b)
                         .accept(Pair(null, "Error on $shader reload: $error"))
             }
 
@@ -1569,9 +1661,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
             override fun noError() {
                 b.first<java.util.function.Function<Box, Consumer<String>>>(RemoteEditor.outputFactory)
-                        .orElse(java.util.function.Function { x -> Consumer { `is` -> System.err.println("message (without remote editor attached) :" + `is`) } })
-                        .apply(b)
-                        .accept(shader + " reloaded correctly")
+                        .orElse(java.util.function.Function { x -> Consumer { `is` -> System.err.println("message (without remote editor attached) :" + `is`) } }).apply(b).accept(shader + " reloaded correctly")
             }
         }
     }

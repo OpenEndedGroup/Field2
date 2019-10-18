@@ -52,6 +52,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
     static public boolean dontShare = Options.dict()
             .isTrue(new Dict.Prop("dontShare"), Main.os == Main.OS.windows);
 
+    static public boolean neverDisable = Options.dict().isTrue(new Dict.Prop("neverDisableWindows"), false);
 
     static public Window shareContext = null;
     static ThreadLocal<Window> currentWindow = new ThreadLocal<Window>() {
@@ -410,6 +411,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
             }
 
             if (renderControl.skipRender()) {
+
                 if (!isThreaded) pollEvents();
                 return;
             }
@@ -519,7 +521,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
      * "draw-every-frame" draw loop
      */
     protected boolean needsRepainting() {
-        return !disabled && (!lazyRepainting || needsRepainting);
+        return (!disabled || neverDisable) && (!lazyRepainting || needsRepainting);
     }
 
     /**
@@ -1139,6 +1141,12 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
         }
     }
 
+
+    public void setSwapControl(SwapControl s)
+    {
+        swapControl = s;
+    }
+
     static public class KeyboardState implements HasPosition {
         public final Set<Integer> keysDown = new LinkedHashSet<>();
         public final Map<Integer, Character> charsDown = new LinkedHashMap<>();
@@ -1267,6 +1275,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
             if (mouseState == null) return Optional.empty();
             return mouseState.position();
         }
+
 
 
         public KeyboardState clean(long window) {

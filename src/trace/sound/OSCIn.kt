@@ -10,12 +10,12 @@ class OSCIn(val p: Int) {
     val values = mutableMapOf<String, Any>()
 
     init {
-        oin.addListener("", { d, mess ->
-            println(mess)
+        oin.addListener("") { _, mess ->
+//            println(mess.address+" "+mess.arguments)
             RunLoop.main.once {
                 values[mess.address] = mess.arguments
             }
-        })
+        }
         oin.startListening()
     }
 

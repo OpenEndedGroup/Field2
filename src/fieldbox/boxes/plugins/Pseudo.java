@@ -352,7 +352,7 @@ public class Pseudo extends Box {
 		@Override
 		public Object asMap_set(String p, Object val) {
 
-			var v = on.asMap_get(p);
+			Object v = on.asMap_get(p);
 
 			if (v != null) return v;
 

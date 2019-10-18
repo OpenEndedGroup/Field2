@@ -1,5 +1,6 @@
 package field.graphics;
 
+import field.linalg.Mat4;
 import field.linalg.Vec2;
 import field.linalg.Vec3;
 import field.linalg.Vec4;
@@ -17,6 +18,7 @@ import java.nio.IntBuffer;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Dynamically create geometry piece by piece in a way that is cacheable and as friendly to contemporary OpenGL as possible.
@@ -40,8 +42,17 @@ public class MeshBuilder implements MeshAcceptor, Bracketable, Scene.ContainsPer
     MeshBuilder_tesselationSupport tessSupport = null;
     private BaseMesh target;
 
+    public Mat4 localTransform = new Mat4().identity();
+
     public MeshBuilder(BaseMesh target) {
         this.target = target;
+
+        target.asMap_set("localTransform", (Supplier<Mat4>) () -> {
+            Mat4 mm = new Mat4();
+            localTransform.transpose(mm);
+            return mm;
+        });
+
     }
 
     /**
@@ -1063,6 +1074,10 @@ public class MeshBuilder implements MeshAcceptor, Bracketable, Scene.ContainsPer
         public MeshBuilder getOuter() {
             return MeshBuilder.this;
         }
+
+
+
+
     }
 
 }

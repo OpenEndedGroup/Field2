@@ -36,14 +36,16 @@ uniform float vrOptIn;
 
 out int id;
 
+uniform mat4 localTransform;
+
 void main()
 {
+	// --------------------------- ignore this ---------------------
+	// here be dragons
+	
     id = gl_InstanceID;
-
-
     onormal = normal;
 	otextureCoordinates = textureCoordinates;
-
 
     vec2 at = ((position.xy+vec2(0.5,0.5))+translation.xy)/bounds.xy;
     gl_Position =  vec4(scale.x*(-1+at.x*2)+displayZ*position.z, scale.y*(-1+at.y*2), position.z/100, 1.0);
@@ -83,13 +85,38 @@ void main()
         et = P*V;
     }
 
-    vec4 ep = gl_Position;
+	onormal = normalize(mat3(localTransform) * onormal);
+	
+    vec4 ep =  localTransform * gl_Position;
 
-
-
+	// --------------------------------	
+	// this is a good spot to put some code that changes 
+	// the position of vertices
+	// 'ep' is the position of the vertex and 'et' is the projection * camera matrix
+	// --------------------------------
+	
     gl_Position = et*ep;
 
-    if (isVR>0)
+
+	
+    vcolor = color;
+	
+	// --------------------------------	
+	// this is a good spot to put some code that changes 
+	// the color of vertices
+	// vcolor.rgba is the color of the vertex
+	// sometimes, depending on the model, 'normal' is useful as well
+	// --------------------------------
+	
+	// e.g, a simple two-sided lighting equation
+	//vcolor.rgba *= abs(dot(normal, normalize(vec3(1,1,1))));
+	
+	
+	
+	// ------------------ dragons again --------------------------
+	pc_q = pointControl;
+    
+	if (isVR>0)
     {
         if (gl_InstanceID==0)
         {
@@ -102,7 +129,5 @@ void main()
             CD = -gl_Position.x;
         }
     }
-
-    pc_q = pointControl;
-    vcolor = color;
+	
 }

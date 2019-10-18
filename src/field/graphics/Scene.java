@@ -573,9 +573,9 @@ public class Scene extends Box implements fieldlinker.AsMap {
 			GraphicsContext.allGraphicsContexts.stream().filter(x -> x.context.containsKey(o)).forEach(x -> allContexts.add(x));
 			return this;
 		}
-
 		@Override
 		public boolean perform(int pass) {
+//			System.out.println(" perform for transient ?? "+this);
 			if (allContexts.remove(GraphicsContext.getContext())) call.accept(pass);
 
 			return !onceOnly && allContexts.size() > 0;

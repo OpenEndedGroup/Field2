@@ -67,30 +67,31 @@ public class SlowJPEG implements JPEGLoader{
 		t.rewind();
 		dest.rewind();
 
-//		image.getRaster().setDataElements(0,0, t.array());
+		image.getRaster().setDataElements(0,0, t.array());
 
 		byte[] ddd = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
 		System.arraycopy(t.array(), 0, ddd, 0, ddd.length);
-
-		try {
-			ImageWriter jj = ImageIO.getImageWritersByFormatName("jpg").next();
-			jj.setOutput(new FileImageOutputStream(new File(filename)));
-			JPEGImageWriteParam params = new JPEGImageWriteParam(null);
-			params.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-			params.setCompressionQuality(1f);
-            params.setSourceSubsampling(1,1,0,0);
-			jj.write(null, new IIOImage(image, null, null), params);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-//		try {
-//			ImageWriter jj = ImageIO.getImageWritersByFormatName("png").next();
-//			jj.setOutput(new FileImageOutputStream(new File(filename.replace(".jpg", ".png"))));
-//			jj.write(null, new IIOImage(image, null, null), null);
+//
+//		try {fb
+//			ImageWriter jj = ImageIO.getImageWritersByFormatName("jpg").next();
+//			jj.setOutput(new FileImageOutputStream(new File(filename)));
+//			JPEGImageWriteParam params = new JPEGImageWriteParam(null);
+//			params.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+//			params.setCompressionQuality(1f);
+//            params.setSourceSubsampling(1,1,0,0);
+//			jj.write(null, new IIOImage(image, null, null), params);
 //		} catch (IOException e) {
 //			e.printStackTrace();
 //		}
+
+
+		try {
+			ImageWriter jj = ImageIO.getImageWritersByFormatName("png").next();
+			jj.setOutput(new FileImageOutputStream(new File(filename.replace(".jpg", ".png"))));
+			jj.write(null, new IIOImage(image, null, null), null);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
 	}
 

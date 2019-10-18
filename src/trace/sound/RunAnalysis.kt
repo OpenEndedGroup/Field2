@@ -9,9 +9,9 @@ class RunAnalysis(val fn : String)
         val f = File(fn)
         val f2 = File(fn+ ".yaml_frames")
 
-        if (f.exists() && f2.exists() && f.lastModified()<f2.lastModified())
+        if (f.exists() && f2.exists() /*&& f.lastModified()<f2.lastModified()*/)
         {
-            System.out.println("already there")
+            System.out.println("already there...")
         }
         else
         {

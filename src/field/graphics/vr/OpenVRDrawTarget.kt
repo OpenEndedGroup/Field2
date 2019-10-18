@@ -18,7 +18,6 @@ import org.lwjgl.openvr.VR.k_unTrackedDeviceIndex_Hmd
 import org.lwjgl.openvr.VR.ETrackedDeviceProperty_Prop_ModelNumber_String
 import org.lwjgl.openvr.VRSystem.*
 
-
 class OpenVRDrawTarget {
 
     internal var warmUp = 0
@@ -39,6 +38,8 @@ class OpenVRDrawTarget {
 
 
     var lastTD = 0L;
+
+    fun getPreviewTexture() = fbo
 
     fun init(w: Scene) {
         w.attach(0, "__initopenvr__", { _: Int ->
@@ -119,8 +120,8 @@ class OpenVRDrawTarget {
                         }
 
 
-                        if (debug)
-                            print("device $n is valid is $clazz, $valid, $connected ${h34.m(0)}\n")
+//                        if (debug)
+//                            print("device $n is valid is $clazz, $valid, $connected ${h34.m(0)}\n")
                     }
 
 
@@ -149,7 +150,7 @@ class OpenVRDrawTarget {
 
                     GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
 
-                    println("texture name is ${fbo!!.openGLTextureNameInCurrentContext.toLong()}")
+//                    println("texture name is ${fbo!!.openGLTextureNameInCurrentContext.toLong()}")
 
                     val b = VRTextureBounds.callocStack()
 
@@ -190,8 +191,8 @@ class OpenVRDrawTarget {
                     val TD = System.nanoTime()-lastTD
                     lastTD = TD
 
-                    if (debug)
-                        print(" submitted frame: $res0 $res1 $TD\n")
+//                    if (debug)
+//                        print(" submitted frame: $res0 $res1 $TD\n")
 
 
 //                    GraphicsContext.checkError{
@@ -230,6 +231,12 @@ class OpenVRDrawTarget {
             }
         }
     }
+
+    fun leftView()  = cameraInterface.view(-1f).transpose()
+    fun rightView()  = cameraInterface.view(1f).transpose()
+    fun leftProjectionMatrix()  = cameraInterface.projectionMatrix(-1f).transpose()
+    fun rightProjectionMatrix()  = cameraInterface.projectionMatrix(1f).transpose()
+
 
     fun cameraInterface(): StereoCameraInterface {
         return cameraInterface
@@ -296,7 +303,8 @@ class OpenVRDrawTarget {
                     textureH = h.get(0)
 
 
-                    fbo = FBO(FBO.FBOSpecification.rgbaMultisample(10, textureW * 2, textureH))
+//                    fbo = FBO(FBO.FBOSpecification.rgbaMultisample(10, textureW * 2, textureH))
+                    fbo = FBO(FBO.FBOSpecification.rgba(10, textureW * 2, textureH))
 
                     val left_projection = HmdMatrix44.malloc()
                     val right_projection = HmdMatrix44.malloc()
@@ -319,7 +327,7 @@ class OpenVRDrawTarget {
                     print(" left_v :\n$left_v")
                     print(" right_v :\n$right_v")
 
-                    VRChaperone.VRChaperone_ForceBoundsVisible(true);
+                    VRChaperone.VRChaperone_ForceBoundsVisible(false);
 
                     fbo!!.scene.attach(-100, { k ->
 
