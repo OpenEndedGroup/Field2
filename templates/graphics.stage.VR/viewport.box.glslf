@@ -8,6 +8,8 @@ vec2 remapTexture(vec2 src)
 {
     vec2 dest = src;
 
+	dest.y = 1-dest.y;
+	
     return dest;
 }
 

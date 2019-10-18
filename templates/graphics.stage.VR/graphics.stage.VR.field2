@@ -7,7 +7,7 @@
         "vertex" "{{templates}}/graphics.stage.VR/viewport.box.glslv"
       }
       :dataFile "{{templates}}/graphics.stage.VR/viewport.box"
-      :id "_acd64ce8_fc7c_4176_8796_9fff92e2f214"
+      :id "_c669952b_705c_4ea0_8c0d_24873a9073ca"
       :boxClass "fieldbox.boxes.plugins.Viewport"
       :parents [
         ">>root<<"
@@ -16,10 +16,10 @@
       ]
       :overriddenProperties {
         "frame" #field/rect{
-          :x 75.09029388427734
-          :y 21.636322021484375
-          :w 727.66015625
-          :h 348.28125
+          :x 346.09033203125
+          :y 247.6363525390625
+          :w 631.66015625
+          :h 283.28125
         }
       }
     }
@@ -71,5 +71,8 @@
     "__filename__fragment"
     "__filename__code"
     "__filename__vertex"
+    "__filename__geometry"
+    "_fragment_cookie"
+    "_vertex_cookie"
   }
 }
