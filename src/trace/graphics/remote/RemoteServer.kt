@@ -1,3 +1,4 @@
+
 package trace.graphics.remote
 
 import com.google.common.collect.BiMap
@@ -47,6 +48,7 @@ class RemoteServer {
     init {
         this.s = NewNanoHTTPD(8090)
 
+
         s.addDocumentRoot(Main.app + "/modules/fieldbox/resources/")
         s.addDocumentRoot(Main.app + "/modules/fielded/resources/")
         s.addDocumentRoot(Main.app + "/modules/fieldcore/resources/")
@@ -69,7 +71,7 @@ class RemoteServer {
 
                 text = text.replace("///IP///", addrs) //!!
                 text = text.replace("///ID///", "" + (id++))
-                text = text.replace("///WSPORT///", "8091")
+                text = text.replace("///WSPORT///", "8090")
 
                 return@add newFixedLengthResponse(Status.OK, "text/html", text)
             } else if (uri.startsWith(RESOURCE)) {

@@ -6,6 +6,7 @@ import field.graphics.Scene
 import field.graphics.StereoCameraInterface
 import field.linalg.Mat4
 import field.linalg.Vec3
+import field.utility.IdempotencyMap
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.openvr.*
@@ -17,6 +18,7 @@ import org.lwjgl.openvr.VR.ETrackedDeviceProperty_Prop_SerialNumber_String
 import org.lwjgl.openvr.VR.k_unTrackedDeviceIndex_Hmd
 import org.lwjgl.openvr.VR.ETrackedDeviceProperty_Prop_ModelNumber_String
 import org.lwjgl.openvr.VRSystem.*
+import org.lwjgl.ovr.OVR
 
 class OpenVRDrawTarget {
 
@@ -40,6 +42,11 @@ class OpenVRDrawTarget {
     var lastTD = 0L;
 
     fun getPreviewTexture() = fbo
+
+
+    internal var previouslyVisible = false
+    var headOn = IdempotencyMap<Runnable>(Runnable::class.java)
+    var headOff = IdempotencyMap<Runnable>(Runnable::class.java)
 
     fun init(w: Scene) {
         w.attach(0, "__initopenvr__", { _: Int ->
@@ -71,8 +78,19 @@ class OpenVRDrawTarget {
                         if (!valid || !connected) continue
 
                         val h34 = pose.mDeviceToAbsoluteTracking()
-                        if (clazz == VR.ETrackedDeviceClass_TrackedDeviceClass_HMD)
+                        if (clazz == VR.ETrackedDeviceClass_TrackedDeviceClass_HMD) {
                             head.set(h34.m(0), h34.m(1), h34.m(2), h34.m(3), h34.m(4), h34.m(5), h34.m(6), h34.m(7), h34.m(8), h34.m(9), h34.m(10), h34.m(11), 0f, 0f, 0f, 1f)
+                            val on = VRSystem_GetTrackedDeviceActivityLevel(n) == EDeviceActivityLevel_k_EDeviceActivityLevel_UserInteraction
+                            if (on && !previouslyVisible)
+                            {
+                                headOn.values.forEach { it.run() }
+                            }
+                            else if (!on && previouslyVisible) {
+                                headOff.values.forEach { it.run() }
+                            }
+                                previouslyVisible = on
+
+                        }
                         else if (clazz == VR.ETrackedDeviceClass_TrackedDeviceClass_Controller) {
                             val role = VRSystem_GetControllerRoleForTrackedDeviceIndex(n)
                             if (role == VR.ETrackedControllerRole_TrackedControllerRole_LeftHand) {
@@ -123,6 +141,8 @@ class OpenVRDrawTarget {
 //                        if (debug)
 //                            print("device $n is valid is $clazz, $valid, $connected ${h34.m(0)}\n")
                     }
+
+
 
 
                     buttons.run()
@@ -262,6 +282,12 @@ class OpenVRDrawTarget {
     var textureW = -1;
     var textureH = -1;
 
+    fun resetViewNow() {
+
+        VRSystem_ResetSeatedZeroPose()
+        VRCompositor.VRCompositor_SetTrackingSpace(ETrackingUniverseOrigin_TrackingUniverseStanding);
+    }
+
     private fun actualInit(w: Scene) {
         if (inited)
             return
@@ -328,6 +354,7 @@ class OpenVRDrawTarget {
                     print(" right_v :\n$right_v")
 
                     VRChaperone.VRChaperone_ForceBoundsVisible(false);
+
 
                     fbo!!.scene.attach(-100, { k ->
 

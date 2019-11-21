@@ -33,9 +33,12 @@ class NewNanoHTTPD(val port: Int) {
         handlers.add { uri, _, _, _, _ ->
             val f = File(s + "/" + uri)
             if (f.exists()) {
+                println(" found file $f")
                 serveFile(f)
-            } else
+            } else {
+                println( " no file $f")
                 null
+            }
         }
     }
 

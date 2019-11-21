@@ -197,6 +197,12 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
      */
     public void upload(ByteBuffer upload, boolean stream) {
         pendingUploads.incrementAndGet();
+        if (pendingUploads.get()>10) {
+            System.out.println(" too many pending uploads ("+pendingUploads.get()+"), skipping ");
+//            return;
+//            pendingUploads.set(0);
+        }
+
         attach(new Transient(() -> {
             pendingUploads.decrementAndGet();
 

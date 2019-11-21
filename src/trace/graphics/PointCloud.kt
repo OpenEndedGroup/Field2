@@ -31,6 +31,8 @@ class PointCloud(val fn: String) {
         } else if (fn.endsWith(".ply")) {
             val p = LoadPly(fn)
             p.points.forEach {
+
+//                println("normal! $it.normal")
                 if (it.color != null)
                     points.add(Triple(it.at, Vec4(it.color!!.x, it.color!!.y, it.color!!.z, 1.0), it.normal))
                 else

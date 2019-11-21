@@ -347,10 +347,10 @@ class Asta {
                     else -> throw NullPointerException("can't multiply `$a` and `$b`")
                 }
                 is Vec4 -> return when (b) {
-                    is Int -> Vec4(a).mul(Vec4(b.toDouble(), 0.0, 0.0, 0.0))
-                    is Float -> Vec4(a).mul(Vec4(b.toDouble(), 0.0, 0.0, 0.0))
-                    is Double -> Vec4(a).mul(Vec4(b.toDouble(), 0.0, 0.0, 0.0))
-                    is Long -> Vec4(a).mul(Vec4(b.toDouble(), 0.0, 0.0, 0.0))
+                    is Int -> Vec4(a).mul(Vec4(b.toDouble(), b.toDouble(),b.toDouble(),b.toDouble()))
+                    is Float -> Vec4(a).mul(Vec4(b.toDouble(), b.toDouble(),b.toDouble(),b.toDouble()))
+                    is Double -> Vec4(a).mul(Vec4(b.toDouble(), b.toDouble(),b.toDouble(),b.toDouble()))
+                    is Long -> Vec4(a).mul(Vec4(b.toDouble(), b.toDouble(),b.toDouble(),b.toDouble()))
                     is Vec2 -> Vec4(a).mul(Vec4(b.x, b.y, 0.0, 0.0))
                     is Vec3 -> Vec4(a).mul(Vec4(b.x, b.y, b.z, 0.0))
                     is Vec4 -> Vec4(a).mul(b)
@@ -630,7 +630,7 @@ class Asta {
         hash = 0L
 
         r.sourceElements.forEach {
-            print("\n\n sourceElement: $it\n\n")
+//            print("\n\n sourceElement: $it\n\n")
 
             var (s, e) = startAndEndPositionFor(it)
 
