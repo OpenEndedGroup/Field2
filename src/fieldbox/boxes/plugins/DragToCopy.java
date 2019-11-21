@@ -12,6 +12,7 @@ import fieldbox.boxes.Mouse;
 import fieldbox.io.IO;
 
 import java.io.*;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.function.Consumer;
@@ -135,8 +136,12 @@ public class DragToCopy extends Box {
 
     static public Box duplicateBox(Box b, Class clazz, List<Consumer<Map<Box, Box>>> resolvers) {
         try {
-            Box c = (Box) clazz
-                    .getConstructor()
+
+            Constructor cc = clazz
+                    .getDeclaredConstructor();
+            cc.setAccessible(true);
+
+            Box c = (Box) cc
                     .newInstance();
 
             // copy any IO.persist and Mutable attributes

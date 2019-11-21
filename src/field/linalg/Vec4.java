@@ -732,7 +732,7 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 		x *= v.x;
 		y *= v.y;
 		z *= v.z;
-		z *= v.w;
+		w *= v.w;
 		return this;
 	}
 
@@ -1482,7 +1482,7 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 	@Override
 	public Object __mul__(Object b) {
 		if (b instanceof Number)
-			return new Vec4(this.x * ((Number) b).doubleValue(), this.y * ((Number) b).doubleValue(), this.z * ((Number) b).doubleValue(), this.w);
+			return new Vec4(this.x * ((Number) b).doubleValue(), this.y * ((Number) b).doubleValue(), this.z * ((Number) b).doubleValue(), this.w * ((Number) b).doubleValue());
 
 		Vec4 c = convertToVec4(b);
 		if (c != null)
@@ -1530,7 +1530,7 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 	@Override
 	public Object __rmul__(Object b) {
 		if (b instanceof Number)
-			return new Vec4(this.x * ((Number) b).doubleValue(), this.y * ((Number) b).doubleValue(), this.z * ((Number) b).doubleValue(), this.w);
+			return new Vec4(this.x * ((Number) b).doubleValue(), this.y * ((Number) b).doubleValue(), this.z * ((Number) b).doubleValue(), this.w  * ((Number) b).doubleValue());
 
 		Vec4 c = convertToVec4(b);
 		if (c != null)
@@ -1551,7 +1551,7 @@ public class Vec4 implements Externalizable, Supplier<Vec4>, Mutable, Serializab
 	@Override
 	public Object __rdiv__(Object b) {
 		if (b instanceof Number)
-			return new Vec4( ((Number) b).doubleValue() / this.x , ((Number) b).doubleValue() / this.y,  ((Number) b).doubleValue() / this.z, this.w);
+			return new Vec4( ((Number) b).doubleValue() / this.x , ((Number) b).doubleValue() / this.y,  ((Number) b).doubleValue() / this.z, ((Number) b).doubleValue() / this.w);
 
 		Vec4 c = convertToVec4(b);
 		if (c != null)

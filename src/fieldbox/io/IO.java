@@ -349,6 +349,9 @@ public class IO {
 		}
 		created.addAll(loaded.values());
 
+
+
+
 		LinkedHashSet<Box> failed = new LinkedHashSet<>();
 		loaded.values()
 			.stream()
@@ -368,6 +371,17 @@ public class IO {
 			.removeAll(failed);
 		loaded.values()
 			.forEach(b -> Callbacks.load(b));
+
+
+		loaded.values().forEach( it -> {
+//			System.out.println("\n loaded "+it+"  "+it.properties.get(Box.name)+"\n");
+
+			if (it.properties.get(Box.name)==null)
+			{
+				System.out.println(" loaded a box with NO NAME");
+				it.properties.put(Box.name, "NONAME");
+			}
+		});
 
 		for (Box b : failed) {
 			b.disconnectFromAll();

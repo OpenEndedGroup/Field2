@@ -120,6 +120,8 @@ class ThreadSync2 {
                     pl = input.poll(1, TimeUnit.SECONDS)
                     if (pl == null) {
                         System.err.println(" -- waited in ${Thread.currentThread().name} for 5 seconds inside yield(), still waiting --")
+
+//                        throw IllegalArgumentException("asdfasdF")
                     }
                 }
 
@@ -143,7 +145,7 @@ class ThreadSync2 {
                 thisFibre.set(this)
                 thisThread = Thread.currentThread()
 
-                println(" \n\n\n\n THIS THREAD = $thisThread \n\n\n\n")
+//                println(" \n\n\n\n THIS THREAD = $thisThread \n\n\n\n")
 
                 try {
                     lastReturn = r.call()

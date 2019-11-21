@@ -47,11 +47,11 @@ class RemoteServer {
     init {
         this.s = NewNanoHTTPD(8090)
 
-//        s.addDocumentRoot(fieldagent.Main.app + "/modules/fieldbox/resources/")
-//        s.addDocumentRoot(fieldagent.Main.app + "/modules/fielded/resources/")
-//        s.addDocumentRoot(fieldagent.Main.app + "/modules/fieldcore/resources/")
-//        s.addDocumentRoot(fieldagent.Main.app + "/lib/web/")
-//        s.addDocumentRoot(fieldagent.Main.app + "/win/lib/web/")
+        s.addDocumentRoot(fieldagent.Main.app + "/modules/fieldbox/resources/")
+        s.addDocumentRoot(fieldagent.Main.app + "/modules/fielded/resources/")
+        s.addDocumentRoot(fieldagent.Main.app + "/modules/fieldcore/resources/")
+        s.addDocumentRoot(fieldagent.Main.app + "/lib/web/")
+        s.addDocumentRoot(fieldagent.Main.app + "/win/lib/web/")
 
         val addr = InetAddress.getLocalHost().address
         val addrs = "${addr[0].toInt() and 255}.${addr[1].toInt() and 255}.${addr[2].toInt() and 255}.${addr[3].toInt() and 255}"
@@ -69,7 +69,7 @@ class RemoteServer {
 
                 text = text.replace("///IP///", addrs) //!!
                 text = text.replace("///ID///", "" + (id++))
-                text = text.replace("///WSPORT///", "8091")
+                text = text.replace("///WSPORT///", "8090")
 
                 return@add newFixedLengthResponse(Status.OK, "text/html", text)
             } else if (uri.startsWith(RESOURCE)) {

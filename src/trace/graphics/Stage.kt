@@ -201,7 +201,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
         fbo.scene.attach(-101) {
             if (STEREO || SimpleOculusTarget.isVR()) GL11.glEnable(GL11.GL_CLIP_PLANE0)
             GL11.glEnable(GL11.GL_BLEND)
-            GL11.glEnable(GL11.GL_DEPTH_TEST)
+            GL11.glDisable(GL11.GL_DEPTH_TEST)
             GL11.glDepthFunc(GL11.GL_LESS)
 //            GL11.glEnable(GL32.GL_DEPTH_CLAMP)
             GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
