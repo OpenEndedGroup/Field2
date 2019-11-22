@@ -1348,7 +1348,8 @@ class Stage(val w: Int, val h: Int) : AsMap {
         val cache = TwinTextureCache(0, ic)
         cache.setPlaying(true)
 
-        ImageCache.synchronous = true
+        if (!SimpleOculusTarget.isVR())
+            ImageCache.synchronous = true
 
         cache.setTime(1.0)
 //        cache.update()
@@ -1386,6 +1387,9 @@ class Stage(val w: Int, val h: Int) : AsMap {
                 sg.time = sg._frame / map.length().toDouble()
                 cache.setTime(sg._frame.toDouble())
             } else cache.setTime(map.length() * sg.time)
+
+//            println(" cache update at time ${cache.time}")
+
             cache.update()
         })
 

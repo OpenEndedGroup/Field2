@@ -201,7 +201,7 @@ class ImageCache(val width: Int, val height: Int, maxBuffer: Int, private val lo
 
     companion object {
 
-        var synchronous = Options.dict().isTrue(Dict.Prop<Int>("offline"), true)
+        var synchronous = Options.dict().isTrue(Dict.Prop<Int>("offline"), false)
 
         fun mapFromDirectory(dir: String, match: String): FileMap {
 

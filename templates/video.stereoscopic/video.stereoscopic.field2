@@ -1,0 +1,77 @@
+#field/document{
+  :externalList [
+    #field/external{
+      :textFiles {
+        "fragment" "{{templates}}/video.stereoscopic/stereoscopic video player.box.glslf"
+        "geometry" "{{templates}}/video.stereoscopic/stereoscopic video player.box.glslg"
+        "code" "{{templates}}/video.stereoscopic/stereoscopic video player.box.js"
+        "vertex" "{{templates}}/video.stereoscopic/stereoscopic video player.box.glslv"
+      }
+      :dataFile "{{templates}}/video.stereoscopic/stereoscopic video player.box"
+      :id "_a51c30c0_8369_4dec_bc5c_4db80e57978f"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 616.0
+          :y 1135.0
+          :w 828.0
+          :h 110.0
+        }
+      }
+    }
+  ]
+  :knownFiles {
+    "txt" #field/filespec{
+      :name "txt"
+    }
+    "fragment" #field/filespec{
+      :name "fragment"
+    }
+    "code" #field/filespec{
+      :name "code"
+    }
+    "vertex" #field/filespec{
+      :name "vertex"
+    }
+    "geometry" #field/filespec{
+      :name "geometry"
+    }
+    "html" #field/filespec{
+      :name "html"
+    }
+    "edn" #field/filespec{
+      :name "edn"
+    }
+  }
+  :knownProperties #{
+    "__id__"
+    "comment"
+    "classpath"
+    "perDocument"
+    "name"
+    "frame"
+    "lockHeight"
+    "lockWidth"
+    "tag"
+    "windowSpace"
+    "windowScale"
+    "isPaired"
+    "auto"
+    "defaultEditorProperty"
+    "_defaultEditorProperty_cookie"
+    "_code_cookie"
+    "_theVariant"
+    "includes"
+    "excludes"
+    "__datafilename__"
+    "__filename__fragment"
+    "__filename__geometry"
+    "__filename__code"
+    "__filename__vertex"
+  }
+}
