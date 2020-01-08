@@ -3,7 +3,9 @@ package fieldbox.boxes.plugins;
 import field.utility.Dict;
 import fieldbox.boxes.Box;
 import fieldbox.execution.Execution;
+import kotlin.text.Regex;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -69,12 +71,22 @@ public class BoxDefaultCode {
 			URL is = Thread.currentThread().getContextClassLoader().getResource(n + (ex.length()>0 ? ("." + ex) : ""));
 			if (is != null) {
 				try {
-					return new String(Files.readAllBytes(Paths.get(is.toURI())));
+
+					System.out.println(" loading from '"+is+"'");
+
+					String nn = is.toString();
+					nn = nn.replace("file:/", "");
+					nn = nn.replace("file:", "");
+
+					System.out.println(" >> "+nn);
+
+					return new String(Files.readAllBytes(Paths.get(nn)));
 				} catch (IOException e) {
 					e.printStackTrace();
-				} catch (URISyntaxException e) {
-					e.printStackTrace();
 				}
+//				catch (URISyntaxException e) {
+//					e.printStackTrace();
+//				}
 
 			}
 		}

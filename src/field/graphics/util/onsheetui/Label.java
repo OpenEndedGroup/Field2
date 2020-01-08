@@ -79,7 +79,7 @@ public class Label extends Box {
 
 				f.nodes.get(f.nodes.size() - 1).attributes.put(StandardFLineDrawing.text, name);
 				f.nodes.get(f.nodes.size() - 1).attributes.put(StandardFLineDrawing.textAlign, align);
-				f.nodes.get(f.nodes.size() - 1).attributes.put(StandardFLineDrawing.textScale, 0.8f);
+				f.nodes.get(f.nodes.size() - 1).attributes.put(StandardFLineDrawing.textScale, 1.0f);
 
 				return f;
 			}, origin, box).get());

@@ -4,6 +4,7 @@ import com.github.sarxos.webcam.Webcam
 import com.github.sarxos.webcam.WebcamResolution
 import field.graphics.Texture
 import java.nio.ByteBuffer
+import kotlin.system.measureNanoTime
 
 
 class WebcamDriver {
@@ -21,7 +22,7 @@ class WebcamDriver {
         println(" opening webcam ? $webcam")
 
         webcam.viewSize = WebcamResolution.VGA.size
-        webcam.open(true)
+        webcam.open(false)
         println(" opening webcam ? $webcam")
 
         storage = ByteBuffer.allocateDirect(webcam.viewSize.width*webcam.viewSize.height*3);
@@ -35,9 +36,17 @@ class WebcamDriver {
     }
 
 
+    var lastAt = 0L
+
     fun update() {
-        webcam.getImageBytes(storage)
-        texture.upload(storage, true)
+        if (System.currentTimeMillis()-lastAt>1000/30.0) {
+            lastAt = System.currentTimeMillis()
+            val ns = measureNanoTime {
+                webcam.getImageBytes(storage)
+            }
+            print(" imagebytes took ${ns / 1000000.0} ms")
+            texture.upload(storage, true)
+        }
     }
 
 }

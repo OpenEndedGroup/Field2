@@ -196,12 +196,12 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
      * schedules an upload from this bytebuffer to this texture during the next drawn. Set stream to true to hint to OpenGL that you mean to keep on doing this.
      */
     public void upload(ByteBuffer upload, boolean stream) {
-        pendingUploads.incrementAndGet();
         if (pendingUploads.get()>10) {
             System.out.println(" too many pending uploads ("+pendingUploads.get()+"), skipping ");
 //            return;
 //            pendingUploads.set(0);
         }
+        pendingUploads.incrementAndGet();
 
         attach(new Transient(() -> {
             pendingUploads.decrementAndGet();

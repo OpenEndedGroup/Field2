@@ -191,6 +191,16 @@ public class MeshBuilder implements MeshAcceptor, Bracketable, Scene.ContainsPer
     public int getVertexCursor() {
         return vertexCursor;
     }
+    public int getElementCursor() {
+        return elementCursor;
+    }
+    public void setVertexColor(int n ) {
+        vertexCursor = n;
+    }
+
+    public void setElementCursor(int n ) {
+        elementCursor= n;
+    }
 
     /**
      * closes a MeshBuilder. There should be a close() for every open() and it's an error to let the graphics system get hold of a MeshBuilder that isn't closed properly. Alas, this is a hard

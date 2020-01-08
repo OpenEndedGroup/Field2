@@ -22,6 +22,9 @@ public class RunLoop {
 
 
 	static public long tick = 0;
+	static public long frameTime = 0;
+	static private long timeStart = 0;
+
 	protected final Thread shutdownThread;
 	public Scene mainLoop = new Scene();
 
@@ -30,7 +33,7 @@ public class RunLoop {
 	List<Runnable> onExit = new LinkedList<>();
 	AtomicBoolean exitStarted = new AtomicBoolean(false);
 
-	static public Supplier<Double> time = () -> System.currentTimeMillis() + 0.0d;
+	static public Supplier<Double> time = () -> (System.nanoTime() - timeStart)/1000000.0;
 
 
 	protected RunLoop() {
@@ -73,11 +76,14 @@ public class RunLoop {
 
 		mainThread = Thread.currentThread();
 
+		timeStart = System.nanoTime();
 		while (true) {
 			try {
 				tick++;
 
 				long a = System.nanoTime();
+				frameTime = a-timeStart;
+
 				boolean didWork = false;
 				if (lock.tryLock(1, TimeUnit.DAYS)) {
 					long b = System.nanoTime();
