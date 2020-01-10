@@ -190,7 +190,8 @@ public class Trampoline {
 
 
 		LinkedHashSet<String> blacklist_prefix = new LinkedHashSet<String>(Arrays
-										   .asList("fieldagent", "com.sun", "java", "javafx", "sun", "jdk", "javax", "sunw", "apple", "com.apple", "org.cef", "org.xml", "org.w3c"));
+										   .asList("fieldagent", "com.sun", "java", "javafx", "sun", "jdk", "javax", "sunw", "apple", "com.apple", "org.cef",
+											   "org.xml", "org.w3c", "org.graal", "org.graalvm", "org.truffle"));
 
 		protected boolean shouldLoad(String name) {
 

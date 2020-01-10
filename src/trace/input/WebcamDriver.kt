@@ -21,10 +21,10 @@ class WebcamDriver {
         println(" opening webcam ? $webcam")
 
         webcam.viewSize = WebcamResolution.VGA.size
-        webcam.open(true)
+        webcam.open(false)
         println(" opening webcam ? $webcam")
 
-        storage = ByteBuffer.allocateDirect(webcam.viewSize.width*webcam.viewSize.height*3);
+        storage = ByteBuffer.allocateDirect(webcam.viewSize.width * webcam.viewSize.height * 3);
 
         w = webcam.viewSize.width
         h = webcam.viewSize.height
@@ -34,10 +34,14 @@ class WebcamDriver {
         texture = Texture(Texture.TextureSpecification.byte3(0, w, h, storage, false))
     }
 
+    var last = 0L
 
     fun update() {
-        webcam.getImageBytes(storage)
-        texture.upload(storage, true)
+        if (System.currentTimeMillis() - last > 1000 / 30) {
+            webcam.getImageBytes(storage)
+            texture.upload(storage, true)
+            last = System.currentTimeMillis()
+        }
     }
 
 }

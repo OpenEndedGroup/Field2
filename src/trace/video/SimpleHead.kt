@@ -74,7 +74,6 @@ class SimpleHead {
             if (!File(path).exists()) throw IllegalArgumentException(" can't find the path '${path}', typo?")
             if (!File(path + "/simpleHead").exists()) throw IllegalArgumentException(" can't find the binary inside'${path}', is this the correct directory?")
 
-
             val b = ProcessBuilder()
             b.command(path + "/simpleHead").redirectErrorStream(true)
             val p = b.start()
@@ -86,7 +85,15 @@ class SimpleHead {
                 started = true
 
                 while (true) {
-                    now = head!!.readLine(reader.readLine())
+                    try {
+                        val rr = reader.readLine()
+                        print("r " + rr)
+                        if (rr != null)
+                            now = head!!.readLine(rr)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        Thread.sleep(5)
+                    }
                 }
             }.start()
 

@@ -80,9 +80,33 @@ class Asta {
 
             if (a is Number && b is Number) return a.toDouble() - b.toDouble()
 
-
             if (a == null) throw NullPointerException("can't subtract `$a` and `$b`")
             if (b == null) throw NullPointerException("can't subtract `$a` and `$b`")
+
+            if (a is Deferred) {
+                if (b is Deferred) {
+                    return object : Deferred {
+                        override fun unwrap(): Any? {
+                            return __MINUS__(a.unwrap(), b.unwrap())
+                        }
+                    }
+                } else {
+                    return object : Deferred {
+                        override fun unwrap(): Any? {
+                            return __MINUS__(a.unwrap(), b)
+                        }
+                    }
+                }
+            }
+
+            if (b is Deferred)
+            {
+                return object : Deferred {
+                    override fun unwrap(): Any? {
+                        return __MINUS__(a, b.unwrap())
+                    }
+                }
+            }
 
             return when (a) {
                 is Int -> return when (b) {
@@ -182,6 +206,32 @@ class Asta {
             if (a == null) throw NullPointerException("can't add `$a` and `$b`")
             if (b == null) throw NullPointerException("can't add `$a` and `$b`")
 
+            if (a is Deferred) {
+                if (b is Deferred) {
+                    return object : Deferred {
+                        override fun unwrap(): Any? {
+                            return __PLUS__(a.unwrap(), b.unwrap())
+                        }
+                    }
+                } else {
+                    return object : Deferred {
+                        override fun unwrap(): Any? {
+                            return __PLUS__(a.unwrap(), b)
+                        }
+                    }
+                }
+            }
+
+            if (b is Deferred)
+            {
+                return object : Deferred {
+                    override fun unwrap(): Any? {
+                        return __PLUS__(a, b.unwrap())
+                    }
+                }
+            }
+
+
             return when (a) {
                 is Int -> return when (b) {
                     is Int -> a + b
@@ -279,6 +329,31 @@ class Asta {
             if (a == null) throw NullPointerException("can't multiply `$a` and `$b`")
             if (b == null) throw NullPointerException("can't multiply `$a` and `$b`")
 
+            if (a is Deferred) {
+                if (b is Deferred) {
+                    return object : Deferred {
+                        override fun unwrap(): Any? {
+                            return __MULTIPLY__(a.unwrap(), b.unwrap())
+                        }
+                    }
+                } else {
+                    return object : Deferred {
+                        override fun unwrap(): Any? {
+                            return __MULTIPLY__(a.unwrap(), b)
+                        }
+                    }
+                }
+            }
+
+            if (b is Deferred)
+            {
+                return object : Deferred {
+                    override fun unwrap(): Any? {
+                        return __MULTIPLY__(a, b.unwrap())
+                    }
+                }
+            }
+
             return when (a) {
                 is Int -> return when (b) {
                     is Int -> a * b
@@ -347,10 +422,10 @@ class Asta {
                     else -> throw NullPointerException("can't multiply `$a` and `$b`")
                 }
                 is Vec4 -> return when (b) {
-                    is Int -> Vec4(a).mul(Vec4(b.toDouble(), b.toDouble(),b.toDouble(),b.toDouble()))
-                    is Float -> Vec4(a).mul(Vec4(b.toDouble(), b.toDouble(),b.toDouble(),b.toDouble()))
-                    is Double -> Vec4(a).mul(Vec4(b.toDouble(), b.toDouble(),b.toDouble(),b.toDouble()))
-                    is Long -> Vec4(a).mul(Vec4(b.toDouble(), b.toDouble(),b.toDouble(),b.toDouble()))
+                    is Int -> Vec4(a).mul(Vec4(b.toDouble(), b.toDouble(), b.toDouble(), b.toDouble()))
+                    is Float -> Vec4(a).mul(Vec4(b.toDouble(), b.toDouble(), b.toDouble(), b.toDouble()))
+                    is Double -> Vec4(a).mul(Vec4(b.toDouble(), b.toDouble(), b.toDouble(), b.toDouble()))
+                    is Long -> Vec4(a).mul(Vec4(b.toDouble(), b.toDouble(), b.toDouble(), b.toDouble()))
                     is Vec2 -> Vec4(a).mul(Vec4(b.x, b.y, 0.0, 0.0))
                     is Vec3 -> Vec4(a).mul(Vec4(b.x, b.y, b.z, 0.0))
                     is Vec4 -> Vec4(a).mul(b)
@@ -376,6 +451,31 @@ class Asta {
 
             if (a == null) throw NullPointerException("can't divide `$a` and `$b`")
             if (b == null) throw NullPointerException("can't divide `$a` and `$b`")
+
+            if (a is Deferred) {
+                if (b is Deferred) {
+                    return object : Deferred {
+                        override fun unwrap(): Any? {
+                            return __DIVIDE__(a.unwrap(), b.unwrap())
+                        }
+                    }
+                } else {
+                    return object : Deferred {
+                        override fun unwrap(): Any? {
+                            return __DIVIDE__(a.unwrap(), b)
+                        }
+                    }
+                }
+            }
+
+            if (b is Deferred)
+            {
+                return object : Deferred {
+                    override fun unwrap(): Any? {
+                        return __DIVIDE__(a, b.unwrap())
+                    }
+                }
+            }
 
             return when (a) {
                 is Int -> return when (b) {
@@ -474,6 +574,32 @@ class Asta {
 
             if (a == null) throw NullPointerException("can't xor `$a` and `$b`")
             if (b == null) throw NullPointerException("can't xor `$a` and `$b`")
+
+            if (a is Deferred) {
+                if (b is Deferred) {
+                    return object : Deferred {
+                        override fun unwrap(): Any? {
+                            return __XOR__(a.unwrap(), b.unwrap())
+                        }
+                    }
+                } else {
+                    return object : Deferred {
+                        override fun unwrap(): Any? {
+                            return __XOR__(a.unwrap(), b)
+                        }
+                    }
+                }
+            }
+
+            if (b is Deferred)
+            {
+                return object : Deferred {
+                    override fun unwrap(): Any? {
+                        return __XOR__(a, b.unwrap())
+                    }
+                }
+            }
+
 
             return when (a) {
                 is Int -> return when (b) {
@@ -630,7 +756,7 @@ class Asta {
         hash = 0L
 
         r.sourceElements.forEach {
-//            print("\n\n sourceElement: $it\n\n")
+            //            print("\n\n sourceElement: $it\n\n")
 
             var (s, e) = startAndEndPositionFor(it)
 

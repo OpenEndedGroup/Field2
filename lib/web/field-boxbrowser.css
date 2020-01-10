@@ -68,6 +68,11 @@ html {
 }
 
 body {
+    -webkit-font-variant-ligatures: common-ligatures;
+    font-variant-ligatures: common-ligatures;
+    -webkit-font-smoothing: subpixel-antialiased;
+    font-kerning: normal;
+
     background: #2d3133;
     color: #aaa;
     font-size: 17px;
@@ -92,7 +97,7 @@ p {
     padding-right: 58px;
     font-size: 15px;
     line-height: 120%;
-    font-size: 110%;
+    font-size: 80%;
     margin-top: 40px;
 }
 
@@ -225,8 +230,9 @@ h2 {
 
 .mesh-problem
 {
-    padding-left:20px;
-    /*text-indent:-5px;*/
+    padding-left:70px;
+    font-size:80%;
+    background: rgba(255,0,0,0.05);
 }
 .number
 {

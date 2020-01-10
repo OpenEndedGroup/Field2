@@ -1290,7 +1290,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
         sg.doTexture = true
         sg.webcamDriver = wd
         sg.post.put("texupdate", Runnable {
-            println(" wd update")
+//            println(" wd update")
             wd.update()
         })
         return sg
