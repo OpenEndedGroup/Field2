@@ -204,9 +204,9 @@ class Stage(val w: Int, val h: Int) : AsMap {
             GL11.glDisable(GL11.GL_DEPTH_TEST)
             GL11.glDepthFunc(GL11.GL_LESS)
 //            GL11.glEnable(GL32.GL_DEPTH_CLAMP)
-            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
-//            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
-
+//            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
+//
 //            if (tick++ < LATENCY*8)
 //                GL11.glClear(GL11.GL_COLOR_BUFFER_BIT or GL11.GL_DEPTH_BUFFER_BIT)
 
@@ -524,8 +524,10 @@ class Stage(val w: Int, val h: Int) : AsMap {
                 shader!!.first!!.asMap_set(name, geometry)
 
                 geometry.attach(-100) {
-                    GL11.glEnable(GL11.GL_DEPTH_TEST)
+//                    GL11.glEnable(GL11.GL_DEPTH_TEST)
                     GL11.glDepthFunc(GL11.GL_LESS)
+                    GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
+
 //                    GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT)
                     true
                 }
@@ -1348,7 +1350,8 @@ class Stage(val w: Int, val h: Int) : AsMap {
         val cache = TwinTextureCache(0, ic)
         cache.setPlaying(true)
 
-        ImageCache.synchronous = true
+        if (!SimpleOculusTarget.isVR())
+            ImageCache.synchronous = true
 
         cache.setTime(1.0)
 //        cache.update()
@@ -1386,6 +1389,9 @@ class Stage(val w: Int, val h: Int) : AsMap {
                 sg.time = sg._frame / map.length().toDouble()
                 cache.setTime(sg._frame.toDouble())
             } else cache.setTime(map.length() * sg.time)
+
+//            println(" cache update at time ${cache.time}")
+
             cache.update()
         })
 

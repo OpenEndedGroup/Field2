@@ -155,10 +155,10 @@ class RemoteServerExecution : Execution(null) {
                 var ty = p.getString("type")
                 var id = p.getString("boxID");
                 if (ty == "success") {
-                    val e = GraphicsSupport.errorHandler(findBoxByID(id).get(), "browser shader");
+                    val e = GraphicsSupport.errorHandler(findBoxByID(id).get(), "browser shader", Shader.Type.vertex);
                     e.noError()
                 } else if (ty == "error") {
-                    val e = GraphicsSupport.errorHandler(findBoxByID(id).get(), "browser shader");
+                    val e = GraphicsSupport.errorHandler(findBoxByID(id).get(), "browser shader", Shader.Type.vertex);
                     var m = p.getString("message")
                     if (p.getString("v").length > 0) m += "\n on vertex shader '" + p.getString("v") + "'"
                     if (p.getString("f").length > 0) m += "\n on fragment shader '" + p.getString("f") + "'"

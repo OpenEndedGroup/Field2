@@ -92,7 +92,7 @@ public class BaseMesh extends Scene implements Scene.Perform {
 	int maxElement;
 	int limitElement;
 
-	ArrayBuffer elements;
+	public ArrayBuffer elements;
 	ArrayBuffer[] buffers = new ArrayBuffer[16];
 	ArrayBufferFactory arrayBufferFactory = SimpleArrayBuffer::newArrayBuffer;
 

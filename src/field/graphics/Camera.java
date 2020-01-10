@@ -22,10 +22,10 @@ public class Camera {
 
 
 	// inglorious vr hack
-	public float cameraScale = 1f;
+	static public float cameraScale = 1f;
 
 	public void setCameraScale(float cameraScale) {
-		this.cameraScale = cameraScale;
+		Camera.cameraScale = cameraScale;
 	}
 
 	static public class State implements Serializable_safe {

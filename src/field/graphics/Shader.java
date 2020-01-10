@@ -157,8 +157,9 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, fi
 								try {
 									String[] ss = ll.split(":");
 									if (ss.length > 2) {
-										int ii = Integer.parseInt(ss[2]);
+										int ii = Integer.parseInt(ss[2])-1;
 										onError.errorOnLine(ii, ll);
+										break;
 									}
 								} catch (NumberFormatException e) {
 									try {
@@ -166,8 +167,9 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, fi
 												.matcher(ll);
 										q.find();
 										String g = q.group(1);
-										int ii = Integer.parseInt(g);
+										int ii = Integer.parseInt(g)-1;
 										onError.errorOnLine(ii, ll);
+										break;
 									} catch (Exception e2) {
 										e2.printStackTrace();
 									}

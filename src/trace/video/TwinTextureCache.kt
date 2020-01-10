@@ -36,8 +36,8 @@ class TwinTextureCache(unit: Int, private val source: ImageCache) {
         a = ByteBuffer.allocateDirect(source.width * source.height * 3)
         b = ByteBuffer.allocateDirect(source.width * source.height * 3)
 
-        textureA = Texture(Texture.TextureSpecification.byte3(unit, source.width, source.height, a, false, false))
-        textureB = Texture(Texture.TextureSpecification.byte3(unit + 1, source.width, source.height, b, false, false))
+        textureA = Texture(Texture.TextureSpecification.byte3(unit, source.width, source.height, a, true, false))
+        textureB = Texture(Texture.TextureSpecification.byte3(unit + 1, source.width, source.height, b, true, false))
 
         textureA.setIsDoubleBuffered(false)
         textureB.setIsDoubleBuffered(false)

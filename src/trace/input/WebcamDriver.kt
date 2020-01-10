@@ -4,6 +4,7 @@ import com.github.sarxos.webcam.Webcam
 import com.github.sarxos.webcam.WebcamResolution
 import field.graphics.Texture
 import java.nio.ByteBuffer
+import kotlin.system.measureNanoTime
 
 
 class WebcamDriver {
@@ -35,6 +36,8 @@ class WebcamDriver {
     }
 
     var last = 0L
+
+    var lastAt = 0L
 
     fun update() {
         if (System.currentTimeMillis() - last > 1000 / 30) {
