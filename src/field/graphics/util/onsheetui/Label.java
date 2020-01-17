@@ -10,6 +10,7 @@ import field.utility.IdempotencyMap;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Boxes;
 import fieldbox.boxes.FLineDrawing;
+import fieldbox.io.IO;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -27,7 +28,7 @@ public class Label extends Box {
 		new Dict.Prop<>("label").type().doc("`_.label.n = 'hello world' puts that text on the top (the 'north') of a box — likewise `e,w,s`. ");
 
 	static public Dict.Prop<IdempotencyMap<String>> _label =
-		new Dict.Prop<>("_label").type();
+		new Dict.Prop<>("_label").set(IO.dontCopy, true).type();
 
 	Set<Box> rebuildBox = new LinkedHashSet<>();
 

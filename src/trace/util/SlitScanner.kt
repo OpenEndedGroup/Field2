@@ -24,7 +24,7 @@ class SlitScanner(val source: String) {
     var dim: IntArray = intArrayOf(0, 0)
 
     init {
-        data = Files.list(File(source).toPath()).filter { it.toString().endsWith(".jpg") }.sorted().map {
+        data = Files.list(File(source).toPath()).filter { it.toString().endsWith(".jpg") && !it.fileName.startsWith(".") }.sorted().map {
             dim = FastJPEG.j.dimensions(it.toString())
             val dat = ByteBuffer.allocateDirect(3 * dim[0] * dim[1]).order(ByteOrder.nativeOrder())
             FastJPEG.j.decompress(it.toString(), dat, dim[0], dim[1])

@@ -259,7 +259,6 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 
 				Map<String, Function<Box, FLine>> drawing = x.properties.computeIfAbsent(frameDrawing, this::defaultdrawsLines);
 
-
 				List<FLine> all = new ArrayList<>();
 				Iterator<Function<Box, FLine>> it = drawing.values()
 					.iterator();

@@ -1,0 +1,362 @@
+#field/document{
+  :externalList [
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/sketch2.everything/window.box.js"
+      }
+      :dataFile "{{templates}}/sketch2.everything/window.box"
+      :id "_1e31d6a2_6024_4dba_82c1_99821767c2a6"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+        "_c6db6d4b_f7d4_400c_ab6a_ad5a18c782d1"
+        "_a214c0d1_9d77_4cd1_beba_1f8e87910258"
+        "_0009686a_9e99_4192_b911_29c311ff5a13"
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x -186.0
+          :y 126.0
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/sketch2.everything/t_constants.box.js"
+      }
+      :dataFile "{{templates}}/sketch2.everything/t_constants.box"
+      :id "_9c40ff1c_844b_4b66_9c21_81c346fa04b1"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x -186.0
+          :y 226.0
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "fragment" "{{templates}}/sketch2.everything/t_windowing_system.box.glslf"
+        "geometry" "{{templates}}/sketch2.everything/t_windowing_system.box.glslg"
+        "code" "{{templates}}/sketch2.everything/t_windowing_system.box.js"
+        "vertex" "{{templates}}/sketch2.everything/t_windowing_system.box.glslv"
+      }
+      :dataFile "{{templates}}/sketch2.everything/t_windowing_system.box"
+      :id "_a42ff8f2_c660_4839_90eb_ddccac8aefa1"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        "_1e31d6a2_6024_4dba_82c1_99821767c2a6"
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x -186.0
+          :y 326.0
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "fragment" "{{templates}}/sketch2.everything/video_sequence.box.glslf"
+        "geometry" "{{templates}}/sketch2.everything/video_sequence.box.glslg"
+        "code" "{{templates}}/sketch2.everything/video_sequence.box.js"
+        "vertex" "{{templates}}/sketch2.everything/video_sequence.box.glslv"
+      }
+      :dataFile "{{templates}}/sketch2.everything/video_sequence.box"
+      :id "_79c5d28e_dcac_4690_a350_8ad67cd34f1a"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 212.0
+          :y 518.0
+          :w 100.0
+          :h 102.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "fragment" "{{templates}}/sketch2.everything/some_operator.box.glslf"
+        "geometry" "{{templates}}/sketch2.everything/some_operator.box.glslg"
+        "code" "{{templates}}/sketch2.everything/some_operator.box.js"
+        "vertex" "{{templates}}/sketch2.everything/some_operator.box.glslv"
+      }
+      :dataFile "{{templates}}/sketch2.everything/some_operator.box"
+      :id "_6186531e_66c2_4142_b43f_8b00ef2539f4"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 209.0
+          :y 664.0
+          :w 99.0
+          :h 105.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "fragment" "{{templates}}/sketch2.everything/t_update_system.box.glslf"
+        "geometry" "{{templates}}/sketch2.everything/t_update_system.box.glslg"
+        "code" "{{templates}}/sketch2.everything/t_update_system.box.js"
+        "vertex" "{{templates}}/sketch2.everything/t_update_system.box.glslv"
+      }
+      :dataFile "{{templates}}/sketch2.everything/t_update_system.box"
+      :id "_04ed4990_f7c3_4f04_a6f6_4581e8d99e22"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        "_1e31d6a2_6024_4dba_82c1_99821767c2a6"
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x -186.0
+          :y 426.0
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "fragment" "{{templates}}/sketch2.everything/someother_operator.box.glslf"
+        "geometry" "{{templates}}/sketch2.everything/someother_operator.box.glslg"
+        "code" "{{templates}}/sketch2.everything/someother_operator.box.js"
+        "vertex" "{{templates}}/sketch2.everything/someother_operator.box.glslv"
+      }
+      :dataFile "{{templates}}/sketch2.everything/someother_operator.box"
+      :id "_8d176193_8243_45f1_8b71_07afd6d39a0c"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 213.0
+          :y 814.0
+          :w 301.0
+          :h 61.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/sketch2.everything/t_update.box.js"
+      }
+      :dataFile "{{templates}}/sketch2.everything/t_update.box"
+      :id "_6bf19041_c178_478a_9228_666287e737ce"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        "_1e31d6a2_6024_4dba_82c1_99821767c2a6"
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x -186.0
+          :y 526.0
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "fragment" "{{templates}}/sketch2.everything/webcam.box.glslf"
+        "geometry" "{{templates}}/sketch2.everything/webcam.box.glslg"
+        "code" "{{templates}}/sketch2.everything/webcam.box.js"
+        "vertex" "{{templates}}/sketch2.everything/webcam.box.glslv"
+      }
+      :dataFile "{{templates}}/sketch2.everything/webcam.box"
+      :id "_fe8f72c7_b035_4d7e_b536_63b9a941c3df"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 596.0
+          :y 546.0
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "fragment" "{{templates}}/sketch2.everything/t_fadeplane.box.glslf"
+        "geometry" "{{templates}}/sketch2.everything/t_fadeplane.box.glslg"
+        "code" "{{templates}}/sketch2.everything/t_fadeplane.box.js"
+        "vertex" "{{templates}}/sketch2.everything/t_fadeplane.box.glslv"
+      }
+      :dataFile "{{templates}}/sketch2.everything/t_fadeplane.box"
+      :id "_229db274_aded_4249_b856_f243379a359e"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x -186.0
+          :y 626.0
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/sketch2.everything/t_startup.box.js"
+      }
+      :dataFile "{{templates}}/sketch2.everything/t_startup.box"
+      :id "_0c42bae0_626b_412f_988f_ac44f7817ef3"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x -186.0
+          :y 26.0
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "fragment" "{{templates}}/sketch2.everything/manipulate_webcam.box.glslf"
+        "geometry" "{{templates}}/sketch2.everything/manipulate_webcam.box.glslg"
+        "code" "{{templates}}/sketch2.everything/manipulate_webcam.box.js"
+        "vertex" "{{templates}}/sketch2.everything/manipulate_webcam.box.glslv"
+      }
+      :dataFile "{{templates}}/sketch2.everything/manipulate_webcam.box"
+      :id "_8f4c5fd4_f7ff_4171_bd80_4118d993bd08"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 601.0
+          :y 663.0
+          :w 100.0
+          :h 105.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "fragment" "{{templates}}/sketch2.everything/pureblue.box.glslf"
+        "geometry" "{{templates}}/sketch2.everything/pureblue.box.glslg"
+        "code" "{{templates}}/sketch2.everything/pureblue.box.js"
+        "vertex" "{{templates}}/sketch2.everything/pureblue.box.glslv"
+      }
+      :dataFile "{{templates}}/sketch2.everything/pureblue.box"
+      :id "_085363e5_fb1c_4a37_b63d_9533a244651f"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 339.0
+          :y 665.0
+          :w 100.0
+          :h 105.0
+        }
+      }
+    }
+  ]
+  :knownFiles {
+    "txt" #field/filespec{
+      :name "txt"
+    }
+    "fragment" #field/filespec{
+      :name "fragment"
+    }
+    "code" #field/filespec{
+      :name "code"
+    }
+    "vertex" #field/filespec{
+      :name "vertex"
+    }
+    "geometry" #field/filespec{
+      :name "geometry"
+    }
+    "html" #field/filespec{
+      :name "html"
+    }
+    "edn" #field/filespec{
+      :name "edn"
+    }
+  }
+  :knownProperties #{
+    "__id__"
+    "comment"
+    "classpath"
+    "perDocument"
+    "name"
+    "frame"
+    "lockHeight"
+    "lockWidth"
+    "tag"
+    "windowSpace"
+    "windowScale"
+    "isPaired"
+    "auto"
+    "head"
+    "tail"
+    "defaultEditorProperty"
+    "_defaultEditorProperty_cookie"
+    "_code_cookie"
+    "_fragment_cookie"
+    "_theVariant"
+    "includes"
+    "excludes"
+    "__datafilename__"
+    "__filename__code"
+    "__filename__fragment"
+    "__filename__geometry"
+    "__filename__vertex"
+  }
+}
