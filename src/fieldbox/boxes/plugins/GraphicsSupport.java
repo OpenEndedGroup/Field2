@@ -56,8 +56,8 @@ public class GraphicsSupport extends Box {
     static public Dict.Prop<FunctionOfBox<String>> reloadShaders = new Dict.Prop<>("reloadShaders").type().toCanon()
             .doc("`_.reloadShaders()` reloads all shaders associated with this box");
 
-	static public Dict.Prop<List<Shader>> _shaders = new Dict.Prop<>("_shaders");
-	static public Dict.Prop<ShaderPreprocessor2> _preprocessor = new Dict.Prop<>("_preprocessor");
+	static public Dict.Prop<List<Shader>> _shaders = new Dict.Prop<>("_shaders").set(IO.dontCopy, true);
+	static public Dict.Prop<ShaderPreprocessor2> _preprocessor = new Dict.Prop<>("_preprocessor").set(IO.dontCopy, true);
 
 
 
@@ -161,7 +161,7 @@ public class GraphicsSupport extends Box {
         };
     }
 
-    private void reload(Box b, List<Shader> s) {
+    static public void reload(Box b, List<Shader> s) {
 
         ShaderPreprocessor pre = new ShaderPreprocessor();
 

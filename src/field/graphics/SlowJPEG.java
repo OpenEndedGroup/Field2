@@ -32,6 +32,16 @@ public class SlowJPEG implements JPEGLoader{
 
 	}
 
+	public void decompressRaw(String filename, Buffer dest, int width, int height) {
+		byte[] f = bytes(filename);
+
+		if(f==null)
+		{
+			throw new IllegalArgumentException(" failed to load :"+filename);
+		}
+		((ByteBuffer)dest).put(f);
+	}
+
 	protected byte[] bytes(String filename) {
 		try {
 			BufferedImage originalImage = ImageIO.read(new File(filename));
