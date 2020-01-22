@@ -95,5 +95,34 @@ class TextureArray(var unit: Int, val w: Int, val h: Int, val d: Int, val source
             return uu
         }
 
+
+        @JvmStatic
+        // because of the way that this rewrites the unit of a, potentially already loaded, texture list this isn't very useful outside of the context of Trace
+        fun fromFile(unit: Int, fn: String): TextureArray? {
+
+            val uu = dirCache.computeIfAbsent(fn) {
+                val jj = mutableListOf(File(fn))
+
+                jj.sort()
+
+                val dim = SlowJPEG().dimensions(jj[0].absolutePath)
+
+                val dat = ByteBuffer.allocateDirect(dim[0] * dim[1] * 3 * jj.size)
+
+                jj.forEachIndexed { i, n ->
+                    dat.position(i * dim[0] * dim[1] * 3)
+                    dat.limit((i + 1) * dim[0] * dim[1] * 3)
+                    SlowJPEG().decompressRaw(n.absolutePath, dat, dim[0], dim[1])
+                    dat.clear()
+
+                }
+                dat.clear()
+
+                TextureArray(unit, dim[0], dim[1], jj.size, dat)
+            }
+            uu?.unit = unit
+            return uu
+        }
+
     }
 }

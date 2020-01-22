@@ -56,7 +56,7 @@ class WebcamDriver2(val unit: Int) {
     var lastAt = 0L
 
     fun update() {
-        if (System.currentTimeMillis() - lastAt > 1000 / 30.0 && webcam!!.isImageNew) {
+        if (System.currentTimeMillis() - lastAt > 1000 / 20.0 && webcam!!.isImageNew) {
             val st = RunLoop.workerPool.submit {
                 val ns = measureNanoTime {
                     webcam!!.getImageBytes(storage)
@@ -67,7 +67,7 @@ class WebcamDriver2(val unit: Int) {
 
             RunLoop.main.`when`(st) {
                 System.out.println(" triggering update for real")
-                texture!!.upload(storage, true)
+                texture!!.upload(storage, false)
                 lastAt = System.currentTimeMillis()
             }
 

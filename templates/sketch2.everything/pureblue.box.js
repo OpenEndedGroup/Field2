@@ -7,7 +7,7 @@ var FBO = Java.type('field.graphics.FBO')
 var FBOSpecification = Java.type('field.graphics.FBO.FBOSpecification')
 
 
-_.fbo = new FBO(FBOSpecification.singleFloat(_.t_constants.nextUnit(), _.t_constants.width, _.t_constants.height))
+_.fbo = new FBO(FBOSpecification.singleFloat16(_.t_constants.nextUnit(), _.t_constants.width, _.t_constants.height))
 
 _.shader = _.newShader()
 _.mesh = BaseMesh.triangleList(0,0)

@@ -1,6 +1,7 @@
 package fieldbox.boxes.plugins;
 
 import field.utility.Dict;
+import fieldagent.Main;
 import fieldbox.boxes.Box;
 import fieldbox.execution.Execution;
 import kotlin.text.Regex;
@@ -75,8 +76,13 @@ public class BoxDefaultCode {
 					System.out.println(" loading from '"+is+"'");
 
 					String nn = is.toString();
-					nn = nn.replace("file:/", "");
-					nn = nn.replace("file:", "");
+					if (Main.os==Main.OS.windows) {
+						nn = nn.replace("file:/", "");
+						nn = nn.replace("file:", "");
+					}
+					else {
+						nn = nn.replace("file:", "");
+					}
 
 					System.out.println(" >> "+nn);
 
