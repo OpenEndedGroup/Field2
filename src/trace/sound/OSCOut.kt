@@ -8,7 +8,16 @@ import field.linalg.Vec4
 import java.net.InetAddress
 
 class OSCOut(val p: Int) {
-    val oout = OSCPortOut(InetAddress.getLocalHost(), p)
+
+    companion object {
+        val portage = mutableMapOf<Pair<InetAddress, Int>, OSCPortOut>()
+
+        fun make(p: Int): OSCPortOut = portage.computeIfAbsent(InetAddress.getLocalHost() to p) {
+            OSCPortOut(it.first, it.second)
+        }
+    }
+
+    val oout = make(p)
 
     fun <T> send(name: String, d: T): T {
 
