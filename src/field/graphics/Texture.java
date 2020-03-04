@@ -780,6 +780,22 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
             return ts;
         }
 
+
+        static public TextureSpecification fromJpegGS(int unit, String filename, boolean mips) {
+
+            // help with windows path problems
+            filename = new File(filename).getAbsolutePath();
+
+            int[] wh = FastJPEG.j.dimensions(filename);
+            ByteBuffer data = ByteBuffer.allocateDirect(wh[0] * wh[1]);
+            FastJPEG.j.decompress(filename, data, wh[0], wh[1]);
+
+            TextureSpecification ts = new TextureSpecification(unit, GL_TEXTURE_2D, GL_RGBA8, wh[0], wh[1], GL_LUMINANCE,
+                                                               GL_UNSIGNED_BYTE, 1, data, mips);
+            ts.source = filename;
+            return ts;
+        }
+
         static public TextureSpecification from1DRGBAFloatBuffer(int unit, int length, FloatBuffer source) {
             ByteBuffer data = ByteBuffer.allocateDirect(4 * 4 * length)
                     .order(ByteOrder.nativeOrder());

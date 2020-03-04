@@ -177,6 +177,11 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 			return new FBOSpecification(unit, GL_RGBA16F, width, height, GL_RGBA, GL_HALF_FLOAT, 16, true, 1, false, false, 1);
 		}
 
+		static public FBOSpecification multiFloat16_depth(int unit, int width, int height, int num) {
+			return new FBOSpecification(unit, GL_RGBA16F, width, height, GL_RGBA, GL_HALF_FLOAT, 16, true, num, false, false, 1);
+		}
+
+
 		static public FBOSpecification layeredFloat(int unit, int width, int height, int layers) {
 			return new FBOSpecification(unit, GL_RGBA32F, width, height, GL_RGBA, GL_FLOAT, 32, false, 1, false, false, layers);
 		}
@@ -328,6 +333,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 
 					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+//					break;
 				}
 			}
 		} else {
@@ -459,6 +465,17 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 				glEnable(GL_MULTISAMPLE);
 			}
 
+			if (specification.num==1)
+				glDrawBuffer(GL_COLOR_ATTACHMENT0);
+			else
+			{
+				int[] bufs = new int[specification.num];
+				for(int i=0;i<bufs.length;i++)
+					bufs[i] = GL_COLOR_ATTACHMENT0+i;
+				glDrawBuffers(bufs);
+			}
+
+
 			scene.updateAll();
 			GraphicsContext.checkError(() -> "after internalScene update");
 
@@ -532,6 +549,10 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
 
 		Log.log("graphics.trace", () -> "binding FBO to texture unit " + specification.unit);
 		State s = GraphicsContext.get(this);
+
+//		if (s.text.length!=1)
+//			System.out.println(" multilayer "+s.text.length);
+
 		for (int i = 0; i < s.text.length; i++) {
 			if (specification.layers == 1) {
 				glActiveTexture(GL_TEXTURE0 + specification.unit + i);

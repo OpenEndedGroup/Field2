@@ -1,0 +1,79 @@
+#field/document{
+  :externalList [
+    #field/external{
+      :textFiles {
+        "fragment" "{{templates}}/texture_operation.blank_operator/pureblue.box.glslf"
+        "geometry" "{{templates}}/texture_operation.blank_operator/pureblue.box.glslg"
+        "code" "{{templates}}/texture_operation.blank_operator/pureblue.box.js"
+        "vertex" "{{templates}}/texture_operation.blank_operator/pureblue.box.glslv"
+      }
+      :dataFile "{{templates}}/texture_operation.blank_operator/pureblue.box"
+      :id "_88099f23_3949_409f_b6e4_70f2191e3bb4"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 340.0
+          :y 665.0
+          :w 100.0
+          :h 105.0
+        }
+      }
+    }
+  ]
+  :knownFiles {
+    "txt" #field/filespec{
+      :name "txt"
+    }
+    "fragment" #field/filespec{
+      :name "fragment"
+    }
+    "code" #field/filespec{
+      :name "code"
+    }
+    "vertex" #field/filespec{
+      :name "vertex"
+    }
+    "geometry" #field/filespec{
+      :name "geometry"
+    }
+    "html" #field/filespec{
+      :name "html"
+    }
+    "edn" #field/filespec{
+      :name "edn"
+    }
+  }
+  :knownProperties #{
+    "__id__"
+    "comment"
+    "classpath"
+    "perDocument"
+    "name"
+    "frame"
+    "lockHeight"
+    "lockWidth"
+    "tag"
+    "windowSpace"
+    "windowScale"
+    "isPaired"
+    "auto"
+    "head"
+    "tail"
+    "defaultEditorProperty"
+    "_defaultEditorProperty_cookie"
+    "_code_cookie"
+    "_theVariant"
+    "includes"
+    "excludes"
+    "__datafilename__"
+    "__filename__fragment"
+    "__filename__code"
+    "__filename__vertex"
+    "__filename__geometry"
+  }
+}

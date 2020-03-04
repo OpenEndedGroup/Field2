@@ -72,11 +72,11 @@ public class Auto extends Box implements IO.Loaded {
 
         for (Triple<Box, Float, Number> t : run) {
 
-            RunLoop.main.delay(() -> {
+            RunLoop.main.delayTicks(() -> {
                 t.first.find(Chorder.begin, both())
                         .findFirst().map(x -> x.apply(t.first));
 
-            }, (int) (1000 * t.third.floatValue()));
+            }, (1+t.third.intValue()));
 
         }
     }
