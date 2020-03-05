@@ -39,5 +39,12 @@ ii[3]
         }, (duration * 1000).toInt())
     }
 
+    @Documentation("`control(controller, value, channel)` sends a MIDI control change")
+    fun control(controller: Int, velocity: Double, channel: Int) {
+        val on = ShortMessage()
+        on.setMessage(ShortMessage.CONTROL_CHANGE, channel, Math.max(0, Math.min(127, controller)), Math.max(0, Math.min(127, (127 * velocity).toInt())))
+        receiver!!.send(on, 0);
+    }
+
 
 }

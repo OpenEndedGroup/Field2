@@ -6,6 +6,7 @@ import fieldbox.boxes.Box;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -65,9 +66,16 @@ public class QuoteCompletionHelpers {
 								     .getContextClassLoader(), a2, new InvocationHandler() {
 			@Override
 			public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-				if (method.getName()
-					  .equals("apply")) return f.apply(u.get(), (T) args[0]);
-				return method.invoke(f, args);
+				try {
+					if (method.getName().equals("apply")) return f.apply(u.get(), (T) args[0]);
+					return method.invoke(f, args);
+				}
+				catch(Throwable t)
+				{
+					System.err.println(" -- "+method.getName()+" "+proxy+" "+ Arrays.asList(args));
+					t.printStackTrace();
+					throw t;
+				}
 			}
 		});
 	}
