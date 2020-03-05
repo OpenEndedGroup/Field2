@@ -98,7 +98,10 @@ class Stage(val w: Int, val h: Int) : AsMap {
         throw IllegalArgumentException(" can't set '" + element + " to a stage")
     }
 
+    @JvmField
     val fbo: FBO
+
+
 
     @JvmField
     @Documentation("The background color of the stage")
@@ -147,7 +150,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
     init {
         thisStageNum = stageNum++
 //        fbo = FBOStack(FBO.FBOSpecification.singleFloat16_depth(thisStageNum, w, h), LATENCY)
-        fbo = FBO(FBO.FBOSpecification.singleFloat16_depth(thisStageNum, w, h))
+        fbo = FBO(FBO.FBOSpecification.singleFloat16(thisStageNum, w, h))
 
         val base = System.getProperty("user.home") + File.separatorChar + "Desktop" + File.separatorChar + "field_stage_recordings" + File.separatorChar
 

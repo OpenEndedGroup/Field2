@@ -62,7 +62,6 @@ public class Viewport extends Box implements IO.Loaded, ProvidesGraphicsContext 
 		private final Camera camera;
 
 		BaseMesh triangles = BaseMesh.triangleList(0, 0);
-
 		MeshBuilder triangles_builder = new MeshBuilder(triangles);
 		BaseMesh lines = BaseMesh.lineList(0, 0);
 

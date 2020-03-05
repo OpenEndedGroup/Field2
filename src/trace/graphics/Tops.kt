@@ -2,14 +2,16 @@ package trace.graphics
 
 import field.app.RunLoop
 import field.graphics.*
-import field.graphics.util.onsheetui.Label
 import field.utility.Dict
+import field.utility.IdempotencyMap
 import field.utility.Vec4
 import field.utility.plusAssign
 import fieldbox.boxes.Box
 import fieldbox.boxes.Colors
 import fieldbox.boxes.FLineDrawing
 import fieldbox.boxes.plugins.GraphicsSupport
+import java.util.*
+import java.util.function.Supplier
 
 /*
 vec4 first_operator(vec2 tc)
@@ -26,6 +28,43 @@ vec4 first_operator(vec2 tc, float t)
 
  */
 class Tops {
+
+    class Standard(val shader: Shader) {
+        var triangles = BaseMesh.triangleList(0, 0)
+        var triangles_builder = MeshBuilder(triangles)
+        var lines_ = BaseMesh.lineList(0, 0)
+
+        var lines_builder = MeshBuilder(lines_)
+
+        var lines = IdempotencyMap<Supplier<FLine?>?>(Supplier::class.java)
+
+
+        init {
+            shader.asMap_set("__triangles__", triangles)
+            shader.asMap_set("__lines__", lines_)
+            shader.asMap_set("__updator__", Scene.Perform { pass: Int ->
+                update()
+                true
+            })
+        }
+
+        fun update() {
+            lines_builder.open()
+            triangles_builder.open()
+
+            try {
+                lines.values.filterNotNull().map { it.get() }.filterNotNull().forEach { x: FLine? -> StandardFLineDrawing.dispatchLine(x, triangles_builder, lines_builder, null, Optional.empty(), "") }
+            } finally {
+                triangles_builder.close()
+                lines_builder.close()
+            }
+        }
+
+    }
+
+    fun standard(shader: Shader): IdempotencyMap<Supplier<FLine?>?> {
+        return Standard(shader).lines
+    }
 
 
     // uses global names
@@ -65,7 +104,7 @@ class Tops {
                 val fbo = box.properties.get(Dict.Prop<OffersUniform<*>>("fbo"))
                 val shader = box.properties.get(Dict.Prop<Shader>("shader"))
 
-                if (shader==null) return@forEach
+                if (shader == null) return@forEach
 
                 var u = "uniform float u_time; "
 
@@ -178,7 +217,7 @@ class Tops {
     }
 
     fun error(b: Box, text: String) {
-        if (b.properties.get(FLineDrawing.frameDrawing)==null) return
+        if (b.properties.get(FLineDrawing.frameDrawing) == null) return
         b.properties.putToMap(FLineDrawing.frameDrawing, "__tops_error__", java.util.function.Function<Box, FLine> {
 
             val frame = it.properties.get(Box.frame)
@@ -205,7 +244,7 @@ class Tops {
     }
 
     fun noError(b: Box) {
-        if (b.properties.get(FLineDrawing.frameDrawing)==null) return
+        if (b.properties.get(FLineDrawing.frameDrawing) == null) return
         b.properties.putToMap(FLineDrawing.frameDrawing, "__tops_error__", java.util.function.Function<Box, FLine> {
 
             val frame = it.properties.get(Box.frame)

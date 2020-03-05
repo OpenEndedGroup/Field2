@@ -93,8 +93,7 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 
 	static public boolean isAccepableInstance(Object o) {
 		try {
-			return o instanceof Number || o instanceof Vec2 || o instanceof Vec3 || o instanceof Vec4 || o instanceof Mat2 || o instanceof Mat3 || o instanceof Mat4 || (o instanceof Supplier || isAccepableInstance(
-				((Supplier) o).get()));
+			return o instanceof Number || o instanceof Vec2 || o instanceof Vec3 || o instanceof Vec4 || o instanceof Mat2 || o instanceof Mat3 || o instanceof Mat4 || (o instanceof Supplier || isAccepableInstance(((Supplier) o).get()));
 		} catch (ClassCastException e) {
 			return false;
 		}

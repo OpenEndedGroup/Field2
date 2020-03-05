@@ -87,13 +87,13 @@ class Asta {
                 if (b is Deferred) {
                     return object : Deferred {
                         override fun unwrap(): Any? {
-                            return __MINUS__(a.unwrap(), b.unwrap())
+                            return __MINUS__((a as Deferred).unwrap(), (b as Deferred).unwrap())
                         }
                     }
                 } else {
                     return object : Deferred {
                         override fun unwrap(): Any? {
-                            return __MINUS__(a.unwrap(), b)
+                            return __MINUS__((a as Deferred).unwrap(), b)
                         }
                     }
                 }
@@ -103,7 +103,7 @@ class Asta {
             {
                 return object : Deferred {
                     override fun unwrap(): Any? {
-                        return __MINUS__(a, b.unwrap())
+                        return __MINUS__(a, (b as Deferred).unwrap())
                     }
                 }
             }
@@ -210,13 +210,13 @@ class Asta {
                 if (b is Deferred) {
                     return object : Deferred {
                         override fun unwrap(): Any? {
-                            return __PLUS__(a.unwrap(), b.unwrap())
+                            return __PLUS__((a as Deferred).unwrap(), (b as Deferred).unwrap())
                         }
                     }
                 } else {
                     return object : Deferred {
                         override fun unwrap(): Any? {
-                            return __PLUS__(a.unwrap(), b)
+                            return __PLUS__((a as Deferred).unwrap(), b)
                         }
                     }
                 }
@@ -226,7 +226,7 @@ class Asta {
             {
                 return object : Deferred {
                     override fun unwrap(): Any? {
-                        return __PLUS__(a, b.unwrap())
+                        return __PLUS__(a, (b as Deferred).unwrap())
                     }
                 }
             }
@@ -333,13 +333,13 @@ class Asta {
                 if (b is Deferred) {
                     return object : Deferred {
                         override fun unwrap(): Any? {
-                            return __MULTIPLY__(a.unwrap(), b.unwrap())
+                            return __MULTIPLY__((a as Deferred).unwrap(), (b as Deferred).unwrap())
                         }
                     }
                 } else {
                     return object : Deferred {
                         override fun unwrap(): Any? {
-                            return __MULTIPLY__(a.unwrap(), b)
+                            return __MULTIPLY__((a as Deferred).unwrap(), b)
                         }
                     }
                 }
@@ -349,7 +349,7 @@ class Asta {
             {
                 return object : Deferred {
                     override fun unwrap(): Any? {
-                        return __MULTIPLY__(a, b.unwrap())
+                        return __MULTIPLY__(a, (b as Deferred).unwrap())
                     }
                 }
             }
@@ -456,13 +456,13 @@ class Asta {
                 if (b is Deferred) {
                     return object : Deferred {
                         override fun unwrap(): Any? {
-                            return __DIVIDE__(a.unwrap(), b.unwrap())
+                            return __DIVIDE__((a as Deferred).unwrap(), (b as Deferred).unwrap())
                         }
                     }
                 } else {
                     return object : Deferred {
                         override fun unwrap(): Any? {
-                            return __DIVIDE__(a.unwrap(), b)
+                            return __DIVIDE__((a as Deferred).unwrap(), b)
                         }
                     }
                 }
@@ -472,7 +472,7 @@ class Asta {
             {
                 return object : Deferred {
                     override fun unwrap(): Any? {
-                        return __DIVIDE__(a, b.unwrap())
+                        return __DIVIDE__(a, (b as Deferred).unwrap())
                     }
                 }
             }
@@ -579,13 +579,13 @@ class Asta {
                 if (b is Deferred) {
                     return object : Deferred {
                         override fun unwrap(): Any? {
-                            return __XOR__(a.unwrap(), b.unwrap())
+                            return __XOR__((a as Deferred).unwrap(), (b as Deferred).unwrap())
                         }
                     }
                 } else {
                     return object : Deferred {
                         override fun unwrap(): Any? {
-                            return __XOR__(a.unwrap(), b)
+                            return __XOR__((a as Deferred).unwrap(), b)
                         }
                     }
                 }
@@ -595,7 +595,7 @@ class Asta {
             {
                 return object : Deferred {
                     override fun unwrap(): Any? {
-                        return __XOR__(a, b.unwrap())
+                        return __XOR__(a, (b as Deferred).unwrap())
                     }
                 }
             }
