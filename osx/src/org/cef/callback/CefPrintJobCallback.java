@@ -5,11 +5,11 @@
 package org.cef.callback;
 
 /**
- * Callback interface used for asynchronous continuation of geolocation permission requests.
+ * Callback interface for asynchronous continuation of print job requests.
  */
-public interface CefGeolocationCallback {
-	/**
-	 * Call to allow or deny geolocation access.
-	 */
-	void Continue(boolean allow);
+public interface CefPrintJobCallback {
+    /**
+     * Indicate completion of the print job.
+     */
+    void Continue();
 }

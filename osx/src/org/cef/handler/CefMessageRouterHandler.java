@@ -5,31 +5,39 @@
 package org.cef.handler;
 
 import org.cef.browser.CefBrowser;
+import org.cef.browser.CefFrame;
 import org.cef.callback.CefNative;
 import org.cef.callback.CefQueryCallback;
 
 /**
- * Implement this interface to handle queries. All methods will be executed on the browser process UI thread.
+ * Implement this interface to handle queries. All methods will be executed on the browser process
+ * UI thread.
  */
 public interface CefMessageRouterHandler extends CefNative {
+    /**
+     * Called when the browser receives a JavaScript query.
+     *
+     * @param browser The corresponding browser.
+     * @param frame The frame generating the event. Instance only valid within the scope of this
+     *         method.
+     * @param queryId The unique ID for the query.
+     * @param persistent True if the query is persistent.
+     * @param callback Object used to continue or cancel the query asynchronously.
+     * @return True to handle the query or false to propagate the query to other registered
+     *         handlers, if any. If no handlers return true from this method then the query will be
+     *         automatically canceled with an error code of -1 delivered to the JavaScript onFailure
+     *         callback.
+     */
+    public boolean onQuery(CefBrowser browser, CefFrame frame, long queryId, String request,
+            boolean persistent, CefQueryCallback callback);
 
-	/**
-	 * Called when the browser receives a JavaScript query.
-	 *
-	 * @param browser    The browser generating the event.
-	 * @param query_id   The unique ID for the query.
-	 * @param persistent True if the query is persistent.
-	 * @param callback   Object used to continue or cancel the query asynchronously.
-	 * @return true to handle the query or false to propagate the query to other registered handlers, if any. If no handlers return true from this
-	 * method then the query will be automatically canceled with an error code of -1 delivered to the JavaScript onFailure callback.
-	 */
-	boolean onQuery(CefBrowser browser, long query_id, String request, boolean persistent, CefQueryCallback callback);
-
-	/**
-	 * Called when a pending JavaScript query is canceled.
-	 *
-	 * @param browser  The browser generating the event.
-	 * @param query_id The unique ID for the query.
-	 */
-	void onQueryCanceled(CefBrowser browser, long query_id);
+    /**
+     * Called when a pending JavaScript query is canceled.
+     *
+     * @param browser The corresponding browser.
+     * @param frame The frame generating the event. Instance only valid within the scope of this
+     *         method.
+     * @param queryId The unique ID for the query.
+     */
+    public void onQueryCanceled(CefBrowser browser, CefFrame frame, long queryId);
 }

@@ -7,13 +7,14 @@ package org.cef.browser;
 import java.awt.*;
 import java.nio.ByteBuffer;
 
-class CefRendererBuffer implements CefRenderer {
+class CefRendererBuffer extends CefRenderer {
 	private boolean transparent_;
 	private int view_width_ = 0;
 	private int view_height_ = 0;
 	private boolean use_draw_pixels_ = false;
 
 	protected CefRendererBuffer(boolean transparent) {
+		super(transparent);
 		transparent_ = transparent;
 	}
 
@@ -21,12 +22,17 @@ class CefRendererBuffer implements CefRenderer {
 		return transparent_;
 	}
 
-	@Override
-	public void render() {
+	protected void onPaint(boolean popup, Rectangle[] dirtyRects, ByteBuffer buffer, int width, int height) {
 
 	}
 
-	@Override
-	public void onPaint(boolean popup, Rectangle[] dirtyRects, ByteBuffer buffer, int width, int height) {
-	}
+//	ren
+//	@Override
+//	public void render() {
+//
+//	}
+//
+//	@Override
+//	public void onPaint(boolean popup, Rectangle[] dirtyRects, ByteBuffer buffer, int width, int height) {
+//	}
 }

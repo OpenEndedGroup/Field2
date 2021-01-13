@@ -5,14 +5,15 @@
 package org.cef.callback;
 
 /**
- * Callback interface used for asynchronous continuation of JavaScript dialog requests.
+ * Callback interface used for asynchronous continuation of JavaScript dialog
+ * requests.
  */
 public interface CefJSDialogCallback {
-	/**
-	 * Continue the JS dialog request.
-	 *
-	 * @param success    Set to true if the OK button was pressed.
-	 * @param user_input The value should be specified for prompt dialogs.
-	 */
-	void Continue(boolean success, String user_input);
+    /**
+     * Continue the JS dialog request.
+     *
+     * @param success Set to true if the OK button was pressed.
+     * @param user_input The value should be specified for prompt dialogs.
+     */
+    public void Continue(boolean success, String user_input);
 }

@@ -18,6 +18,7 @@ import fieldcef.plugins.BrowserKeyboardHacks;
 import fielded.TextUtils;
 import fielded.boxbrowser.TransientCommands;
 import fielded.plugins.Out;
+import org.cef.browser.CefBrowserOsrWithHandler;
 import org.cef.browser.CefRendererBrowserBuffer;
 import org.json.JSONObject;
 import org.json.JSONWriter;
@@ -50,7 +51,7 @@ public class Browser extends Box implements IO.Loaded {
 		.toCanon()
 		.doc("HTML for the browser. Setting this will cause the browser to reload it's contents from this string, and repaint automatically");
 	private final KeyEventMapping mapper = new KeyEventMapping();
-	public CefRendererBrowserBuffer browser;
+	public CefBrowserOsrWithHandler browser;
 	protected BrowserKeyboardHacks keyboardHacks;
 	protected AtomicBoolean dirty = new AtomicBoolean(false);
 	protected boolean booted = true;
@@ -183,7 +184,7 @@ public class Browser extends Box implements IO.Loaded {
 
 			if (bx != this) return null;
 
-			browser.close();
+			browser.close(false);
 			window.getCompositor()
 				.getLayer(properties.computeIfAbsent(FLineDrawing.layer, k -> "__main__"))
 				.getScene()
@@ -645,10 +646,10 @@ public class Browser extends Box implements IO.Loaded {
 		int y1 = 0;
 
 		for (Rectangle r: dirty) {
-			System.out.println(" -- "+r+" / "+System.identityHashCode(buffer));
+//			System.out.println(" -- "+r+" / "+System.identityHashCode(buffer));
 
 			if (r.x == 0 && r.y == 0 && r.width == w && r.height == h) {
-				System.out.println(" (( just copy )) ");
+//				System.out.println(" (( just copy )) ");
 				buffer.clear();
 				sourceView.clear();
 				sourceView.put(buffer);
@@ -774,7 +775,10 @@ public class Browser extends Box implements IO.Loaded {
 
 		if (damage==null) {
 			//System.out.print("%");
-		} else System.out.println("<");
+		} else
+		{
+//			System.out.println("<");
+		}
 
 //		if (GraphicsContext.getContext() != null)
 		{

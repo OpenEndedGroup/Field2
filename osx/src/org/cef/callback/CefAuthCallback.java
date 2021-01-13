@@ -5,16 +5,17 @@
 package org.cef.callback;
 
 /**
- * Callback interface used for asynchronous continuation of authentication requests.
+ * Callback interface used for asynchronous continuation of authentication
+ * requests.
  */
 public interface CefAuthCallback {
-	/**
-	 * Continue the authentication request.
-	 */
-	void Continue(String username, String password);
+    /**
+     * Continue the authentication request.
+     */
+    public void Continue(String username, String password);
 
-	/**
-	 * Cancel the authentication request.
-	 */
-	void cancel();
+    /**
+     * Cancel the authentication request.
+     */
+    public void cancel();
 }

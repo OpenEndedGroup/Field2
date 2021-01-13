@@ -4,7 +4,8 @@ import field.app.RunLoop;
 import field.graphics.Window;
 import field.graphics.util.KeyEventMapping;
 import fieldbox.boxes.Keyboard;
-import org.cef.browser.CefBrowser_N;
+import org.cef.browser.CefBrowserOsrWithHandler;
+//import org.cef.browser.CefBrowser_N;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -15,12 +16,12 @@ import java.util.LinkedHashSet;
  */
 public class BrowserKeyboardHacks {
 
-	private final CefBrowser_N target;
+	private final CefBrowserOsrWithHandler target;
 	HashSet<Integer> keysDown = new LinkedHashSet<Integer>();
 	HashSet<Character> charsDown = new HashSet<Character>();
 	private final KeyEventMapping mapper = new KeyEventMapping();
 
-	public BrowserKeyboardHacks(CefBrowser_N target) {
+	public BrowserKeyboardHacks(CefBrowserOsrWithHandler target) {
 		this.target = target;
 	}
 
@@ -63,10 +64,10 @@ public class BrowserKeyboardHacks {
 
 		int fmod = mod;
 
-		System.out.println(" event maps to integers "+m);
+//		System.out.println(" event maps to integers "+m);
 		for (Integer mm : m) {
 
-			System.out.println((mapper.isForcedTyped(mm)!=null)+" "+mod+" "+mapper.isForcedTyped(mm));
+//			System.out.println((mapper.isForcedTyped(mm)!=null)+" "+mod+" "+mapper.isForcedTyped(mm));
 
 			if (mapper.isForcedTyped(mm)!=null && mod!=0)
 			{
@@ -81,7 +82,7 @@ public class BrowserKeyboardHacks {
 			Integer translated = mapper.translateCode(mm);
 			keysDown.add(mm);
 
-			System.out.println("translated "+translated);
+//			System.out.println("translated "+translated);
 
 			if (translated != null) {
 
@@ -123,7 +124,7 @@ public class BrowserKeyboardHacks {
 	}
 
 	public void onCharDown(Window.Event<Window.KeyboardState> e, char key) {
-		System.out.println(" main onCharDown "+e+" "+key);
+//		System.out.println(" main onCharDown "+e+" "+key);
 		HashSet<Character> c = new HashSet<Character>(e.after.charsDown.values());
 		c.removeAll(e.before.charsDown.values());
 
@@ -156,7 +157,7 @@ public class BrowserKeyboardHacks {
 			if (e.after.isControlDown()) continue;
 
 
-			System.out.println(" >> TYPED :"+cc);
+//			System.out.println(" >> TYPED :"+cc);
 			target.sendKeyEvent(ke);
 		}
 

@@ -7,203 +7,182 @@ package org.cef.callback;
 import java.util.Date;
 
 class CefDownloadItem_N extends CefNativeAdapter implements CefDownloadItem {
+    CefDownloadItem_N() {}
 
-	protected void finalize() throws Throwable {
-		super.finalize();
-	}
+    @Override
+    public boolean isValid() {
+        try {
+            return N_IsValid(getNativeRef(null));
+        } catch (UnsatisfiedLinkError ule) {
+            ule.printStackTrace();
+        }
+        return false;
+    }
 
-	CefDownloadItem_N() {
-	}
+    @Override
+    public boolean isInProgress() {
+        try {
+            return N_IsInProgress(getNativeRef(null));
+        } catch (UnsatisfiedLinkError ule) {
+            ule.printStackTrace();
+        }
+        return false;
+    }
 
-	@Override
-	public boolean isValid() {
-		try {
-			return N_IsValid();
-		} catch (UnsatisfiedLinkError ule) {
-			ule.printStackTrace();
-		}
-		return false;
-	}
+    @Override
+    public boolean isComplete() {
+        try {
+            return N_IsComplete(getNativeRef(null));
+        } catch (UnsatisfiedLinkError ule) {
+            ule.printStackTrace();
+        }
+        return false;
+    }
 
-	@Override
-	public boolean isInProgress() {
-		try {
-			return N_IsInProgress();
-		} catch (UnsatisfiedLinkError ule) {
-			ule.printStackTrace();
-		}
-		return false;
-	}
+    @Override
+    public boolean isCanceled() {
+        try {
+            return N_IsCanceled(getNativeRef(null));
+        } catch (UnsatisfiedLinkError ule) {
+            ule.printStackTrace();
+        }
+        return false;
+    }
 
-	@Override
-	public boolean isComplete() {
-		try {
-			return N_IsComplete();
-		} catch (UnsatisfiedLinkError ule) {
-			ule.printStackTrace();
-		}
-		return false;
-	}
+    @Override
+    public long getCurrentSpeed() {
+        try {
+            return N_GetCurrentSpeed(getNativeRef(null));
+        } catch (UnsatisfiedLinkError ule) {
+            ule.printStackTrace();
+        }
+        return 0;
+    }
 
-	@Override
-	public boolean isCanceled() {
-		try {
-			return N_IsCanceled();
-		} catch (UnsatisfiedLinkError ule) {
-			ule.printStackTrace();
-		}
-		return false;
-	}
+    @Override
+    public int getPercentComplete() {
+        try {
+            return N_GetPercentComplete(getNativeRef(null));
+        } catch (UnsatisfiedLinkError ule) {
+            ule.printStackTrace();
+        }
+        return 0;
+    }
 
-	@Override
-	public long getCurrentSpeed() {
-		try {
-			return N_GetCurrentSpeed();
-		} catch (UnsatisfiedLinkError ule) {
-			ule.printStackTrace();
-		}
-		return 0;
-	}
+    @Override
+    public long getTotalBytes() {
+        try {
+            return N_GetTotalBytes(getNativeRef(null));
+        } catch (UnsatisfiedLinkError ule) {
+            ule.printStackTrace();
+        }
+        return 0;
+    }
 
-	@Override
-	public int getPercentComplete() {
-		try {
-			return N_GetPercentComplete();
-		} catch (UnsatisfiedLinkError ule) {
-			ule.printStackTrace();
-		}
-		return 0;
-	}
+    @Override
+    public long getReceivedBytes() {
+        try {
+            return N_GetReceivedBytes(getNativeRef(null));
+        } catch (UnsatisfiedLinkError ule) {
+            ule.printStackTrace();
+        }
+        return 0;
+    }
 
-	@Override
-	public long getTotalBytes() {
-		try {
-			return N_GetTotalBytes();
-		} catch (UnsatisfiedLinkError ule) {
-			ule.printStackTrace();
-		}
-		return 0;
-	}
+    @Override
+    public Date getStartTime() {
+        try {
+            return N_GetStartTime(getNativeRef(null));
+        } catch (UnsatisfiedLinkError ule) {
+            ule.printStackTrace();
+        }
+        return null;
+    }
 
-	@Override
-	public long getReceivedBytes() {
-		try {
-			return N_GetReceivedBytes();
-		} catch (UnsatisfiedLinkError ule) {
-			ule.printStackTrace();
-		}
-		return 0;
-	}
+    @Override
+    public Date getEndTime() {
+        try {
+            return N_GetEndTime(getNativeRef(null));
+        } catch (UnsatisfiedLinkError ule) {
+            ule.printStackTrace();
+        }
+        return null;
+    }
 
-	@Override
-	public Date getStartTime() {
-		try {
-			return N_GetStartTime();
-		} catch (UnsatisfiedLinkError ule) {
-			ule.printStackTrace();
-		}
-		return null;
-	}
+    @Override
+    public String getFullPath() {
+        try {
+            return N_GetFullPath(getNativeRef(null));
+        } catch (UnsatisfiedLinkError ule) {
+            ule.printStackTrace();
+        }
+        return null;
+    }
 
-	@Override
-	public Date getEndTime() {
-		try {
-			return N_GetEndTime();
-		} catch (UnsatisfiedLinkError ule) {
-			ule.printStackTrace();
-		}
-		return null;
-	}
+    @Override
+    public int getId() {
+        try {
+            return N_GetId(getNativeRef(null));
+        } catch (UnsatisfiedLinkError ule) {
+            ule.printStackTrace();
+        }
+        return 0;
+    }
 
-	@Override
-	public String getFullPath() {
-		try {
-			return N_GetFullPath();
-		} catch (UnsatisfiedLinkError ule) {
-			ule.printStackTrace();
-		}
-		return null;
-	}
+    @Override
+    public String getURL() {
+        try {
+            return N_GetURL(getNativeRef(null));
+        } catch (UnsatisfiedLinkError ule) {
+            ule.printStackTrace();
+        }
+        return null;
+    }
 
-	@Override
-	public int getId() {
-		try {
-			return N_GetId();
-		} catch (UnsatisfiedLinkError ule) {
-			ule.printStackTrace();
-		}
-		return 0;
-	}
+    @Override
+    public String getSuggestedFileName() {
+        try {
+            return N_GetSuggestedFileName(getNativeRef(null));
+        } catch (UnsatisfiedLinkError ule) {
+            ule.printStackTrace();
+        }
+        return null;
+    }
 
-	@Override
-	public String getURL() {
-		try {
-			return N_GetURL();
-		} catch (UnsatisfiedLinkError ule) {
-			ule.printStackTrace();
-		}
-		return null;
-	}
+    @Override
+    public String getContentDisposition() {
+        try {
+            return N_GetContentDisposition(getNativeRef(null));
+        } catch (UnsatisfiedLinkError ule) {
+            ule.printStackTrace();
+        }
+        return null;
+    }
 
-	@Override
-	public String getSuggestedFileName() {
-		try {
-			return N_GetSuggestedFileName();
-		} catch (UnsatisfiedLinkError ule) {
-			ule.printStackTrace();
-		}
-		return null;
-	}
+    @Override
+    public String getMimeType() {
+        try {
+            return N_GetMimeType(getNativeRef(null));
+        } catch (UnsatisfiedLinkError ule) {
+            ule.printStackTrace();
+        }
+        return null;
+    }
 
-	@Override
-	public String getContentDisposition() {
-		try {
-			return N_GetContentDisposition();
-		} catch (UnsatisfiedLinkError ule) {
-			ule.printStackTrace();
-		}
-		return null;
-	}
-
-	@Override
-	public String getMimeType() {
-		try {
-			return N_GetMimeType();
-		} catch (UnsatisfiedLinkError ule) {
-			ule.printStackTrace();
-		}
-		return null;
-	}
-
-	private final native boolean N_IsValid();
-
-	private final native boolean N_IsInProgress();
-
-	private final native boolean N_IsComplete();
-
-	private final native boolean N_IsCanceled();
-
-	private final native long N_GetCurrentSpeed();
-
-	private final native int N_GetPercentComplete();
-
-	private final native long N_GetTotalBytes();
-
-	private final native long N_GetReceivedBytes();
-
-	private final native Date N_GetStartTime();
-
-	private final native Date N_GetEndTime();
-
-	private final native String N_GetFullPath();
-
-	private final native int N_GetId();
-
-	private final native String N_GetURL();
-
-	private final native String N_GetSuggestedFileName();
-
-	private final native String N_GetContentDisposition();
-
-	private final native String N_GetMimeType();
+    private final native boolean N_IsValid(long self);
+    private final native boolean N_IsInProgress(long self);
+    private final native boolean N_IsComplete(long self);
+    private final native boolean N_IsCanceled(long self);
+    private final native long N_GetCurrentSpeed(long self);
+    private final native int N_GetPercentComplete(long self);
+    private final native long N_GetTotalBytes(long self);
+    private final native long N_GetReceivedBytes(long self);
+    private final native Date N_GetStartTime(long self);
+    private final native Date N_GetEndTime(long self);
+    private final native String N_GetFullPath(long self);
+    private final native int N_GetId(long self);
+    private final native String N_GetURL(long self);
+    private final native String N_GetSuggestedFileName(long self);
+    private final native String N_GetContentDisposition(long self);
+    private final native String N_GetMimeType(long self);
 }

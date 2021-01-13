@@ -9,6 +9,7 @@ import field.utility.Rect;
 import fieldbox.boxes.Drawing;
 import fielded.webserver.NanoHTTPD;
 import fielded.webserver.Server;
+import org.cef.browser.CefBrowserOsrWithHandler;
 import org.cef.browser.CefRendererBrowserBuffer;
 
 import java.awt.*;
@@ -35,7 +36,7 @@ public class HTMLToTexture  {
     private final int a;
     private final int b;
 
-    private CefRendererBrowserBuffer browser;
+    private CefBrowserOsrWithHandler browser;
     private final int w;
     private final int h;
 

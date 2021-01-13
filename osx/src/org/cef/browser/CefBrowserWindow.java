@@ -4,17 +4,17 @@
 
 package org.cef.browser;
 
-import java.awt.*;
+import java.awt.Component;
 
 /**
  * Interface representing system dependent methods for the browser.
  */
 public interface CefBrowserWindow {
-	/**
-	 * Get the window handle for the given Canvas object.
-	 *
-	 * @param canvas an canvas object
-	 * @return a window pointer if any
-	 */
-	long getWindowHandleOfCanvas(Canvas canvas);
+    /**
+     * Get the window handle for the given UI object.
+     *
+     * @param comp a UI component
+     * @return a window pointer if any
+     */
+    public long getWindowHandle(Component comp);
 }

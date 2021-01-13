@@ -4,6 +4,8 @@
 
 package org.cef.browser;
 
+import org.cef.CefClient;
+import org.cef.callback.CefDragData;
 import org.cef.handler.CefClientHandler;
 import org.cef.handler.CefRenderHandler;
 
@@ -23,12 +25,12 @@ public class CefRendererBrowserBuffer extends CefBrowser_N implements CefRenderH
 	private CefRendererBrowserBuffer parent_ = null;
 	private CefRendererBrowserBuffer devTools_ = null;
 
-	CefRendererBrowserBuffer(CefClientHandler clientHandler, String url, boolean transparent, CefRequestContext context, int browserWidth, int browserHeight, CefRenderer cefRenderer) {
+	CefRendererBrowserBuffer(CefClient clientHandler, String url, boolean transparent, CefRequestContext context, int browserWidth, int browserHeight, CefRenderer cefRenderer) {
 		this(clientHandler, url, transparent, context, null, browserWidth, browserHeight, cefRenderer);
 	}
 
-	private CefRendererBrowserBuffer(CefClientHandler clientHandler, String url, boolean transparent, CefRequestContext context, CefRendererBrowserBuffer parent, int browserWidth, int browserHeight, CefRenderer cefRenderer) {
-		super();
+	private CefRendererBrowserBuffer(CefClient clientHandler, String url, boolean transparent, CefRequestContext context, CefRendererBrowserBuffer parent, int browserWidth, int browserHeight, CefRenderer cefRenderer) {
+		super(clientHandler, url, context,parent, null);
 
 		browser_rect_ = new Rectangle(0, 0, browserWidth, browserHeight);
 		isTransparent_ = transparent;
@@ -41,7 +43,14 @@ public class CefRendererBrowserBuffer extends CefBrowser_N implements CefRenderH
 		context_ = context;
 		parent_ = parent;
 
-		createBrowser(clientHandler_, 0 /* Window handle, we have no window */, url_, isTransparent_, null, context_);
+		createBrowser(clientHandler, 0, url, true, isTransparent_, null, context_);
+
+//		createBrowser(clientHandler_, 0 /* Window handle, we have no window */, url_, isTransparent_, null, context_);
+	}
+
+	@Override
+	public void createImmediately() {
+
 	}
 
 	@Override
@@ -55,22 +64,27 @@ public class CefRendererBrowserBuffer extends CefBrowser_N implements CefRenderH
 	}
 
 	@Override
-	public synchronized void close() {
+	public synchronized void close(boolean force) {
 		if (context_ != null) context_.dispose();
 		if (parent_ != null) {
 			parent_.closeDevTools();
 			parent_.devTools_ = null;
 			parent_ = null;
 		}
-		super.close();
+		super.close(force);
 	}
 
 	@Override
 	public synchronized CefBrowser getDevTools() {
 		if (devTools_ == null) {
-			devTools_ = new CefRendererBrowserBuffer(clientHandler_, url_, isTransparent_, context_, this, 0, 0, null); // @todo Does this work with a zero width and height?
+//			devTools_ = new CefRendererBrowserBuffer(clientHandler_, url_, isTransparent_, context_, this, 0, 0, null); // @todo Does this work with a zero width and height?
 		}
 		return devTools_;
+	}
+
+	@Override
+	protected CefBrowser_N createDevToolsBrowser(CefClient client, String url, CefRequestContext context, CefBrowser_N parent, Point inspectAt) {
+		return null;
 	}
 
 
@@ -82,6 +96,11 @@ public class CefRendererBrowserBuffer extends CefBrowser_N implements CefRenderH
 	@Override
 	public Point getScreenPoint(CefBrowser browser, Point viewPoint) {
 		return new Point(0, 0);
+	}
+
+	@Override
+	public double getDeviceScaleFactor(CefBrowser browser) {
+		return 0;
 	}
 
 	@Override
@@ -102,9 +121,19 @@ public class CefRendererBrowserBuffer extends CefBrowser_N implements CefRenderH
 		//canvas_.setCursor(new Cursor(cursorType));
 	}
 
+	@Override
+	public boolean startDragging(CefBrowser browser, CefDragData dragData, int mask, int x, int y) {
+		return false;
+	}
+
+	@Override
+	public void updateDragCursor(CefBrowser browser, int operation) {
+
+	}
+
 	public final void invalidate(int x, int y, int w, int h) {
 		super.wasResized(w,h);
-		super.invalidate(new Rectangle(x,y,w,h));
+		super.invalidate();
 	}
 
 

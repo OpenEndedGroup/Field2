@@ -30,7 +30,7 @@ _.fbo.scene.shader = _.shader
 
 __.doSpaceMenu(_)
 
-var WebcamDriver = Java.type("trace.input.WebcamDriver2")
+var WebcamDriver = Java.type("trace.input.WebcamDriver3")
 
 var d = new WebcamDriver(0)
 _.shader.inputTexture = WebcamDriver.texture

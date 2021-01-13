@@ -4,32 +4,56 @@
 
 package org.cef.browser;
 
-import org.cef.handler.CefClientHandler;
+import org.cef.CefClient;
 
 /**
  * Creates a new instance of CefBrowser according the passed values
  */
 public class CefBrowserFactory {
-	public enum RenderType {RENDER_OPENGL, RENDER_AWT_WINDOW, RENDER_BYTE_BUFFER}
+    /**
+     * Cef with it's own component to render either real or offscreen.
+     *
+     * @deprecated use {@link #create(CefClient, String, CefRendering, boolean, CefRequestContext)}
+     */
+    @Deprecated
+    public static CefBrowser create(CefClient client, String url, boolean isOffscreenRendered,
+                                    boolean isTransparent, CefRequestContext context) {
+        CefRendering rendering = isOffscreenRendered ? CefRendering.OFFSCREEN : CefRendering.DEFAULT;
+        return create(client, url, rendering, isTransparent, context);
+    }
 
-	public static CefBrowser create(CefClientHandler clientHandler, String url, boolean isTransparent, CefRequestContext context, RenderType renderType) {
-		return create(clientHandler, url, isTransparent, context, renderType, 800, 600, null);
-	}
+    /**
+     * Returns {@link CefBrowser} based on {@link CefRendering} passed.
+     *
+     * @since api-1.2
+     */
+    public static CefBrowser create(CefClient client, String url, CefRendering rendering,
+                                    boolean isTransparent, CefRequestContext context) {
+        if (rendering == CefRendering.DEFAULT) {
+            return new CefBrowserWr(client, url, context);
+        } else if (rendering == CefRendering.OFFSCREEN) {
+            return new CefBrowserOsr(client, url, isTransparent, context);
+        } else if (rendering == CefRendering.BYTEBUFFER) {
+            throw new IllegalArgumentException();
+        } else if (rendering instanceof CefRendering.CefRenderingWithHandler) {
+            CefRendering.CefRenderingWithHandler renderingWithHandler = (CefRendering.CefRenderingWithHandler) rendering;
+            return new CefBrowserOsrWithHandler(client, url, context, renderingWithHandler.getRenderHandler());
+        }
+        throw new IllegalArgumentException(rendering.toString());
+    }
 
-	public static CefBrowser create(CefClientHandler clientHandler, String url, boolean isTransparent, CefRequestContext context, RenderType renderType, CefRenderer cefRenderer) {
-		return create(clientHandler, url, isTransparent, context, renderType, 800, 600, cefRenderer);
-	}
-
-	public static CefBrowser create(CefClientHandler clientHandler, String url, boolean isTransparent, CefRequestContext context, RenderType renderType, int browserWidth, int browserHeight, CefRenderer cefRenderer) {
-		if (renderType == RenderType.RENDER_OPENGL)
-		{
-			//return new CefRendererBrowserOpenGL(clientHandler, url, isTransparent, context);
-			throw new IllegalArgumentException(" not implemented ");
-		}
-		else if (renderType == RenderType.RENDER_AWT_WINDOW) return new CefRendererBrowserAWT(clientHandler, url, isTransparent, context);
-		else if (renderType == RenderType.RENDER_BYTE_BUFFER)
-			return new CefRendererBrowserBuffer(clientHandler, url, isTransparent, context, browserWidth, browserHeight, cefRenderer);
-		else return null;
-	}
-
+    public static CefBrowser create(CefClient client, String url, CefRendering rendering,
+                                    boolean isTransparent, CefRequestContext context, int w, int h, CefRenderer ren) {
+        if (rendering == CefRendering.DEFAULT) {
+            return new CefBrowserWr(client, url, context);
+        } else if (rendering == CefRendering.OFFSCREEN) {
+            return new CefBrowserOsr(client, url, isTransparent, context);
+        } else if (rendering == CefRendering.BYTEBUFFER) {
+            return new CefRendererBrowserBuffer(client, url, isTransparent, context, w, h, ren);
+        } else if (rendering instanceof CefRendering.CefRenderingWithHandler) {
+            CefRendering.CefRenderingWithHandler renderingWithHandler = (CefRendering.CefRenderingWithHandler) rendering;
+            return new CefBrowserOsrWithHandler(client, url, context, renderingWithHandler.getRenderHandler());
+        }
+        throw new IllegalArgumentException(rendering.toString());
+    }
 }

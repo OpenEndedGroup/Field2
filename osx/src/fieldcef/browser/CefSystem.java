@@ -1,26 +1,29 @@
 package fieldcef.browser;
 
 import com.google.common.collect.MapMaker;
+import com.jetbrains.cef.JCefAppConfig;
 import field.utility.Log;
 import field.utility.SimpleCommand;
 import fieldagent.Trampoline;
 import org.cef.CefApp;
 import org.cef.CefClient;
+import org.cef.CefSettings;
+import org.cef.SystemBootstrap;
 import org.cef.browser.*;
+import org.cef.callback.CefDragData;
 import org.cef.callback.CefQueryCallback;
-import org.cef.handler.CefDisplayHandler;
-import org.cef.handler.CefLifeSpanHandler;
-import org.cef.handler.CefLoadHandlerAdapter;
-import org.cef.handler.CefMessageRouterHandler;
+import org.cef.handler.*;
 
 
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.List;
 import java.util.function.Consumer;
+
+import static org.cef.CefSettings.LogSeverity.LOGSEVERITY_VERBOSE;
 
 /**
  * Singleton class, has all of the CEF singleton stuff hidden inside.
@@ -33,9 +36,26 @@ public class CefSystem {
 	private final CefMessageRouter router;
 
 	protected CefSystem() {
-		cefApp = CefApp.getInstance(new String[]{/*"--overlay-scrollbars",*/ "--disable-web-security", "--enable-gpu", "--off-screen-rendering-mode-enabled", "--enable-experimental-web" +
-			"-platform-features"});
-//		cefApp = CefApp.getInstance(new String[]{"--overlay-scrollbars", "--disable-web-security", "--off-screen-rendering-mode-enabled", "--enable-experimental-web-platform-features"});
+		CefApp.startup(new String[]{});
+		JCefAppConfig config = JCefAppConfig.getInstance();
+		List<String> appArgs = new ArrayList();
+		appArgs.addAll(config.getAppArgsAsList());
+		String[] args = appArgs.toArray(new String[0]);
+
+
+		CefApp.addAppHandler(new CefAppHandlerAdapter(args) {
+			@Override
+			public void stateHasChanged(org.cef.CefApp.CefAppState state) {
+				System.out.println(" ** state has changed "+state+" **");
+				// Shutdown the app if the native CEF part is terminated
+				if (state == CefApp.CefAppState.TERMINATED) System.exit(0);
+			}
+		});
+
+		CefSettings settings = config.getCefSettings();
+		settings.log_severity = LOGSEVERITY_VERBOSE;
+		settings.windowless_rendering_enabled = true;
+		cefApp = CefApp.getInstance(settings);
 
 
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -58,8 +78,9 @@ public class CefSystem {
 
 		client = cefApp.createClient();
 		client.addLifeSpanHandler(new CefLifeSpanHandler() {
+
 			@Override
-			public boolean onBeforePopup(CefBrowser browser, String target_url, String target_frame_name) {
+			public boolean onBeforePopup(CefBrowser browser, CefFrame frame, String target_url, String target_frame_name) {
 				return false;
 			}
 
@@ -69,8 +90,8 @@ public class CefSystem {
 			}
 
 			@Override
-			public boolean runModal(CefBrowser browser) {
-				return true;
+			public void onAfterParentChanged(CefBrowser browser) {
+
 			}
 
 			@Override
@@ -85,8 +106,9 @@ public class CefSystem {
 		});
 
 		client.addDisplayHandler(new CefDisplayHandler() {
+
 			@Override
-			public void onAddressChange(CefBrowser browser, String url) {
+			public void onAddressChange(CefBrowser browser, CefFrame frame, String url) {
 				Log.log("cef.debug", () -> "Address change :" + browser + " -> " + url);
 			}
 
@@ -107,10 +129,12 @@ public class CefSystem {
 			}
 
 			@Override
-			public boolean onConsoleMessage(CefBrowser browser, String message, String source, int line) {
-//				Log.log("cef.console", " CONSOLE :" + browser + " " + message + " " + source + " " + line);
+			public boolean onConsoleMessage(CefBrowser browser, CefSettings.LogSeverity level, String message, String source, int line) {
+//				Log.log("cef.console", () -> " CONSOLE :" + browser + " " + message + " " + source + " " + line);
+				System.out.println(" console message ["+browser+"] "+level+" "+message+" "+source+" "+line);
 				return false;
 			}
+
 		});
 
 		client.addLoadHandler(new CefLoadHandlerAdapter() {
@@ -119,24 +143,24 @@ public class CefSystem {
 				Log.log("cef.debug", () -> "state change :" + browser + " -> " + isLoading + " " + canGoBack + " " + canGoForward);
 			}
 
-			@Override
-			public void onLoadStart(CefBrowser browser, int frameIdentifer) {
-				Log.log("cef.debug", () -> "load start:" + browser + " -> " + frameIdentifer);
-			}
+//			@Override
+//			public void onLoadStart(CefBrowser browser, int frameIdentifer) {
+//				Log.log("cef.debug", () -> "load start:" + browser + " -> " + frameIdentifer);
+//			}
 
 
-			@Override
-			public void onLoadEnd(CefBrowser browser, int frameIdentifier, int httpStatusCode) {
-				Log.log("cef.debug", () -> "load end:" + browser + " -> " + frameIdentifier);
-				Runnable r = completionCallbacks.get(browser);
-				if (r != null)
-					r.run();
-			}
+//			@Override
+//			public void onLoadEnd(CefBrowser browser, int frameIdentifier, int httpStatusCode) {
+//				Log.log("cef.debug", () -> "load end:" + browser + " -> " + frameIdentifier);
+//				Runnable r = completionCallbacks.get(browser);
+//				if (r != null)
+//					r.run();
+//			}
 
-			@Override
-			public void onLoadError(CefBrowser browser, int frameIdentifer, ErrorCode errorCode, String errorText, String failedUrl) {
-				Log.log("cef.error", () -> "load error:" + browser + " -> " + frameIdentifer + " " + errorCode + " " + errorText + " " + failedUrl);
-			}
+//			@Override
+//			public void onLoadError(CefBrowser browser, int frameIdentifer, ErrorCode errorCode, String errorText, String failedUrl) {
+//				Log.log("cef.error", () -> "load error:" + browser + " -> " + frameIdentifer + " " + errorCode + " " + errorText + " " + failedUrl);
+//			}
 		});
 
 		router = CefMessageRouter.create();
@@ -144,20 +168,19 @@ public class CefSystem {
 
 		router.addHandler(new CefMessageRouterHandler() {
 			@Override
-			public boolean onQuery(CefBrowser browser, long query_id, String request, boolean persistent, CefQueryCallback callback) {
-				Log.log("cef.debug", () -> " -- query :" + request + " " + callback + " " + query_id);
+			public boolean onQuery(CefBrowser browser, CefFrame frame, long queryId, String request, boolean persistent, CefQueryCallback callback) {
+				Log.log("cef.debug", () -> " -- query :" + request + " " + callback + " " + queryId);
 				MessageCallback m = callbacks.get(browser);
 				if (m != null) {
-					m.message(query_id, request, x -> callback.success(x));
+					m.message(queryId, request, x -> callback.success(x));
 				} else {
 					Log.log("cef.error", () -> "No message handler");
 					callback.failure(0, "No message handler");
 				}
-				return true;
-			}
+				return true;			}
 
 			@Override
-			public void onQueryCanceled(CefBrowser browser, long query_id) {
+			public void onQueryCanceled(CefBrowser browser, CefFrame frame, long queryId) {
 
 			}
 
@@ -191,20 +214,75 @@ public class CefSystem {
 	Map<CefBrowser, MessageCallback> callbacks = new MapMaker().weakKeys().makeMap();
 	Map<CefBrowser, Runnable> completionCallbacks = new MapMaker().weakKeys().makeMap();
 
-	public CefRendererBrowserBuffer makeBrowser(int w, int h, PaintCallback callback, MessageCallback message, Runnable completionCallback) {
-		CefRenderer cefRenderer = new CefRenderer() {
-			@Override
-			public void render() {
+	public CefBrowserOsrWithHandler makeBrowser(int w, int h, PaintCallback callback, MessageCallback message, Runnable completionCallback) {
+//		CefRenderer cefRenderer = new CefRenderer(false) {
+//
+//
+//			@Override
+//			public void onPaint(boolean popup, Rectangle[] dirtyRects, ByteBuffer buffer, int width, int height) {
+//				callback.onPaint(popup, dirtyRects, buffer, width, height);
+//			}
+//		};
+//		CefRendererBrowserBuffer browser  = (CefRendererBrowserBuffer) CefBrowserFactory.create(client, null, CefRendering.BYTEBUFFER, false, null, w, h, cefRenderer);
 
+		Rectangle r = new Rectangle(0,0, w, h);
+		CefBrowserOsrWithHandler browser =  new CefBrowserOsrWithHandler(client, null, null, new CefRenderHandlerAdapter() {
+			@Override
+			public void onCursorChange(CefBrowser browser, int cursorIdentifer) {
+				System.out.println(" ** oncursorchange "+browser+" "+cursorIdentifer+" ** ");
+				super.onCursorChange(browser, cursorIdentifer);
 			}
 
 			@Override
-			public void onPaint(boolean popup, Rectangle[] dirtyRects, ByteBuffer buffer, int width, int height) {
+			public Rectangle getViewRect(CefBrowser browser) {
+				System.out.println(" ** getViewRect "+browser+" ** ");
+//				return super.getViewRect(browser);
+				return r;
+			}
+
+			@Override
+			public Point getScreenPoint(CefBrowser browser, Point viewPoint) {
+				System.out.println(" ** getScreenPoint "+browser+" "+viewPoint+" ** ");
+				return super.getScreenPoint(browser, viewPoint);
+			}
+
+			@Override
+			public double getDeviceScaleFactor(CefBrowser browser) {
+				System.out.println(" ** getDeviceScaleFactor ** ");
+				return 1.0;
+			}
+
+			@Override
+			public void onPopupShow(CefBrowser browser, boolean show) {
+				System.out.println(" ** onPopupShow ** ");
+				super.onPopupShow(browser, show);
+			}
+
+			@Override
+			public void onPopupSize(CefBrowser browser, Rectangle size) {
+				System.out.println(" ** onPopupSize ** ");
+				super.onPopupSize(browser, size);
+			}
+
+			@Override
+			public void onPaint(CefBrowser browser, boolean popup, Rectangle[] dirtyRects, ByteBuffer buffer, int width, int height) {
+				System.out.println(" ** onPaint!! ** ");
 				callback.onPaint(popup, dirtyRects, buffer, width, height);
 			}
-		};
-		CefRendererBrowserBuffer browser = (CefRendererBrowserBuffer) client
-			.createBrowser(null, false, CefBrowserFactory.RenderType.RENDER_BYTE_BUFFER, null, w, h, cefRenderer);
+
+			@Override
+			public boolean startDragging(CefBrowser browser, CefDragData dragData, int mask, int x, int y) {
+				System.out.println(" ** startDragging ** ");
+				return super.startDragging(browser, dragData, mask, x, y);
+			}
+
+			@Override
+			public void updateDragCursor(CefBrowser browser, int operation) {
+				System.out.println(" ** updateDragCursor ** ");
+				super.updateDragCursor(browser, operation);
+			}
+		});
+
 
 		callbacks.put(browser, message);
 		completionCallbacks.put(browser, completionCallback);
