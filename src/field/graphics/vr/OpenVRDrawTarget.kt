@@ -284,7 +284,7 @@ class OpenVRDrawTarget {
 
     fun resetViewNow() {
 
-        VRSystem_ResetSeatedZeroPose()
+//        VRSystem_ResetSeatedZeroPose()
         VRCompositor.VRCompositor_SetTrackingSpace(ETrackingUniverseOrigin_TrackingUniverseStanding);
     }
 

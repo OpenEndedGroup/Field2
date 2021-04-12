@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit
 import java.util.stream.Collectors
 import java.util.stream.Stream
 import kotlin.experimental.and
+import kotlin.streams.toList
 
 class SlitScanner(val source: String) {
 
@@ -24,13 +25,16 @@ class SlitScanner(val source: String) {
     var dim: IntArray = intArrayOf(0, 0)
 
     init {
-        data = Files.list(File(source).toPath()).filter { it.toString().endsWith(".jpg") && !it.fileName.startsWith(".") }.sorted().map {
+        var files = Files.list(File(source).toPath()).filter { it.toString().endsWith(".jpg") && !it.fileName.startsWith(".") }.sorted().toList()
+        while (files.size > 500)
+            files.toList().filterIndexed { i, b -> i % 2 == 0 }.toList()
+        data = files.map {
             dim = FastJPEG.j.dimensions(it.toString())
             val dat = ByteBuffer.allocateDirect(3 * dim[0] * dim[1]).order(ByteOrder.nativeOrder())
             FastJPEG.j.decompress(it.toString(), dat, dim[0], dim[1])
 
             dat
-        }.collect(Collectors.toList())
+        }.toMutableList()
     }
 
     fun access(x: Int, y: Int, n: Int, out: FloatArray, offset: Int) {
@@ -124,7 +128,7 @@ class SlitScanner(val source: String) {
             }
             futures.forEach { it.get() }
 
-            FastJPEG().compress(fn+"/o_"+pad(z)+".jpg", o, w, h)
+            FastJPEG().compress(fn + "/o_" + pad(z) + ".jpg", o, w, h)
 
         }
         pool.shutdown()
@@ -132,15 +136,15 @@ class SlitScanner(val source: String) {
     }
 
 
-    // out must have length 21, answer in first three elements
+    // out must have length 24, answer in first three elements
     fun accessI(x: Float, y: Float, n: Float, out: FloatArray) {
 
         val X0 = x * dim[0]
-        val X = floor(X0.toDouble()).toInt()
+        val X = kotlin.math.floor(X0.toDouble()).toInt()
         val Y0 = y * dim[1]
-        val Y = floor(Y0.toDouble()).toInt()
+        val Y = kotlin.math.floor(Y0.toDouble()).toInt()
         val Z0 = n * data.size
-        val Z = floor(Z0.toDouble()).toInt()
+        val Z = kotlin.math.floor(Z0.toDouble()).toInt()
         val dm1 = dim[0] - 1
         val d1m1 = dim[1] - 1
         val dsm1 = data.size - 1
@@ -164,12 +168,13 @@ class SlitScanner(val source: String) {
         val ma2 = 1 - a2
 
 
-        for (n in 0 until 2) out[n + 0] = (out[n + 0] * ma0 * ma1 + out[n + 3] * a0 * ma1 + out[n + 6] * a0 * a1 + out[n + 9] * ma0 * a1) * ma2 + (out[n + 12] * ma0 * ma1 + out[n + 15] * a0 * ma1 + out[n + 18] * a0 * a1 + out[n + 21] * ma0 * a1) * a2
+        for (n in 0 until 2)
+            out[n + 0] = (out[n + 0] * ma0 * ma1 + out[n + 3] * a0 * ma1 + out[n + 6] * a0 * a1 + out[n + 9] * ma0 * a1) * ma2 + (out[n + 12] * ma0 * ma1 + out[n + 15] * a0 * ma1 + out[n + 18] * a0 * a1 + out[n + 21] * ma0 * a1) * a2
 
 
     }
 
-    fun clamp(l: Int, u: Int, x: Int): Int {
+    inline fun clamp(l: Int, u: Int, x: Int): Int {
         return if (x < l) l else if (x > u) u else x
     }
 }

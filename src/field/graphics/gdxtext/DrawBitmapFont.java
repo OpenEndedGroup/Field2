@@ -130,6 +130,8 @@ public class DrawBitmapFont {
 			at.y += mx * scale;
 			for (int i = 0; i < ca.length; i++) {
 				BitmapFontData.Glyph g = data.getGlyph(ca[i]);
+				if (g==null) continue;
+
 
 				if (i == 0) {
 					at.x -= g.xoffset * scale;

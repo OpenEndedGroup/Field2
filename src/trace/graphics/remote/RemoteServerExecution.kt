@@ -78,7 +78,7 @@ class RemoteServerExecution : Execution(null) {
 
             var descrption = {
                 if (l == 0)
-                    "No connected web-browsers, connect to " + hostname()?.replace("/boot", "/ar.html")
+                    "No connected web-browsers, connect via ngrok " + hostname()?.replace("/boot", "/index.html")
                 else {
                     var description = "$l connection" + (if (l == 1) "" else "s")
 
@@ -230,7 +230,10 @@ class RemoteServerExecution : Execution(null) {
         if (lastHostName == null || System.currentTimeMillis() - hostNameCheckedAt > 5000) {
             val addr = InetAddress.getLocalHost().address
             val addrs = "${addr[0].toInt() and 255}.${addr[1].toInt() and 255}.${addr[2].toInt() and 255}.${addr[3].toInt() and 255}"
-            val hostname = "http://" + addrs + ":8090/boot"
+//            val hostname = "http://" + addrs + ":8090/boot"
+
+            val hostname = "http 8090"
+
             hostNameCheckedAt = System.currentTimeMillis()
             lastHostName = hostname
             return hostname

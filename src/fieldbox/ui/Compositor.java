@@ -40,7 +40,7 @@ public class Compositor {
 
 		if (GraphicsContext.isResizing) {
 			for (Layer l : layers.values()) {
-				if (l.fbo.specification.width * l.res != window.getWidth() || l.fbo.specification.height * l.res != window.getHeight()) {
+				if (l.fbo.specification.width * l.res != window.getWidth()*window.getRetinaScaleFactor() || l.fbo.specification.height * l.res != window.getHeight()*window.getRetinaScaleFactor()) {
 					l.fbo.finalize();
 					Scene sceneWas = l.fbo.scene;
 					l.fbo = newFBO(l.fbo.specification.unit, l.res);
@@ -334,7 +334,7 @@ public class Compositor {
 			float[] weight = new float[taps * 2 + 1];
 			float tot = 0;
 			for (int i = -taps; i < taps + 1; i++) {
-				weight[i + taps] = (float) Math.exp(-Math.pow(1.1f * i / (float) taps, 2));
+				weight[i + taps] = (float) Math.exp(-Math.pow(1.1f * i / (float) (taps+1), 2));
 				tot += weight[i + taps];
 			}
 

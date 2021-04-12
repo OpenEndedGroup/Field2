@@ -101,8 +101,6 @@ class Stage(val w: Int, val h: Int) : AsMap {
     @JvmField
     val fbo: FBO
 
-
-
     @JvmField
     @Documentation("The background color of the stage")
     var background = Vec4(0.5, 0.5, 0.5, 1.0)

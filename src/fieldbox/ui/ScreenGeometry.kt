@@ -8,7 +8,7 @@ object ScreenGeometry {
     @JvmStatic
     fun primaryMonitorBounds(): Rect {
         Configuration.GLFW_CHECK_THREAD0.set(false)
-        glfwInit()
+
         val primary = glfwGetPrimaryMonitor()
         val x = IntArray(1)
         val y = IntArray(1)

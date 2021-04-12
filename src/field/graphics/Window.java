@@ -18,6 +18,7 @@ import fieldbox.boxes.Mouse;
 import fielded.boxbrowser.BoxBrowser;
 import fieldlinker.Linker;
 import fieldnashorn.annotations.HiddenInAutocomplete;
+import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.Callback;
@@ -87,6 +88,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
     /**
      * disables the swapping of this window to the screen (the window continues to repaint itself whenever it would repaint before, but no call to SwapBuffers happens if this is set to true)
      */
+    public boolean doRetina = (int)(Options.dict().getFloat(new Dict.Prop<Number>("retina"), 0f)) == 1;
     public boolean dontSwap = false;
     protected GraphicsContext graphicsContext;
     protected long window;
@@ -144,8 +146,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 
 
         glfwWindowHint(GLFW_DEPTH_BITS, 24);
-//		glfwWindowHint(GLFW_SAMPLES, 8);
-//		glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, 1);
+        glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, doRetina ? 1 : 0);
         glfwWindowHint(GLFW_COCOA_GRAPHICS_SWITCHING, 1);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, 1);
@@ -173,6 +174,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
         this.x = x;
         this.y = y;
 
+        System.out.println(" >>>>>>>>>>>>>>>>>>>>>>>>> about to open the window ");
 
         try {
             ThreadSync2.callInMainThreadAndWait(() -> {
@@ -190,7 +192,11 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
                 glfwSetWindowPos(window, x, y);
                 Windows.windows.register(window, callback = makeCallback());
 
+                System.out.println("Hello LWJGL " + Version.getVersion() + "!");
                 glfwShowWindow(window);
+                glfwFocusWindow(window);
+
+                System.out.println(" >>>>>>>>>>>>>>>>>>>>>>>>> window is now onscreen ");
 
                 glfwMakeContextCurrent(window);
 //				glfwSwapInterval(1);
@@ -281,13 +287,13 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
         createdInThread = Thread.currentThread();
 
 
-        if (Main.os == Main.OS.mac) {
-            int finalW = w;
-            int finalH = h;
-            RunLoop.main.delayTicks(() -> {
+//        if (Main.os == Main.OS.mac) {
+//            int finalW = w;
+//            int finalH = h;
+//            RunLoop.main.delayTicks(() -> {
 //				System.out.println("\n\n -- resize -- \n\n");
 //				setBounds(x, y, finalW , finalH);
-
+//
 //				RunLoop.main.mainLoop.attach("__tada__", new Scene.Perform() {
 //					int t = 0;
 //
@@ -302,9 +308,9 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 //						return alpha < 1;
 //					}
 //				});
-
-            }, 20);
-        }
+//
+//            }, 20);
+//        }
 
 
     }
@@ -398,6 +404,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
                 throw new Error();
 
             if (glfwWindowShouldClose(window)) {
+                System.out.println(" -- window should close -- ");
                 RunLoop.main.getLoop().detach(perform);
                 glfwDestroyWindow(window);
                 return;
@@ -416,7 +423,6 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
                 return;
             }
 
-
             needsRepainting = false;
             glfwMakeContextCurrent(window);
             try {
@@ -434,7 +440,6 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
                 } else {
                     GraphicsContext.isResizing = false;
                 }
-
 
                 updateScene();
 
@@ -464,8 +469,6 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
                 }
 
 
-
-
                 if (!isThreaded && !(createdInThread != Thread.currentThread()))
                     pollEvents();
 
@@ -482,9 +485,9 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 
     private void pollEvents() {
 //        System.err.println(">}>");
-        if (Main.os== Main.OS.windows)
-        glfwPollEvents();
-//        System.err.println("<{<");
+//        if (Main.os== Main.OS.windows)
+            glfwPollEvents();
+        //        System.err.println("<{<");
     }
 
     /**
@@ -949,7 +952,9 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 
     public int getRetinaScaleFactor() {
         int w = glfwGetWindowWidth(window);
-        if (w==0) return 1;
+        if (w==0) {
+            return 1 + ((doRetina && Main.os == Main.OS.mac) ? 1 : 0);
+        }
         int sc = glfwGetFrameBufferWidth(window) / w;
         return sc;
     }

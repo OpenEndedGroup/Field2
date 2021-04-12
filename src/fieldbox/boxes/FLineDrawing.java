@@ -232,7 +232,7 @@ public class FLineDrawing extends Box implements Drawing.Drawer {
 			f.attributes.multiply(opacity, 1, (float) Math.pow(counter[0] / (float) updates, power));
 			f.modify();
 			if (counter[0] >= 0) Drawing.dirty(box, l);
-			return --counter[0] == 0 ? null : f;
+			return --counter[0] <=0 ? null : f;
 		};
 	}
 

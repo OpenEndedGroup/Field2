@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Field XR</title>
+
+<!--    <script src="dist/aframe-master.min.js"></script>-->
+<!--    <script src="dist/aframe-v1.1.0.min.js"></script>-->
+<script src="dist/aframe-v1.0.4.js"></script>
+<script src="dist/aframe-stereocam.js"></script>
+
+<!--    <script src="dist/look-controls-better.js"></script>-->
+
+    <!-- Begin Field setup scripts  -->
+    <script src="field/runners.js"></script>
+    <script src="field/maps.js"></script>
+
+    <script src="field/asta.js"></script>
+
+    <script src="field/stacktrace.min.js"></script>
+    <script src="field/stacktrace-gps.min.js"></script>
+
+    <script src="field/ecmascript.json"></script>
+    <script src="field/browser.json"></script>
+    <script src="field/signal.js"></script>
+    <script src="field/acorn.js"></script>
+    <script src="field/walk.js"></script>
+
+    <script src="field/tess2.js"></script>
+    <script src="field/fline.js"></script>
+
+    <script src="field/def.js"></script>
+    <script src="field/infer.js"></script>
+    <script src="field/acorn_loose.js"></script>
+    <script src="field/tern.js"></script>
+    <script src="field/completion.js"></script>
+    <script src="field/three_js_docs.js"></script>
+    <script src="field/three_js_docs_provider.js"></script>
+
+    <script src="field/js-object-pretty-print.js"></script>
+
+    <script src="field/field.js"></script>
+
+    <!-- End Field setup scripts  -->
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+</head>
+<body>
+
+    <a-scene background="color: #ECECEC">
+        <a-sphere position="0 1.625 -0.5" radius="0.125" color="#EF2D5E" shadow ></a-sphere>
+        <a-cylinder position="0.1 1.575 -0.3" radius="0.05" height="0.15" color="#FFC65D" shadow></a-cylinder>
+        <a-box position="-0.1 1.6 -0.3" depth='0.1' width='0.1' height='0.1' rotation="20 45 0" color="#4CC3D9" shadow></a-box>
+        <a-plane position="0 1.5 -0.4" rotation="-90 0 0" width="0.4" height="0.4" color="#7BC8A4" shadow></a-plane>
+    </a-scene>
+
+<script>
+    
+    var UUID = THREE.Math.generateUUID()
+
+    _field.evalRequestWS(UUID, () => {
+    })
+
+    AFRAME.scenes[0].object3D.traverse( function( object ) {
+        object.frustumCulled = false;
+    } );
+
+    enterScene(document.getElementsByTagName('a-scene')[0].object3D,
+        document.getElementsByTagName('a-scene')[0].camera, () => {}, () => {})
+
+    addTouchCallbacks(document.body, (E) => true)
+
+</script>
+
+</body>
+</html>

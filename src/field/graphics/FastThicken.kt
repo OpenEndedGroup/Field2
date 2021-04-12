@@ -52,7 +52,8 @@ class FastThicken {
             c.setT(i.toDouble());
             val THICK = f.nodes[i].attributes.getFloat(tL, f.nodes[i].attributes.getFloat(t, dTL)) * m;
 
-            val n2 = c.normal()
+            var n2 = c.normal()
+            if (n2.length()==0.0) n2 = c.normal2().toVec3()
 
             val n = n2.normalize() * THICK;
 
@@ -84,7 +85,8 @@ class FastThicken {
             c.setT(i.toDouble() - 1);
             val THICK = -f.nodes[i - 1].attributes.getFloat(tR, f.nodes[i - 1].attributes.getFloat(t, dTR)) * m;
 
-            val n2 = c.normal()
+            var n2 = c.normal()
+            if (n2.length()==0.0) n2 = c.normal2().toVec3()
 
             val n = n2.normalize() * THICK;
 

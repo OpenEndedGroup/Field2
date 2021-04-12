@@ -114,7 +114,7 @@ public class RunLoop {
 
 					try {
 						synchronized (eventLock) {
-							eventLock.wait(1);
+							eventLock.wait(10);
 						}
 					} catch (InterruptedException ie) {
 						ie.printStackTrace();

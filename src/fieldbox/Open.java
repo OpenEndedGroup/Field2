@@ -23,6 +23,7 @@ import fielded.plugins.Launch;
 import fielded.plugins.MakeNewTextEditor;
 import fielded.plugins.Out;
 import fieldnashorn.Nashorn;
+import gnu.trove.impl.unmodifiable.TUnmodifiableLongLongMap;
 import jdk.dynalink.linker.GuardingDynamicLinkerExporter;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
@@ -106,7 +107,7 @@ public class Open {
 
 		Rect bounds = ScreenGeometry.primaryMonitorBounds();
 		int inset = 15;
-		window = new FieldBoxWindow((int)bounds.x+inset, (int)bounds.y+inset, (int)bounds.w-inset*2, (int)bounds.h-inset*2, filename);
+		window = new FieldBoxWindow((int) bounds.x + inset, (int) bounds.y + inset, (int) bounds.w - inset * 2, (int) bounds.h - inset * 2, filename);
 
 		window.scene.attach(-5, this::defaultGLPreambleBackground);
 		window.mainLayer()
@@ -309,6 +310,7 @@ public class Open {
 			.newLayer("__main__blurx", 0, 8);
 		Compositor.Layer ly = window.getCompositor()
 			.newLayer("__main__blury", 1, 8);
+
 		Compositor.Layer composited = window.getCompositor()
 			.newLayer("__main__composited", 0);
 
@@ -317,8 +319,8 @@ public class Open {
 
 		window.getCompositor()
 			.getMainLayer()
-			.blurYInto(4, lx.getScene());
-		lx.blurXInto(4, ly.getScene());
+			.blurYInto(0, lx.getScene());
+		lx.blurXInto(0, ly.getScene());
 
 		lx.addDependancy(window.getCompositor()
 			.getMainLayer());
@@ -346,8 +348,8 @@ public class Open {
 			.newLayer("__main__gblury", 1, 8);
 
 
-		composited.blurYInto(4, lx.getScene());
-		lx.blurXInto(4, ly.getScene());
+		composited.blurYInto(0, lx.getScene());
+		lx.blurXInto(0, ly.getScene());
 
 		lx.addDependancy(composited);
 		ly.addDependancy(lx);
@@ -446,9 +448,14 @@ public class Open {
 		boxes.start();
 
 
-
-
 		DefaultMenus.safeToSave = true;
+
+		if (Main.os == Main.OS.mac) {
+			RunLoop.main.once(() -> {
+				Rect b = window.getBounds();
+				window.setBounds((int) b.x, (int) b.y, (int) b.w, (int) b.h + 1);
+			});
+		}
 
 	}
 
