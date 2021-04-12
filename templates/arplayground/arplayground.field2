@@ -1,0 +1,325 @@
+#field/document{
+  :externalList [
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/arplayground/WebXR server.box.js"
+      }
+      :dataFile "{{templates}}/arplayground/WebXR server.box"
+      :id "_a6dccc43_50fb_4000_810f_07849119ffb6"
+      :boxClass "trace.graphics.remote.RemoteServerExecution"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+        "_fe6beb6e_310f_4c4a_932d_623709a00212"
+        "_e9d9e9b0_d898_405d_bc98_b8274779be13"
+        "_8a55be2f_8d63_4daa_a655_bd0c3429aded"
+        "_a4b1cbe5_7d66_4c07_b1f6_3a393278eb6f"
+        "_17369eae_1d9e_4ae6_aa4d_378562af9415"
+        "_d3c2d782_1ce5_4c7b_b470_ff910928cff7"
+        "_40d3e434_2fa8_4aa0_a196_b0aab5d90cce"
+        "_4a4b5df6_a63c_43df_b674_6a77102b849e"
+        "_2fa01fab_4aee_4da0_9439_488e659feff5"
+        "_98702ec0_0cc0_45a6_b4d6_7a3b45a20b6f"
+        "_604696c8_8f56_4a07_bc88_b339e019f754"
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 91.0234375
+          :y 120.453125
+          :w 288.9453125
+          :h 38.109375
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/arplayground/rotating random box.box.js"
+      }
+      :dataFile "{{templates}}/arplayground/rotating random box.box"
+      :id "_cd2ca167_0899_4fbc_a60e_edb8d23c3e24"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        "_a6dccc43_50fb_4000_810f_07849119ffb6"
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 53.84765625
+          :y 230.84765625
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/arplayground/joint hierarchy.box.js"
+      }
+      :dataFile "{{templates}}/arplayground/joint hierarchy.box"
+      :id "_f29a9c8c_2b54_4d59_9710_840bd8e35d72"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        "_a6dccc43_50fb_4000_810f_07849119ffb6"
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 177.01953125
+          :y 231.4765625
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/arplayground/movie.box.js"
+      }
+      :dataFile "{{templates}}/arplayground/movie.box"
+      :id "_3c383f18_9ed3_4272_936b_5f690aeadf7c"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        "_a6dccc43_50fb_4000_810f_07849119ffb6"
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 401.7109375
+          :y 233.3984375
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/arplayground/textures.box.js"
+      }
+      :dataFile "{{templates}}/arplayground/textures.box"
+      :id "_550e37df_9294_486e_b2c7_34e0616fccdc"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        "_a6dccc43_50fb_4000_810f_07849119ffb6"
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 283.91796875
+          :y 235.97265625
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/arplayground/movies.box.js"
+      }
+      :dataFile "{{templates}}/arplayground/movies.box"
+      :id "_17ab4cd5_b723_48ce_be40_1878af3dd159"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        "_a6dccc43_50fb_4000_810f_07849119ffb6"
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 401.953125
+          :y 347.89453125
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/arplayground/events.box.js"
+      }
+      :dataFile "{{templates}}/arplayground/events.box"
+      :id "_ff555c1b_c646_4b8a_84a2_b217cb74d291"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        "_a6dccc43_50fb_4000_810f_07849119ffb6"
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 530.92578125
+          :y 233.26953125
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/arplayground/events00000.box.js"
+      }
+      :dataFile "{{templates}}/arplayground/events00000.box"
+      :id "_71cc7030_bec5_4e24_8c77_3f0c018a89c1"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        "_a6dccc43_50fb_4000_810f_07849119ffb6"
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 568.62109375
+          :y 342.0234375
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/arplayground/events00001.box.js"
+      }
+      :dataFile "{{templates}}/arplayground/events00001.box"
+      :id "_506672d2_8b98_46ae_86a3_95f440b86b4a"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        "_a6dccc43_50fb_4000_810f_07849119ffb6"
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 614.3671875
+          :y 459.00390625
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/arplayground/stereo-texture.box.js"
+      }
+      :dataFile "{{templates}}/arplayground/stereo-texture.box"
+      :id "_460bcd53_6e30_4af7_a993_ddc8cdf791c8"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        "_a6dccc43_50fb_4000_810f_07849119ffb6"
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 284.76953125
+          :y 339.74609375
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/arplayground/fline.box.js"
+      }
+      :dataFile "{{templates}}/arplayground/fline.box"
+      :id "_9e545001_9db3_432f_8f90_dce4ce97233b"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        "_a6dccc43_50fb_4000_810f_07849119ffb6"
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 674.6484375
+          :y 238.95703125
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/arplayground/fline+events.box.js"
+      }
+      :dataFile "{{templates}}/arplayground/fline+events.box"
+      :id "_df97ec18_bad5_44fa_8565_d91295b80b23"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        "_a6dccc43_50fb_4000_810f_07849119ffb6"
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 736.3671875
+          :y 350.91796875
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+  ]
+  :knownFiles {
+    "txt" #field/filespec{
+      :name "txt"
+    }
+    "fragment" #field/filespec{
+      :name "fragment"
+    }
+    "code" #field/filespec{
+      :name "code"
+    }
+    "vertex" #field/filespec{
+      :name "vertex"
+    }
+    "geometry" #field/filespec{
+      :name "geometry"
+    }
+    "html" #field/filespec{
+      :name "html"
+    }
+    "edn" #field/filespec{
+      :name "edn"
+    }
+  }
+  :knownProperties #{
+    "__id__"
+    "comment"
+    "classpath"
+    "perDocument"
+    "name"
+    "frame"
+    "lockHeight"
+    "lockWidth"
+    "tag"
+    "windowSpace"
+    "windowScale"
+    "isPaired"
+    "auto"
+    "head"
+    "tail"
+    "defaultEditorProperty"
+    "_defaultEditorProperty_cookie"
+    "_theVariant"
+    "includes"
+    "excludes"
+    "__datafilename__"
+    "__filename__code"
+  }
+}
