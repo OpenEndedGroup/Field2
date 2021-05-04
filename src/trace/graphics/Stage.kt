@@ -1419,16 +1419,16 @@ class Stage(val w: Int, val h: Int) : AsMap {
             e.printStackTrace()
         }
 
-        if (File(filename.replace(".dir", ".simpleHead")).exists()) {
-            val reader = SimpleHead.reader(filename.replace(".dir", ".simpleHead"))
-            sg.head = reader(0.0)
-
-            sg.post.put("__dovideo2__", Runnable {
-                println(" -- reader update at time ${cache.time / map.length()}")
-                sg.head = reader((cache.time / map.length()) % 1)
-            })
-
-        }
+//        if (File(filename.replace(".dir", ".simpleHead")).exists()) {
+//            val reader = SimpleHead.reader(filename.replace(".dir", ".simpleHead"))
+//            sg.head = reader(0.0)
+//
+//            sg.post.put("__dovideo2__", Runnable {
+//                println(" -- reader update at time ${cache.time / map.length()}")
+//                sg.head = reader((cache.time / map.length()) % 1)
+//            })
+//
+//        }
 
         return sg
     }

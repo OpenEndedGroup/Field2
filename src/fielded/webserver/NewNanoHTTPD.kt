@@ -224,11 +224,11 @@ class NewNanoHTTPD(val port: Int) {
                 }
 
                 override fun onPong(p0: WebSocketFrame?) {
-                    print("pong $p0")
+//                    print("pong $p0")
                 }
 
                 override fun onMessage(p0: WebSocketFrame?) {
-                    print("message $p0")
+//                    print("message $p0")
 
                     try {
                         val o = JSONObject(p0!!.textPayload)

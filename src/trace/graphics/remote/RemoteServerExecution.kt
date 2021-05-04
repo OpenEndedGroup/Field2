@@ -62,7 +62,7 @@ class RemoteServerExecution : Execution(null) {
         var last = System.currentTimeMillis()
         this.properties.putToMap(Boxes.insideRunLoop, "main.copyTopology", Supplier<Boolean> {
 
-            if ((System.currentTimeMillis() - last) > 1000) {
+            if ((System.currentTimeMillis() - last) > 5000) {
                 last = System.currentTimeMillis()
                 broadcastTopology()
             }
@@ -82,7 +82,7 @@ class RemoteServerExecution : Execution(null) {
                 else {
                     var description = "$l connection" + (if (l == 1) "" else "s")
 
-                    if (l > 0) {
+                    if (l==1) {
                         description += " from :"
                         server.s.openWebsockets.map {
                             description += "${it.handshakeRequest.remoteHostName} = ${it.handshakeRequest.remoteIpAddress} "

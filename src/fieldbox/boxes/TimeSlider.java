@@ -57,7 +57,7 @@ public class TimeSlider extends Box {
 
 		this.properties.putToMap(Callbacks.onFrameChanged, "__dontInterpolate__", (box, next) -> {
 			this.properties.put(isRunning, false);
-			return was;
+			return next;
 		});
 
 		properties.put(frame, new Rect(0, 0, width, 5000));
