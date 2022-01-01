@@ -1,0 +1,84 @@
+package fieldbox.boxes.plugins;
+
+import field.utility.Dict;
+import field.utility.IdempotencyMap;
+import fieldbox.boxes.Box;
+import fielded.Commands;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * Created by marc on 9/8/15.
+ */
+public class PresentationMode extends Box {
+
+	static public Dict.Prop<IdempotencyMap<Runnable>> onEnterPresentationMode = new Dict.Prop<>("onEnterPresentationMode").toCanon()
+															      .type()
+															      .autoConstructs(() -> new IdempotencyMap<Runnable>(Runnable.class));
+	static public Dict.Prop<IdempotencyMap<Runnable>> onExitPresentationMode = new Dict.Prop<>("onExitPresentationMode").toCanon()
+															    .type()
+															    .autoConstructs(() -> new IdempotencyMap<Runnable>(Runnable.class));
+
+	static public Dict.Prop<Runnable> enterPresentationMode = new Dict.Prop<>("enterPresentationMode").toCanon()
+													  .type();
+	static public Dict.Prop<Runnable> exitPresentationMode = new Dict.Prop<>("exitPresentationMode").toCanon()
+		.type();
+
+	static public Dict.Prop<PresentationMode> _presentationMode = new Dict.Prop<>("_presentationMode").toCanon()
+		.type();
+
+	boolean present = false;
+
+	public PresentationMode(Box root_ignored) {
+		this.properties.put(enterPresentationMode, this::enterPresentationMode);
+		this.properties.put(exitPresentationMode, this::exitPresentationMode);
+
+		Commands.exportAsCommand(this, this::enterPresentationMode, (x) -> !present, "Enter Presentation Mode", "Switches the text editor to the box browser. Use `_.onEnterPresentationMode.foo = ()=>{ ... }` to set callbacks.");
+		Commands.exportAsCommand(this, this::exitPresentationMode, (x) -> present, "Exit Presentation Mode", "Switches the box browser to the normal text editor.");
+
+		this.properties.put(_presentationMode, this);
+	}
+
+	private void enterPresentationMode() {
+		if (present) return;
+		List<Runnable> l = this.breadthFirst(both())
+				       .filter(x -> x.properties.has(onEnterPresentationMode))
+				       .flatMap(x -> x.properties.get(onEnterPresentationMode)
+								 .values()
+								 .stream())
+				       .collect(Collectors.toList());
+		for (Runnable rr : l) {
+			try {
+				rr.run();
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
+		}
+		present = true;
+	}
+
+	private void exitPresentationMode() {
+		if (!present) return;
+
+		List<Runnable> l = this.breadthFirst(both())
+				       .filter(x -> x.properties.has(onExitPresentationMode))
+				       .flatMap(x -> x.properties.get(onExitPresentationMode)
+								 .values()
+								 .stream())
+				       .collect(Collectors.toList());
+		for (Runnable rr : l) {
+			try {
+				rr.run();
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
+		}
+
+		present = false;
+	}
+
+	public boolean isPresent() {
+		return present;
+	}
+}

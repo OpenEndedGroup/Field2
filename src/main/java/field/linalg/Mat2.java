@@ -1,0 +1,1461 @@
+/*
+ * (C) Copyright 2015 Richard Greenlees
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+
+ */
+package field.linalg;
+
+import field.utility.Mutable;
+import field.utility.Serializable_safe;
+
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.nio.ByteBuffer;
+import java.nio.DoubleBuffer;
+import java.nio.FloatBuffer;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.function.Supplier;
+
+/**
+ * Contains the definition of a 2x2 Matrix of doubles, and associated functions to transform it. The matrix is column-major to match OpenGL's interpretation, and it looks like this:
+ * <p>
+ * m00  m10 <br> m01  m11 <br>
+ *
+ * @author Marc Downie (edited extensively from JOML project)
+ */
+public class Mat2 implements Externalizable, Supplier<Mat2>, Mutable, Serializable_safe {
+
+	private static final long serialVersionUID = 1L;
+
+	public double m00, m10;
+	public double m01, m11;
+
+	/**
+	 * Create a new {@link Mat2} and initialize it to {@link #identity() identity}.
+	 */
+	public Mat2() {
+		super();
+		identity();
+	}
+
+	/**
+	 * Create a new {@link Mat2} and initialize it with the values from the given matrix.
+	 *
+	 * @param mat the matrix to initialize this matrix with
+	 */
+	public Mat2(Mat2 mat) {
+		m00 = mat.m00;
+		m01 = mat.m01;
+		m10 = mat.m10;
+		m11 = mat.m11;
+	}
+
+	/**
+	 * Create a new {@link Mat2} and make it a copy of the upper left 3x3 of the given {@link Mat4}.
+	 *
+	 * @param mat the {@link Mat4} to copy the values from
+	 */
+	public Mat2(Mat4 mat) {
+		m00 = mat.m00;
+		m01 = mat.m01;
+		m10 = mat.m10;
+		m11 = mat.m11;
+	}
+
+	/**
+	 * Create a new {@link Mat2} and initialize its elements with the given values.
+	 *
+	 * @param m00 the value of m00
+	 * @param m01 the value of m01
+	 * @param m10 the value of m10
+	 * @param m11 the value of m11
+	 */
+	public Mat2(double m00, double m01, double m10, double m11) {
+		this.m00 = m00;
+		this.m01 = m01;
+		this.m10 = m10;
+		this.m11 = m11;
+	}
+
+	/**
+	 * Set the values in this matrix to the ones in m.
+	 *
+	 * @param m the matrix whose values will be copied
+	 * @return this
+	 */
+	public Mat2 set(Mat2 m) {
+		m00 = m.m00;
+		m01 = m.m01;
+		m10 = m.m10;
+		m11 = m.m11;
+		return this;
+	}
+
+	/**
+	 * Set the elements of this matrix to the upper left 3x3 of the given {@link Mat4}.
+	 *
+	 * @param mat the {@link Mat4} to copy the values from
+	 * @return this
+	 */
+	public Mat2 set(Mat4 mat) {
+		m00 = mat.m00;
+		m01 = mat.m01;
+		m10 = mat.m10;
+		m11 = mat.m11;
+		return this;
+	}
+
+	/**
+	 * Set this matrix to be equivalent to the rotation specified by the given {@link AxisAngle}.
+	 *
+	 * @param axisAngle the {@link AxisAngle}
+	 * @return this
+	 */
+	public Mat2 set(AxisAngle axisAngle) {
+		double x = axisAngle.x;
+		double y = axisAngle.y;
+		double z = axisAngle.z;
+		double angle = axisAngle.angle;
+		double n = Math.sqrt(x * x + y * y + z * z);
+		x /= n;
+		y /= n;
+		z /= n;
+		double c = Math.cos(angle);
+		double s = Math.sin(angle);
+		double omc = 1.0 - c;
+		m00 = c + x * x * omc;
+		m11 = c + y * y * omc;
+		double tmp1 = x * y * omc;
+		double tmp2 = z * s;
+		m10 = tmp1 - tmp2;
+		m01 = tmp1 + tmp2;
+		return this;
+	}
+
+	/**
+	 * Set this matrix to a rotation equivalent to the given quaternion.
+	 *
+	 * @param q the quaternion
+	 * @return this
+	 * @see Quat#get(Mat3)
+	 */
+	public Mat2 set(Quat q) {
+		q.get(new Mat3(this, 1));
+		return this;
+	}
+
+	/**
+	 * Multiply this matrix by the supplied matrix. This matrix will be the left one.
+	 * <p>
+	 * If <code>M</code> is <code>this</code> matrix and <code>R</code> the <code>right</code> matrix, then the new matrix will be <code>M * R</code>. So when transforming a vector <code>v</code>
+	 * with the new matrix by using <code>M * R * v</code>, the transformation of the right matrix will be applied first!
+	 *
+	 * @param right the right operand
+	 * @return this
+	 */
+	public Mat2 mul(Mat2 right) {
+		return mul(right, this);
+	}
+
+	/**
+	 * Multiply this matrix by the supplied matrix and store the result in <code>dest</code>. This matrix will be the left one.
+	 * <p>
+	 * If <code>M</code> is <code>this</code> matrix and <code>R</code> the <code>right</code> matrix, then the new matrix will be <code>M * R</code>. So when transforming a vector <code>v</code>
+	 * with the new matrix by using <code>M * R * v</code>, the transformation of the right matrix will be applied first!
+	 *
+	 * @param right the right operand
+	 * @param dest  will hold the result
+	 * @return this
+	 */
+	public Mat2 mul(Mat2 right, Mat2 dest) {
+		if (this != dest && right != dest) {
+			dest.m00 = m00 * right.m00 + m10 * right.m01;
+			dest.m01 = m01 * right.m00 + m11 * right.m01;
+			dest.m10 = m00 * right.m10 + m10 * right.m11;
+			dest.m11 = m01 * right.m10 + m11 * right.m11;
+		} else {
+			dest.set(m00 * right.m00 + m10 * right.m01, m01 * right.m00 + m11 * right.m01, m00 * right.m10 + m10 * right.m11, m01 * right.m10 + m11 * right.m11);
+		}
+		return this;
+	}
+
+	/**
+	 * Set the values within this matrix to the supplied double values. The result looks like this:
+	 * <p>
+	 * m00, m10, m20<br> m01, m11, m21<br> m02, m12, m22<br>
+	 *
+	 * @param m00 the new value of m00
+	 * @param m01 the new value of m01
+	 * @param m10 the new value of m10
+	 * @param m11 the new value of m11
+	 * @return this
+	 */
+	public Mat2 set(double m00, double m01, double m10, double m11) {
+		this.m00 = m00;
+		this.m01 = m01;
+		this.m10 = m10;
+		this.m11 = m11;
+		return this;
+	}
+
+	/**
+	 * Set the values in this matrix based on the supplied double array. The result looks like this:
+	 * <p>
+	 * 0, 3, 6<br> 1, 4, 7<br> 2, 5, 8<br>
+	 * <p>
+	 * Only uses the first 9 values, all others are ignored.
+	 *
+	 * @param m the array to read the matrix values from
+	 * @return this
+	 */
+	public Mat2 set(double m[]) {
+		m00 = m[0];
+		m01 = m[1];
+		m10 = m[3];
+		m11 = m[4];
+		return this;
+	}
+
+	/**
+	 * Set the values in this matrix based on the supplied double array. The result looks like this:
+	 * <p>
+	 * 0, 3, 6<br> 1, 4, 7<br> 2, 5, 8<br>
+	 * <p>
+	 * Only uses the first 9 values, all others are ignored
+	 *
+	 * @param m the array to read the matrix values from
+	 * @return this
+	 */
+	public Mat2 set(float m[]) {
+		m00 = m[0];
+		m01 = m[1];
+		m10 = m[3];
+		m11 = m[4];
+		return this;
+	}
+
+	/**
+	 * Return the determinant of this matrix.
+	 *
+	 * @return the determinant
+	 */
+	public double determinant() {
+		return m00 * m11 - m01 * m10;
+	}
+
+	/**
+	 * Invert this matrix.
+	 *
+	 * @return this
+	 */
+	public Mat2 invert() {
+		return invert(this);
+	}
+
+	/**
+	 * Invert <code>this</code> matrix and store the result in <code>dest</code>.
+	 *
+	 * @param dest will hold the result
+	 * @return this
+	 */
+	public Mat2 invert(Mat2 dest) {
+		double s = determinant();
+		if (s == 0.0) {
+			dest.set(this);
+			return this;
+		}
+		s = 1.0 / s;
+		if (this != dest) {
+			dest.m00 = m11 * s;
+			dest.m01 = -m01 * s;
+			dest.m10 = -m10 * s;
+			dest.m11 = m00 * s;
+		} else {
+			dest.set(m11 * s, -m01 * s, -m10 * s, m00 * s);
+		}
+		return this;
+	}
+
+	/**
+	 * Transpose this matrix.
+	 *
+	 * @return this
+	 */
+	public Mat2 transpose() {
+		return transpose(this);
+	}
+
+	/**
+	 * Transpose <code>this</code> matrix and store the result in <code>dest</code>.
+	 *
+	 * @param dest will hold the result
+	 * @return this
+	 */
+	public Mat2 transpose(Mat2 dest) {
+		if (this != dest) {
+			dest.m00 = m00;
+			dest.m01 = m10;
+			dest.m10 = m01;
+			dest.m11 = m11;
+		} else {
+			dest.set(m00, m10, m01, m11);
+		}
+		return this;
+	}
+
+	/**
+	 * Return a string representation of this matrix.
+	 * <p>
+	 * This method creates a new {@link DecimalFormat} on every invocation with the format string "<tt>  0.000E0; -</tt>".
+	 *
+	 * @return the string representation
+	 */
+	public String toString() {
+		DecimalFormat formatter = new DecimalFormat("  0.000E0; -"); //$NON-NLS-1$
+		return toString(formatter).replaceAll("E(\\d+)", "E+$1"); //$NON-NLS-1$ //$NON-NLS-2$
+	}
+
+	/**
+	 * Return a string representation of this matrix by formatting the matrix elements with the given {@link NumberFormat}.
+	 *
+	 * @param formatter the {@link NumberFormat} used to format the matrix values with
+	 * @return the string representation
+	 */
+	public String toString(NumberFormat formatter) {
+		return formatter.format(m00) + formatter.format(m10) + "\n" //$NON-NLS-1$
+			    + formatter.format(m01) + formatter.format(m11) + "\n"; //$NON-NLS-1$
+	}
+
+	/**
+	 * Get the current values of <code>this</code> matrix and store them into <code>dest</code>.
+	 * <p>
+	 * This is the reverse method of {@link #set(Mat2)} and allows to obtain intermediate calculation results when chaining multiple transformations.
+	 *
+	 * @param dest the destination matrix
+	 * @return the passed in destination
+	 * @see #set(Mat2)
+	 */
+	public Mat2 get(Mat2 dest) {
+		return dest.set(this);
+	}
+
+	/**
+	 * Get the current values of <code>this</code> matrix and store the represented rotation into the given {@link AxisAngle}.
+	 *
+	 * @param dest the destination {@link AxisAngle}
+	 * @return the passed in destination
+	 * @see AxisAngle#set(Mat3)
+	 */
+	public AxisAngle get(AxisAngle dest) {
+		return dest.set(new Mat3(this, 1));
+	}
+
+	/**
+	 * Get the current values of <code>this</code> matrix and store the represented rotation into the given {@link Quat}.
+	 *
+	 * @param dest the destination {@link Quat}
+	 * @return the passed in destination
+	 * @see Quat#set(Mat3)
+	 */
+	public Quat get(Quat dest) {
+		return dest.set(new Mat3(this, 1));
+	}
+
+	/**
+	 * Store this matrix into the supplied {@link DoubleBuffer} at the current buffer {@link DoubleBuffer#position() position} using column-major order.
+	 * <p>
+	 * This method will not increment the position of the given DoubleBuffer.
+	 * <p>
+	 * If you want to specify the offset into the DoubleBuffer} at which the matrix is stored, you can use {@link #get(int, DoubleBuffer)}, taking the absolute position as parameter.
+	 *
+	 * @param buffer will receive the values of this matrix in column-major order at its current position
+	 * @return the passed in buffer
+	 * @see #get(int, DoubleBuffer)
+	 */
+	public DoubleBuffer get(DoubleBuffer buffer) {
+		return get(buffer.position(), buffer);
+	}
+
+	/**
+	 * Store this matrix into the supplied {@link DoubleBuffer} starting at the specified absolute buffer position/index using column-major order.
+	 * <p>
+	 * This method will not increment the position of the given {@link DoubleBuffer}.
+	 *
+	 * @param index  the absolute position into the {@link DoubleBuffer}
+	 * @param buffer will receive the values of this matrix in column-major order
+	 * @return the passed in buffer
+	 */
+	public DoubleBuffer get(int index, DoubleBuffer buffer) {
+		buffer.put(index, m00);
+		buffer.put(index + 1, m01);
+		buffer.put(index + 2, m10);
+		buffer.put(index + 3, m11);
+		return buffer;
+	}
+
+	/**
+	 * Store this matrix in column-major order into the supplied {@link FloatBuffer} at the current buffer {@link FloatBuffer#position() position}.
+	 * <p>
+	 * This method will not increment the position of the given FloatBuffer.
+	 * <p>
+	 * If you want to specify the offset into the FloatBuffer at which the matrix is stored, you can use {@link #get(int, FloatBuffer)}, taking the absolute position as parameter.
+	 * <p>
+	 * Please note that due to this matrix storing double values those values will potentially lose precision when they are converted to float values before being put into the given FloatBuffer.
+	 *
+	 * @param buffer will receive the values of this matrix in column-major order at its current position
+	 * @return the passed in buffer
+	 * @see #get(int, FloatBuffer)
+	 */
+	public FloatBuffer get(FloatBuffer buffer) {
+		return get(buffer.position(), buffer);
+	}
+
+	/**
+	 * Store this matrix in column-major order into the supplied {@link FloatBuffer} starting at the specified absolute buffer position/index.
+	 * <p>
+	 * This method will not increment the position of the given FloatBuffer.
+	 * <p>
+	 * Please note that due to this matrix storing double values those values will potentially lose precision when they are converted to float values before being put into the given FloatBuffer.
+	 *
+	 * @param index  the absolute position into the FloatBuffer
+	 * @param buffer will receive the values of this matrix in column-major order
+	 * @return the passed in buffer
+	 */
+	public FloatBuffer get(int index, FloatBuffer buffer) {
+		buffer.put(index, (float) m00);
+		buffer.put(index + 1, (float) m01);
+		buffer.put(index + 2, (float) m10);
+		buffer.put(index + 3, (float) m11);
+		return buffer;
+	}
+
+	/**
+	 * Store this matrix in column-major order into the supplied {@link ByteBuffer} at the current buffer {@link ByteBuffer#position() position}.
+	 * <p>
+	 * This method will not increment the position of the given ByteBuffer.
+	 * <p>
+	 * If you want to specify the offset into the ByteBuffer at which the matrix is stored, you can use {@link #get(int, ByteBuffer)}, taking the absolute position as parameter.
+	 *
+	 * @param buffer will receive the values of this matrix in column-major order at its current position
+	 * @return the passed in buffer
+	 * @see #get(int, ByteBuffer)
+	 */
+	public ByteBuffer get(ByteBuffer buffer) {
+		return get(buffer.position(), buffer);
+	}
+
+	/**
+	 * Store this matrix in column-major order into the supplied {@link ByteBuffer} starting at the specified absolute buffer position/index.
+	 * <p>
+	 * This method will not increment the position of the given ByteBuffer.
+	 *
+	 * @param index  the absolute position into the ByteBuffer
+	 * @param buffer will receive the values of this matrix in column-major order
+	 * @return the passed in buffer
+	 */
+	public ByteBuffer get(int index, ByteBuffer buffer) {
+		buffer.putDouble(index + 8 * 0, m00);
+		buffer.putDouble(index + 8 * 1, m01);
+		buffer.putDouble(index + 8 * 2, m10);
+		buffer.putDouble(index + 8 * 3, m11);
+		return buffer;
+	}
+
+	/**
+	 * Set the values of this matrix by reading 9 double values from the given {@link DoubleBuffer} in column-major order, starting at its current position.
+	 * <p>
+	 * The DoubleBuffer is expected to contain the values in column-major order.
+	 * <p>
+	 * The position of the DoubleBuffer will not be changed by this method.
+	 *
+	 * @param buffer the DoubleBuffer to read the matrix values from in column-major order
+	 * @return this
+	 */
+	public Mat2 set(DoubleBuffer buffer) {
+		int pos = buffer.position();
+		m00 = buffer.get(pos);
+		m01 = buffer.get(pos + 1);
+		m10 = buffer.get(pos + 2);
+		m11 = buffer.get(pos + 3);
+		return this;
+	}
+
+
+	/**
+	 * Store this matrix into the supplied double array in column-major order.
+	 *
+	 * @param arr    the array to write the matrix values into
+	 * @param offset the offset into the array
+	 * @return the passed in array
+	 */
+	public float[] get(float[] arr, int offset) {
+		arr[offset + 0] = (float) m00;
+		arr[offset + 1] = (float) m01;
+		arr[offset + 2] = (float) m10;
+		arr[offset + 3] = (float) m11;
+		return arr;
+	}
+
+	/**
+	 * Store this matrix into the supplied double array in column-major order.
+	 *
+	 * @param arr    the array to write the matrix values into
+	 * @param offset the offset into the array
+	 * @return the passed in array
+	 */
+	public double[] get(double[] arr, int offset) {
+		arr[offset + 0] = m00;
+		arr[offset + 1] = m01;
+		arr[offset + 2] = m10;
+		arr[offset + 3] = m11;
+		return arr;
+	}
+
+	/**
+	 * Set all the values within this matrix to 0.
+	 *
+	 * @return this
+	 */
+	public Mat2 zero() {
+		m00 = 0.0;
+		m01 = 0.0;
+		m10 = 0.0;
+		m11 = 0.0;
+		return this;
+	}
+
+	/**
+	 * Set this matrix to the identity.
+	 *
+	 * @return this
+	 */
+	public Mat2 identity() {
+		m00 = 1.0;
+		m01 = 0.0;
+		m10 = 0.0;
+		m11 = 1.0;
+		return this;
+	}
+
+	/**
+	 * Set this matrix to be a simple scale matrix, which scales all axes uniformly by the given factor.
+	 * <p>
+	 * The resulting matrix can be multiplied against another transformation matrix to obtain an additional scaling.
+	 * <p>
+	 * If you want to post-multiply a scaling transformation directly to a matrix, you can use {@link #scale(double) scale()} instead.
+	 *
+	 * @param factor the scale factor in x, y and z
+	 * @return this
+	 * @see #scale(double)
+	 */
+	public Mat2 scaling(double factor) {
+		m00 = factor;
+		m01 = 0.0;
+		m10 = 0.0;
+		m11 = factor;
+		return this;
+	}
+
+	/**
+	 * Set this matrix to be a simple scale matrix.
+	 *
+	 * @param x the scale in x
+	 * @param y the scale in y
+	 * @return this
+	 */
+	public Mat2 scaling(double x, double y) {
+		m00 = x;
+		m01 = 0.0;
+		m10 = 0.0;
+		m11 = y;
+		return this;
+	}
+
+	/**
+	 * Set this matrix to be a simple scale matrix which scales the base axes by <tt>xyz.x</tt>, <tt>xyz.y</tt> and <tt>xyz.z</tt> respectively.
+	 * <p>
+	 * The resulting matrix can be multiplied against another transformation matrix to obtain an additional scaling.
+	 * <p>
+	 * In order to post-multiply a scaling transformation directly to a matrix use {@link #scale(Vec2) scale()} instead.
+	 *
+	 * @param xyz the scale in x, y and z respectively
+	 * @return this
+	 * @see #scale(Vec2)
+	 */
+	public Mat2 scaling(Vec2 xyz) {
+		m00 = xyz.x;
+		m01 = 0.0;
+		m10 = 0.0;
+		m11 = xyz.y;
+		return this;
+	}
+
+	/**
+	 * Apply scaling to the this matrix by scaling the base axes by the given <tt>xyz.x</tt>, <tt>xyz.y</tt> and <tt>xyz.z</tt> factors, respectively and store the result in <code>dest</code>.
+	 * <p>
+	 * If <code>M</code> is <code>this</code> matrix and <code>S</code> the scaling matrix, then the new matrix will be <code>M * S</code>. So when transforming a vector <code>v</code> with the
+	 * new matrix by using <code>M * S * v</code> , the scaling will be applied first!
+	 *
+	 * @param xyz  the factors of the x, y and z component, respectively
+	 * @param dest will hold the result
+	 * @return this
+	 */
+	public Mat2 scale(Vec2 xyz, Mat2 dest) {
+		return scale(xyz.x, xyz.y, dest);
+	}
+
+	/**
+	 * Apply scaling to this matrix by scaling the base axes by the given <tt>xyz.x</tt>, <tt>xyz.y</tt> and <tt>xyz.z</tt> factors, respectively.
+	 * <p>
+	 * If <code>M</code> is <code>this</code> matrix and <code>S</code> the scaling matrix, then the new matrix will be <code>M * S</code>. So when transforming a vector <code>v</code> with the
+	 * new matrix by using <code>M * S * v</code>, the scaling will be applied first!
+	 *
+	 * @param xyz the factors of the x, y and z component, respectively
+	 * @return this
+	 */
+	public Mat2 scale(Vec2 xyz) {
+		return scale(xyz.x, xyz.y, this);
+	}
+
+	/**
+	 * Apply scaling to this matrix by scaling the base axes by the given x, y and z factors and store the result in <code>dest</code>.
+	 * <p>
+	 * If <code>M</code> is <code>this</code> matrix and <code>S</code> the scaling matrix, then the new matrix will be <code>M * S</code>. So when transforming a vector <code>v</code> with the
+	 * new matrix by using <code>M * S * v</code> , the scaling will be applied first!
+	 *
+	 * @param x    the factor of the x component
+	 * @param y    the factor of the y component
+	 * @param dest will hold the result
+	 * @return this
+	 */
+	public Mat2 scale(double x, double y, Mat2 dest) {
+		// scale matrix elements:
+		// m00 = x, m11 = y, m22 = z
+		// all others = 0
+		dest.m00 = m00 * x;
+		dest.m01 = m01 * x;
+		dest.m10 = m10 * y;
+		dest.m11 = m11 * y;
+		return this;
+	}
+
+	/**
+	 * Apply scaling to this matrix by scaling the base axes by the given x, y and z factors.
+	 * <p>
+	 * If <code>M</code> is <code>this</code> matrix and <code>S</code> the scaling matrix, then the new matrix will be <code>M * S</code>. So when transforming a vector <code>v</code> with the
+	 * new matrix by using <code>M * S * v</code> , the scaling will be applied first!
+	 *
+	 * @param x the factor of the x component
+	 * @param y the factor of the y component
+	 * @return this
+	 */
+	public Mat2 scale(double x, double y) {
+		return scale(x, y, this);
+	}
+
+	/**
+	 * Apply scaling to this matrix by uniformly scaling all base axes by the given <code>xy</code> factor and store the result in <code>dest</code>.
+	 * <p>
+	 * If <code>M</code> is <code>this</code> matrix and <code>S</code> the scaling matrix, then the new matrix will be <code>M * S</code>. So when transforming a vector <code>v</code> with the
+	 * new matrix by using <code>M * S * v</code> , the scaling will be applied first!
+	 *
+	 * @param xy   the factor for all components
+	 * @param dest will hold the result
+	 * @return this
+	 * @see #scale(double, double, Mat2)
+	 */
+	public Mat2 scale(double xy, Mat2 dest) {
+		return scale(xy, xy, dest);
+	}
+
+	/**
+	 * Apply scaling to this matrix by uniformly scaling all base axes by the given <code>xy</code> factor.
+	 * <p>
+	 * If <code>M</code> is <code>this</code> matrix and <code>S</code> the scaling matrix, then the new matrix will be <code>M * S</code>. So when transforming a vector <code>v</code> with the
+	 * new matrix by using <code>M * S * v</code> , the scaling will be applied first!
+	 *
+	 * @param xy the factor for all components
+	 * @return this
+	 * @see #scale(double, double)
+	 */
+	public Mat2 scale(double xy) {
+		return scale(xy, xy);
+	}
+
+	/**
+	 * Set this matrix to a rotation matrix which rotates the given radians about a given axis.
+	 * <p>
+	 * The resulting matrix can be multiplied against another transformation matrix to obtain an additional rotation.
+	 * <p>
+	 * If you want to post-multiply a rotation transformation directly to a matrix, you can use {@link #rotate(double, Vec3) rotate()} instead.
+	 *
+	 * @param angle the angle in radians
+	 * @param axis  the axis to rotate about (needs to be {@link Vec3#normalize() normalized})
+	 * @return this
+	 * @see #rotate(double, Vec3)
+	 */
+	public Mat2 rotation(double angle, Vec3 axis) {
+		return rotation(angle, axis.x, axis.y, axis.z);
+	}
+
+	/**
+	 * Set this matrix to a rotation transformation using the given {@link AxisAngle}.
+	 * <p>
+	 * The resulting matrix can be multiplied against another transformation matrix to obtain an additional rotation.
+	 * <p>
+	 * In order to apply the rotation transformation to an existing transformation, use {@link #rotate(AxisAngle) rotate()} instead.
+	 * <p>
+	 * Reference: <a href="http://en.wikipedia.org/wiki/Rotation_matrix#Axis_and_angle">http://en.wikipedia.org</a>
+	 *
+	 * @param axisAngle the {@link AxisAngle} (needs to be {@link AxisAngle#normalize() normalized})
+	 * @return this
+	 * @see #rotate(AxisAngle)
+	 */
+	public Mat2 rotation(AxisAngle axisAngle) {
+		return rotation(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z);
+	}
+
+	/**
+	 * Set this matrix to a rotation matrix which rotates the given radians about a given axis.
+	 * <p>
+	 * The axis described by the three components needs to be a unit vector.
+	 * <p>
+	 * The resulting matrix can be multiplied against another transformation matrix to obtain an additional rotation.
+	 * <p>
+	 * In order to apply the rotation transformation to an existing transformation, use {@link #rotate(double, double, double, double) rotate()} instead.
+	 * <p>
+	 * Reference: <a href="http://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle">http://en.wikipedia.org</a>
+	 *
+	 * @param angle the angle in radians
+	 * @param x     the x-component of the rotation axis
+	 * @param y     the y-component of the rotation axis
+	 * @param z     the z-component of the rotation axis
+	 * @return this
+	 * @see #rotate(double, double, double, double)
+	 */
+	public Mat2 rotation(double angle, double x, double y, double z) {
+		double cos = Math.cos(angle);
+		double sin = Math.sin(angle);
+		double C = 1.0 - cos;
+		m00 = cos + x * x * C;
+		m10 = x * y * C - z * sin;
+		m01 = y * x * C + z * sin;
+		m11 = cos + y * y * C;
+		return this;
+	}
+
+	/**
+	 * Set this matrix to a rotation transformation about the X axis.
+	 * <p>
+	 * Reference: <a href="http://en.wikipedia.org/wiki/Rotation_matrix#Basic_rotations">http://en.wikipedia.org</a>
+	 *
+	 * @param ang the angle in radians
+	 * @return this
+	 */
+	public Mat2 rotationX(double ang) {
+		double cos = Math.cos(ang);
+		double sin = Math.sin(ang);
+		m00 = 1.0;
+		m01 = 0.0;
+		m10 = 0.0;
+		m11 = cos;
+		return this;
+	}
+
+	/**
+	 * Set this matrix to a rotation transformation about the Y axis.
+	 * <p>
+	 * Reference: <a href="http://en.wikipedia.org/wiki/Rotation_matrix#Basic_rotations">http://en.wikipedia.org</a>
+	 *
+	 * @param ang the angle in radians
+	 * @return this
+	 */
+	public Mat2 rotationY(double ang) {
+		double cos = Math.cos(ang);
+		double sin = Math.sin(ang);
+		m00 = cos;
+		m01 = 0.0;
+		m10 = 0.0;
+		m11 = 1.0;
+		return this;
+	}
+
+	/**
+	 * Set this matrix to a rotation transformation about the Z axis.
+	 * <p>
+	 * Reference: <a href="http://en.wikipedia.org/wiki/Rotation_matrix#Basic_rotations">http://en.wikipedia.org</a>
+	 *
+	 * @param ang the angle in radians
+	 * @return this
+	 */
+	public Mat2 rotationZ(double ang) {
+		double cos = Math.cos(ang);
+		double sin = Math.sin(ang);
+		m00 = cos;
+		m01 = sin;
+		m10 = -sin;
+		m11 = cos;
+		return this;
+	}
+
+	/**
+	 * Set this matrix to the rotation transformation of the given {@link Quat}.
+	 * <p>
+	 * The resulting matrix can be multiplied against another transformation matrix to obtain an additional rotation.
+	 * <p>
+	 * In order to apply the rotation transformation to an existing transformation, use {@link #rotate(Quat) rotate()} instead.
+	 * <p>
+	 * Reference: <a href="http://en.wikipedia.org/wiki/Rotation_matrix#Quaternion">http://en.wikipedia.org</a>
+	 *
+	 * @param quat the {@link Quat}
+	 * @return this
+	 * @see #rotate(Quat)
+	 */
+	public Mat2 rotation(Quat quat) {
+		double q00 = 2.0 * quat.x * quat.x;
+		double q11 = 2.0 * quat.y * quat.y;
+		double q22 = 2.0 * quat.z * quat.z;
+		double q01 = 2.0 * quat.x * quat.y;
+		double q02 = 2.0 * quat.x * quat.z;
+		double q03 = 2.0 * quat.x * quat.w;
+		double q12 = 2.0 * quat.y * quat.z;
+		double q13 = 2.0 * quat.y * quat.w;
+		double q23 = 2.0 * quat.z * quat.w;
+
+		m00 = 1.0 - q11 - q22;
+		m01 = q01 + q23;
+		m10 = q01 - q23;
+		m11 = 1.0 - q22 - q00;
+
+		return this;
+	}
+
+	/**
+	 * Transform the given vector by this matrix.
+	 *
+	 * @param v the vector to transform
+	 * @return this
+	 */
+	public Mat2 transform(Vec2 v) {
+		v.mul(this);
+		return this;
+	}
+
+	/**
+	 * Transform the given vector by this matrix and store the result in <code>dest</code>.
+	 *
+	 * @param v    the vector to transform
+	 * @param dest will hold the result
+	 * @return this
+	 */
+	public Mat2 transform(Vec2 v, Vec2 dest) {
+		v.mul(this, dest);
+		return this;
+	}
+
+	public void writeExternal(ObjectOutput out) throws IOException {
+		out.writeDouble(m00);
+		out.writeDouble(m01);
+		out.writeDouble(m10);
+		out.writeDouble(m11);
+	}
+
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		m00 = in.readDouble();
+		m01 = in.readDouble();
+		m10 = in.readDouble();
+		m11 = in.readDouble();
+	}
+
+	/**
+	 * Apply rotation about the Z axis to this matrix by rotating the given amount of radians and store the result in <code>dest</code>.
+	 * <p>
+	 * If <code>M</code> is <code>this</code> matrix and <code>R</code> the rotation matrix, then the new matrix will be <code>M * R</code>. So when transforming a vector <code>v</code> with the
+	 * new matrix by using <code>M * R * v</code> , the rotation will be applied first!
+	 * <p>
+	 * Reference: <a href="http://en.wikipedia.org/wiki/Rotation_matrix#Basic_rotations">http://en.wikipedia.org</a>
+	 *
+	 * @param ang  the angle in radians
+	 * @param dest will hold the result
+	 * @return this
+	 */
+	public Mat2 rotateZ(double ang, Mat2 dest) {
+		double cos = Math.cos(ang);
+		double sin = Math.sin(ang);
+		double rm00 = cos;
+		double rm10 = -sin;
+		double rm01 = sin;
+		double rm11 = cos;
+
+		// add temporaries for dependent values
+		double nm00 = m00 * rm00 + m10 * rm01;
+		double nm01 = m01 * rm00 + m11 * rm01;
+		// set non-dependent values directly
+		dest.m10 = m00 * rm10 + m10 * rm11;
+		dest.m11 = m01 * rm10 + m11 * rm11;
+		// set other values
+		dest.m00 = nm00;
+		dest.m01 = nm01;
+
+		return this;
+	}
+
+	/**
+	 * Apply rotation about the Z axis to this matrix by rotating the given amount of radians.
+	 * <p>
+	 * If <code>M</code> is <code>this</code> matrix and <code>R</code> the rotation matrix, then the new matrix will be <code>M * R</code>. So when transforming a vector <code>v</code> with the
+	 * new matrix by using <code>M * R * v</code> , the rotation will be applied first!
+	 * <p>
+	 * Reference: <a href="http://en.wikipedia.org/wiki/Rotation_matrix#Basic_rotations">http://en.wikipedia.org</a>
+	 *
+	 * @param ang the angle in radians
+	 * @return this
+	 */
+	public Mat2 rotateZ(double ang) {
+		return rotateZ(ang, this);
+	}
+
+	/**
+	 * Apply rotation to this matrix by rotating the given amount of radians about the given axis specified as x, y and z components.
+	 * <p>
+	 * If <code>M</code> is <code>this</code> matrix and <code>R</code> the rotation matrix, then the new matrix will be <code>M * R</code>. So when transforming a vector <code>v</code> with the
+	 * new matrix by using <code>M * R * v</code> , the rotation will be applied first!
+	 * <p>
+	 * Reference: <a href="http://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle">http://en.wikipedia.org</a>
+	 *
+	 * @param ang the angle in radians
+	 * @param x   the x component of the axis
+	 * @param y   the y component of the axis
+	 * @param z   the z component of the axis
+	 * @return this
+	 */
+	public Mat2 rotate(double ang, double x, double y, double z) {
+		return rotate(ang, x, y, z, this);
+	}
+
+	/**
+	 * Apply rotation to this matrix by rotating the given amount of radians about the given axis specified as x, y and z components, and store the result in <code>dest</code>.
+	 * <p>
+	 * If <code>M</code> is <code>this</code> matrix and <code>R</code> the rotation matrix, then the new matrix will be <code>M * R</code>. So when transforming a vector <code>v</code> with the
+	 * new matrix by using <code>M * R * v</code> , the rotation will be applied first!
+	 * <p>
+	 * Reference: <a href="http://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle">http://en.wikipedia.org</a>
+	 *
+	 * @param ang  the angle in radians
+	 * @param x    the x component of the axis
+	 * @param y    the y component of the axis
+	 * @param z    the z component of the axis
+	 * @param dest will hold the result
+	 * @return this
+	 */
+	public Mat2 rotate(double ang, double x, double y, double z, Mat2 dest) {
+		double s = Math.sin(ang);
+		double c = Math.cos(ang);
+		double C = 1.0 - c;
+
+		// rotation matrix elements:
+		// m30, m31, m32, m03, m13, m23 = 0
+		double rm00 = x * x * C + c;
+		double rm01 = y * x * C + z * s;
+		double rm02 = z * x * C - y * s;
+		double rm10 = x * y * C - z * s;
+		double rm11 = y * y * C + c;
+		double rm12 = z * y * C + x * s;
+		double rm20 = x * z * C + y * s;
+		double rm21 = y * z * C - x * s;
+		double rm22 = z * z * C + c;
+
+		// add temporaries for dependent values
+		double nm00 = m00 * rm00 + m10 * rm01;
+		double nm01 = m01 * rm00 + m11 * rm01;
+		double nm10 = m00 * rm10 + m10 * rm11;
+		double nm11 = m01 * rm10 + m11 * rm11;
+		// set other values
+		dest.m00 = nm00;
+		dest.m01 = nm01;
+		dest.m10 = nm10;
+		dest.m11 = nm11;
+
+		return this;
+	}
+
+	/**
+	 * Apply the rotation transformation of the given {@link Quat} to this matrix.
+	 * <p>
+	 * If <code>M</code> is <code>this</code> matrix and <code>Q</code> the rotation matrix obtained from the given quaternion, then the new matrix will be <code>M * Q</code>. So when transforming
+	 * a vector <code>v</code> with the new matrix by using <code>M * Q * v</code>, the quaternion rotation will be applied first!
+	 * <p>
+	 * In order to set the matrix to a rotation transformation without post-multiplying, use {@link #rotation(Quat)}.
+	 * <p>
+	 * Reference: <a href="http://en.wikipedia.org/wiki/Rotation_matrix#Quaternion">http://en.wikipedia.org</a>
+	 *
+	 * @param quat the {@link Quat}
+	 * @return this
+	 * @see #rotation(Quat)
+	 */
+	public Mat2 rotate(Quat quat) {
+		return rotate(quat, this);
+	}
+
+	/**
+	 * Apply the rotation transformation of the given {@link Quat} to this matrix and store the result in <code>dest</code>.
+	 * <p>
+	 * If <code>M</code> is <code>this</code> matrix and <code>Q</code> the rotation matrix obtained from the given quaternion, then the new matrix will be <code>M * Q</code>. So when transforming
+	 * a vector <code>v</code> with the new matrix by using <code>M * Q * v</code>, the quaternion rotation will be applied first!
+	 * <p>
+	 * In order to set the matrix to a rotation transformation without post-multiplying, use {@link #rotation(Quat)}.
+	 * <p>
+	 * Reference: <a href="http://en.wikipedia.org/wiki/Rotation_matrix#Quaternion">http://en.wikipedia.org</a>
+	 *
+	 * @param quat the {@link Quat}
+	 * @param dest will hold the result
+	 * @return this
+	 * @see #rotation(Quat)
+	 */
+	public Mat2 rotate(Quat quat, Mat2 dest) {
+		double q00 = 2.0 * quat.x * quat.x;
+		double q11 = 2.0 * quat.y * quat.y;
+		double q22 = 2.0 * quat.z * quat.z;
+		double q01 = 2.0 * quat.x * quat.y;
+		double q02 = 2.0 * quat.x * quat.z;
+		double q03 = 2.0 * quat.x * quat.w;
+		double q12 = 2.0 * quat.y * quat.z;
+		double q13 = 2.0 * quat.y * quat.w;
+		double q23 = 2.0 * quat.z * quat.w;
+
+		double rm00 = 1.0 - q11 - q22;
+		double rm01 = q01 + q23;
+		double rm02 = q02 - q13;
+		double rm10 = q01 - q23;
+		double rm11 = 1.0 - q22 - q00;
+		double rm12 = q12 + q03;
+		double rm20 = q02 + q13;
+		double rm21 = q12 - q03;
+		double rm22 = 1.0 - q11 - q00;
+
+		double nm00 = m00 * rm00 + m10 * rm01;
+		double nm01 = m01 * rm00 + m11 * rm01;
+		double nm10 = m00 * rm10 + m10 * rm11;
+		double nm11 = m01 * rm10 + m11 * rm11;
+		dest.m00 = nm00;
+		dest.m01 = nm01;
+		dest.m10 = nm10;
+		dest.m11 = nm11;
+
+		return this;
+	}
+
+	/**
+	 * Apply a rotation transformation, rotating about the given {@link AxisAngle}, to this matrix.
+	 * <p>
+	 * If <code>M</code> is <code>this</code> matrix and <code>A</code> the rotation matrix obtained from the given {@link AxisAngle}, then the new matrix will be <code>M * A</code>. So when
+	 * transforming a vector <code>v</code> with the new matrix by using <code>M * A * v</code>, the {@link AxisAngle} rotation will be applied first!
+	 * <p>
+	 * In order to set the matrix to a rotation transformation without post-multiplying, use {@link #rotation(AxisAngle)}.
+	 * <p>
+	 * Reference: <a href="http://en.wikipedia.org/wiki/Rotation_matrix#Axis_and_angle">http://en.wikipedia.org</a>
+	 *
+	 * @param axisAngle the {@link AxisAngle} (needs to be {@link AxisAngle#normalize() normalized})
+	 * @return this
+	 * @see #rotate(double, double, double, double)
+	 * @see #rotation(AxisAngle)
+	 */
+	public Mat2 rotate(AxisAngle axisAngle) {
+		return rotate(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z);
+	}
+
+	/**
+	 * Apply a rotation transformation, rotating about the given {@link AxisAngle} and store the result in <code>dest</code>.
+	 * <p>
+	 * If <code>M</code> is <code>this</code> matrix and <code>A</code> the rotation matrix obtained from the given {@link AxisAngle}, then the new matrix will be <code>M * A</code>. So when
+	 * transforming a vector <code>v</code> with the new matrix by using <code>M * A * v</code>, the {@link AxisAngle} rotation will be applied first!
+	 * <p>
+	 * In order to set the matrix to a rotation transformation without post-multiplying, use {@link #rotation(AxisAngle)}.
+	 * <p>
+	 * Reference: <a href="http://en.wikipedia.org/wiki/Rotation_matrix#Axis_and_angle">http://en.wikipedia.org</a>
+	 *
+	 * @param axisAngle the {@link AxisAngle} (needs to be {@link AxisAngle#normalize() normalized})
+	 * @param dest      will hold the result
+	 * @return this
+	 * @see #rotate(double, double, double, double)
+	 * @see #rotation(AxisAngle)
+	 */
+	public Mat2 rotate(AxisAngle axisAngle, Mat2 dest) {
+		return rotate(axisAngle.angle, axisAngle.x, axisAngle.y, axisAngle.z, dest);
+	}
+
+	/**
+	 * Apply a rotation transformation, rotating the given radians about the specified axis, to this matrix.
+	 * <p>
+	 * If <code>M</code> is <code>this</code> matrix and <code>A</code> the rotation matrix obtained from the given angle and axis, then the new matrix will be <code>M * A</code>. So when
+	 * transforming a vector <code>v</code> with the new matrix by using <code>M * A * v</code>, the axis-angle rotation will be applied first!
+	 * <p>
+	 * In order to set the matrix to a rotation transformation without post-multiplying, use {@link #rotation(double, Vec3)}.
+	 * <p>
+	 * Reference: <a href="http://en.wikipedia.org/wiki/Rotation_matrix#Axis_and_angle">http://en.wikipedia.org</a>
+	 *
+	 * @param angle the angle in radians
+	 * @param axis  the rotation axis (needs to be {@link Vec3#normalize() normalized})
+	 * @return this
+	 * @see #rotate(double, double, double, double)
+	 * @see #rotation(double, Vec3)
+	 */
+	public Mat2 rotate(double angle, Vec3 axis) {
+		return rotate(angle, axis.x, axis.y, axis.z);
+	}
+
+	/**
+	 * Apply a rotation transformation, rotating the given radians about the specified axis and store the result in <code>dest</code>.
+	 * <p>
+	 * If <code>M</code> is <code>this</code> matrix and <code>A</code> the rotation matrix obtained from the given axis and angle, then the new matrix will be <code>M * A</code>. So when
+	 * transforming a vector <code>v</code> with the new matrix by using <code>M * A * v</code>, the axis-angle rotation will be applied first!
+	 * <p>
+	 * In order to set the matrix to a rotation transformation without post-multiplying, use {@link #rotation(double, Vec3)}.
+	 * <p>
+	 * Reference: <a href="http://en.wikipedia.org/wiki/Rotation_matrix#Axis_and_angle">http://en.wikipedia.org</a>
+	 *
+	 * @param angle the angle in radians
+	 * @param axis  the rotation axis (needs to be {@link Vec3#normalize() normalized})
+	 * @param dest  will hold the result
+	 * @return this
+	 * @see #rotate(double, double, double, double)
+	 * @see #rotation(double, Vec3)
+	 */
+	public Mat2 rotate(double angle, Vec3 axis, Mat2 dest) {
+		return rotate(angle, axis.x, axis.y, axis.z, dest);
+	}
+
+	/**
+	 * Get the row at the given <code>row</code> index, starting with <code>0</code>.
+	 *
+	 * @param row  the row index in <tt>[0..2]</tt>
+	 * @param dest will hold the row components
+	 * @return the passed in destination
+	 * @throws IndexOutOfBoundsException if <code>row</code> is not in <tt>[0..2]</tt>
+	 */
+	public Vec3 getRow(int row, Vec3 dest) throws IndexOutOfBoundsException {
+		switch (row) {
+			case 0:
+				dest.x = m00;
+				dest.y = m10;
+				break;
+			case 1:
+				dest.x = m01;
+				dest.y = m11;
+				break;
+			default:
+				throw new IndexOutOfBoundsException();
+		}
+
+		return dest;
+	}
+
+	/**
+	 * Get the column at the given <code>column</code> index, starting with <code>0</code>.
+	 *
+	 * @param column the column index in <tt>[0..2]</tt>
+	 * @param dest   will hold the column components
+	 * @return the passed in destination
+	 * @throws IndexOutOfBoundsException if <code>column</code> is not in <tt>[0..2]</tt>
+	 */
+	public Vec3 getColumn(int column, Vec3 dest) throws IndexOutOfBoundsException {
+		switch (column) {
+			case 0:
+				dest.x = m00;
+				dest.y = m01;
+				break;
+			case 1:
+				dest.x = m10;
+				dest.y = m11;
+				break;
+			default:
+				throw new IndexOutOfBoundsException();
+		}
+
+		return dest;
+	}
+
+	/**
+	 * Compute a normal matrix from <code>this</code> matrix and store it into <code>dest</code>.
+	 * <p>
+	 * Please note that, if <code>this</code> is an orthogonal matrix or a matrix whose columns are orthogonal vectors, then this method need to be invoked, since in that case <code>this</code>
+	 * itself is its normal matrix. In this case, use {@link #set(Mat2)} to set a given Mat2 to this matrix.
+	 *
+	 * @param dest will hold the result
+	 * @return this
+	 * @see #set(Mat2)
+	 */
+	public Mat2 normal(Mat2 dest) {
+		double det = determinant();
+		double s = 1.0 / det;
+	/* Invert and transpose in one go */
+		dest.set(m11 * s, -m10 * s, -m01 * s, m00 * s);
+		return this;
+	}
+
+	/**
+	 * Apply a rotation transformation to this matrix to make <code>-z</code> point along <code>dir</code>.
+	 * <p>
+	 * If <code>M</code> is <code>this</code> matrix and <code>L</code> the lookalong rotation matrix, then the new matrix will be <code>M * L</code>. So when transforming a vector <code>v</code>
+	 * with the new matrix by using <code>M * L * v</code>, the lookalong rotation transformation will be applied first!
+	 * <p>
+	 * In order to set the matrix to a lookalong transformation without post-multiplying it, use {@link #setLookAlong(Vec3, Vec3) setLookAlong()}.
+	 *
+	 * @param dir the direction in space to look along
+	 * @param up  the direction of 'up'
+	 * @return this
+	 * @see #lookAlong(double, double, double, double, double, double)
+	 * @see #setLookAlong(Vec3, Vec3)
+	 */
+	public Mat2 lookAlong(Vec3 dir, Vec3 up) {
+		return lookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z, this);
+	}
+
+	/**
+	 * Apply a rotation transformation to this matrix to make <code>-z</code> point along <code>dir</code> and store the result in <code>dest</code>.
+	 * <p>
+	 * If <code>M</code> is <code>this</code> matrix and <code>L</code> the lookalong rotation matrix, then the new matrix will be <code>M * L</code>. So when transforming a vector <code>v</code>
+	 * with the new matrix by using <code>M * L * v</code>, the lookalong rotation transformation will be applied first!
+	 * <p>
+	 * In order to set the matrix to a lookalong transformation without post-multiplying it, use {@link #setLookAlong(Vec3, Vec3) setLookAlong()}.
+	 *
+	 * @param dir  the direction in space to look along
+	 * @param up   the direction of 'up'
+	 * @param dest will hold the result
+	 * @return this
+	 * @see #lookAlong(double, double, double, double, double, double)
+	 * @see #setLookAlong(Vec3, Vec3)
+	 */
+	public Mat2 lookAlong(Vec3 dir, Vec3 up, Mat2 dest) {
+		return lookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z, dest);
+	}
+
+	/**
+	 * Apply a rotation transformation to this matrix to make <code>-z</code> point along <code>dir</code> and store the result in <code>dest</code>.
+	 * <p>
+	 * If <code>M</code> is <code>this</code> matrix and <code>L</code> the lookalong rotation matrix, then the new matrix will be <code>M * L</code>. So when transforming a vector <code>v</code>
+	 * with the new matrix by using <code>M * L * v</code>, the lookalong rotation transformation will be applied first!
+	 * <p>
+	 * In order to set the matrix to a lookalong transformation without post-multiplying it, use {@link #setLookAlong(double, double, double, double, double, double) setLookAlong()}
+	 *
+	 * @param dirX the x-coordinate of the direction to look along
+	 * @param dirY the y-coordinate of the direction to look along
+	 * @param dirZ the z-coordinate of the direction to look along
+	 * @param upX  the x-coordinate of the up vector
+	 * @param upY  the y-coordinate of the up vector
+	 * @param upZ  the z-coordinate of the up vector
+	 * @param dest will hold the result
+	 * @return this
+	 * @see #setLookAlong(double, double, double, double, double, double)
+	 */
+	public Mat2 lookAlong(double dirX, double dirY, double dirZ, double upX, double upY, double upZ, Mat2 dest) {
+		// Normalize direction
+		double dirLength = Math.sqrt(dirX * dirX + dirY * dirY + dirZ * dirZ);
+		double dirnX = dirX / dirLength;
+		double dirnY = dirY / dirLength;
+		double dirnZ = dirZ / dirLength;
+		// right = direction x up
+		double rightX, rightY, rightZ;
+		rightX = dirnY * upZ - dirnZ * upY;
+		rightY = dirnZ * upX - dirnX * upZ;
+		rightZ = dirnX * upY - dirnY * upX;
+		// normalize right
+		double rightLength = Math.sqrt(rightX * rightX + rightY * rightY + rightZ * rightZ);
+		rightX /= rightLength;
+		rightY /= rightLength;
+		rightZ /= rightLength;
+		// up = right x direction
+		double upnX = rightY * dirnZ - rightZ * dirnY;
+		double upnY = rightZ * dirnX - rightX * dirnZ;
+		double upnZ = rightX * dirnY - rightY * dirnX;
+
+		// calculate right matrix elements
+		double rm00 = rightX;
+		double rm01 = upnX;
+		double rm02 = -dirnX;
+		double rm10 = rightY;
+		double rm11 = upnY;
+		double rm12 = -dirnY;
+		double rm20 = rightZ;
+		double rm21 = upnZ;
+		double rm22 = -dirnZ;
+
+		// perform optimized matrix multiplication
+		// introduce temporaries for dependent results
+		double nm00 = m00 * rm00 + m10 * rm01;
+		double nm01 = m01 * rm00 + m11 * rm01;
+		double nm10 = m00 * rm10 + m10 * rm11;
+		double nm11 = m01 * rm10 + m11 * rm11;
+		// set the rest of the matrix elements
+		dest.m00 = nm00;
+		dest.m01 = nm01;
+		dest.m10 = nm10;
+		dest.m11 = nm11;
+
+		return this;
+	}
+
+	/**
+	 * Apply a rotation transformation to this matrix to make <code>-z</code> point along <code>dir</code>.
+	 * <p>
+	 * If <code>M</code> is <code>this</code> matrix and <code>L</code> the lookalong rotation matrix, then the new matrix will be <code>M * L</code>. So when transforming a vector <code>v</code>
+	 * with the new matrix by using <code>M * L * v</code>, the lookalong rotation transformation will be applied first!
+	 * <p>
+	 * In order to set the matrix to a lookalong transformation without post-multiplying it, use {@link #setLookAlong(double, double, double, double, double, double) setLookAlong()}
+	 *
+	 * @param dirX the x-coordinate of the direction to look along
+	 * @param dirY the y-coordinate of the direction to look along
+	 * @param dirZ the z-coordinate of the direction to look along
+	 * @param upX  the x-coordinate of the up vector
+	 * @param upY  the y-coordinate of the up vector
+	 * @param upZ  the z-coordinate of the up vector
+	 * @return this
+	 * @see #setLookAlong(double, double, double, double, double, double)
+	 */
+	public Mat2 lookAlong(double dirX, double dirY, double dirZ, double upX, double upY, double upZ) {
+		return lookAlong(dirX, dirY, dirZ, upX, upY, upZ, this);
+	}
+
+	/**
+	 * Set this matrix to a rotation transformation to make <code>-z</code> point along <code>dir</code>.
+	 * <p>
+	 * In order to apply the lookalong transformation to any previous existing transformation, use {@link #lookAlong(Vec3, Vec3)}.
+	 *
+	 * @param dir the direction in space to look along
+	 * @param up  the direction of 'up'
+	 * @return this
+	 * @see #setLookAlong(Vec3, Vec3)
+	 * @see #lookAlong(Vec3, Vec3)
+	 */
+	public Mat2 setLookAlong(Vec3 dir, Vec3 up) {
+		return setLookAlong(dir.x, dir.y, dir.z, up.x, up.y, up.z);
+	}
+
+	/**
+	 * Set this matrix to a rotation transformation to make <code>-z</code> point along <code>dir</code>.
+	 * <p>
+	 * In order to apply the lookalong transformation to any previous existing transformation, use {@link #lookAlong(double, double, double, double, double, double) lookAlong()}
+	 *
+	 * @param dirX the x-coordinate of the direction to look along
+	 * @param dirY the y-coordinate of the direction to look along
+	 * @param dirZ the z-coordinate of the direction to look along
+	 * @param upX  the x-coordinate of the up vector
+	 * @param upY  the y-coordinate of the up vector
+	 * @param upZ  the z-coordinate of the up vector
+	 * @return this
+	 * @see #setLookAlong(double, double, double, double, double, double)
+	 * @see #lookAlong(double, double, double, double, double, double)
+	 */
+	public Mat2 setLookAlong(double dirX, double dirY, double dirZ, double upX, double upY, double upZ) {
+		// Normalize direction
+		double dirLength = Math.sqrt(dirX * dirX + dirY * dirY + dirZ * dirZ);
+		double dirnX = dirX / dirLength;
+		double dirnY = dirY / dirLength;
+		double dirnZ = dirZ / dirLength;
+		// right = direction x up
+		double rightX, rightY, rightZ;
+		rightX = dirnY * upZ - dirnZ * upY;
+		rightY = dirnZ * upX - dirnX * upZ;
+		rightZ = dirnX * upY - dirnY * upX;
+		// normalize right
+		double rightLength = Math.sqrt(rightX * rightX + rightY * rightY + rightZ * rightZ);
+		rightX /= rightLength;
+		rightY /= rightLength;
+		rightZ /= rightLength;
+		// up = right x direction
+		double upnX = rightY * dirnZ - rightZ * dirnY;
+		double upnY = rightZ * dirnX - rightX * dirnZ;
+		double upnZ = rightX * dirnY - rightY * dirnX;
+
+		m00 = rightX;
+		m01 = upnX;
+		m10 = rightY;
+		m11 = upnY;
+
+		return this;
+	}
+
+	/**
+	 * Return the specified {@link Mat2}.
+	 * <p>
+	 * When using method chaining in a fluent interface style, this method can be used to switch the <i>context object</i>, on which further method invocations operate, to be the given matrix.
+	 *
+	 * @param m the {@link Mat2} to return
+	 * @return that matrix
+	 */
+	public Mat2 with(Mat2 m) {
+		return m;
+	}
+
+	/**
+	 * Return the specified {@link Vec3}.
+	 * <p>
+	 * When using method chaining in a fluent interface style, this method can be used to switch the <i>context object</i>, on which further method invocations operate, to be the given vector.
+	 *
+	 * @param v the {@link Vec3} to return
+	 * @return that vector
+	 */
+	public Vec3 with(Vec3 v) {
+		return v;
+	}
+
+	/**
+	 * Return the specified {@link Quat}.
+	 * <p>
+	 * When using method chaining in a fluent interface style, this method can be used to switch the <i>context object</i>, on which further method invocations operate, to be the given
+	 * quaternion.
+	 *
+	 * @param q the {@link Quat} to return
+	 * @return that quaternion
+	 */
+	public Quat with(Quat q) {
+		return q;
+	}
+
+	/**
+	 * Return the specified {@link AxisAngle}.
+	 * <p>
+	 * When using method chaining in a fluent interface style, this method can be used to switch the <i>context object</i>, on which further method invocations operate, to be the given {@link
+	 * AxisAngle}.
+	 *
+	 * @param a the {@link AxisAngle} to return
+	 * @return that quaternion
+	 */
+	public AxisAngle with(AxisAngle a) {
+		return a;
+	}
+
+	/**
+	 * a Mat2 is a Supplier of type Mat2
+	 *
+	 * @return this
+	 */
+	public Mat2 get() {
+		return this;
+	}
+
+	@Override
+	public Mutable duplicate() {
+		return new Mat2(this);
+	}
+}

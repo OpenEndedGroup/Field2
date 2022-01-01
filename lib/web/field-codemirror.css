@@ -1,0 +1,1345 @@
+
+
+@font-face {
+    font-family: 'Iosevka';
+    src: url('/field/filesystem/fonts/iosevka-regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Iosevka';
+    src: url('/field/filesystem/fonts/iosevka-bold.woff2') format('woff2');
+    font-weight: 800;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Iosevka';
+    src: url('/field/filesystem/fonts/iosevka-semibold.woff2') format('woff2');
+    font-weight: 600;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Iosevka';
+    src: url('/field/filesystem/fonts/iosevka-light.woff2') format('woff2');
+    font-weight: 100;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Iosevka';
+    src: url('/field/filesystem/fonts/iosevka-italic.woff2') format('woff2');
+    font-weight: 400;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Iosevka';
+    src: url('/field/filesystem/fonts/iosevka-bolditalic.woff2') format('woff2');
+    font-weight: 800;
+    font-style: italic;
+}
+
+
+@font-face {
+    font-family: 'Source Sans Pro';
+    src: url('/field/filesystem/fonts/SourceSansPro-Regular.ttf.woff') format('woff');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Source Sans Pro';
+    src: url('/field/filesystem/fonts/SourceSansPro-Light.ttf.woff') format('woff');
+    font-weight: 100;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Source Sans Pro';
+    src: url('/field/filesystem/fonts/SourceSansPro-Bold.ttf.woff') format('woff');
+    font-weight: 700;
+    font-style: normal;
+}
+
+@font-face{
+    font-family: 'Fira Code';
+    src: url('/field/filesystem/fonts/FiraCode-Light.woff') format('woff'),
+    url('/field/filesystem/fonts/FiraCode-Light.ttf') format('truetype');
+    font-weight: 300;
+    font-style: normal;
+}
+
+@font-face{
+    font-family: 'Fira Code';
+    src: url('/field/filesystem/fonts/FiraCode-Medium.woff') format('woff'),
+    url('/field/filesystem/fonts/FiraCode-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face{
+    font-family: 'Fira Code';
+    src: url('/field/filesystem/fonts/FiraCode-Bold.woff') format('woff'),
+    url('/field/filesystem/fonts/FiraCode-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+}
+
+@font-face{
+    font-family: 'Fira Code';
+    src: url('/field/filesystem/fonts/FiraCode-Regular.woff') format('woff'),
+    url('/field/filesystem/fonts/FiraCode-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+:root {
+}
+
+/**********************************************************
+* Shared
+***********************************************************/
+
+html {
+    background: #2d3133;
+}
+
+body {
+    -webkit-font-variant-ligatures: common-ligatures;
+    font-variant-ligatures: common-ligatures;
+    -webkit-font-smoothing: subpixel-antialiased;
+    font-kerning: normal;
+    /*-webkit-text-stroke: 1px rgba(255,255,255,0.1);*/
+
+    background: #2d3133;
+    color: #aaa;
+    font-size: 10px;
+    font-family: "Source Sans Pro";
+    margin: 0;
+}
+
+a {
+    text-decoration: underline;
+    color: #aaf;
+}
+
+.string
+{
+    color:#eaa;
+}
+
+.key
+{
+    font-style: italic;
+    margin-right:5px;
+    color: #b92
+}
+
+.syntax
+{
+    font-weight: 700;
+}
+
+.tabdown
+{
+    background: #405560 !important;
+    border: 1px solid #405560 !important;
+    opacity: 1 !important;
+}
+
+.tabtray
+{
+    position: absolute;
+    z-index: 10;
+    right: 0px;
+    top: 0px;
+    text-align: right;
+    direction: rtl;
+    border-bottom-left-radius: 5px;
+    border-top-right-radius: 5px;
+    /*border: 1px solid rgba(60,60,60,1);*/
+    padding: 5px;
+    background: rgba(60,70,80,1);
+}
+
+.tab
+{
+    /*display: none;*/
+    /*position: absolute;*/
+    /*top: 0px;*/
+    /*left: 0px;*/
+    /*right: 0px;*/
+    /*bottom: 0px;*/
+}
+
+.tabbutton
+{
+    opacity: 0.5;
+    display: inline-block;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    margin-left:2px;
+    margin-right:2px;
+    background: rgba(0,0,0,0.6);
+    border-radius: 5px;
+    border: 1px solid rgba(255,255,255,0);
+}
+
+iframe
+{
+    width:100%;
+    height:100%;
+    background: #2d3133;
+    border:none;
+}
+
+.tabbutton:hover
+{
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(25,150,255,0.2);
+}
+
+.outputbox {
+}
+
+.outputline {
+    white-space: pre-wrap;
+    margin-right: 5px;
+    display: inline;
+    padding: 2px;
+    margin: 2px;
+    line-height: 200%;
+}
+
+.outputbox ::-webkit-scrollbar {
+    width: 3px;
+    height: 3px;
+}
+
+.outputbox ::-webkit-scrollbar-track {
+    border-radius: 3px;
+}
+
+.outputbox ::-webkit-scrollbar-thumb {
+    border-radius: 3px;
+}
+
+.outputbox ::-webkit-scrollbar-corner {
+    background: rgba(25, 25, 25, 1);
+}
+
+.outputbox ::-webkit-scrollbar {
+    background: rgba(25, 25, 25, 1);
+}
+
+.outputbox ::-webkit-scrollbar-track {
+    background: rgba(25, 25, 25, 1);
+}
+
+.outputbox ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+}
+
+.outputbox ::-webkit-scrollbar-corner {
+    background: rgba(25, 25, 25, 1);
+}
+
+
+::-webkit-scrollbar {
+    width: 3px;
+    height: 3px;
+}
+
+::-webkit-scrollbar-track {
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+::-webkit-scrollbar {
+    background: transparent;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.4);
+    border: none;
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+::selection {
+    background: #ddd;
+}
+
+.CodeMirror
+{
+    font-size:17px;
+
+    font-family: "Iosevka" !important;
+    -webkit-font-variant-ligatures: common-ligatures;
+    font-variant-ligatures: common-ligatures;
+    -webkit-font-feature-settings: "kern";
+    font-feature-settings: "kern";
+    font-kerning: normal;
+}
+
+.CodeMirror pre {
+    padding: 0 0 0 5px;
+    line-height: 130%;
+}
+
+.CodeMirror div.CodeMirror-cursor {
+    border-left: 1px solid rgba(255, 0, 0, 0.5);
+    border-right: 2px solid rgba(255, 0, 0, 0.1);
+    background: rgba(255, 0, 0, 0.35);
+}
+
+/* Shown when moving in bi-directional text */
+.CodeMirror div.CodeMirror-secondarycursor {
+    border-left: 1px solid silver;
+}
+
+.CodeMirror.cm-keymap-fat-cursor div.CodeMirror-cursor {
+    width: auto;
+    border: none !important;
+    background: rgba(0, 200, 200, .4);
+}
+
+.CodeMirror-gutters {
+    background: #2d3133;
+}
+
+.CodeMirror-hints.empty {
+    display: none;
+}
+
+.Codemirror-lint-tooltip {
+    background: #a00;
+    color: #fff;
+    font-size: 80%;
+}
+
+
+
+.maptable {
+    font-family: "Iosevka";
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 2px;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+.mattable {
+    font-family: "Iosevka";
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.mattable td {
+    padding: 2px;
+}
+
+
+
+.maptable-entry
+{
+    display:inline-flex;
+    margin:0;
+    border:1px solid rgba(0,0,0,0.1);
+    border-radius:2px;
+    text-indent: 0;
+    padding:2px;
+    padding-left:4px;
+    padding-right:4px;
+}
+
+.smaller {
+    font-size: 90%;
+    opacity: 0.6;
+    padding-left: 0.2em;
+    padding-right: 0.2em;
+    padding-top: 0.35em;
+    font-weight: 600;
+    /*font-variant: small-caps;*/
+    display: block;
+}
+
+.smaller-inframe {
+    font-size: 85%;
+    opacity: 0.75;
+    padding-left: 0.2em;
+    padding-right: 0.2em;
+    padding-top: 0.35em;
+    font-weight: 600;
+    /*font-variant: small-caps;*/
+    float:right;
+    margin-right: 0.35em;
+}
+
+
+
+.maptable-key {
+    padding:4px;
+    display:block;
+    text-align:right;
+    flex:1 auto;
+    border-right: 3px solid rgba(255,255,255,0.3);
+    color: rgba(255,200,128, 0.7);
+}
+
+.maptable-value {
+    padding:4px;
+    display:block;
+    flex:1 auto;
+    color: rgba(128,200,255, 0.7);
+}
+
+.maptable-key > .maptable-entry
+{
+    display:block;
+}
+.maptable-value > .maptable-entry
+{
+    display:block;
+}
+
+.number
+{
+    color:rgba(200,200,200,0.7);
+}
+
+.operator
+{
+    color:rgba(255,200,128,0.7);
+}
+
+.number > .operator
+{
+    color:rgba(200,200,200,0.7);
+}
+
+.CodeMirror-hints {
+    position: absolute;
+    z-index: 1000000000000000;
+    overflow: hidden;
+    list-style: none;
+    margin: 0;
+    padding: 2px;
+    border-radius: 2px;
+    border: 1px solid #ddd;
+    background: #eee;
+    font-size: 90%;
+    font-family: inherit;
+    max-height: 20em;
+}
+
+.CodeMirror-hints ul {
+    overflow-y: auto;
+    max-height: 20em;
+}
+
+.CodeMirror-hints ul li {
+    margin: 0;
+    padding: 0 4px;
+    border-radius: 2px;
+    max-width: 60em;
+    overflow: hidden;
+    white-space: pre;
+    color: #ccc;
+    cursor: pointer;
+}
+
+.CodeMirror-hints input {
+    display: none;
+}
+
+.CodeMirror-hints .selected {
+    background: #eee;
+    color: #ddd;
+}
+
+.CodeMirror-hints ul::-webkit-scrollbar-thumb {
+    background: #666;
+    border-color: #666;
+}
+
+.Field-gutter {
+    width: 28px;
+}
+
+.CodeMirror-linenumbers {
+    width: 48px;
+}
+
+.CodeMirror-gutters {
+    /*background : #2d3133;*/
+    /*border-color: #2d3133;*/
+    /*background: rgba(0, 0, 0, 0);*/
+    /*border-color: rgba(255, 255, 255, 0.1);*/
+
+    /*background : #444;*/
+    background: rgba(45,49,51,1);
+    border : None;
+
+}
+.CodeMirror-linenumber {
+    color:#777;
+    font-weight: 100;
+}
+
+.CodeMirror-linewidget {
+    margin-left: -25px;
+    z-index: 4;
+
+}
+
+.Field-remoteOutput {
+    background: #051015;
+    border-radius: 6px;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    padding: 3px;
+    padding-left: 8px;
+    margin-top: 2px;
+    margin-left: 25px;
+    display: block;
+    overflow: scroll;
+    max-height: 180px;
+    min-height: 27px;
+    pointer-events: all;
+    border: 2px solid #000;
+    margin-right: 50px;
+    overflow-wrap: break-word;
+    font-size: 80%;
+}
+
+.Field-remoteOutput-error {
+    background: #051015;
+    border-radius: 6px;
+    padding: 3px;
+    margin-top: 2px;
+    padding-top: 0;
+    border-top: 3px solid #f00;
+    padding-left: 10px;
+    margin-left: 25px;
+    display: block;
+    overflow: scroll;
+    max-height: 150px;
+    min-height: 27px;
+    pointer-events: all;
+    border: 2px solid #f00;
+    margin-right:50px;
+	overflow-wrap: break-word;
+    font-size:80%;
+}
+.Field-remoteOutput-error .outputline {
+    background:none;
+}
+
+.Field-remoteColor {
+    background: #333;
+    border-radius: 3px;
+    padding: 3px;
+    padding-left: 8px;
+    margin-top: 2px;
+    margin-left: 26px;
+    display: block;
+    overflow: scroll;
+    font-size: 75%;
+    max-height: 60px;
+    min-height: 225px;
+    height: 100%;
+    pointer-events: all;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    width: 200px;
+}
+
+.Field-remoteWidget {
+    background: #333;
+    border-radius: 3px;
+    padding: 3px;
+    padding-left: 3px;
+    margin-top: 2px;
+    margin-left: 26px;
+    white-space: pre;
+    overflow: scroll;
+    pointer-events: all;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.Field-interventionMiddle
+{
+    background: rgba(255,205,155, 0.1);
+    padding: 2px;
+    border-radius: 4px;
+    border: 1px solid rgba(255,205,155,0.3);
+}
+
+.Field-remoteWidgetInline {
+    display: inline-block;
+    vertical-align: middle;
+    background: #333;
+    border-radius: 3px;
+    padding: 3px;
+    padding-left: 3px;
+    margin-top: 2px;
+    margin-left: 2px;
+    white-space: pre;
+    pointer-events: all;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+.Field-specialMarkedText
+{
+    color: #f00 !important;
+    border: 1px solid rgba(255,205,155,0.3);
+    border-radius: 5px;
+    padding: 2px;
+    background: rgba(255,205,155,0.05);
+}
+
+.Field-remoteTextBoxInline {
+    display: inline-block;
+    vertical-align: middle;
+    background: #333;
+    border-radius: 3px;
+    padding: 3px;
+    padding-left: 3px;
+    margin-top: 2px;
+    margin-left: 2px;
+    white-space: pre;
+    pointer-events: all;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.Field-remoteWidgetOverlay {
+    display: inline-block;
+    vertical-align: middle;
+    background: rgba(128,118,108,0.6);
+    border-radius: 3px;
+    /* padding: 1px; */
+    margin-top: -33px;
+    margin-left: -3px;
+    white-space: pre;
+    pointer-events: all;
+    border: 1px solid rgba(220,120,20, 0.25);
+    /* overflow: visible; */
+    z-index: 4;
+    /* filter: invert() contrast(1  ) brightness(0.5); */
+}
+
+.Field-remoteColor form {
+    display: inline;
+}
+
+.Field-interventionHiddenLeft
+{
+    padding:2px;
+}
+
+.Field-interventionHiddenRight
+{
+    padding:2px;
+
+}
+
+
+.Field-closeBox {
+    font-size: 10px;
+    font-family: "Source Code Pro";
+    position: absolute;
+    border-radius: 6px 0 0 0;
+    top: 0;
+    left: 8px;
+    background: #000;
+    margin-top: 2px;
+    width: 15px;
+    height: 18.5px;
+    text-align: center;
+    pointer-events: all;
+    cursor: pointer;
+    font-weight: 100;
+
+    border-top: 2px solid #000;
+    border-left: 2px solid #000;
+
+}
+
+.Field-expandBox {
+    font-size: 9px;
+    position: absolute;
+    font-family: "Source Code Pro";
+    border-radius: 0 0 0 6px;
+    top: 18px;
+    left: 8px;
+    margin-top: 0;
+    background: #000;
+    width: 15px;
+    height: 18.5px;
+    text-align: center;
+    pointer-events: all;
+    cursor: pointer;
+    font-weight: 700;
+
+    border-bottom: 2px solid #000;
+    border-left: 2px solid #000;
+
+}
+
+.Field-closeBoxInline {
+    font-size: 10px;
+    position: absolute;
+    border-radius: 3px;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+
+    top: -7px;
+    right: -10px;
+
+    margin-top: 0;
+    background: #333;
+    width: 14px;
+    height: 14px;
+    text-align: center;
+    pointer-events: all;
+    cursor: pointer;
+    font-weight: 700;
+    z-index: 10;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    background: rgba(0, 0, 0, 0.0);
+
+    color: rgba(255,255,255,0.3);
+}
+
+.Field-closeBoxInline:hover {
+    background: rgba(255, 0, 0, 0.2);
+    color:rgba(255,0,0,1);
+}
+
+
+.close-expand {
+    margin: 0;
+    padding: 0;
+    float: right;
+    display: inline;
+    width: 20px;
+    height: 28px;
+}
+
+.close-expand .Field-closeBox {
+    position: initial;
+    float: right;
+}
+
+.close-expand .Field-expandBox {
+    position: initial;
+    float: right;
+}
+
+.Field-textBox {
+    padding: 5px;
+    margin-bottom: 15px;
+    border: none;
+    background-color: #222;
+    width: 100%;
+    max-width: 1300px;
+    transition: width 0.25s;
+    font-family: "Iosevka";
+    font-size: 16px;
+    color: #eee;
+}
+
+.Field-textBox:focus {
+    background-color: #333;
+    outline: none;
+}
+
+.Field-modal {
+    max-width: 500px;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    border: 1px;
+}
+
+.Field-modal::backdrop {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.Field-modal-positioned {
+    position: fixed;
+    background-color: rgba(0, 0, 0, 0.8);
+    border: 1px;
+    margin: 0;
+}
+
+.Field-modal-positioned::backdrop {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+*::-webkit-input-placeholder {
+    color: rgba(255, 255, 255, 0.3);
+    text-align: center;
+    font-style: italic;
+}
+
+input {
+    width: 100%;
+// min-width : 90 px;
+// max-width : 300 px;
+    transition: width 0.25s;
+}
+
+.Field-modal {
+    font-family: "Source Sans Pro";
+}
+
+.Field-modal ol {
+    color: #bbb;
+    list-style-type: circle;
+    padding: 0;
+    margin: 0;
+    font-size: 14px;
+    max-width: 80vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.Field-modal-positioned ol {
+    color: #bbb;
+    list-style-type: circle;
+    padding: 0;
+    margin: 0;
+    font-size: 14px;
+    max-width: 80vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.Field-modal-positioned ol:before {
+    content: ' ';
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    box-shadow: inset 0 0 20px #000;
+    -webkit-box-shadow: inset 0 0 20px #000;
+    -moz-box-shadow: inset 0 0 20px #000000;
+}
+
+.Field-modal ol:before {
+    content: ' ';
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    box-shadow: inset 0 0 20px #000;
+    -webkit-box-shadow: inset 0 0 20px #000;
+    -moz-box-shadow: inset 0 0 50px #000000;
+}
+
+.Field-modal ol li {
+    opacity: 0.99; 
+    padding: 5px;
+    width: 100%;
+    margin-right: auto;
+    margin-left: 0;
+    margin-bottom: 1px;
+    margin-top: 1px;
+    background: #222;
+    pointer-events: all;
+}
+
+.Field-modal-positioned ol li {
+    opacity: 0.99;
+    padding: 5px;
+    width: 100%;
+    margin-right: auto;
+    margin-left: 0;
+    margin-bottom: 1px;
+    margin-top: 1px;
+    background: #222;
+    pointer-events: all;
+    font-weight: 900;
+}
+
+.Field-modal ol {
+    list-style-type: none;
+    margin-left: 0;
+    max-height: 80vh;
+}
+
+
+.Field-modal-positioned ol {
+    list-style-type: none;
+    margin-left: 0;
+    max-height: 80vh;
+}
+
+.Field-modal-positioned {
+    width: 400px;
+    max-width: 500px;
+}
+
+.Field-modal ol li .Field-number {
+    font-weight: bold;
+    float: left;
+    text-align: right;
+    margin-right: 5px;
+    padding-left: 3px;
+    padding-right: 3px;
+    width: 1em;
+    font-size: 100%;
+    background: black;
+    border-radius: 5px;
+}
+
+.Field-modal-positioned ol li .Field-number {
+    font-weight: bold;
+    float: left;
+    text-align: right;
+    margin-right: 5px;
+    padding-left: 3px;
+    padding-right: 3px;
+    width: 1em;
+    font-size: 100%;
+    background: black;
+    border-radius: 5px;
+}
+
+.Field-modal-positioned ol li .Field-number-empty {
+    font-weight: bold;
+    float: left;
+    text-align: right;
+    margin-right: 5px;
+    padding-left: 3px;
+    padding-right: 3px;
+    width: 1em;
+    font-size: 100%;
+    background: black;
+    border-radius: 5px;
+}
+
+.Field-modal-positioned ol li .matched,
+.Field-modal ol li .matched {
+    text-decoration: underline;
+}
+
+.Field-modal-positioned ol li span.doc,
+.Field-modal ol li span.doc {
+    opacity: 0.5;
+    /*text-height: 120%;*/
+    float: left;
+    font-weight:normal;
+    clear: both;
+    margin-left: 25px;
+    margin-right: 10px;
+    padding-top: 3px;
+}
+
+
+.Field-modal-positioned ol li div.providedDoc,
+.Field-modal ol li div.providedDoc {
+    opacity: 0.5;
+    /*text-height: 120%;*/
+    float: left;
+    font-weight:normal;
+    clear: both;
+    margin-left: 25px;
+    margin-right: 10px;
+    padding-top: 3px;
+}
+
+.return
+{
+    color: #fba
+}
+
+.inside
+{
+    font-weight: 700;
+}
+
+.extraDoc
+{
+    font-size:85%
+}
+
+.Field-modal-positioned ol li span.type,
+.Field-modal ol li span.type {
+    font-weight: 200;
+    font-family: "Iosevka";
+    font-size: 70%;
+    opacity: 0.75;
+    padding-top: 3px;
+}
+
+.Field-modal ol li:after {
+/ / content : ".";
+/ / display : block;
+/ / height : 0;
+/ / clear : both;
+/ / visibility : hidden;
+/ /
+}
+
+.Field-modal ol li {
+    display: inline-block;
+    width: 100%;
+}
+
+.Field-modal-positioned ol li:after {
+/ / content : ".";
+/ / display : block;
+/ / height : 0;
+/ / clear : both;
+/ / visibility : hidden;
+/ /
+}
+
+.Field-modal-positioned ol li {
+    display: inline-block;
+    width: 100%;
+}
+
+.Field-modal ol li .Field-number:empty {
+    font-weight: bold;
+    float: left;
+    text-align: right;
+    margin-right: 5px;
+    padding-left: 3px;
+    padding-right: 3px;
+    width: 1em;
+    font-size: 100%;
+    background: black;
+    border-radius: 5px;
+    border: none;
+    background: none;
+}
+
+.Field-modal-positioned ol li .Field-number:empty {
+    font-weight: bold;
+    float: left;
+    text-align: right;
+    margin-right: 5px;
+    padding-left: 3px;
+    padding-right: 3px;
+    width: 1em;
+    font-size: 100%;
+    background: black;
+    border-radius: 5px;
+    border: none;
+    background: none;
+}
+
+.Field-status {
+/ / width : 20 vw;
+    max-width: 50vw;
+    position: fixed;
+    bottom: 15px;
+    right: 15px;
+    background: rgba(60, 60, 60, 0.9);
+    padding: 5px;
+    border-radius: 5px;
+    transition: 1s opacity;
+    font-family: "Source Sans Pro";
+}
+
+.Field-status .highlighted {
+    background: rgba(60, 60, 60, 0.9);
+    padding: 2px;
+    padding-top: 0;
+    border-radius: 5px;
+}
+
+.Field-status .error {
+    background: rgba(255, 0, 0, 0.1);
+    padding: 2px;
+    padding-top: 0;
+    border-radius: 5px;
+}
+
+code {
+    font-family: "Iosevka";
+    font-opacity:100% !important;
+    font-size:80%;
+    font-weight: bolder;
+    color:#b98;
+}
+
+.CodeMirror-scroll {
+    border-radius: 5px;
+    border: None;
+
+    /*background: #222;*/
+    background: #22272a;
+}
+
+.CodeMirror-sizer {
+    border-radius: 5px;
+}
+
+.CodeMirror {
+    border-radius: 5px;
+    color: #aaa;
+    border: None;
+}
+
+
+.CodeMirror-gutter-wrapper {
+    pointer-events: none;
+}
+
+.CodeMirror-dialog {
+    position: absolute;
+    left: 0;
+    right: 0;
+    background: rgba(64, 64, 64, 0.85);
+    z-index: 15;
+    foreground: #aaa !important;
+    padding: 0.2em 0.2em;
+    overflow: hidden;
+    font-family: "Iosevka";
+    font-size: 100%;
+}
+
+.CodeMirror-dialog-top {
+    border-top: none;
+    top: 0;
+}
+
+.CodeMirror-dialog-bottom {
+    border-top: 1px solid #222;
+    bottom: 0;
+}
+
+.CodeMirror-dialog input {
+    border: none;
+    outline: none;
+    background: rgba(255, 255, 255, 0.2);
+    width: 40em;
+    color: inherit;
+    font-size: 100%;
+    padding: 0.2em;
+}
+
+.CodeMirror-dialog button {
+    background: rgba(255, 255, 255, 0.2);
+    font-size: 75%;
+}
+
+.FieldError-line {
+    background: rgba(128, 0, 0, 0.5);
+}
+
+.FieldDisabled-line::after {
+    content: " ";
+    white-space: pre;
+    display:inline-block;
+    position:absolute;
+    top:0;
+    width:100%;
+
+    background: rgba(64,64,64, 0.5);
+    border-right: 2px rgba(128,128,128,0.5) dashed;
+    z-index:2;
+}
+
+.FieldDisabled-line-top::after {
+    content: " ";
+    white-space: pre;
+    display:inline-block;
+    position:absolute;
+    top:0;
+    width:100%;
+    height:90%;
+
+    background: rgba(64,64,64, 0.5);
+    border-top: 2px rgba(128,128,128,0.5) dashed;
+    border-right: 2px rgba(128,128,128,0.5) dashed;
+    z-index:2;
+}
+
+.FieldDisabled-line-bottom::after   {
+    content: " ";
+    white-space: pre;
+    display:inline-block;
+    position:absolute;
+    top:0;
+    width:100%;
+
+    background: rgba(64,64,64, 0.5);
+    border-bottom: 2px rgba(128,128,128,0.5) dashed;
+    border-right: 2px rgba(128,128,128,0.5) dashed;
+    z-index:2;
+}
+
+
+.advice {
+    white-space: pre;
+    margin-left:40px;
+    margin-top:10px;
+    text-indent: -20px;
+}
+
+.CodeMirror-foldGutter {
+    width: 0.7em;
+    left: 20px;
+    position: relative;
+    z-index: 0;
+}
+
+.CodeMirror-foldmarker {
+    color: rgba(255,255,255,1);
+    background: rgba(256,108,55,0.3);
+    font-family: "Iosevka";
+    padding: 2px;
+    margin-top: -2px;
+    visibility: hidden;
+    font-size: 0px;
+}
+span.CodeMirror-foldmarker::before {
+    color: rgba(255,255,255,1);
+    content: "...";
+    display: inline;
+    visibility: visible;
+    background: rgba(256,108,55,0.5);
+    font-family: "Iosevka";
+    padding: 2px;
+    margin-top: -2px;
+    text-shadow: none;
+    font-size: 12px;
+}
+
+
+.cm-s-default span.cm-keyword {
+    color: #f85;
+    font-style: italic;
+}
+
+.cm-s-default span.cm-def {
+    color: #acf;
+    font-weight: 900;
+}
+
+.cm-s-default span.cm-property {
+    color: #aab;
+    font-weight: 900;
+}
+
+.notification
+{
+    font-size: 17px;
+}
+
+.notification b
+{
+    color:#fff;
+}
+
+.notification i
+{
+    color:#fff;
+}
+
+.Field-status .type
+{
+    font-family: "Iosevka";
+    font-size:80%;
+}
+
+span.comp {
+    /*font-family: "Iosevka";*/
+    font-weight: 900;
+    font-size: 90%;
+}
+
+.comp-space {
+    /*font-family: "Iosevka";*/
+    font-weight: 900;
+    padding: 0;
+    padding-bottom:4px;
+}
+
+div#hbox.Field-status span.stars
+{
+    float: right;
+    position: absolute;
+    right: 4px;
+    font-size: 70%;
+    top: 4px;
+}
+
+div#hbox.Field-status span.doc
+{
+    display: inline;
+}
+
+div#hbox.Field-status span.doc span.type
+{
+    font-size:70%;
+}
+
+span.type
+{
+    color:rgba(148,188,255,1);
+}
+
+span.doc code
+{
+    color:rgba(248,158,135,1);
+}
+
+div#hbox.Field-status .comp-space {
+    font-weight: 900;
+    padding: 0;
+    padding-bottom:4px;
+    display:inline;
+}
+
+dialog.Field-modal ol li span.stars,
+dialog.Field-modal-positioned ol li span.stars
+{
+    float: right;
+    position: absolute;
+    right: 30px;
+    padding-top:4px;
+    font-size: 70%;
+    opacity:0.5;
+}
+

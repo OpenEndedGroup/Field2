@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="7e98b817-f94e-4296-9a09-c3bb2e2ea6ac" name="testServer" url="http://localhost">
+        <fileTransfer mountedRoot="c:\users\marc\field2b_deployed" accessType="MOUNT" port="0" />
+      </webServer>
+    </option>
+  </component>
+</project>

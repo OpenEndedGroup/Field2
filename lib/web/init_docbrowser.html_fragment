@@ -1,0 +1,74 @@
+<html xmlns='http://www.w3.org/1999/xhtml'>
+<meta charset='UTF-8'>
+<head>
+
+    <script src='/field/filesystem/codemirror-5.25.2/lib/codemirror.js'></script>
+    <link rel='stylesheet' href='/field/filesystem/codemirror-5.25.2/lib/codemirror.css'>
+    <link rel='stylesheet' href='/field/filesystem/codemirror-5.25.2/theme/default.css'>
+    <link rel='stylesheet' href='/field/filesystem/field-codemirror.css' type='text/css'>
+    <link rel='stylesheet' href='/field/filesystem/field-boxbrowser.css' type='text/css'>
+    <link rel='stylesheet' href='/field/filesystem/field-docbrowser.css' type='text/css'>
+    <script src='/field/filesystem/codemirror-5.25.2/mode/javascript/javascript.js'></script>
+    <script src='/field/filesystem/jquery-2.1.0.min.js'></script>
+    <script src='/field/filesystem/field-boxbrowser.js'></script>
+
+    <script language="javascript" src="/field/filesystem/lazyload/lazyload.js"></script>
+
+    <script language="javascript">
+        _field = {};
+
+         _field.log = function(s) {
+        		 _field.send("log", s);
+         };
+
+         _field.error = function(s) {
+        		 _field.send("error", s);
+         };
+
+         _field.send = function(address, obj) {
+        		 window.cefQuery({
+        				 request: JSON.stringify({
+        						 address: address,
+        						 payload: obj,
+        						 from: _field.id
+        				 }),
+        				 persistent: false,
+        				 onSuccess: function(r) {},
+        				 error: function(e, em) {
+        						 console.log("ERROR?", e, em);
+        				 }
+        		 });
+         };
+
+         _field.sendWithReturn = function(address, obj, callback) {
+        		 window.cefQuery({
+        				 request: JSON.stringify({
+        						 address: address,
+        						 payload: obj,
+        						 from: _field.id
+        				 }),
+        				 persistent: false,
+        				 onSuccess: function(r) {
+        						 callback(JSON.parse(r), "");
+        				 },
+        				 error: function(e, em) {
+        						 console.log("ERROR?", e, em);
+        				 }
+        		 });
+         };
+
+    </script>
+
+</head>
+
+<body>
+
+<div class="navtrayparent" style="position:absolute;width:100%;z-index:100">
+        <div class="navtray">
+            <div class="navbutton" onclick="iframe.contentWindow.history.back()">&larr;</div>
+            <div class="navbutton" onclick="iframe.contentWindow.history.forward()">&rarr;</div>
+            <div class="navbutton" onclick="iframe.contentWindow.location.href='http://localhost:8080/doc/HOME'">&#x2302;</div>
+        </div>
+</div>
+
+

@@ -1,0 +1,272 @@
+
+@font-face {
+    font-family: 'Source Code Pro';
+    src: url('/field/filesystem/fonts/SourceCodePro-Regular.ttf.woff') format('woff');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Source Code Pro';
+    src: url('/field/filesystem/fonts/SourceCodePro-Light.ttf.woff') format('woff');
+    font-weight: 100;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Source Code Pro';
+    src: url('/field/filesystem/fonts/SourceCodePro-Bold.ttf.woff') format('woff');
+    font-weight: 700;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Source Sans Pro';
+    src: url('/field/filesystem/fonts/SourceSansPro-Regular.ttf.woff') format('woff');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Source Sans Pro';
+    src: url('/field/filesystem/fonts/SourceSansPro-Light.ttf.woff') format('woff');
+    font-weight: 100;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Source Sans Pro';
+    src: url('/field/filesystem/fonts/SourceSansPro-Bold.ttf.woff') format('woff');
+    font-weight: 700;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Source Sans Pro';
+    src: url('/field/filesystem/fonts/SourceSansPro-It.ttf.woff') format('woff');
+    font-weight: 400;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Source Sans Pro';
+    src: url('/field/filesystem/fonts/SourceSansPro-LightIt.ttf.woff') format('woff');
+    font-weight: 100;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Source Sans Pro';
+    src: url('/field/filesystem/fonts/SourceSansPro-BoldIt.ttf.woff') format('woff');
+    font-weight: 700;
+    font-style: italic;
+}
+
+html {
+    background: #2d3133;
+//    background: rgba(0, 0, 0, 0);
+}
+
+body {
+    -webkit-font-variant-ligatures: common-ligatures;
+    font-variant-ligatures: common-ligatures;
+    -webkit-font-smoothing: subpixel-antialiased;
+    font-kerning: normal;
+
+    background: #2d3133;
+    color: #aaa;
+    font-size: 17px;
+    font-family: "Source Sans Pro";
+    margin: 10px;
+
+}
+
+pre
+{
+    padding: 10px;
+    background: rgba(0,0,0,0.2);
+}
+a {
+    text-decoration: none;
+    color: #58b;
+    border-bottom: 1px solid #58b;
+}
+
+p {
+    padding-left: 58px;
+    padding-right: 58px;
+    font-size: 15px;
+    line-height: 120%;
+    font-size: 80%;
+    margin-top: 40px;
+}
+
+
+.CodeMirror
+{
+    background:rgba(0,0,0,0.2);
+    color:#eee;
+    height: auto;
+    font-size: 12px;
+    pointer-events: none;
+}
+
+.CodeMirror-scroll
+{
+    background:rgba(0,0,0,0.2);
+    height: auto;
+}
+
+h1 {
+    padding-left: 4px;
+    padding-right: 4px;
+    padding-bottom: 10px;
+    padding-top: 10px;
+    margin-top: 30px;
+    margin-bottom: -5px;
+    background: rgba(0,0,0,0.1);
+    font-size: 20px;
+    text-align: center;
+    border-radius:10px;
+}
+
+* > h1:first-child
+{
+    margin-top:0px;
+}
+
+h2 {
+    padding-left: 50px;
+    padding-right: 50px;
+    padding-bottom: 10px;
+    padding-top: 10px;
+    font-weight: lighter;
+    margin-bottom: -5px;
+    background: rgba(0,0,0,0.1);
+    font-size: 20px;
+    text-align: center;
+    border-radius:10px;
+}
+
+
+.grouped
+{
+    background:rgba(0,0,0,0.1);
+    border-radius: 5px;
+    padding:5px;
+    margin:-5px;
+}
+
+.maptable {
+    font-family: "Source Code Pro";
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 2px;
+}
+
+.maptable-entry
+{
+    display:inline-flex;
+    margin:0px;
+    border:1px solid rgba(0,0,0,0.1);
+    border-radius:2px;
+    padding:2px;
+    padding-left:4px;
+    padding-right:4px;
+}
+
+.smaller {
+    font-size: 65%;
+    opacity: 0.5;
+    padding-left: 0.2em;
+    padding-right: 0.2em;
+    padding-top: 0.35em;
+    font-weight: normal;
+    font-variant: small-caps;
+    display: block;
+}
+
+.smaller-inframe {
+    font-size: 65%;
+    opacity: 0.5;
+    padding-left: 0.2em;
+    padding-right: 0.2em;
+    padding-top: 0.35em;
+    font-weight: normal;
+    font-variant: small-caps;
+    float:right;
+    margin-right: 0.35em;
+}
+
+.warning
+{
+    color:rgba(200,40,40,0.7);
+}
+
+
+.maptable-key {
+    padding:4px;
+    display:block;
+    text-align:right;
+    flex:1 auto;
+    border-right: 3px solid rgba(255,255,255,0.1);
+    color: rgba(255,200,128, 0.7);
+}
+
+.maptable-value {
+    padding:4px;
+    display:block;
+    flex:1 auto;
+    color: rgba(128,200,255, 0.7);
+}
+
+.maptable-key > .maptable-entry
+{
+    display:block;
+}
+.maptable-value > .maptable-entry
+{
+    display:block;
+}
+
+.mesh-problem
+{
+    padding-left:70px;
+    font-size:80%;
+    background: rgba(255,0,0,0.05);
+}
+.number
+{
+    color:rgba(200,200,200,0.7);
+}
+
+.operator
+{
+    color:rgba(255,200,128,0.7);
+}
+
+.number > .operator
+{
+    color:rgba(200,200,200,0.7);
+}
+
+
+
+input {
+    background-color: #555;
+    border-image-source: none;
+    -webkit-appearance: none;
+    border: #555 1px;
+    margin: 3px;
+    color: white;
+}
+
+textarea{
+    background-color: #555;
+    border-image-source: none;
+    -webkit-appearance: none;
+    border: #555 1px;
+    margin: 3px;
+    color: white;
+}
+
+

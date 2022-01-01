@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <excludeFromCompile>
+      <file url="file://$PROJECT_DIR$/src/main/java/field/linalg/T3D.kt" />
+      <file url="file://$PROJECT_DIR$/src/main/java/fielded/live/MappingGenerator.kt" />
+      <file url="file://$PROJECT_DIR$/src/main/java/trace/input/KinectDriver.kt" />
+      <file url="file://$PROJECT_DIR$/src/main/java/trace/input/WebcamDriver.kt" />
+      <file url="file://$PROJECT_DIR$/src/main/java/trace/input/WebcamDriver2.kt" />
+      <file url="file://$PROJECT_DIR$/src/main/java/trace/sound/Spatialization.kt" />
+      <file url="file://$PROJECT_DIR$/src/main/java/trace/util/FLineToSVG.kt" />
+      <file url="file://$PROJECT_DIR$/src/main/java/trace/video/Syphon.kt" />
+      <file url="file://$PROJECT_DIR$/src/main/java/trace/mocap/Mocap.kt" />
+      <file url="file://$PROJECT_DIR$/src/main/java/trace/sound/Hard.kt" />
+      <file url="file://$PROJECT_DIR$/src/main/java/trace/sound/SoundAnalysis.kt" />
+      <file url="file://$PROJECT_DIR$/src/main/java/fieldnashorn/sourcemap/Mapping.java" />
+      <file url="file://$PROJECT_DIR$/src/main/java/field/graphics/csg/Polygon.java" />
+      <file url="file://$PROJECT_DIR$/src/main/java/field/graphics/csg/CSG.java" />
+      <file url="file://$PROJECT_DIR$/src/main/java/field/graphics/csg/Bounds.java" />
+      <file url="file://$PROJECT_DIR$/src/main/java/field/graphics/csg/Cuboid.java" />
+      <file url="file://$PROJECT_DIR$/src/main/java/field/graphics/csg/Primitive.java" />
+      <file url="file://$PROJECT_DIR$/src/main/java/field/graphics/csg/Cylinder.java" />
+      <file url="file://$PROJECT_DIR$/src/main/java/field/graphics/csg/Extrude.java" />
+      <file url="file://$PROJECT_DIR$/src/main/java/field/graphics/csg/Node.java" />
+      <file url="file://$PROJECT_DIR$/src/main/java/field/graphics/csg/Plane.java" />
+      <file url="file://$PROJECT_DIR$/src/main/java/field/graphics/csg/Sphere.java" />
+      <file url="file://$PROJECT_DIR$/src/main/java/fieldbox/boxes/plugins/FrameConstraints.java" />
+      <file url="file://$PROJECT_DIR$/src/main/java/fieldbox/boxes/plugins/Reload.java" />
+      <file url="file://$PROJECT_DIR$/src/main/java/fieldnashorn/sourcemap/SourceMapConsumerV3.java" />
+      <file url="file://$PROJECT_DIR$/src/main/java/fieldnashorn/sourcemap/SourceMappingReversable.java" />
+      <file url="file://$PROJECT_DIR$/src/main/java/trace/sound/Sound.java" />
+      <file url="file://$PROJECT_DIR$/src/main/java/fieldnashorn/babel/Translate.java" />
+      <file url="file://$PROJECT_DIR$/src/main/java/fieldnashorn/sourcemap/SourceMapping.java" />
+      <file url="file://$PROJECT_DIR$/src/main/java/fieldnashorn/sourcemap/SourceMapGeneratorV3.java" />
+      <file url="file://$PROJECT_DIR$/src/main/java/fieldnashorn/sourcemap/SourceMapConsumer.java" />
+      <file url="file://$PROJECT_DIR$/src/main/java/fieldnashorn/sourcemap/SourceMapConsumerFactory.java" />
+      <file url="file://$PROJECT_DIR$/src/main/java/fieldnashorn/sourcemap/SourceMapGeneratorFactory.java" />
+      <file url="file://$PROJECT_DIR$/src/main/java/trace/graphics/GL.java" />
+      <file url="file://$PROJECT_DIR$/src/main/java/org/cef/callback/CefPrintDialogCallback.java" />
+      <file url="file://$PROJECT_DIR$/src/main/java/org/cef/misc/CefPageRange.java" />
+      <file url="file://$PROJECT_DIR$/src/main/java/org/cef/callback/CefCallback_N.java" />
+      <file url="file://$PROJECT_DIR$/src/main/java/org/cef/handler/CefGeolocationHandler.java" />
+      <file url="file://$PROJECT_DIR$/src/main/java/org/cef/network/CefRequest.java" />
+      <file url="file://$PROJECT_DIR$/src/main/java/org/cef/handler/CefLoadHandler.java" />
+      <file url="file://$PROJECT_DIR$/src/main/java/org/cef/callback/CefSchemeRegistrar_N.java" />
+      <file url="file://$PROJECT_DIR$/src/main/java/org/cef/callback/CefMenuModel_N.java" />
+      <file url="file://$PROJECT_DIR$/src/main/java/field/graphics/vr/FakeOculusDrawTarget.kt" />
+      <file url="file://$PROJECT_DIR$/src/main/java/field/graphics/vr/OculusDrawTarget2.java" />
+    </excludeFromCompile>
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="field2b" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel target="17" />
+  </component>
+</project>
