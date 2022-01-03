@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="javacv">
+  <library name="jep-3.9.1">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/lib/jars/javacv.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jars/jep-3.9.1.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
