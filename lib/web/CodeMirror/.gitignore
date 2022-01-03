@@ -1,0 +1,10 @@
+/node_modules
+/npm-debug.log
+/package-lock.json
+/test*.html
+.tern-*
+*~
+*.swp
+.idea
+*.iml
+**/.DS_Store

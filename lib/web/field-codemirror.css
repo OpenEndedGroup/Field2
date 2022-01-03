@@ -1,6 +1,49 @@
 
 
 @font-face {
+    font-family: 'Iosevka';
+    src: url('/field/filesystem/fonts/iosevka-regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Iosevka';
+    src: url('/field/filesystem/fonts/iosevka-bold.woff2') format('woff2');
+    font-weight: 800;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Iosevka';
+    src: url('/field/filesystem/fonts/iosevka-semibold.woff2') format('woff2');
+    font-weight: 600;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Iosevka';
+    src: url('/field/filesystem/fonts/iosevka-light.woff2') format('woff2');
+    font-weight: 100;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Iosevka';
+    src: url('/field/filesystem/fonts/iosevka-italic.woff2') format('woff2');
+    font-weight: 400;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Iosevka';
+    src: url('/field/filesystem/fonts/iosevka-bolditalic.woff2') format('woff2');
+    font-weight: 800;
+    font-style: italic;
+}
+
+
+@font-face {
     font-family: 'Source Sans Pro';
     src: url('/field/filesystem/fonts/SourceSansPro-Regular.ttf.woff') format('woff');
     font-weight: 400;
@@ -248,9 +291,9 @@ iframe
 
 .CodeMirror
 {
-    font-size:11px;
+    font-size:17px;
 
-    font-family: "Fira Code", "Source Code Pro" !important;
+    font-family: "Iosevka" !important;
     -webkit-font-variant-ligatures: common-ligatures;
     font-variant-ligatures: common-ligatures;
     -webkit-font-feature-settings: "kern";
@@ -295,15 +338,15 @@ iframe
 }
 
 
+
 .maptable {
-    font-family: "Fira Code";
+    font-family: "Iosevka";
     background-color: rgba(0, 0, 0, 0.2);
     border-radius: 2px;
     border: 1px solid rgba(255,255,255,0.2);
 }
-
 .mattable {
-    font-family: "Fira Code";
+    font-family: "Iosevka";
     background-color: rgba(255, 255, 255, 0.1);
     border-radius: 2px;
     border: 1px solid rgba(255,255,255,0.2);
@@ -719,7 +762,7 @@ iframe
     width: 100%;
     max-width: 1300px;
     transition: width 0.25s;
-    font-family: "Fira Code";
+    font-family: "Iosevka";
     font-size: 16px;
     color: #eee;
 }
@@ -831,6 +874,7 @@ input {
 }
 
 .Field-modal ol li {
+    opacity: 0.99; 
     padding: 5px;
     width: 100%;
     margin-right: auto;
@@ -842,6 +886,7 @@ input {
 }
 
 .Field-modal-positioned ol li {
+    opacity: 0.99;
     padding: 5px;
     width: 100%;
     margin-right: auto;
@@ -958,7 +1003,7 @@ input {
 .Field-modal-positioned ol li span.type,
 .Field-modal ol li span.type {
     font-weight: 200;
-    font-family: "fira code";
+    font-family: "Iosevka";
     font-size: 70%;
     opacity: 0.75;
     padding-top: 3px;
@@ -1050,7 +1095,7 @@ input {
 }
 
 code {
-    font-family: "Fira Code";
+    font-family: "Iosevka";
     font-opacity:100% !important;
     font-size:80%;
     font-weight: bolder;
@@ -1089,7 +1134,7 @@ code {
     foreground: #aaa !important;
     padding: 0.2em 0.2em;
     overflow: hidden;
-    font-family: "Fira Code";
+    font-family: "Iosevka";
     font-size: 100%;
 }
 
@@ -1182,7 +1227,7 @@ code {
 .CodeMirror-foldmarker {
     color: rgba(255,255,255,1);
     background: rgba(256,108,55,0.3);
-    font-family: "fira code";
+    font-family: "Iosevka";
     padding: 2px;
     margin-top: -2px;
     visibility: hidden;
@@ -1194,7 +1239,7 @@ span.CodeMirror-foldmarker::before {
     display: inline;
     visibility: visible;
     background: rgba(256,108,55,0.5);
-    font-family: "fira code";
+    font-family: "Iosevka";
     padding: 2px;
     margin-top: -2px;
     text-shadow: none;
@@ -1234,18 +1279,18 @@ span.CodeMirror-foldmarker::before {
 
 .Field-status .type
 {
-    font-family: "Fira Code";
+    font-family: "Iosevka";
     font-size:80%;
 }
 
 span.comp {
-    /*font-family: "Fira Code";*/
+    /*font-family: "Iosevka";*/
     font-weight: 900;
     font-size: 90%;
 }
 
 .comp-space {
-    /*font-family: "Fira Code";*/
+    /*font-family: "Iosevka";*/
     font-weight: 900;
     padding: 0;
     padding-bottom:4px;

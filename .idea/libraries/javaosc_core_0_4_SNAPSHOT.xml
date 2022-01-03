@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="javaosc-core-0.4-SNAPSHOT">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/lib/jars/javaosc-core-0.4-SNAPSHOT.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

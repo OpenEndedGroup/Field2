@@ -1,0 +1,22 @@
+import fieldbox.boxes.Box
+import fieldkotlin.*
+
+import field.utility.Rect
+
+import field.utility.*
+import field.graphics.FLine
+
+import field.linalg.Vec2
+import field.linalg.Vec3
+import field.linalg.Vec4
+
+fun print(a : Any?) = __writer__.write("$a")
+fun println(a : Any?) = __writer__.write("$a<br>")
+fun sprintln(a : Any?) = java.lang.System.out.println("$a")
+
+fun bx() : Box {
+	return bx
+}
+
+var bx = __bx__
+var root = __root__
