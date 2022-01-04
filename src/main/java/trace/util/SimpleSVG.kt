@@ -8,7 +8,6 @@ import field.linalg.Vec4
 import field.utility.Dict
 import field.utility.Rect
 import java.io.File
-import java.io.IOException
 import java.nio.file.Files
 import java.util.*
 import java.util.regex.Pattern

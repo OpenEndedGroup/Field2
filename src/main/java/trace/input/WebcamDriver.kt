@@ -1,10 +1,8 @@
 package trace.input
 
 import com.github.sarxos.webcam.Webcam
-import com.github.sarxos.webcam.WebcamResolution
 import field.graphics.Texture
 import java.nio.ByteBuffer
-import kotlin.system.measureNanoTime
 
 
 class WebcamDriver {

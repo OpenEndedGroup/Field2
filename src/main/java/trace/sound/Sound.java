@@ -11,13 +11,9 @@ import java.io.FileNotFoundException;
 import java.nio.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import java.util.function.Supplier;
 
-import static org.lwjgl.openal.ALC10.alcCreateContext;
-import static org.lwjgl.openal.ALC10.alcMakeContextCurrent;
-import static org.lwjgl.openal.ALC10.alcOpenDevice;
+import static org.lwjgl.openal.ALC10.*;
 
 
 public class Sound {

@@ -1,11 +1,9 @@
 package trace.input
 
 import com.github.sarxos.webcam.Webcam
-import com.github.sarxos.webcam.WebcamResolution
 import field.app.RunLoop
 import field.graphics.Texture
 import java.nio.ByteBuffer
-import java.util.function.Consumer
 import kotlin.system.measureNanoTime
 
 

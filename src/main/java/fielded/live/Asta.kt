@@ -3,11 +3,7 @@ package fielded.live
 import field.linalg.Vec2
 import field.linalg.Vec3
 import field.linalg.Vec4
-import field.utility.OverloadedMath
-import field.utility.PerThread
-import field.utility.Vec2
-import field.utility.Vec3
-import field.utility.Dict
+import field.utility.*
 import fieldbox.boxes.Box
 import fieldcef.plugins.up
 import fieldnashorn.babel.SourceTransformer
@@ -15,6 +11,21 @@ import org.openjdk.nashorn.api.tree.*
 import java.lang.reflect.Method
 import java.util.*
 import java.util.function.Function
+import kotlin.Any
+import kotlin.Boolean
+import kotlin.Char
+import kotlin.ClassCastException
+import kotlin.Double
+import kotlin.Float
+import kotlin.Int
+import kotlin.Long
+import kotlin.NullPointerException
+import kotlin.Number
+import kotlin.Pair
+import kotlin.String
+import kotlin.Unit
+import kotlin.to
+import kotlin.toString
 
 /*    AST based rewriting
  */

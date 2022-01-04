@@ -9,7 +9,6 @@ import java.nio.FloatBuffer;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL30.*;
-import static org.lwjgl.opengl.GL45.glGetNamedBufferSubData;
 
 /**
  * Created by marc on 4/5/17.

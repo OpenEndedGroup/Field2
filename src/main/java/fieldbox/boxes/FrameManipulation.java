@@ -12,21 +12,16 @@ import field.utility.Triple;
 import fieldbox.boxes.plugins.Planes;
 import fieldbox.boxes.plugins.Scrolling;
 import fieldbox.boxes.plugins.SimpleSnapHelper;
-//import fieldbox.boxes.plugins.UndoStack;
 import fieldbox.ui.Cursors;
 import fieldcef.browser.Browser;
-import fieldcef.plugins.TextEditor;
 
 import java.awt.*;
-import java.util.*;
 import java.util.List;
-import java.util.function.Supplier;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static fieldbox.boxes.plugins.Planes.plane;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_SHIFT;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_TAB;
+import static org.lwjgl.glfw.GLFW.*;
 
 /**
  * Plugin: Adds the ability to drag boxes around with the mouse and change their sizes with their edges. Provides textual feedback when this happens.

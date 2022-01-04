@@ -1,17 +1,14 @@
 package fieldbox.boxes.plugins;
 
-import field.graphics.Shader;
 import field.utility.Dict;
 import field.utility.Pair;
 import fieldbox.FieldBox;
 import fieldbox.boxes.Box;
-import fieldbox.execution.Execution;
 import fieldbox.io.IO;
 import fielded.Commands;
 import fielded.RemoteEditor;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 /**

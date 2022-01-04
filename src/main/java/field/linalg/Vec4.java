@@ -25,7 +25,6 @@ package field.linalg;
 import field.utility.Mutable;
 import field.utility.OverloadedMath;
 import field.utility.Serializable_safe;
-import fieldnashorn.annotations.HiddenInAutocomplete;
 import fieldnashorn.annotations.SafeToToString;
 
 import java.io.Externalizable;

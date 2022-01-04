@@ -16,8 +16,10 @@ import fieldbox.io.IO;
 import fieldlinker.AsMap;
 
 import java.util.*;
-import java.util.List;
-import java.util.function.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

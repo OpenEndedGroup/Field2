@@ -17,7 +17,6 @@ import java.nio.ByteBuffer;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * Plugin that adds the ability to easily put (jpg) images on the canvas.

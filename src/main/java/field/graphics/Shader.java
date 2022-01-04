@@ -6,7 +6,6 @@ import field.utility.Log;
 import fieldbox.boxes.Box;
 import fieldbox.execution.HandlesCompletion;
 import fielded.boxbrowser.BoxBrowser;
-import fieldlinker.*;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 import org.lwjgl.opengl.*;
 

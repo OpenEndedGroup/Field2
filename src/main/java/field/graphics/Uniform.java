@@ -1,9 +1,7 @@
 package field.graphics;
 
 import field.linalg.*;
-import fieldbox.execution.Errors;
 import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.NVBindlessTexture;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -12,7 +10,6 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-import static org.lwjgl.opengl.ARBGPUShaderInt64.glUniform1i64ARB;
 import static org.lwjgl.opengl.ARBGPUShaderInt64.glUniform1ui64ARB;
 import static org.lwjgl.opengl.GL20.*;
 

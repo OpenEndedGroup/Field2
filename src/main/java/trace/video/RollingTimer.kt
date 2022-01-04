@@ -1,9 +1,7 @@
 package trace.video
 
-import java.util.ArrayList
-import java.util.LinkedList
-
 import field.app.RunLoop
+import java.util.*
 
 class RollingTimer(private val name: String, private val historySize: Int, private val printEvery: Float) {
 

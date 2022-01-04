@@ -1,21 +1,15 @@
 package field.graphics;
 
-import com.google.common.collect.MapMaker;
 import field.app.RunLoop;
 import field.utility.Dict;
 import field.utility.Log;
-import field.utility.Pair;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Drawing;
-import fieldbox.execution.Errors;
 import fielded.boxbrowser.BoxBrowser;
-
 import org.apache.commons.io.filefilter.NameFileFilter;
-import org.apache.commons.io.monitor.FileAlterationListener;
 import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
 import org.apache.commons.io.monitor.FileAlterationMonitor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
-
 import org.lwjgl.opengl.*;
 
 import java.io.File;
@@ -23,11 +17,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
-import java.nio.file.*;
-import java.util.List;
-import java.util.Map;
+import java.nio.file.Files;
 import java.util.UUID;
-import java.util.WeakHashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;

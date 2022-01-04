@@ -16,7 +16,8 @@ import fieldbox.execution.JavaSupport
 import fieldbox.io.IO
 import fielded.RemoteEditor
 import fielded.plugins.Out
-import jep.*
+import jep.JepConfig
+import jep.SharedInterpreter
 import java.io.IOException
 import java.io.Writer
 import java.util.*

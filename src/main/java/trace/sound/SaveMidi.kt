@@ -1,7 +1,6 @@
 package trace.sound
 
 import field.utility.Documentation
-import fieldbox.boxes.TimeSlider.velocity
 import java.io.File
 import javax.sound.midi.*
 

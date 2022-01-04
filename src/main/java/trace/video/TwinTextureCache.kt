@@ -1,9 +1,8 @@
 package trace.video
 
-import java.nio.ByteBuffer
-
 import field.graphics.FastJPEG
 import field.graphics.Texture
+import java.nio.ByteBuffer
 
 class TwinTextureCache(unit: Int, private val source: ImageCache) {
 

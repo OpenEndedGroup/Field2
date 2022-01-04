@@ -9,13 +9,8 @@ import fielded.Animatable;
 import org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
-//import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
-//import jdk.nashorn.api.scripting.ScriptObjectMirror;
-
-import java.util.*;
 import javax.script.*;
-import java.util.Map;
-import java.util.WeakHashMap;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 

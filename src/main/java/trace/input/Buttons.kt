@@ -1,13 +1,9 @@
 package trace.input
 
-import field.app.RunLoop
 import field.graphics.Window
 import field.utility.IdempotencyMap
 import org.lwjgl.glfw.GLFW
-
-import java.lang.reflect.Field
 import java.lang.reflect.Modifier
-import java.util.*
 import java.util.function.Supplier
 
 /**

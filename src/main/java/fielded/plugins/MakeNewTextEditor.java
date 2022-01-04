@@ -11,7 +11,6 @@ import fieldcef.plugins.TextEditor;
 import fielded.Commands;
 import fielded.RemoteEditor;
 import fielded.ServerSupport;
-import fielded.webserver.Server;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;

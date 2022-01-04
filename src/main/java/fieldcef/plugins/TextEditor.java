@@ -1,7 +1,5 @@
 package fieldcef.plugins;
 
-import static org.lwjgl.glfw.GLFW.*;
-
 import field.app.RunLoop;
 import field.graphics.Window;
 import field.linalg.Vec2;
@@ -24,8 +22,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT_SHIFT;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT_SHIFT;
 
 /**
  * This is a browser, created by default, that embeds the text editor.

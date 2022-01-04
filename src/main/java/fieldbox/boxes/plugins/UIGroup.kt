@@ -4,7 +4,6 @@ import field.app.RunLoop
 import field.graphics.FLine
 import field.graphics.Scene
 import field.graphics.StandardFLineDrawing
-import field.graphics.util.onsheetui.SimpleCanvas
 import field.linalg.Vec2
 import field.utility.Dict
 import field.utility.Rect
@@ -13,8 +12,6 @@ import field.utility.plusAssign
 import fieldbox.boxes.Box
 import fieldbox.boxes.Callbacks
 import fieldbox.boxes.FLineDrawing
-
-import java.util.ArrayList
 import java.util.function.Supplier
 
 /**

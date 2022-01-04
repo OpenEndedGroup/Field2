@@ -4,7 +4,6 @@ import field.linalg.Vec2;
 import field.utility.Rect;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Boxes;
-import fieldlinker.Linker;
 import fieldnashorn.Nashorn;
 
 import java.util.function.Supplier;

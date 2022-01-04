@@ -3,7 +3,6 @@ package trace.util
 import field.graphics.FLinesAndJavaShapes
 import field.graphics.StandardFLineDrawing.notation
 import field.linalg.Vec2
-import field.linalg.Vec3
 import fieldbox.boxes.Box
 import fieldbox.boxes.FLineDrawing
 

@@ -10,11 +10,10 @@ import field.utility.Rect
 import field.utility.Vec2
 import field.utility.Vec4
 import field.utility.plusAssign
-import fieldbox.DefaultMenus
 import fieldbox.boxes.*
-import fieldbox.boxes.MarkingMenus.*
+import fieldbox.boxes.MarkingMenus.MenuSpecification
+import fieldbox.boxes.MarkingMenus.runMenu
 import fieldbox.boxes.plugins.FLineButton
-import fieldbox.boxes.plugins.FileBrowser
 import fieldbox.boxes.plugins.xw
 import fieldbox.boxes.plugins.yh
 import java.awt.BasicStroke
@@ -27,7 +26,12 @@ import java.util.function.Supplier
 class Gizmos() {
 
     @JvmOverloads
-    fun makeCloseBox(box: Box, name: String = "__closebox__", relative: Vec2 = Vec2(0, 0), frame: Rect = Rect(0.0, 0.0, 10.0, 10.0)) {
+    fun makeCloseBox(
+        box: Box,
+        name: String = "__closebox__",
+        relative: Vec2 = Vec2(0, 0),
+        frame: Rect = Rect(0.0, 0.0, 10.0, 10.0)
+    ) {
 
         val r = mutableListOf<FLine>()
 
@@ -37,27 +41,45 @@ class Gizmos() {
             this += StandardFLineDrawing.stroked to false
             r += this
 
-            FLineButton.attach(box, this, mapOf(StandardFLineDrawing.color.name to Vec4(1.0, 0.9, 0.0, 0.25)), mapOf(StandardFLineDrawing.color.name to Vec4(1.0, 0.0, 0.0, 0.25)), { up, _, _ ->
-                if (up) {
-                    Callbacks.transition(box, Mouse.isSelected, false, false, Callbacks.onSelect, Callbacks.onDeselect)
-                    Callbacks.call(box, Callbacks.onDelete)
-                    box.disconnectFromAll()
-                }
-            })
+            FLineButton.attach(
+                box,
+                this,
+                mapOf(StandardFLineDrawing.color.name to Vec4(1.0, 0.9, 0.0, 0.25)),
+                mapOf(StandardFLineDrawing.color.name to Vec4(1.0, 0.0, 0.0, 0.25)),
+                { up, _, _ ->
+                    if (up) {
+                        Callbacks.transition(
+                            box,
+                            Mouse.isSelected,
+                            false,
+                            false,
+                            Callbacks.onSelect,
+                            Callbacks.onDeselect
+                        )
+                        Callbacks.call(box, Callbacks.onDelete)
+                        box.disconnectFromAll()
+                    }
+                })
         }
 
         val inset = 6.0;
 
-        FLine().moveTo(frame.x.toDouble() + inset, frame.y.toDouble() + inset).lineTo(frame.xw.toDouble() - inset, frame.yh.toDouble() - inset)
-                .moveTo(frame.xw.toDouble() - inset, frame.y.toDouble() + inset).lineTo(frame.x.toDouble() + inset, frame.yh.toDouble() - inset).apply {
-            this += StandardFLineDrawing.color to Vec4(1.0, 1.0, 1.0, 0.5)
-            this += StandardFLineDrawing.thicken to BasicStroke(1f)
-            r += this
+        FLine().moveTo(frame.x.toDouble() + inset, frame.y.toDouble() + inset)
+            .lineTo(frame.xw.toDouble() - inset, frame.yh.toDouble() - inset)
+            .moveTo(frame.xw.toDouble() - inset, frame.y.toDouble() + inset)
+            .lineTo(frame.x.toDouble() + inset, frame.yh.toDouble() - inset).apply {
+                this += StandardFLineDrawing.color to Vec4(1.0, 1.0, 1.0, 0.5)
+                this += StandardFLineDrawing.thicken to BasicStroke(1f)
+                r += this
 
-            FLineButton.attach(box, this, mapOf(StandardFLineDrawing.color.name to Vec4(1.0, 0.9, 0.0, 0.15)), mapOf(StandardFLineDrawing.color.name to Vec4(1.0, 0.0, 0.0, 0.5)), { up, _, _ ->
-
-            })
-        }
+                FLineButton.attach(
+                    box,
+                    this,
+                    mapOf(StandardFLineDrawing.color.name to Vec4(1.0, 0.9, 0.0, 0.15)),
+                    mapOf(StandardFLineDrawing.color.name to Vec4(1.0, 0.0, 0.0, 0.5))
+                ) { _, _, _ ->
+                }
+            }
 
         var id = 0
 
@@ -73,7 +95,12 @@ class Gizmos() {
     }
 
     @JvmOverloads
-    fun makeMenuBox(box: Box, name: String = "__menubox__", relative: Vec2 = Vec2(0, 0), frame: Rect = Rect(0.0, 0.0, 10.0, 10.0)) {
+    fun makeMenuBox(
+        box: Box,
+        name: String = "__menubox__",
+        relative: Vec2 = Vec2(0, 0),
+        frame: Rect = Rect(0.0, 0.0, 10.0, 10.0)
+    ) {
 
         val r = mutableListOf<FLine>()
 
@@ -87,31 +114,43 @@ class Gizmos() {
 
             var dragging: Mouse.Dragger? = null
 
-            FLineButton.attach(box, this, mapOf(StandardFLineDrawing.color.name to Vec4(1.0, 0.9, 0.0, 0.25)), mapOf(StandardFLineDrawing.color.name to Vec4(1.0, 0.0, 0.0, 0.25)), { up, _, e ->
-                if (dragging == null)
-                    dragging = runMenu(box, Vec2(e.after.mx, e.after.my), spec)
+            FLineButton.attach(
+                box,
+                this,
+                mapOf(StandardFLineDrawing.color.name to Vec4(1.0, 0.9, 0.0, 0.25)),
+                mapOf(StandardFLineDrawing.color.name to Vec4(1.0, 0.0, 0.0, 0.25)),
+                { up, _, e ->
+                    if (dragging == null)
+                        dragging = runMenu(box, Vec2(e.after.mx, e.after.my), spec)
 
-                val terminated = e.after.buttonsDown.size == 0
+                    val terminated = e.after.buttonsDown.size == 0
 
-                dragging!!.update(e, terminated)
+                    dragging!!.update(e, terminated)
 
-                if (terminated)
-                    dragging = null
-            }).setUpSemantics(false)
+                    if (terminated)
+                        dragging = null
+                }).setUpSemantics(false)
         }
 
         val inset = 6.0;
 
-        FLine().moveTo(frame.x.toDouble() + inset, frame.y.toDouble() + inset).lineTo(frame.xw.toDouble() - inset, (frame.yh.toDouble() + frame.y.toDouble()) / 2)
-                .moveTo(frame.xw.toDouble() - inset, (frame.yh.toDouble() + frame.y.toDouble()) / 2).lineTo(frame.x.toDouble() + inset, frame.yh.toDouble() - inset).apply {
-            this += StandardFLineDrawing.color to Vec4(1.0, 1.0, 1.0, 0.5)
-            this += StandardFLineDrawing.thicken to BasicStroke(1f)
-            r += this
+        FLine().moveTo(frame.x.toDouble() + inset, frame.y.toDouble() + inset)
+            .lineTo(frame.xw.toDouble() - inset, (frame.yh.toDouble() + frame.y.toDouble()) / 2)
+            .moveTo(frame.xw.toDouble() - inset, (frame.yh.toDouble() + frame.y.toDouble()) / 2)
+            .lineTo(frame.x.toDouble() + inset, frame.yh.toDouble() - inset).apply {
+                this += StandardFLineDrawing.color to Vec4(1.0, 1.0, 1.0, 0.5)
+                this += StandardFLineDrawing.thicken to BasicStroke(1f)
+                r += this
 
-            FLineButton.attach(box, this, mapOf(StandardFLineDrawing.color.name to Vec4(1.0, 0.9, 0.0, 0.15)), mapOf(StandardFLineDrawing.color.name to Vec4(1.0, 0.0, 0.0, 0.5)), { up, _, _ ->
+                FLineButton.attach(
+                    box,
+                    this,
+                    mapOf(StandardFLineDrawing.color.name to Vec4(1.0, 0.9, 0.0, 0.15)),
+                    mapOf(StandardFLineDrawing.color.name to Vec4(1.0, 0.0, 0.0, 0.5)),
+                    { up, _, _ ->
 
-            })
-        }
+                    })
+            }
 
         var id = 0
 
@@ -127,7 +166,16 @@ class Gizmos() {
     }
 
     @JvmOverloads
-    fun makeToggleBox(box: Box, labelOne: String? = null, labelTwo: String? = null, name: String = "__button__", relative: Vec2 = Vec2(0, 0), frame: Rect = Rect(0.0, 0.0, 10.0, 10.0), oneToTwo: Runnable, twoToOne: Runnable) {
+    fun makeToggleBox(
+        box: Box,
+        labelOne: String? = null,
+        labelTwo: String? = null,
+        name: String = "__button__",
+        relative: Vec2 = Vec2(0, 0),
+        frame: Rect = Rect(0.0, 0.0, 10.0, 10.0),
+        oneToTwo: Runnable,
+        twoToOne: Runnable
+    ) {
 
         var state = 1
         var b: Consumer<String>? = null
@@ -148,7 +196,14 @@ class Gizmos() {
     }
 
     @JvmOverloads
-    fun makeButton(box: Box, label: String? = null, name: String = "__button__", relative: Vec2 = Vec2(0, 0), frame: Rect = Rect(0.0, 0.0, 10.0, 10.0), go: Runnable): Consumer<String> {
+    fun makeButton(
+        box: Box,
+        label: String? = null,
+        name: String = "__button__",
+        relative: Vec2 = Vec2(0, 0),
+        frame: Rect = Rect(0.0, 0.0, 10.0, 10.0),
+        go: Runnable
+    ): Consumer<String> {
 
         val r = mutableListOf<FLine>()
 
@@ -188,24 +243,41 @@ class Gizmos() {
             frame
         }
 
-        FLine().roundedRect(frame2.x.toDouble(), frame2.y.toDouble(), frame2.w.toDouble(), frame2.h.toDouble(), 7.0).apply {
-            this += StandardFLineDrawing.color to Vec4(0.25, 0.25, 0.25, 0.5)
-            this += StandardFLineDrawing.filled to true
-            this += StandardFLineDrawing.stroked to false
-            r += this
-            FLineButton.attach(box, this, mapOf(StandardFLineDrawing.color.name to Vec4(1.0, 0.9, 0.0, 0.1)), mapOf(StandardFLineDrawing.color.name to Vec4(1.0, 0.0, 0.0, 0.25)), { up, _, e ->
-                if (up) go.run()
-            }).setUpSemantics(true)
-        }
+        FLine().roundedRect(frame2.x.toDouble(), frame2.y.toDouble(), frame2.w.toDouble(), frame2.h.toDouble(), 7.0)
+            .apply {
+                this += StandardFLineDrawing.color to Vec4(0.25, 0.25, 0.25, 0.5)
+                this += StandardFLineDrawing.filled to true
+                this += StandardFLineDrawing.stroked to false
+                r += this
+                FLineButton.attach(
+                    box,
+                    this,
+                    mapOf(StandardFLineDrawing.color.name to Vec4(1.0, 0.9, 0.0, 0.1)),
+                    mapOf(StandardFLineDrawing.color.name to Vec4(1.0, 0.0, 0.0, 0.25)),
+                    { up, _, e ->
+                        if (up) go.run()
+                    }).setUpSemantics(true)
+            }
 
-        var l1 = FLine().roundedRect(frame2.x.toDouble() + inset, frame2.y.toDouble() + inset, frame2.w.toDouble() - inset * 2, frame2.h.toDouble() - inset * 2, 7.0).apply {
+        var l1 = FLine().roundedRect(
+            frame2.x.toDouble() + inset,
+            frame2.y.toDouble() + inset,
+            frame2.w.toDouble() - inset * 2,
+            frame2.h.toDouble() - inset * 2,
+            7.0
+        ).apply {
             this += StandardFLineDrawing.color to Vec4(1.0, 1.0, 1.0, 0.1)
             this += StandardFLineDrawing.thicken to BasicStroke(1f)
             r += this
 
-            FLineButton.attach(box, this, mapOf(StandardFLineDrawing.color.name to Vec4(1.0, 0.9, 0.0, 0.5)), mapOf(StandardFLineDrawing.color.name to Vec4(1.0, 0.0, 0.0, 0.5)), { up, _, _ ->
+            FLineButton.attach(
+                box,
+                this,
+                mapOf(StandardFLineDrawing.color.name to Vec4(1.0, 0.9, 0.0, 0.5)),
+                mapOf(StandardFLineDrawing.color.name to Vec4(1.0, 0.0, 0.0, 0.5)),
+                { up, _, _ ->
 
-            })
+                })
         }
 
         val c1 = l1.cursor().setT(FLinesAndJavaShapes.closestT(l1, Vec3(0.0, 0.0, 0.0))).position()
@@ -213,12 +285,18 @@ class Gizmos() {
         val boxFrame = (box get Box.frame)!!
         val offset = boxFrame.convert(relative.x, relative.y)
 
-        val boxFrameLine = FLine().roundedRect(boxFrame.x.toDouble() - offset.x, boxFrame.y.toDouble() - offset.y, boxFrame.w.toDouble(), boxFrame.h.toDouble(), 19.0)
+        val boxFrameLine = FLine().roundedRect(
+            boxFrame.x.toDouble() - offset.x,
+            boxFrame.y.toDouble() - offset.y,
+            boxFrame.w.toDouble(),
+            boxFrame.h.toDouble(),
+            19.0
+        )
         val c2 = boxFrameLine.cursor().setT(FLinesAndJavaShapes.closestT(boxFrameLine, Vec3(0.0, 0.0, 0.0))).position()
         val c3 = l1.cursor().setT(FLinesAndJavaShapes.closestT(l1, Vec3(c2.x, c2.y, 0.0))).position()
 
 
-        if (c2.distance(c3)>30) {
+        if (c2.distance(c3) > 30) {
             FLine().moveTo(c3).lineTo(c2).apply {
                 this += StandardFLineDrawing.color to Vec4(1.0, 1.0, 1.0, 0.1)
                 this += StandardFLineDrawing.thicken to BasicStroke(1f)

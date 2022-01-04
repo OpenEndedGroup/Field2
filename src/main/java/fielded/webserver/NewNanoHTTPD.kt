@@ -4,20 +4,15 @@ import org.json.JSONObject
 import org.nanohttpd.protocols.http.IHTTPSession
 import org.nanohttpd.protocols.http.request.Method
 import org.nanohttpd.protocols.http.response.Response
-import org.nanohttpd.protocols.http.response.Status.*
 import org.nanohttpd.protocols.http.response.Status
+import org.nanohttpd.protocols.http.response.Status.*
 import org.nanohttpd.protocols.websockets.CloseCode
 import org.nanohttpd.protocols.websockets.NanoWSD
 import org.nanohttpd.protocols.websockets.WebSocket
 import org.nanohttpd.protocols.websockets.WebSocketFrame
 import java.io.*
-import java.util.*
-import java.io.IOException
-import java.io.FileInputStream
-import java.io.FileNotFoundException
-import java.nio.file.CopyOption
 import java.nio.file.Files
-import java.nio.file.StandardCopyOption
+import java.util.*
 
 
 // experimenting with new version of nanohttpd (which will serve websockets on the same port)

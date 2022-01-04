@@ -5,12 +5,8 @@ package fieldlinker;
 
 //import field.utility.AsMapDelegator;
 
-import jdk.dynalink.beans.StaticClass;
 import jdk.dynalink.linker.*;
-//import jdk.dynalink.support.Guards;
-//import jdk.nashorn.api.scripting.extensions.CustomDelete;
 import jdk.dynalink.linker.support.Guards;
-;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -18,7 +14,10 @@ import java.lang.invoke.MethodType;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Supplier;
+
+//import jdk.dynalink.support.Guards;
+//import jdk.nashorn.api.scripting.extensions.CustomDelete;
+;
 
 /**
  *

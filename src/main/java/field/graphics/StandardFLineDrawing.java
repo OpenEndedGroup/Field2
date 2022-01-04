@@ -8,7 +8,6 @@ import field.utility.IdempotencyMap;
 import fieldbox.boxes.TextDrawing;
 
 import java.awt.*;
-import java.util.Collections;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;

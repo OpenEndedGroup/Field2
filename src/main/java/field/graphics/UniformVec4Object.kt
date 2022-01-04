@@ -3,13 +3,15 @@ package field.graphics
 import field.linalg.Vec2
 import field.linalg.Vec3
 import field.linalg.Vec4
-import org.lwjgl.opengl.*
+import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL15.glDeleteBuffers
-import java.nio.FloatBuffer
-
 import org.lwjgl.opengl.GL15.glGenBuffers
+import org.lwjgl.opengl.GL30
+import org.lwjgl.opengl.GL31
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.nio.FloatBuffer
 
 /**
  * this uses a uniform buffer object to provide an array of vec4 of some kind (note that, std140 layout rules make all array elements smaller than a vec4 take up the space of a vec4). This doesn't expose the complete flexibility of a UBO, just, perhaps, the most common case
@@ -44,8 +46,7 @@ class UniformVec4Object : BaseScene<UniformVec4Object.State> {
         s.buffer = glGenBuffers()
         GL15.glBindBuffer(GL31.GL_UNIFORM_BUFFER, s.buffer);
         GL15.glBufferData(GL31.GL_UNIFORM_BUFFER, 4L * 4L * numVec4, GL15.GL_STREAM_DRAW);
-        if (data != null)
-            GL15.glBufferSubData(GL31.GL_UNIFORM_BUFFER, 0, data);
+        GL15.glBufferSubData(GL31.GL_UNIFORM_BUFFER, 0, data);
         GL15.glBindBuffer(GL31.GL_UNIFORM_BUFFER, 0);
 
         return s

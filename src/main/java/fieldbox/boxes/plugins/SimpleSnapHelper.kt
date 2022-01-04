@@ -2,14 +2,10 @@ package fieldbox.boxes.plugins
 
 import field.graphics.FLine
 import field.graphics.StandardFLineDrawing
-import field.linalg.Vec4
 import field.utility.*
 import fieldbox.boxes.Box
 import fieldbox.boxes.Drawing
-import fieldlinker.AsMap
 import java.awt.BasicStroke
-import java.util.function.Supplier
-
 import java.util.stream.Collectors
 
 

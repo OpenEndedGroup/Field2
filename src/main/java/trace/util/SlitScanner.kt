@@ -4,7 +4,6 @@ import field.graphics.FastJPEG
 import field.linalg.Vec3
 import fieldbox.io.IO.pad
 import java.io.File
-import java.lang.Exception
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.file.Files

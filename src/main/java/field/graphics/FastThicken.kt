@@ -1,10 +1,8 @@
 package field.graphics
 
 import field.linalg.Vec3
-import field.linalg.Vec4
 import field.utility.Dict
 import field.utility.times
-import java.util.function.Supplier
 
 class FastThicken {
     companion object {

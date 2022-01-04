@@ -2,7 +2,6 @@ package field.graphics.vr
 
 import field.utility.IdempotencyMap
 import java.lang.Math.abs
-import java.util.ArrayList
 import java.util.function.Supplier
 
 class Buttons(init: (Buttons) -> Unit) : Runnable {

@@ -1,9 +1,7 @@
 package trace.physics
 
-import field.app.RunLoop
 import field.graphics.FLine
 import field.graphics.StandardFLineDrawing.texCoord
-import field.linalg.Vec3
 import field.utility.Dict
 import field.utility.IdempotencyMap
 import field.utility.Rect

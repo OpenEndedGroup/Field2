@@ -1,20 +1,17 @@
 package trace.graphics
 
+//import field.graphics.vr.FakeOculusDrawTarget
 import field.app.RunLoop
 import field.app.ThreadSync2
 import field.graphics.GlfwCallback
 import field.graphics.Scene
 import field.graphics.Window
-//import field.graphics.vr.FakeOculusDrawTarget
 import field.graphics.vr.OculusDrawTarget2
 import field.graphics.vr.OpenVRDrawTarget
 import field.linalg.Mat4
 import field.linalg.Vec2
 import fieldagent.Main
-import fieldbox.boxes.Boxes.window
 import fieldbox.ui.GlfwCallbackDelegate
-import fieldagent.Main.OS
-import trace.graphics.remote.RemoteServer
 
 class SimpleOculusTarget {
 

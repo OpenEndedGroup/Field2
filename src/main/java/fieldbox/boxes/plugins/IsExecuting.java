@@ -1,6 +1,5 @@
 package fieldbox.boxes.plugins;
 
-import field.app.RunLoop;
 import field.graphics.FLine;
 import field.linalg.Vec4;
 import field.utility.Cached;

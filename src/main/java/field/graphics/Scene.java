@@ -2,12 +2,12 @@ package field.graphics;
 
 //import com.google.common.collect.BiMap;
 //import com.google.common.collect.HashBiMap;
+
 import field.utility.*;
 import fieldbox.boxes.Box;
 import fieldbox.execution.Completion;
 import fieldbox.execution.Errors;
 import fieldbox.execution.InverseDebugMapping;
-import fieldlinker.Linker;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 
 import java.lang.reflect.Field;

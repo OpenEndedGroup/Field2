@@ -1,22 +1,11 @@
 package trace.scratch;
 
-import field.CanonicalModifierKeys;
-import field.app.RunLoop;
-import field.app.ThreadSync2;
-import field.graphics.GlfwCallback;
-import field.graphics.Windows;
-import field.utility.Dict;
-import field.utility.Options;
-import fieldagent.Main;
 import fieldcef.browser.CefSystem;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL43;
-import org.lwjgl.opengl.GLUtil;
 
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.glfw.GLFW.GLFW_STICKY_MOUSE_BUTTONS;
 
 public class Scratch implements Runnable {
 

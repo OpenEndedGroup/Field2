@@ -1,13 +1,11 @@
 package fieldbox.boxes;
 
 import field.app.RunLoop;
-import field.app.ThreadSync;
 import field.app.ThreadSync2;
 import field.utility.*;
 import fieldbox.DefaultMenus;
 import fieldbox.boxes.plugins.BoxDefaultCode;
 import fieldbox.boxes.plugins.Missing;
-import fieldbox.boxes.plugins.ThreadSync2Feedback;
 import fieldbox.execution.*;
 import fieldbox.io.IO;
 import fieldnashorn.annotations.HiddenInAutocomplete;

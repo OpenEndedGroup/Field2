@@ -1,8 +1,6 @@
 package trace.graphics.remote
 
 import fielded.webserver.NewNanoHTTPD
-import org.java_websocket.server.WebSocketServer
-import org.nanohttpd.protocols.websockets.WebSocket
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder

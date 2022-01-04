@@ -7,7 +7,10 @@ import field.linalg.Vec3;
 import field.utility.Dict;
 import field.utility.IdempotencyMap;
 import field.utility.Log;
-import fieldbox.boxes.*;
+import fieldbox.boxes.Box;
+import fieldbox.boxes.Drawing;
+import fieldbox.boxes.FLineDrawing;
+import fieldbox.boxes.Mouse;
 
 import java.util.*;
 import java.util.function.Function;

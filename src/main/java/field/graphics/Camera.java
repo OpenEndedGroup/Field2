@@ -5,7 +5,6 @@ import field.linalg.Quat;
 import field.linalg.Vec3;
 import field.utility.Serializable_safe;
 
-import java.io.Serializable;
 import java.util.function.Function;
 
 /**

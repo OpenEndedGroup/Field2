@@ -3,13 +3,9 @@ package fieldbox.boxes.plugins
 import field.graphics.FLine
 import field.graphics.StandardFLineDrawing.*
 import field.linalg.Vec4
-import field.utility.Dict
 import field.utility.Rect
 import field.utility.plusAssign
 import fieldbox.boxes.Box
-
-import java.util.*
-
 import fieldbox.boxes.TimeSlider.localTime
 import java.awt.BasicStroke
 import java.util.function.Consumer

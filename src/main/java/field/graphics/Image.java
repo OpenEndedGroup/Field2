@@ -1,15 +1,6 @@
 package field.graphics;
 
-import org.lwjgl.opengl.GL11;
-
-import java.nio.FloatBuffer;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
-
-import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL15.GL_READ_WRITE;
-import static org.lwjgl.opengl.GL30.GL_RGBA32F;
 import static org.lwjgl.opengl.GL42.glBindImageTexture;
 
 /**

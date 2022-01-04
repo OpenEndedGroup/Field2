@@ -7,12 +7,8 @@ import field.linalg.Vec3
 import field.linalg.Vec4
 import field.utility.Vec4
 import field.utility.remAssign
-import java.io.BufferedWriter
 import java.io.File
 import java.io.FileOutputStream
-import java.io.FileWriter
-
-import java.util.function.Function
 
 /**
  * Created by marc on 6/25/17.

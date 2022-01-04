@@ -1,28 +1,13 @@
 package trace.graphics
 
+
 import field.graphics.BaseMesh
-import field.linalg.Vec3
-import java.io.*
-
-
-import field.graphics.MeshBuilder
 import field.linalg.Quat
-import field.utility.remAssign
-import field.utility.times
+import field.linalg.Vec3
 import marc.math.Flann
-
-import java.io.BufferedReader
-import java.io.File
-import java.io.FileNotFoundException
-import java.io.FileReader
-import java.io.IOException
-import java.io.RandomAccessFile
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
-import java.nio.MappedByteBuffer
-import java.nio.channels.FileChannel.MapMode
-import java.util.ArrayList
 
 
 class FastLoadPly(val fn: String) {

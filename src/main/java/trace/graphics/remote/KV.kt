@@ -1,6 +1,5 @@
 package trace.graphics.remote
 
-import org.json.JSONArray
 import org.json.JSONObject
 
 /** the world's most straightforward key-value store */

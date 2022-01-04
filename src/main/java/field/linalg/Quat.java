@@ -28,7 +28,6 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.function.Supplier;
 

@@ -1,7 +1,5 @@
 package trace.util
 
-import java.util.regex.Matcher
-
 class Production {
     inner class Rule(val left: String, val right: String) {
         fun apply(a: String): String {

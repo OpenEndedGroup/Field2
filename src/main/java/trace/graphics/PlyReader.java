@@ -1,16 +1,10 @@
 package trace.graphics;
 
-import field.graphics.MeshBuilder;
 import field.linalg.Vec3;
 import field.linalg.Vec4;
 import field.utility.Pair;
 
-import java.awt.Color;
-import java.io.BufferedInputStream;
-import java.io.Closeable;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

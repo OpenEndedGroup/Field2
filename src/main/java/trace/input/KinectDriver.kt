@@ -2,7 +2,6 @@ package trace.input
 
 import field.graphics.Texture
 import org.openkinect.freenect.*
-import java.lang.IllegalArgumentException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer

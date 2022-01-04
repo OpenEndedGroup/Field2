@@ -6,7 +6,6 @@ import field.graphics.util.Saver
 import field.utility.IdempotencyMap
 import field.utility.Rect
 import field.utility.Vec2
-import fieldbox.boxes.FLineDrawing
 import java.awt.Desktop
 import java.io.File
 import java.util.function.Supplier

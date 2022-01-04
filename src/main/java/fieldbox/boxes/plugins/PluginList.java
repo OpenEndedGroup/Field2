@@ -4,7 +4,6 @@ import field.utility.Dict;
 import field.utility.Log;
 import field.utility.Options;
 import fieldagent.Main;
-//import fieldagent.Trampoline;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Callbacks;
 import us.bpsm.edn.EdnSyntaxException;
@@ -13,8 +12,6 @@ import us.bpsm.edn.parser.Parser;
 import us.bpsm.edn.parser.Parsers;
 
 import java.io.*;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 

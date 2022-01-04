@@ -11,12 +11,9 @@ import fieldbox.ui.FieldBoxWindow;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.LinkedHashSet;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static fieldbox.boxes.Boxes.window;
 
 public class KeyboardShortcuts extends Box {
 

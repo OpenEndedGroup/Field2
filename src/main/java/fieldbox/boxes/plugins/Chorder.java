@@ -1,7 +1,6 @@
 package fieldbox.boxes.plugins;
 
 import field.app.RunLoop;
-import field.app.ThreadSync;
 import field.app.ThreadSync2;
 import field.graphics.FLine;
 import field.graphics.Window;
@@ -17,13 +16,10 @@ import fieldbox.boxes.MarkingMenus;
 import fieldbox.boxes.Mouse;
 import fieldbox.execution.Execution;
 import fielded.RemoteEditor;
-import fieldlinker.Linker;
-import trace.graphics.remote.RemoteServer;
 
 import java.awt.*;
-import java.util.*;
 import java.util.List;
-import java.util.concurrent.Callable;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;

@@ -1,28 +1,20 @@
 package fieldcef.browser
 
-import java.util.LinkedHashMap
-import java.lang.Runnable
-import org.cef.browser.CefBrowser
-import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.CompletableFuture
-import java.nio.ByteOrder
-import java.util.UUID
-import fieldcef.browser.HTMLToTexture
 import field.graphics.Scene.Perform
 import field.graphics.Texture
-import java.lang.InterruptedException
-import java.util.concurrent.ExecutionException
 import field.utility.Ports
-import java.io.IOException
-import fielded.webserver.Server.URIHandler
-import fieldcef.browser.CefSystem
-import fieldcef.browser.CefSystem.MessageCallback
 import fielded.webserver.NanoHTTPD
 import fielded.webserver.Server
+import org.cef.browser.CefBrowser
 import java.awt.Rectangle
+import java.io.IOException
 import java.nio.ByteBuffer
-import java.util.ArrayList
+import java.nio.ByteOrder
+import java.util.*
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ExecutionException
 import java.util.concurrent.Future
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
 
 /**

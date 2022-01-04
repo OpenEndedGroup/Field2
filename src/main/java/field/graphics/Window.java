@@ -9,18 +9,14 @@ import field.graphics.util.KeyEventMapping;
 import field.graphics.util.Saver;
 import field.linalg.Vec2;
 import field.linalg.Vec3;
-import field.linalg.Vec4;
 import field.utility.*;
-import field.utility.Util;
 import fieldagent.Main;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Colors;
 import fieldbox.boxes.Mouse;
 import fielded.boxbrowser.BoxBrowser;
-import fieldlinker.Linker;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 import org.lwjgl.Version;
-import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.Callback;
 import org.lwjgl.system.Configuration;
@@ -37,7 +33,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.glfw.GLFW.glfwPollEvents;
 
 
 /**

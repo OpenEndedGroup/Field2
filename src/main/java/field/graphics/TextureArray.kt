@@ -51,7 +51,7 @@ class TextureArray(var unit: Int, val w: Int, val h: Int, val d: Int, val source
     }
 
     override fun deallocate(s: State) {
-        GL11.glDeleteTextures(s!!.name)
+        GL11.glDeleteTextures(s.name)
     }
 
     override fun getUniform(): Int {
@@ -69,7 +69,7 @@ class TextureArray(var unit: Int, val w: Int, val h: Int, val d: Int, val source
         fun fromDirectory(unit: Int, fn: String, maxNum: Int = -1, loadEvery: Int = 1): TextureArray? {
 
             val uu = dirCache.computeIfAbsent(fn + " " + maxNum) {
-                var jj = File(fn).listFiles(FilenameFilter { dir, name ->
+                var jj = File(fn).listFiles(FilenameFilter { _, name ->
                     name.endsWith(".jpg") && !name.startsWith(".")
                 }) ?: return@computeIfAbsent null
 

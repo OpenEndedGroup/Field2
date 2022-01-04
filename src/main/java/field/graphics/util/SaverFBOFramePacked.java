@@ -6,14 +6,11 @@ import field.graphics.SlowJPEG;
 import field.utility.IdempotencyMap;
 import field.utility.Pair;
 import fieldnashorn.annotations.HiddenInAutocomplete;
-import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
-import org.lwjgl.opengl.GL13;
 
 import java.awt.*;
 import java.io.File;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;

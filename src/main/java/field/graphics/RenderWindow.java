@@ -1,6 +1,5 @@
 package field.graphics;
 
-import fieldagent.Main;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWVidMode;

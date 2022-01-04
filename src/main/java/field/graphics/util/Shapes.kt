@@ -5,17 +5,18 @@ package field.graphics.util
 import field.graphics.MeshBuilder
 import field.linalg.Quat
 import field.linalg.Vec3
-import field.utility.*
+import field.utility.Documentation
+import field.utility.plus
 import field.utility.use
 import fieldnashorn.annotations.SafeToToString
+import org.lwjgl.assimp.*
+import org.lwjgl.assimp.Assimp.*
 import org.lwjgl.util.par.ParShapes
 import org.lwjgl.util.par.ParShapesMesh
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
-import org.lwjgl.assimp.*
-import org.lwjgl.assimp.Assimp.*
 
 /**
  * Classes that will help MeshBuilder support simple shapes
@@ -79,14 +80,12 @@ class Shapes {
         }
 
         @JvmStatic
-        @JvmOverloads
         @Documentation("Appends a torus of with radius `scale` and inner radius `scale` * `inner_radius` to `builder`")
         fun torus(scale: Number, slices: Int, stacks: Int, inner_radius: Number, builder: MeshBuilder): MeshBuilder {
             return torus(Vec3(scale.toDouble(), scale.toDouble(), scale.toDouble()), slices, stacks, inner_radius, builder)
         }
 
         @JvmStatic
-        @JvmOverloads
         @Documentation("Appends a tetrahedron of size `scale`")
         fun tetrahedron(scale: Vec3 = Vec3(1.0, 1.0, 1.0), builder: MeshBuilder): MeshBuilder {
             val shape = ParShapes.par_shapes_create_tetrahedron()!!
@@ -96,7 +95,6 @@ class Shapes {
         }
 
         @JvmStatic
-        @JvmOverloads
         @Documentation("Appends a tetrahedron of size `scale`")
         fun tetrahedron(scale: Number, builder: MeshBuilder): MeshBuilder {
             return tetrahedron(Vec3(scale.toDouble(), scale.toDouble(), scale.toDouble()), builder)

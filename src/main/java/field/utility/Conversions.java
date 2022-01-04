@@ -2,10 +2,8 @@ package field.utility;
 
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;
-import fieldbox.execution.InverseDebugMapping;
-import org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory;
-import org.openjdk.nashorn.api.scripting.ScriptUtils;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.openjdk.nashorn.api.scripting.ScriptUtils;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -13,7 +11,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import static fieldbox.execution.InverseDebugMapping.*;
+import static fieldbox.execution.InverseDebugMapping.provideExtraInformation;
 
 //import jdk.nashorn.internal.runtime.ScriptFunction;
 //import jdk.nashorn.internal.runtime.ScriptObject;

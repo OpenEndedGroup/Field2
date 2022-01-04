@@ -5,7 +5,6 @@ import fieldbox.DefaultMenus
 import fieldbox.FieldBox
 import fieldbox.Open
 import fieldbox.boxes.Box
-import fieldbox.io.IO
 import fielded.Commands
 import fielded.plugins.Launch
 import java.awt.Desktop

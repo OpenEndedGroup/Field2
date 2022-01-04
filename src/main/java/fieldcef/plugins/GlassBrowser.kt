@@ -1,9 +1,6 @@
 package fieldcef.plugins
 
-import fieldbox.io.IO.Loaded
-import fieldcef.browser.Browser
 import field.app.RunLoop
-import field.graphics.Scene.Perform
 import field.graphics.Window
 import field.utility.Dict
 import field.utility.Log
@@ -11,18 +8,15 @@ import field.utility.Rect
 import fieldagent.Main
 import fieldbox.boxes.*
 import fieldbox.boxes.Keyboard.OnKeyDown
-import org.lwjgl.glfw.GLFW
-import fielded.ServerSupport
-import java.lang.IllegalArgumentException
-import java.lang.Runnable
-import java.lang.InterruptedException
-import org.json.JSONObject
-import fielded.RemoteEditor.ExtendedCommand
-import fieldbox.ui.FieldBoxWindow
-import java.io.File
-import fieldcef.plugins.GlassBrowser
+import fieldbox.io.IO.Loaded
+import fieldcef.browser.Browser
 import fielded.Commands
+import fielded.RemoteEditor.ExtendedCommand
+import fielded.ServerSupport
+import org.json.JSONObject
+import org.lwjgl.glfw.GLFW
 import java.io.BufferedReader
+import java.io.File
 import java.io.FileReader
 import java.io.IOException
 import java.util.*

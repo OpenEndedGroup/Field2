@@ -1,5 +1,6 @@
 package field.graphics.vr
 
+//import org.lwjgl.ovr.OVR
 import field.graphics.FBO
 import field.graphics.GraphicsContext
 import field.graphics.Scene
@@ -11,17 +12,9 @@ import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.openvr.*
 import org.lwjgl.openvr.VR.*
+import org.lwjgl.openvr.VRSystem.*
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryStack.stackPush
-import java.nio.IntBuffer
-import org.lwjgl.openvr.VR.ETrackedDeviceProperty_Prop_SerialNumber_String
-import org.lwjgl.openvr.VR.k_unTrackedDeviceIndex_Hmd
-import org.lwjgl.openvr.VR.ETrackedDeviceProperty_Prop_ModelNumber_String
-import org.lwjgl.openvr.VRSystem.*
-//import org.lwjgl.ovr.OVR
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import java.nio.LongBuffer
 
 class OpenVRDrawTarget {
 

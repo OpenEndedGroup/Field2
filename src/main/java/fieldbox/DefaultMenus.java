@@ -12,7 +12,6 @@ import fieldbox.boxes.*;
 import fieldbox.boxes.plugins.DragToCopy;
 import fieldbox.io.IO;
 import fielded.Commands;
-import fielded.RemoteEditor;
 import fielded.plugins.Launch;
 
 import java.io.File;

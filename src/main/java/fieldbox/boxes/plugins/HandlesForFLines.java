@@ -17,9 +17,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static fieldbox.boxes.plugins.Handles.draggables;
-import static fieldbox.boxes.plugins.Handles.hasDraggables;
-import static fieldbox.boxes.plugins.Handles.inside;
+import static fieldbox.boxes.plugins.Handles.*;
 
 /**
  * Useful classes for turning FLines into editable things using Handles

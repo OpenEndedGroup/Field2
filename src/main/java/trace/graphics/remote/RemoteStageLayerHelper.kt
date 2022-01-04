@@ -1,8 +1,6 @@
 package trace.graphics.remote
 
 import fielded.webserver.NewNanoHTTPD
-import org.java_websocket.WebSocket
-import org.java_websocket.server.WebSocketServer
 import trace.graphics.Stage
 
 class RemoteStageLayerHelper(val websocket: NewNanoHTTPD, val max_vertex: Int, val max_element: Int, val element_dim: Int, var channel_name: String) {

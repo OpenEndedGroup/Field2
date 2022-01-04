@@ -5,7 +5,6 @@ import trace.video.Analysis
 import java.io.File
 import java.nio.ByteBuffer
 import java.util.*
-import kotlin.experimental.and
 
 class Green : Analysis.Fast {
 

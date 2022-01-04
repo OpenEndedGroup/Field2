@@ -2,10 +2,8 @@ package fieldbox.boxes.plugins
 
 import field.graphics.*
 import field.utility.IdempotencyMap
-import fieldbox.boxes.TextDrawing
 import java.util.*
 import java.util.function.Supplier
-import java.util.stream.Collectors
 
 class StandardLines(val shader: Shader) {
     val triangles: BaseMesh

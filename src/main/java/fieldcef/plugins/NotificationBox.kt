@@ -1,24 +1,20 @@
 package fieldcef.plugins
 
 
-import fieldbox.io.IO.Loaded
-import fieldcef.browser.Browser
-import fielded.plugins.Out
-import field.graphics.StandardFLineDrawing
-import fielded.ServerSupport
-import java.lang.IllegalArgumentException
 import field.app.RunLoop
-import field.graphics.Scene.Perform
+import field.graphics.StandardFLineDrawing
 import field.linalg.Vec2
 import field.utility.Dict
 import field.utility.Log
 import field.utility.Rect
 import fieldagent.Main
 import fieldbox.boxes.*
-import java.io.File
-import fieldcef.plugins.NotificationBox
-import java.lang.Runnable
+import fieldbox.io.IO.Loaded
+import fieldcef.browser.Browser
+import fielded.ServerSupport
+import fielded.plugins.Out
 import java.io.BufferedReader
+import java.io.File
 import java.io.FileReader
 import java.io.IOException
 import java.util.*

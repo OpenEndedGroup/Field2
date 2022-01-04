@@ -7,13 +7,7 @@ import fieldagent.Main;
 import fieldbox.io.IO;
 import fieldcef.browser.CefSystem;
 
-import javax.swing.*;
 import java.awt.*;
-import java.awt.desktop.OpenFilesEvent;
-import java.awt.desktop.OpenFilesHandler;
-import java.awt.desktop.SystemEventListener;
-
-import static org.lwjgl.glfw.GLFW.glfwInit;
 
 /**
  * The main entry-point for Field2.

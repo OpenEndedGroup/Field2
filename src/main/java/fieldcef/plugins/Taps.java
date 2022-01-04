@@ -9,7 +9,6 @@ import field.utility.Rect;
 import fieldbox.DefaultMenus;
 import fieldbox.boxes.*;
 import fieldbox.boxes.plugins.Chorder;
-import fieldbox.boxes.plugins.Exec;
 import fieldbox.boxes.plugins.Templates;
 import fieldbox.io.IO;
 import fielded.RemoteEditor;

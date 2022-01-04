@@ -5,9 +5,7 @@ import field.utility.*;
 import fieldbox.execution.Errors;
 import fieldbox.execution.Execution;
 import fielded.DisabledRangeHelper;
-import org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import org.openjdk.nashorn.api.scripting.ScriptUtils;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import java.util.*;
 import java.util.function.Consumer;

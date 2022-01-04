@@ -1,10 +1,6 @@
 package trace.util
 
-import org.json.JSONObject
-import org.json.JSONString
-import org.json.JSONStringer
 import java.io.File
-import java.lang.IllegalArgumentException
 import java.nio.file.Files
 
 class JSONLines(val fn: String) {

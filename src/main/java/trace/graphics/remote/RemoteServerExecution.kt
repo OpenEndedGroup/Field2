@@ -19,9 +19,7 @@ import fielded.Commands
 import fielded.RemoteEditor
 import fielded.live.Asta
 import org.json.JSONObject
-import org.nanohttpd.protocols.websockets.WebSocket
 import trace.graphics.Stage
-
 import java.net.InetAddress
 import java.util.*
 import java.util.function.BiConsumer

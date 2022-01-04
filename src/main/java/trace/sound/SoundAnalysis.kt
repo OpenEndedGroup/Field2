@@ -7,9 +7,8 @@ import com.google.gson.JsonParser
 import org.apache.commons.math4.distribution.EmpiricalDistribution
 import org.apache.commons.math4.stat.descriptive.SummaryStatistics
 import org.lwjgl.util.WaveData
-import trace.sound.Sound.*
+import trace.sound.Sound.floatsFromFile
 import java.io.*
-import java.lang.IllegalArgumentException
 import java.nio.FloatBuffer
 
 class SoundAnalysis(val fn: String) {

@@ -1,6 +1,5 @@
 package field.graphics
 
-import field.linalg.Vec2
 import field.linalg.Vec3
 import field.utility.minus
 import field.utility.plus

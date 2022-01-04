@@ -1,12 +1,10 @@
 package trace.sound
 
 import field.graphics.FastJPEG
-import field.graphics.FastThicken.Companion.t
 import jm.util.Write
 import java.io.File
 import java.nio.ByteBuffer
 import java.util.*
-import kotlin.experimental.and
 
 class Hard(val dir: String, val w: Int, var h: Int) {
 

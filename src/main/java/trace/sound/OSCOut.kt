@@ -1,8 +1,7 @@
 package trace.sound
 
-import com.illposed.osc.*
-import com.illposed.osc.transport.*
-import field.app.RunLoop
+import com.illposed.osc.OSCMessage
+import com.illposed.osc.transport.OSCPortOut
 import field.linalg.Vec2
 import field.linalg.Vec3
 import field.linalg.Vec4

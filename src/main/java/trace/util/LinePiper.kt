@@ -1,8 +1,5 @@
 package trace.util
 
-import field.graphics.FLine
-import field.utility.IdempotencyMap
-
 class LinePiper<T>(val head: T, val construct: () -> T, val duplicate: (T) -> T, LATENCY: Int) {
 
     val stack = MutableList<T>(LATENCY, { construct() })

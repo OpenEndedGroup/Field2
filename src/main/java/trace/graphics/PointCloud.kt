@@ -2,7 +2,6 @@ package trace.graphics
 
 import field.graphics.FLine
 import field.graphics.StandardFLineDrawing
-import field.linalg.Vec2
 import field.linalg.Vec3
 import field.linalg.Vec4
 import field.utility.Dict

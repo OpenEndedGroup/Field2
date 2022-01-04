@@ -1,7 +1,6 @@
 package trace.graphics.remote
 
 import field.linalg.Vec3
-import field.utility.Vec3
 import java.io.File
 
 class Space(val r: RemoteServer) {

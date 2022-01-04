@@ -16,8 +16,8 @@ import org.lwjgl.glfw.GLFW;
 
 import java.awt.*;
 import java.awt.geom.Area;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 
 import static field.graphics.StandardFLineDrawing.*;

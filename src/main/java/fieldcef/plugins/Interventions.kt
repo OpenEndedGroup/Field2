@@ -1,12 +1,14 @@
 package fieldcef.plugins
 
 import field.app.RunLoop
-import field.graphics.util.onsheetui.SimpleCanvas
 import field.graphics.util.onsheetui.get
 import field.utility.*
 import fieldbox.DefaultMenus
-import fieldbox.boxes.*
-import fieldbox.boxes.FrameManipulation.selection
+import fieldbox.boxes.Box
+import fieldbox.boxes.Box.TriFunctionOfBoxAnd
+import fieldbox.boxes.Boxes
+import fieldbox.boxes.Mouse
+import fieldbox.boxes.TimeSlider
 import fieldbox.boxes.plugins.BoxDefaultCode
 import fieldbox.boxes.plugins.Chorder
 import fieldbox.boxes.plugins.Chorder.begin
@@ -14,16 +16,12 @@ import fieldbox.boxes.plugins.DragToCopy
 import fieldbox.execution.Execution
 import fieldbox.io.IO
 import fielded.RemoteEditor
-import fielded.webserver.Server
 import org.json.JSONObject
-import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.util.*
-import java.util.function.Predicate
 import java.util.function.Function
 import java.util.function.Supplier
 import java.util.stream.Collectors
-import java.util.stream.Stream
 
 class Interventions(val root: Box) : Box(), IO.Loaded {
     private var editorLoaded: Boolean = false

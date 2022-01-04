@@ -5,7 +5,6 @@ import field.graphics.StandardFLineDrawing;
 import field.graphics.Window;
 import field.linalg.Vec2;
 import field.linalg.Vec3;
-import fieldbox.boxes.FLineDrawing;
 
 import java.util.*;
 import java.util.function.Function;

@@ -8,7 +8,7 @@ import fieldbox.execution.Completion;
 import fieldbox.execution.HandlesQuoteCompletion;
 import fieldbox.execution.JavaSupport;
 import jdk.dynalink.beans.StaticClass;
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import javax.script.Bindings;
 import javax.script.ScriptContext;

@@ -1,6 +1,5 @@
 package field.graphics;
 
-import fieldbox.execution.Errors;
 import fieldbox.execution.InverseDebugMapping;
 
 import java.util.function.Function;

@@ -1,7 +1,6 @@
 package fieldbox.boxes.plugins
 
 import field.app.RunLoop
-import field.utility.Dict
 import field.utility.Dict.Prop
 import fieldbox.boxes.Box
 

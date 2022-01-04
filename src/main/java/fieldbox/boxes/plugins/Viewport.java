@@ -1,7 +1,7 @@
 package fieldbox.boxes.plugins;
 
-import field.graphics.*;
 import field.graphics.Window;
+import field.graphics.*;
 import field.linalg.Mat4;
 import field.linalg.Vec2;
 import field.linalg.Vec3;
@@ -13,8 +13,10 @@ import fieldbox.ui.FieldBoxWindow;
 
 import java.awt.*;
 import java.nio.IntBuffer;
-import java.util.*;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 

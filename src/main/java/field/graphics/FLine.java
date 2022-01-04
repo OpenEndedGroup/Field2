@@ -8,10 +8,9 @@ import fieldbox.execution.Completion;
 import fieldbox.execution.HandlesCompletion;
 import fieldbox.execution.JavaSupport;
 import fieldnashorn.annotations.HiddenInAutocomplete;
-import org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory;
-import org.openjdk.nashorn.api.scripting.ScriptUtils;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 import kotlin.jvm.functions.Function1;
+import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.openjdk.nashorn.api.scripting.ScriptUtils;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
@@ -21,20 +20,16 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static field.graphics.FLinesAndJavaShapes.flineToJavaShape;
-import static field.graphics.FLinesAndJavaShapes.javaShapeToFLine;
-import static field.graphics.FLinesAndJavaShapes.splitCubicFrame;
+import static field.graphics.FLinesAndJavaShapes.*;
 import static field.graphics.StandardFLineDrawing.hint_noDepth;
 import static field.utility.Util.safeEq;
-import static fieldbox.boxes.Box.compress;
-import static fieldbox.boxes.Box.depth;
-import static fieldbox.boxes.Box.format;
+import static fieldbox.boxes.Box.*;
 
 /**
  * FLine is our main high level geometry container for lines, meshes and lists of points.

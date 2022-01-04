@@ -1,28 +1,16 @@
 package fieldbox.boxes.plugins;
 
-import field.linalg.Vec2;
 import field.utility.Dict;
 import field.utility.Log;
-import field.utility.Pair;
-import fieldagent.Main;
 import fieldbox.FieldBox;
-import fieldbox.Open;
 import fieldbox.boxes.Box;
-import fieldbox.boxes.Boxes;
 import fieldbox.boxes.Drawing;
 import fieldbox.io.IO;
-import fieldbox.ui.FieldBoxWindow;
-import fielded.Commands;
-import fielded.RemoteEditor;
-import org.lwjgl.PointerBuffer;
-import org.lwjgl.system.MemoryUtil;
-//import org.lwjgl.util.nfd.NativeFileDialog;
 
-import javax.swing.*;
 import java.io.IOException;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.function.BiFunction;
-import java.util.stream.Collectors;
 
 /**
  * Plugin to let you "save as" and "package to new Workspace"

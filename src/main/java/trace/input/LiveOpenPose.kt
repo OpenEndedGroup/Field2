@@ -1,6 +1,5 @@
 package trace.input
 
-import field.linalg.Vec2
 import field.linalg.Vec3
 import java.io.BufferedReader
 import java.io.File

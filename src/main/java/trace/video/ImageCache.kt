@@ -1,17 +1,13 @@
 package trace.video
 
 import field.graphics.FastJPEG
-import field.graphics.JPEGLoader
-import field.graphics.SlowJPEG
-import java.io.File
-import java.io.FilenameFilter
-import java.nio.ByteBuffer
-import java.util.*
-import kotlin.collections.Map.Entry
-import java.util.function.Function
-
 import field.utility.Dict
 import field.utility.Options
+import java.io.File
+import java.nio.ByteBuffer
+import java.util.*
+import java.util.function.Function
+import kotlin.collections.Map.Entry
 
 class ImageCache(val width: Int, val height: Int, maxBuffer: Int, private val lookahead: Int, private var files: Function<Int, String>?) {
 

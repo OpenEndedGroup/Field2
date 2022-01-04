@@ -5,14 +5,8 @@ import field.utility.Triple
 import fieldbox.boxes.Box
 import fieldbox.boxes.plugins.Exec
 import fieldcef.plugins.up
-import fieldnashorn.NashornExecution
 import org.json.JSONObject
 import java.io.File
-import java.lang.IllegalArgumentException
-import javax.script.ScriptEngine
-import javax.xml.crypto.Data
-import javax.script.ScriptException
-import javax.script.Invocable
 import javax.script.ScriptEngineManager
 
 

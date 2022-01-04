@@ -5,7 +5,6 @@ import field.graphics.StandardFLineDrawing;
 import field.utility.Dict;
 import field.utility.Rect;
 import fieldbox.boxes.*;
-import fieldcef.browser.Browser;
 
 import java.awt.*;
 import java.util.ArrayList;

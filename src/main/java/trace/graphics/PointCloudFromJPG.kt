@@ -1,13 +1,12 @@
 package trace.graphics
 
+//import org.apache.commons.math3.analysis.FunctionUtils.sample
 import field.graphics.FLine
 import field.graphics.FastJPEG
 import field.graphics.StandardFLineDrawing
 import field.utility.Vec4
-//import org.apache.commons.math3.analysis.FunctionUtils.sample
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import kotlin.experimental.and
 
 class PointCloudFromJPG(val fn: String) {
     var data: ByteBuffer

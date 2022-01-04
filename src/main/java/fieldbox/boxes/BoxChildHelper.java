@@ -4,7 +4,6 @@ import field.utility.Dict;
 import fieldbox.execution.Completion;
 import fieldbox.execution.HandlesCompletion;
 import fielded.boxbrowser.ObjectToHTML;
-import fieldlinker.Linker;
 import fieldnashorn.annotations.SafeToToString;
 
 import java.util.*;

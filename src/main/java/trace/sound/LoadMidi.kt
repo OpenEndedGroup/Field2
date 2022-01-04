@@ -1,10 +1,10 @@
 package trace.sound
 
-import javax.sound.midi.ShortMessage.NOTE_OFF
-import javax.sound.midi.ShortMessage.NOTE_ON
-import javax.sound.midi.ShortMessage
 import java.io.File
 import javax.sound.midi.MidiSystem
+import javax.sound.midi.ShortMessage
+import javax.sound.midi.ShortMessage.NOTE_OFF
+import javax.sound.midi.ShortMessage.NOTE_ON
 
 class LoadMidi(var fn: String) {
 

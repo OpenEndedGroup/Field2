@@ -5,7 +5,6 @@ import field.graphics.gdxtext.DrawBitmapFont
 import field.linalg.Vec3
 import field.linalg.Vec4
 import field.utility.IdempotencyMap
-import java.util.*
 import java.util.function.Supplier
 
 class StandardText(val shader: Shader) {

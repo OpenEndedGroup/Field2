@@ -8,21 +8,17 @@ import fieldbox.boxes.Box
 import fieldbox.boxes.Drawing
 import fieldbox.io.IO.pad
 import fielded.Commands
-import org.lwjgl.util.tinyfd.TinyFileDialogs
-import java.io.File
-import java.util.*
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryStack.stackPush
+import org.lwjgl.util.tinyfd.TinyFileDialogs
+import java.io.*
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
-import java.io.FileOutputStream
-import java.io.BufferedOutputStream
-import java.io.IOException
-import java.util.zip.ZipInputStream
-import java.util.zip.ZipEntry
-import java.io.FileInputStream
+import java.util.*
 import java.util.function.Supplier
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
 
 class Launch(val root: Box) : Box() {
 

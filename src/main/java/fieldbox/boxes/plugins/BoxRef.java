@@ -1,6 +1,5 @@
 package fieldbox.boxes.plugins;
 
-import field.graphics.FLineSerializationHelper;
 import field.utility.Util;
 import fieldbox.boxes.Box;
 import fieldbox.io.IO;

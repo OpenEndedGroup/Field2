@@ -1,11 +1,13 @@
 package trace.video
 
-import trace.video.analysis.*
+import trace.video.analysis.Blue
+import trace.video.analysis.Brightness
+import trace.video.analysis.Green
+import trace.video.analysis.Red
 import java.io.File
 import java.io.FileWriter
 import java.io.FilenameFilter
 import java.io.PrintWriter
-import java.lang.IllegalArgumentException
 
 object Analysis {
 

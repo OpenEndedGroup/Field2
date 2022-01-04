@@ -12,10 +12,7 @@ import fieldcef.browser.Browser;
 import fielded.ServerSupport;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 
-import java.util.Optional;
 import java.util.stream.Stream;
-
-import static field.app.ThreadSync.enabled;
 
 /**
  * Created by marc on 2/2/17.

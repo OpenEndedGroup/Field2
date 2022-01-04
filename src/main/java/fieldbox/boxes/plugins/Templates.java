@@ -11,12 +11,9 @@ import fieldbox.execution.QuoteCompletionHelpers;
 import fieldbox.io.IO;
 import fielded.Commands;
 import fielded.RemoteEditor;
-import fielded.plugins.Launch;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 

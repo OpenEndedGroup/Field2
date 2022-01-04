@@ -6,8 +6,6 @@ import field.utility.Dict;
 import field.utility.MarkdownToHTML;
 import field.utility.Pair;
 import fieldbox.boxes.Box;
-import fieldbox.boxes.plugins.BoxDefaultCode;
-import fieldbox.documentation.Documentation;
 import fieldbox.execution.Errors;
 import fieldbox.execution.Execution;
 import fieldbox.execution.JavaSupport;

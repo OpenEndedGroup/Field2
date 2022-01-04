@@ -9,7 +9,10 @@ import field.utility.Dict;
 import field.utility.Rect;
 import fieldbox.DefaultMenus;
 import fieldbox.boxes.*;
-import fieldbox.boxes.plugins.*;
+import fieldbox.boxes.plugins.BoxDefaultCode;
+import fieldbox.boxes.plugins.DragToCopy;
+import fieldbox.boxes.plugins.Planes;
+import fieldbox.boxes.plugins.TopologyBox;
 import fieldbox.execution.Execution;
 import fieldbox.io.IO;
 
@@ -21,7 +24,6 @@ import java.util.stream.Collectors;
 import static field.graphics.StandardFLineDrawing.*;
 import static fieldbox.boxes.FLineDrawing.frameDrawing;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_P;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_T;
 
 // A Pad is a special form of Tap
 public class Pads extends Box implements Mouse.OnMouseDown, IO.Loaded {

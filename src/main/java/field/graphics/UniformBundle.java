@@ -2,7 +2,6 @@ package field.graphics;
 
 import field.utility.Dict;
 import fieldbox.execution.Completion;
-import fieldbox.execution.Errors;
 import fieldnashorn.annotations.HiddenInAutocomplete;
 
 import java.util.*;

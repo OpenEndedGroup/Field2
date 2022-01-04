@@ -4,13 +4,11 @@ import field.utility.Pair
 import fieldbox.FieldBox
 import fieldbox.boxes.Box
 import fieldbox.boxes.Boxes
-import fieldbox.boxes.Drawing
 import fielded.Commands
 import fielded.plugins.use
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.util.tinyfd.TinyFileDialogs
 import java.io.File
-import java.util.LinkedHashMap
 import java.util.function.Supplier
 
 class InsertPath : Box() {

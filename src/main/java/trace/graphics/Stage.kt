@@ -1,5 +1,8 @@
 package trace.graphics
 
+//import trace.input.KinectDriver
+//import trace.input.WebcamDriver
+//import trace.util.FLineToSVG
 import field.app.ThreadSync2
 import field.graphics.*
 import field.graphics.util.KeyboardCamera
@@ -20,15 +23,11 @@ import org.lwjgl.opengl.GL11
 import trace.graphics.remote.RemoteServer
 import trace.graphics.remote.RemoteStageLayerHelper
 import trace.input.Buttons
-//import trace.input.KinectDriver
-//import trace.input.WebcamDriver
-//import trace.util.FLineToSVG
 import trace.util.LinePiper
 import trace.video.ImageCache
 import trace.video.SimpleHead
 import trace.video.TwinTextureCache
 import java.io.File
-import java.lang.NullPointerException
 import java.lang.reflect.Modifier
 import java.nio.ByteBuffer
 import java.util.*

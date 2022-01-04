@@ -16,8 +16,8 @@ import org.apache.commons.math4.optim.univariate.UnivariatePointValuePair;
 
 import java.awt.*;
 import java.awt.geom.*;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;

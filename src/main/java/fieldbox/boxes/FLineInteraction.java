@@ -7,10 +7,8 @@ import field.linalg.Vec2;
 import field.utility.*;
 import fieldbox.io.IO;
 
-import java.awt.*;
 import java.awt.geom.Area;
 import java.util.*;
-import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;

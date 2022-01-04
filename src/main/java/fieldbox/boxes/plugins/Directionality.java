@@ -14,7 +14,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static fieldbox.boxes.Boxes.root;
 import static org.lwjgl.glfw.GLFW.*;
 
 /**

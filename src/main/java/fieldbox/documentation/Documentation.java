@@ -2,7 +2,10 @@ package fieldbox.documentation;
 
 import com.samskivert.mustache.Mustache;
 import com.samskivert.mustache.Template;
-import com.thoughtworks.qdox.model.*;
+import com.thoughtworks.qdox.model.JavaClass;
+import com.thoughtworks.qdox.model.JavaField;
+import com.thoughtworks.qdox.model.JavaMethod;
+import com.thoughtworks.qdox.model.JavaSource;
 import field.graphics.FLine;
 import field.utility.Dict;
 import field.utility.MarkdownToHTML;

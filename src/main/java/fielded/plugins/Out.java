@@ -139,7 +139,7 @@ public class Out extends Box {
 
 		output.map._put("field_nashorn_api_scripting_ScriptObjectMirror", x -> {
 
-			jdk.nashorn.api.scripting.ScriptObjectMirror xx = (jdk.nashorn.api.scripting.ScriptObjectMirror) x;
+			org.openjdk.nashorn.api.scripting.ScriptObjectMirror xx = (org.openjdk.nashorn.api.scripting.ScriptObjectMirror) x;
 			if (xx.isFunction()) {
 				String found = InverseDebugMapping.describe(xx);
 

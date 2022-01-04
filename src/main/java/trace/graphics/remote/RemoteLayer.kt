@@ -2,9 +2,6 @@ package trace.graphics.remote
 
 import field.graphics.BaseMesh
 import fielded.webserver.NewNanoHTTPD
-import org.java_websocket.WebSocket
-import org.java_websocket.WebSocketImpl
-import org.java_websocket.server.WebSocketServer
 import java.net.SocketException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder

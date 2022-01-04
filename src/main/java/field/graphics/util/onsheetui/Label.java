@@ -1,6 +1,5 @@
 package field.graphics.util.onsheetui;
 
-import field.app.RunLoop;
 import field.graphics.FLine;
 import field.graphics.StandardFLineDrawing;
 import field.linalg.Vec2;

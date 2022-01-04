@@ -1,14 +1,11 @@
 package fieldbox.execution
 
 import field.linalg.Vec4
-import field.utility.Log
 import field.utility.Pair
 import fieldbox.boxes.Box
 import fieldbox.io.IO
 import fielded.RemoteEditor
 import java.util.*
-
-import java.util.function.Consumer
 import java.util.function.Function
 import java.util.function.Supplier
 import java.util.regex.Pattern

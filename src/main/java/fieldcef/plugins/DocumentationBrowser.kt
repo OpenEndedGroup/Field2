@@ -2,34 +2,26 @@ package fieldcef.plugins
 
 import com.github.rjeschke.txtmark.BlockEmitter
 import field.app.RunLoop
-import field.utility.Log
-import fieldbox.boxes.plugins.PresentationMode
-import fieldbox.io.IO
-import fieldcef.browser.Browser
-import fielded.ServerSupport
-import fieldnashorn.annotations.HiddenInAutocomplete
-
-import java.util.stream.Stream
-
-import field.app.ThreadSync.enabled
-import field.utility.Dict
 import field.utility.MarkdownToHTML
 import field.utility.Pair
-import fieldbox.boxes.*
+import fieldbox.boxes.Box
+import fieldbox.boxes.Boxes
+import fieldbox.boxes.Drawing
+import fieldbox.boxes.Mouse
 import fieldbox.execution.JavaSupport
+import fieldbox.io.IO
 import fielded.Commands
 import fielded.RemoteEditor
+import fielded.ServerSupport
 import fielded.TextUtils
 import fielded.boxbrowser.TransientCommands
 import fielded.plugins.Launch
 import fielded.webserver.NanoHTTPD
-import fielded.webserver.Server
-import java.io.*
+import java.io.File
 import java.nio.charset.Charset
 import java.nio.file.Files
-import java.util.*
 import java.util.function.Supplier
-import java.util.stream.Collectors
+import java.util.stream.Stream
 
 /**
  * Created by marc on 2/2/17.

@@ -3,8 +3,6 @@ package field.utility;
 import fieldbox.boxes.Box;
 import fieldbox.io.IO;
 
-import java.util.function.BiFunction;
-
 public interface OverloadedMath {
 
 	interface ReducedWhenOverloaded{ OverloadedMath get(); }

@@ -1,7 +1,6 @@
 package field.app;
 
 import field.graphics.Scene;
-import fieldbox.execution.Errors;
 
 import java.util.*;
 import java.util.concurrent.*;

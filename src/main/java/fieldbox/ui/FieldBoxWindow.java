@@ -11,7 +11,6 @@ import org.lwjgl.opengl.GL11;
 
 import static org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose;
 import static org.lwjgl.glfw.GLFW.glfwShowWindow;
-import static org.lwjgl.glfw.GLFW.glfwWindowShouldClose;
 
 
 /**

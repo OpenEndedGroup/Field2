@@ -1,7 +1,6 @@
 package trace.video
 
 import java.io.File
-import java.lang.IllegalArgumentException
 
 class SimpleHead {
     class Frame {

@@ -1,7 +1,5 @@
 package field.utility;
 
-import fieldlinker.Linker;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.LinkedHashSet;

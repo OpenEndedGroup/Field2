@@ -20,7 +20,6 @@ import fielded.DisabledRangeHelper;
 import fielded.RemoteEditor;
 import fielded.plugins.Out;
 import fieldnashorn.babel.SourceTransformer;
-import kotlin.text.Regex;
 import org.openjdk.nashorn.api.scripting.NashornException;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 

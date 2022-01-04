@@ -8,9 +8,9 @@ import fieldbox.execution.Completion
 import fieldbox.execution.Errors
 import fielded.RemoteEditor
 import fielded.webserver.NewNanoHTTPD
-import org.json.JSONObject
 import org.json.JSONArray
-import org.nanohttpd.protocols.http.response.Response.*
+import org.json.JSONObject
+import org.nanohttpd.protocols.http.response.Response.newFixedLengthResponse
 import org.nanohttpd.protocols.http.response.Status
 import java.io.File
 import java.net.InetAddress

@@ -2,26 +2,26 @@ package fieldkotlin
 
 import field.app.RunLoop
 import field.graphics.FLine
-import field.utility.IdempotencyMap
 import field.graphics.StandardFLineDrawing
 import field.linalg.Vec2
 import field.linalg.Vec3
 import field.linalg.Vec4
 import field.utility.Dict
-import field.utility.set
+import field.utility.IdempotencyMap
 import fieldbox.boxes.Box
-import field.utility.*
 import fieldbox.boxes.Boxes
 import fieldbox.boxes.FLineDrawing
-import fieldlinker.AsMap
-import java.util.function.Supplier
-import kotlin.Pair
-import kotlin.reflect.KProperty
-import fieldbox.boxes.plugins.Viewport
 import fieldbox.execution.Execution
 import fieldcef.plugins.up
+import fieldlinker.AsMap
 import java.io.File
 import java.nio.file.Files
+import java.util.function.Supplier
+import kotlin.collections.List
+import kotlin.collections.forEach
+import kotlin.collections.mutableMapOf
+import kotlin.collections.set
+import kotlin.reflect.KProperty
 
 var FLine.color: Supplier<Vec4> by FLineDelegate(StandardFLineDrawing.color)
 var FLine.fillColor: Supplier<Vec4> by FLineDelegate(StandardFLineDrawing.fillColor)

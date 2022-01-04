@@ -2,7 +2,6 @@ package fieldbox.boxes.plugins;
 
 import field.utility.Dict;
 import fieldbox.boxes.Box;
-import fieldlinker.Linker;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -3,7 +3,6 @@ package field.app
 import field.app.ThreadSync2.Companion.inMainThread
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.util.tinyfd.TinyFileDialogs
-import java.util.concurrent.Callable
 
 class FileDialogs {
 

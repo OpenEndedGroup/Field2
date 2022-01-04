@@ -4,12 +4,11 @@ import field.graphics.FLine
 import field.utility.Documentation
 import field.utility.OverloadedMath
 import fieldnashorn.annotations.HiddenInAutocomplete
-import javax.media.j3d.Transform3D
-import javax.vecmath.Quat4d
-import javax.vecmath.Vector3d
 import java.util.function.Function
 import javax.vecmath.AxisAngle4d
 import javax.vecmath.Point3d
+import javax.vecmath.Quat4d
+import javax.vecmath.Vector3d
 
 /**
  * represents an arbitrary 2d transformations.

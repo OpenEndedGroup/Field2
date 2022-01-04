@@ -1,13 +1,11 @@
 package trace.mocap
 
-import com.google.gson.JsonObject
-import com.google.gson.stream.JsonReader
 import field.linalg.Vec2
 import field.linalg.Vec3
 import org.json.JSONObject
 import org.json.JSONTokener
-import java.io.*
-import java.util.zip.ZipInputStream
+import java.io.File
+import java.io.FileInputStream
 
 class OpenPose(val fn: String, val imageWidth: Int, val imageHeight: Int) {
 

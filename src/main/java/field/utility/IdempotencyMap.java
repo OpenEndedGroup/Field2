@@ -3,11 +3,13 @@ package field.utility;
 import fieldbox.execution.Completion;
 import fieldbox.execution.HandlesCompletion;
 import fieldnashorn.annotations.SafeToToString;
-import org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory;
-import org.openjdk.nashorn.api.scripting.ScriptUtils;
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.openjdk.nashorn.api.scripting.ScriptUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 

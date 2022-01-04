@@ -1,25 +1,11 @@
 package trace.graphics
 
-import field.linalg.Vec3
-import java.io.*
 
-
-import field.graphics.MeshBuilder
 import field.linalg.Quat
+import field.linalg.Vec3
 import field.utility.remAssign
 import field.utility.times
-
-import java.io.BufferedReader
-import java.io.File
-import java.io.FileNotFoundException
-import java.io.FileReader
-import java.io.IOException
-import java.io.RandomAccessFile
-import java.nio.ByteOrder
-import java.nio.FloatBuffer
-import java.nio.MappedByteBuffer
-import java.nio.channels.FileChannel.MapMode
-import java.util.ArrayList
+import java.io.*
 
 
 class LoadPly {

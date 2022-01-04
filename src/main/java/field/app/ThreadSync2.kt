@@ -4,13 +4,9 @@ import field.utility.AsMapDelegator
 import field.utility.Dict
 import field.utility.IdempotencyMap
 import field.utility.Options
-import fieldbox.boxes.plugins.Exec
 import fieldlinker.AsMap
-import java.lang.IllegalArgumentException
-
-import java.util.*
 import java.util.concurrent.*
-import java.util.function.*
+import java.util.function.Consumer
 
 /**
  * Created by marc on 7/23/17.
@@ -321,7 +317,7 @@ class ThreadSync2 {
 
         @JvmStatic
         fun yieldIfPossible() {
-            thisFibre?.get()?.yield()
+            thisFibre.get()?.yield()
         }
 
         @JvmStatic

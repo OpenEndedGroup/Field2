@@ -8,9 +8,8 @@ import fieldbox.boxes.*;
 
 import java.util.Optional;
 
-import static fieldbox.boxes.Intersects.*;
+import static fieldbox.boxes.Intersects.startAt;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_S;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_T;
 
 /**
  * utilities for helping with moving the time slider around with the mouse

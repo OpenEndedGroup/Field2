@@ -1,8 +1,6 @@
 package fielded.webserver
 
 import org.nanohttpd.protocols.http.response.Response
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 
 class T_NewNanoHTTPD(val port: Int) {
     var server: NewNanoHTTPD

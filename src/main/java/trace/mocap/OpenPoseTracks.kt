@@ -1,6 +1,5 @@
 package trace.mocap
 
-import field.linalg.Vec2
 import field.linalg.Vec3
 import trace.util.TCB3
 

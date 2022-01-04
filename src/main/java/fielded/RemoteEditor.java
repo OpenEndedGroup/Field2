@@ -35,7 +35,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static field.graphics.StandardFLineDrawing.filled;
 import static field.graphics.StandardFLineDrawing.stroked;

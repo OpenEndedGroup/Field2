@@ -2,14 +2,8 @@ package field.graphics.util
 
 import com.google.common.collect.BiMap
 import com.google.common.collect.HashBiMap
-import java.util.LinkedHashSet
-import java.util.LinkedHashMap
-import java.util.HashMap
-import field.graphics.util.KeyEventMapping
 import org.lwjgl.glfw.GLFW
 import java.awt.event.KeyEvent
-import java.lang.IllegalAccessException
-import java.lang.ClassCastException
 
 //import org.cef.browser.CefBrowser_N;
 class KeyEventMapping {

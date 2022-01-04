@@ -1,13 +1,10 @@
 package fieldbox.documentation;
 
 import com.thoughtworks.qdox.JavaProjectBuilder;
-import com.thoughtworks.qdox.model.JavaClass;
-import com.thoughtworks.qdox.model.JavaField;
 import com.thoughtworks.qdox.model.JavaSource;
 import field.utility.Dict;
 import field.utility.Options;
 import field.utility.Pair;
-import fieldbox.Run;
 import fielded.boxbrowser.BoxBrowser;
 
 import java.io.File;

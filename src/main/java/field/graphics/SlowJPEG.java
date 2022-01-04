@@ -1,8 +1,10 @@
 package field.graphics;
 
 
-import javax.imageio.*;
-import javax.imageio.metadata.IIOMetadata;
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
 import javax.imageio.plugins.jpeg.JPEGImageWriteParam;
 import javax.imageio.stream.FileImageOutputStream;
 import java.awt.image.BufferedImage;

@@ -1,13 +1,9 @@
 package fieldbox.boxes.plugins;
 
-import field.app.ThreadSync;
 import field.app.ThreadSync2;
 import field.utility.Dict;
 import fieldbox.boxes.Box;
 import org.openjdk.nashorn.api.scripting.AbstractJSObject;
-import org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory;
-import org.openjdk.nashorn.api.scripting.ScriptUtils;
-import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 import java.util.List;
 

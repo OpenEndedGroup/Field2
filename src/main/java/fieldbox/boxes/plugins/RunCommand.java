@@ -9,7 +9,6 @@ import fieldbox.execution.HandlesQuoteCompletion;
 import fielded.Commands;
 import fielded.RemoteEditor;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
