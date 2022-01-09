@@ -67,6 +67,7 @@ class KotlinInterface(
                 baseClassLoader.replaceOnlyDefault(null)
                 compilationCache(SimpleMemoryScriptsCache())
                 IR
+
             }
         }
         compilerConfig = ScriptCompilationConfiguration {
