@@ -12,4 +12,4 @@ else
   echo Launching Field from $main ...
 fi
 
-$java  -Xrunjdwp:server=y,transport=dt_socket,address=5005,suspend=n -Dorg.lwjgl.util.Debug=false -Xdock:icon="/Users/marc/Documents/F.png"  -Xdock:name="Field" -classpath "$main/target/classes/:$main/lib/:$main/src/main/java/:$main/target/dependency/*:$main/lib/jars/*" -DappDir=$main/ --add-opens java.desktop/java.awt.event=ALL-UNNAMED -XstartOnFirstThread -Dorg.lwjgl.util.DebugLoader=true -Djava.library.path=/Users/marc/miniforge3/lib/python3.9/site-packages/jep/  fieldbox.FieldBox -retina 1 -extraZoomLevel 2.0 -thread2 1 "$@"
+$java -javaagent:$main/lib/jars/jar-loader.jar -Xrunjdwp:server=y,transport=dt_socket,address=5005,suspend=n -Dorg.lwjgl.util.Debug=false -Xdock:icon="/Users/marc/Documents/F.png"  -Xdock:name="Field" -classpath "$main/target/classes/:$main/lib/:$main/src/main/java/:$main/target/dependency/*:$main/lib/jars/*" -DappDir=$main/ --add-opens java.desktop/java.awt.event=ALL-UNNAMED -XstartOnFirstThread -Dorg.lwjgl.util.DebugLoader=true -Djava.library.path=/Users/marc/miniforge3/lib/python3.9/site-packages/jep/  fieldbox.FieldBox -retina 1 -extraZoomLevel 2.0 -thread2 1 "$@"

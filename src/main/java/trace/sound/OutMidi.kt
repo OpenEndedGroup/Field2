@@ -20,6 +20,12 @@ class OutMidi {
 
     constructor(contains: String) {
 
+        val m = MidiSystem.getMidiDeviceInfo()
+        m.forEach {
+            print(it)
+        }
+
+
         val dev = MidiSystem.getMidiDeviceInfo().find {
             it.javaClass.name.contains("MidiOutDevice") && it.name.contains(contains)
         }

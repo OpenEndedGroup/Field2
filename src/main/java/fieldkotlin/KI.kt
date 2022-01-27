@@ -11,6 +11,7 @@ import fieldbox.execution.JavaSupport
 import fieldbox.io.IO
 import fieldcef.plugins.up
 import fielded.RemoteEditor
+import fielded.boxbrowser.BoxBrowser.HasMarkdownInformation
 import fielded.plugins.Out
 import fieldkotlin.Magics.Companion.magics
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
@@ -31,6 +32,7 @@ import kotlin.script.experimental.api.SourceCode
 // that might end up taking a long time to update?
 
 class KI : Execution(null) {
+
 
     val ki = mutableMapOf<Box, Execution.ExecutionSupport>()
 
@@ -146,7 +148,6 @@ class KI : Execution(null) {
         box.properties += FLineDrawing.boxBackground to vec(0.6, 0.5, 0.4, 0.75)
         box.properties += FLineDrawing.boxOutline to vec(1, 0.9, 0.8, 0.6)
 
-
         return KotlinInterface(
             propertyClasses = mapOf("__bx__" to Box::class, "__root__" to Box::class, "__writer__" to Writer::class),
             properties = mapOf("__bx__" to box, "__root__" to root, "__writer__" to makeWriter(box)),
@@ -228,6 +229,7 @@ class KI : Execution(null) {
 
                     val res = doEval(textFragment, lineErrors, success)
                     ki.contextUpdater.update()
+                    box.properties += Dict.Prop<VariablesIntrospection>("kotlin_introspection") to VariablesIntrospection(ki.context)
 
                     println(" result is $res")
 

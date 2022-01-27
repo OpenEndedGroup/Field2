@@ -235,7 +235,13 @@
         <dependency>
             <groupId>org.bytedeco</groupId>
             <artifactId>javacv</artifactId>
-            <version>1.5.5</version>
+            <version>1.5.7-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>javacv-platform</artifactId>
+            <version>1.5.7-SNAPSHOT</version>
         </dependency>
 
         <dependency>

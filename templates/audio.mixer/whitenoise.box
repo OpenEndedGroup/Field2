@@ -1,0 +1,23 @@
+{
+  "boxOutline" #field/serializable{
+    :base64 "rO0ABXNyABFmaWVsZC5saW5hbGcuVmVjNAAAAAAAAAABDAAAeHB3IAAAAAAAAAAAAAAAAAAAAAA/0zMzMzMzMz/QAAAAAAAAeA=="
+  }
+  "withFunctionRewriting" true
+  "name" "whitenoise"
+  "frame" #field/rect{
+    :x 74.609375
+    :y 716.78125
+    :w 100.0
+    :h 41.93359375
+  }
+  "__filename__code" "{{templates}}/audio.mixer/whitenoise.box.js"
+  "_code_cookie" "{\"output\":\"appendRemoteOutputToLine(25, \\\"<div class=\\\\\\\"outputline\\\\\\\"><div class=\\\\\\\"outputline\\\\\\\"><div class=\\\\\\\"outputline\\\\\\\"><div class=\\\\\\\"outputline\\\\\\\"><div class=\\\\\\\"outputline\\\\\\\">[function defined]<br><\\/div><\\/div><div class=\\\\\\\"outputline\\\\\\\">[function defined]<br><\\/div><div class=\\\\\\\"outputline\\\\\\\">[function defined]<br><\\/div><div class=\\\\\\\"outputline\\\\\\\">[function defined]<br><\\/div><div class=\\\\\\\"outputline\\\\\\\">[function defined]<br><\\/div><div class=\\\\\\\"outputline\\\\\\\">[function defined]<br><\\/div><\\/div><div class=\\\\\\\"outputline\\\\\\\">[function defined]<br><\\/div><div class=\\\\\\\"outputline\\\\\\\">[function defined]<br><\\/div><\\/div><\\/div>\\\", 'Field-remoteOutput-error', 'Field-remoteOutput', false,0)\\n\",\"folds\":{\"selections\":[{\"head\":{\"ch\":1,\"line\":22,\"xRel\":1,\"sticky\":\"before\"},\"anchor\":{\"ch\":1,\"line\":22,\"xRel\":1,\"sticky\":\"before\"}}],\"marks\":[]},\"history\":{\"done\":[{\"primIndex\":0,\"ranges\":[{\"head\":{\"ch\":28,\"line\":23,\"sticky\":null},\"anchor\":{\"ch\":28,\"line\":23,\"sticky\":null}}]},{\"primIndex\":0,\"ranges\":[{\"head\":{\"ch\":18,\"line\":23,\"sticky\":null},\"anchor\":{\"ch\":18,\"line\":23,\"sticky\":null}}]},{\"primIndex\":0,\"ranges\":[{\"head\":{\"ch\":1,\"line\":22,\"sticky\":null},\"anchor\":{\"ch\":1,\"line\":22,\"sticky\":null}}]},{\"primIndex\":0,\"ranges\":[{\"head\":{\"ch\":1,\"line\":22,\"sticky\":null},\"anchor\":{\"ch\":1,\"line\":22,\"sticky\":null}}]},{\"primIndex\":0,\"ranges\":[{\"head\":{\"ch\":1,\"line\":22,\"sticky\":null},\"anchor\":{\"ch\":1,\"line\":22,\"sticky\":null}}]},{\"primIndex\":0,\"ranges\":[{\"head\":{\"ch\":1,\"line\":22,\"sticky\":null},\"anchor\":{\"ch\":1,\"line\":22,\"sticky\":null}}]},{\"primIndex\":0,\"ranges\":[{\"head\":{\"ch\":1,\"line\":22,\"xRel\":1,\"sticky\":\"before\"},\"anchor\":{\"ch\":1,\"line\":22,\"xRel\":1,\"sticky\":\"before\"}}]}],\"undone\":[]},\"currentpos\":{\"ch\":1,\"line\":22,\"xRel\":1,\"sticky\":\"before\"},\"widgets\":[],\"brackets\":\"makePathForHandles(cmGetLineHandle(20, false), cmGetLineHandle(25, true), 0, undefined, 'undefined')\\nmakePathForHandles(cmGetLineHandle(18, false), cmGetLineHandle(18, true), 0, undefined, 'undefined')\\n\"}"
+  "code" "\n\n\n\n_.audio =  (sc, power) => {\n\n\t$.initialize.p = 0\n\n\tlet output = $.newBuffer()\n\t\n\tvar c = output.length\n\t\t\n\tfor(var i=0;i<c;i++)\n\t{\n\t\toutput[i] = Math.pow(Math.sin($.p+=0.1), power)\n\t}\n\n\treturn AutoGain(output*sc)\n}\n\n\n_r = () => {\n\t\n\t$.output = _.audio(0.2, 1.0)\n\t\n}"
+  "withOverloading" true
+  "__boxclass__" "fieldbox.boxes.Box"
+  "__id__" "_4ddee1c9_5b00_4a3d_9fdd_cf961a707e21"
+  "__datafilename__" "{{templates}}/audio.mixer/whitenoise.box"
+  "boxBackground" #field/serializable{
+    :base64 "rO0ABXNyABFmaWVsZC5saW5hbGcuVmVjNAAAAAAAAAABDAAAeHB3ID/wAAAAAAAAP+5mZmZmZmY/7MzMzMzMzT/oAAAAAAAAeA=="
+  }
+}
