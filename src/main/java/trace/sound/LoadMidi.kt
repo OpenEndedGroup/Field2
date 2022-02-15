@@ -1,5 +1,6 @@
 package trace.sound
 
+import field.linalg.Vec2
 import java.io.File
 import javax.sound.midi.MidiSystem
 import javax.sound.midi.ShortMessage
@@ -8,15 +9,14 @@ import javax.sound.midi.ShortMessage.NOTE_ON
 
 class LoadMidi(var fn: String) {
 
-    data class Note(var pitch: Int, var velocity: Double, var time: Double, var duration: Double)
-    {
-        var previous : Note? = null
-        var next : Note? = null
+    data class Note(var pitch: Int, var velocity: Double, var time: Double, var duration: Double) {
+        var previous: Note? = null
+        var next: Note? = null
     }
 
     val notes = mutableListOf<Note>()
 
-    fun copy() : LoadMidi {
+    fun copy(): LoadMidi {
         val r = LoadMidi("")
         r.notes.addAll(this.notes)
         return r
@@ -24,8 +24,7 @@ class LoadMidi(var fn: String) {
 
     init {
 
-        if (fn!="")
-        {
+        if (fn != "") {
             val sequence = MidiSystem.getSequence(File(fn))
 
             val ttms = ((sequence.microsecondLength / sequence.tickLength) / 1000.0) / 1000.0
@@ -86,16 +85,16 @@ class LoadMidi(var fn: String) {
 
             notes.sortBy { it.time }
             notes.forEachIndexed { i, n ->
-                if (i>0)
-                    n.previous = notes[i-1]
-                if (i<notes.size-1)
-                    n.next = notes[i+1]
+                if (i > 0)
+                    n.previous = notes[i - 1]
+                if (i < notes.size - 1)
+                    n.next = notes[i + 1]
             }
         }
     }
 
-    fun firstNoteAfter(t : Double) : Note? {
-        return notes.filter { it.time>t }.firstOrNull()
+    fun firstNoteAfter(t: Double): Note? {
+        return notes.filter { it.time > t }.firstOrNull()
     }
 
     fun notesAtTime(t: Double): List<Note> {
@@ -108,6 +107,18 @@ class LoadMidi(var fn: String) {
 
     fun noteOffsBetweenTimes(tStart: Double, tEnd: Double): List<Note> {
         return notes.filter { (it.time + it.duration) >= tStart && (it.time + it.duration) < tEnd }
+    }
+
+    fun notes(): List<Vec2> {
+        return notes.map {
+            Vec2(it.time, it.time + it.duration)
+        }
+    }
+    
+    fun notes2(): List<Vec2> {
+        return notes.map {
+            Vec2(it.time, it.time + it.duration)
+        }
     }
 
     var time = 0.0

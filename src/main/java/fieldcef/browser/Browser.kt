@@ -45,8 +45,6 @@ import java.util.function.Supplier
 /**
  * The first look at embedded HTML. A Browser is a Field/Graphics texture map, a CEF browser of a fixed size, a quad for drawing it, a shader for drawing the quad, and some logic for generating and
  * transforming events. Chrome in a box.
- *
- *
  */
 class Browser : Box(), Loaded {
     private val mapper = KeyEventMapping()
@@ -472,7 +470,7 @@ float e = 0.005;
                         }
                 }
             }
-            val dy = e.after.dwheely * 8
+            val dy = e.after.dwheely * -8
             browser!!.sendMouseWheelEvent(
                 MouseWheelEvent(
                     component,

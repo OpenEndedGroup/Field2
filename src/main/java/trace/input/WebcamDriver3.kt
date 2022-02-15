@@ -49,7 +49,7 @@ class WebcamDriver3(val unit: Int, val wc: Int = 0) {
 
 //            storage = ByteBuffer.allocateDirect(grabber.imageWidth * grabber.imageHeight * 4);
             storage = ByteBuffer.allocateDirect(1920 * 1080 * 4);
-            texture = object : Texture(Texture.TextureSpecification.byte3(unit, w, h, storage, false)) {
+            texture = object : Texture(Texture.TextureSpecification.byte3_rev(unit, w, h, storage, false)) {
                 override fun perform0(): Boolean {
                     license = false
                     return super.perform0()
@@ -68,8 +68,8 @@ class WebcamDriver3(val unit: Int, val wc: Int = 0) {
     var lastAt = 0L
 
     fun update() {
-        if (license)
-            System.out.println(" skipping upload, texture not run")
+//        if (license)
+//            System.out.println(" skipping upload, texture not run")
         if (System.currentTimeMillis() - lastAt > 1000 / 40.0 && !license) {
             license = true
             val f = webcam!!.grab()
