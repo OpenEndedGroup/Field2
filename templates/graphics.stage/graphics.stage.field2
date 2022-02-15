@@ -1,0 +1,75 @@
+#field/document{
+  :externalList [
+    #field/external{
+      :textFiles {
+        "fragment" "{{templates}}/graphics.stage/viewport.box.glslf"
+        "code" "{{templates}}/graphics.stage/viewport.box.js"
+        "vertex" "{{templates}}/graphics.stage/viewport.box.glslv"
+      }
+      :dataFile "{{templates}}/graphics.stage/viewport.box"
+      :id "_c3a3f272_429b_4d60_90d1_935fa887d0ee"
+      :boxClass "fieldbox.boxes.plugins.Viewport"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x -34.46824264526367
+          :y 58.503501892089844
+          :w 513.5390625
+          :h 389.765625
+        }
+      }
+    }
+  ]
+  :knownFiles {
+    "txt" #field/filespec{
+      :name "txt"
+    }
+    "fragment" #field/filespec{
+      :name "fragment"
+    }
+    "code" #field/filespec{
+      :name "code"
+    }
+    "vertex" #field/filespec{
+      :name "vertex"
+    }
+    "geometry" #field/filespec{
+      :name "geometry"
+    }
+    "html" #field/filespec{
+      :name "html"
+    }
+    "edn" #field/filespec{
+      :name "edn"
+    }
+  }
+  :knownProperties #{
+    "__id__"
+    "comment"
+    "classpath"
+    "perDocument"
+    "name"
+    "frame"
+    "lockHeight"
+    "lockWidth"
+    "tag"
+    "windowSpace"
+    "windowScale"
+    "isPaired"
+    "auto"
+    "defaultEditorProperty"
+    "_defaultEditorProperty_cookie"
+    "_code_cookie"
+    "_theVariant"
+    "includes"
+    "excludes"
+    "__datafilename__"
+    "__filename__fragment"
+    "__filename__code"
+    "__filename__vertex"
+  }
+}

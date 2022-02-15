@@ -24,6 +24,7 @@ import trace.graphics.remote.RemoteServer
 import trace.graphics.remote.RemoteStageLayerHelper
 import trace.input.Buttons
 import trace.input.WebcamDriver3
+import trace.input.SimpleMouse
 import trace.util.LinePiper
 import trace.video.ImageCache
 import trace.video.SimpleHead
@@ -1632,6 +1633,8 @@ class Stage(val w: Int, val h: Int) : AsMap {
         default_group.post.put("__keyboard__", keyboard)
     }
 
+    val mouse = SimpleMouse()
+
     fun popOut(): Shader? {
         if (isOut) {
             // toFront
@@ -1656,6 +1659,8 @@ class Stage(val w: Int, val h: Int) : AsMap {
                         }
                     }
                 }
+
+                window!!.addMouseHandler(mouse)
 
                 window!!.setBounds(0, 0, w, h)
 

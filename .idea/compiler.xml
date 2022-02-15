@@ -9,7 +9,6 @@
       <file url="file://$PROJECT_DIR$/src/main/java/trace/video/Syphon.kt" />
       <file url="file://$PROJECT_DIR$/src/main/java/trace/mocap/Mocap.kt" />
       <file url="file://$PROJECT_DIR$/src/main/java/trace/sound/Hard.kt" />
-      <file url="file://$PROJECT_DIR$/src/main/java/trace/sound/SoundAnalysis.kt" />
       <file url="file://$PROJECT_DIR$/src/main/java/fieldnashorn/sourcemap/Mapping.java" />
       <file url="file://$PROJECT_DIR$/src/main/java/fieldbox/boxes/plugins/FrameConstraints.java" />
       <file url="file://$PROJECT_DIR$/src/main/java/fieldbox/boxes/plugins/Reload.java" />

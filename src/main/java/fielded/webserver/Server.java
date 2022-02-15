@@ -114,7 +114,7 @@ public class Server {
                         return r;
                 }
 
-                return new Response(Response.Status.BAD_REQUEST, null, " couldn't understand request");
+                return new Response(Response.Status.BAD_REQUEST, null, " couldn't understand request (2)");
             }
         };
 

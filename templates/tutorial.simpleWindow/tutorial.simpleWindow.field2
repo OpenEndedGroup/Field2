@@ -1,0 +1,130 @@
+#field/document{
+  :externalList [
+    #field/external{
+      :textFiles {
+        "fragment" "{{templates}}/tutorial.simpleWindow/triangles.box.glslf"
+        "geometry" "{{templates}}/tutorial.simpleWindow/triangles.box.glslg"
+        "code" "{{templates}}/tutorial.simpleWindow/triangles.box.js"
+        "vertex" "{{templates}}/tutorial.simpleWindow/triangles.box.glslv"
+      }
+      :dataFile "{{templates}}/tutorial.simpleWindow/triangles.box"
+      :id "_81a4349c_1841_4556_9390_ae29c3e43283"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+        "_5d066287_dd8e_4e33_a46b_a200c63caa38"
+      ]
+      :children [
+        "_13a4ce5a_47a9_4a2e_a547_665bc52bed1f"
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 24.157028198242188
+          :y 167.1273193359375
+          :w 100.0
+          :h 98.9609375
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/tutorial.simpleWindow/some geometry.box.js"
+      }
+      :dataFile "{{templates}}/tutorial.simpleWindow/some geometry.box"
+      :id "_cd0c34d2_0a92_4da1_8dd5_5c2980808bed"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        "_81a4349c_1841_4556_9390_ae29c3e43283"
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 26.961715698242188
+          :y 316.0491943359375
+          :w 99.23828125
+          :h 98.52734375
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/tutorial.simpleWindow/window.box.js"
+      }
+      :dataFile "{{templates}}/tutorial.simpleWindow/window.box"
+      :id "_e9b372a4_66e3_4168_a763_ef6aef5cf8f9"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+        "_81a4349c_1841_4556_9390_ae29c3e43283"
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 27.89453125
+          :y 15.6796875
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+  ]
+  :knownFiles {
+    "compute" #field/filespec{
+      :name "compute"
+    }
+    "txt" #field/filespec{
+      :name "txt"
+    }
+    "fragment" #field/filespec{
+      :name "fragment"
+    }
+    "code" #field/filespec{
+      :name "code"
+    }
+    "vertex" #field/filespec{
+      :name "vertex"
+    }
+    "geometry" #field/filespec{
+      :name "geometry"
+    }
+    "html" #field/filespec{
+      :name "html"
+    }
+    "edn" #field/filespec{
+      :name "edn"
+    }
+  }
+  :knownProperties #{
+    "__id__"
+    "comment"
+    "classpath"
+    "perDocument"
+    "name"
+    "frame"
+    "lockHeight"
+    "lockWidth"
+    "tag"
+    "windowSpace"
+    "windowScale"
+    "isPaired"
+    "auto"
+    "defaultEditorProperty"
+    "_defaultEditorProperty_cookie"
+    "head"
+    "tail"
+    "_code_cookie"
+    "_theVariant"
+    "includes"
+    "excludes"
+    "__datafilename__"
+    "__filename__code"
+    "__filename__vertex"
+    "__filename__fragment"
+    "__filename__geometry"
+    "_vertex_cookie"
+    "_fragment_cookie"
+  }
+}
