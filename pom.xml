@@ -39,7 +39,6 @@
             <properties>
                 <lwjgl.natives>natives-macos-arm64</lwjgl.natives>
             </properties>
-
         </profile>
         <profile>
             <id>lwjgl-natives-windows-amd64</id>
@@ -71,6 +70,12 @@
 
 
     <repositories>
+
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+
         <repository>
             <id>sonatype-snapshots</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
@@ -153,8 +158,6 @@
             <artifactId>jfreesvg</artifactId>
             <version>3.3</version>
         </dependency>
-
-
 
 
         <dependency>
@@ -275,6 +278,7 @@
         </dependency>
 
 
+
         <dependency>
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl</artifactId>
@@ -326,6 +330,14 @@
         <dependency>
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-shaderc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.lwjgl</groupId>
+            <artifactId>lwjgl-stb</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.lwjgl</groupId>
+            <artifactId>lwjgl-nuklear</artifactId>
         </dependency>
         <dependency>
             <groupId>org.lwjgl</groupId>
@@ -406,6 +418,18 @@
         </dependency>
 
         <dependency>
+            <groupId>org.lwjgl</groupId>
+            <artifactId>lwjgl-stb</artifactId>
+            <classifier>${lwjgl.natives}</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.lwjgl</groupId>
+            <artifactId>lwjgl-nuklear</artifactId>
+            <classifier>${lwjgl.natives}</classifier>
+        </dependency>
+
+
+        <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib-jdk8</artifactId>
             <version>${kotlin.version}</version>
@@ -416,6 +440,45 @@
             <version>${kotlin.version}</version>
             <scope>test</scope>
         </dependency>
+
+
+
+<!--        <dependency>-->
+<!--            <groupId>com.github.kotlin-graphics.imgui</groupId>-->
+<!--            <artifactId>gl</artifactId>-->
+<!--            <version>1.79</version>-->
+<!--            <exclusions>-->
+<!--            <exclusion>-->
+<!--                <groupId>com.twelvemonkeys.imageio</groupId>-->
+<!--                <artifactId>imageio</artifactId>-->
+<!--            </exclusion>-->
+<!--            </exclusions>-->
+<!--        </dependency>-->
+
+<!--        <dependency>-->
+<!--            <groupId>com.github.kotlin-graphics.imgui</groupId>-->
+<!--            <artifactId>glfw</artifactId>-->
+<!--            <version>1.79</version>-->
+<!--            <exclusions>-->
+<!--            <exclusion>-->
+<!--                <groupId>com.twelvemonkeys.imageio</groupId>-->
+<!--                <artifactId>imageio</artifactId>-->
+<!--            </exclusion>-->
+<!--            </exclusions>-->
+<!--        </dependency>-->
+
+<!--        <dependency>-->
+<!--            <groupId>com.github.kotlin-graphics.imgui</groupId>-->
+<!--            <artifactId>core</artifactId>-->
+<!--            <version>1.79</version>-->
+
+<!--            <exclusions>-->
+<!--            <exclusion>-->
+<!--                <groupId>coms.twelvemonkeys.imageio</groupId>-->
+<!--                <artifactId>imageio</artifactId>-->
+<!--            </exclusion>-->
+<!--            </exclusions>-->
+<!--        </dependency>-->
 
 
     </dependencies>
