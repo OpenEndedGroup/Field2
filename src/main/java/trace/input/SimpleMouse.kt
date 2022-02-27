@@ -17,6 +17,14 @@ class SimpleMouse : java.util.function.Function<Event<Window.MouseState>, Boolea
 
     val down = mutableSetOf<Int>()
 
+    fun clear()
+    {
+        onMouseDown.clear()
+        onMouseUp.clear()
+        onMouseMove.clear()
+        onMouseDrag.clear()
+    }
+
     override fun apply(mouseEventState: Event<Window.MouseState>): Boolean {
         val downEvents = mutableSetOf<Int>()
         val upEvents = mutableSetOf<Int>()

@@ -8,15 +8,15 @@ class Space(val r: RemoteServer) {
     inner class Layer(val name: String) {
 
         fun play(time: Double) {
-            r.execute("channelMap['$name'].LaudioElement.currentTime=$time; channelMap['$name'].LaudioElement.play()")
+            r.execute("channelMap['$name'].LaudioElement.currentTime=$time; channelMap['$name'].LaudioElement.play()", requiresSandbox=false)
         }
 
         fun play() {
-            r.execute(" channelMap['$name'].LaudioElement.play()")
+            r.execute(" channelMap['$name'].LaudioElement.play()", requiresSandbox=false)
         }
 
         fun pause() {
-            r.execute(" channelMap['$name'].LaudioElement.pause()")
+            r.execute(" channelMap['$name'].LaudioElement.pause()", requiresSandbox=false)
         }
 
         fun position(x: Double, y: Double, z: Double) {
@@ -24,15 +24,15 @@ class Space(val r: RemoteServer) {
         }
 
         fun position(v: Vec3) {
-            r.execute("channelMap['$name'].Lsource.setPosition(${v.x},${-v.y},${v.z})")
+            r.execute("channelMap['$name'].Lsource.setPosition(${v.x},${-v.y},${v.z})", requiresSandbox=false)
         }
 
         fun volume(v: Double) {
-            r.execute("channelMap['$name'].LaudioElement.volume=$v")
+            r.execute("channelMap['$name'].LaudioElement.volume=$v", requiresSandbox=false)
         }
 
         fun loop(b: Boolean) {
-            r.execute("channelMap['$name'].LaudioElement.loop=$b")
+            r.execute("channelMap['$name'].LaudioElement.loop=$b", requiresSandbox=false)
         }
 
     }
@@ -71,7 +71,7 @@ _.send(`channels[${num}].RaudioElement.volume=${level};channels[${num}].LaudioEl
                 "    width: $width,\n" +
                 "    height: $height,\n" +
                 "    depth: $depth\n" +
-                "};\nsongbird.setRoomProperties(dimensions, materials)")
+                "};\nsongbird.setRoomProperties(dimensions, materials)", requiresSandbox=false)
     }
 
     fun setRoomMaterial(mat: String) {
@@ -85,7 +85,7 @@ _.send(`channels[${num}].RaudioElement.volume=${level};channels[${num}].LaudioEl
                 "    back: material2,\n" +
                 "    down: material,\n" +
                 "    up: material\n" +
-                "};\n" + "songbird.setRoomProperties(dimensions, materials)")
+                "};\n" + "songbird.setRoomProperties(dimensions, materials)", requiresSandbox=false)
     }
 
     fun withFile(s: String): Layer {
@@ -93,7 +93,7 @@ _.send(`channels[${num}].RaudioElement.volume=${level};channels[${num}].LaudioEl
 
         val url = r.declareResource(s)
 
-        r.execute("var _s = makeSource('$s', '$url')")
+        r.execute("var _s = makeSource('$s', '$url')", requiresSandbox=false)
 
         return Layer(s)
     }
@@ -117,7 +117,7 @@ _.send(`channels[${num}].RaudioElement.volume=${level};channels[${num}].LaudioEl
                 "inputGain.connect(songbird.ambisonicInput)\n" +
                 "console.log(\'starting SoA source\')\n" +
                 "currentBufferSource.start()\n" +
-                "   })")
+                "   })", requiresSandbox=false)
 
 
     }

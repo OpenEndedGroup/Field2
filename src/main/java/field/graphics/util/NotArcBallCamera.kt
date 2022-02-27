@@ -11,17 +11,17 @@ import fieldbox.boxes.Drawing
 import field.graphics.util.NotArcBallCamera
 import field.linalg.Quat
 import field.linalg.Vec3
+import field.utility.minus
+import field.utility.plus
 import fieldbox.boxes.Box
 
 /**
  * Created by marc on 12/30/16.
  */
 class NotArcBallCamera(private val target: Camera, installInto: Box) {
-    inner class Down {
-        var from: Vec3? = null
-        var fromState: Camera.State? = null
-        var fromView: Mat4? = null
-    }
+    inner class Down(val from: Vec3, val fromState: Camera.State)
+
+    var SCALE = 2.5
 
     fun install(b: Box) {
         b.properties.putToMap(Mouse.onMouseDown, "__arcball", OnMouseDown { e: Window.Event<MouseState>, button: Int ->
@@ -30,50 +30,53 @@ class NotArcBallCamera(private val target: Camera, installInto: Box) {
             val y = (e.after.y - rr.y) / rr.h
             if (b.properties.isTrue(Mouse.isSelected, false) && x > 0 && x < 1 && y > 0 && y < 1) {
                 e.properties.put(Window.consumed, true)
-            } else return@putToMap null
-            val down = down(x, y)
-            Dragger { e2: Window.Event<MouseState>, end: Boolean ->
-                e2.properties.put(Window.consumed, true)
-                val rr2 = b.properties.get(Box.frame)
-                val x2 = (e2.after.x - rr2.x) / rr.w
-                val y2 = (e2.after.y - rr2.y) / rr.h
-                val state = drag(down, x2, y2)
-                target.state = state
-                Drawing.dirty(b)
-                !end
+
+                println(" !! down")
+                val down = down(x, y)
+
+                Dragger { e2: Window.Event<MouseState>, end: Boolean ->
+                    e2.properties.put(Window.consumed, true)
+                    val rr2 = b.properties.get(Box.frame)
+                    val x2 = (e2.after.x - rr2.x) / rr.w
+                    val y2 = (e2.after.y - rr2.y) / rr.h
+                    val state = drag(down, x2-x, y2-y)
+                    target.state = state
+                    Drawing.dirty(b)
+                    !end
+                }
             }
+            else null
         })
     }
 
     fun down(ndc_x: Double, ndc_y: Double): Down {
-        val d: Down = Down()
-        d.from = projectToSphere(1.0, ndc_x, ndc_y, Vec3())
-        d.fromState = target.state
-        d.fromView = target.view()
+        val d: Down = Down(Vec3(ndc_x, ndc_y, 0.0), target.state)
         return d
     }
 
     fun drag(d: Down, ndc_x: Double, ndc_y: Double): Camera.State {
-        val r1 = Quat().fromAxisAngleRad(Vec3(0, 1, 0), ndc_x - d.from!!.x)
+
+        println("DRAG ${ndc_x - d.from!!.x} ${ndc_y - d.from!!.y}")
+
+        val o = d.fromState.copy()
+
+        val r1 = Quat().fromAxisAngleRad(Vec3(0.0, 1.0, 0.0), (ndc_x )*SCALE)
+        val p1 = (d.fromState.position - d.fromState.target).rotate(r1) + d.fromState.target
+
+        val r2 = Quat().fromAxisAngleRad(
+            Vec3(0.0, 1.0, 0.0).cross(d.fromState.position - d.fromState.target).normalize(),
+            (ndc_y )*SCALE
+        )
+
+        val p2 = (p1 - d.fromState.target).rotate(r2) + d.fromState.target
+
+        val u1 = o.up//.rotate(r2)
+
+        o.up = u1
+        o.position = p2
+        return o
     }
 
-    companion object {
-        fun projectToSphere(r: Double, x: Double, y: Double, v: Vec3?): Vec3 {
-            var v = v
-            if (v == null) v = Vec3()
-            val d = Math.sqrt(x * x + y * y)
-            val z: Double
-            z = if (d < r * 0.70710678118654752440) {
-                /* Inside sphere */
-                Math.sqrt(r * r - d * d)
-            } else {
-                /* On hyperbola */
-                val t = r / 1.41421356237309504880
-                t * t / d
-            }
-            return v.set(x, y, z)
-        }
-    }
 
     init {
         install(installInto)
