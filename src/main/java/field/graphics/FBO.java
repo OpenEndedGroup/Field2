@@ -185,6 +185,12 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
             return new FBOSpecification(unit, GL_RGBA16F, width, height, GL_RGBA, GL_HALF_FLOAT, 16, true, num, false, false, 1);
         }
 
+
+        static public FBOSpecification multiFloat16(int unit, int width, int height, int num) {
+            return new FBOSpecification(unit, GL_RGBA16F, width, height, GL_RGBA, GL_HALF_FLOAT, 16, false, num, false, false, 1);
+        }
+
+
         static public FBOSpecification multiFloat16_depthMS(int unit, int width, int height, int num) {
             return new FBOSpecification(unit, GL_RGBA16F, width, height, GL_RGBA, GL_HALF_FLOAT, 16, true, num, true, false, 1);
         }
@@ -221,6 +227,7 @@ public class FBO extends BaseScene<FBO.State> implements Scene.Perform, OffersUn
         static public FBOSpecification srgba(int unit, int width, int height) {
             return new FBOSpecification(unit, GL21.GL_SRGB8_ALPHA8, width, height, GL_RGBA, GL_BYTE, 8, false, 1, false, false, 1);
         }
+
 
 
         public FBOSpecification duplicate() {

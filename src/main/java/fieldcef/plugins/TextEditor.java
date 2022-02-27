@@ -5,6 +5,7 @@ import field.graphics.Window;
 import field.linalg.Vec2;
 import field.utility.Dict;
 import field.utility.Log;
+import field.utility.Options;
 import field.utility.Rect;
 import fieldagent.Main;
 import fieldbox.boxes.*;
@@ -42,9 +43,12 @@ public class TextEditor extends Box implements IO.Loaded {
     public String styles;
     String styleSheet = "field-codemirror.css";
 
+    int ezl = (int)(Math.sqrt(Options.dict().getFloat(new Dict.Prop("extraZoomLevel"), 1f)));
+
+
     // we'll need to make sure that this is centered on larger screens
-    int maxw = 900;
-    int maxh = 1400;
+    int maxw = 900*ezl;
+    int maxh = 1400*ezl;
     int heightLast = -1;
     int tick = 0;
     Commands commandHelper = new Commands();

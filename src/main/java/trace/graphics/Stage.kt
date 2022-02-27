@@ -23,6 +23,7 @@ import org.lwjgl.opengl.GL11
 import trace.graphics.remote.RemoteServer
 import trace.graphics.remote.RemoteStageLayerHelper
 import trace.input.Buttons
+import trace.input.WebcamDriver3
 import trace.input.SimpleMouse
 import trace.util.LinePiper
 import trace.video.ImageCache
@@ -1274,79 +1275,78 @@ class Stage(val w: Int, val h: Int) : AsMap {
         return sg
     }
 
-//    @Documentation("Make a layer with a given texture map. Filename should be a jpeg image.")
-//    fun withWebcam(): ShaderGroup {
-//        val filename = "__webcam__"
-//        val n = groups.get(filename)
-//        if (n != null) return n
-//
-//        if (groups.containsKey(filename)) {
-//            groups.remove(filename)!!.detatch()
-//        }
-//
-//        val sg = ShaderGroup(filename)
-//
-//        val s1 = Shader()
-//        s1.addSource(Shader.Type.vertex, texture_vertex)
-//        s1.addSource(Shader.Type.geometry, texture_geometry_triangles)
-//        s1.addSource(Shader.Type.fragment, ShaderPreprocessor().Preprocess(null, texture_fragment, Supplier {
-//            mutableMapOf("COLOR_REMAP" to sg.colorRemap, "SPACE_REMAP" to sg.spaceRemap)
-//        }))
-//
-//
-//        val s2 = Shader()
-//        s2.addSource(Shader.Type.vertex, texture_vertex)
-//        s2.addSource(Shader.Type.geometry, texture_geometry_lines)
-//        s2.addSource(Shader.Type.fragment, ShaderPreprocessor().Preprocess(null, texture_fragment, Supplier {
-//            mutableMapOf("COLOR_REMAP" to sg.colorRemap, "SPACE_REMAP" to sg.spaceRemap)
-//        }))
-//
-//
-//        val s3 = Shader()
-//        s3.addSource(Shader.Type.vertex, texture_vertex)
-//        s3.addSource(Shader.Type.geometry, texture_geometry_points)
-//        s3.addSource(Shader.Type.fragment, ShaderPreprocessor().Preprocess(null, texture_fragment_points, Supplier {
-//            mutableMapOf("COLOR_REMAP" to sg.colorRemap, "SPACE_REMAP" to sg.spaceRemap)
-//        }))
-//
-////        val wd = WebcamDriver()
-////        val ts = wd.texture
-////        s1.asMap_set("source", ts)
-////        s2.asMap_set("source", ts)
-////        s3.asMap_set("source", ts)
-//
-//
-//        try {
-//            val box = Execution.context.get().peek()
-//            s1.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"))
-//            s1.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"))
-//            s1.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"))
-//            s1.setOnError(errorHandler(box, "color_remap"))
-//            s2.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"))
-//            s2.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"))
-//            s2.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"))
-//            s2.setOnError(errorHandler(box, "color_remap"))
-//            s3.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"))
-//            s3.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"))
-//            s3.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"))
-//            s3.setOnError(errorHandler(box, "color_remap"))
-//        } catch (e: Throwable) {
-//            e.printStackTrace()
-//        }
-//
-//////        sg.imageBytes = { wd.storage };
-//////        sg.imageDimensions = wd.w to wd.h
-////        sg.imageBytesPerPixel = 3
-////
-////        sg.setShader(Triple(s1, s2, s3))
-////        sg.doTexture = true
-//////        sg.webcamDriver = wd
-////        sg.post.put("texupdate", Runnable {
-//////            println(" wd update")
-////            wd.update()
-////        })
-////        return sg
-//    }
+    @Documentation("Make a layer with a given texture map. Filename should be a jpeg image.")
+    fun withWebcam(): ShaderGroup {
+        val filename = "__webcam__"
+        val n = groups.get(filename)
+        if (n != null) return n
+
+        if (groups.containsKey(filename)) {
+            groups.remove(filename)!!.detatch()
+        }
+
+        val sg = ShaderGroup(filename)
+
+        val s1 = Shader()
+        s1.addSource(Shader.Type.vertex, texture_vertex)
+        s1.addSource(Shader.Type.geometry, texture_geometry_triangles)
+        s1.addSource(Shader.Type.fragment, ShaderPreprocessor().Preprocess(null, texture_fragment, Supplier {
+            mutableMapOf("COLOR_REMAP" to sg.colorRemap, "SPACE_REMAP" to sg.spaceRemap)
+        }))
+
+
+        val s2 = Shader()
+        s2.addSource(Shader.Type.vertex, texture_vertex)
+        s2.addSource(Shader.Type.geometry, texture_geometry_lines)
+        s2.addSource(Shader.Type.fragment, ShaderPreprocessor().Preprocess(null, texture_fragment, Supplier {
+            mutableMapOf("COLOR_REMAP" to sg.colorRemap, "SPACE_REMAP" to sg.spaceRemap)
+        }))
+
+
+        val s3 = Shader()
+        s3.addSource(Shader.Type.vertex, texture_vertex)
+        s3.addSource(Shader.Type.geometry, texture_geometry_points)
+        s3.addSource(Shader.Type.fragment, ShaderPreprocessor().Preprocess(null, texture_fragment_points, Supplier {
+            mutableMapOf("COLOR_REMAP" to sg.colorRemap, "SPACE_REMAP" to sg.spaceRemap)
+        }))
+
+        val wd = WebcamDriver3(0)
+        val ts = WebcamDriver3.texture
+        s1.asMap_set("source", ts)
+        s2.asMap_set("source", ts)
+        s3.asMap_set("source", ts)
+
+
+        try {
+            val box = Execution.context.get().peek()
+            s1.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"))
+            s1.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"))
+            s1.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"))
+            s1.setOnError(errorHandler(box, "color_remap"))
+            s2.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"))
+            s2.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"))
+            s2.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"))
+            s2.setOnError(errorHandler(box, "color_remap"))
+            s3.sources.get(Shader.Type.vertex)!!.setOnError(errorHandler(box, "color_remap"))
+            s3.sources.get(Shader.Type.fragment)!!.setOnError(errorHandler(box, "color_remap"))
+            s3.sources.get(Shader.Type.geometry)!!.setOnError(errorHandler(box, "color_remap"))
+            s3.setOnError(errorHandler(box, "color_remap"))
+        } catch (e: Throwable) {
+            e.printStackTrace()
+        }
+
+        sg.imageBytes = { WebcamDriver3.storage };
+        sg.imageDimensions = WebcamDriver3.w to WebcamDriver3.h
+        sg.imageBytesPerPixel = 3
+
+        sg.setShader(Triple(s1, s2, s3))
+        sg.doTexture = true
+//        sg.webcamDriver = wd
+        sg.post.put("texupdate", Runnable {
+            wd.update()
+        })
+        return sg
+    }
 
     @Documentation(
         "Make a layer that loads 'video' material from a stream of jpeg images in the given directory. These layers have an additional 'time' property that goes from 0 to 1 (from the start of the image sequence to the end)."
