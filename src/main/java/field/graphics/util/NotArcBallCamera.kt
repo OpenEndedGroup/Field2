@@ -30,7 +30,7 @@ class NotArcBallCamera(private val target: Camera, installInto: Box) {
             val y = (e.after.y - rr.y) / rr.h
             if (b.properties.isTrue(Mouse.isSelected, false) && x > 0 && x < 1 && y > 0 && y < 1) {
                 e.properties.put(Window.consumed, true)
-            } else return@putToMap null
+            } else return@OnMouseDown null
             val down = down(x, y)
             Dragger { e2: Window.Event<MouseState>, end: Boolean ->
                 e2.properties.put(Window.consumed, true)
@@ -54,7 +54,7 @@ class NotArcBallCamera(private val target: Camera, installInto: Box) {
     }
 
     fun drag(d: Down, ndc_x: Double, ndc_y: Double): Camera.State {
-        val r1 = Quat().fromAxisAngleRad(Vec3(0, 1, 0), ndc_x - d.from!!.x)
+        val r1 = Quat().fromAxisAngleRad(Vec3(0.0, 1.0, 0.0), ndc_x - d.from!!.x)
     }
 
     companion object {
