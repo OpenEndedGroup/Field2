@@ -16,6 +16,7 @@ import fieldbox.boxes.Colors;
 import fieldbox.boxes.Mouse;
 import fielded.boxbrowser.BoxBrowser;
 import fieldnashorn.annotations.HiddenInAutocomplete;
+import kotlin.ranges.IntRange;
 import org.lwjgl.Version;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.Callback;
@@ -67,6 +68,13 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
     public final Scene scene = new Scene();
     protected final Window shareContextAtConstruction;
     private final Thread createdInThread;
+
+
+//    private ImplGL3 implGl3;
+//    private ImplGlfw implGlfw;
+//    private Context imguictx;
+//    private ImGui imgui = ImGui.INSTANCE;
+
     public GlfwCallback callback;
     public Vec3 background = Colors.backgroundColor;
     public IdempotencyMap<Mouse.OnMouseDown> onMouseDown = new IdempotencyMap<>(Mouse.OnMouseDown.class);
@@ -146,6 +154,8 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
         glfwWindowHint(GLFW_COCOA_GRAPHICS_SWITCHING, 1);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, 1);
+//        glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
+
         if (Main.os.equals(Main.OS.mac)) {
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
@@ -157,6 +167,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
             if (glDebugging)
                 glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 1);
         }
+
 
         glfwWindowHint(GLFW_DOUBLEBUFFER, doubleBuffered ? 1 : 0);
 
@@ -218,6 +229,12 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 
                 RunLoop.main.getLoop().attach(0, perform);
 
+//                imguictx = new imgui.classes.Context();
+//                implGlfw = new ImplGlfw(GlfwWindow.from(window), true, null);
+//                implGl3 = new ImplGL3();
+//                imgui.styleColorsDark(null);
+//                var io = imgui.getIo();
+//                io.getFonts().addFontFromFileTTF("/Library/Fonts/Arial Unicode.ttf", 16f, new FontConfig(), new IntRange[0]);
 
                 glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS, GL11.GL_TRUE);
 
@@ -394,6 +411,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 
     public void loop() {
 
+
         currentWindow.set(this);
         try {
             if (onlyThread != null && Thread.currentThread() != onlyThread)
@@ -423,6 +441,10 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
             glfwMakeContextCurrent(window);
             try {
                 glfwSwapInterval(0);
+
+//                implGl3.newFrame();
+//                implGlfw.newFrame();
+//                imgui.newFrame();
 
                 GL.setCapabilities(glcontext);
 
@@ -466,6 +488,9 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 
                 if (!isThreaded && !(createdInThread != Thread.currentThread()))
                     pollEvents();
+
+//                imgui.render();
+//                implGl3.renderDrawData(imgui.getDrawData());
 
 
             } finally {
@@ -521,6 +546,10 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
         return (!disabled || neverDisable) && (!lazyRepainting || needsRepainting);
     }
 
+    public void setFloating(boolean floating) {
+        glfwSetWindowAttrib(window, GLFW_FLOATING, floating ? GLFW_TRUE : GLFW_FALSE);
+    }
+
     /**
      * Change the title of this window. Note that this won't do anything to a window that was created without a title.
      *
@@ -558,9 +587,13 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
         return new Rect(currentBounds.x, currentBounds.y, getFrameBufferWidth(), getFrameBufferHeight());
     }
 
+    public IdempotencyMap<Runnable> pre = new IdempotencyMap(Runnable.class);
+    public IdempotencyMap<Runnable> post = new IdempotencyMap(Runnable.class);
+
     protected void updateScene() {
         GraphicsContext.enterContext(graphicsContext);
         GraphicsContext.checkError(() -> "initially");
+        pre.values().forEach(e -> e.run());
         try {
             GraphicsContext.getContext().stateTracker.viewport.set(
                     new int[]{0, 0, w * getRetinaScaleFactor(), h * getRetinaScaleFactor()});
@@ -575,6 +608,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 
             scene.updateAll();
         } finally {
+            post.values().forEach(e -> e.run());
             GraphicsContext.exitContext(graphicsContext);
         }
     }
