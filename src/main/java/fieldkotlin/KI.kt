@@ -14,9 +14,12 @@ import fielded.RemoteEditor
 import fielded.boxbrowser.BoxBrowser.HasMarkdownInformation
 import fielded.plugins.Out
 import fieldkotlin.Magics.Companion.magics
+import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.psiUtil.parents
+import org.jetbrains.kotlin.resolve.calls.callUtil.getType
 import java.io.IOException
 import java.io.Writer
 import java.util.*
@@ -294,9 +297,7 @@ class KI : Execution(null) {
                                 }\"\"\")" + element.getText().substring(name.length)
                             }
                         }
-//                        is KtNameReferenceExpression -> {
-//                            println(" digging for type : ${element} / ${element.getType(element.analyzeAndGetResult().bindingContext)}")
-//                        }
+
 
                     }
 
@@ -325,9 +326,9 @@ class KI : Execution(null) {
             ): Pair<Any?, Boolean> {
                 var errored = false
 
-//                val tf2 = parseHooks(textFragment)
+                val tf2 = parseHooks(textFragment)
 
-                val tf2 = textFragment
+//                val tf2 = textFragment
                 val res = ki.execAndWait(tf2, { compileError ->
                     println(" compile error ${compileError}")
 

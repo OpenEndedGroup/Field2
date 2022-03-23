@@ -135,6 +135,11 @@ class CefSystem protected constructor() {
         val config = JCefAppConfig.getInstance()
         val appArgs: MutableList<String?> = ArrayList<String?>()
         appArgs.addAll(config.appArgsAsList)
+        println(" -- NO SANDBOX")
+        appArgs.add("--no-sandbox")
+
+        println(" args $appArgs")
+
         //        appArgs.add("--multi-threaded-message-loop");
 //        appArgs.add("--external-message-pump");
         val args = appArgs.toTypedArray()

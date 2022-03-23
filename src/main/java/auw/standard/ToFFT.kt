@@ -18,28 +18,14 @@ class ToFFT {
 
     fun apply(a: _FBuffer): CBuffer {
 
-        gather.position(gather.capacity() / 2)
-        gather.limit(gather.capacity())
-
-        val end = gather.slice()
-
-        gather.clear()
-        gather.position(0)
-        gather.limit(gather.capacity() / 2)
-
-        gather.put(end)
-
-        gather.put(a.get().a)
-        gather.clear()
+        reals.a.clear()
+        reals.a.put(a.get().a)
         a.get().a.clear()
 
-        reals.a.clear()
-        reals.a.put(gather)
         zero(imgs)
 
         fft.transform(reals.a, imgs.a)
-
-
+        
         return CBuffer(reals, imgs)
     }
 }

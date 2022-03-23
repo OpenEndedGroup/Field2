@@ -43,6 +43,7 @@ var PeakAt = Java.type("auw.standard.PeakAt")
 
 var GrainulatorDelay = Java.type("auw.standard.GrainulatorDelay")
 var Waveshaper= Java.type("auw.standard.Waveshaper")
+var ToFFT = Java.type("auw.standard.ToFFT")
 
 _.withFunctionRewriting=true
 

@@ -134,9 +134,9 @@ public class Initiators {
 			Rect f = forBox.properties.get(Box.frame);
 			double ff = Math.max(0, Math.min(1, (d - f.x) / f.w));
 
-			if (Nashorn.isEnding) {
-				return ff>0.5 ? 1f : 0f;
-			}
+//			if (Nashorn.isEnding) {
+//				return ff>0.5 ? 1f : 0f;
+//			}
 			return ff;
 		}
 

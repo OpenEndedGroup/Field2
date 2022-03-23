@@ -1,10 +1,13 @@
 package fieldkotlin
 
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
+import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.com.intellij.lang.Language
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.com.intellij.psi.PsiFileFactory
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.IR
+import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
@@ -67,8 +70,8 @@ class KotlinInterface(
                 baseClassLoader.replaceOnlyDefault(null)
                 compilationCache(SimpleMemoryScriptsCache())
                 IR
-
             }
+
         }
         compilerConfig = ScriptCompilationConfiguration {
             hostConfiguration.update { myHostConfiguration }
@@ -104,6 +107,8 @@ class KotlinInterface(
 
         context = KotlinContext()
         contextUpdater = ContextUpdater(context, evaluator)
+
+
 
 
     }
@@ -235,6 +240,13 @@ class KotlinInterface(
         var env = cs.environment
         var project = env.project
 
+//        IrGenerationExtension.registerExtension(project, object : IrGenerationExtension {
+//            override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
+//                print(moduleFragment)
+//                print(pluginContext)
+//            }
+//        })
+
 
         var factory = PsiFileFactory.getInstance(project)
         var lang = Language.findLanguageByID("kotlin")!!
@@ -364,6 +376,7 @@ class KotlinInterface(
         when (val compileResultWithDiagnostics = runBlocking {
             var q: ResultWithDiagnostics<LinkedSnippet<KJvmCompiledScript>>
             val t = measureNanoTime {
+
                 q = compiler.compile(code, compilerConfig)
             }
             println("\t\t compile ${t / 1_000_000.0}ms")

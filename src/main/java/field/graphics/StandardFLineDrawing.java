@@ -165,7 +165,7 @@ public class StandardFLineDrawing {
             fline.renderLineToMeshByStroking(mesh, (int) Math.max(2, 20 * fline.attributes.getOr(curveScale, () -> 1f).floatValue()), s);
             mesh.aux(1, sc);
 
-        } else if (fline.attributes.has(fastThicken)) {
+        } else if (fline.attributes.has(fastThicken) && mesh!=null) {
             float t = fline.attributes.getFloat(fastThicken, 1f);
             mesh.aux(1, sc);
             new EvenFasterThicken(t).renderToMeshByThickening(fline, mesh);
