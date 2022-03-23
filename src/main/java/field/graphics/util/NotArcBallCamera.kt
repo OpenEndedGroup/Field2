@@ -30,8 +30,6 @@ class NotArcBallCamera(private val target: Camera, installInto: Box) {
             val y = (e.after.y - rr.y) / rr.h
             if (b.properties.isTrue(Mouse.isSelected, false) && x > 0 && x < 1 && y > 0 && y < 1) {
                 e.properties.put(Window.consumed, true)
-
-                println(" !! down")
                 val down = down(x, y)
 
                 Dragger { e2: Window.Event<MouseState>, end: Boolean ->
@@ -39,13 +37,12 @@ class NotArcBallCamera(private val target: Camera, installInto: Box) {
                     val rr2 = b.properties.get(Box.frame)
                     val x2 = (e2.after.x - rr2.x) / rr.w
                     val y2 = (e2.after.y - rr2.y) / rr.h
-                    val state = drag(down, x2-x, y2-y)
+                    val state = drag(down, x2 - x, y2 - y)
                     target.state = state
                     Drawing.dirty(b)
                     !end
                 }
-            }
-            else null
+            } else null
         })
     }
 
@@ -60,12 +57,12 @@ class NotArcBallCamera(private val target: Camera, installInto: Box) {
 
         val o = d.fromState.copy()
 
-        val r1 = Quat().fromAxisAngleRad(Vec3(0.0, 1.0, 0.0), (ndc_x )*SCALE)
+        val r1 = Quat().fromAxisAngleRad(Vec3(0.0, 1.0, 0.0), (ndc_x) * SCALE)
         val p1 = (d.fromState.position - d.fromState.target).rotate(r1) + d.fromState.target
 
         val r2 = Quat().fromAxisAngleRad(
             Vec3(0.0, 1.0, 0.0).cross(d.fromState.position - d.fromState.target).normalize(),
-            (ndc_y )*SCALE
+            (ndc_y) * SCALE
         )
 
         val p2 = (p1 - d.fromState.target).rotate(r2) + d.fromState.target
