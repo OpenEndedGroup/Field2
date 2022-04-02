@@ -7,14 +7,20 @@ import field.linalg.Vec3
 import field.linalg.Vec4
 import java.net.InetAddress
 
-class OSCOut(val p: Int) {
+
+class OSCOut(val p: Int, val ip: String) {
+
+    @JvmOverloads
+    constructor(p: Int) : this(p, "127.0.0.1") {
+    }
 
     companion object {
         val portage = mutableMapOf<Pair<InetAddress, Int>, OSCPortOut>()
 
-        fun make(p: Int): OSCPortOut = portage.computeIfAbsent(InetAddress.getLocalHost() to p) {
-            OSCPortOut(it.first, it.second)
-        }
+        fun make(p: Int, ip: String = "127.0.0.1"): OSCPortOut =
+            portage.computeIfAbsent(InetAddress.getAllByName(ip)[0] to p) {
+                OSCPortOut(it.first, it.second)
+            }
     }
 
     val oout = make(p)

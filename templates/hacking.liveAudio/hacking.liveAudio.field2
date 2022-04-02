@@ -1,0 +1,191 @@
+#field/document{
+  :externalList [
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/hacking.liveAudio/MIXER.box.js"
+      }
+      :dataFile "{{templates}}/hacking.liveAudio/MIXER.box"
+      :id "_6ff922cb_e2a8_4d59_a25f_970ef5e7f9a2"
+      :boxClass "auw.MixerRoot"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+        "_5efebce2_ea1f_4c76_bf6f_d52f84ffe967"
+        "_35927db1_8085_4017_a446_29837d498cd6"
+        "_ec6e5ed5_83b0_4a11_897d_560c02bdd1a4"
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x -62.734375
+          :y 278.4140625
+          :w 100.0
+          :h 55.328125
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/hacking.liveAudio/show waveform.box.js"
+      }
+      :dataFile "{{templates}}/hacking.liveAudio/show waveform.box"
+      :id "_51a53c73_0800_423a_a9ab_e665fc6d60fc"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        "_6ff922cb_e2a8_4d59_a25f_970ef5e7f9a2"
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x -63.68359375
+          :y 369.19921875
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/hacking.liveAudio/fft.box.js"
+      }
+      :dataFile "{{templates}}/hacking.liveAudio/fft.box"
+      :id "_f463e62d_0f57_4949_970a_3eb29dd72b59"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        "_6ff922cb_e2a8_4d59_a25f_970ef5e7f9a2"
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x -60.82421875
+          :y 495.56640625
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/hacking.liveAudio/sample.box.js"
+      }
+      :dataFile "{{templates}}/hacking.liveAudio/sample.box"
+      :id "_3af1f4b4_75e4_41e5_ae26_4f0724aaa117"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        "_6ff922cb_e2a8_4d59_a25f_970ef5e7f9a2"
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x -61.06718444824219
+          :y 613.9913940429688
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/hacking.liveAudio/bop to sample.box.js"
+      }
+      :dataFile "{{templates}}/hacking.liveAudio/bop to sample.box"
+      :id "_61482ff9_a129_4530_8f1e_0a9fe6a85742"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 224.45938110351562
+          :y 546.1273193359375
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "fragment" "{{templates}}/hacking.liveAudio/viewport.box.glslf"
+        "code" "{{templates}}/hacking.liveAudio/viewport.box.js"
+        "vertex" "{{templates}}/hacking.liveAudio/viewport.box.glslv"
+      }
+      :dataFile "{{templates}}/hacking.liveAudio/viewport.box"
+      :id "_2d6ef6dd_1dd4_44dd_bea6_7884b9fe863e"
+      :boxClass "fieldbox.boxes.plugins.Viewport"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 204.19345092773438
+          :y 9.1925630569458
+          :w 513.5390625
+          :h 389.765625
+        }
+      }
+    }
+  ]
+  :knownFiles {
+    "compute" #field/filespec{
+      :name "compute"
+    }
+    "txt" #field/filespec{
+      :name "txt"
+    }
+    "fragment" #field/filespec{
+      :name "fragment"
+    }
+    "code" #field/filespec{
+      :name "code"
+    }
+    "vertex" #field/filespec{
+      :name "vertex"
+    }
+    "geometry" #field/filespec{
+      :name "geometry"
+    }
+    "html" #field/filespec{
+      :name "html"
+    }
+    "edn" #field/filespec{
+      :name "edn"
+    }
+  }
+  :knownProperties #{
+    "__id__"
+    "comment"
+    "classpath"
+    "perDocument"
+    "name"
+    "frame"
+    "lockHeight"
+    "lockWidth"
+    "tag"
+    "windowSpace"
+    "windowScale"
+    "isPaired"
+    "auto"
+    "defaultEditorProperty"
+    "_defaultEditorProperty_cookie"
+    "head"
+    "tail"
+    "_code_cookie"
+    "_theVariant"
+    "includes"
+    "excludes"
+    "__datafilename__"
+    "__filename__code"
+    "__filename__fragment"
+    "__filename__vertex"
+  }
+}

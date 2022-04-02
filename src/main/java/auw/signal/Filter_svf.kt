@@ -14,6 +14,8 @@ class Filter_svf {
     fun apply_low(input: _FBuffer, cutoff: Float, res: Float): _FBuffer {
         return FBufferSource(this) {
 
+            print(ic2eq)
+
             var inp = input.get()
 
             var _cutoff = this.cutoff.next(cutoff.toDouble())

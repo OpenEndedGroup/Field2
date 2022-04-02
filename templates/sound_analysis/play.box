@@ -1,0 +1,25 @@
+{
+  "_code_cookie" "{\"output\":\"appendRemoteOutputToLine(42, \\\"<div class=\\\\\\\"outputline\\\\\\\"><div class=\\\\\\\"maptable-entry\\\\\\\"><b>'<i>_.<b>windowSpace<\\/b>@play<\\/i>' [0.0, 0.0] <\\/b><span class=\\\\\\\"smaller\\\\\\\">Vec2<\\/span> <\\/div><br><\\/div>\\\", 'Field-remoteOutput-error', 'Field-remoteOutput', false,0)\\n\",\"folds\":{\"selections\":[{\"head\":{\"ch\":6,\"line\":13,\"xRel\":3.4913330078125,\"sticky\":\"after\"},\"anchor\":{\"ch\":6,\"line\":13,\"xRel\":3.4913330078125,\"sticky\":\"after\"}}],\"marks\":[]},\"history\":{\"done\":[{\"primIndex\":0,\"ranges\":[{\"head\":{\"ch\":0,\"line\":0,\"sticky\":null},\"anchor\":{\"ch\":0,\"line\":0,\"sticky\":null}}]},{\"primIndex\":0,\"ranges\":[{\"head\":{\"ch\":6,\"line\":13,\"xRel\":3.4913330078125,\"sticky\":\"after\"},\"anchor\":{\"ch\":6,\"line\":13,\"xRel\":3.4913330078125,\"sticky\":\"after\"}}]}],\"undone\":[]},\"currentpos\":{\"ch\":6,\"line\":13,\"xRel\":3.4913330078125,\"sticky\":\"after\"},\"widgets\":[],\"brackets\":\"\"}"
+  "code" "\n// let any box talk about this box by saying _.play\n__.play = _\n\nvar timeStart = System.currentTimeMillis()\t\nvar pixelsToSeconds = 24\n\n// note where we started from\n__.lastPlayAt = _.time.frame.x\n\n__.shortcut.ctrl_p = () => {\n\tif (_.replay)\n\t\t_.replay.end()\n\tif (_.play)\n\t\t_.play.begin()\n\telse\n\t\t__.named.play[0].begin()\n}\n\n\nvar at = _.time.frame.x/24.0\n\nif (at<0) at = 0\n\n_.sound.stop(_.source)\n\nvar gg = _.sound.play(_.buffer, _.source, 1, 1, vec(0,0,0), vec(0,0,0), at*48000)\n\nvar DELAY = 0\n\n_r = [ \n\t() => {},\n\t() => {\n\t\t_.time.frame.x = gg.get()*24-DELAY\n\t\t_.redraw()\n\t},\n\t() => _.sound.stop(_.source)\n\t]\n\n\n_.boxBackground = vec(0.23, 0.5, 0.8, 0.6)\n_.windowSpace = vec(0,0)\n"
+  "windowSpace" #field/serializable{
+    :base64 "rO0ABXNyABFmaWVsZC5saW5hbGcuVmVjMgAAAAAAAAABDAAAeHB3EAAAAAAAAAAAAAAAAAAAAAB4"
+  }
+  "withOverloading" true
+  "boxOutline" #field/serializable{
+    :base64 "rO0ABXNyABFmaWVsZC5saW5hbGcuVmVjNAAAAAAAAAABDAAAeHB3IAAAAAAAAAAAAAAAAAAAAAA/0zMzMzMzMz/QAAAAAAAAeA=="
+  }
+  "__boxclass__" "fieldbox.boxes.Box"
+  "__id__" "_cbf735fe_d2b6_409f_80c1_5e950e666f76"
+  "__datafilename__" "{{templates}}/sound_analysis/play.box"
+  "boxBackground" #field/serializable{
+    :base64 "rO0ABXNyABFmaWVsZC5saW5hbGcuVmVjNAAAAAAAAAABDAAAeHB3ID/NcKPXCj1xP+AAAAAAAAA/6ZmZmZmZmj/jMzMzMzMzeA=="
+  }
+  "name" "play"
+  "frame" #field/rect{
+    :x 339.962646484375
+    :y 509.7574768066406
+    :w 100.0
+    :h 40.998600006103516
+  }
+  "__filename__code" "{{templates}}/sound_analysis/play.box.js"
+}

@@ -1,0 +1,26 @@
+{
+  "boxOutline" #field/serializable{
+    :base64 "rO0ABXNyABFmaWVsZC5saW5hbGcuVmVjNAAAAAAAAAABDAAAeHB3IAAAAAAAAAAAAAAAAAAAAAA/0zMzMzMzMz/QAAAAAAAAeA=="
+  }
+  "name" "sound file"
+  "frame" #field/rect{
+    :x 338.1719970703125
+    :y 407.7171630859375
+    :w 100.0
+    :h 100.0
+  }
+  "__filename__code" "{{templates}}/sound_analysis/sound file.box.js"
+  "_code_cookie" "{\"output\":\"appendRemoteOutputToLine(33, \\\"<div class=\\\\\\\"outputline\\\\\\\"><div class=\\\\\\\"outputline\\\\\\\"><div class=\\\\\\\"outputline\\\\\\\"><div class=\\\\\\\"outputline\\\\\\\"><div class=\\\\\\\"maptable-entry\\\\\\\"><b>'<i>_.<b>analysis<\\/b>@&lt;<root>&gt;<\\/root><\\/i>' trace.sound.SoundAnalysis@4968bd4e <\\/b><span class=\\\\\\\"smaller\\\\\\\">SoundAnalysis<\\/span> <\\/div><br><\\/div><\\/div><div class=\\\\\\\"outputline\\\\\\\"><div class=\\\\\\\"maptable-entry\\\\\\\"><b>'<i>_.<b>analysis<\\/b>@&lt;<root>&gt;<\\/root><\\/i>' trace.sound.SoundAnalysis@72bee573 <\\/b><span class=\\\\\\\"smaller\\\\\\\">SoundAnalysis<\\/span> <\\/div><br><\\/div><\\/div><div class=\\\\\\\"outputline\\\\\\\"><div class=\\\\\\\"maptable-entry\\\\\\\"><b>'<i>_.<b>analysis<\\/b>@&lt;<root>&gt;<\\/root><\\/i>' trace.sound.SoundAnalysis@1799cb9c <\\/b><span class=\\\\\\\"smaller\\\\\\\">SoundAnalysis<\\/span> <\\/div><br><\\/div><\\/div>\\\", 'Field-remoteOutput-error', 'Field-remoteOutput', false,0)\\n\",\"folds\":{\"selections\":[{\"head\":{\"ch\":2,\"line\":6,\"xRel\":-0.0108489990234375,\"sticky\":\"before\"},\"anchor\":{\"ch\":2,\"line\":6,\"xRel\":-0.0108489990234375,\"sticky\":\"before\"}}],\"marks\":[]},\"history\":{\"done\":[{\"primIndex\":0,\"ranges\":[{\"head\":{\"ch\":71,\"line\":4,\"sticky\":null},\"anchor\":{\"ch\":51,\"line\":4,\"sticky\":null}}]},{\"changes\":[{\"from\":{\"ch\":51,\"line\":4,\"sticky\":null},\"to\":{\"ch\":73,\"line\":4,\"sticky\":null},\"text\":[\"CON.EHZ.01022312.wav\"]}]},{\"primIndex\":0,\"ranges\":[{\"head\":{\"ch\":73,\"line\":4,\"sticky\":null},\"anchor\":{\"ch\":73,\"line\":4,\"sticky\":null}}]},{\"primIndex\":0,\"ranges\":[{\"head\":{\"ch\":7,\"line\":8,\"sticky\":null},\"anchor\":{\"ch\":7,\"line\":8,\"sticky\":null}}]},{\"primIndex\":0,\"ranges\":[{\"head\":{\"ch\":0,\"line\":4,\"sticky\":null},\"anchor\":{\"ch\":0,\"line\":4,\"sticky\":null}}]},{\"changes\":[{\"from\":{\"ch\":0,\"line\":4,\"sticky\":null},\"to\":{\"ch\":2,\"line\":4,\"sticky\":null},\"text\":[\"\"]}]},{\"primIndex\":0,\"ranges\":[{\"head\":{\"ch\":2,\"line\":4,\"sticky\":null},\"anchor\":{\"ch\":2,\"line\":4,\"sticky\":null}}]},{\"primIndex\":0,\"ranges\":[{\"head\":{\"ch\":0,\"line\":5,\"sticky\":null},\"anchor\":{\"ch\":0,\"line\":5,\"sticky\":null}}]},{\"primIndex\":0,\"ranges\":[{\"head\":{\"ch\":2,\"line\":6,\"sticky\":null},\"anchor\":{\"ch\":2,\"line\":6,\"sticky\":null}}]},{\"primIndex\":0,\"ranges\":[{\"head\":{\"ch\":2,\"line\":6,\"sticky\":null},\"anchor\":{\"ch\":2,\"line\":6,\"sticky\":null}}]},{\"primIndex\":0,\"ranges\":[{\"head\":{\"ch\":2,\"line\":6,\"xRel\":-0.0108489990234375,\"sticky\":\"before\"},\"anchor\":{\"ch\":2,\"line\":6,\"xRel\":-0.0108489990234375,\"sticky\":\"before\"}}]}],\"undone\":[]},\"currentpos\":{\"ch\":2,\"line\":6,\"xRel\":-0.0108489990234375,\"sticky\":\"before\"},\"widgets\":[],\"brackets\":\"\"}"
+  "code" "\n// here's the filename we're using\n\nvar filename = \"/Users/marc/Downloads/Archive/cage_source.mp3.2.wav\"\n//var filename = \"/Users/marc/Downloads/saadia_audio/B15_breakup_stereo.wav\"\n\n// -----------------------\n\nvar Sound = Java.type(\"trace.sound.Sound\")\nvar SoundAnalysis = Java.type(\"trace.sound.SoundAnalysis\")\n\nvar s = new Sound()\ns.init(10)\nbuffer = s.makeBufferFromFile(filename)\n\nvar source = s.allocate()\n\n// export these things\n_.source = source\n_.buffer = buffer\n_.sound = s\n\n// make this box a funny color\n_.boxBackground = vec(0.23, 0.5, 0.8, 0.6)\n\n// stick this box to the screen, not the canvas\n_.windowSpace = vec(0,0)\n\n// automatically run this box on load\n_.auto = 1\n\n__.analysis = new SoundAnalysis(filename)\n\n"
+  "windowSpace" #field/serializable{
+    :base64 "rO0ABXNyABFmaWVsZC5saW5hbGcuVmVjMgAAAAAAAAABDAAAeHB3EAAAAAAAAAAAAAAAAAAAAAB4"
+  }
+  "auto" 1
+  "withOverloading" true
+  "__boxclass__" "fieldbox.boxes.Box"
+  "__id__" "_9b362a93_82d6_48ee_8086_4f0237733bbd"
+  "__datafilename__" "{{templates}}/sound_analysis/sound file.box"
+  "boxBackground" #field/serializable{
+    :base64 "rO0ABXNyABFmaWVsZC5saW5hbGcuVmVjNAAAAAAAAAABDAAAeHB3ID/NcKPXCj1xP+AAAAAAAAA/6ZmZmZmZmj/jMzMzMzMzeA=="
+  }
+}

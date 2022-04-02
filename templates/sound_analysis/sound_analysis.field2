@@ -1,0 +1,141 @@
+#field/document{
+  :externalList [
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/sound_analysis/sound file.box.js"
+      }
+      :dataFile "{{templates}}/sound_analysis/sound file.box"
+      :id "_d409a9fd_b799_4bc7_b555_123df58f3085"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+        "_c282b2f4_5789_4539_8c95_118b562e3b7f"
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 338.1719970703125
+          :y 407.7171630859375
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/sound_analysis/play.box.js"
+      }
+      :dataFile "{{templates}}/sound_analysis/play.box"
+      :id "_f57ec904_db4c_4698_8443_c4e828c2bbe7"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        "_d409a9fd_b799_4bc7_b555_123df58f3085"
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 339.962646484375
+          :y 509.7574768066406
+          :w 100.0
+          :h 40.998600006103516
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/sound_analysis/raw.box.js"
+      }
+      :dataFile "{{templates}}/sound_analysis/raw.box"
+      :id "_21386640_ef71_4ff0_b39b_932212d06b98"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x -200.53053283691406
+          :y -143.45208740234375
+          :w 100.0
+          :h 104.76953125
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/sound_analysis/cooked.box.js"
+      }
+      :dataFile "{{templates}}/sound_analysis/cooked.box"
+      :id "_66887e99_1b5c_4bb2_b076_74fac9edbd23"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x -200.49147033691406
+          :y -30.45599365234375
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+  ]
+  :knownFiles {
+    "compute" #field/filespec{
+      :name "compute"
+    }
+    "txt" #field/filespec{
+      :name "txt"
+    }
+    "fragment" #field/filespec{
+      :name "fragment"
+    }
+    "code" #field/filespec{
+      :name "code"
+    }
+    "vertex" #field/filespec{
+      :name "vertex"
+    }
+    "geometry" #field/filespec{
+      :name "geometry"
+    }
+    "html" #field/filespec{
+      :name "html"
+    }
+    "edn" #field/filespec{
+      :name "edn"
+    }
+  }
+  :knownProperties #{
+    "__id__"
+    "comment"
+    "classpath"
+    "perDocument"
+    "name"
+    "frame"
+    "lockHeight"
+    "lockWidth"
+    "tag"
+    "windowSpace"
+    "windowScale"
+    "isPaired"
+    "auto"
+    "defaultEditorProperty"
+    "_defaultEditorProperty_cookie"
+    "head"
+    "tail"
+    "_code_cookie"
+    "_theVariant"
+    "includes"
+    "excludes"
+    "__datafilename__"
+    "__filename__code"
+  }
+}
