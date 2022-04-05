@@ -13,7 +13,7 @@ class Buttons(init: (Buttons) -> Unit) : Runnable {
     val down: MutableMap<String, IdempotencyMap<Supplier<Boolean>>> = mutableMapOf()
     val up: MutableMap<String, IdempotencyMap<Supplier<Boolean>>> = mutableMapOf()
 
-    private val lastDown: MutableSet<String> = mutableSetOf()
+    val lastDown: MutableSet<String> = mutableSetOf()
 
     var slop = 0.01f
 
@@ -25,8 +25,8 @@ class Buttons(init: (Buttons) -> Unit) : Runnable {
 
         val currentDown = axesMap.entries.filter { abs(it.value.toDouble()) > slop }.map { it.key }.toSet()
 
-        if (currentDown.size>0)
-            println("current : "+currentDown)
+        if (currentDown.size > 0)
+            println("current : " + currentDown)
 
         val downEvents = LinkedHashSet<String>(currentDown)
         downEvents.removeAll(lastDown)
@@ -40,8 +40,8 @@ class Buttons(init: (Buttons) -> Unit) : Runnable {
             }
         }
 
-        if (downEvents.size>0)
-            println("down :"+downEvents)
+        if (downEvents.size > 0)
+            println("down :" + downEvents)
 
         val upEvents = LinkedHashSet<String>(lastDown)
         upEvents.removeAll(currentDown)
@@ -49,8 +49,8 @@ class Buttons(init: (Buttons) -> Unit) : Runnable {
             it.removeIf { v -> !v.get() }
         }
 
-        if (upEvents.size>0)
-            println("up :"+upEvents)
+        if (upEvents.size > 0)
+            println("up :" + upEvents)
 
         lastDown.clear()
         lastDown.addAll(currentDown);
@@ -61,8 +61,7 @@ class Buttons(init: (Buttons) -> Unit) : Runnable {
         axesMap[name] = value
     }
 
-    fun addAxis(vararg  name: String)
-    {
+    fun addAxis(vararg name: String) {
         for (n in name) {
             axesMap[n] = 0f;
             down[n] = IdempotencyMap(Supplier::class.java)

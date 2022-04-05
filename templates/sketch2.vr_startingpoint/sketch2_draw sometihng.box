@@ -1,0 +1,22 @@
+{
+  "_code_cookie" "{\"output\":\"\",\"folds\":{\"selections\":[{\"head\":{\"ch\":14,\"line\":28,\"xRel\":2.997406005859375,\"sticky\":\"after\"},\"anchor\":{\"ch\":14,\"line\":28,\"xRel\":2.997406005859375,\"sticky\":\"after\"}}],\"marks\":[]},\"history\":{\"done\":[{\"primIndex\":0,\"ranges\":[{\"head\":{\"ch\":0,\"line\":0,\"sticky\":null},\"anchor\":{\"ch\":0,\"line\":0,\"sticky\":null}}]},{\"changes\":[{\"from\":{\"ch\":0,\"line\":0,\"sticky\":null},\"to\":{\"ch\":0,\"line\":44,\"sticky\":null},\"text\":[\"\"]}]},{\"primIndex\":0,\"ranges\":[{\"head\":{\"ch\":0,\"line\":44,\"sticky\":null},\"anchor\":{\"ch\":0,\"line\":44,\"sticky\":null}}]},{\"primIndex\":0,\"ranges\":[{\"head\":{\"ch\":14,\"line\":28,\"sticky\":null},\"anchor\":{\"ch\":14,\"line\":28,\"sticky\":null}}]},{\"primIndex\":0,\"ranges\":[{\"head\":{\"ch\":14,\"line\":28,\"xRel\":2.997406005859375,\"sticky\":\"after\"},\"anchor\":{\"ch\":14,\"line\":28,\"xRel\":2.997406005859375,\"sticky\":\"after\"}}]}],\"undone\":[]},\"currentpos\":{\"ch\":14,\"line\":28,\"xRel\":2.997406005859375,\"sticky\":\"after\"},\"widgets\":[],\"brackets\":\"\"}"
+  "code" "\n\n// let's make a layer for our drawing to go into\nvar layer = _.stage.withName(\"ourAwesomeLayer\")\n\n// make sure that it's a VR layer in real meters \nlayer.vrDefaults()\n\n// let's make a geometry container\nvar f = new FLine()\n\n\n// we'll do this forever!\n// or until we stop the box\nwhile(true)\n{\n\t// where is the hand?\n\tvar handAt = layer.vrRightHandPosition()\n\t\n\t// how 'down' is the trigger?\n\tvar trigger = layer.vrRightHandButtons().axis1_right_x\n\n\t// if it's down at all\n\tif (trigger>0)\n\t{\n\t\t// add a line segment to where the hand is\n\t\tf.lineTo(handAt)\n\t\t\n\t\t// make sure it's white\n\t\tf.color = vec(1,1,1,1)\n\t\t\n\t\t// add it to the set of lines that this layer has in it\n\t\t// overwriting anything previously called 'ourLine'\n\t\tlayer.lines.ourLine = f\n\t}\n\telse {\n\t\t// if it isn't down, make an empty line\n\t\tf = new FLine()\n\t}\n\n\t// wait here for an animation frame to head on out\n\t// as photons to your eyes.\n\t_.stage.frame()\n}\n"
+  "withOverloading" true
+  "boxOutline" #field/serializable{
+    :base64 "rO0ABXNyABFmaWVsZC5saW5hbGcuVmVjNAAAAAAAAAABDAAAeHB3IAAAAAAAAAAAAAAAAAAAAAA/0zMzMzMzMz/QAAAAAAAAeA=="
+  }
+  "__boxclass__" "fieldbox.boxes.Box"
+  "__id__" "_437046a9_c94e_4619_9daf_3bfa9db1793f"
+  "__datafilename__" "{{templates}}/sketch2.vr_startingpoint/sketch2_draw sometihng.box"
+  "boxBackground" #field/serializable{
+    :base64 "rO0ABXNyABFmaWVsZC5saW5hbGcuVmVjNAAAAAAAAAABDAAAeHB3ID/wAAAAAAAAP+5mZmZmZmY/7MzMzMzMzT/oAAAAAAAAeA=="
+  }
+  "name" "sketch2_draw sometihng"
+  "frame" #field/rect{
+    :x 117.0
+    :y 394.0
+    :w 100.0
+    :h 100.0
+  }
+  "__filename__code" "{{templates}}/sketch2.vr_startingpoint/sketch2_draw sometihng.box.js"
+}

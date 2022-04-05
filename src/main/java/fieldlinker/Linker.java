@@ -35,7 +35,7 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
     public Linker() {
         if (debug)
             System.err.println(" linker has been constructed ");
-        debug = true;
+        debug = false;
     }
 
 
@@ -397,7 +397,8 @@ public class Linker extends GuardingDynamicLinkerExporter implements GuardingDyn
 
             Object rec = linkRequest.getReceiver();
 
-            System.out.println(" rec for CALL is " + rec + " " + (rec != null ? rec.getClass() : null));
+            if (debug)
+                System.out.println(" rec for CALL is " + rec + " " + (rec != null ? rec.getClass() : null));
         } else {
             if (debug) {
                 System.out.println(" don't know what to do with that :" + linkRequest.getCallSiteDescriptor().getOperation()

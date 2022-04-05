@@ -731,7 +731,6 @@ class Stage(val w: Int, val h: Int) : AsMap {
             return Vec3()
         }
 
-
         fun vrRightHandDirection(): Vec3 {
             if (SimpleOculusTarget.o != null) {
 
@@ -772,6 +771,49 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
             }
             return Vec3()
+        }
+
+        fun vrRightHandButtons(): Map<String, Number> {
+            if (SimpleOculusTarget.o != null) {
+                val v = SimpleOculusTarget.o!!.rightInputState.Buttons()
+                var x = 1
+                var n = 1
+                var r = mutableMapOf<String, Number>()
+                while (x < 256) {
+                    if ((v and x) != 0) {
+                        r.put("button_$n", 1.0)
+                    }
+                    x = x * 2
+                }
+                return r
+            } else if (SimpleOculusTarget.o2 != null) {
+
+                return SimpleOculusTarget.o2!!.buttons.axesMap
+
+            }
+            return emptyMap()
+        }
+
+
+        fun vrLeftHandButtons(): Map<String, Number> {
+            if (SimpleOculusTarget.o != null) {
+                val v = SimpleOculusTarget.o!!.rightInputState.Buttons()
+                var x = 1
+                var n = 1
+                var r = mutableMapOf<String, Number>()
+                while (x < 256) {
+                    if ((v and x) != 0) {
+                        r.put("button_$n", 1.0)
+                    }
+                    x = x * 2
+                }
+                return r
+            } else if (SimpleOculusTarget.o2 != null) {
+
+                return SimpleOculusTarget.o2!!.buttons.axesMap
+
+            }
+            return emptyMap()
         }
 
 

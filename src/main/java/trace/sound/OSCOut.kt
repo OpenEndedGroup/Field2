@@ -23,7 +23,7 @@ class OSCOut(val p: Int, val ip: String) {
             }
     }
 
-    val oout = make(p)
+    val oout = make(p, ip)
 
     fun <T> send(name: String, d: T): T {
         print("OSC $name, $d")
