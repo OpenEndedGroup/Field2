@@ -1,0 +1,120 @@
+#field/document{
+  :externalList [
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/spatial_audio/spatial_audio.box.js"
+      }
+      :dataFile "{{templates}}/spatial_audio/spatial_audio.box"
+      :id "_9cabc5e8_096c_40d9_bb72_52117730e8ff"
+      :boxClass "trace.graphics.remote.RemoteServerExecution"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+        "_d9f237eb_7e3c_4e58_a9b4_319ab39579a6"
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 60.453125
+          :y 28.83984375
+          :w 306.1953125
+          :h 59.30859375
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/spatial_audio/mouse_down_hack.box.js"
+      }
+      :dataFile "{{templates}}/spatial_audio/mouse_down_hack.box"
+      :id "_c8f557d9_0637_4de7_963b_0c009e08250f"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        "_9cabc5e8_096c_40d9_bb72_52117730e8ff"
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 42.484375
+          :y 138.5078125
+          :w 99.5
+          :h 99.5
+        }
+      }
+    }
+    #field/external{
+      :textFiles {
+        "code" "{{templates}}/spatial_audio/demo.box.js"
+      }
+      :dataFile "{{templates}}/spatial_audio/demo.box"
+      :id "_d99bb685_d70c_4e86_a2fe_c386bc722aa2"
+      :boxClass "fieldbox.boxes.Box"
+      :parents [
+        ">>root<<"
+      ]
+      :children [
+      ]
+      :overriddenProperties {
+        "frame" #field/rect{
+          :x 168.5859375
+          :y 141.4765625
+          :w 100.0
+          :h 100.0
+        }
+      }
+    }
+  ]
+  :knownFiles {
+    "compute" #field/filespec{
+      :name "compute"
+    }
+    "txt" #field/filespec{
+      :name "txt"
+    }
+    "fragment" #field/filespec{
+      :name "fragment"
+    }
+    "code" #field/filespec{
+      :name "code"
+    }
+    "vertex" #field/filespec{
+      :name "vertex"
+    }
+    "geometry" #field/filespec{
+      :name "geometry"
+    }
+    "html" #field/filespec{
+      :name "html"
+    }
+    "edn" #field/filespec{
+      :name "edn"
+    }
+  }
+  :knownProperties #{
+    "__id__"
+    "comment"
+    "classpath"
+    "perDocument"
+    "name"
+    "frame"
+    "lockHeight"
+    "lockWidth"
+    "tag"
+    "windowSpace"
+    "windowScale"
+    "isPaired"
+    "auto"
+    "defaultEditorProperty"
+    "_defaultEditorProperty_cookie"
+    "head"
+    "tail"
+    "_code_cookie"
+    "_theVariant"
+    "includes"
+    "excludes"
+    "__datafilename__"
+    "__filename__code"
+  }
+}

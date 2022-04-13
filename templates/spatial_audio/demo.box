@@ -1,0 +1,22 @@
+{
+  "_code_cookie" "{\"output\":\"\",\"folds\":{\"selections\":[{\"head\":{\"ch\":12,\"line\":5,\"sticky\":null},\"anchor\":{\"ch\":12,\"line\":5,\"sticky\":null}}],\"marks\":[]},\"history\":{\"done\":[{\"primIndex\":0,\"ranges\":[{\"head\":{\"ch\":12,\"line\":5,\"sticky\":null},\"anchor\":{\"ch\":12,\"line\":5,\"sticky\":null}}]}],\"undone\":[]},\"currentpos\":{\"ch\":12,\"line\":5,\"sticky\":null},\"widgets\":[],\"brackets\":\"makePathForHandles(cmGetLineHandle(1, false), cmGetLineHandle(1, true), 0, undefined, 'undefined')\\n\"}"
+  "code" "\nvar ll = _.space.withFile(\"/Users/marc/Desktop/something.wav\")\nll.play(0)\nll.position(vec(0,0,10))\n\nll.volume(1)"
+  "withOverloading" true
+  "boxOutline" #field/serializable{
+    :base64 "rO0ABXNyABFmaWVsZC5saW5hbGcuVmVjNAAAAAAAAAABDAAAeHB3IAAAAAAAAAAAAAAAAAAAAAA/0zMzMzMzMz/QAAAAAAAAeA=="
+  }
+  "__boxclass__" "fieldbox.boxes.Box"
+  "__id__" "_937f0284_8740_4ade_a535_563b1d499876"
+  "__datafilename__" "{{templates}}/spatial_audio/demo.box"
+  "boxBackground" #field/serializable{
+    :base64 "rO0ABXNyABFmaWVsZC5saW5hbGcuVmVjNAAAAAAAAAABDAAAeHB3ID/wAAAAAAAAP+5mZmZmZmY/7MzMzMzMzT/oAAAAAAAAeA=="
+  }
+  "name" "demo"
+  "frame" #field/rect{
+    :x 168.5859375
+    :y 141.4765625
+    :w 100.0
+    :h 100.0
+  }
+  "__filename__code" "{{templates}}/spatial_audio/demo.box.js"
+}
