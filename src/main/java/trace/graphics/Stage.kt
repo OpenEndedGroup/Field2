@@ -670,7 +670,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
                 println(al)
                 return Vec3(al.x, al.y, al.z) * (1 / al.w)
             } else if (SimpleOculusTarget.o2 != null) {
-                println("hand : ${SimpleOculusTarget.o2!!.hand1}")
+//                println("hand : ${SimpleOculusTarget.o2!!.hand1}")
 
                 val at = Vec3(
                     SimpleOculusTarget.o2!!.hand1.m03,
@@ -829,7 +829,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
                 println(al)
                 return Vec3(al.x, al.y, al.z) * (1 / al.w)
             } else if (SimpleOculusTarget.o2 != null) {
-                println("hand : ${SimpleOculusTarget.o2!!.hand1}")
+//                println("hand : ${SimpleOculusTarget.o2!!.hand1}")
 
                 val at = Vec3(
                     SimpleOculusTarget.o2!!.hand2.m03,
@@ -1677,7 +1677,8 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
     val mouse = SimpleMouse()
 
-    fun popOut(): Shader? {
+    @JvmOverloads
+    fun popOut(useFullScreenWindow: Boolean = false): Shader? {
         if (isOut) {
             // toFront
             return null
@@ -1686,7 +1687,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
         return ThreadSync2.callInMainThreadAndWait(Callable {
             if (window == null) {
-                window = object : Window(0, 0, w / 2 - 1, h / 2 - 1, "Field / Stage $thisStageNum") {
+                window = object : Window(0, 0, w / 2 - 1, h / 2 - 1, if (useFullScreenWindow) null else "Field / Stage $thisStageNum") {
                     override fun makeCallback(): GlfwCallback {
 
                         return object : GlfwCallbackDelegate(super.makeCallback()) {

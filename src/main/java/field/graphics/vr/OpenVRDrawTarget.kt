@@ -10,6 +10,7 @@ import field.linalg.Vec3
 import field.utility.IdempotencyMap
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL30
 import org.lwjgl.openvr.*
 import org.lwjgl.openvr.VR.*
 import org.lwjgl.openvr.VRSystem.*
@@ -269,6 +270,30 @@ class OpenVRDrawTarget {
 //                    GraphicsContext.checkError{
 //                        "before OpenVR A6"
 //                    }
+
+
+
+//                glClearColor(0.2f, 0.2f, 0.2f, 1f)
+//                glClear(GL_COLOR_BUFFER_BIT)
+//                GL30.glBindFramebuffer(
+//                    GL30.GL_READ_FRAMEBUFFER,
+//                    fbo!!.getOpenGLFrameBufferNameInCurrentContext()
+//                )
+//                GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, 0)
+//                var shift1 = 600;
+//                var shift2 = 400;
+//                GL30.glBlitFramebuffer(
+//                    textureW, 0, textureW*2, textureH, shift1, 0,
+//                    (shift1+textureW/2.5).toInt(), (textureH/2.5).toInt(), GL_COLOR_BUFFER_BIT,
+//                    GL_LINEAR
+//                )
+//
+//                GL30.glBlitFramebuffer(
+//                    0, 0, textureW, textureH, shift2, 1080+45,
+//                    (shift2+ textureW/2.5).toInt(), (textureH/2.4+1080+0).toInt(), GL_COLOR_BUFFER_BIT,
+//                    GL_LINEAR
+//                )
+
 
 
                 for (P in fbo!!.passes) fbo!!.perform(P)
