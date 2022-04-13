@@ -1,6 +1,7 @@
 package trace.graphics.remote
 
 import field.linalg.Vec3
+import trace.graphics.Stage
 import java.io.File
 
 class Space(val r: RemoteServer) {
@@ -8,15 +9,18 @@ class Space(val r: RemoteServer) {
     inner class Layer(val name: String) {
 
         fun play(time: Double) {
-            r.execute("channelMap['$name'].LaudioElement.currentTime=$time; channelMap['$name'].LaudioElement.play()", requiresSandbox=false)
+            r.execute(
+                "channelMap['$name'].LaudioElement.currentTime=$time; channelMap['$name'].LaudioElement.play()",
+                requiresSandbox = false
+            )
         }
 
         fun play() {
-            r.execute(" channelMap['$name'].LaudioElement.play()", requiresSandbox=false)
+            r.execute(" channelMap['$name'].LaudioElement.play()", requiresSandbox = false)
         }
 
         fun pause() {
-            r.execute(" channelMap['$name'].LaudioElement.pause()", requiresSandbox=false)
+            r.execute(" channelMap['$name'].LaudioElement.pause()", requiresSandbox = false)
         }
 
         fun position(x: Double, y: Double, z: Double) {
@@ -24,20 +28,50 @@ class Space(val r: RemoteServer) {
         }
 
         fun position(v: Vec3) {
-            r.execute("channelMap['$name'].Lsource.setPosition(${v.x},${-v.y},${v.z})", requiresSandbox=false)
+            r.execute("channelMap['$name'].Lsource.setPosition(${v.x},${-v.y},${v.z})", requiresSandbox = false)
         }
 
         fun volume(v: Double) {
-            r.execute("channelMap['$name'].LaudioElement.volume=$v", requiresSandbox=false)
+            r.execute("channelMap['$name'].LaudioElement.volume=$v", requiresSandbox = false)
         }
 
         fun loop(b: Boolean) {
-            r.execute("channelMap['$name'].LaudioElement.loop=$b", requiresSandbox=false)
+            r.execute("channelMap['$name'].LaudioElement.loop=$b", requiresSandbox = false)
+        }
+
+    }
+
+    var last = 0L
+    fun copyHead(s: Stage.ShaderGroup) {
+        if (System.currentTimeMillis() - last > 50) {
+            val head = s.vrViewerPosition()
+            val gaze = s.vrGazeDirection()
+            val up = s.vrViewerUp()
+            last = System.currentTimeMillis()
+
+            r.execute("songbird.setListenerPosition(" + head.x + ", " + head.y + ", " + head.z + ") ; songbird.setListenerOrientation(" + gaze.x + ", " + gaze.y + ", " + gaze.z + ", " + up.x + ", " + up.y + ", " + up.z + ")")
         }
 
     }
 
     /*
+
+    var tick = 0
+
+_r = () => {
+	if (tick-previous>50)
+	{
+		a = _.viewerPosition
+		gaze = _.viewerDirection
+		space.r.execute("songbird.setListenerPosition("+a.x+", "+a.y+", "+a.z+")")
+		space.r.execute("songbird.setListenerOrientation("+gaze.x+", "+gaze.y+", "+gaze.z+", "+up.x+", "+up.y+", "+up.z+")")
+		previous = tick
+	}
+
+}
+
+
+
     n.send("songbird.setListenerPosition(0,0,0)")
 n.send("songbird.setListenerOrientation(0,1,0, 0,0,1)")
 
@@ -67,25 +101,29 @@ _.send(`channels[${num}].RaudioElement.volume=${level};channels[${num}].LaudioEl
      */
 
     fun setRoomDimensions(width: Double, height: Double, depth: Double) {
-        r.execute("var dimensions = {\n" +
-                "    width: $width,\n" +
-                "    height: $height,\n" +
-                "    depth: $depth\n" +
-                "};\nsongbird.setRoomProperties(dimensions, materials)", requiresSandbox=false)
+        r.execute(
+            "var dimensions = {\n" +
+                    "    width: $width,\n" +
+                    "    height: $height,\n" +
+                    "    depth: $depth\n" +
+                    "};\nsongbird.setRoomProperties(dimensions, materials)", requiresSandbox = false
+        )
     }
 
     fun setRoomMaterial(mat: String) {
-        r.execute("var material = '$mat'\n" +
-                "var material2 = '$mat'\n" +
-                "\n" +
-                "var materials = {\n" +
-                "    left: material,\n" +
-                "    right: material,\n" +
-                "    front: material,\n" +
-                "    back: material2,\n" +
-                "    down: material,\n" +
-                "    up: material\n" +
-                "};\n" + "songbird.setRoomProperties(dimensions, materials)", requiresSandbox=false)
+        r.execute(
+            "var material = '$mat'\n" +
+                    "var material2 = '$mat'\n" +
+                    "\n" +
+                    "var materials = {\n" +
+                    "    left: material,\n" +
+                    "    right: material,\n" +
+                    "    front: material,\n" +
+                    "    back: material2,\n" +
+                    "    down: material,\n" +
+                    "    up: material\n" +
+                    "};\n" + "songbird.setRoomProperties(dimensions, materials)", requiresSandbox = false
+        )
     }
 
     fun withFile(s: String): Layer {
@@ -93,7 +131,7 @@ _.send(`channels[${num}].RaudioElement.volume=${level};channels[${num}].LaudioEl
 
         val url = r.declareResource(s)
 
-        r.execute("var _s = makeSource('$s', '$url')", requiresSandbox=false)
+        r.execute("var _s = makeSource('$s', '$url')", requiresSandbox = false)
 
         return Layer(s)
     }
@@ -107,17 +145,19 @@ _.send(`channels[${num}].RaudioElement.volume=${level};channels[${num}].LaudioEl
         }
         urlList += "]"
 
-        r.execute("Omnitone.createBufferList(audioContext, $urlList).then(function(v){ " +
-                "contentBuffer = Omnitone.mergeBufferListByChannel(audioContext, v)\n " +
-                "inputGain = audioContext.createGain()\n" +
-                "currentBufferSource = audioContext.createBufferSource();\n" +
-                "currentBufferSource.loop = true\n" +
-                "currentBufferSource.buffer = contentBuffer\n" +
-                "currentBufferSource.connect(inputGain)\n" +
-                "inputGain.connect(songbird.ambisonicInput)\n" +
-                "console.log(\'starting SoA source\')\n" +
-                "currentBufferSource.start()\n" +
-                "   })", requiresSandbox=false)
+        r.execute(
+            "Omnitone.createBufferList(audioContext, $urlList).then(function(v){ " +
+                    "contentBuffer = Omnitone.mergeBufferListByChannel(audioContext, v)\n " +
+                    "inputGain = audioContext.createGain()\n" +
+                    "currentBufferSource = audioContext.createBufferSource();\n" +
+                    "currentBufferSource.loop = true\n" +
+                    "currentBufferSource.buffer = contentBuffer\n" +
+                    "currentBufferSource.connect(inputGain)\n" +
+                    "inputGain.connect(songbird.ambisonicInput)\n" +
+                    "console.log(\'starting SoA source\')\n" +
+                    "currentBufferSource.start()\n" +
+                    "   })", requiresSandbox = false
+        )
 
 
     }

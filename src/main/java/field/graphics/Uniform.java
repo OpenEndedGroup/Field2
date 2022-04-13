@@ -161,6 +161,12 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 		Integer name = GraphicsContext.getContext().stateTracker.shader.get();
 		GraphicsContext.checkError(() -> "while setting (1):" + name + " / " + this.name);
 		T t = value.get();
+		final T tfinal = t;
+
+		if (t instanceof OffersUniform)
+		{
+			t = (T) ((OffersUniform)t).getUniform();
+		}
 
 		if (push) {
 			GraphicsContext was = GraphicsContext.getContext();
@@ -253,7 +259,7 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 								lastType = int[].class;
 							} else
 								throw new IllegalArgumentException(" bad dimension after conversion to int array " + t + " -> " + ti.length);
-							GraphicsContext.checkError(() -> "while setting (5 (int array)):" + name + " / " + this.name+" = "+ti.length+" "+t);
+							GraphicsContext.checkError(() -> "while setting (5 (int array)):" + name + " / " + this.name+" = "+ti.length+" "+tfinal);
 						} else {
 							float[][] tm = rewriteToFloatMatrix(t);
 
@@ -286,8 +292,7 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 									GL20.glUniformMatrix2fv(location, transpose, matrix4);
 								} else
 									throw new IllegalArgumentException(" bad dimension after conversion to float matrix " + t + " -> " + tm.length);
-							} else
-								throw new IllegalArgumentException(" cannot convert " + t + " to something that OpenGL can use as a uniform");
+							}
 							GraphicsContext.checkError(() -> "while setting (7):" + name + " / " + this.name);
 
 						}

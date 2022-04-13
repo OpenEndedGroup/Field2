@@ -10,19 +10,27 @@ import fieldbox.boxes.Box
 import fieldbox.boxes.Boxes
 import fieldbox.boxes.Drawing
 import fieldbox.boxes.plugins.BoxDefaultCode
+import fieldbox.boxes.plugins.IsExecuting
 import fieldbox.execution.Completion
 import fieldbox.execution.Execution
 import fieldbox.execution.JavaSupport
 import fieldbox.io.IO
 import fielded.RemoteEditor
 import fielded.plugins.Out
+import fieldkotlin.KI
+import fieldkotlin.frame
 import jep.JepConfig
 import jep.SharedInterpreter
+import jep.python.PyCallable
 import java.io.IOException
 import java.io.Writer
 import java.util.*
+import java.util.function.BiConsumer
 import java.util.function.Consumer
+import java.util.function.Supplier
+import java.util.regex.Pattern
 import java.util.stream.Collectors
+import kotlin.collections.HashMap
 
 
 class PI : Execution(null) {
@@ -66,8 +74,7 @@ class PI : Execution(null) {
         prop: Dict.Prop<String>
     ): SharedInterpreter {
 
-        if (this::globalShared.isInitialized)
-        {
+        if (this::globalShared.isInitialized) {
             makeLocals(globalShared, box)
             return globalShared
         }
@@ -252,6 +259,8 @@ class PI : Execution(null) {
                         pi.set("_", box)
                         pi.exec("__fieldeval__(__fragment__, __localmap__[_])")
 //                        pi.first.exec(textFragment)
+
+
                     } catch (e: jep.JepException) {
                         e.printStackTrace()
                         val r = errorRegex.find(e.message!!)
@@ -294,6 +303,8 @@ class PI : Execution(null) {
                 executeTextFragment(allText, "", success, lineErrors)
             }
 
+            val prefix = "" + KI.uniq++
+
             override fun begin(
                 lineErrors: Consumer<Pair<Int, String>>,
 
@@ -311,9 +322,53 @@ class PI : Execution(null) {
 
                     var code = box.properties.get(Execution.code)!!
 
-
                     RemoteEditor.boxFeedback(Optional.of(box), Vec4(0.3, 0.7, 0.3, 0.5))
 
+                    pi.exec("__localmap__[_].pop('_r', None)")
+
+                    doEval(code, lineErrors, success)
+
+                    val locals = pi.getValue("__localmap__[_]") as Map<String, Any>
+                    var _r = locals.getOrDefault("_r", null)
+                    if (_r != null) {
+                        print("_ got _r = $_r")
+
+                        if (_r is PyCallable) {
+
+                            val was = _r
+                            _r = frame {
+                                was.call()
+                            }
+
+                            _r.reset()
+                            if (endOthers) end(lineErrors, success)
+
+                            val name: String = "main._animator" + prefix + "_" + KI.uniq
+                            box.properties.putToMap<String, Supplier<Boolean>>(Boxes.insideRunLoop, name, _r)
+                            box.first(IsExecuting.isExecuting)
+                                .ifPresent { x: BiConsumer<Box?, String?> ->
+                                    x.accept(
+                                        box,
+                                        name
+                                    )
+                                }
+
+                            KI.uniq++
+                            box.properties.put(
+                                IsExecuting.executionSequenceCount, box.properties.computeIfAbsent(
+                                IsExecuting.executionSequenceCount
+                            ) { k: Dict.Prop<Int>? -> 1 } - 1)
+
+                            return name
+
+                        }
+
+                    }
+//                    var _r = pi.getValue("cam")
+//                    var _r = pi.getValue("_r")
+
+//                    var _r = getBinding("_r")
+//                    print(_r)
 
                     return null
                 } finally {
@@ -325,11 +380,26 @@ class PI : Execution(null) {
             override fun end(lineErrors: Consumer<Pair<Int, String>>, success: Consumer<String>) {
                 RemoteEditor.removeBoxFeedback(Optional.of(box), "__redmark__")
 
+                val m = box.properties.get(Boxes.insideRunLoop)
+                    ?: return
+
+
+                val p = Pattern.compile("main._animator" + prefix + "_.*")
+
+                for (s in ArrayList(m.keys)) {
+                    if (p.matcher(s).matches()) {
+                        val b = m[s]!!
+                        if (b is Consumer<*>) (b as Consumer<Boolean>).accept(false) else {
+                            m.remove(s)
+                        }
+                    }
+                }
+
+                Drawing.dirty(box)
 
                 RemoteEditor.boxFeedback(Optional.of(box), Vec4(0.3, 0.7, 0.3, 0.5))
                 Drawing.dirty(box)
             }
-
             override fun setConsoleOutput(stdout: Consumer<String>, stderr: Consumer<String>) {
 
 

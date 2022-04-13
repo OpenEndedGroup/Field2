@@ -26,8 +26,6 @@ class PythonHead() {
         fun start(box: Box, python: String, path: String, args: List<String>) {
             if (PythonHead.started) return
 
-
-
             ce = (box up Exec.exec)!!
             PythonHead.box = box
 

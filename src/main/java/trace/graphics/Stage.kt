@@ -622,6 +622,42 @@ class Stage(val w: Int, val h: Int) : AsMap {
             return Vec3()
         }
 
+        fun vrViewerUp(): Vec3 {
+            if (SimpleOculusTarget.o != null) {
+
+                var m = Mat4(SimpleOculusTarget.o!!.rightView().get())
+                var m2 = Mat4(__camera.view().get())
+                m2 = m2.transpose()
+
+                m = Mat4.mul(m, m2, Mat4())
+                m.invert()
+
+                val a = m.transform(Vec4(0.0, 0.0, 0.0, 1.0))
+                val b = m.transform(Vec4(0.0, 1.0, 0.0, 1.0))
+                val a2 = Vec3(a.x, a.y, a.z) * (1 / a.w)
+                val b2 = Vec3(b.x, b.y, b.z) * (1 / b.w)
+
+                return b2 - a2
+            } else if (SimpleOculusTarget.o2 != null) {
+                var m = Mat4(SimpleOculusTarget.o2!!.cameraInterface().view(-1f))
+                m.transpose()
+                var m2 = Mat4(__camera.view().get())
+                m2 = m2.transpose()
+
+                m = Mat4.mul(m, m2, Mat4())
+                m.invert()
+
+                val a = m.transform(Vec4(0.0, 0.0, 0.0, 1.0))
+                val b = m.transform(Vec4(0.0, 1.0, 0.0, 1.0))
+                val a2 = Vec3(a.x, a.y, a.z) * (1 / a.w)
+                var b2 = Vec3(b.x, b.y, b.z) * (1 / b.w)
+
+                return b2 - a2
+            }
+
+            return Vec3()
+        }
+
         fun vrViewerPosition(): Vec3 {
 
             if (SimpleOculusTarget.o != null) {
@@ -1687,7 +1723,13 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
         return ThreadSync2.callInMainThreadAndWait(Callable {
             if (window == null) {
-                window = object : Window(0, 0, w / 2 - 1, h / 2 - 1, if (useFullScreenWindow) null else "Field / Stage $thisStageNum") {
+                window = object : Window(
+                    0,
+                    0,
+                    w / 2 - 1,
+                    h / 2 - 1,
+                    if (useFullScreenWindow) null else "Field / Stage $thisStageNum"
+                ) {
                     override fun makeCallback(): GlfwCallback {
 
                         return object : GlfwCallbackDelegate(super.makeCallback()) {
