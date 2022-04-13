@@ -2,16 +2,16 @@
   :externalList [
     #field/external{
       :textFiles {
-        "code" "{{templates}}/spatial_audio/spatial_audio.box.js"
+        "code" "{{templates}}/spatial_audio2/Web XR Server.box.js"
       }
-      :dataFile "{{templates}}/spatial_audio/spatial_audio.box"
-      :id "_9cabc5e8_096c_40d9_bb72_52117730e8ff"
+      :dataFile "{{templates}}/spatial_audio2/Web XR Server.box"
+      :id "_069d9301_9ded_4ab6_9ac8_3602a0922310"
       :boxClass "trace.graphics.remote.RemoteServerExecution"
       :parents [
         ">>root<<"
       ]
       :children [
-        "_d9f237eb_7e3c_4e58_a9b4_319ab39579a6"
+        "_a1dec665_4051_4010_9fab_daf37e0e0751"
       ]
       :overriddenProperties {
         "frame" #field/rect{
@@ -24,13 +24,13 @@
     }
     #field/external{
       :textFiles {
-        "code" "{{templates}}/spatial_audio/mouse_down_hack.box.js"
+        "code" "{{templates}}/spatial_audio2/mouse_down_hack.box.js"
       }
-      :dataFile "{{templates}}/spatial_audio/mouse_down_hack.box"
-      :id "_c8f557d9_0637_4de7_963b_0c009e08250f"
+      :dataFile "{{templates}}/spatial_audio2/mouse_down_hack.box"
+      :id "_525759b9_4ad5_4978_b35c_f3f182fea440"
       :boxClass "fieldbox.boxes.Box"
       :parents [
-        "_9cabc5e8_096c_40d9_bb72_52117730e8ff"
+        "_069d9301_9ded_4ab6_9ac8_3602a0922310"
         ">>root<<"
       ]
       :children [
@@ -46,10 +46,10 @@
     }
     #field/external{
       :textFiles {
-        "code" "{{templates}}/spatial_audio/demo.box.js"
+        "code" "{{templates}}/spatial_audio2/demo.box.js"
       }
-      :dataFile "{{templates}}/spatial_audio/demo.box"
-      :id "_d99bb685_d70c_4e86_a2fe_c386bc722aa2"
+      :dataFile "{{templates}}/spatial_audio2/demo.box"
+      :id "_2d73beeb_b559_4db8_9cd4_e2129bd4738d"
       :boxClass "fieldbox.boxes.Box"
       :parents [
         ">>root<<"
@@ -58,8 +58,8 @@
       ]
       :overriddenProperties {
         "frame" #field/rect{
-          :x 168.5859375
-          :y 141.4765625
+          :x 166.5859375
+          :y 140.4765625
           :w 100.0
           :h 100.0
         }
