@@ -49,7 +49,7 @@ class Space(val r: RemoteServer) {
             val up = s.vrViewerUp()
             last = System.currentTimeMillis()
 
-            r.execute("songbird.setListenerPosition(" + head.x + ", " + head.y + ", " + head.z + ") ; songbird.setListenerOrientation(" + gaze.x + ", " + gaze.y + ", " + gaze.z + ", " + up.x + ", " + up.y + ", " + up.z + ")")
+            r.execute("window.songbird.setListenerPosition(" + head.x + ", " + head.y + ", " + head.z + ") ; window.songbird.setListenerOrientation(" + gaze.x + ", " + gaze.y + ", " + gaze.z + ", " + up.x + ", " + up.y + ", " + up.z + ")")
         }
 
     }
