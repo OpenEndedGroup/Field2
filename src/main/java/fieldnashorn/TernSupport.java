@@ -331,6 +331,17 @@ public class TernSupport {
 							" Java.to(_v)");
 						Log.log("completion.debug", () -> " auto eval completion got :" +
 							Arrays.asList(retae));
+
+						for(Object o : retae)
+						{
+							String so = o+"";
+							if (so.startsWith(right))
+							{
+								r.add(new Completion(c - right.length(), c, so, ""));
+							}
+						}
+
+
 					} else if (e instanceof Box) {
 //					e = new UnderscoreBox((Box) e);
 						List<Completion> fromJava = javaSupport.getCompletionsFor(e, right);
