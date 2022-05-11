@@ -444,7 +444,7 @@ float e = 0.005;
             e.properties.put(Window.consumed, true)
             val point = Vec2(e.after.mx, e.after.my)
             if (e.after.keyboardState.isAltDown) {
-                browser!!.setFocus(true)
+//                browser!!.setFocus(true)
                 browser!!.sendMouseEvent(
                     MouseEvent(
                         component,
@@ -943,7 +943,7 @@ float e = 0.005;
         get() = keyboardFocus.isFocused(this)
         set(f) {
             if (f != focus) Drawing.dirty(this)
-            browser!!.setFocus(f)
+//            browser!!.setFocus(f)
             if (f) {
                 keyboardFocus.claimFocus(this)
             } else {
