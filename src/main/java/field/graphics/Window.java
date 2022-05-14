@@ -576,6 +576,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
     public Rect getBounds() {
         if (currentBounds == null)
             currentBounds = new Rect(0, 0, 500, 500);
+
         currentBounds.x = glfwGetWindowX(window);
         currentBounds.y = glfwGetWindowY(window);
         currentBounds.w = glfwGetWindowWidth(window);

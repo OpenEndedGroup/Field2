@@ -86,7 +86,6 @@ public class Shader extends BaseScene<Shader.State> implements Scene.Perform, fi
 		protected int status;
 		public iErrorHandler onError = null;
 
-
 		public Source(Supplier<String> source, Type type) {
 			this.type = type;
 			this.source = source;

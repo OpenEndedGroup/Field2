@@ -11,7 +11,7 @@ class ElasticAnimation : Runnable {
 
         var time: Double
             get() = _time.get()
-            set(n: Double) = _time.set(n)
+            set(n : Double) = _time.set(n)
 
         fun <T> atTime(t: Double, b: () -> T): T {
             val was = time

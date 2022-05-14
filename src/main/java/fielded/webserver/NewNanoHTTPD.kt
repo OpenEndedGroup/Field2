@@ -342,8 +342,8 @@ class NewNanoHTTPD(val port: Int) {
 
         Thread() {
             while (true) {
-                Thread.sleep(1500)
-                println("ping")
+                Thread.sleep(150)
+//                println("ping")
                 openWebsockets.forEach {
                     it.ping(byteArrayOf(0))
                 }
