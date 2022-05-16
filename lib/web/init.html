@@ -15,6 +15,7 @@
             _field.send("error", encodeURIComponent(s));
         };
 
+        let once = true
         _field.evalRequestWS = function (id) {
 
             _field.id = id;
@@ -57,7 +58,8 @@
                 document.title = "Field / Disconnected";
 
                 // start it up again
-                _field.evalRequestWS(///ID///)
+                // _field.evalRequestWS(///ID///)
+                document.location.reload(true)
             };
 
             _field.socket.onerror = function (e) {

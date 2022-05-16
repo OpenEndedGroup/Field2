@@ -140,7 +140,7 @@ class CefSystem protected constructor() {
         appArgs.add("--no-sandbox")
         appArgs.add("--enable-media-stream")
         appArgs.add("--use-fake-ui-for-media-stream")
-//        appArgs.add("--disable-background-timer-throttling")
+        appArgs.add("--disable-background-timer-throttling")
 
         println(" args $appArgs")
 
