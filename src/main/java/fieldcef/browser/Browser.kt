@@ -178,6 +178,7 @@ class Browser : Box(), Loaded {
 
     var ezl = Options.dict().getFloat(Dict.Prop("extraZoomLevel"), 1f)
     override fun loaded() {
+
         Log.disable("cef.*")
         properties.computeIfAbsent(frame) { k: Dict.Prop<Rect?>? -> Rect(0.0, 0.0, 512.0, 512.0) }
         properties.put(name, "(browser)")
@@ -444,7 +445,7 @@ float e = 0.005;
             e.properties.put(Window.consumed, true)
             val point = Vec2(e.after.mx, e.after.my)
             if (e.after.keyboardState.isAltDown) {
-                browser!!.setFocus(true)
+//                browser!!.setFocus(true)
                 browser!!.sendMouseEvent(
                     MouseEvent(
                         component,
@@ -514,11 +515,13 @@ float e = 0.005;
             "__browser__",
             OnKeyDown { e: Window.Event<Window.KeyboardState>, k: Int ->
 
+                System.out.println(" key down ! ${e.before} -> ${e.after}")
+
                 //if (/*!isSelected() &&*/ !focussed) return null;
                 if (!focus) return@OnKeyDown null
                 if (properties.isTrue(hidden, false)) return@OnKeyDown null
                 if (true) return@OnKeyDown keyboardHacks!!.onKeyDown(e, k)
-                println(" -- onkeydown $e $k")
+//                println(" -- onkeydown $e $k")
 
 //			Log.log("keyboard", "----- Key down :" + e + " " + k);
                 var mod = if (e.after.isAltDown) KeyEvent.ALT_DOWN_MASK else 0
@@ -943,7 +946,7 @@ float e = 0.005;
         get() = keyboardFocus.isFocused(this)
         set(f) {
             if (f != focus) Drawing.dirty(this)
-            browser!!.setFocus(f)
+//            browser!!.setFocus(f)
             if (f) {
                 keyboardFocus.claimFocus(this)
             } else {

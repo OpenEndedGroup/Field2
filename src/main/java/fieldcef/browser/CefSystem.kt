@@ -10,6 +10,7 @@ import org.cef.CefClient
 import org.cef.CefSettings.LogSeverity
 import org.cef.browser.*
 import org.cef.callback.CefDragData
+import org.cef.callback.CefMediaAccessCallback
 import org.cef.callback.CefQueryCallback
 import org.cef.handler.*
 import org.cef.network.CefRequest.TransitionType
@@ -137,6 +138,9 @@ class CefSystem protected constructor() {
         appArgs.addAll(config.appArgsAsList)
         println(" -- NO SANDBOX")
         appArgs.add("--no-sandbox")
+        appArgs.add("--enable-media-stream")
+        appArgs.add("--use-fake-ui-for-media-stream")
+        appArgs.add("--disable-background-timer-throttling")
 
         println(" args $appArgs")
 
@@ -232,6 +236,19 @@ class CefSystem protected constructor() {
 
             override fun onCursorChange(cefBrowser: CefBrowser, i: Int): Boolean {
                 return false
+            }
+        })
+        client.addMediaAccessHandler(object : CefMediaAccessHandler {
+            override fun onRequestMediaAccessPermission(
+                p0: CefBrowser?,
+                p1: CefFrame?,
+                p2: String?,
+                p3: Int,
+                p4: CefMediaAccessCallback?
+            ): Boolean {
+                if (p4!=null)
+                    p4.Continue(15)
+                return true
             }
         })
         client.addLoadHandler(object : CefLoadHandlerAdapter() {

@@ -69,6 +69,8 @@ class KeyEventMapping {
         keyCodes[KeyEvent.VK_C] = GLFW.GLFW_KEY_C
         keyCodes[KeyEvent.VK_G] = GLFW.GLFW_KEY_G
         keyCodes[KeyEvent.VK_A] = GLFW.GLFW_KEY_A
+        keyCodes[KeyEvent.VK_SLASH] = GLFW.GLFW_KEY_SLASH
+        keyCodes[KeyEvent.VK_BACK_SLASH] = GLFW.GLFW_KEY_BACKSLASH
         keyCodes[KeyEvent.VK_V] = GLFW.GLFW_KEY_V
         keyCodes[KeyEvent.VK_X] = GLFW.GLFW_KEY_X
         keyCodes[KeyEvent.VK_I] = GLFW.GLFW_KEY_I

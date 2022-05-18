@@ -118,6 +118,8 @@ public class RunLoop {
                     sleepsTaken++;
                 }
 
+                Thread.sleep(2);
+
                 if (tick % interval == 0) {
 
                     if (printTelemetry) {

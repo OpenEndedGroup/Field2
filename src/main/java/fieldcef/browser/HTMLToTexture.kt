@@ -51,7 +51,30 @@ class HTMLToTexture(private val w: Int, private val h: Int) {
             }
             callbackOnNextReload = Runnable {}
             timeSinceLastLoad = System.currentTimeMillis()
+
+            println(" -- html_to_texture is asking for a browser load url to $url")
             browser.loadURL(url)
+
+        })
+        checkAndRunRequests()
+        return f
+    }
+
+    fun renderURL_setCallback(url: String, update: (ByteBuffer) -> Unit): Future<ByteBuffer?> {
+        val f = CompletableFuture<ByteBuffer?>()
+        pendingRequests.add(Runnable {
+            sourceView[url] = ByteBuffer.allocateDirect(4 * w * h).order(ByteOrder.nativeOrder())
+            callback[url] = Runnable {
+                f.complete(sourceView[url])
+                requestDone = true
+                update(sourceView[url]!!)
+            }
+            callbackOnNextReload = Runnable {}
+            timeSinceLastLoad = System.currentTimeMillis()
+
+            println(" -- html_to_texture is asking for a browser load url to $url")
+            browser.loadURL(url)
+
         })
         checkAndRunRequests()
         return f
@@ -96,6 +119,26 @@ class HTMLToTexture(private val w: Int, private val h: Int) {
         return t
     }
 
+
+    fun createTextureURL_stream(url: String, unit: Int): Texture {
+        val t = Texture(
+            Texture.TextureSpecification.byte4(
+                unit,
+                w,
+                h,
+                ByteBuffer.allocateDirect(4 * w * h).order(ByteOrder.nativeOrder()),
+                true
+            )
+        )
+
+        val u = renderURL_setCallback(url) {
+            println(" -- uploading texture ")
+            t.upload(it, true)
+        }
+
+        return t
+    }
+
     fun createTextureString(url: String, unit: Int): Texture {
         val t = Texture(
             Texture.TextureSpecification.byte4(
@@ -115,6 +158,9 @@ class HTMLToTexture(private val w: Int, private val h: Int) {
     }
 
     protected fun paint(popup: Boolean, dirty: Array<Rectangle>, buffer: ByteBuffer, w: Int, h: Int) {
+
+        System.out.println(" -- paint for HTMLToTexture ${browser.url}")
+
         var sourceView = sourceView[browser.url]
         if (sourceView == null) {
             sourceView = this.sourceView[browser.url + "/"]
@@ -123,7 +169,7 @@ class HTMLToTexture(private val w: Int, private val h: Int) {
                 if (sourceView == null) {
                     sourceView = this.sourceView[browser.url.replace("http", "https")]
                     if (sourceView == null) {
-                        val v = browser.url.replace("http", "https")
+                        val v = browser.url.replace("https", "http")
                         sourceView = this.sourceView[v.substring(0, v.length - 1)]
                     }
                 }

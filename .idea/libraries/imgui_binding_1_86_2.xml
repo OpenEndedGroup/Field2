@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="imgui-binding-1.86.2">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/jars/imgui-binding-1.86.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jars/imgui-lwjgl3-1.86.2.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
