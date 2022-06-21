@@ -12,7 +12,10 @@ import org.apache.commons.io.monitor.FileAlterationMonitor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.lwjgl.opengl.*;
 
+import javax.imageio.ImageIO;
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -80,7 +83,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
             String name = new File(sourceFilename).getName();
 
             FileAlterationObserver o = new FileAlterationObserver(new File(sourceFilename).getParentFile(),
-                                                                  new NameFileFilter(name));
+                    new NameFileFilter(name));
             try {
                 o.initialize();
             } catch (Exception e) {
@@ -187,8 +190,8 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
      * schedules an upload from this bytebuffer to this texture during the next drawn. Set stream to true to hint to OpenGL that you mean to keep on doing this.
      */
     public void upload(ByteBuffer upload, boolean stream) {
-        if (pendingUploads.get()>10) {
-            System.out.println(" too many pending uploads ("+pendingUploads.get()+"), skipping ");
+        if (pendingUploads.get() > 10) {
+            System.out.println(" too many pending uploads (" + pendingUploads.get() + "), skipping ");
 //            return;
 //            pendingUploads.set(0);
         }
@@ -253,10 +256,10 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
             GraphicsContext.checkError(() -> "bound texture" + specification);
             if (specification.target == GL_TEXTURE_1D)
                 glTexSubImage1D(specification.target, 0, 0, specification.width, specification.format,
-                                specification.type, specification.pixels);
+                        specification.type, specification.pixels);
             else
                 glTexSubImage2D(specification.target, 0, 0, 0, specification.width, specification.height,
-                                specification.format, specification.type, specification.pixels);
+                        specification.format, specification.type, specification.pixels);
 
             if (specification.highQuality) {
                 glGenerateMipmap(specification.target);
@@ -336,7 +339,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
             glPixelStorei(GL_UNPACK_ROW_LENGTH, specification.width);
 
             int start = 0;
-            int end = specification.elementSize * specification.width*specification.height;
+            int end = specification.elementSize * specification.width * specification.height;
             s.old = glMapBufferRange(GL21.GL_PIXEL_UNPACK_BUFFER, start, end - start,
                     GL30.GL_MAP_WRITE_BIT | GL30.GL_MAP_INVALIDATE_RANGE_BIT | GL30.GL_MAP_UNSYNCHRONIZED_BIT,
                     s.old);
@@ -436,10 +439,10 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
         if (specification.target == GL_TEXTURE_1D) {
             ARBTextureStorage.glTexStorage1D(specification.target,
-                                             specification.highQuality ? (int) (Math.floor(Math.log(
-                                                     Math.max(specification.width, specification.height)) / Math.log(
-                                                     2)) + 1) : 1,
-                                             specification.internalFormat, specification.width);
+                    specification.highQuality ? (int) (Math.floor(Math.log(
+                            Math.max(specification.width, specification.height)) / Math.log(
+                            2)) + 1) : 1,
+                    specification.internalFormat, specification.width);
         } else if (specification.target == GL_TEXTURE_3D) {
             ARBTextureStorage.glTexStorage3D(specification.target,
                     specification.highQuality ? (int) (Math.floor(Math.log(
@@ -447,7 +450,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
                             2)) + 1) : 1,
                     specification.internalFormat, specification.width, specification.height,
                     specification.depth);
-        }else if (specification.target == GL_TEXTURE_2D_ARRAY) {
+        } else if (specification.target == GL_TEXTURE_2D_ARRAY) {
             ARBTextureStorage.glTexStorage3D(specification.target,
                     specification.highQuality ? (int) (Math.floor(Math.log(
                             Math.max(specification.width, specification.height)) / Math.log(
@@ -456,10 +459,10 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
                     specification.depth);
         } else {
             ARBTextureStorage.glTexStorage2D(specification.target,
-                                             specification.highQuality ? (int) (Math.floor(Math.log(
-                                                     Math.max(specification.width, specification.height)) / Math.log(
-                                                     2)) + 1) : 1,
-                                             specification.internalFormat, specification.width, specification.height);
+                    specification.highQuality ? (int) (Math.floor(Math.log(
+                            Math.max(specification.width, specification.height)) / Math.log(
+                            2)) + 1) : 1,
+                    specification.internalFormat, specification.width, specification.height);
         }
         GraphicsContext.checkError(() -> "setting up texture, storage " + specification);
 
@@ -473,7 +476,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
                 if (specification.target == GL_TEXTURE_1D) {
                     glTexSubImage1D(specification.target, 0, 0, specification.width, specification.format,
-                                    specification.type, specification.pixels);
+                            specification.type, specification.pixels);
                 } else if (specification.target == GL_TEXTURE_3D) {
                     glTexSubImage3D(specification.target, 0, 0, 0, 0, specification.width, specification.height,
                             specification.depth, specification.format, specification.type,
@@ -484,7 +487,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
                             specification.pixels);
                 } else {
                     glTexSubImage2D(specification.target, 0, 0, 0, specification.width, specification.height,
-                                    specification.format, specification.type, specification.pixels);
+                            specification.format, specification.type, specification.pixels);
                 }
                 if (specification.highQuality) {
                     glGenerateMipmap(specification.target);
@@ -501,7 +504,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
         glPixelStorei(GL_UNPACK_ROW_LENGTH, specification.width);
 
         glBufferData(GL_PIXEL_UNPACK_BUFFER, specification.elementSize * specification.width * specification.height,
-                     GL15.GL_STREAM_DRAW);
+                GL15.GL_STREAM_DRAW);
 
         GraphicsContext.checkError(() -> "setting up texture, pbo " + specification);
 
@@ -510,7 +513,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
             glPixelStorei(GL_UNPACK_ROW_LENGTH, specification.width);
             glBufferData(GL_PIXEL_UNPACK_BUFFER, specification.elementSize * specification.width * specification.height,
-                         GL15.GL_STREAM_DRAW);
+                    GL15.GL_STREAM_DRAW);
 
         }
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
@@ -552,10 +555,9 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
                     specification.format,
                     specification.type,
                     0);
-        }
-        else
+        } else
             glTexSubImage2D(specification.target, 0, 0, s.y0, specification.width, s.y1 - s.y0 - 1, specification.format,
-                            specification.type, top);
+                    specification.type, top);
 
         GraphicsContext.checkError(() -> " after that glTexSubImage2D");
 
@@ -594,7 +596,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
         glBindTexture(specification.target, s.name);
         glTexSubImage2D(specification.target, 0, 0, 0, specification.width, specification.height, specification.format,
-                        specification.type, from);
+                specification.type, from);
         if (specification.highQuality) {
             glGenerateMipmap(specification.target);
         }
@@ -607,10 +609,10 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
     }
 
 
-	public Texture setIsDoubleBuffered(boolean isDoubleBuffered) {
-		this.isDoubleBuffered = isDoubleBuffered;
-		return this;
-	}
+    public Texture setIsDoubleBuffered(boolean isDoubleBuffered) {
+        this.isDoubleBuffered = isDoubleBuffered;
+        return this;
+    }
 
     public int getPBOSource(GraphicsContext context) {
         State s = GraphicsContext.get(this);
@@ -811,22 +813,22 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
         static public TextureSpecification byte3(int unit, int width, int height, ByteBuffer source, boolean mips, boolean forceSingleBuffered) {
             return new TextureSpecification(unit, GL_TEXTURE_2D, GL_RGB8, width, height, GL_RGB, GL_UNSIGNED_BYTE, 3,
-                                            source, mips, forceSingleBuffered, false);
+                    source, mips, forceSingleBuffered, false);
         }
 
         static public TextureSpecification byte1(int unit, int width, int height, ByteBuffer source, boolean mips) {
-		return new TextureSpecification(unit, GL_TEXTURE_2D, GL_R8, width, height, GL_RED, GL_UNSIGNED_BYTE, 1,
-			source, mips);
+            return new TextureSpecification(unit, GL_TEXTURE_2D, GL_R8, width, height, GL_RED, GL_UNSIGNED_BYTE, 1,
+                    source, mips);
         }
 
         static public TextureSpecification uint4_1d(int unit, int width, ByteBuffer source, boolean mips) {
             return new TextureSpecification(unit, GL_TEXTURE_1D, GL_RGBA32UI, width, 1, GL_RGBA_INTEGER,
-                                            GL_UNSIGNED_INT, 16, source, mips);
+                    GL_UNSIGNED_INT, 16, source, mips);
         }
 
         static public TextureSpecification uint1_1d(int unit, int width, ByteBuffer source, boolean mips) {
             return new TextureSpecification(unit, GL_TEXTURE_1D, GL_R32UI, width, 1, GL_RED_INTEGER, GL_UNSIGNED_INT, 4,
-                                            source, mips);
+                    source, mips);
         }
 
         static public TextureSpecification fromJpeg(int unit, String filename, boolean mips) {
@@ -839,9 +841,65 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
             FastJPEG.j.decompress(filename, data, wh[0], wh[1]);
 
             TextureSpecification ts = new TextureSpecification(unit, GL_TEXTURE_2D, GL_RGB8, wh[0], wh[1], GL_RGB,
-                                                               GL_UNSIGNED_BYTE, 3, data, mips);
+                    GL_UNSIGNED_BYTE, 3, data, mips);
             ts.source = filename;
             return ts;
+        }
+
+        static public TextureSpecification fromPNG4(int unit, String filename, boolean mips) {
+            // help with windows path problems
+            filename = new File(filename).getAbsolutePath();
+
+            try {
+                var image = ImageIO.read(new BufferedInputStream(new FileInputStream(filename)));
+                var r = image.getRaster();
+
+                var cm = image.getColorModel();
+                var norm = cm.getComponentSize(0);
+                float normf = 255f;
+                if (norm == 8) normf = 255f;
+                else if (norm == 16) normf = 255f * 255f;
+                else throw new IllegalStateException(" can't figure out bitdepth of " + norm + " bits");
+
+                var data = ByteBuffer.allocateDirect(4 * image.getWidth() * image.getHeight());
+                for (int i = 0; i < image.getWidth() * image.getHeight(); i++) {
+                    var x = i % image.getWidth();
+                    var y = i / image.getWidth();
+
+                    if (r.getNumBands() == 1) {
+                        var v = r.getSampleFloat(x, y, 0) / normf;
+                        data.put((byte) ((int) (255 * v)));
+                        data.put((byte) ((int) (255 * v)));
+                        data.put((byte) ((int) (255 * v)));
+                        data.put((byte) 255);
+                    } else if (r.getNumBands() == 3) {
+                        var v = r.getSampleFloat(x, y, 0) / normf;
+                        data.put((byte) ((int) (255 * v)));
+                        v = r.getSampleFloat(x, y, 1) / normf;
+                        data.put((byte) ((int) (255 * v)));
+                        v = r.getSampleFloat(x, y, 2) / normf;
+                        data.put((byte) ((int) (255 * v)));
+                        data.put((byte) 255);
+
+                    } else if (r.getNumBands() == 4) {
+                        var v = r.getSampleFloat(x, y, 0) / normf;
+                        data.put((byte) ((int) (255 * v)));
+                        v = r.getSampleFloat(x, y, 0) / normf;
+                        data.put((byte) ((int) (255 * v)));
+                        v = r.getSampleFloat(x, y, 0) / normf;
+                        data.put((byte) ((int) (255 * v)));
+                        v = r.getSampleFloat(x, y, 0) / normf;
+                        data.put((byte) ((int) (255 * v)));
+                    }
+                }
+
+                TextureSpecification ts = new TextureSpecification(unit, GL_TEXTURE_2D, GL_RGBA8, image.getWidth(), image.getHeight(), GL_RGBA,
+                        GL_UNSIGNED_BYTE, 4, data, mips);
+                ts.source = filename;
+                return ts;
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
 
 
@@ -855,7 +913,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
             FastJPEG.j.decompress(filename, data, wh[0], wh[1]);
 
             TextureSpecification ts = new TextureSpecification(unit, GL_TEXTURE_2D, GL_RGBA8, wh[0], wh[1], GL_LUMINANCE,
-                                                               GL_UNSIGNED_BYTE, 1, data, mips);
+                    GL_UNSIGNED_BYTE, 1, data, mips);
             ts.source = filename;
             return ts;
         }
@@ -867,7 +925,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
                     .put(source);
             data.rewind();
             return new TextureSpecification(unit, GL_TEXTURE_2D, GL30.GL_RGBA32F, length, 1, GL_RGBA, GL_FLOAT, 16,
-                                            data, false);
+                    data, false);
         }
 
         static public TextureSpecification from1DFloatBuffer(int unit, int length, FloatBuffer source) {
@@ -876,66 +934,66 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
                     .put(source);
             data.rewind();
             return new TextureSpecification(unit, GL_TEXTURE_2D, GL30.GL_R32F, length, 1, GL_RED, GL_FLOAT, 4, data,
-                                            false);
+                    false);
         }
 
         static public TextureSpecification from1DRFloatBuffer(int unit, int length, ByteBuffer data) {
             return new TextureSpecification(unit, GL_TEXTURE_2D, GL30.GL_R32F, length, 1, GL_RED, GL_FLOAT, 4, data,
-                                            false, true, false);
+                    false, true, false);
         }
 
         static public TextureSpecification from1DRGFloatBuffer(int unit, int length, ByteBuffer data) {
             return new TextureSpecification(unit, GL_TEXTURE_2D, GL30.GL_RG32F, length, 1, GL_RG, GL_FLOAT, 8, data,
-                                            false, true, false);
+                    false, true, false);
         }
 
         static public TextureSpecification from1DRGBFloatBuffer(int unit, int length, ByteBuffer data) {
             return new TextureSpecification(unit, GL_TEXTURE_2D, GL30.GL_RGB32F, length, 1, GL_RGB, GL_FLOAT, 12, data,
-                                            false, true, false);
+                    false, true, false);
         }
 
         static public TextureSpecification from1DRGBAFloatBuffer(int unit, int length, ByteBuffer data) {
             return new TextureSpecification(unit, GL_TEXTURE_2D, GL30.GL_RGBA32F, length, 1, GL_RGBA, GL_FLOAT, 16,
-                                            data, false, true, false);
+                    data, false, true, false);
         }
 
         static public TextureSpecification byte4(int unit, int width, int height, ByteBuffer source, boolean mips) {
             return new TextureSpecification(unit, GL_TEXTURE_2D, GL_RGBA8, width, height, GL_RGBA, GL_UNSIGNED_BYTE, 4,
-                                            source, mips);
+                    source, mips);
         }
 
         static public TextureSpecification float4(int unit, int width, int height, ByteBuffer source, boolean mips) {
             return new TextureSpecification(unit, GL_TEXTURE_2D, GL30.GL_RGBA32F, width, height, GL_RGBA, GL_FLOAT, 16,
-                                            source, mips);
+                    source, mips);
         }
 
 
         static public TextureSpecification float4_16(int unit, int width, int height, ByteBuffer source, boolean mips) {
             return new TextureSpecification(unit, GL_TEXTURE_2D, GL_RGBA16F, width, height, GL_RGBA, GL_HALF_FLOAT, 8,
-                                            source, mips);
+                    source, mips);
         }
 
         static public TextureSpecification bptc(int unit, int width, int height, ByteBuffer source) {
             return new TextureSpecification(unit, GL_TEXTURE_2D,
-                                            ARBTextureCompressionBPTC.GL_COMPRESSED_RGBA_BPTC_UNORM_ARB, width, height,
-                                            GL_NONE, GL_NONE, 0, source, false, false,
-                                            true);
+                    ARBTextureCompressionBPTC.GL_COMPRESSED_RGBA_BPTC_UNORM_ARB, width, height,
+                    GL_NONE, GL_NONE, 0, source, false, false,
+                    true);
         }
 
         static public TextureSpecification float1(int unit, int width, int height, ByteBuffer source) {
             return new TextureSpecification(unit, GL_TEXTURE_2D, GL_R32F, width, height, GL_RED, GL_FLOAT, 4,
-                                            source, false);
+                    source, false);
         }
 
 
         static public TextureSpecification float3(int unit, int width, int height, ByteBuffer source) {
-                return new TextureSpecification(unit, GL_TEXTURE_2D, GL_RGB32F, width, height, GL_RGB, GL_FLOAT, 3,
-                                            source, false);
+            return new TextureSpecification(unit, GL_TEXTURE_2D, GL_RGB32F, width, height, GL_RGB, GL_FLOAT, 3,
+                    source, false);
         }
 
         static public TextureSpecification float4_1d(int unit, int width, ByteBuffer source, boolean mips) {
             return new TextureSpecification(unit, GL_TEXTURE_1D, GL30.GL_RGBA32F, width, 1, GL_RGBA, GL_FLOAT, 16,
-                                            source, mips);
+                    source, mips);
         }
 
         static public TextureSpecification float4_3d(int unit, int width, int height, int depth, ByteBuffer source, boolean mips) {
@@ -981,8 +1039,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
         int x0, x1, y0, y1, z;
     }
 
-    public TextureUnitReplacement viewWithDifferentUnit(int u)
-    {
+    public TextureUnitReplacement viewWithDifferentUnit(int u) {
         return new TextureUnitReplacement(u, this);
     }
 
