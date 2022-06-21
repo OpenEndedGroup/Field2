@@ -884,14 +884,16 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
                     } else if (r.getNumBands() == 4) {
                         var v = r.getSampleFloat(x, y, 0) / normf;
                         data.put((byte) ((int) (255 * v)));
-                        v = r.getSampleFloat(x, y, 0) / normf;
+                        v = r.getSampleFloat(x, y, 1) / normf;
                         data.put((byte) ((int) (255 * v)));
-                        v = r.getSampleFloat(x, y, 0) / normf;
+                        v = r.getSampleFloat(x, y, 2) / normf;
                         data.put((byte) ((int) (255 * v)));
-                        v = r.getSampleFloat(x, y, 0) / normf;
+                        v = r.getSampleFloat(x, y, 3) / normf;
                         data.put((byte) ((int) (255 * v)));
                     }
                 }
+
+                data.rewind();
 
                 TextureSpecification ts = new TextureSpecification(unit, GL_TEXTURE_2D, GL_RGBA8, image.getWidth(), image.getHeight(), GL_RGBA,
                         GL_UNSIGNED_BYTE, 4, data, mips);
