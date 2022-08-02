@@ -9,10 +9,11 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
         <lwjgl.version>3.3.1-SNAPSHOT</lwjgl.version>
-        <kotlin.version>1.6.10</kotlin.version>
+        <kotlin.version>1.7.20-Beta</kotlin.version>
+        <imgui.java.version>1.86.2</imgui.java.version>
     </properties>
 
     <profiles>
@@ -113,38 +114,38 @@
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-scripting-ide-services</artifactId>
-            <version>1.6.10</version>
+            <version>1.7.20-Beta</version>
         </dependency>
 
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-scripting-common</artifactId>
-            <version>1.6.10</version>
+            <version>1.7.20-Beta</version>
         </dependency>
 
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-scripting-compiler-embeddable</artifactId>
-            <version>1.6.10</version>
+            <version>1.7.20-Beta</version>
         </dependency>
 
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-script-util</artifactId>
-            <version>1.6.10</version>
+            <version>1.7.20-Beta</version>
         </dependency>
 
 
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-compiler-embeddable</artifactId>
-            <version>1.6.10</version>
+            <version>1.7.20-Beta</version>
         </dependency>
 
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-reflect</artifactId>
-            <version>1.6.10</version>
+            <version>1.7.20-Beta</version>
         </dependency>
 
         <dependency>
@@ -427,52 +428,42 @@
             <artifactId>kotlin-stdlib-jdk8</artifactId>
             <version>${kotlin.version}</version>
         </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.jetbrains.kotlin</groupId>-->
+<!--            <artifactId>kotlin-test</artifactId>-->
+<!--            <version>${kotlin.version}</version>-->
+<!--            <scope>test</scope>-->
+<!--        </dependency>-->
+
+<!--        until imgui-java has m1 natives-->
+<!--        <dependency>-->
+<!--            <groupId>io.github.spair</groupId>-->
+<!--            <artifactId>imgui-java-binding</artifactId>-->
+<!--            <version>${imgui.java.version}</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>io.github.spair</groupId>-->
+<!--            <artifactId>imgui-java-lwjgl3</artifactId>-->
+<!--            <version>${imgui.java.version}</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>io.github.spair</groupId>-->
+<!--            <artifactId>imgui-java-natives-windows</artifactId>-->
+<!--            <version>${imgui.java.version}</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>io.github.spair</groupId>-->
+<!--            <artifactId>imgui-java-natives-macos</artifactId>-->
+<!--            <version>${imgui.java.version}</version>-->
+<!--        </dependency>-->
+
+
         <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-test</artifactId>
-            <version>${kotlin.version}</version>
-            <scope>test</scope>
+            <groupId>me.walkerknapp</groupId>
+            <artifactId>devolay</artifactId>
+            <version>2.1.0</version>
+            <classifier>integrated</classifier>
         </dependency>
-
-
-
-<!--        <dependency>-->
-<!--            <groupId>com.github.kotlin-graphics.imgui</groupId>-->
-<!--            <artifactId>gl</artifactId>-->
-<!--            <version>1.79</version>-->
-<!--            <exclusions>-->
-<!--            <exclusion>-->
-<!--                <groupId>com.twelvemonkeys.imageio</groupId>-->
-<!--                <artifactId>imageio</artifactId>-->
-<!--            </exclusion>-->
-<!--            </exclusions>-->
-<!--        </dependency>-->
-
-<!--        <dependency>-->
-<!--            <groupId>com.github.kotlin-graphics.imgui</groupId>-->
-<!--            <artifactId>glfw</artifactId>-->
-<!--            <version>1.79</version>-->
-<!--            <exclusions>-->
-<!--            <exclusion>-->
-<!--                <groupId>com.twelvemonkeys.imageio</groupId>-->
-<!--                <artifactId>imageio</artifactId>-->
-<!--            </exclusion>-->
-<!--            </exclusions>-->
-<!--        </dependency>-->
-
-<!--        <dependency>-->
-<!--            <groupId>com.github.kotlin-graphics.imgui</groupId>-->
-<!--            <artifactId>core</artifactId>-->
-<!--            <version>1.79</version>-->
-
-<!--            <exclusions>-->
-<!--            <exclusion>-->
-<!--                <groupId>coms.twelvemonkeys.imageio</groupId>-->
-<!--                <artifactId>imageio</artifactId>-->
-<!--            </exclusion>-->
-<!--            </exclusions>-->
-<!--        </dependency>-->
-
 
     </dependencies>
 
@@ -492,30 +483,7 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.jetbrains.kotlin</groupId>
-                <artifactId>kotlin-maven-plugin</artifactId>
-                <version>${kotlin.version}</version>
-                <executions>
-                    <execution>
-                        <id>compile</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>test-compile</id>
-                        <phase>test-compile</phase>
-                        <goals>
-                            <goal>test-compile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <jvmTarget>1.8</jvmTarget>
-                </configuration>
-            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -535,6 +503,10 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <source>15</source>
+                    <target>15</target>
+                </configuration>
             </plugin>
         </plugins>
     </build>

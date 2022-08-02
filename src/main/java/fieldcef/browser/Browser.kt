@@ -63,7 +63,7 @@ class Browser : Box(), Loaded {
             val u = now.properties.get(url)
             if (u != null) {
                 Log.log("HTML") { "loading URL <$u>" }
-                println(" LOADING URL : $u")
+//                println(" LOADING URL : $u")
                 browser!!.loadURL(u)
             }
             null
@@ -90,7 +90,7 @@ class Browser : Box(), Loaded {
     private var q: BaseMesh? = null
     private var builder: MeshBuilder? = null
     private var drawing: Drawing? = null
-    var geometry = Cached<Box, Any, Void?>(label@ BiFunction { now: Box, nothing: Void? ->
+    var geometry = Cached<Box, Any, Void?>(BiFunction { now: Box, nothing: Void? ->
         val r = now.properties.get(frame)
         var op = now.properties.getFloat(StandardFLineDrawing.opacity, 1f)
         op = Math.sqrt(op.toDouble()).toFloat()
@@ -205,7 +205,7 @@ class Browser : Box(), Loaded {
         val rsf = window!!.getRetinaScaleFactor();
         w = properties.get(frame).w.toInt()
         h = properties.get(frame).h.toInt()
-        println("CefSystem is making a browser: " + w + "x" + h + "x" + rsf)
+        println("CefSystem is making a browser: " + w + "x" + h + "x" + rsf + " -----------------------------")
         browser = CefSystem.cefSystem.makeBrowser(
             (w * rsf).toInt(),
             (h * rsf).toInt(),
@@ -258,7 +258,7 @@ uniform vec2 bounds;
 uniform float smoothing;
 void main()
 {
-	vec2 at = (scale.xy*position.xy+translation.xy)/bounds.xy;
+	vec2 at = (scale.xy*position.xy+translation.xy)/bounds.xy * vec2(1, 1.0);
    gl_Position =  vec4(-1+at.x*2, 1-at.y*2, 0.5, 1.0);
    vtc =tc;
 }"""
@@ -286,7 +286,7 @@ float d = (current.x+current.y+current.z)/3;
 current.xyz = pow(current.xyz, vec3(1.1));
 	_output  = vec4(current.zyx,max(0.6, min(1, d*3))*current.w*vtc.z);
 float e = 0.005;
-	 if (vtc.x<e || vtc.x>1-e || vtc.y<e || vtc.y>1-e*2) _output.w=0;
+//	 if (vtc.x<e || vtc.x>1-e || vtc.y<e || vtc.y>1-e*2) _output.w=0;
 	 int ccx = ivec2(vtc.xy*textureSize(te,0)).x;
 	 int ccy = ivec2(vtc.xy*textureSize(te,0)).y;
 }"""
@@ -515,7 +515,7 @@ float e = 0.005;
             "__browser__",
             OnKeyDown { e: Window.Event<Window.KeyboardState>, k: Int ->
 
-                System.out.println(" key down ! ${e.before} -> ${e.after}")
+//                System.out.println(" key down ! ${e.before} -> ${e.after}")
 
                 //if (/*!isSelected() &&*/ !focussed) return null;
                 if (!focus) return@OnKeyDown null
@@ -740,6 +740,7 @@ float e = 0.005;
     }
 
     protected fun message(id: Long, message: String?, reply: Consumer<String?>?) {
+//        println(" -- message ! $id $message $reply")
         if (message != null && reply != null)
             synchronized(messages) { messages.add(Pair(message, reply)) }
     }
@@ -847,7 +848,9 @@ float e = 0.005;
             messages.clear()
         }
         for (p in m) {
-            Log.log("cef.debug") { "dispatching message <" + p.first + ">" }
+//            Log.log("cef.debug") { "dispatching message <" + p.first + ">" }
+//            println(" -- dispatching message $p ${Thread.currentThread().name}")
+//            println(".")
             val o = JSONObject(p.first)
             val address = o.getString("address")
             var payload = o["payload"]

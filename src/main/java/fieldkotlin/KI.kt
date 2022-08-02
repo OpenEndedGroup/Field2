@@ -232,7 +232,9 @@ class KI : Execution(null) {
 
                     val res = doEval(textFragment, lineErrors, success)
                     ki.contextUpdater.update()
-                    box.properties += Dict.Prop<VariablesIntrospection>("kotlin_introspection") to VariablesIntrospection(ki.context)
+                    box.properties += Dict.Prop<VariablesIntrospection>("kotlin_introspection") to VariablesIntrospection(
+                        ki.context
+                    )
 
                     println(" result is $res")
 
@@ -332,26 +334,45 @@ class KI : Execution(null) {
                 val res = ki.execAndWait(tf2, { compileError ->
                     println(" compile error ${compileError}")
 
-                    compileError.sortedBy { -(it.location as SourceCode.Location).start.line }
-                        .sortedBy { -it.severity.ordinal }.filter { it.severity.name != "WARNING" }.forEach {
-                            println(it)
-                            errored = true
-                            val message = it.message
-                            val line = if (it.location != null) (it.location as SourceCode.Location).start.line else -1
-                            lineErrors.accept(Pair(line, message))
-                        }
+                    try {
+                        compileError.sortedBy { -(it.location as SourceCode.Location).start.line }
+                            .sortedBy { -it.severity.ordinal }.filter { it.severity.name != "WARNING" }.forEach {
+                                println(it)
+                                errored = true
+                                val message = it.message
+                                val line =
+                                    if (it.location != null) (it.location as SourceCode.Location).start.line else -1
+                                lineErrors.accept(Pair(line, message))
+                            }
+                    }
+                    catch(n : java.lang.NullPointerException) {
+                        compileError
+                            .sortedBy { -it.severity.ordinal }.filter { it.severity.name != "WARNING" }.forEach {
+                                println(it)
+                                errored = true
+                                val message = it.message
+                                val line =
+                                    if (it.location != null) (it.location as SourceCode.Location).start.line else -1
+                                lineErrors.accept(Pair(line, message))
+                            }
+                        errored = true
+                    }
 
                 }, { evalError ->
                     println(" eval error ${evalError}")
 
-                    evalError.sortedBy {
-                        1.0
-                    }.forEach {
-                        val message = it.message
-                        val line = if (it.location != null) (it.location as SourceCode.Location).start.line else -1
-                        lineErrors.accept(Pair(line, message))
-                    }
-
+                        evalError.forEach {
+                            val message = it.message
+                            try {
+                                val line =
+                                    if (it.location != null) (it.location as SourceCode.Location).start.line else -1
+                                lineErrors.accept(Pair(line, message))
+                            }
+                            catch(n : java.lang.NullPointerException)
+                            {
+                                lineErrors.accept(Pair(-1, message))
+                            }
+                        }
                     errored = true
                 }, { e ->
                     println(" eval exception ${e}")
@@ -404,6 +425,11 @@ class KI : Execution(null) {
                             // does this ever happen?
                             success.accept("${res}<br>")
                             return Pair(res, true)
+                        }
+                        is ResultValue.NotEvaluated -> {
+                            // does this ever happen?
+                            success.accept("NOT EVALUATES<br>")
+                            return Pair(res, false)
                         }
                     }
 

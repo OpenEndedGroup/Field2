@@ -12,6 +12,11 @@
       <option name="url" value="https://repo.maven.apache.org/maven2/" />
     </remote-repository>
     <remote-repository>
+      <option name="id" value="jitpack.io" />
+      <option name="name" value="jitpack.io" />
+      <option name="url" value="https://jitpack.io" />
+    </remote-repository>
+    <remote-repository>
       <option name="id" value="SciJava" />
       <option name="name" value="SciJava" />
       <option name="url" value="http://maven.scijava.org/content/repositories/public" />
@@ -45,6 +50,11 @@
       <option name="id" value="MavenLocal" />
       <option name="name" value="MavenLocal" />
       <option name="url" value="file:$MAVEN_REPOSITORY$/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="mary" />
+      <option name="name" value="mary" />
+      <option name="url" value="https://raw.githubusercontent.com/kotlin-graphics/mary/master" />
     </remote-repository>
   </component>
 </project>

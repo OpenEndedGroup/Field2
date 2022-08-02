@@ -1,7 +1,7 @@
 package field.utility;
 
 import java.io.IOException;
-import java.net.Socket;
+import java.net.*;
 
 public class Ports {
 
@@ -13,22 +13,32 @@ public class Ports {
 		}
 		throw new RuntimeException();
 	}
-
-	static public boolean available(int port) {
-		Socket s = null;
+	static  public boolean available(int port) {
 		try {
-			s = new Socket("localhost", port);
-			return false;
-		} catch (IOException e) {
+			var s = new ServerSocket(port);
+			s.close();
 			return true;
-		} finally {
-			if (s != null) {
-				try {
-					s.close();
-				} catch (IOException e) {
-					throw new RuntimeException();
-				}
-			}
+		} catch (IOException e) {
+			System.out.println(" -- port "+port+" cannot be opened");
+			return false;
 		}
 	}
+
+//	static public boolean available(int port) {
+//		Socket s = null;
+//		try {
+//			s = new Socket("localhost", port);
+//			return false;
+//		} catch (IOException e) {
+//			return true;
+//		} finally {
+//			if (s != null) {
+//				try {
+//					s.close();
+//				} catch (IOException e) {
+//					throw new RuntimeException();
+//				}
+//			}
+//		}
+//	}
 }

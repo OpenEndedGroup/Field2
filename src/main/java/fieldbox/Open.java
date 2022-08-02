@@ -45,7 +45,7 @@ import static org.lwjgl.opengl.GL11.*;
 /**
  * This Opens a document, loading a Window and a standard assortment of plugins into the top of a Box graph and the document into the "bottom" of the Box graph.
  * <p>
- * A Plugin is simply something that's initialized: Constructor(boxes.root()).connect(boxes.root()) we can take these from a classname and can optionally initialize them connected to something else
+ * A Plugin is simply something that's initialized: Constructor(root).connect(root) we can take these from a classname and can optionally initialize them connected to something else
  */
 public class Open {
 
@@ -69,6 +69,7 @@ public class Open {
     private PluginList pluginList;
     private Map<String, List<Object>> plugins;
     private Nashorn javascript;
+    Box root;
 
 //	private int sizeX = AutoPersist.persist("window_sizeX", () -> 1000, x -> Math.min(1920 * 2, Math.max(100, x)), (x) -> window == null ? x : (int) window.getBounds().w);
 //	private int sizeY = AutoPersist.persist("window_sizeY", () -> 800, x -> Math.min(1920 * 2, Math.max(100, x)), (x) -> window == null ? x : (int) window.getBounds().h);
@@ -109,7 +110,8 @@ public class Open {
                 .attach(-5, this::defaultGLPreamble);
 
         boxes = new Boxes();
-        boxes.root().properties.put(Boxes.window, window);
+        root = boxes.root();
+        root.properties.put(Boxes.window, window);
 
         window.getCompositor()
                 .newLayer("glass");
@@ -126,181 +128,186 @@ public class Open {
                 .attach(-5, this::defaultGLPreambleTransparent);
 
         Watches watches = new Watches();
-        watches.connect(boxes.root());
+        watches.connect(root);
 
         drawing = new Drawing();
         // add the default layer to the box graph
-        drawing.install(boxes.root());
+        drawing.install(root);
         // add the glass layer to the box graph
-        drawing.install(boxes.root(), "glass");
-        drawing.install(boxes.root(), "glass2");
+        drawing.install(root, "glass");
+        drawing.install(root, "glass2");
         // connect drawing to the box graph
-        drawing.connect(boxes.root());
+        drawing.connect(root);
 
         textDrawing = new TextDrawing();
         // add the text default layer to the box graph
-        textDrawing.install(boxes.root());
+        textDrawing.install(root);
         // add the text glass layer to the box graph
-        textDrawing.install(boxes.root(), "glass");
-        textDrawing.install(boxes.root(), "glass2");
+        textDrawing.install(root, "glass");
+        textDrawing.install(root, "glass2");
         // connect text drawing to the box graph
-        textDrawing.connect(boxes.root());
+        textDrawing.connect(root);
 
-        frameDrawing = (FLineDrawing) new FLineDrawing(boxes.root()).connect(boxes.root());
+        frameDrawing = (FLineDrawing) new FLineDrawing(root).connect(root);
 
         mouse = new Mouse();
         window.addMouseHandler(state -> {
-            mouse.dispatch(boxes.root(), state);
+            mouse.dispatch(root, state);
             return true;
         });
 
         keyboard = new Keyboard();
         window.addKeyboardHandler(state -> {
-            keyboard.dispatch(boxes.root(), state);
+            keyboard.dispatch(root, state);
             return true;
         });
 
         drops = new Drops();
         window.addDropHandler(state -> {
-            drops.dispatch(boxes.root(), state);
+            drops.dispatch(root, state);
             return true;
         });
 
 
-        boxes.root().properties.put(fieldFilename, filename);
+        root.properties.put(fieldFilename, filename);
 
-        new DefaultMenus(boxes.root(), filename).connect(boxes.root());
+        new DefaultMenus(root, filename).connect(root);
 
         // MarkingMenus must come before FrameManipulation, so FrameManipulation can handle selection state modification before MarkingMenus run
-        markingMenus = (MarkingMenus) new MarkingMenus(boxes.root()).connect(boxes.root());
+        markingMenus = (MarkingMenus) new MarkingMenus(root).connect(root);
 
-        frameManipulation = (FrameManipulation) new FrameManipulation(boxes.root()).connect(boxes.root());
+        frameManipulation = (FrameManipulation) new FrameManipulation(root).connect(root);
 
         // Interaction must come before frameManipulation, otherwise all those drags with FLines become marquees on the canvas
-        interaction = (FLineInteraction) new FLineInteraction(boxes.root()).connect(boxes.root());
+        interaction = (FLineInteraction) new FLineInteraction(root).connect(root);
 
         // here are some examples of plugins
-        new Delete(boxes.root()).connect(boxes.root());
+        new Delete(root).connect(root);
 
-        new Topology(boxes.root()).connect(boxes.root());
+        new Topology(root).connect(root);
 
-        new Dispatch(boxes.root()).connect(boxes.root());
+        new Dispatch(root).connect(root);
 
-        new Chorder(boxes.root()).connect(boxes.root());
+        new Chorder(root).connect(root);
 
-        new Meshes(boxes.root()).connect(boxes.root());
+        new Meshes(root).connect(root);
 
-        new IsExecuting(boxes.root()).connect(boxes.root());
+        new IsExecuting(root).connect(root);
 
-        new Rename(boxes.root()).connect(boxes.root());
+        new Rename(root).connect(root);
 
-        new DoubleClickToRename(boxes.root()).connect(boxes.root());
+        new DoubleClickToRename(root).connect(root);
 
-        new Scrolling(boxes.root()).connect(boxes.root());
+        new Scrolling(root).connect(root);
 
-        new GraphicsSupport(boxes.root()).connect(boxes.root());
+        new GraphicsSupport(root).connect(root);
+        new GraphicsSupport_shadertoy(root).connect(root);
 
-        new ComputeShaderSupport(boxes.root()).connect(boxes.root());
 
-        new BlankCanvas(boxes.root()).connect(boxes.root());
 
-        new DragFilesToCanvas(boxes.root()).connect(boxes.root());
+        new ComputeShaderSupport(root).connect(root);
 
-//		new Reload(boxes.root()).connect(boxes.root());
+        new BlankCanvas(root).connect(root);
 
-        new PluginsPlugin(boxes.root()).connect(boxes.root());
+        new DragFilesToCanvas(root).connect(root);
 
-//		new FrameConstraints(boxes.root()).connect(boxes.root());
+//		new Reload(root).connect(root);
 
-        new Alignment(boxes.root()).connect(boxes.root());
+        new PluginsPlugin(root).connect(root);
 
-        new BoxPair(boxes.root()).connect(boxes.root());
+//		new FrameConstraints(root).connect(root);
 
-        new StatusBar(boxes.root()).connect(boxes.root());
+        new Alignment(root).connect(root);
 
-//		new HotkeyMenus(boxes.root(), null).connect(boxes.root());
+        new BoxPair(root).connect(root);
 
-        new Threading().connect(boxes.root());
+        new StatusBar(root).connect(root);
 
-//		new Typing(boxes.root()).connect(boxes.root());
+//		new HotkeyMenus(root, null).connect(root);
+
+        new Threading().connect(root);
+
+//		new Typing(root).connect(root);
 
         if (experimental)
-            new MakeNewTextEditor(boxes.root()).connect(boxes.root());
+            new MakeNewTextEditor(root).connect(root);
 
-        new RunCommand(boxes.root()).connect(boxes.root());
+        new RunCommand(root).connect(root);
 
-        new Auto(boxes.root()).connect(boxes.root());
+        new Auto(root).connect(root);
 
-        new FrameChangedHash(boxes.root()).connect(boxes.root());
+        new FrameChangedHash(root).connect(root);
 
-        new InsertPath().connect(boxes.root());
+        new InsertPath().connect(root);
 
-        new Directionality(boxes.root()).connect(boxes.root());
+        new Directionality(root).connect(root);
 
-        new Handles(boxes.root()).connect(boxes.root());
+        new Handles(root).connect(root);
 
-        new Create(boxes.root()).connect(boxes.root());
+        new Create(root).connect(root);
 
-        new DragToCopy(boxes.root()).connect(boxes.root());
+        new DragToCopy(root).connect(root);
 
-        new Pseudo(boxes.root()).connect(boxes.root());
+        new Pseudo(root).connect(root);
 
-        new Taps(boxes.root()).connect(boxes.root());
+        new Pages(root).connect(root);
 
-        new Image2(boxes.root()).connect(boxes.root());
+        new Taps(root).connect(root);
 
-        new Export(boxes.root()).connect(boxes.root());
+        new Image2(root).connect(root);
 
-        new Templates(boxes.root()).connect(boxes.root());
+        new Export(root).connect(root);
 
-        new Notifications(boxes.root()).connect(boxes.root());
+        new Templates(root).connect(root);
 
-        new KeyboardFocus(boxes.root()).connect(boxes.root());
+        new Notifications(root).connect(root);
 
-        new RevealInFinder(boxes.root()).connect(boxes.root());
+        new KeyboardFocus(root).connect(root);
 
-        new Channels(boxes.root()).connect(boxes.root());
+        new RevealInFinder(root).connect(root);
 
-        new MissingStream(boxes.root()).connect(boxes.root());
+        new Channels(root).connect(root);
 
-        new KeyboardShortcuts(boxes.root()).connect(boxes.root());
+        new MissingStream(root).connect(root);
 
-        new PresentationMode(boxes.root()).connect(boxes.root());
+        new KeyboardShortcuts(root).connect(root);
 
-        new Increment(boxes.root()).connect(boxes.root());
+        new PresentationMode(root).connect(root);
 
-        new Out(boxes.root()).connect(boxes.root());
+        new Increment(root).connect(root);
 
-        new Group(boxes.root()).connect(boxes.root());
+        new Out(root).connect(root);
 
-        new WebApps(boxes.root()).connect(boxes.root());
+        new Group(root).connect(root);
 
-        new Exec(boxes.root()).connect(boxes.root());
+        new WebApps(root).connect(root);
 
-        new AsEditable(boxes.root()).connect(boxes.root());
+        new Exec(root).connect(root);
 
-        new TimeHelper(boxes.root()).connect(boxes.root());
+        new AsEditable(root).connect(root);
 
-        new Label(boxes.root()).connect(boxes.root());
+        new TimeHelper(root).connect(root);
 
-        new Pads(boxes.root()).connect(boxes.root());
+        new Label(root).connect(root);
 
-        new Interventions(boxes.root()).connect(boxes.root());
+        new Pads(root).connect(root);
 
-        new Welcome(boxes.root()).connect(boxes.root());
+        new Interventions(root).connect(root);
 
-        new Bundle(boxes.root()).connect(boxes.root());
+        new Welcome(root).connect(root);
 
-        new Launch(boxes.root()).connect(boxes.root());
+        new Bundle(root).connect(root);
 
-        new SimpleTweaks(boxes.root()).connect(boxes.root());
+        new Launch(root).connect(root);
+
+        new SimpleTweaks(root).connect(root);
 
 
-        if (ThreadSync.enabled) new ThreadSyncFeedback(boxes.root()).connect(boxes.root());
-        if (ThreadSync2.getEnabled()) new ThreadSync2Feedback(boxes.root()).connect(boxes.root());
+        if (ThreadSync.enabled) new ThreadSyncFeedback(root).connect(root);
+        if (ThreadSync2.getEnabled()) new ThreadSync2Feedback(root).connect(root);
 
-        FileBrowser fb = new FileBrowser(boxes.root());
-        fb.connect(boxes.root());
+        FileBrowser fb = new FileBrowser(root);
+        fb.connect(root);
 
         /* cascade two blurs, a vertical and a horizontal together from the glass layer onto the base layer */
         Compositor.Layer lx = window.getCompositor()
@@ -378,40 +385,41 @@ public class Open {
                 }, 600));
 
         //initializes window mgmt for linux
-//		if (Main.os == Main.OS.linux) new LinuxWindowTricks(boxes.root());
+//		if (Main.os == Main.OS.linux) new LinuxWindowTricks(root);
         //initializes window mgmt for osx
-//		if (Main.os == Main.OS.mac) new OSXWindowTricks(boxes.root());
+//		if (Main.os == Main.OS.mac) new OSXWindowTricks(root);
 
 
         // add Javascript runtime as base execution layer
         javascript = new Nashorn();
         Execution execution = new Execution((box, prop) -> (prop.equals(Execution.code) ? javascript.apply(box, prop) : null));
-        execution.connect(boxes.root());
+        execution.connect(root);
 
-        new ServerSupport(boxes.root());//.openEditor();
+        new ServerSupport(root);//.openEditor();
 
         // add a red line time slider to the sheet (this isn't saved with the document, so we'll add it each time)
         TimeSlider ts = new TimeSlider();
-        boxes.root()
+        root
                 .connect(ts);
 
-        boxes.root().properties.put(TimeSlider.time, ts);
+        root.properties.put(TimeSlider.time, ts);
 
-        new TextEditor(boxes.root()).connect(boxes.root());
-        new GlassBrowser(boxes.root()).connect(boxes.root());
-        new BoxBrowser(boxes.root()).connect(boxes.root());
-        new TextEditor_boxBrowser2(boxes.root()).connect(boxes.root());
+        new TextEditor(root).connect(root);
 
         RunLoop.main.once(() -> {
 
+            new BoxBrowser(root).connect(root);
+            new TextEditor_boxBrowser2(root).connect(root);
+            new GlassBrowser(root).connect(root);
+
             // actually open the document that's stored on disk
-            doOpen(boxes.root(), filename);
+            doOpen(root, filename);
 
             Log.log("startup", () -> " -- FieldBox finished initializing, loading plugins ... -- ");
 
             // initialize the plugins
 
-            if (pluginList != null) pluginList.interpretPlugins(plugins, boxes.root());
+            if (pluginList != null) pluginList.interpretPlugins(plugins, root);
 
             Log.log("startup", () -> " -- FieldBox plugins finished, entering animation loop -- ");
 
@@ -420,9 +428,9 @@ public class Open {
             {
                 System.err.println(" booting up text editor ");
 
-//				new OutputBox(boxes.root()).connect(boxes.root());
-//				new DocumentationBrowser(boxes.root()).connect(boxes.root());
-//				new NotificationBox(boxes.root()).connect(boxes.root());
+//				new OutputBox(root).connect(root);
+//				new DocumentationBrowser(root).connect(root);
+//				new NotificationBox(root).connect(root);
 
 //			if (Main.os != Main.OS.windows)
                 {
@@ -431,14 +439,14 @@ public class Open {
 
             // call loaded on everything above root
             Log.log("startup", () -> "calling .loaded on plugins");
-            boxes.root()
-                    .breadthFirst(boxes.root()
+            root
+                    .breadthFirst(root
                             .upwards())
                     .filter(x -> x instanceof IO.Loaded)
                     .forEach(x -> ((IO.Loaded) x).loaded());
 
 
-            new Startup(boxes.root());
+            new Startup(root);
 
             // start the runloop
             boxes.start();

@@ -27,7 +27,7 @@ class LoadTRC(val f: String) {
         }.toMap()
     }
 
-    fun getPoint(name : String, x : Double) : Vec3  = interpolators[name]!!.interpolate(x)
+    fun getPoint(name : String, x : Double) : Vec3 = interpolators[name]!!.interpolate(x)
 
 
     fun pointSource(): (String, Double) -> Vec3 {

@@ -228,27 +228,28 @@ public class GraphicsSupport extends Box {
         ShaderPreprocessor pre = new ShaderPreprocessor();
         Shader s = new Shader();
         String vs = pre.preprocess(b, b.properties
-                .computeIfAbsent(vertex, k -> "#version 410\n" +
-                        "layout(location=0) in vec3 position;\n" +
-                        "layout(location=1) in vec4 s_Color;\n" +
-                        "\n" +
-                        "out vec4 vertexColor;\n" +
-                        "\n" +
-                        "void main()\n" +
-                        "{\n" +
-                        "\tgl_Position = ( vec4(position, 1.0));\n" +
-                        "\n" +
-                        "\tvertexColor = s_Color;\n" +
-                        "}"));
+                .computeIfAbsent(vertex, k -> """
+                        #version 410
+                        layout(location=0) in vec3 position;
+                        layout(location=1) in vec4 s_Color;
+                                                
+                        out vec4 vertexColor;
+                                                
+                        void main()
+                        {
+                            gl_Position = ( vec4(position, 1.0));
+                                                
+                            vertexColor = s_Color;
+                        }""".trim()));
         String fs = pre.preprocess(b, b.properties
-                .computeIfAbsent(fragment, k -> "#version 410\n" +
-                        "\n" +
-                        "layout(location=0) out vec4 _output;\n" +
-                        "\n" +
-                        "void main()\n" +
-                        "{\n" +
-                        "\t_output  = vec4(1,1,1,0.1);\n" +
-                        "}"));
+                .computeIfAbsent(fragment, k -> """
+                        #version 410
+                        layout(location=0) out vec4 _output;
+                                                
+                        void main()
+                        {
+                            _output  = vec4(1,1,1,0.1);
+                        }""".trim()));
         String gs = b.properties.computeIfAbsent(geometry, k -> "");
 
         s.addSource(Shader.Type.vertex, vs).setOnError(errorHandler(b, "vertex shader", Shader.Type.vertex));
