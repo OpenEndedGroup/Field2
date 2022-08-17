@@ -4,12 +4,19 @@ import field.graphics.FastJPEG
 import field.utility.Dict
 import field.utility.Options
 import java.io.File
+import java.lang.IllegalArgumentException
 import java.nio.ByteBuffer
 import java.util.*
 import java.util.function.Function
 import kotlin.collections.Map.Entry
 
-class ImageCache(val width: Int, val height: Int, maxBuffer: Int, private val lookahead: Int, private var files: Function<Int, String>?) {
+class ImageCache(
+    val width: Int,
+    val height: Int,
+    maxBuffer: Int,
+    private val lookahead: Int,
+    private var files: Function<Int, String>?
+) {
 
     private val p: Pipe
 //    var jp = FastJPEG()
@@ -175,7 +182,7 @@ class ImageCache(val width: Int, val height: Int, maxBuffer: Int, private val lo
         }
     }
 
-    class FileMap(var ff: Array<File?>) : Function<Int, String> {
+    class FileMap(var ff: Array<File>) : Function<Int, String> {
 
         private var remap: Array<Int>
 
@@ -185,6 +192,19 @@ class ImageCache(val width: Int, val height: Int, maxBuffer: Int, private val lo
 
         fun length(): Int {
             return remap.size
+        }
+
+        fun changeDirectory(n: String) {
+            var q = File(n).list { n, name ->
+                name.endsWith(".jpg") && !name.startsWith(".")
+            }.map { File(n, it) }.toTypedArray()
+
+
+            if (q.size<2)
+                throw IllegalArgumentException(" directory '$n' has ${q.size} .jpg files in it")
+
+            q.sort()
+            ff = q
         }
 
         override fun apply(x: Int): String {
@@ -212,6 +232,7 @@ class ImageCache(val width: Int, val height: Int, maxBuffer: Int, private val lo
             return FileMap(ff)
         }
 
+
         fun mapFromDirectory(dir: String, match: String, dec: Int): FileMap {
 
             val f = File(dir)
@@ -219,12 +240,7 @@ class ImageCache(val width: Int, val height: Int, maxBuffer: Int, private val lo
 
             Arrays.sort(ff!!)
 
-            val q = arrayOfNulls<File>(ff.size / dec)
-            for (i in q.indices) {
-                q[i] = ff[i * dec]
-            }
-
-            return FileMap(q)
+            return FileMap((0 until ff.size / dec).map { ff[it * dec] }.toTypedArray())
         }
     }
 
