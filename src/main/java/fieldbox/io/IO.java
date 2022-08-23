@@ -142,9 +142,15 @@ public class IO {
     }
 
     public static boolean isPeristant(Dict.Prop prop) {
+
+        // temp hack for exponential saving problem
+        if (prop.getName().endsWith("_cookie")) return false;
+
         return knownFiles.containsKey(prop.getName()) || knownProperties.contains(prop.getName()) || (prop.findCanon() != null && prop.findCanon()
                 .getAttributes()
                 .isTrue(persistent, false));
+
+
     }
 
     public static Runnable uniqify(Box x) {
@@ -273,7 +279,9 @@ public class IO {
             d.knownFiles = new LinkedHashMap<>(knownFiles);
             d.knownProperties = new LinkedHashSet<>(knownProperties);
         } finally {
+            System.out.println(" calling onFinishingSaving ... ");
             Callbacks.call_runnable(documentRoot, onFinishingSaving, null, false, documentRoot.both());
+            System.out.println(" ... calling onFinishingSaving complete");
         }
         return d;
     }
@@ -707,6 +715,9 @@ public class IO {
         if (!filename.getParentFile().exists()) filename.getParentFile().mkdirs();
 
         filesTouched.add(filename);
+
+
+        System.out.println(" -- WRITE TO FILE "+filename+" "+text);
 
         BufferedWriter w = new BufferedWriter(new FileWriter(filename));
         w.append(text);

@@ -271,6 +271,7 @@ class NewNanoHTTPD(val port: Int) {
 
         val QUERY_STRING_PARAMETER = "NannoHTTPD.QUERY_STRING_PARAMETER"
 
+        @Deprecated("Deprecated in Java")
         override fun serve(session: IHTTPSession?): Response {
 
             val files = HashMap<String, String>()

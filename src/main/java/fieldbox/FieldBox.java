@@ -2,7 +2,9 @@ package fieldbox;
 
 import field.app.RunLoop;
 import field.graphics.Windows;
+import field.utility.Dict;
 import field.utility.Options;
+import field.utility.Releases;
 import fieldagent.Main;
 import fieldbox.io.IO;
 import fieldcef.browser.CefSystem;
@@ -29,6 +31,14 @@ public class FieldBox {
 //		SwingUtilities.invokeLater(() -> {
 		args = s;
 		Options.parseCommandLine(s);
+
+		if (s.length>0 && s[s.length-1].equals("upgrade"))
+		{
+			System.out.println("   -- upgrade --");
+			Releases.Companion.upgrade();
+			RunLoop.main.enterMainLoop();
+		}
+
 
 		// needs to be initialized after 'args'
 		workspace = Options.getDirectory("workspace", () -> System.getProperty("user.home") + "/Documents/FieldWorkspace/");

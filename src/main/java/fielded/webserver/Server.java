@@ -4,6 +4,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import field.app.RunLoop;
 import field.utility.Log;
+import field.utility.Ports;
 import field.utility.Util;
 import fieldbox.execution.Execution;
 import org.java_websocket.WebSocket;
@@ -72,7 +73,7 @@ public class Server {
             @Override
             Response serve(String uri, Method method, Map<String, String> headers, Map<String, String> parms, Map<String, String> files) {
 
-                System.out.println(" -- hello-- ");
+                System.out.println(" -- hello-- "+uri);
 
                 Log.log("server", () -> "Serving " + uri);
 
@@ -120,11 +121,18 @@ public class Server {
 
         server.start();
 
+        System.out.println(" websocketPort is "+websocketPort+" "+Ports.available(websocketPort));
+
         webSocketServer = new WebSocketServer(new InetSocketAddress(websocketPort)) {
             @Override
             public void onOpen(WebSocket webSocket, ClientHandshake clientHandshake) {
                 System.out.println(" -- websocket opened -- " + clientHandshake);
                 Log.log("remote.trace", () -> " websocket connected " + clientHandshake);
+            }
+
+            @Override
+            public boolean isReuseAddr() {
+                return true;
             }
 
             @Override

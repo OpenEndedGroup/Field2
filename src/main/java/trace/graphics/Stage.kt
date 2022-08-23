@@ -1083,6 +1083,8 @@ class Stage(val w: Int, val h: Int) : AsMap {
 
         var texture: Texture? = null
 
+
+
     }
 
     @JvmField
@@ -1480,6 +1482,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
         val dim = FastJPEG.j.dimensions(fn)
 
         val ic = ImageCache(dim[0], dim[1], 300, 40, map)
+
         val cache = TwinTextureCache(0, ic)
         cache.setPlaying(true)
 

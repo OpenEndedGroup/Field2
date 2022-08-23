@@ -16,6 +16,10 @@ enum class Phases {
  */
 class PhaseList : Supplier<Boolean>, Consumer<Boolean> {
 
+    companion object {
+        var context: PhaseList? = null
+    }
+
     val children = mutableMapOf<Phases, () -> Unit>()
 
     fun initPhase(tag: Phases, init: () -> Unit) {
@@ -31,6 +35,8 @@ class PhaseList : Supplier<Boolean>, Consumer<Boolean> {
 
     var endNext = false
 
+    var endHooks = mutableMapOf<String, () -> Unit>()
+
     override fun get(): Boolean {
         return update(endNext)
     }
@@ -43,7 +49,9 @@ class PhaseList : Supplier<Boolean>, Consumer<Boolean> {
 
     class EndNow : RuntimeException()
 
+
     fun update(end: Boolean): Boolean {
+        context = this
         _ended = end
         try {
             when (status) {
@@ -69,6 +77,11 @@ class PhaseList : Supplier<Boolean>, Consumer<Boolean> {
                     if (c != null) {
                         c()
                     }
+                    var e = endHooks
+                    endHooks = mutableMapOf()
+                    e.forEach {
+                        it.value()
+                    }
                 }
                 3 -> {
                     exitHook()
@@ -87,6 +100,9 @@ class PhaseList : Supplier<Boolean>, Consumer<Boolean> {
             status = 4
             exitHook()
             throw(e)
+        }
+        finally {
+            context = null
         }
     }
 

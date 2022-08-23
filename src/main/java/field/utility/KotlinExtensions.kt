@@ -112,11 +112,13 @@ operator fun Vec2.minus(other: Vec2): Vec2 = Vec2(this.x - other.x, this.y - oth
 
 operator fun Vec3.minus(other: Vec3): Vec3 = Vec3(this.x - other.x, this.y - other.y, this.z - other.z)
 
-operator fun Vec4.minus(other: Vec4): Vec4 = Vec4(this.x - other.x, this.y - other.y, this.z - other.z, this.w - other.w)
+operator fun Vec4.minus(other: Vec4): Vec4 =
+    Vec4(this.x - other.x, this.y - other.y, this.z - other.z, this.w - other.w)
 
 operator fun Vec2.times(other: Number): Vec2 = Vec2(this.x * other.toDouble(), this.y * other.toDouble())
 
-operator fun Vec3.times(other: Number): Vec3 = Vec3(this.x * other.toDouble(), this.y * other.toDouble(), this.z * other.toDouble())
+operator fun Vec3.times(other: Number): Vec3 =
+    Vec3(this.x * other.toDouble(), this.y * other.toDouble(), this.z * other.toDouble())
 
 operator fun Vec2.times(other: Vec2): Vec2 = Vec2(this.x * other.x, this.y * other.y)
 
@@ -126,41 +128,42 @@ operator fun Vec3.times(other: Vec3): Vec3 = Vec3(this.x * other.x, this.y * oth
 
 operator fun Vec4.times(other: Double): Vec4 = Vec4(this.x * other, this.y * other, this.z * other, this.w * other)
 
-operator fun Vec4.times(other: Number): Vec4 = Vec4(this.x * other.toDouble(), this.y * other.toDouble(), this.z * other.toDouble(), this.w * other.toDouble())
+operator fun Vec4.times(other: Number): Vec4 =
+    Vec4(this.x * other.toDouble(), this.y * other.toDouble(), this.z * other.toDouble(), this.w * other.toDouble())
 
 infix fun Vec2.dot(v: Vec2) = this.dot(v)
 infix fun Vec3.dot(v: Vec3) = this.dot(v)
 infix fun Vec4.dot(v: Vec4) = this.dot(v)
 
-fun Vec2.invoke(x : Double? = null, y : Double? = null) : Vec2 {
+fun Vec2.invoke(x: Double? = null, y: Double? = null): Vec2 {
     val v = Vec2(this)
-    if (x!=null)
+    if (x != null)
         v.x = x
-    if (y!=null)
+    if (y != null)
         v.y = y
     return v
 }
 
-fun Vec3.invoke(x : Double? = null, y : Double? = null, z : Double? = null) : Vec3 {
+fun Vec3.invoke(x: Double? = null, y: Double? = null, z: Double? = null): Vec3 {
     val v = Vec3(this)
-    if (x!=null)
+    if (x != null)
         v.x = x
-    if (y!=null)
+    if (y != null)
         v.y = y
-    if (z!=null)
+    if (z != null)
         v.z = z
     return v
 }
 
-fun Vec4.invoke(x : Double? = null, y : Double? = null, z : Double? = null, w : Double? = null) : Vec4 {
+fun Vec4.invoke(x: Double? = null, y: Double? = null, z: Double? = null, w: Double? = null): Vec4 {
     val v = Vec4(this)
-    if (x!=null)
+    if (x != null)
         v.x = x
-    if (y!=null)
+    if (y != null)
         v.y = y
-    if (z!=null)
+    if (z != null)
         v.z = z
-    if (w!=null)
+    if (w != null)
         v.w = w
     return v
 }
@@ -194,113 +197,46 @@ operator fun Vec4.timesAssign(other: Double) {
 
 fun Vec2(x: Number = 0, y: Number = 0) = Vec2().set(x.toDouble(), y.toDouble())
 fun Vec3(x: Number = 0, y: Number = 0, z: Number = 0) = Vec3().set(x.toDouble(), y.toDouble(), z.toDouble())
-fun Vec4(x: Number = 0, y: Number = 0, z: Number = 0, w: Number = 0) = Vec4().set(x.toDouble(), y.toDouble(), z.toDouble(), w.toDouble())
+fun Vec4(x: Number = 0, y: Number = 0, z: Number = 0, w: Number = 0) =
+    Vec4().set(x.toDouble(), y.toDouble(), z.toDouble(), w.toDouble())
 
 
-class xyDelegate : ReadWriteProperty<Vec3, Vec2> {
-    override fun getValue(thisRef: Vec3, property: KProperty<*>): Vec2 {
-        return Vec2(thisRef.x, thisRef.y)
+fun Vec3(x: List<Number>, offset : Int = 0) =
+    Vec3().set(x[offset].d, x[offset+1].d, x[offset+2].d)
+fun Vec4(x: List<Number>, offset : Int = 0) =
+    Vec4().set(x[offset].d, x[offset+1].d, x[offset+2].d, x[offset+3].d)
+fun Vec2(x: List<Number>, offset : Int = 0) =
+    Vec2().set(x[offset].d, x[offset+1].d)
+
+
+var Vec4.xyz: Vec3
+    get() = Vec3(this.x, this.y, this.z)
+    set(v: Vec3) {
+        this.x = v.x
+        this.y = v.y
+        this.z = v.z
     }
 
-    override fun setValue(thisRef: Vec3, property: KProperty<*>, value: Vec2) {
-        thisRef.x = value.x
-        thisRef.y = value.y
+var Vec4.xy: Vec2
+    get() = Vec2(this.x, this.y)
+    set(v: Vec2) {
+        this.x = v.x
+        this.y = v.y
     }
 
-}
-
-var Vec3.xy: Vec2 by xyDelegate()
-
-class yxDelegate : ReadWriteProperty<Vec3, Vec2> {
-    override fun getValue(thisRef: Vec3, property: KProperty<*>): Vec2 {
-        return Vec2(thisRef.y, thisRef.x)
+var Vec3.xy: Vec2
+    get() = Vec2(this.x, this.y)
+    set(v: Vec2) {
+        this.x = v.x
+        this.y = v.y
     }
 
-    override fun setValue(thisRef: Vec3, property: KProperty<*>, value: Vec2) {
-        thisRef.y = value.x
-        thisRef.x = value.y
+var Vec3.yx: Vec2
+    get() = Vec2(this.y, this.x)
+    set(v: Vec2) {
+        this.x = v.y
+        this.y = v.x
     }
-
-}
-
-var Vec3.yx: Vec2 by yxDelegate()
-
-class zyDelegate : ReadWriteProperty<Vec3, Vec2> {
-    override fun getValue(thisRef: Vec3, property: KProperty<*>): Vec2 {
-        return Vec2(thisRef.z, thisRef.y)
-    }
-
-    override fun setValue(thisRef: Vec3, property: KProperty<*>, value: Vec2) {
-        thisRef.z = value.x
-        thisRef.y = value.y
-    }
-
-}
-
-var Vec3.zy: Vec2 by zyDelegate()
-
-class zxDelegate : ReadWriteProperty<Vec3, Vec2> {
-    override fun getValue(thisRef: Vec3, property: KProperty<*>): Vec2 {
-        return Vec2(thisRef.z, thisRef.x)
-    }
-
-    override fun setValue(thisRef: Vec3, property: KProperty<*>, value: Vec2) {
-        thisRef.z = value.x
-        thisRef.x = value.y
-    }
-
-}
-
-var Vec3.zx: Vec2 by zxDelegate()
-
-class xzDelegate : ReadWriteProperty<Vec3, Vec2> {
-    override fun getValue(thisRef: Vec3, property: KProperty<*>): Vec2 {
-        return Vec2(thisRef.x, thisRef.z)
-    }
-
-    override fun setValue(thisRef: Vec3, property: KProperty<*>, value: Vec2) {
-        thisRef.x = value.x
-        thisRef.z = value.y
-    }
-
-}
-
-var Vec3.xz: Vec2 by xzDelegate()
-
-class xxDelegate : ReadOnlyProperty<Vec3, Vec2> {
-    override fun getValue(thisRef: Vec3, property: KProperty<*>): Vec2 {
-        return Vec2(thisRef.x, thisRef.x)
-    }
-
-}
-
-val Vec3.xx: Vec2 by xxDelegate()
-
-class yyDelegate : ReadOnlyProperty<Vec3, Vec2> {
-    override fun getValue(thisRef: Vec3, property: KProperty<*>): Vec2 {
-        return Vec2(thisRef.y, thisRef.y)
-    }
-
-}
-
-val Vec3.yy: Vec2 by yyDelegate()
-
-class zzDelegate : ReadOnlyProperty<Vec3, Vec2> {
-    override fun getValue(thisRef: Vec3, property: KProperty<*>): Vec2 {
-        return Vec2(thisRef.z, thisRef.z)
-    }
-
-}
-
-val Vec3.zz: Vec2 by zzDelegate()
-
-val Vec4.xyz: Vec3 by xyzDelegate()
-
-class xyzDelegate : ReadOnlyProperty<Vec4, Vec3> {
-    override fun getValue(thisRef: Vec4, property: KProperty<*>): Vec3 {
-        return Vec3(thisRef.x, thisRef.y, thisRef.z)
-    }
-}
 
 
 operator fun FLine.plus(f: FLine) = this.__add__(f) as FLine

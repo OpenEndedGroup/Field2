@@ -16,7 +16,7 @@ public class Rect implements Mutable<Rect>, Serializable {
 	public float w;
 	public float h;
 
-	public Rect(double x,  double y, double w, double h) {
+    public Rect(double x,  double y, double w, double h) {
 		this.x = (float)x;
 		this.y = (float)y;
 		this.h = (float)h;
@@ -155,5 +155,7 @@ public class Rect implements Mutable<Rect>, Serializable {
 	{
 		return w*h;
 	}
+
+	public double rightx() { return x + w; }
 
 }

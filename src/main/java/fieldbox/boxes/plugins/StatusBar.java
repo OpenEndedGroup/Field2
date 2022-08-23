@@ -59,15 +59,15 @@ public class StatusBar extends Box {
 			f.moveTo(rect.x + rect.w / 2, rect.y + rect.h / 2 + 25 / 5.0f);
 
 			f.attributes.put(hasText, true);
-			f.attributes.put(color, new Vec4(1, 1, 1, 0.25f));
+			f.attributes.put(color, new Vec4(1, 1, 1, 0.5f));
 			List<String> spans = Arrays.asList(statusText().split(" "));
 			f.nodes.get(f.nodes.size() - 1).attributes.put(textSpans, spans);
 			List<Vec4> colors = new ArrayList<>();
 			for (int i = 0; i < spans.size(); i++) {
 				if (i % 2 == 0)
-					colors.add(new Vec4(1, 0.9, 0.8, 0.3f));
+					colors.add(new Vec4(1, 0.9, 0.8, 0.6f));
 				else
-					colors.add(new Vec4(1, 0.9, 0.8, 0.4f));
+					colors.add(new Vec4(1, 0.9, 0.8, 0.9f));
 			}
 			f.nodes.get(f.nodes.size() - 1).attributes.put(textColorSpans, colors);
 			return f;
@@ -112,7 +112,7 @@ public class StatusBar extends Box {
 	}
 
 	public void update() {
-		String s = "[ alpha.41 ] ";
+		String s = "[ alpha.42 ] ";
 		List<Map<String, Supplier<String>>> maps = breadthFirst(both()).filter(x -> x.properties.get(statuses) != null)
 			.map(x -> x.properties.get(statuses))
 			.collect(Collectors.toList());

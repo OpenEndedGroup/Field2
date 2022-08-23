@@ -326,6 +326,9 @@ class MergeThreeWays {
                     text_delete = ""
                     text_insert = ""
                 }
+                null -> {
+
+                }
             }
             thisDiff = if (pointer.hasNext()) pointer.next() else null
         }
@@ -1210,6 +1213,7 @@ class MergeThreeWays {
                     text_insert = ""
                     prevEqual = thisDiff
                 }
+                else -> {}
             }
             thisDiff = if (pointer.hasNext()) pointer.next() else null
         }
@@ -1313,11 +1317,12 @@ class MergeThreeWays {
             val text = aDiff.text!!.replace("&", "&amp;").replace("<", "&lt;")
                     .replace(">", "&gt;").replace("\n", "&para;<br>")
             when (aDiff.operation) {
-                MergeThreeWays.Operation.INSERT -> html.append("<ins style=\"background:#e6ffe6;\">").append(text)
+                Operation.INSERT -> html.append("<ins style=\"background:#e6ffe6;\">").append(text)
                         .append("</ins>")
-                MergeThreeWays.Operation.DELETE -> html.append("<del style=\"background:#ffe6e6;\">").append(text)
+                Operation.DELETE -> html.append("<del style=\"background:#ffe6e6;\">").append(text)
                         .append("</del>")
-                MergeThreeWays.Operation.EQUAL -> html.append("<span>").append(text).append("</span>")
+                Operation.EQUAL -> html.append("<span>").append(text).append("</span>")
+                null -> TODO()
             }
         }
         return html.toString()
@@ -1365,14 +1370,16 @@ class MergeThreeWays {
         var deletions = 0
         for (aDiff in diffs) {
             when (aDiff.operation) {
-                MergeThreeWays.Operation.INSERT -> insertions += aDiff.text!!.length
-                MergeThreeWays.Operation.DELETE -> deletions += aDiff.text!!.length
-                MergeThreeWays.Operation.EQUAL -> {
+                Operation.INSERT -> insertions += aDiff.text!!.length
+                Operation.DELETE -> deletions += aDiff.text!!.length
+                Operation.EQUAL -> {
                     // A deletion and an insertion is one substitution.
                     levenshtein += Math.max(insertions, deletions)
                     insertions = 0
                     deletions = 0
                 }
+
+                null -> TODO()
             }
         }
         levenshtein += Math.max(insertions, deletions)
@@ -1391,7 +1398,7 @@ class MergeThreeWays {
         val text = StringBuilder()
         for (aDiff in diffs) {
             when (aDiff.operation) {
-                MergeThreeWays.Operation.INSERT -> try {
+                Operation.INSERT -> try {
                     text.append("+").append(URLEncoder.encode(aDiff.text!!, "UTF-8")
                             .replace('+', ' ')).append("\t")
                 } catch (e: UnsupportedEncodingException) {
@@ -1399,8 +1406,9 @@ class MergeThreeWays {
                     throw Error("This system does not support UTF-8.", e)
                 }
 
-                MergeThreeWays.Operation.DELETE -> text.append("-").append(aDiff.text!!.length).append("\t")
-                MergeThreeWays.Operation.EQUAL -> text.append("=").append(aDiff.text!!.length).append("\t")
+                Operation.DELETE -> text.append("-").append(aDiff.text!!.length).append("\t")
+                Operation.EQUAL -> text.append("=").append(aDiff.text!!.length).append("\t")
+                null -> TODO()
             }
         }
         var delta = text.toString()
@@ -1829,6 +1837,8 @@ class MergeThreeWays {
                         }
                     }
                 }
+
+                else -> {}
             }
 
             // Update the current character count.
@@ -2372,6 +2382,7 @@ class MergeThreeWays {
                     MergeThreeWays.Operation.INSERT -> text.append('+')
                     MergeThreeWays.Operation.DELETE -> text.append('-')
                     MergeThreeWays.Operation.EQUAL -> text.append(' ')
+                    else -> {}
                 }
                 try {
                     text.append(URLEncoder.encode(aDiff.text!!, "UTF-8").replace('+', ' '))

@@ -2,6 +2,7 @@ package fieldcef.browser
 
 import com.google.common.collect.MapMaker
 import com.jetbrains.cef.JCefAppConfig
+import field.app.RunLoop
 import field.utility.Log
 import field.utility.SimpleCommand
 import org.cef.CefApp
@@ -25,6 +26,7 @@ import java.util.function.Consumer
  * Singleton class, has all of the CEF singleton stuff hidden inside.
  */
 class CefSystem protected constructor() {
+    private var mainHandler: CefMessageRouterHandler
     private val cefApp: CefApp
     private val client: CefClient
     private val router: CefMessageRouter
@@ -136,16 +138,18 @@ class CefSystem protected constructor() {
         val config = JCefAppConfig.getInstance()
         val appArgs: MutableList<String?> = ArrayList<String?>()
         appArgs.addAll(config.appArgsAsList)
-        println(" -- NO SANDBOX")
         appArgs.add("--no-sandbox")
         appArgs.add("--enable-media-stream")
         appArgs.add("--use-fake-ui-for-media-stream")
         appArgs.add("--disable-background-timer-throttling")
+        appArgs.add("--disable-site-isolation-trials")
+        appArgs.add("--single-process")
 
-        println(" args $appArgs")
 
-        //        appArgs.add("--multi-threaded-message-loop");
+
+//                appArgs.add("--multi-threaded-message-loop");
 //        appArgs.add("--external-message-pump");
+        println(" args $appArgs")
         val args = appArgs.toTypedArray()
         CefApp.addAppHandler(object : CefAppHandlerAdapter(args) {
             override fun stateHasChanged(state: CefAppState) {
@@ -155,6 +159,7 @@ class CefSystem protected constructor() {
             }
         })
         val settings = config.cefSettings
+        settings.remote_debugging_port = 10560
         settings.log_severity = LogSeverity.LOGSEVERITY_ERROR
         settings.windowless_rendering_enabled = true
         cefApp = CefApp.getInstance(settings)
@@ -176,11 +181,20 @@ class CefSystem protected constructor() {
             }
         })
 
-//        RunLoop.main.getLoop().attach("__cefSystemMessageloop__", (i) -> {
-//            cefApp.doMessageLoopWork(0);
-//            return true;
-//        });
+        println(" -- creating router for CEFSYSTEM")
+        router = CefMessageRouter.create();
+
+//        var l = System.currentTimeMillis()
+//        RunLoop.main.getLoop().attach("__cefSystemMessageloop__") { i ->
+//            print(System.currentTimeMillis() - l)
+////            if (System.currentTimeMillis() - l > 5000)
+////                cefApp.doMessageLoopWork(0);
+//            true
+//        };
+
+
         client = cefApp.createClient()
+        client.addMessageRouter(router)
         client.addLifeSpanHandler(object : CefLifeSpanHandler {
             override fun onBeforePopup(
                 browser: CefBrowser,
@@ -229,8 +243,11 @@ class CefSystem protected constructor() {
                 line: Int
             ): Boolean {
 //				Log.log("cef.console", () -> " CONSOLE :" + browser + " " + message + " " + source + " " + line);
-                if (level.ordinal>=LogSeverity.LOGSEVERITY_ERROR.ordinal)
-                    println(" console message [$browser] $level $message $source $line")
+//                if (level.ordinal>=LogSeverity.LOGSEVERITY_ERROR.ordinal)
+                println(" console message [$browser] $level $message $source $line")
+
+                client.removeMessageRouter(router)
+                client.addMessageRouter(router)
                 return false
             }
 
@@ -246,7 +263,7 @@ class CefSystem protected constructor() {
                 p3: Int,
                 p4: CefMediaAccessCallback?
             ): Boolean {
-                if (p4!=null)
+                if (p4 != null)
                     p4.Continue(15)
                 return true
             }
@@ -290,9 +307,8 @@ class CefSystem protected constructor() {
             //				Log.log("cef.error", () -> "load error:" + browser + " -> " + frameIdentifer + " " + errorCode + " " + errorText + " " + failedUrl);
             //			}
         })
-        router = CefMessageRouter.create()
-        client.addMessageRouter(router)
-        router.addHandler(object : CefMessageRouterHandler {
+
+        mainHandler = object : CefMessageRouterHandler {
             override fun onQuery(
                 browser: CefBrowser,
                 frame: CefFrame,
@@ -302,12 +318,14 @@ class CefSystem protected constructor() {
                 callback: CefQueryCallback
             ): Boolean {
                 Log.log("cef.debug") { " -- query :$request $callback $queryId" }
+                System.err.println(" internal browser message $request $callback $queryId")
                 val m = callbacks[browser]
                 if (m != null) {
                     m.message(queryId, request, Consumer { x: String? -> callback.success(x) })
                 } else {
                     Log.log("cef.error") { "No message handler" }
                     callback.failure(0, "No message handler")
+                    System.out.println(" - can't find callback")
                 }
                 return true
             }
@@ -317,7 +335,8 @@ class CefSystem protected constructor() {
             override fun getNativeRef(identifer: String): Long {
                 return 0
             }
-        }, true)
+        }
+        router.addHandler(mainHandler, true)
 
 //		try {
 //			Thread.sleep(5000);

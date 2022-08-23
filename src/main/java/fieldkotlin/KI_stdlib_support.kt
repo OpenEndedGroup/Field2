@@ -8,6 +8,7 @@ import field.linalg.Vec3
 import field.linalg.Vec4
 import field.utility.Dict
 import field.utility.IdempotencyMap
+import field.utility.plus
 import fieldbox.boxes.Box
 import fieldbox.boxes.Boxes
 import fieldbox.boxes.FLineDrawing
@@ -27,6 +28,10 @@ var FLine.color: Supplier<Vec4> by FLineDelegate(StandardFLineDrawing.color)
 var FLine.fillColor: Supplier<Vec4> by FLineDelegate(StandardFLineDrawing.fillColor)
 var FLine.strokeColor: Supplier<Vec4> by FLineDelegate(StandardFLineDrawing.strokeColor)
 var FLine.pointColor: Supplier<Vec4> by FLineDelegate(StandardFLineDrawing.pointColor)
+
+
+var FLine.thicken: Number by FLineDelegateFloat(StandardFLineDrawing.fastThicken) // !!
+
 var FLine.filled by FLineDelegate(StandardFLineDrawing.filled)
 var FLine.stroked by FLineDelegate(StandardFLineDrawing.stroked)
 var FLine.pointed by FLineDelegate(StandardFLineDrawing.pointed)
@@ -64,6 +69,13 @@ class FLineDelegate<T>(val p: Dict.Prop<T>) {
     operator fun setValue(f: FLine, property: KProperty<*>, v: T) = f.attributes.put(p, v)
 }
 
+class FLineDelegateFloat<T : Number>(val p: Dict.Prop<Float>) {
+    operator fun getValue(f: FLine, property: KProperty<*>): T = f.attributes.get(p) as T
+
+    operator fun setValue(f: FLine, property: KProperty<*>, v: Number) = f.attributes.put(p, v.toFloat())
+}
+
+
 operator fun <T> IdempotencyMap<T>.plusAssign(m: Pair<String, T>) {
     this.asMap_set(m.first, m.second)
 }
@@ -81,19 +93,47 @@ operator fun <T> IdempotencyMap<T>.minusAssign(m: T) {
 }
 
 
-private operator fun IntRange.invoke(value: (Int) -> Unit) {
-    this.forEach(value)
+inline operator fun <T> IntRange.invoke(value: (Int) -> T) = this.map(value)
+
+inline operator fun <T> Int.invoke(value: (Int) -> T) = (0 until this).invoke(value)
+
+inline operator fun <T> Double.invoke(value: (Double) -> T) = (0 until this.toInt()).map {
+    value(it / this)
 }
 
+fun <T> Sequence<T>.loop(): Sequence<T> {
+    var o = this
+    return sequence {
+        while (true) {
+            var a = o.iterator()
+            while (a.hasNext())
+                yield(a.next())
+        }
+    }
+}
+
+operator fun <A, B> Sequence<A>.rem(b: Sequence<B>) = this.zip(b)
 
 @JvmName("mixVec2Vec2")
 infix fun kotlin.Pair<Vec2, Vec2>.mix(d: Number) = Vec2(this.first).lerp(this.second, d.toDouble())
 
+@JvmName("towardsVec2Vec2")
+infix fun kotlin.Pair<Vec2, Vec2>.towards(d: Number) =
+    Vec2(this.first).lerp(this.second, d.toDouble() / this.second.distance(this.first))
+
 @JvmName("mixVec3Vec3")
 infix fun kotlin.Pair<Vec3, Vec3>.mix(d: Number) = Vec3(this.first).lerp(this.second, d.toDouble())
 
+@JvmName("towardsVec3Vec3")
+infix fun kotlin.Pair<Vec3, Vec3>.towards(d: Number) =
+    Vec3(this.first).lerp(this.second, d.toDouble() / this.second.distance(this.first))
+
 @JvmName("mixVec4Vec4")
 infix fun kotlin.Pair<Vec4, Vec4>.mix(d: Number) = Vec4(this.first).lerp(this.second, d.toDouble())
+
+@JvmName("towardsVec4Vec4")
+infix fun kotlin.Pair<Vec4, Vec4>.towards(d: Number) =
+    Vec4(this.first).lerp(this.second, d.toDouble() / this.second.distance(this.first))
 
 suspend fun SequenceScope<Any>.yield() {
     yield(true)
@@ -184,7 +224,7 @@ val __include_cache__ = mutableMapOf<kotlin.Pair<Box, String>, String>()
 fun _include(name: String) = object : Magics.Magic {
     override fun run(inside: Box, executionService: (String) -> Any?): Any? {
 
-        var code = if (name.contains("/")) {
+        var code = if (!name.contains("/")) {
 
             val o = (inside up Boxes.root)!!.breadthFirstAll(inside.downwards()).filter {
                 it.properties.get(Box.name) == name

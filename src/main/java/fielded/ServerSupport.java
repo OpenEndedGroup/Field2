@@ -51,7 +51,7 @@ public class ServerSupport {
         try {
 
             int a = Ports.nextAvailable(8080);
-            int b = Ports.nextAvailable(a + 1);
+            int b = Ports.nextAvailable(a+1000);
             s = new Server(a, b);
 
             root.properties.put(server, s);
@@ -98,7 +98,7 @@ public class ServerSupport {
 
                         s.send(socket, readFile(fieldagent.Main.app + "/lib/web/" + n));
                     }
-                once[0] = false;
+//                once[0] = false;
 
                 Log.log("remote.trace", () -> " payload is :" + payload);
 

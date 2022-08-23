@@ -119,6 +119,7 @@ body {
     font-size: 10px;
     font-family: "Source Sans Pro";
     margin: 0;
+    overflow: hidden;
 }
 
 a {
@@ -150,6 +151,12 @@ a {
     opacity: 1 !important;
 }
 
+.totalContainer
+{
+    position: relative;
+    overflow: hidden;
+
+}
 .tabtray
 {
     position: absolute;
@@ -163,6 +170,7 @@ a {
     /*border: 1px solid rgba(60,60,60,1);*/
     padding: 5px;
     background: rgba(60,70,80,1);
+    overflow: hidden;
 }
 
 .tab
@@ -781,6 +789,7 @@ iframe
     right: 0;
     background-color: rgba(0, 0, 0, 0.8);
     border: 1px;
+    overflow: hidden;
 }
 
 .Field-modal::backdrop {

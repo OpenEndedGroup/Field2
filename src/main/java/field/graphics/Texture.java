@@ -191,7 +191,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
      */
     public void upload(ByteBuffer upload, boolean stream) {
         if (pendingUploads.get() > 10) {
-            System.out.println(" too many pending uploads (" + pendingUploads.get() + "), skipping ");
+            System.out.println(" too many pending uploads (" + pendingUploads.get() + "), skipping? ");
 //            return;
 //            pendingUploads.set(0);
         }
@@ -217,7 +217,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
             Log.log("graphics.trace", () -> "uploading ");
             glBindBuffer(GL_PIXEL_UNPACK_BUFFER, isDoubleBuffered ? (stream ? s.pboA : s.pboB) : s.pbo);
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-//            glPixelStorei(GL_UNPACK_ROW_LENGTH, specification.width);
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, specification.width);
             s.old = GL15.glMapBuffer(GL21.GL_PIXEL_UNPACK_BUFFER, GL15.GL_WRITE_ONLY, s.old);
             s.old.rewind();
             upload.rewind();
@@ -559,7 +559,9 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
             glTexSubImage2D(specification.target, 0, 0, s.y0, specification.width, s.y1 - s.y0 - 1, specification.format,
                     specification.type, top);
 
-        GraphicsContext.checkError(() -> " after that glTexSubImage2D");
+        GraphicsContext.checkError(() -> {
+            return " after that glTexSubImage2D ";
+         });
 
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
@@ -989,7 +991,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
 
         static public TextureSpecification float3(int unit, int width, int height, ByteBuffer source) {
-            return new TextureSpecification(unit, GL_TEXTURE_2D, GL_RGB32F, width, height, GL_RGB, GL_FLOAT, 3,
+            return new TextureSpecification(unit, GL_TEXTURE_2D, GL_RGB32F, width, height, GL_RGB, GL_FLOAT, 12,
                     source, false);
         }
 

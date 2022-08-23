@@ -300,7 +300,6 @@ class ThreadSync2 {
         val enabled = Options.dict().isTrue(Dict.Prop<Boolean>("thread2"), true)
 
         init {
-            println("\n\n -- thread2 :" + enabled + " --\n\n")
         }
 
         @JvmStatic

@@ -1147,6 +1147,7 @@ public class RemoteEditor extends Box {
 
 
                 String cooked = currentSelection.properties.get(new Dict.Prop<String>("_" + editingProperty.getName() + "_cookie"));
+
                 IO.persist(new Dict.Prop<String>("_" + editingProperty.getName() + "_cookie"));
 
                 Log.log("remote.cookie", () -> "cookie ns now :" + cooked);

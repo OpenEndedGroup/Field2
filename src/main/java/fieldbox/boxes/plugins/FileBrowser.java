@@ -157,6 +157,40 @@ public class FileBrowser extends Box implements IO.Loaded {
 
 					Map<Pair<String, String>, Runnable> m = new LinkedHashMap<>();
 
+					boxes.values()
+							.stream()
+							.filter(f -> f.name != null)
+							.forEach(f -> {
+
+//						     Log.log("insertbox", "box: " + f.name);
+
+								Set<FieldFile> ui = f.usedIn(files);
+								m.put(new Pair<>(quote(f.name) + " " + (f.customClass != null ? "<b>custom</b>" : "") + " " + (f.missingPlugin ? "<b>missing plugin?</b>" : ""),
+										("used in " + ui.size() + " file" + (ui.size() == 1 ? "" : "s") + " " + (f.copyOnly ? "<i>(Template)</i>" : ""))), () -> {
+
+									// doit
+//								   Log.log("insertbox", "would insert box :" + f.name);
+
+
+									FieldBoxWindow w = first(Boxes.window, both()).get();
+									Vec2 p = w.getCurrentMouseState()
+											.position()
+											.get();
+
+
+									Vec2 position = first(Drawing.drawing, both()).get()
+											.windowSystemToDrawingSystem(p);
+
+
+									if (f.copyOnly) {
+										IO.uniqify(loadBox(f.filename.getAbsolutePath(), k -> position));
+									} else
+										IO.uniqifyIfNecessary(root, loadBox(f.filename.getAbsolutePath(), k -> position));
+
+
+								});
+							});
+
 					files.values()
 						.stream()
 						.filter(f -> f.name != null)
@@ -180,39 +214,7 @@ public class FileBrowser extends Box implements IO.Loaded {
 							});
 						});
 
-					boxes.values()
-						.stream()
-						.filter(f -> f.name != null)
-						.forEach(f -> {
 
-//						     Log.log("insertbox", "box: " + f.name);
-
-							Set<FieldFile> ui = f.usedIn(files);
-							m.put(new Pair<>(quote(f.name) + " " + (f.customClass != null ? "<b>custom</b>" : "") + " " + (f.missingPlugin ? "<b>missing plugin?</b>" : ""),
-								("used in " + ui.size() + " file" + (ui.size() == 1 ? "" : "s") + " " + (f.copyOnly ? "<i>(Template)</i>" : ""))), () -> {
-
-								// doit
-//								   Log.log("insertbox", "would insert box :" + f.name);
-
-
-								FieldBoxWindow w = first(Boxes.window, both()).get();
-								Vec2 p = w.getCurrentMouseState()
-									.position()
-									.get();
-
-
-								Vec2 position = first(Drawing.drawing, both()).get()
-									.windowSystemToDrawingSystem(p);
-
-
-								if (f.copyOnly) {
-									IO.uniqify(loadBox(f.filename.getAbsolutePath(), k -> position));
-								} else
-									IO.uniqifyIfNecessary(root, loadBox(f.filename.getAbsolutePath(), k -> position));
-
-
-							});
-						});
 
 					p.prompt("Search workspace...", m, null);
 				}

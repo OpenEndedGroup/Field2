@@ -141,7 +141,7 @@ class PI : Execution(null) {
             @Throws(IOException::class)
             override fun write(cbuf: CharArray, off: Int, len: Int) {
                 if (len > 0) {
-                    val s = String(cbuf, off, len)
+                    val s = String(cbuf, off, len).replace("<", "&lt;").replace(">", "&gt;")
 
                     if (s.trim { it <= ' ' }.length == 0) return
                     written = true

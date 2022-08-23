@@ -237,7 +237,7 @@ public class Scene extends Box implements fieldlinker.AsMap {
             TreeMap<Integer, Set<Consumer<Integer>>> scene = c1;
 
             for (Integer i : new LinkedHashSet<>(scene.keySet())) {
-                Log.log("graphics.trace", () -> this + " pass " + i + " -> " + scene.get(i));
+//                Log.log("graphics.trace", () -> this + " pass " + i + " -> " + scene.get(i));
                 while (!a.isEmpty() && i >= a.peek().first) ret = wrappedCall(a.poll().second);
 
                 try {

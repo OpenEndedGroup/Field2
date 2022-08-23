@@ -50,10 +50,14 @@ public class GraphicsContext {
 
     static public boolean isResizing = false;
 
-    /** the preQueue is a list of things that run every time that the context is entered */
+    /**
+     * the preQueue is a list of things that run every time that the context is entered
+     */
     public final BlockingQueue<Runnable> preQueue = new LinkedBlockingQueue<>();
 
-    /** the postQueue is a list of things that run _once_ when the context is exited --- it is cleared every exit (although it is safe to add additional items to this during the exit) */
+    /**
+     * the postQueue is a list of things that run _once_ when the context is exited --- it is cleared every exit (although it is safe to add additional items to this during the exit)
+     */
     public final BlockingQueue<Runnable> postQueue = new LinkedBlockingQueue<>();
 
     static public GraphicsContext newContext() {
@@ -178,7 +182,22 @@ public class GraphicsContext {
         }
     }
 
-	static public class Sticky implements Runnable {
+    public static void checkErrorStackTrace(Supplier<String> message) {
+
+
+        if (noChecks) return;
+        if (currentGraphicsContext.get() == null) return;
+
+        int e = GL11.glGetError();
+
+        if (e != 0) {
+            System.err.println(
+                    "GLERROR:" + /*GLUtil.getErrorString(*/e/*)*/ + " -- " + message.get() + "\nState tracker is:" + GraphicsContext.getContext().stateTracker.dumpOutput());
+            new Exception().printStackTrace();
+        }
+    }
+
+    static public class Sticky implements Runnable {
         private final Supplier<Boolean> target;
         private final Collection<Runnable> queue;
 

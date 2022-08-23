@@ -45,7 +45,6 @@ public class TextEditor extends Box implements IO.Loaded {
 
     int ezl = (int)(Math.sqrt(Options.dict().getFloat(new Dict.Prop("extraZoomLevel"), 1f)));
 
-
     // we'll need to make sure that this is centered on larger screens
     int maxw = 900*ezl;
     int maxh = 1400*ezl;
@@ -131,7 +130,7 @@ public class TextEditor extends Box implements IO.Loaded {
 
         browser_.properties.put(Box.undeletable, true);
 
-        browser_.properties.put(FrameManipulation.maxHeight, maxhOnCreation);
+        browser_.properties.put(FrameManipulation.maxHeight, maxhOnCreation-10);
         browser_.properties.put(FrameManipulation.maxWidth, maxw);
 
         browser_.connect(root);
@@ -139,8 +138,10 @@ public class TextEditor extends Box implements IO.Loaded {
 
         browser_.properties.put(Box.name, "__texteditor__");
 
-        executeJavaScript("$(\".CodeMirror\").height(" + (maxh ) + ")");
-        executeJavaScript("$(\".CodeMirror\").width(" + (maxw ) + ")");
+//        executeJavaScript("$(\".CodeMirror\").height(" + (maxh ) + ")");
+//        executeJavaScript("$(\".CodeMirror\").width(" + (maxw ) + ")");
+        executeJavaScript("$(\".CodeMirror\").width(\"100vw\")");
+//        executeJavaScript("$(\".CodeMirror\").height(\"100vh\")");
 
         this.properties.putToMap(PresentationMode.onEnterPresentationMode, "__hideOnEnter__", () -> hide());
 
@@ -215,11 +216,13 @@ public class TextEditor extends Box implements IO.Loaded {
         RunLoop.main.getLoop()
                 .attach(x -> {
 
+//                    return true;
+
                     int maxh = window.getHeight();// - 25 - 10 - 10 - 2;
                     Rect f = browser_.properties.get(Box.frame);
-
+//
                     f = f.duplicate();
-
+//
                     Vec2 d1 = drawing.drawingSystemToWindowSystem(new Vec2(f.x, f.y));
                     Vec2 d2 = drawing.drawingSystemToWindowSystem(new Vec2(f.x + f.w, f.y + f.h));
 
@@ -227,30 +230,34 @@ public class TextEditor extends Box implements IO.Loaded {
                     f.y = (float) d1.y;
                     f.w = (float) (d2.x - d1.x);
                     f.h = (float) (d2.y - d1.y);
-
-
-                    if ((int) f.h != heightLast) {
+//
+//
+//                    if ((int) f.h != heightLast) {
+//                        heightLast = (int) f.h;
+//                        f = f.duplicate();
+//
+//                        System.out.println(" height now :" + Math.min(f.h - 100, maxhOnCreation - 40));
+//
+////							setHeightCode = "$(\"body\").height(" + Math.min(f.h*0.84-10, maxhOnCreation - 40) + ");cm.refresh();";
+////							setHeightCode += "$(\".CodeMirror\").height(" + Math.min(f.h*0.84-40, maxhOnCreation - 40) + ");cm.refresh();";
+//                        setHeightCode = "$(\"body\").height(" + Math.min(f.h -50,
+//                                                                         maxhOnCreation ) + ");cm.refresh();";
+//                        setHeightCode += "$(\".CodeMirror\").height(\"100%\");cm.refresh();";
+//                        executeJavaScript(setHeightCode);
+//                    }
+//
+//
+                    if ((int) f.w != frameLast || (int)f.h !=heightLast) {
+                        frameLast = (int) f.w;
                         heightLast = (int) f.h;
                         f = f.duplicate();
 
-                        System.out.println(" height now :" + Math.min(f.h - 100, maxhOnCreation - 40));
-
-//							setHeightCode = "$(\"body\").height(" + Math.min(f.h*0.84-10, maxhOnCreation - 40) + ");cm.refresh();";
-//							setHeightCode += "$(\".CodeMirror\").height(" + Math.min(f.h*0.84-40, maxhOnCreation - 40) + ");cm.refresh();";
-                        setHeightCode = "$(\"body\").height(" + Math.min(f.h -50,
-                                                                         maxhOnCreation ) + ");cm.refresh();";
-                        setHeightCode += "$(\".CodeMirror\").height(\"100%\");cm.refresh();";
-                        executeJavaScript(setHeightCode);
-                    }
-
-
-                    if ((int) f.w != frameLast) {
-                        frameLast = (int) f.w;
-                        f = f.duplicate();
-
-                        setWidthCode = "$(\"body\").width(" + Math.min(maxw ,
-                                                                       (int) (f.w )) + ");cm.refresh();";
-                        setWidthCode += "$(\".CodeMirror\").width(\"100%\");cm.refresh();";
+//                        setWidthCode = "$(\".totalContainer\").width(" + Math.min(maxw , (int) (f.w -30 )) + ");cm.refresh();";
+//                        setWidthCode += "$(\".totalContainer\").height(" + Math.min(maxh , (int) (f.h -20 )) + ");cm.refresh();";
+                        setWidthCode += "$(\".CodeMirror\").width(" + Math.min(maxw , (int) (f.w -30 )) + ");cm.refresh();";
+                        setWidthCode += "$(\".CodeMirror\").height(" + Math.min(maxh , (int) (f.h -30 )) + ");cm.refresh();";
+//                        setWidthCode += "$(\".CodeMirror\").width(\"100%\");cm.refresh();";
+//                        setWidthCode += "$(\".CodeMirror\").height(\"100%\");cm.refresh();";
                         executeJavaScript(setWidthCode);
                     }
 
@@ -262,7 +269,7 @@ public class TextEditor extends Box implements IO.Loaded {
 
     void updateSize() {
         Rect f = browser_.properties.get(Box.frame);
-        setHeightCode = "$(\"body\").height(" + Math.min(f.h - 20, maxhOnCreation - 40) + ");cm.refresh();";
+//        setHeightCode = "$(\"body\").height(" + Math.min(f.h - 20, maxhOnCreation - 40) + ");cm.refresh();";
         setHeightCode += "$(\".CodeMirror\").height(" + Math.min(f.h - 20, maxhOnCreation - 40) + ");cm.refresh();";
         executeJavaScript(setHeightCode);
     }

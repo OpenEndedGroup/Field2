@@ -98,6 +98,58 @@ public class Out extends Box {
 			return s;
 		});
 
+		output.map._put("[I", x -> {
+			String s = "{HTML}";
+			if (((float[]) x).length == 0) {
+				s += "<table class='maptable' cellspacing=0>";
+				s += "<i>Empty Array of Ints" + shorten(x.getClass()) + "</i>";
+				s += "</table>";
+				return s;
+			}
+			int[] k = ((int[]) x);
+
+			s += "<div class='maptable' cellspacing=0><div class='smaller-inframe'>Int Array, len " + k.length + "</div>";
+			int num = 0;
+			for (Integer oo : k) {
+				s += "<div class='maptable-entry'> <div class='maptable-value'>" + output.convert(oo, "value") + "</div></div>";
+				num++;
+				if (num > 10 && k.length > 15) {
+					s += "<div class='maptable-entry'><div class='maptable-key'> ... </div> <div class='maptable-value'> " + num + "/" + k.length + " total </div></div>";
+					break;
+				}
+
+			}
+			s += "</div>";
+
+			return s;
+		});
+
+		output.map._put("[B", x -> {
+			String s = "{HTML}";
+			if (((float[]) x).length == 0) {
+				s += "<table class='maptable' cellspacing=0>";
+				s += "<i>Empty Array of Bytes" + shorten(x.getClass()) + "</i>";
+				s += "</table>";
+				return s;
+			}
+			byte[] k = ((byte[]) x);
+
+			s += "<div class='maptable' cellspacing=0><div class='smaller-inframe'>Int Array, len " + k.length + "</div>";
+			int num = 0;
+			for (Byte oo : k) {
+				s += "<div class='maptable-entry'> <div class='maptable-value'>" + output.convert(oo, "value") + "</div></div>";
+				num++;
+				if (num > 10 && k.length > 15) {
+					s += "<div class='maptable-entry'><div class='maptable-key'> ... </div> <div class='maptable-value'> " + num + "/" + k.length + " total </div></div>";
+					break;
+				}
+
+			}
+			s += "</div>";
+
+			return s;
+		});
+
 		output.map._put("[D", x -> {
 			String s = "{HTML}";
 			if (((double[]) x).length == 0) {

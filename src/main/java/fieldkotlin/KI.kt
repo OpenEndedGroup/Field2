@@ -4,22 +4,21 @@ import field.linalg.Vec4
 import field.utility.*
 import fieldbox.boxes.*
 import fieldbox.boxes.plugins.BoxDefaultCode
+import fieldbox.boxes.plugins.GraphicsSupport
 import fieldbox.boxes.plugins.IsExecuting
+import fieldbox.boxes.plugins.Preamble
 import fieldbox.execution.Completion
 import fieldbox.execution.Execution
 import fieldbox.execution.JavaSupport
 import fieldbox.io.IO
 import fieldcef.plugins.up
+import fielded.Commands.commands
 import fielded.RemoteEditor
-import fielded.boxbrowser.BoxBrowser.HasMarkdownInformation
 import fielded.plugins.Out
 import fieldkotlin.Magics.Companion.magics
-import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.psi.KtCallExpression
-import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.psiUtil.parents
-import org.jetbrains.kotlin.resolve.calls.callUtil.getType
 import java.io.IOException
 import java.io.Writer
 import java.util.*
@@ -36,7 +35,6 @@ import kotlin.script.experimental.api.SourceCode
 
 class KI : Execution(null) {
 
-
     val ki = mutableMapOf<Box, Execution.ExecutionSupport>()
 
     var global: () -> String = { "" }
@@ -46,6 +44,28 @@ class KI : Execution(null) {
     init {
         this.properties += FLineDrawing.boxBackground to vec(0.6, 0.5, 0.4, 0.75)
         this.properties += FLineDrawing.boxOutline to vec(1, 0.9, 0.8, 0.6)
+    }
+
+    init {
+        properties.put(commands, Supplier {
+            val m = mutableMapOf<Pair<String, String>, Runnable>()
+            val ed = this.find(RemoteEditor.editor, both()).findFirst().get()
+
+            val box: Box = ed.getCurrentlyEditing()
+
+            if (!children.contains(box)) {
+                m.put(
+                    Pair(
+                        "Make Kotlin",
+                        "Connect this box to the Kotlin Interface, transforming it's language to Kotlin (rather than JavaScript"
+                    ),
+                    Runnable {
+                        this.connect(box)
+                    }
+                )
+            }
+            m
+        })
     }
 
     override fun support(box: Box, prop: Dict.Prop<String>): Execution.ExecutionSupport? {
@@ -155,7 +175,7 @@ class KI : Execution(null) {
             propertyClasses = mapOf("__bx__" to Box::class, "__root__" to Box::class, "__writer__" to Writer::class),
             properties = mapOf("__bx__" to box, "__root__" to root, "__writer__" to makeWriter(box)),
             classLoader = this.javaClass.classLoader,
-            filePrefix = "bx$" + box[IO.id],
+            filePrefix = "bx$" + box[Box.name]+" "+box[IO.id],
         )
     }
 
@@ -185,6 +205,7 @@ class KI : Execution(null) {
                         else -> return@checkMagic null
                     }
                 }
+
                 else -> return@checkMagic null
             }
         }
@@ -193,6 +214,8 @@ class KI : Execution(null) {
         return object : Execution.ExecutionSupport {
 
             var lineOffset = 0
+
+            var preambleWas = ""
 
             fun internalTextFragmentExec(
                 textFragment: String,
@@ -206,6 +229,12 @@ class KI : Execution(null) {
                 if (isAll)
                     Callbacks.call(box, Callbacks.onExecute)
 
+                if (suffix != "__preamble__" && box.properties.get(Preamble.preamble) != preambleWas) {
+                    println(" -- preamble has changed, auto executing it ")
+                    preambleWas = box.properties.get(Preamble.preamble) ?: ""
+                    if (preambleWas.trim().length > 0)
+                        internalTextFragmentExec(preambleWas, "__preamble__", success, lineErrors, false)
+                }
 
                 RemoteEditor.removeBoxFeedback(Optional.of(box), "__redmark__")
 
@@ -222,7 +251,6 @@ class KI : Execution(null) {
                     ) {
                         currentLineNumber = it
                     }
-
 
                     magic.checkMagic(textFragment, box) {
                         val r = doEval(it, lineErrors, Consumer { })
@@ -263,7 +291,6 @@ class KI : Execution(null) {
                             }
                         }
                     }
-
 
                     return null
                 } finally {
@@ -331,29 +358,46 @@ class KI : Execution(null) {
                 val tf2 = parseHooks(textFragment)
 
 //                val tf2 = textFragment
+
                 val res = ki.execAndWait(tf2, { compileError ->
                     println(" compile error ${compileError}")
 
-                    compileError.sortedBy { -(it.location as SourceCode.Location).start.line }
-                        .sortedBy { -it.severity.ordinal }.filter { it.severity.name != "WARNING" }.forEach {
-                            println(it)
-                            errored = true
-                            val message = it.message
-                            val line = if (it.location != null) (it.location as SourceCode.Location).start.line else -1
-                            lineErrors.accept(Pair(line, message))
-                        }
+                    try {
+                        compileError.sortedBy { -(it.location as SourceCode.Location).start.line }
+                            .sortedBy { -it.severity.ordinal }.filter { it.severity.name != "WARNING" }.forEach {
+                                println(it)
+                                errored = true
+                                val message = it.message
+                                val line =
+                                    if (it.location != null) (it.location as SourceCode.Location).start.line else -1
+                                lineErrors.accept(Pair(line, message))
+                            }
+                    } catch (n: java.lang.NullPointerException) {
+                        compileError
+                            .sortedBy { -it.severity.ordinal }.filter { it.severity.name != "WARNING" }.forEach {
+                                println(it)
+                                errored = true
+                                val message = it.message
+                                val line =
+                                    if (it.location != null) (it.location as SourceCode.Location).start.line else -1
+                                lineErrors.accept(Pair(line, message))
+                            }
+                        errored = true
+                    }
 
                 }, { evalError ->
                     println(" eval error ${evalError}")
 
-                    evalError.sortedBy {
-                        1.0
-                    }.forEach {
+                    evalError.forEach {
                         val message = it.message
-                        val line = if (it.location != null) (it.location as SourceCode.Location).start.line else -1
-                        lineErrors.accept(Pair(line, message))
+                        try {
+                            val line =
+                                if (it.location != null) (it.location as SourceCode.Location).start.line else -1
+                            lineErrors.accept(Pair(line, message))
+                        } catch (n: java.lang.NullPointerException) {
+                            lineErrors.accept(Pair(-1, message))
+                        }
                     }
-
                     errored = true
                 }, { e ->
                     println(" eval exception ${e}")
@@ -391,6 +435,7 @@ class KI : Execution(null) {
                             success.accept(" &#10003; ")
                             return Pair(null, false)
                         }
+
                         is ResultValue.Value -> {
                             if (res.value == null)
                                 success.accept(" &#10003; ")
@@ -398,14 +443,22 @@ class KI : Execution(null) {
                                 success.accept("${res.value} <i><smaller>${shorten(res.type)}</smaller></i><br>")
                             return Pair(res.value, false)
                         }
+
                         is ResultValue.Unit -> {
                             success.accept(" &#10003; ")
                             return Pair(null, false)
                         }
+
                         is ResultValue.Error -> {
                             // does this ever happen?
                             success.accept("${res}<br>")
                             return Pair(res, true)
+                        }
+
+                        is ResultValue.NotEvaluated -> {
+                            // does this ever happen?
+                            success.accept("NOT EVALUATES<br>")
+                            return Pair(res, false)
                         }
                     }
 
@@ -666,6 +719,7 @@ class KI : Execution(null) {
                         }
                         results.accept(comp)
                     }
+
                     else -> {
                         println(" no completions ? ")
                     }
