@@ -310,10 +310,8 @@ public class RunLoop {
 
     public void exit() {
         try {
-            System.out.println(" -- EXIT EXIT EXIT ");
             if (exitStarted.compareAndSet(false, true)) {
                 for (Runnable r : onExit) {
-                    System.out.println(r);
                     try {
                         r.run();
                     } catch (Throwable t) {

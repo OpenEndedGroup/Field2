@@ -422,13 +422,54 @@
 
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>1.21</version>
+        </dependency>
+
 
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib-jdk8</artifactId>
             <version>${kotlin.version}</version>
         </dependency>
-<!--        <dependency>-->
+
+
+
+        <dependency>
+            <groupId>de.javagl</groupId>
+            <artifactId>jgltf-impl-v1</artifactId>
+            <version>2.0.1-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>de.javagl</groupId>
+            <artifactId>jgltf-impl-v2</artifactId>
+            <version>2.0.1-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>de.javagl</groupId>
+            <artifactId>jgltf-model</artifactId>
+            <version>2.0.1-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>de.javagl</groupId>
+            <artifactId>jgltf-validator</artifactId>
+            <version>2.0.1-SNAPSHOT</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>de.javagl</groupId>
+            <artifactId>jgltf-viewer</artifactId>
+            <version>2.0.1-SNAPSHOT</version>
+        </dependency>
+
+
+        <!--        <dependency>-->
 <!--            <groupId>org.jetbrains.kotlin</groupId>-->
 <!--            <artifactId>kotlin-test</artifactId>-->
 <!--            <version>${kotlin.version}</version>-->
@@ -504,8 +545,8 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <source>15</source>
-                    <target>15</target>
+                    <source>16</source>
+                    <target>16</target>
                 </configuration>
             </plugin>
         </plugins>

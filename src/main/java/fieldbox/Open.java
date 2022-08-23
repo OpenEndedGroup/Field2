@@ -64,7 +64,9 @@ public class Open {
 
     private final MarkingMenus markingMenus;
     private final String filename;
-    private final Keyboard keyboard;
+    // temp!!
+    static public Keyboard keyboard;
+
     private final Drops drops;
     private PluginList pluginList;
     private Map<String, List<Object>> plugins;
@@ -301,6 +303,8 @@ public class Open {
         new Launch(root).connect(root);
 
         new SimpleTweaks(root).connect(root);
+
+        new Preamble(root).connect(root);
 
 
         if (ThreadSync.enabled) new ThreadSyncFeedback(root).connect(root);

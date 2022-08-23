@@ -1,5 +1,6 @@
 package fieldbox;
 
+import field.utility.Dict;
 import field.utility.Log;
 import field.utility.Options;
 import fieldagent.Main;
@@ -18,7 +19,6 @@ public class Run {
 
 		if (Main.os == Main.OS.mac) Toolkit.getDefaultToolkit();
 
-		// TODO --- get from command line / previous
 		Options.parseCommandLine(s);
 
 		PluginList pluginList;

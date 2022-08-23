@@ -3,7 +3,9 @@ package fieldbox.boxes.plugins
 import field.utility.Dict
 import field.utility.Pair
 import fieldbox.boxes.Box
+import fieldbox.boxes.Callbacks
 import fieldbox.boxes.Drawing
+import fieldbox.boxes.Mouse
 import fieldbox.io.IO
 import fielded.Commands
 import java.util.function.Supplier
@@ -16,6 +18,8 @@ import kotlin.jvm.optionals.getOrNull
 class Pages(val root: Box) : Box() {
 
     var currentPage = -1
+
+    var notedSelections = mutableMapOf<Int, Set<String>>()
 
     companion object {
         @JvmStatic
@@ -105,46 +109,57 @@ class Pages(val root: Box) : Box() {
         Drawing.dirty(root)
 
         this.properties.putToMap(StatusBar.statuses, "page", Supplier {
-            ""
+            "No Page"
         })
         root.find(StatusBar.statusBar, root.upwards()).findFirst().getOrNull()?.update()
     }
 
 
     fun allPage() {
+        store()
         currentPage = -1
         Drawing.dirty(root)
         this.properties.putToMap(StatusBar.statuses, "page", Supplier {
             "Viewing all pages"
         })
         root.find(StatusBar.statusBar, root.both()).findFirst().getOrNull()?.update()
+        restore()
     }
 
     fun nextPage() {
+        store()
+        install()
         currentPage = Math.max(1, currentPage + 1)
         Drawing.dirty(root)
         this.properties.putToMap(StatusBar.statuses, "page", Supplier {
             "Viewing Page $currentPage"
         })
         root.find(StatusBar.statusBar, root.both()).findFirst().getOrNull()?.update()
+        restore()
     }
 
     fun previousPage() {
-        currentPage = Math.max(1, currentPage - 1)
-        Drawing.dirty(root)
-        this.properties.putToMap(StatusBar.statuses, "page", Supplier {
-            "Viewing Page $currentPage"
-        })
-        root.find(StatusBar.statusBar, root.both()).findFirst().getOrNull()?.update()
+        store()
+        currentPage = Math.max(0, currentPage - 1)
+        if (currentPage == 0) {
+            noPage()
+        } else {
+            Drawing.dirty(root)
+            this.properties.putToMap(StatusBar.statuses, "page", Supplier {
+                "Viewing Page $currentPage"
+            })
+            root.find(StatusBar.statusBar, root.both()).findFirst().getOrNull()?.update()
+        }
+        restore()
     }
 
     fun moveToCurrentPage(b: Box) {
-        if (currentPage>0) {
+        if (currentPage > 0) {
             b.properties.put(Planes.plane, "__page_${currentPage}__")
-        }
-        else
+        } else
             b.properties.remove(Planes.plane)
         Drawing.dirty(root)
+        store()
     }
 
     fun nextPageName(): String {
@@ -156,5 +171,47 @@ class Pages(val root: Box) : Box() {
         return "Page ${Math.max(1, currentPage - 1)}"
     }
 
+
+    fun store() {
+        notedSelections.put(currentPage, selection().toSet())
+    }
+
+    fun restore() {
+        select(notedSelections.getOrDefault(currentPage, emptySet()).toList())
+    }
+
+    fun selection(): List<String> {
+        return root.breadthFirst(root.both())
+            .filter { x: Box ->
+                x.properties.isTrue(
+                    Mouse.isSelected,
+                    false
+                ) && !x.properties.isTrue(Mouse.isSticky, false)
+            }.map {
+                it.properties.get(IO.id)
+            }.toList()
+    }
+
+    fun select(l: List<String>) {
+        var m = selection()
+        var a = LinkedHashSet(m)
+        var b = LinkedHashSet(l)
+
+        a.removeAll(l)
+        b.removeAll(m)
+
+        a.forEach { id ->
+            root.breadthFirst(root.downwards()).filter { it.properties.has(IO.id) && it.properties.get(IO.id) == id }
+                .findFirst().getOrNull()?.let {
+                    Callbacks.transition(it, Mouse.isSelected, false, false, Callbacks.onSelect, Callbacks.onDeselect)
+                }
+        }
+        b.forEach { id ->
+            root.breadthFirst(root.downwards()).filter { it.properties.has(IO.id) && it.properties.get(IO.id) == id }
+                .findFirst().getOrNull()?.let {
+                    Callbacks.transition(it, Mouse.isSelected, true, false, Callbacks.onSelect, Callbacks.onDeselect)
+                }
+        }
+    }
 
 }

@@ -41,6 +41,8 @@ public class Windows {
 
 
 		Log.log("startup.debug", () -> "main thread is :" + Thread.currentThread());
+
+
 	}
 
 

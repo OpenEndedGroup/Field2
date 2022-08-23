@@ -142,7 +142,10 @@ public class IO {
     }
 
     public static boolean isPeristant(Dict.Prop prop) {
+
+        // temp hack for exponential saving problem
         if (prop.getName().endsWith("_cookie")) return false;
+
         return knownFiles.containsKey(prop.getName()) || knownProperties.contains(prop.getName()) || (prop.findCanon() != null && prop.findCanon()
                 .getAttributes()
                 .isTrue(persistent, false));

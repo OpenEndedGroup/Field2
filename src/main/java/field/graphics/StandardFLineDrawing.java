@@ -162,7 +162,7 @@ public class StandardFLineDrawing {
         BasicStroke s = fline.attributes.getOr(thicken, () -> null);
         if (s != null && mesh != null) {
             mesh.aux(1, sc);
-            fline.renderLineToMeshByStroking(mesh, (int) Math.max(2, 20 * fline.attributes.getOr(curveScale, () -> 1f).floatValue()), s);
+            fline.renderLineToMeshByStroking(mesh, (int) Math.max(2, 40 * fline.attributes.getOr(curveScale, () -> 1f).floatValue()), s);
             mesh.aux(1, sc);
 
         } else if (fline.attributes.has(fastThicken) && mesh!=null) {
@@ -180,7 +180,7 @@ public class StandardFLineDrawing {
                     Vec4 v = qq.get();
                     return new Vec4(v.x, v.y, v.z, v.w * opacityMultiply);
                 });
-            fline.renderToLine(line, (int) Math.max(2, 10 * fline.attributes.getOr(curveScale, () -> 1f).floatValue()));
+            fline.renderToLine(line, (int) Math.max(2, 40 * fline.attributes.getOr(curveScale, () -> 1f).floatValue()));
         }
         if (fline.attributes.isTrue(filled, false) && mesh != null) {
             if (opacityMultiply == 1)
@@ -193,14 +193,25 @@ public class StandardFLineDrawing {
                     return new Vec4(v.x, v.y, v.z, v.w * opacityMultiply);
                 });
             mesh.aux(1, fc);
-            fline.renderToMesh(mesh, (int) Math.max(2, 10 * fline.attributes.getOr(curveScale, () -> 1f).floatValue()));
+            fline.renderToMesh(mesh, (int) Math.max(2, 40 * fline.attributes.getOr(curveScale, () -> 1f).floatValue()));
             mesh.aux(1, fc);
         }
         if (fline.attributes.isTrue(pointed, false) && points != null) {
             float ps = fline.attributes.getFloat(pointSize, 0f);
+
+            if (opacityMultiply == 1)
+                fline.addAuxProperties(1, color.getName());
+            else
+                fline.addAuxPropertiesFunctions(1, n -> {
+                    Supplier<Vec4> qq = n.attributes.get(color);
+                    if (qq == null) return null;
+                    Vec4 v = qq.get();
+                    return new Vec4(v.x, v.y, v.z, v.w * opacityMultiply);
+                });
+
             points.aux(2, ps);
             fline.addAuxProperties(2, pointSize.getName());
-            fline.renderToPoints(points, (int) Math.max(2, 10 * fline.attributes.getOr(curveScale, () -> 1f).floatValue()));
+            fline.renderToPoints(points, (int) Math.max(2, 40 * fline.attributes.getOr(curveScale, () -> 1f).floatValue()));
             points.aux(2, ps);
         }
 

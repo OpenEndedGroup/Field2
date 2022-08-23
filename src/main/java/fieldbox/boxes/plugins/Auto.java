@@ -5,13 +5,13 @@ import field.utility.Dict;
 import field.utility.Triple;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Callbacks;
+import fieldbox.execution.Execution;
 import fieldbox.io.IO;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static fieldbox.boxes.plugins.Preamble.preamble;
 
 public class Auto extends Box implements IO.Loaded {
 
@@ -24,6 +24,7 @@ public class Auto extends Box implements IO.Loaded {
     }
 
     private final Map<Box, Long> done;
+    private final Map<Box, Long> preambleDone;
 
 
     public Auto(Box root) {
@@ -31,6 +32,7 @@ public class Auto extends Box implements IO.Loaded {
         root.properties.put(auto, 0); // makes property appear in autocomplete for everyone
 
         done = new HashMap<>();
+        preambleDone = new HashMap<>();
 
         properties.putToMap(Callbacks.onLoad, "__autoload__", (b) -> {
             // we only auto things once.
@@ -41,6 +43,33 @@ public class Auto extends Box implements IO.Loaded {
 
     @Override
     public void loaded() {
+
+        Set<Triple<Box, Float, String>> run0 = breadthFirst(both()).filter(x -> x.properties.has(preamble))
+                .filter(x -> !preambleDone.containsKey(x))
+                .map(x -> new Triple<>(x, x.properties.get(Box.frame).y, x.properties.get(preamble)))
+                .filter(x -> x.third.trim().length() > 0)
+                .collect(Collectors.toSet());
+
+
+        System.out.println(" -- preamble to execute is " + run0);
+
+        int offset = 1;
+
+        run0.forEach(t -> {
+            preambleDone.put(t.first, System.currentTimeMillis());
+        });
+
+        for (Triple<Box, Float, String> t : run0) {
+
+            RunLoop.main.delayTicks(() -> {
+
+                System.out.println(" -- preamble for " + t.first + " is automatically executing on startup");
+                // just need to execute "", since the preamble will be automatically prepended
+                t.first.find(Execution.execution, t.first.upwards()).findFirst().get().support(t.first, Execution.code).executeTextFragment("", t.first);
+
+            }, (offset++));
+        }
+
 
         List<Triple<Box, Float, Number>> run = breadthFirst(both()).filter(x -> x.properties.has(auto))
                 .filter(x -> !done.containsKey(x))
@@ -76,7 +105,7 @@ public class Auto extends Box implements IO.Loaded {
                 t.first.find(Chorder.begin, both())
                         .findFirst().map(x -> x.apply(t.first));
 
-            }, (1+t.third.intValue()));
+            }, (offset + t.third.intValue()));
 
         }
     }
