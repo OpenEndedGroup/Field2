@@ -232,7 +232,9 @@ class KI : Execution(null) {
 
                     val res = doEval(textFragment, lineErrors, success)
                     ki.contextUpdater.update()
-                    box.properties += Dict.Prop<VariablesIntrospection>("kotlin_introspection") to VariablesIntrospection(ki.context)
+                    box.properties += Dict.Prop<VariablesIntrospection>("kotlin_introspection") to VariablesIntrospection(
+                        ki.context
+                    )
 
                     println(" result is $res")
 
@@ -281,28 +283,28 @@ class KI : Execution(null) {
                 val rules = mutableListOf<(PsiElement, String) -> String>()
 
                 val counts = mutableMapOf<String, Int>()
-                rules.add { element, text ->
-
-                    when (element) {
-                        is KtCallExpression -> {
-                            val name = element.firstChild.firstChild.getText()
-                            counts[name] = 1 + counts.computeIfAbsent(name) { 0 }
-                            if (name == "hereIsAFunction") {
-                                return@add "__${name}__(\"\"\"${
-                                    computeScopeLabel(
-                                        element,
-                                        text,
-                                        counts[name]!!
-                                    )
-                                }\"\"\")" + element.getText().substring(name.length)
-                            }
-                        }
-
-
-                    }
-
-                    text
-                }
+//                rules.add { element, text ->
+//
+//                    when (element) {
+//                        is KtCallExpression -> {
+//                            val name = element.firstChild.firstChild.getText()
+//                            counts[name] = 1 + counts.computeIfAbsent(name) { 0 }
+//                            if (name == "hereIsAFunction") {
+//                                return@add "__${name}__(\"\"\"${
+//                                    computeScopeLabel(
+//                                        element,
+//                                        text,
+//                                        counts[name]!!
+//                                    )
+//                                }\"\"\")" + element.getText().substring(name.length)
+//                            }
+//                        }
+//
+//
+//                    }
+//
+//                    text
+//                }
                 val o = ki.parseAndRewrite(textFragment, rules)
                 print("after transformation `$o`")
                 return o
@@ -547,6 +549,10 @@ class KI : Execution(null) {
 
                     if (_r is PhaseList) {
                         _r.reset()
+                        _r.exitHook  = {
+                            Drawing.dirty(this@KI, 2)
+                        }
+
                         if (endOngoing) end(lineErrors, success)
 
                         val name: String = "main._animator" + prefix + "_" + uniq

@@ -1,5 +1,6 @@
 package fieldkotlin
 
+import org.jetbrains.kotlin.serialization.js.ast.JsAstProtoBuf.Throw
 import java.util.function.Consumer
 import java.util.function.Supplier
 
@@ -38,6 +39,8 @@ class PhaseList : Supplier<Boolean>, Consumer<Boolean> {
         endNext = true
     }
 
+    var exitHook: () -> Unit = {}
+
     class EndNow : RuntimeException()
 
     fun update(end: Boolean): Boolean {
@@ -68,13 +71,22 @@ class PhaseList : Supplier<Boolean>, Consumer<Boolean> {
                     }
                 }
                 3 -> {
-
+                    exitHook()
+                    return false
                 }
             }
             return status != 3
         } catch (e: EndNow) {
             status = 3
+            exitHook()
             return false
+        } catch (e : Throwable)
+        {
+            println(" exception throw in state $status, ending this phaselist")
+            e.printStackTrace()
+            status = 4
+            exitHook()
+            throw(e)
         }
     }
 
@@ -112,7 +124,12 @@ fun frames(m: suspend SequenceScope<Any>.() -> Unit): PhaseList {
             i = s.iterator()
         }
         cont {
-            if (i.hasNext())
+            val a = try {
+                i.hasNext()
+            } catch (e: Throwable) {
+                throw(e)
+            }
+            if (a)
                 i.next()
             else
                 throw PhaseList.EndNow()

@@ -91,7 +91,10 @@ public class Boxes {
 								try {
 									Execution.context.get().push(y);
 									if (!n.getValue()
-										.get()) r.remove();
+										.get()) {
+										System.out.println(" -- no longer running :"+n.getKey());
+										r.remove();
+									}
 								} catch (Throwable t) {
 									t.printStackTrace();
 								} finally {

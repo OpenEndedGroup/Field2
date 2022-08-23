@@ -109,8 +109,6 @@ class KotlinInterface(
         contextUpdater = ContextUpdater(context, evaluator)
 
 
-
-
     }
 
     inner class EvaluationEnvironment {
@@ -236,6 +234,30 @@ class KotlinInterface(
     }
 
     fun parseAndRewrite(s: String, rules: List<(PsiElement, String) -> String>): String {
+
+        // trying something new here
+
+        if (s.contains("//%frames")) {
+            val ll = s.split("\n")
+            var imports = ""
+            var rest = ""
+            ll.forEach {
+                if (it.trim().lowercase().startsWith("import ")) {
+                    imports += it + "\n"
+                } else if (it.trim().lowercase().contains(" by ")) {
+                    imports += it + "\n"
+                } else if (it.trim().lowercase().startsWith("//%frames")) {
+                    rest += "var _r = frames {\n"
+                } else {
+                    rest += it + "\n"
+                }
+            }
+
+            return imports + rest + "}"
+        }
+
+        return s;
+
         var cs = compiler.state.getCompilationState(compilerConfig)
         var env = cs.environment
         var project = env.project

@@ -2,7 +2,9 @@ package fieldbox.boxes.plugins;
 
 import field.graphics.Window;
 import field.linalg.Vec2;
+import field.utility.Dict;
 import field.utility.Log;
+import field.utility.Options;
 import fieldbox.boxes.Box;
 import fieldbox.boxes.Drawing;
 import fieldbox.boxes.FrameManipulation;
@@ -13,6 +15,8 @@ import fieldbox.ui.FieldBoxWindow;
  * Adds mouse wheel (and, thus two-finger drag on OS X) pan support to the canvas
  */
 public class Scrolling extends Box {
+
+    static public double globalScrollMul = Options.dict().getFloat(new Dict.Prop<Number>("globalScrollMul"), 1f);
 
     public Scrolling(Box root_unused) {
         this.properties.put(Planes.plane, "__always__");
@@ -61,8 +65,8 @@ public class Scrolling extends Box {
 
             double sc = x.getScale().x;
 
-            t.x += e.after.dwheel * 8;
-            t.y += e.after.dwheely * 8;
+            t.x += e.after.dwheel * 8 * globalScrollMul;
+            t.y += e.after.dwheely * 8 * globalScrollMul;
 
             x.setTranslation(from, t);
         }
