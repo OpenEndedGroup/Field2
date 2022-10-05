@@ -219,6 +219,11 @@ public class Mat3 implements Externalizable, Supplier<Mat3>, Mutable, Serializab
 		return this;
 	}
 
+	public Mat3(double[] m) {
+		set(m);
+	}
+
+
 	/**
 	 * Multiply this matrix by the supplied matrix. This matrix will be the left one.
 	 * <p>

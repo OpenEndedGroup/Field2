@@ -23,7 +23,7 @@ class Pages(val root: Box) : Box() {
 
     companion object {
         @JvmStatic
-        var _pages = Dict.Prop<Pages>("_pages").toCanon<Pages>()
+        var _pages = Dict.Prop<Pages>("pages").toCanon<Pages>()
             .doc<Pages>("the pages plugin")
     }
 
@@ -160,6 +160,15 @@ class Pages(val root: Box) : Box() {
             b.properties.remove(Planes.plane)
         Drawing.dirty(root)
         store()
+    }
+
+
+    fun moveToPage(b: Box, p : Int) {
+        if (p > 0) {
+            b.properties.put(Planes.plane, "__page_${currentPage}__")
+        } else
+            b.properties.remove(Planes.plane)
+        Drawing.dirty(root)
     }
 
     fun nextPageName(): String {
