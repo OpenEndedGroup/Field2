@@ -42,6 +42,7 @@ class PhaseList : Supplier<Boolean>, Consumer<Boolean> {
     }
 
     override fun accept(t: Boolean) {
+        println(" phases $this has been told to stop ${t}")
         endNext = true
     }
 
@@ -51,6 +52,7 @@ class PhaseList : Supplier<Boolean>, Consumer<Boolean> {
 
 
     fun update(end: Boolean): Boolean {
+
         context = this
         _ended = end
         try {
@@ -85,13 +87,16 @@ class PhaseList : Supplier<Boolean>, Consumer<Boolean> {
                 }
                 3 -> {
                     exitHook()
+                    println(" $this reached stage 3")
                     return false
                 }
             }
+
             return status != 3
         } catch (e: EndNow) {
             status = 3
             exitHook()
+            println(" $this end now exception")
             return false
         } catch (e : Throwable)
         {

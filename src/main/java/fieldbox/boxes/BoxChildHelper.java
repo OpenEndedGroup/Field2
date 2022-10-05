@@ -53,7 +53,6 @@ public class BoxChildHelper implements fieldlinker.AsMap, Collection<Box>, Objec
 
 		if (t.containsKey(p)) return t.get(p);
 
-
 		Stream<Object> o = c.stream().map(x -> x.asMap_get(p)).filter(x -> x != null);
 		Optional val = null;
 

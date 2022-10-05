@@ -252,7 +252,14 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
                 return;
             }
 
+            System.out.println("uploading "+specification.unit+" "+s.name+" "+specification.width+" "+specification.height+" "+specification.format+" "+specification.type);
+            glActiveTexture(GL_TEXTURE0 + specification.unit);
             glBindTexture(specification.target, s.name);
+
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, specification.width);
+
+
             GraphicsContext.checkError(() -> "bound texture" + specification);
             if (specification.target == GL_TEXTURE_1D)
                 glTexSubImage1D(specification.target, 0, 0, specification.width, specification.format,
@@ -264,6 +271,8 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
             if (specification.highQuality) {
                 glGenerateMipmap(specification.target);
             }
+            glActiveTexture(GL_TEXTURE0);
+
             GraphicsContext.checkError(() -> "exiting texture upload " + specification);
         }, -200)/*.setOnceOnly()*/.setAllContextsFor(this));
     }
@@ -986,6 +995,11 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
         static public TextureSpecification float1(int unit, int width, int height, ByteBuffer source) {
             return new TextureSpecification(unit, GL_TEXTURE_2D, GL_R32F, width, height, GL_RED, GL_FLOAT, 4,
+                    source, false);
+        }
+
+        static public TextureSpecification float2(int unit, int width, int height, ByteBuffer source) {
+            return new TextureSpecification(unit, GL_TEXTURE_2D, GL_RG32F, width, height, GL_RG, GL_FLOAT, 8,
                     source, false);
         }
 

@@ -12,6 +12,7 @@ import field.utility.plus
 import fieldbox.boxes.Box
 import fieldbox.boxes.Boxes
 import fieldbox.boxes.FLineDrawing
+import fieldbox.boxes.plugins.Planes
 import fieldbox.execution.Execution
 import fieldcef.plugins.up
 import fieldlinker.AsMap
@@ -41,6 +42,25 @@ val Box.frame by BoxDelegate(Box.frame)
 val Box.lines by BoxDelegate(FLineDrawing.lines)
 
 val Box.lines3 by BoxDelegate(fieldbox.boxes.plugins.Viewport.lines3)
+
+fun boxNamed(n: String, r: Box) = r.children.first { it.name == n }!!
+fun boxNamed_plane(n: String, r: Box, plane: Box): Box {
+    val p = plane.properties[Planes.plane]
+    return r.children.first { it.name == n && it.properties[Planes.plane] == p }!!
+}
+
+val Box.begin
+    get() = (this.asMap_get("begin") as Supplier<*>).get()
+val Box.beginAgain
+    get() = (this.asMap_get("beginAgain") as Supplier<*>).get()
+
+
+
+val Box.end
+    get() = (this.asMap_get("end") as Supplier<*>).get()
+
+
+fun dur(n : Int) = (0 until n).map { it/(n-1.0) }
 
 class AsMapDelegate<T>(val p: Dict.Prop<T>) {
     operator fun getValue(f: Box, property: KProperty<*>): T = f.asMap_get(p.name) as T

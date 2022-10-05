@@ -127,7 +127,9 @@ class SimpleSVG(val filename: String) {
 
     private fun toFLine(path: String, color: Vec4, z: (FLine) -> Double): FLine {
         var f = FLine()
-        val p2 = path.replace("-", " -")
+
+        try {
+            val p2 = path.replace("-", " -")
                 .replace("M", " M ")
                 .replace("L", " L ")
                 .replace("l", " l ")
@@ -146,81 +148,129 @@ class SimpleSVG(val filename: String) {
                 .replace(Regex(" +"), " ")
                 .replace(Regex("[ ,]+"), " ")
                 .trim()
-        val pieces = p2.split(" ", ",")
+            val pieces = p2.split(" ", ",")
 
 //        println("looking at ::" + p2 + "::")
 
-        var i = 0
-        var was: Vec3? = null
-        var lastCommand = "M"
+            var i = 0
+            var was: Vec3? = null
+            var lastCommand = "M"
 
-        println("parsing ${Arrays.asList(pieces)}")
+            println("parsing ${Arrays.asList(pieces)}")
 
-        while (i < pieces.size) {
-            var command = pieces[i]
-            if (isNumber(command)) {
-                command = lastCommand
-                i--
+            while (i < pieces.size) {
+                var command = pieces[i]
+                if (isNumber(command)) {
+                    command = lastCommand
+                    i--
+                }
+                when (command) {
+                    "M" -> {
+                        f.moveTo(pieces[++i].toDouble(), pieces[++i].toDouble())
+                        was = f.at()
+                        command = "L"
+                    }
+
+                    "L" -> {
+                        f.lineTo(pieces[++i].toDouble(), pieces[++i].toDouble())
+                    }
+
+                    "l" -> {
+                        f.lineToRel(pieces[++i].toFloat(), pieces[++i].toFloat())
+                    }
+
+                    "C" -> {
+                        f.cubicTo(
+                            pieces[++i].toDouble(),
+                            pieces[++i].toDouble(),
+                            pieces[++i].toDouble(),
+                            pieces[++i].toDouble(),
+                            pieces[++i].toDouble(),
+                            pieces[++i].toDouble()
+                        )
+                    }
+
+                    "c" -> {
+                        f.cubicToRel(
+                            pieces[++i].toDouble(),
+                            pieces[++i].toDouble(),
+                            pieces[++i].toDouble(),
+                            pieces[++i].toDouble(),
+                            pieces[++i].toDouble(),
+                            pieces[++i].toDouble()
+                        )
+                    }
+
+                    "Q" -> {
+                        f.quadTo(
+                            pieces[++i].toDouble(),
+                            pieces[++i].toDouble(),
+                            pieces[++i].toDouble(),
+                            pieces[++i].toDouble()
+                        )
+                    }
+
+                    "q" -> {
+                        f.quadToRel(
+                            pieces[++i].toDouble(),
+                            pieces[++i].toDouble(),
+                            pieces[++i].toDouble(),
+                            pieces[++i].toDouble()
+                        )
+                    }
+
+                    "V" -> {
+                        f.lineTo(f.at().x, pieces[++i].toDouble())
+                    }
+
+                    "v" -> {
+                        f.lineTo(f.at().x, f.at().y + pieces[++i].toDouble())
+                    }
+
+                    "H" -> {
+                        f.lineTo(pieces[++i].toDouble(), f.at().y)
+                    }
+
+                    "h" -> {
+                        f.lineTo(f.at().x + pieces[++i].toDouble(), f.at().y)
+                    }
+
+                    "Z" -> {
+                        f.lineTo(was!!)
+                    }
+
+                    "z" -> {
+                        f.lineTo(was!!)
+                    }
+
+                    else -> {
+                        throw IllegalArgumentException(
+                            ">>" + pieces[i] + "<< " + f.nodes + " element $i of ${
+                                Arrays.asList(
+                                    pieces
+                                )
+                            }"
+                        )
+                    }
+                }
+                i++
+                lastCommand = command
             }
-            when (command) {
-                "M" -> {
-                    f.moveTo(pieces[++i].toDouble(), pieces[++i].toDouble())
-                    was = f.at()
-                    command = "L"
-                }
-                "L" -> {
-                    f.lineTo(pieces[++i].toDouble(), pieces[++i].toDouble())
-                }
-                "l" -> {
-                    f.lineToRel(pieces[++i].toFloat(), pieces[++i].toFloat())
-                }
-                "C" -> {
-                    f.cubicTo(pieces[++i].toDouble(), pieces[++i].toDouble(), pieces[++i].toDouble(), pieces[++i].toDouble(), pieces[++i].toDouble(), pieces[++i].toDouble())
-                }
-                "c" -> {
-                    f.cubicToRel(pieces[++i].toDouble(), pieces[++i].toDouble(), pieces[++i].toDouble(), pieces[++i].toDouble(), pieces[++i].toDouble(), pieces[++i].toDouble())
-                }
-                "Q" -> {
-                    f.quadTo(pieces[++i].toDouble(), pieces[++i].toDouble(), pieces[++i].toDouble(), pieces[++i].toDouble())
-                }
-                "q" -> {
-                    f.quadToRel(pieces[++i].toDouble(), pieces[++i].toDouble(), pieces[++i].toDouble(), pieces[++i].toDouble())
-                }
-                "V" -> {
-                    f.lineTo(f.at().x, pieces[++i].toDouble())
-                }
-                "v" -> {
-                    f.lineTo(f.at().x, f.at().y + pieces[++i].toDouble())
-                }
-                "H" -> {
-                    f.lineTo(pieces[++i].toDouble(), f.at().y)
-                }
-                "h" -> {
-                    f.lineTo(f.at().x + pieces[++i].toDouble(), f.at().y)
-                }
-                "Z" -> {
-                    f.lineTo(was!!)
-                }
-                "z" -> {
-                    f.lineTo(was!!)
-                }
-                else -> {
-                    throw IllegalArgumentException(">>" + pieces[i] + "<< " + f.nodes + " element $i of ${Arrays.asList(pieces)}")
-                }
-            }
-            i++
-            lastCommand = command
+
+
+            f.attributes += StandardFLineDrawing.stroked to false
+            f.attributes += StandardFLineDrawing.filled to true
+            f.attributes += StandardFLineDrawing.color to color
+
+            val zz = z(f)
+
+            for (o in f.nodes)
+                o.setZ(zz.toFloat())
         }
-
-
-        f.attributes += StandardFLineDrawing.stroked to false
-        f.attributes += StandardFLineDrawing.filled to true
-        f.attributes += StandardFLineDrawing.color to color
-
-        val zz = z(f)
-
-        for (o in f.nodes)
-            o.setZ(zz.toFloat())
+        catch(e : Exception) {
+            println(" exception thrown loading a SVG, continuing on the best we can")
+            e.printStackTrace()
+        }
         return f
     }
 

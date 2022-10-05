@@ -1,14 +1,14 @@
 package fieldbox.boxes.plugins
 
+import field.linalg.Vec2
 import field.utility.Dict
 import field.utility.Pair
-import fieldbox.boxes.Box
-import fieldbox.boxes.Callbacks
-import fieldbox.boxes.Drawing
-import fieldbox.boxes.Mouse
+import fieldbox.boxes.*
+import fieldbox.boxes.MarkingMenus.MenuSpecification
 import fieldbox.io.IO
 import fielded.Commands
 import java.util.function.Supplier
+import java.util.stream.Collectors
 import kotlin.jvm.optionals.getOrNull
 
 /**
@@ -42,6 +42,28 @@ class Pages(val root: Box) : Box() {
                     install()
                     nextPage()
                 }
+
+
+                if (selection().size != 0) {
+                    m[Pair(
+                        "Move selection to page '${nextPageName()}'",
+                        "Moves the currently selected boxes to the next page"
+                    )] = Runnable {
+                        install()
+                        selectedBoxes().forEach { moveToNextPage(it) }
+                    }
+                }
+
+                if (selection().size != 0) {
+                    m[Pair(
+                        "Move selection to no page",
+                        "Sets the selection to have the default page"
+                    )] = Runnable {
+                        install()
+                        selectedBoxes().forEach { moveToNoPage(it) }
+                    }
+                }
+
 
                 if (prevPageName() != null)
                     m[Pair(
@@ -162,6 +184,18 @@ class Pages(val root: Box) : Box() {
         store()
     }
 
+    fun moveToNoPage(b: Box) {
+            b.properties.remove(Planes.plane)
+        Drawing.dirty(root)
+        store()
+    }
+
+    fun moveToNextPage(b: Box) {
+        b.properties.put(Planes.plane, "__page_${Math.max(1, currentPage + 1)}__")
+        Drawing.dirty(root)
+        store()
+    }
+
     fun nextPageName(): String {
         return "Page ${Math.max(1, currentPage + 1)}"
     }
@@ -192,6 +226,16 @@ class Pages(val root: Box) : Box() {
             }.toList()
     }
 
+    fun selectedBoxes(): List<Box> {
+        return root.breadthFirst(root.both())
+            .filter { x: Box ->
+                x.properties.isTrue(
+                    Mouse.isSelected,
+                    false
+                ) && !x.properties.isTrue(Mouse.isSticky, false)
+            }.toList()
+    }
+
     fun select(l: List<String>) {
         var m = selection()
         var a = LinkedHashSet(m)
@@ -213,5 +257,6 @@ class Pages(val root: Box) : Box() {
                 }
         }
     }
+
 
 }

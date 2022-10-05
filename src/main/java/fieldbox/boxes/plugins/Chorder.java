@@ -59,7 +59,7 @@ public class Chorder extends Box {
 		.doc("'NO eXecution. Set to prevent option-clicking from running this box");
 
 
-	public Chorder(Box root_unused) {
+	public Chorder(Box root) {
 
 		properties.put(Planes.plane, "__always__");
 
@@ -78,7 +78,7 @@ public class Chorder extends Box {
 				.filter(b -> !b.first.properties.isTrue(nox, false))
 				.filter(b -> b.second != null);
 
-			List<Pair<Box, Rect>> frames = fr.collect(Collectors.toList());
+			List<Pair<Box, Rect>> frames = fr.collect(Collectors.toList()).stream().filter( p -> Planes.on(root, p.first)>0.0).collect(Collectors.toList());
 
 			Optional<Pair<Box, Rect>> hit = frames.stream()
 				.filter(b -> !b.first.properties.isTrue(Box.hidden, false))
@@ -409,7 +409,9 @@ public class Chorder extends Box {
 	public List<Triple<Vec2, Float, Box>> intersectionsFor(List<Pair<Box, Rect>> frames, Vec2 start, Vec2 end) {
 		List<Triple<Vec2, Float, Box>> ret = new ArrayList<>();
 
+
 		for (Pair<Box, Rect> br : frames) {
+
 			Rect r = br.second;
 
 			Vec2 v1 = getLineIntersection(new Vec2(r.x, r.y), new Vec2(r.x + r.w, r.y),

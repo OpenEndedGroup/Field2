@@ -79,6 +79,7 @@ class KotlinInterface(
                 compilerOptions.append("-jvm-target")
                 compilerOptions.append("1.8")
                 compilerOptions.append("-Xnew-inference")
+                compilerOptions.append("-Xuse-k2")
                 compilerOptions.append("-Xinline-classes")
 //                dependenciesFromCurrentContext(wholeClasspath = true)
                 dependenciesFromClassloader(
@@ -395,7 +396,7 @@ class KotlinInterface(
     fun exec2(s: String) {
 
         var code = SourceCodeImpl(id++, s)
-        when (val compileResultWithDiagnostics = runBlocking {
+        val compileResultWithDiagnostics = runBlocking {
             var q: ResultWithDiagnostics<LinkedSnippet<KJvmCompiledScript>>
             val t = measureNanoTime {
 
@@ -403,7 +404,8 @@ class KotlinInterface(
             }
             println("\t\t compile ${t / 1_000_000.0}ms")
             q
-        }) {
+        }
+        when (compileResultWithDiagnostics) {
             is ResultWithDiagnostics.Success -> {
                 val resultWithDiagnostics = runBlocking {
                     var q: ResultWithDiagnostics<LinkedSnippet<KJvmEvaluatedSnippet>>
