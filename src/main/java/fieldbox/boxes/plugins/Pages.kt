@@ -23,7 +23,7 @@ class Pages(val root: Box) : Box() {
 
     companion object {
         @JvmStatic
-        var _pages = Dict.Prop<Pages>("_pages").toCanon<Pages>()
+        var _pages = Dict.Prop<Pages>("pages").toCanon<Pages>()
             .doc<Pages>("the pages plugin")
     }
 

@@ -6,6 +6,8 @@ import java.util.stream.Collectors
 import kotlin.concurrent.thread
 import kotlin.experimental.ExperimentalTypeInference
 
+public inline fun <T, R> Iterable<T>.pmap(crossinline transform: (T) -> R): List<R> =
+    this.toList().stream().parallel().map { transform(it) }.toList()
 
 class Later<T> {
     @Volatile

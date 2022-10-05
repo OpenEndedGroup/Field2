@@ -200,6 +200,9 @@ public class Viewport extends Box implements IO.Loaded, ProvidesGraphicsContext 
 	public Viewport() {
 		this.properties.putToList(Drawing.lateDrawers, this::drawNow);
 		this.properties.put(scene, new Scene());
+
+		System.out.println("\n\n\n scene for this viewport is "+this.properties.get(scene)+" ? ");
+
 		Camera camera = new Camera();
 		this.properties.put(Viewport.camera, camera);
 		standard = new Standard(camera);

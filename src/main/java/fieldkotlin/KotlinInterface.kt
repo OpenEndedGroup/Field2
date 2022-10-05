@@ -77,7 +77,7 @@ class KotlinInterface(
             hostConfiguration.update { myHostConfiguration }
             jvm {
                 compilerOptions.append("-jvm-target")
-                compilerOptions.append("1.8")
+                compilerOptions.append("10")
                 compilerOptions.append("-Xnew-inference")
                 compilerOptions.append("-Xuse-k2")
                 compilerOptions.append("-Xinline-classes")
