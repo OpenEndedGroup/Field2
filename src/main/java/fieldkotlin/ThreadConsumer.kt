@@ -36,8 +36,6 @@ fun <T> promise(r: () -> T): Later<T> {
     return l
 }
 
-fun <T, R> Iterable<T>.pmap(transform: (T) -> R): List<R>  = this.toList().parallelStream().map { transform(it) }.collect(Collectors.toList())
-
 
 class Output<T>(val q: Int) {
     val queue = LinkedBlockingDeque<T>(q)
