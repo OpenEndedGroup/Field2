@@ -79,6 +79,7 @@ class KotlinInterface(
                 compilerOptions.append("-jvm-target")
                 compilerOptions.append("17")
                 compilerOptions.append("-Xnew-inference")
+                compilerOptions.append("-Xuse-k2")
                 compilerOptions.append("-Xinline-classes")
                 compilerOptions.append("-language-version")
                 compilerOptions.append("1.8")
@@ -110,8 +111,6 @@ class KotlinInterface(
 
         context = KotlinContext()
         contextUpdater = ContextUpdater(context, evaluator)
-
-
 
 
     }
@@ -239,6 +238,30 @@ class KotlinInterface(
     }
 
     fun parseAndRewrite(s: String, rules: List<(PsiElement, String) -> String>): String {
+
+        // trying something new here
+
+        if (s.contains("//%frames")) {
+            val ll = s.split("\n")
+            var imports = ""
+            var rest = ""
+            ll.forEach {
+                if (it.trim().lowercase().startsWith("import ")) {
+                    imports += it + "\n"
+                } else if (it.trim().lowercase().contains(" by ")) {
+                    imports += it + "\n"
+                } else if (it.trim().lowercase().startsWith("//%frames")) {
+                    rest += "var _r = frames {\n"
+                } else {
+                    rest += it + "\n"
+                }
+            }
+
+            return imports + rest + "}"
+        }
+
+        return s;
+
         var cs = compiler.state.getCompilationState(compilerConfig)
         var env = cs.environment
         var project = env.project
@@ -385,7 +408,6 @@ class KotlinInterface(
             println("\t\t compile ${t / 1_000_000.0}ms")
             q
         }
-
         when (compileResultWithDiagnostics) {
             is ResultWithDiagnostics.Success -> {
                 val resultWithDiagnostics = runBlocking {

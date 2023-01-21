@@ -9,20 +9,30 @@ public class RenderWindow extends Window {
 	static int[][] bounds;
 
 	static {
-		PointerBuffer monitors = GLFW.glfwGetMonitors();
-		bounds = new int[monitors.limit()][4];
-		for (int i = 0; i < monitors.limit(); i++) {
-			int[] w = {0};
-			int[] h = {0};
+		try {
+			PointerBuffer monitors = GLFW.glfwGetMonitors();
+			bounds = new int[monitors.limit()][4];
+			for (int i = 0; i < monitors.limit(); i++) {
+				int[] w = {0};
+				int[] h = {0};
 
-			GLFWVidMode mode = GLFW.glfwGetVideoMode(monitors.get(i));
-			bounds[i][2] = mode.width();
-			bounds[i][3] = mode.height();
+				GLFWVidMode mode = GLFW.glfwGetVideoMode(monitors.get(i));
+				bounds[i][2] = mode.width();
+				bounds[i][3] = mode.height();
 
-			GLFW.glfwGetMonitorPos(monitors.get(i), w, h);
-			bounds[i][0] = w[0];
-			bounds[i][1] = h[0];
-			System.out.println(" screen :"+i+" "+bounds[i][0]+" "+bounds[i][1]+" "+bounds[i][2]+" "+bounds[i][3]);
+				GLFW.glfwGetMonitorPos(monitors.get(i), w, h);
+				bounds[i][0] = w[0];
+				bounds[i][1] = h[0];
+				System.out.println(" screen :" + i + " " + bounds[i][0] + " " + bounds[i][1] + " " + bounds[i][2] + " " + bounds[i][3]);
+			}
+		} catch (NullPointerException n) {
+			bounds = new int[1][4];
+			bounds[0][0] = 0;
+			bounds[0][1] = 0;
+			bounds[0][2] = 1920;
+			bounds[0][3] = 1080;
+
+
 		}
 	}
 

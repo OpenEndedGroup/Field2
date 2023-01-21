@@ -113,25 +113,25 @@ class Tops {
                     if (it.value.first is FBO) {
                         u += "uniform sampler2D t_" + it.key + "; "
                         u += accessSampler(it.key)
-                        shader.defaultBundle.set_("t_" + it.key) {
+                        shader.defaultBundle.set<Texture>("t_" + it.key, Supplier {
 
                             if (GraphicsContext.getContext() != null) {
                                 (it.value.first as FBO).perform(-1)
                             }
 
                             it.value.first.uniform
-                        }
+                        })
                     } else if (it.value.first is TextureArray) {
                         u += "uniform sampler2DArray t_" + it.key + "; "
                         u += accessSamplerArray(it.key)
-                        shader.defaultBundle.set_("t_" + it.key) {
+                        shader.defaultBundle.set<Texture>("t_" + it.key, Supplier {
 
                             if (GraphicsContext.getContext() != null) {
                                 (it.value.first as TextureArray).perform(-1)
                             }
 
                             it.value.first.uniform
-                        }
+                        })
                     }
                 }
 

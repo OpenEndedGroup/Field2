@@ -2,11 +2,40 @@ package fieldkotlin
 
 import java.util.concurrent.BlockingDeque
 import java.util.concurrent.LinkedBlockingDeque
+import java.util.stream.Collectors
 import kotlin.concurrent.thread
 import kotlin.experimental.ExperimentalTypeInference
 
 public inline fun <T, R> Iterable<T>.pmap(crossinline transform: (T) -> R): List<R> =
     this.toList().stream().parallel().map { transform(it) }.toList()
+
+class Later<T> {
+    @Volatile
+    var t: T? = null
+
+    @Volatile
+    var done = false
+    @Volatile
+    var error: Throwable? = null
+    operator fun invoke() = t
+
+}
+
+fun <T> promise(r: () -> T): Later<T> {
+    var l = Later<T>()
+    thread {
+        try {
+            val ret = r()
+            l.t = ret
+            l.done = true
+        } catch (t: Throwable) {
+            l.error = t
+            l.done = true
+        }
+    }
+    return l
+}
+
 
 class Output<T>(val q: Int) {
     val queue = LinkedBlockingDeque<T>(q)

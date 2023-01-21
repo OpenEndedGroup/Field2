@@ -1,5 +1,6 @@
 package fieldkotlin
 
+import org.jetbrains.kotlin.serialization.js.ast.JsAstProtoBuf.Throw
 import java.util.function.Consumer
 import java.util.function.Supplier
 
@@ -41,13 +42,17 @@ class PhaseList : Supplier<Boolean>, Consumer<Boolean> {
     }
 
     override fun accept(t: Boolean) {
+        println(" phases $this has been told to stop ${t}")
         endNext = true
     }
+
+    var exitHook: () -> Unit = {}
 
     class EndNow : RuntimeException()
 
 
     fun update(end: Boolean): Boolean {
+
         context = this
         _ended = end
         try {
@@ -81,13 +86,25 @@ class PhaseList : Supplier<Boolean>, Consumer<Boolean> {
                     }
                 }
                 3 -> {
-
+                    exitHook()
+                    println(" $this reached stage 3")
+                    return false
                 }
             }
+
             return status != 3
         } catch (e: EndNow) {
             status = 3
+            exitHook()
+            println(" $this end now exception")
             return false
+        } catch (e : Throwable)
+        {
+            println(" exception throw in state $status, ending this phaselist")
+            e.printStackTrace()
+            status = 4
+            exitHook()
+            throw(e)
         }
         finally {
             context = null
@@ -128,7 +145,12 @@ fun frames(m: suspend SequenceScope<Any>.() -> Unit): PhaseList {
             i = s.iterator()
         }
         cont {
-            if (i.hasNext())
+            val a = try {
+                i.hasNext()
+            } catch (e: Throwable) {
+                throw(e)
+            }
+            if (a)
                 i.next()
             else
                 throw PhaseList.EndNow()

@@ -169,7 +169,8 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
         }
 
 
-        glfwWindowHint(GLFW_DOUBLEBUFFER, doubleBuffered ? 1 : 0);
+//        glfwWindowHint(GLFW_DOUBLEBUFFER, doubleBuffered ? 1 : 0);
+        glfwWindowHint(GLFW_DOUBLEBUFFER, 1);
 
         glfwWindowHint(GLFW_DECORATED, title == null ? 0 : 1);
         System.out.println(" -- B ");
@@ -185,6 +186,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
 
         try {
             ThreadSync2.callInMainThreadAndWait(() -> {
+                glfwSwapInterval(1);
 
                 window = glfwCreateWindow(w, h, title == null ? "" : title, 0,
                         shareContext == this ? 0 : shareContext.window);
@@ -206,9 +208,9 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
                 System.out.println(" >>>>>>>>>>>>>>>>>>>>>>>>> window is now onscreen ");
 
                 glfwMakeContextCurrent(window);
-//				glfwSwapInterval(1);
+				glfwSwapInterval(1);
 
-                glfwSwapInterval(0);
+//                glfwSwapInterval(0);
 
                 if (shareContext == this) {
                     glcontext = GL.createCapabilities(true);
@@ -440,7 +442,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
             needsRepainting = false;
             glfwMakeContextCurrent(window);
             try {
-                glfwSwapInterval(0);
+                glfwSwapInterval(1);
 
 //                implGl3.newFrame();
 //                implGlfw.newFrame();

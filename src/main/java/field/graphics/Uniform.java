@@ -233,8 +233,8 @@ public class Uniform<T> extends Scene implements Scene.Perform {
 
 					if (t instanceof Long)
 					{
-						if (((Long)t) == 0L)
-							System.out.println(" -- WARNING, texturehandle "+name+" is 0L ");
+//						if (((Long)t) == 0L)
+//							System.out.println(" -- WARNING, texturehandle "+name+" is 0L ");
 
 //						NVBindlessTexture.glUniformHandleui64NV(location, (Long)t);
 						glUniform1ui64ARB(location, (Long)t);

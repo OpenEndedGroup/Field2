@@ -229,7 +229,7 @@ public class FrameManipulation extends Box {
 						Scrolling.scrollForMouseEvent(this, e2, drawing.get());
 					} else {
 
-						Vec2 t = new Vec2(originalT).add(deltaNow.x, deltaNow.y);
+						Vec2 t = new Vec2(originalT).add(deltaNow.x*Scrolling.globalScrollMul, deltaNow.y*Scrolling.globalScrollMul);
 						d.setTranslation(FrameManipulation.this, t);
 						continueTranslationFeedback(FrameManipulation.this, termination);
 					}

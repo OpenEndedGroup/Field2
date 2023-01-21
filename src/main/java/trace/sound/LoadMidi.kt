@@ -49,7 +49,7 @@ class LoadMidi(var fn: String) {
                             val note = key % 12
                             val velocity = sm.data2
                             if (velocity > 0) {
-                                println("Note on, $note$octave key=$key velocity: $velocity")
+                                println("Note on, $note:$octave key=$key velocity: $velocity")
                                 if (table[key] == null) {
                                     table[key] = Note(key, velocity / 127.0, event.tick * ttms, 0.0);
                                 }

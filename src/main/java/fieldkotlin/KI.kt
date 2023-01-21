@@ -310,28 +310,28 @@ class KI : Execution(null) {
                 val rules = mutableListOf<(PsiElement, String) -> String>()
 
                 val counts = mutableMapOf<String, Int>()
-                rules.add { element, text ->
-
-                    when (element) {
-                        is KtCallExpression -> {
-                            val name = element.firstChild.firstChild.getText()
-                            counts[name] = 1 + counts.computeIfAbsent(name) { 0 }
-                            if (name == "hereIsAFunction") {
-                                return@add "__${name}__(\"\"\"${
-                                    computeScopeLabel(
-                                        element,
-                                        text,
-                                        counts[name]!!
-                                    )
-                                }\"\"\")" + element.getText().substring(name.length)
-                            }
-                        }
-
-
-                    }
-
-                    text
-                }
+//                rules.add { element, text ->
+//
+//                    when (element) {
+//                        is KtCallExpression -> {
+//                            val name = element.firstChild.firstChild.getText()
+//                            counts[name] = 1 + counts.computeIfAbsent(name) { 0 }
+//                            if (name == "hereIsAFunction") {
+//                                return@add "__${name}__(\"\"\"${
+//                                    computeScopeLabel(
+//                                        element,
+//                                        text,
+//                                        counts[name]!!
+//                                    )
+//                                }\"\"\")" + element.getText().substring(name.length)
+//                            }
+//                        }
+//
+//
+//                    }
+//
+//                    text
+//                }
                 val o = ki.parseAndRewrite(textFragment, rules)
                 print("after transformation `$o`")
                 return o
@@ -516,9 +516,11 @@ class KI : Execution(null) {
 
                     // new rule: if code hasn't changed since the last run then look for a main property
                     var _r: Any? = null
+                    var reuse = false
                     if (code == lastCodeBegan) {
                         _r = getBinding("_r")
                         println(" -- skipping code execution altogether and reusuing ${_r}")
+                        reuse = _r !=null
                     }
 
                     if (_r == null) {
@@ -555,6 +557,8 @@ class KI : Execution(null) {
                         _r = frame {
                             was()
                         }
+                        lastCodeBegan = code
+
                     }
 
                     if (_r is Sequence<*>) {
@@ -578,6 +582,8 @@ class KI : Execution(null) {
                                 }
                             }
                         }
+                        lastCodeBegan = code
+
                     }
 
                     if (_r is ElasticAnimation.Block) {
@@ -596,28 +602,40 @@ class KI : Execution(null) {
                                 root.runAtAlpha(1.0)
                             }
                         }
+
+                        lastCodeBegan = code
+
                     }
 
 
 
                     if (_r is PhaseList) {
+
+                        var actuallyStillRunning = !_r.endNext && _r.status!=3
+
                         _r.reset()
-                        if (endOngoing) end(lineErrors, success)
+                        _r.exitHook  = {
+                            Drawing.dirty(this@KI, 2)
+                        }
 
-                        val name: String = "main._animator" + prefix + "_" + uniq
-                        box.properties.putToMap<String, Supplier<Boolean>>(Boxes.insideRunLoop, name, _r)
-                        box.first(IsExecuting.isExecuting)
-                            .ifPresent { x: BiConsumer<Box?, String?> ->
-                                x.accept(
-                                    box,
-                                    name
-                                )
-                            }
+                        if (endOngoing && !reuse) end(lineErrors, success)
 
-                        uniq++
-                        box.properties.put(IsExecuting.executionSequenceCount, box.properties.computeIfAbsent(
-                            IsExecuting.executionSequenceCount
-                        ) { k: Dict.Prop<Int>? -> 1 } - 1)
+                        if (!reuse || !actuallyStillRunning) {
+                            val name: String = "main._animator" + prefix + "_" + uniq
+                            box.properties.putToMap<String, Supplier<Boolean>>(Boxes.insideRunLoop, name, _r)
+                            box.first(IsExecuting.isExecuting)
+                                .ifPresent { x: BiConsumer<Box?, String?> ->
+                                    x.accept(
+                                        box,
+                                        name
+                                    )
+                                }
+
+                            uniq++
+                            box.properties.put(IsExecuting.executionSequenceCount, box.properties.computeIfAbsent(
+                                IsExecuting.executionSequenceCount
+                            ) { k: Dict.Prop<Int>? -> 1 } - 1)
+                        }
 
                         lastCodeBegan = code
 
@@ -643,6 +661,9 @@ class KI : Execution(null) {
                 for (s in ArrayList(m.keys)) {
                     if (p.matcher(s).matches()) {
                         val b = m[s]!!
+
+                        println(" ending $s = $b")
+
                         if (b is Consumer<*>) (b as Consumer<Boolean>).accept(false) else {
                             m.remove(s)
                         }

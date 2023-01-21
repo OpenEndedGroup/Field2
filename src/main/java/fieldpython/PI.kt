@@ -20,6 +20,7 @@ import fielded.plugins.Out
 import fieldkotlin.KI
 import fieldkotlin.frame
 import jep.JepConfig
+import jep.NamingConventionClassEnquirer
 import jep.SharedInterpreter
 import jep.python.PyCallable
 import java.io.IOException
@@ -59,7 +60,16 @@ class PI : Execution(null) {
 
         val jc = object : JepConfig() {
             init {
-                setSharedModules(setOf("numpy", "spacy", "spacy.lang"))
+//                setSharedModules(setOf("numpy", "spacy", "spacy.lang"))
+                setClassEnquirer(NamingConventionClassEnquirer())
+                (classEnquirer as NamingConventionClassEnquirer).apply {
+                    addTopLevelPackageName("field")
+                    addTopLevelPackageName("fieldpython")
+                    addTopLevelPackageName("fieldkotlin")
+                    addTopLevelPackageName("fieldbox")
+                    addTopLevelPackageName("fieldnashorn")
+                    addTopLevelPackageName("fielded")
+                }
                 setClassLoader(PI::class.java.classLoader)
             }
         }
@@ -80,7 +90,9 @@ class PI : Execution(null) {
         }
 
 //        initSharedInterpreter()
+        SharedInterpreter.setConfig(jc)
         var s = SharedInterpreter();
+
         s.exec(stdlib)
         s.set("_", box)
         s.exec(
