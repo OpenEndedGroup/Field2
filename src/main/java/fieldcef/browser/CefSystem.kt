@@ -97,7 +97,6 @@ class CefSystem protected constructor() {
                     width: Int,
                     height: Int
                 ) {
-//                    println(" ** onPaint!! ** ")
                     callback.onPaint(popup, dirtyRects, buffer, width, height)
                 }
 
@@ -145,10 +144,6 @@ class CefSystem protected constructor() {
         appArgs.add("--disable-site-isolation-trials")
         appArgs.add("--single-process")
 
-
-
-//                appArgs.add("--multi-threaded-message-loop");
-//        appArgs.add("--external-message-pump");
         println(" args $appArgs")
         val args = appArgs.toTypedArray()
         CefApp.addAppHandler(object : CefAppHandlerAdapter(args) {
@@ -255,19 +250,19 @@ class CefSystem protected constructor() {
                 return false
             }
         })
-        client.addMediaAccessHandler(object : CefMediaAccessHandler {
-            override fun onRequestMediaAccessPermission(
-                p0: CefBrowser?,
-                p1: CefFrame?,
-                p2: String?,
-                p3: Int,
-                p4: CefMediaAccessCallback?
-            ): Boolean {
-                if (p4 != null)
-                    p4.Continue(15)
-                return true
-            }
-        })
+//        client.addMediaAccessHandler(object : CefMediaAccessHandler {
+//            override fun onRequestMediaAccessPermission(
+//                p0: CefBrowser?,
+//                p1: CefFrame?,
+//                p2: String?,
+//                p3: Int,
+//                p4: CefMediaAccessCallback?
+//            ): Boolean {
+//                if (p4 != null)
+//                    p4.Continue(15)
+//                return true
+//            }
+//        })
         client.addLoadHandler(object : CefLoadHandlerAdapter() {
             override fun onLoadingStateChange(
                 browser: CefBrowser,

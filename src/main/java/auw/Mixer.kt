@@ -6,6 +6,7 @@ import field.graphics.util.Saver
 import fieldbox.boxes.Box
 import fieldbox.boxes.Boxes
 import fieldbox.execution.Execution
+import org.jetbrains.kotlin.konan.file.use
 //import jm.util.Write
 import java.io.File
 import java.lang.IllegalArgumentException

@@ -1,6 +1,7 @@
 package auw.signal
 
 import auw.*
+import org.jetbrains.kotlin.konan.file.use
 import kotlin.math.sign
 
 class Resample {

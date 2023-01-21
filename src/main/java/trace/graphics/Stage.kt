@@ -1714,6 +1714,7 @@ class Stage(val w: Int, val h: Int) : AsMap {
         default_group.post.put("__keyboard__", keyboard)
     }
 
+    @JvmField
     val mouse = SimpleMouse()
 
     @JvmOverloads

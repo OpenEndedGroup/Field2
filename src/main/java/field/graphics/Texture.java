@@ -280,6 +280,9 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
             Log.log("graphics.trace", () -> "state for texture in upload is " + s);
             Log.log("texture.trace",
                     () -> "upload, part 1, for texture " + this + " " + s + " " + upload.capacity() + " " + x0 + " " + y0 + " " + x1 + " " + y1);
+            GraphicsContext.checkError(() -> "u1");
+
+            System.out.println(" -- uploading, for real, this is happening right now "+x0+" "+y0+" "+x1+" "+y1+" "+s);
 
             if (s == null) return;
             s.x0 = x0;
@@ -296,6 +299,7 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
             s.old = glMapBufferRange(GL21.GL_PIXEL_UNPACK_BUFFER, start, end - start,
                     GL30.GL_MAP_WRITE_BIT | GL30.GL_MAP_INVALIDATE_RANGE_BIT | GL30.GL_MAP_UNSYNCHRONIZED_BIT,
                     s.old);
+            GraphicsContext.checkError(() -> "u2");
 
             s.old.position(0);
             upload.position(start);
@@ -310,10 +314,12 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
             s.old.rewind();
 
             bytesUploaded += s.old.limit();
+            GraphicsContext.checkError(() -> "u3");
 
             GL15.glUnmapBuffer(GL21.GL_PIXEL_UNPACK_BUFFER);
             GL15.glBindBuffer(GL21.GL_PIXEL_UNPACK_BUFFER, 0);
             Log.log("graphics.trace", () -> "uploaded part 1");
+            GraphicsContext.checkError(() -> "u4");
             s.mod++;
         }, -2)/*.setOnceOnly()*/.setAllContextsFor(this));
     }
@@ -579,6 +585,9 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
         }
         uploadCount++;
         glBindTexture(specification.target, 0);
+        GraphicsContext.checkError(() -> {
+            return " after that bind ";
+        });
 
         return mod;
     }
@@ -596,14 +605,23 @@ public class Texture extends BaseScene<Texture.State> implements Scene.Perform, 
 
 //        int was =GL11.glGetInteger(GL_TEXTURE_BINDING_2D);
 
+        GraphicsContext.checkError(() -> "A");
+
         glBindTexture(specification.target, s.name);
+
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        glPixelStorei(GL_UNPACK_ROW_LENGTH, specification.width);
+
         glTexSubImage2D(specification.target, 0, 0, 0, specification.width, specification.height, specification.format,
                 specification.type, from);
+
+        GraphicsContext.checkError(() -> "B");
+
         if (specification.highQuality) {
-            glGenerateMipmap(specification.target);
+//            glGenerateMipmap(specification.target);
         }
         glBindTexture(specification.target, 0);
-
+        GraphicsContext.checkError(() -> "C");
 //		glFinish();
 
         uploadCount++;

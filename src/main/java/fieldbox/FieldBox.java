@@ -10,46 +10,53 @@ import fieldbox.io.IO;
 import fieldcef.browser.CefSystem;
 
 import java.awt.*;
+import java.io.IOException;
 
 /**
  * The main entry-point for Field2.
  */
 public class FieldBox {
 
-	static public final FieldBox fieldBox = new FieldBox();
-	static public String[] args;
-	public static String workspace;
+    static public final FieldBox fieldBox = new FieldBox();
+    static public String[] args;
+    public static String workspace;
 
-	public IO io;
+    public IO io;
 
-	public void go() {
-		RunLoop.main.enterMainLoop();
-	}
+    public void go() {
+        RunLoop.main.enterMainLoop();
+    }
 
 
-	static public void main(String[] s) {
+    static public void main(String[] s) {
+
+//		try {
+//			System.in.read();
+//		} catch (IOException e) {
+//			throw new RuntimeException(e);
+//		}
+
 //		SwingUtilities.invokeLater(() -> {
-		args = s;
-		Options.parseCommandLine(s);
+        args = s;
+        Options.parseCommandLine(s);
 
-		if (s.length>0 && s[s.length-1].equals("upgrade"))
-		{
-			System.out.println("   -- upgrade --");
-			Releases.Companion.upgrade();
-			RunLoop.main.enterMainLoop();
-		}
-
-
-		// needs to be initialized after 'args'
-		workspace = Options.getDirectory("workspace", () -> System.getProperty("user.home") + "/Documents/FieldWorkspace/");
+        if (s.length > 0 && s[s.length - 1].equals("upgrade")) {
+            System.out.println("   -- upgrade --");
+            Releases.Companion.upgrade();
+            RunLoop.main.enterMainLoop();
+        }
 
 
-		System.err.println(" lauching toolkit");
-		if (Main.os == Main.OS.mac) {
-			System.setProperty("java.awt.headless", "true");
-			Toolkit.getDefaultToolkit();
+        // needs to be initialized after 'args'
+        workspace = Options.getDirectory("workspace", () -> System.getProperty("user.home") + "/Documents/FieldWorkspace/");
 
-			// this possibly works on windows?
+
+        System.err.println(" lauching toolkit");
+        if (Main.os == Main.OS.mac) {
+            System.setProperty("java.awt.headless", "true");
+            Toolkit.getDefaultToolkit();
+
+            // this possibly works on windows?
 
 //			Desktop.getDesktop().setOpenFileHandler(new OpenFilesHandler() {
 //				@Override
@@ -57,9 +64,9 @@ public class FieldBox {
 //					System.out.println("\n\n!! open files !! \n\n" + e);
 //				}
 //			});
-		}
+        }
 
-		LoggingDefaults.initialize();
+        LoggingDefaults.initialize();
 
 //			try {
 //				Thread.sleep(20000);
@@ -71,28 +78,28 @@ public class FieldBox {
 //		glfwInit();
 
 
-		new Thread() {
-			@Override
-			public void run() {
-				CefSystem hello = CefSystem.cefSystem;
-				System.out.println("final cef system is called "+hello);
-			}
-		}.start();
+        new Thread() {
+            @Override
+            public void run() {
+                CefSystem hello = CefSystem.cefSystem;
+                System.out.println("final cef system is called " + hello);
+            }
+        }.start();
 
-		Windows.windows.init();
+        Windows.windows.init();
 
-		fieldBox.io = new IO(workspace);
-		fieldBox.io.addFilespec("code", IO.EXECUTION, IO.EXECUTION);
+        fieldBox.io = new IO(workspace);
+        fieldBox.io.addFilespec("code", IO.EXECUTION, IO.EXECUTION);
 
-		new Open(Options.getString("file", () -> "testIB.field2"));
+        new Open(Options.getString("file", () -> "testIB.field2"));
 
 //		SplashScreen splash = SplashScreen.getSplashScreen();
 //		if (splash != null)
 //			splash.close();
 
-		fieldBox.go();
+        fieldBox.go();
 //		});
-	}
+    }
 
 
 }

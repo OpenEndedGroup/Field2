@@ -328,7 +328,7 @@ class PI : Execution(null) {
 
                     doEval(code, lineErrors, success)
 
-                    val locals = pi.getValue("__localmap__[_]") as Map<String, Any>
+                    val locals = pi.getValue("__localmap__[_]") as Map<String, Any?>
                     var _r = locals.getOrDefault("_r", null)
                     if (_r != null) {
                         print("_ got _r = $_r")

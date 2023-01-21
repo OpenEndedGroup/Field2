@@ -134,6 +134,7 @@ public class TextEditor extends Box implements IO.Loaded {
         browser_.properties.put(FrameManipulation.maxWidth, maxw);
 
         browser_.connect(root);
+        System.out.println(" -- trying to call loaded?? --");
         browser_.loaded();
 
         browser_.properties.put(Box.name, "__texteditor__");

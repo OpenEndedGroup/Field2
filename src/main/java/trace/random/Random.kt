@@ -1,6 +1,7 @@
 package trace.random
 
 import field.graphics.FLinesAndJavaShapes
+import java.lang.IllegalStateException
 
 class Random {
     var source: MersenneTwisterFast
@@ -56,7 +57,7 @@ class Random {
 
     fun nextDouble(increment: Double): Double {
 
-        val i = (if (increment > 4) increment % 4 else increment)/4.0
+        val i = increment/4.0 // (if (increment > 4) increment % 4 else increment)/4.0
         T += i
         while (bi < Math.floor(T)) {
             a = b
@@ -76,6 +77,8 @@ class Random {
     fun nextGaussian(): Double {
         while (bi < 0)
             nextDouble(1.0)
+
+//        throw IllegalStateException()
 
         bi = 0
         T = 0.0

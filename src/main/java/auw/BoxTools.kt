@@ -5,6 +5,7 @@ import fieldbox.boxes.Box
 import fieldbox.execution.Errors
 import fieldbox.io.IO
 import fieldnashorn.Nashorn
+import org.jetbrains.kotlin.konan.file.use
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror
 import java.nio.Buffer
 import java.nio.FloatBuffer
@@ -88,8 +89,6 @@ class BoxTools {
                             val o = it.value.apply(output)
 
                             val _output = DynamicScope.at.get().get("output")
-
-
 
                             val fin = DynamicScope.at.get().get("finished")
                             if (fin != null)

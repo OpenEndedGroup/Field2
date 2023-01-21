@@ -111,7 +111,7 @@ class Browser : Box(), Loaded {
                 while (y < ns) {
                     val ax = (0f + x) / (ns - 1).toFloat()
                     val ay = (0f + y) / (ns - 1).toFloat()
-                    builder!!.aux(5, ax * r.w / w, ay * (r.h + 0.5f) / h, op)
+                    builder!!.aux(1, ax * r.w / w, ay * (r.h + 0.5f) / h, op)
                     builder!!.v(r.x + ax * r.w, r.y + ay * r.h, Z)
                     y++
                 }
@@ -136,7 +136,7 @@ class Browser : Box(), Loaded {
             ), box.properties.isTrue(hidden, false)
         )
     }
-    private val shader: Shader? = null
+    private var shader: Shader? = null
     private var sourceView: ByteBuffer? = null
     private var window: FieldBoxWindow? = null
     private var root: Box? = null
@@ -179,12 +179,14 @@ class Browser : Box(), Loaded {
     var ezl = Options.dict().getFloat(Dict.Prop("extraZoomLevel"), 1f)
     override fun loaded() {
 
+        println(" -- loaded -- happening now")
+
         Log.disable("cef.*")
         properties.computeIfAbsent(frame) { k: Dict.Prop<Rect?>? -> Rect(0.0, 0.0, 512.0, 512.0) }
         properties.put(name, "(browser)")
         properties.put(Planes.plane, "__always__")
         properties.put(Chorder.nox, true)
-        val shader = Shader()
+        shader = Shader()
         properties.putToListMap(Callbacks.onDelete, FunctionOfBox { bx: Box ->
             if (bx !== this) return@FunctionOfBox null
             browser!!.close(true)
@@ -237,7 +239,7 @@ class Browser : Box(), Loaded {
         sourceView = source!!.slice()
         texture = Texture(
             Texture.TextureSpecification.byte4(
-                0,
+                13,
                 (w * rsf).toInt(),
                 (h * rsf).toInt(),
                 source,
@@ -246,38 +248,43 @@ class Browser : Box(), Loaded {
         ).setIsDoubleBuffered(false)
         q = BaseMesh.triangleList(0, 0)
         builder = MeshBuilder(q)
-        shader.addSource(
+        shader!!.addSource(
             Shader.Type.vertex, """#version 410
 layout(location=0) in vec3 position;
-layout(location=5) in vec4 tc;
+layout(location=1) in vec3 tc;
 out vec4 vtc;
-out float op;
+//out float op;
 uniform vec2 translation;
 uniform vec2 scale;
 uniform vec2 bounds;
-uniform float smoothing;
+//uniform float smoothing;
 void main()
 {
-	vec2 at = (scale.xy*position.xy+translation.xy)/bounds.xy * vec2(1, 1.0);
+vec2 at = (scale.xy*position.xy+translation.xy)/bounds.xy * vec2(1.0, 1.0);
    gl_Position =  vec4(-1+at.x*2, 1-at.y*2, 0.5, 1.0);
-   vtc =tc;
+   vtc = vec4(tc, 1.0);
 }"""
         )
-        shader.addSource(
+        shader!!.addSource(
             Shader.Type.fragment, """#version 410
 layout(location=0) out vec4 _output;
 in vec4 vtc;
-in vec4 col;
-uniform sampler2D te;
+//in vec4 col;
+
+uniform sampler2D TE;
 
 void main()
 {
+    _output = vec4(0,0,0,1);
+//    _output.rgb += vec3(texture(TE, vtc.xy));
+//    return; 
+    
 float g = 1.6;
-	vec4 current = pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+0*vec2(0.5,0.5)), 0), vec4(g,g,g,1));
-	current += 0.25*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+0*vec2(0.5,0.5))+ivec2(1.0,0), 0), vec4(g,g,g,1));
-	current += 0.25*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+0*vec2(0.5,0.5))+ivec2(0,1.), 0), vec4(g,g,g,1));
-	current += 0.25*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+0*vec2(0.5,0.5))+ivec2(-1.,0), 0), vec4(g,g,g,1));
-	current += 0.25*pow(texelFetch(te, ivec2(vtc.xy*textureSize(te,0)+0*vec2(0.5,0.5))+ivec2(0,-1.), 0), vec4(g,g,g,1));
+	vec4 current = pow(texelFetch(TE, ivec2(vtc.xy*textureSize(TE,0)+0*vec2(0.5,0.5)), 0), vec4(g,g,g,1));
+	current += 0.25*pow(texelFetch(TE, ivec2(vtc.xy*textureSize(TE,0)+0*vec2(0.5,0.5))+ivec2(1.0,0), 0), vec4(g,g,g,1));
+	current += 0.25*pow(texelFetch(TE, ivec2(vtc.xy*textureSize(TE,0)+0*vec2(0.5,0.5))+ivec2(0,1.), 0), vec4(g,g,g,1));
+	current += 0.25*pow(texelFetch(TE, ivec2(vtc.xy*textureSize(TE,0)+0*vec2(0.5,0.5))+ivec2(-1.,0), 0), vec4(g,g,g,1));
+	current += 0.25*pow(texelFetch(TE, ivec2(vtc.xy*textureSize(TE,0)+0*vec2(0.5,0.5))+ivec2(0,-1.), 0), vec4(g,g,g,1));
 current = current/2;
 current = pow(current, vec4(1/g, 1/g, 1/g, 1));	float m = min(current.x, min(current.y, current.z));
 float sat = 0.3;
@@ -287,26 +294,38 @@ current.xyz = pow(current.xyz, vec3(1.1));
 	_output  = vec4(current.zyx,max(0.6, min(1, d*3))*current.w*vtc.z);
 float e = 0.005;
 //	 if (vtc.x<e || vtc.x>1-e || vtc.y<e || vtc.y>1-e*2) _output.w=0;
-	 int ccx = ivec2(vtc.xy*textureSize(te,0)).x;
-	 int ccy = ivec2(vtc.xy*textureSize(te,0)).y;
+	 int ccx = ivec2(vtc.xy*textureSize(TE,0)).x;
+	 int ccy = ivec2(vtc.xy*textureSize(TE,0)).y;
 }"""
         )
-        shader.attach(Uniform("translation") { drawing!!.getTranslationRounded() })
-        shader.attach(Uniform("scale") { drawing!!.getScale() })
-        shader.attach(Uniform("bounds") { Vec2(Window.getCurrentWidth(), Window.getCurrentHeight()) })
-        shader.attach(-2, "__rectupdate__") { x: Int? ->
+        shader!!.asMap_set("translation", OffersUniform {
+//            println("translation ${drawing!!.getTranslationRounded()}")
+            drawing!!.getTranslationRounded()
+        })
+        shader!!.asMap_set("scale", OffersUniform {
+//            println("scale ${drawing!!.getScale()}")
+            drawing!!.getScale()
+        })
+        shader!!.asMap_set("bounds", OffersUniform {
+//            println("bounds ${Vec2(Window.getCurrentWidth(), Window.getCurrentHeight())}")
+            Vec2(Window.getCurrentWidth(), Window.getCurrentHeight())
+        })
+//        shader.attach(Uniform("translation") { drawing!!.getTranslationRounded() })
+//        shader.attach(Uniform("scale") { drawing!!.getScale() })
+//        shader.attach(Uniform("bounds") { Vec2(Window.getCurrentWidth(), Window.getCurrentHeight()) })
+        shader!!.attach(-2, "__rectupdate__") { x: Int? ->
             val r = properties.get(frame)
             update(r.x, r.y, 1f)
         }
-        shader.attach(q)
-        shader.asMap_set("te", texture)
+        shader!!.attach(q)
+        shader!!.asMap_set("TE", texture)
         window!!.getCompositor()
             .getLayer(properties.computeIfAbsent(FLineDrawing.layer) { k: Dict.Prop<String?>? -> "__main__" })
             .scene
             .attach(shader)
         properties.putToMap(Boxes.insideRunLoop, "main.__updateSize__", Supplier {
             val r = properties.get(frame)
-            update(r.x, r.y, 1f)
+//            update(r.x, r.y, 1f)
             true
         })
         properties.putToMap(
@@ -801,15 +820,16 @@ float e = 0.005;
             }
             Log.log("cef.debug") { " texture was dirty, uploading " }
 
-//            System.out.println(" calling upload on the texture 1 ");
-            texture!!.upload(
-                source,
-                false,
-                damage!!.x.toInt(),
-                damage!!.y.toInt(),
-                (damage!!.w + damage!!.x).toInt(),
-                (1 + damage!!.h + damage!!.y).toInt()
-            )
+            System.out.println(" calling upload on the texture 1  "+shader);
+//            texture!!.upload(
+//                source,
+//                false,
+//                damage!!.x.toInt(),
+//                damage!!.y.toInt(),
+//                (damage!!.w + damage!!.x).toInt(),
+//                (1 + damage!!.h + damage!!.y).toInt()
+//            )
+            texture!!.forceUploadNow(source);
             Drawing.dirty(this)
             again = 1
             hasRepainted = true
@@ -817,16 +837,16 @@ float e = 0.005;
         } else if (again > 0 && damage != null) {
             Log.log("cef.debug") { " texture was dirty $again call, uploading " }
 
-//            System.out.println(" calling upload on the texture 2 ");
-            texture!!.upload(
-                source,
-                false,
-                damage!!.x.toInt(),
-                damage!!.y.toInt(),
-                (damage!!.w + damage!!.x).toInt(),
-                (1 + damage!!.h + damage!!.y).toInt()
-            )
-            //			texture.forceUploadNow(source);
+            System.out.println(" calling upload on the texture 2 ");
+//            texture!!.upload(
+//                source,
+//                false,
+//                damage!!.x.toInt(),
+//                damage!!.y.toInt(),
+//                (damage!!.w + damage!!.x).toInt(),
+//                (1 + damage!!.h + damage!!.y).toInt()
+//            )
+            			texture!!.forceUploadNow(source);
             Drawing.dirty(this)
             RunLoop.main.shouldSleep.add(this)
             again--

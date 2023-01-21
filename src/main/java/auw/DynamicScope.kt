@@ -4,6 +4,7 @@ import field.utility.Dict
 import field.utility.IdempotencyMap
 import fieldbox.boxes.Box
 import fieldnashorn.Nashorn.boxBindings
+import org.jetbrains.kotlin.konan.file.use
 import org.openjdk.nashorn.api.scripting.AbstractJSObject
 import org.openjdk.nashorn.api.scripting.JSObject
 import org.openjdk.nashorn.api.scripting.ScriptObjectMirror

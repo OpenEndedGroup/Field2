@@ -8,8 +8,11 @@ import fieldbox.boxes.Drawing
 import fieldbox.boxes.Mouse
 import fieldbox.io.IO
 import fielded.Commands
+import java.util.*
 import java.util.function.Supplier
-import kotlin.jvm.optionals.getOrNull
+import kotlin.collections.LinkedHashMap
+import kotlin.collections.LinkedHashSet
+
 
 /**
  * Plugin for rendering the stuff _above_ root visible and editable. Perhaps this replaces "disconnected" ?
@@ -224,3 +227,9 @@ class Pages(val root: Box) : Box() {
     }
 
 }
+
+private fun <T> Optional<T>.getOrNull(): T? {
+    if (this.isEmpty) return null
+    return this.get()
+}
+

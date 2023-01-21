@@ -40,6 +40,11 @@ public class UniformBundle implements Scene.Perform {
 		checkName(d); return uniforms.computeIfAbsent(new Dict.Prop(d), (k) -> new Uniform<T>(d, s)).setValue(s);
 	}
 
+	// kotlin compiler bug!
+	public Uniform set_(String d, Supplier s) {
+		checkName(d); return uniforms.computeIfAbsent(new Dict.Prop(d), (k) -> new Uniform(d, s)).setValue(s);
+	}
+
 	private void checkName(String d) {
 		if (uniforms.containsKey(d)) return;
 		try{

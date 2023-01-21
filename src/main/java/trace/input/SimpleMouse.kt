@@ -17,8 +17,12 @@ class SimpleMouse : java.util.function.Function<Event<Window.MouseState>, Boolea
 
     val down = mutableSetOf<Int>()
 
-    fun clear()
-    {
+    var x = 0.0
+    var y = 0.0
+    var buttons = 0
+
+
+    fun clear() {
         onMouseDown.clear()
         onMouseUp.clear()
         onMouseMove.clear()
@@ -40,6 +44,10 @@ class SimpleMouse : java.util.function.Function<Event<Window.MouseState>, Boolea
         upEvents.addAll(b)
         down.removeAll(b)
 
+
+        buttons = down.map { 2 shl it }.sum()
+        x = mouseEventState.after.x/10
+        y = mouseEventState.after.y/10
 
         RunLoop.main.once {
             downEvents.forEach {

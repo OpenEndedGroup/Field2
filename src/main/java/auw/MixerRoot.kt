@@ -35,7 +35,6 @@ class MixerRoot : Box(), IO.Loaded {
                 f.lineTo(i * 0.25, -b.a.get(i) * 200.0)
             }
 
-
             val f2 = FLine()
             f2.lineTo(0.0, 0.0).lineTo(b.length*0.25, 0.0)
             f2.attributes.put(color, Vec4(0,0,0,0.3))

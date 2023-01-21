@@ -6,7 +6,7 @@ Field is an open-source software project initiated by OpenEndedGroup, for the cr
 
 It is a cross-platform environment for writing code to rapidly and experimentally assemble and explore algorithmic systems.
 
-It is _visual_, it is _code-based_, it is _hybrid_.
+<center> It is <i>visual</i>, it is <i>code-based</i>, it is <i>hybrid</i>. </center> 
 
 We think it has something to offer a diverse range of programmers, scientists and artists.
 
@@ -22,7 +22,7 @@ You'll need a JDK, and not just any one, a JBR 17 JDK with JCEF compiled into it
 2. make sure the extra `deps` library is still added to the main module. This contains a handful of hard to object .jars that are needed from outside of the Maven world.
 3. make sure we've selected the right 'profile' from the Maven prpfile list for your computer (there should be choices between `macos-aarch64`, `macos-amd64` and `windows-amd64`)
 4. build! (and wait for the dependencies to download)
-5. finally, and you only need to do this when dependencies change, run the 'dependency:copy-dependencies' maven task from the Maven Plugins palette. 
+5. finally, and you only need to do this when dependencies change, run the `dependency:copy-dependencies` maven task from the Maven Plugins palette. 
 
 Then you should be able to run Field from the command line. Mac:
 
