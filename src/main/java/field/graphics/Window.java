@@ -821,7 +821,7 @@ public class Window implements ProvidesGraphicsContext, BoxBrowser.HasMarkdownIn
         Iterator<Function<Event<KeyboardState>, Boolean>> i = keyboardHandlers.iterator();
         Event<KeyboardState> event = new Event<>(before, after);
 
-//        debugKeyboardTransition(event);
+        debugKeyboardTransition(event);
 
         while (i.hasNext()) if (!i.next().apply(event)) i.remove();
     }

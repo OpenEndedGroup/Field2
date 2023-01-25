@@ -108,14 +108,25 @@ class BrowserKeyboardHacks(private val target: CefBrowser) {
                 }
                 else
                 {
-                    var ke =
-                        KeyEvent(component, KeyEvent.KEY_PRESSED, 0, mod, translated, translated.toChar() )
-                    e.properties.put(Window.consumed, true)
-                    target.sendKeyEvent(ke)
+                    if (translated==157) // solo meta down
+                    {
 
-                    ke = KeyEvent(component, KeyEvent.KEY_RELEASED, 0, fmod, translated, translated.toChar())
-                    e.properties.put(Window.consumed, true)
-                    target.sendKeyEvent(ke)
+                    }
+                    else if (translated==17) // solo meta down
+                    {
+
+                    }
+                    else {
+                        var ke =
+                            KeyEvent(component, KeyEvent.KEY_PRESSED, 0, mod, translated, translated.toInt().toChar())
+                        e.properties.put(Window.consumed, true)
+                        target.sendKeyEvent(ke)
+
+                        ke =
+                            KeyEvent(component, KeyEvent.KEY_RELEASED, 0, fmod, translated, translated.toInt().toChar())
+                        e.properties.put(Window.consumed, true)
+                        target.sendKeyEvent(ke)
+                    }
                 }
             }
         }

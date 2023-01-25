@@ -253,6 +253,9 @@ public class Windows {
 				// we occasionally get a spurious 'a' (scancode 0) on command-tabbing to our application. If it's just a plain 'a' let's assume that the character callback will handle it
 				//if (scancode == 0 && mods == 0) return;
 
+//				// 4964064528, 343, 55, 1, 8 --- command down
+//				// 4964064528, 343, 55, 0, 0 --- command up
+
 				Runnable r = () -> {
 					checkClassLoader();
 					GlfwCallback a = adaptors.get(window);
