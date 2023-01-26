@@ -21,7 +21,6 @@ private fun <T> Optional<T>.getOrNull(): T? {
 /**
  * Plugin for rendering the stuff _above_ root visible and editable. Perhaps this replaces "disconnected" ?
  */
-@OptIn(ExperimentalStdlibApi::class)
 class Pages(val root: Box) : Box() {
 
     var currentPage = -1
@@ -158,7 +157,7 @@ class Pages(val root: Box) : Box() {
     fun nextPage() {
         store()
         install()
-        currentPage = Math.max(1, currentPage + 1)
+        currentPage = currentPage + 1
         Drawing.dirty(root)
         this.properties.putToMap(StatusBar.statuses, "page", Supplier {
             "Viewing Page $currentPage"
@@ -169,7 +168,8 @@ class Pages(val root: Box) : Box() {
 
     fun previousPage() {
         store()
-        currentPage = Math.max(0, currentPage - 1)
+//        currentPage = Math.max(0, currentPage - 1)
+        currentPage = currentPage - 1
         if (currentPage == 0) {
             noPage()
         } else {
@@ -183,7 +183,7 @@ class Pages(val root: Box) : Box() {
     }
 
     fun moveToCurrentPage(b: Box) {
-        if (currentPage > 0) {
+        if (currentPage != 0) {
             b.properties.put(Planes.plane, "__page_${currentPage}__")
         } else
             b.properties.remove(Planes.plane)
@@ -198,18 +198,30 @@ class Pages(val root: Box) : Box() {
     }
 
     fun moveToNextPage(b: Box) {
-        b.properties.put(Planes.plane, "__page_${Math.max(1, currentPage + 1)}__")
+        if (currentPage + 1 == 0) {
+            b.properties.remove(Planes.plane)
+        } else
+            b.properties.put(Planes.plane, "__page_${currentPage + 1}__")
+        Drawing.dirty(root)
+        store()
+    }
+
+    fun moveToPreviousPage(b: Box) {
+        if (currentPage - 1 == 0) {
+            b.properties.remove(Planes.plane)
+        } else
+            b.properties.put(Planes.plane, "__page_${currentPage - 1}__")
         Drawing.dirty(root)
         store()
     }
 
     fun nextPageName(): String {
-        return "Page ${Math.max(1, currentPage + 1)}"
+        return "Page ${currentPage + 1}"
     }
 
     fun prevPageName(): String? {
         if (currentPage <= 1) return null
-        return "Page ${Math.max(1, currentPage - 1)}"
+        return "Page ${currentPage - 1}"
     }
 
 
