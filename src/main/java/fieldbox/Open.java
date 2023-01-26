@@ -254,7 +254,7 @@ public class Open {
 
         new Pages(root).connect(root);
 
-        new Taps(root).connect(root);
+//        new Taps(root).connect(root);
 
         new Image2(root).connect(root);
 
