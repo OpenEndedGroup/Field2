@@ -534,7 +534,7 @@ float e = 0.005;
             "__browser__",
             OnKeyDown { e: Window.Event<Window.KeyboardState>, k: Int ->
 
-//                System.out.println(" key down ! ${e.before} -> ${e.after}")
+                System.out.println(" key down ! ${e.before} -> ${e.after}")
 
                 //if (/*!isSelected() &&*/ !focussed) return null;
                 if (!focus) return@OnKeyDown null
@@ -820,7 +820,7 @@ float e = 0.005;
             }
             Log.log("cef.debug") { " texture was dirty, uploading " }
 
-            System.out.println(" calling upload on the texture 1  "+shader);
+//            System.out.println(" calling upload on the texture 1  "+shader);
 //            texture!!.upload(
 //                source,
 //                false,
@@ -837,7 +837,7 @@ float e = 0.005;
         } else if (again > 0 && damage != null) {
             Log.log("cef.debug") { " texture was dirty $again call, uploading " }
 
-            System.out.println(" calling upload on the texture 2 ");
+//            System.out.println(" calling upload on the texture 2 ");
 //            texture!!.upload(
 //                source,
 //                false,
@@ -846,7 +846,7 @@ float e = 0.005;
 //                (damage!!.w + damage!!.x).toInt(),
 //                (1 + damage!!.h + damage!!.y).toInt()
 //            )
-            			texture!!.forceUploadNow(source);
+            texture!!.forceUploadNow(source);
             Drawing.dirty(this)
             RunLoop.main.shouldSleep.add(this)
             again--
@@ -988,7 +988,7 @@ float e = 0.005;
         )
     }
 
-   fun interface Handler {
+    fun interface Handler {
         fun handle(address: String?, payload: JSONObject?, reply: Consumer<String?>?)
     }
 
